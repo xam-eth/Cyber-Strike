@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+	<!-- Project Overdrive icon: neon hex shield with a pulse bolt. -->
+	<defs>
+		<linearGradient id="rim" x1="0" y1="0" x2="1" y2="1">
+			<stop offset="0" stop-color="#24d3ff"/>
+			<stop offset="1" stop-color="#7cffcb"/>
+		</linearGradient>
+		<radialGradient id="core" cx="50%" cy="45%" r="62%">
+			<stop offset="0" stop-color="#0d2b45"/>
+			<stop offset="1" stop-color="#05070d"/>
+		</radialGradient>
+	</defs>
+	<rect width="256" height="256" rx="42" fill="#05070d"/>
+	<path d="M128 20 216 71v114l-88 51-88-51V71z" fill="url(#core)" stroke="url(#rim)" stroke-width="10" stroke-linejoin="round"/>
+	<path d="M139 62 96 138h30l-15 58 46-80h-31z" fill="url(#rim)"/>
+	<circle cx="128" cy="128" r="104" fill="none" stroke="#24d3ff" stroke-opacity="0.25" stroke-width="4"/>
+</svg>

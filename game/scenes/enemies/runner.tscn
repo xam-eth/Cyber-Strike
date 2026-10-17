@@ -1,6 +1,8 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/enemies/runner.gd" id="1_runner"]
+[ext_resource type="Script" path="res://scripts/enemies/enemy_visual.gd" id="2_enemy_visual"]
+[ext_resource type="PackedScene" path="res://assets/world/kenney_space_kit/alien.glb" id="3_alien"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape_runner"]
 radius = 0.42
@@ -27,6 +29,12 @@ position = Vector3(0, 0.9, 0)
 shape = SubResource("CapsuleShape_runner")
 
 [node name="Visuals" type="Node3D" parent="."]
+script = ExtResource("2_enemy_visual")
+model_scene = ExtResource("3_alien")
+target_size = 1.72
+outline_color = Color(0.05, 0.02, 0.04, 1)
+bob_amplitude = 0.055
+bob_frequency = 8.5
 
 [node name="BodyMesh" type="MeshInstance3D" parent="Visuals"]
 position = Vector3(0, 0.9, 0)

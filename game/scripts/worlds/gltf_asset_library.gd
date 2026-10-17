@@ -3,19 +3,93 @@ extends RefCounted
 
 # Preloading imported scenes makes the GLTFs and their BIN/texture dependencies visible to
 # Godot's export dependency scanner. Keep these paths static so Android PCK exports include them.
+#
+# The whole CC0 KayKit "Space Base Bits" pack is registered here (57 models), not just the
+# handful the first world pass used: the level is built from these modules, so a missing
+# preload would silently drop geometry from an export-only build.
 const MODEL_SCENES: Dictionary = {
+	"basemodule_A": preload("res://assets/world/kaykit_space_base_bits/gltf/basemodule_A.gltf"),
+	"basemodule_B": preload("res://assets/world/kaykit_space_base_bits/gltf/basemodule_B.gltf"),
+	"basemodule_C": preload("res://assets/world/kaykit_space_base_bits/gltf/basemodule_C.gltf"),
+	"basemodule_D": preload("res://assets/world/kaykit_space_base_bits/gltf/basemodule_D.gltf"),
+	"basemodule_E": preload("res://assets/world/kaykit_space_base_bits/gltf/basemodule_E.gltf"),
+	"basemodule_garage":
+	preload("res://assets/world/kaykit_space_base_bits/gltf/basemodule_garage.gltf"),
+	"cargo_A": preload("res://assets/world/kaykit_space_base_bits/gltf/cargo_A.gltf"),
+	"cargo_A_packed": preload("res://assets/world/kaykit_space_base_bits/gltf/cargo_A_packed.gltf"),
 	"cargo_A_stacked":
 	preload("res://assets/world/kaykit_space_base_bits/gltf/cargo_A_stacked.gltf"),
+	"cargo_B": preload("res://assets/world/kaykit_space_base_bits/gltf/cargo_B.gltf"),
+	"cargo_B_packed": preload("res://assets/world/kaykit_space_base_bits/gltf/cargo_B_packed.gltf"),
 	"cargo_B_stacked":
 	preload("res://assets/world/kaykit_space_base_bits/gltf/cargo_B_stacked.gltf"),
 	"cargodepot_A": preload("res://assets/world/kaykit_space_base_bits/gltf/cargodepot_A.gltf"),
+	"cargodepot_B": preload("res://assets/world/kaykit_space_base_bits/gltf/cargodepot_B.gltf"),
+	"cargodepot_C": preload("res://assets/world/kaykit_space_base_bits/gltf/cargodepot_C.gltf"),
+	"containers_A": preload("res://assets/world/kaykit_space_base_bits/gltf/containers_A.gltf"),
+	"containers_B": preload("res://assets/world/kaykit_space_base_bits/gltf/containers_B.gltf"),
+	"containers_C": preload("res://assets/world/kaykit_space_base_bits/gltf/containers_C.gltf"),
+	"containers_D": preload("res://assets/world/kaykit_space_base_bits/gltf/containers_D.gltf"),
 	"drill_structure":
 	preload("res://assets/world/kaykit_space_base_bits/gltf/drill_structure.gltf"),
+	"lander_A": preload("res://assets/world/kaykit_space_base_bits/gltf/lander_A.gltf"),
+	"lander_B": preload("res://assets/world/kaykit_space_base_bits/gltf/lander_B.gltf"),
+	"lander_base": preload("res://assets/world/kaykit_space_base_bits/gltf/lander_base.gltf"),
 	"landingpad_large":
 	preload("res://assets/world/kaykit_space_base_bits/gltf/landingpad_large.gltf"),
+	"landingpad_small":
+	preload("res://assets/world/kaykit_space_base_bits/gltf/landingpad_small.gltf"),
+	"lights": preload("res://assets/world/kaykit_space_base_bits/gltf/lights.gltf"),
+	"rock_A": preload("res://assets/world/kaykit_space_base_bits/gltf/rock_A.gltf"),
+	"rock_B": preload("res://assets/world/kaykit_space_base_bits/gltf/rock_B.gltf"),
+	"rocks_A": preload("res://assets/world/kaykit_space_base_bits/gltf/rocks_A.gltf"),
 	"rocks_B": preload("res://assets/world/kaykit_space_base_bits/gltf/rocks_B.gltf"),
+	"roofmodule_base":
+	preload("res://assets/world/kaykit_space_base_bits/gltf/roofmodule_base.gltf"),
+	"roofmodule_cargo_A":
+	preload("res://assets/world/kaykit_space_base_bits/gltf/roofmodule_cargo_A.gltf"),
+	"roofmodule_cargo_B":
+	preload("res://assets/world/kaykit_space_base_bits/gltf/roofmodule_cargo_B.gltf"),
+	"roofmodule_cargo_C":
+	preload("res://assets/world/kaykit_space_base_bits/gltf/roofmodule_cargo_C.gltf"),
+	"roofmodule_solarpanels":
+	preload("res://assets/world/kaykit_space_base_bits/gltf/roofmodule_solarpanels.gltf"),
+	"solarpanel": preload("res://assets/world/kaykit_space_base_bits/gltf/solarpanel.gltf"),
+	"spacetruck": preload("res://assets/world/kaykit_space_base_bits/gltf/spacetruck.gltf"),
 	"spacetruck_large":
 	preload("res://assets/world/kaykit_space_base_bits/gltf/spacetruck_large.gltf"),
+	"spacetruck_trailer":
+	preload("res://assets/world/kaykit_space_base_bits/gltf/spacetruck_trailer.gltf"),
+	"structure_low": preload("res://assets/world/kaykit_space_base_bits/gltf/structure_low.gltf"),
+	"structure_tall": preload("res://assets/world/kaykit_space_base_bits/gltf/structure_tall.gltf"),
+	"terrain_low": preload("res://assets/world/kaykit_space_base_bits/gltf/terrain_low.gltf"),
+	"terrain_low_curved":
+	preload("res://assets/world/kaykit_space_base_bits/gltf/terrain_low_curved.gltf"),
+	"terrain_mining": preload("res://assets/world/kaykit_space_base_bits/gltf/terrain_mining.gltf"),
+	"terrain_slope": preload("res://assets/world/kaykit_space_base_bits/gltf/terrain_slope.gltf"),
+	"terrain_slope_inner_corner":
+	preload("res://assets/world/kaykit_space_base_bits/gltf/terrain_slope_inner_corner.gltf"),
+	"terrain_slope_outer_corner":
+	preload("res://assets/world/kaykit_space_base_bits/gltf/terrain_slope_outer_corner.gltf"),
+	"terrain_tall": preload("res://assets/world/kaykit_space_base_bits/gltf/terrain_tall.gltf"),
+	"terrain_tall_curved":
+	preload("res://assets/world/kaykit_space_base_bits/gltf/terrain_tall_curved.gltf"),
+	"tunnel_diagonal_long_A":
+	preload("res://assets/world/kaykit_space_base_bits/gltf/tunnel_diagonal_long_A.gltf"),
+	"tunnel_diagonal_long_B":
+	preload("res://assets/world/kaykit_space_base_bits/gltf/tunnel_diagonal_long_B.gltf"),
+	"tunnel_diagonal_short_A":
+	preload("res://assets/world/kaykit_space_base_bits/gltf/tunnel_diagonal_short_A.gltf"),
+	"tunnel_diagonal_short_B":
+	preload("res://assets/world/kaykit_space_base_bits/gltf/tunnel_diagonal_short_B.gltf"),
+	"tunnel_straight_A":
+	preload("res://assets/world/kaykit_space_base_bits/gltf/tunnel_straight_A.gltf"),
+	"tunnel_straight_B":
+	preload("res://assets/world/kaykit_space_base_bits/gltf/tunnel_straight_B.gltf"),
+	"windturbine_low":
+	preload("res://assets/world/kaykit_space_base_bits/gltf/windturbine_low.gltf"),
+	"windturbine_tall":
+	preload("res://assets/world/kaykit_space_base_bits/gltf/windturbine_tall.gltf"),
 }
 
 

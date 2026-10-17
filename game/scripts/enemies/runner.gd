@@ -21,7 +21,7 @@ var _attack_cooldown: float = 0.0
 var _spawn_transform: Transform3D
 
 @onready var collision_shape: CollisionShape3D = $CollisionShape3D
-@onready var visuals: Node3D = $Visuals
+@onready var visuals: EnemyVisual = $Visuals
 
 
 func _ready() -> void:
@@ -65,6 +65,8 @@ func _physics_process(delta: float) -> void:
 	else:
 		velocity.y = 0.0
 	move_and_slide()
+	# The kit model has no rig, so the run bob and the forward lean come from here.
+	visuals.update_motion(velocity, delta)
 
 
 func apply_damage(amount: float, _source: Node = null) -> void:
@@ -79,7 +81,10 @@ func apply_damage(amount: float, _source: Node = null) -> void:
 		_is_downed = true
 		velocity = Vector3.ZERO
 		eliminated.emit()
-		visuals.visible = false
+		Sfx.play_3d(&"enemy_down", global_position)
+		visuals.play_death()
+	else:
+		visuals.play_hit_flash()
 		collision_shape.set_deferred("disabled", true)
 		set_deferred("collision_layer", 0)
 
@@ -94,7 +99,7 @@ func reset_runner() -> void:
 	current_health = max_health
 	velocity = Vector3.ZERO
 	global_transform = _spawn_transform
-	visuals.visible = true
+	visuals.reset_visual()
 	collision_shape.set_deferred("disabled", false)
 	set_deferred("collision_layer", 2)
 	health_changed.emit(current_health, max_health)

@@ -29,9 +29,10 @@ var _locked_attack_point: Vector3 = Vector3.ZERO
 var _spawn_transform: Transform3D
 
 @onready var collision_shape: CollisionShape3D = $CollisionShape3D
-@onready var visuals: Node3D = $Visuals
+@onready var visuals: EnemyVisual = $Visuals
 @onready var muzzle: Marker3D = $Visuals/Muzzle
 @onready var aim_marker: MeshInstance3D = $AimMarker
+@onready var core: MeshInstance3D = get_node_or_null("Visuals/CoreMesh") as MeshInstance3D
 
 
 func _ready() -> void:
@@ -92,6 +93,20 @@ func _physics_process(delta: float) -> void:
 	else:
 		velocity.y = 0.0
 	move_and_slide()
+	visuals.update_motion(velocity, delta)
+	_update_core_telegraph(delta)
+
+
+## The core in the chest pulses while the ranged attack charges, so the telegraph
+## reads from the model itself and not only from the floating aim marker.
+func _update_core_telegraph(delta: float) -> void:
+	if not is_instance_valid(core):
+		return
+	var target_scale := Vector3.ONE
+	if _windup_remaining > 0.0:
+		var charge := 1.0 - clampf(_windup_remaining / maxf(attack_windup, 0.001), 0.0, 1.0)
+		target_scale = Vector3.ONE * (1.0 + 0.55 * charge)
+	core.scale = core.scale.lerp(target_scale, minf(delta * 14.0, 1.0))
 
 
 func apply_damage(amount: float, _source: Node = null) -> void:
@@ -107,9 +122,12 @@ func apply_damage(amount: float, _source: Node = null) -> void:
 		velocity = Vector3.ZERO
 		_cancel_attack()
 		eliminated.emit()
-		visuals.visible = false
+		Sfx.play_3d(&"enemy_down", global_position)
+		visuals.play_death()
 		collision_shape.set_deferred("disabled", true)
 		set_deferred("collision_layer", 0)
+	else:
+		visuals.play_hit_flash()
 
 
 func is_defeated() -> bool:
@@ -127,7 +145,7 @@ func reset_shooter() -> void:
 	current_health = max_health
 	velocity = Vector3.ZERO
 	global_transform = _spawn_transform
-	visuals.visible = true
+	visuals.reset_visual()
 	aim_marker.visible = false
 	collision_shape.set_deferred("disabled", false)
 	set_deferred("collision_layer", 2)

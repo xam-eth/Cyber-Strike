@@ -4,13 +4,30 @@
 
 ## 1. Status workspace saat ini
 
-Pemeriksaan diperbarui pada **16 Oktober 2026** setelah integrasi GLTF dan EMP. **Toolchain sesi ini:** `godot`, Java/JDK, Android SDK/ADB, `sdkmanager`, Gradle, dan `keytool` tidak ditemukan di `PATH`; `./scripts/check_toolchain.sh` melaporkan tiga kebutuhan Android/Godot belum tersedia. Karena itu, project belum dapat diimpor melalui Godot Editor pada sesi ini, export templates belum dapat diperiksa, dan APK belum dibuat. Smoke test terbaru untuk GLTF/EMP/joystick juga belum dijalankan di engine. **Pemeriksaan statis sesi ini:** `gdtoolkit` lint + format dan `git diff --check` lulus; ketujuh KayKit GLTF, companion BIN, referensi atlas, serta CC0 license lolos pemeriksaan file/struktur. Sepuluh GLB Kenney Space Kit dari mirror GitHub yang dipin juga telah diunduh, dicek header/JSON/hash, dan disertai CC0/license provenance; tiga model karakter di subset tersebut tidak memiliki skin/animasi. Ini bukan pengganti import/runtime test Godot. Catatan lama dari environment berbeda menyebut source-built `template_debug` dan smoke test versi sebelumnya; hasil historis tersebut tidak memvalidasi perubahan GLTF/EMP saat ini. Tampilan renderer, performa mobile, Android export/deployment, dan uji perangkat fisik tetap belum diverifikasi. GUI bukan syarat workflow. Wheel `bpy==4.5.14` dari PyPI pernah diuji; import tetap terhenti karena shared libraries Linux (`libXrender`, `libXfixes`, `libXi`, `libxkbcommon`, `libSM`, `libICE`, `libGL`) tidak tersedia. Blender tidak diperlukan untuk geometri blockout, tetapi tetap dibutuhkan untuk produksi rig/animasi GLB sesuai `ANIMATION_CHARACTER.txt`.
+Pemeriksaan diperbarui pada **16 Oktober 2026** setelah integrasi GLTF dan EMP, lalu diperbarui lagi setelah penambahan tooling verifikasi. **Toolchain sesi ini:** `godot`, Java/JDK, Android SDK/ADB, `sdkmanager`, Gradle, dan `keytool` tidak ditemukan di `PATH`; `./scripts/check_toolchain.sh` melaporkan dua kebutuhan Android (Java/JDK dan Android SDK) belum tersedia. Karena itu, project belum dapat diimpor melalui Godot Editor pada sesi ini, export templates belum dapat diperiksa, dan APK belum dibuat.
+
+**Kenapa Godot belum bisa dipasang di sesi ini:** binary rilis tidak dapat diunduh karena host aset rilis GitHub (`objects.githubusercontent.com` / `release-assets.githubusercontent.com`) tidak dapat dijangkau dari sandbox; `curl` gagal dengan `SSL_ERROR_SYSCALL` (exit 35). Jalur alternatif sudah diperiksa dan ditutup: PyPI tidak mendistribusikan engine, `@ringozz/godot` di npm hanya menyediakan binding untuk web-wasm32/macOS-arm64/Windows (tanpa Linux native), dan `godotengine/godot-builds` menyimpan arsipnya di host aset yang sama. Karena itu `scripts/install_godot.sh` ditulis untuk dijalankan di mesin/CI dengan akses internet penuh.
+
+**Pemeriksaan statis sesi ini (dapat direproduksi):** diperbarui ke `gdtoolkit 4.5.0` di `.venv`; `gdparse`, `gdlint`, dan `gdformat --check` lulus untuk seluruh skrip GDScript, dan `tools/project_doctor.py` melaporkan **0 FAIL / 8 WARN** (referensi scene, jalur node lintas-scene, kecocokan tipe script/node, aksi input, signal, group, kontrak `WeaponDefinition`, integritas glTF/GLB, dan konsistensi dokumen). Satu temuan nyata sudah diperbaiki: `scenes/enemies/shooter.tscn` memakai `load_steps=8` padahal mendeklarasikan 9 resource. Ketujuh KayKit GLTF, companion BIN, referensi atlas, serta CC0 license lolos pemeriksaan file/struktur; sepuluh GLB Kenney Space Kit tetap kandidat yang belum dipakai scene. Ini **bukan** pengganti import/runtime test Godot: 12 smoke test headless belum pernah dijalankan pada engine versi ini.
+
+**Verifikasi runtime lewat CI (Godot asli):** karena mesin ini tidak dapat mengunduh engine, `.github/workflows/godot-ci.yml` menjalankan hal yang sama di GitHub Actions: `install_godot.sh` memasang Godot 4.7.2-stable resmi (SHA-512 dari `SHA512-SUMS.txt`), lalu `run_smoke_tests.sh` melakukan import headless dan menjalankan 12 smoke test. **Run pertama (PR #1, run `38905670471`) hijau pada kedua job** — job statis dan job "Headless smoke tests (Godot 4.7.2)". Ringkasan mesin-terbaca ada di `exports/test-logs/summary.txt` dan dicetak ke job summary; log per test diunggah sebagai artefak `smoke-test-logs`. Ini memverifikasi logika gameplay headless, bukan render/performa/perangkat.
+
+**Sudah diuji end-to-end dengan tiruan juga:** `scripts/install_godot.sh` (unduh → verifikasi SHA-512 → ekstrak → symlink → direktori template) diuji memakai release lokal tiruan melalui `GODOT_RELEASE_BASE=file://…`, dan `scripts/run_smoke_tests.sh` (import → 9 test → log → ringkasan → exit code) diuji memakai stub binary. Uji tiruan itu membuktikan alur skrip; uji CI di atas membuktikan perilaku engine headless.
+
+Tampilan renderer, performa mobile, Android export/deployment, dan uji perangkat fisik tetap belum diverifikasi. GUI bukan syarat workflow. Wheel `bpy==4.5.14` dari PyPI pernah diuji; import tetap terhenti karena shared libraries Linux (`libXrender`, `libXfixes`, `libXi`, `libxkbcommon`, `libSM`, `libICE`, `libGL`) tidak tersedia. Blender tidak diperlukan untuk geometri blockout, tetapi tetap dibutuhkan untuk produksi rig/animasi GLB sesuai `ANIMATION_CHARACTER.txt`.
 
 
 | Tool | Status di sandbox ini | Perlu untuk |
 |---|---|---|
 | Git | Tersedia | Version control dan perubahan dokumen/kode |
-| Python 3 | Tersedia | Helper/otomasi opsional |
+| Python 3 | Tersedia | `tools/project_doctor.py`, `scripts/dev_check.sh`, dan helper/otomasi |
+| gdtoolkit 4.5.0 (`.venv`) | **Terpasang dan dijalankan di sesi ini.** `gdparse`/`gdlint`/`gdformat --check` lulus untuk 28 skrip. Jalankan lewat `./scripts/dev_check.sh`. | Parse, lint, dan format GDScript; bukan pengganti pemeriksaan API/runtime Godot |
+| Godot installer | **Tersedia sebagai skrip:** `./scripts/install_godot.sh` (unduh, verifikasi SHA-512, ekstrak, symlink, `--with-templates`). Sudah diuji memakai release lokal tiruan. | Memasang Godot 4.7.2-stable di mesin/CI yang punya akses host rilis |
+| Smoke test runner | **Tersedia dan sudah terbukti di CI:** `./scripts/run_smoke_tests.sh` (import headless + 12 test + log dan `summary.txt` di `exports/test-logs/`). Diuji dengan stub binary di sandbox dan dengan Godot 4.7.2 asli di CI (run pertama hijau). | Menjalankan verifikasi runtime headless |
+| CI | **Tersedia:** `.github/workflows/godot-ci.yml` (job statis + job Godot headless + job `web-preview` yang mengunggah artefak WebAssembly). | Menjalankan lint, doctor, import, smoke test, dan ekspor Web otomatis |
+| Android SDK helper | **Tersedia:** `./scripts/setup_android_sdk.sh` (`--guide`, `--install-packages`, menulis `android-env.sh` di luar repo). Jalur bahagia diuji dengan layout JDK/SDK tiruan. | Deteksi JDK/SDK, pemasangan paket SDK, dan penyiapan environment Android |
+| Web preview tooling | **Tersedia dan teruji statis:** `tools/web_preset.py` (preset Web), `scripts/export_web_preview.sh` (ekspor + verifikasi), `tools/verify_web_build.py`, shell kustom `game/web_shell/index.html`, landing page `index.html`, dan job CI `web-preview`. 22 unit test lulus via `dev_check.sh`. | Review UI/UX/gameplay tanpa memasang Godot/Android SDK — lihat [`WEB_PREVIEW.md`](WEB_PREVIEW.md) |
+| Android preset tool | **Tersedia:** `python3 tools/android_preset.py {scaffold,patch,check,show}`. Diuji lokal (scaffold, guard, patch + backup, validasi gagal untuk `com.example.*`, idempoten). | Membuat/memperbarui/memvalidasi `game/export_presets.cfg` tanpa GUI |
 | Godot 4.7.2-stable | **Tidak tersedia di sesi ini.** Versi Editor/CLI dan export templates yang cocok perlu dipasang sebelum import dan export. Smoke test historis berjalan di environment berbeda, sebelum integrasi GLTF/EMP terbaru; jangan anggap sebagai runtime verification saat ini. | Import GLTF project, run smoke tests, and export Android APK |
 | Blender | Native `blender` CLI belum ditemukan. Alternatif resmi `bpy==4.5.14` dari PyPI sudah dipasang dan diuji sebagai modul headless, tetapi import berhenti karena runtime system libraries `libXrender`, `libXfixes`, `libXi`, `libxkbcommon`, `libSM`, `libICE`, dan `libGL` tidak tersedia; wheel bukan executable CLI. Fork WASM browser belum tervalidasi sebagai pipeline asset CLI. | Pembuatan model/animasi dan ekspor GLB lewat `blender --background --python ...` atau modul `bpy` setelah dependency native tersedia |
 | Java/JDK | Tidak ditemukan | Android build/export sesuai kebutuhan Godot |
@@ -82,15 +99,26 @@ Jangan pasang SDK iklan, plugin IAP, Google Play Billing wrapper, atau masukkan 
 
    Script memberi `FAIL` untuk tool yang dibutuhkan Phase 0 namun belum ditemukan, dan `WARN` untuk tool/aset yang baru diperlukan pada fase berikutnya. Script tidak mengunduh atau mengubah versi tool.
 
-   Static lint GDScript (opsional; tidak menggantikan pemeriksaan di Godot):
+   Pemeriksaan statis lengkap (syntax, lint, format, referensi, kontrak, konsistensi dokumen) tanpa perlu engine:
 
    ```bash
    python3 -m venv .venv
    .venv/bin/pip install -r requirements-dev.txt
-   ./scripts/lint_gdscript.sh
+   ./scripts/dev_check.sh          # gdparse + gdlint + gdformat + project doctor + inventaris test
+   ./scripts/lint_gdscript.sh      # hanya lint + format bila diinginkan
+   python3 tools/project_doctor.py # hanya validasi struktur, dengan daftar temuan
    ```
 
-   Impor project dan jalankan smoke test tanpa GUI:
+   Pasang engine yang dipin, lalu impor project dan jalankan seluruh smoke test tanpa GUI:
+
+   ```bash
+   ./scripts/install_godot.sh --with-templates   # ke ~/.local/share, tidak ke repo
+   ./scripts/run_smoke_tests.sh                  # import + 13 smoke test + log di exports/test-logs/
+   ./scripts/run_smoke_tests.sh --list
+   ./scripts/run_smoke_tests.sh wave_director_smoke
+   ```
+
+   Perintah manual per test (setara dengan runner) tetap tersedia untuk diagnosis satu kasus:
 
    ```bash
    godot --headless --editor --path game --quit
@@ -104,13 +132,17 @@ Jangan pasang SDK iklan, plugin IAP, Google Play Billing wrapper, atau masukkan 
    godot --headless --path game --script res://tests/reward_loop_smoke.gd
    godot --headless --path game --script res://tests/shooter_enemy_smoke.gd
    godot --headless --path game --script res://tests/playability_hud_smoke.gd
+godot --headless --path game --script res://tests/enemy_visual_smoke.gd
+godot --headless --path game --script res://tests/audio_smoke.gd
+godot --headless --path game --script res://tests/effects_smoke.gd
+godot --headless --path game --script res://tests/hero_rig_smoke.gd
    ```
 
-   Sembilan smoke test memeriksa world 3D modular dan GLTF placement, mesh/collider count, floor/rute, import aset dari `PackedScene`, gerak/aim/fire sentuh, joystick delapan arah (empat kardinal + empat diagonal), EMP damage/cooldown/feedback, weapon switching, pause/retry/HUD, weapon/projectile combat, Shooter/Runner, wave/progress/spawn, reward, dan traversal. Jalankan semuanya sebelum export; keberadaan test bukan bukti lulus sampai exit code Godot diperoleh.
+   Dua belas smoke test memeriksa world 3D modular dan GLTF placement, mesh/collider count, floor/rute, import aset dari `PackedScene`, gerak/aim/fire sentuh, joystick delapan arah (empat kardinal + empat diagonal), EMP damage/cooldown/feedback, weapon switching, pause/retry/HUD, weapon/projectile combat, Shooter/Runner, wave/progress/spawn, reward, traversal, visual musuh (model GLB terpasang, terpusat di kolidernya, siklus mati/reset), skala HUD fisik di layar ponsel (>=11 px fisik, kartu ringkas di layar sempit, label mute mengikuti status audio), audio prosedural (jenis stream, mute, throttle, pemetaan senjata→suara, serta bukti senjata benar-benar memanggil singleton audio), dan efek tempur (muzzle flash menyala lalu padam sendiri termasuk saat delta frame lebih panjang dari durasinya, tracer sepanjang ≥0,8 m di sumbu tembak, serta burst percikan yang membersihkan dirinya). Jalankan semuanya sebelum export; keberadaan test bukan bukti lulus sampai exit code Godot diperoleh.
 
 9. Project Godot sudah berada di `game/`. Uji melalui CLI: headless Editor import tanpa parser error, template Android tersedia, export debug berhasil, APK dipasang/launch via `adb`, dan satu GLB tampil di scene. UI GUI bersifat opsional; perangkat Android nyata tetap diperlukan untuk uji sentuh/performa.
 
-10. Buat **Android export preset lokal** melalui Godot Editor: `Project > Export > Add... > Android`. Isi `package/unique_name` dengan application ID yang dipilih tim (jangan pakai placeholder untuk distribusi), pilih arsitektur perangkat sasaran, dan pastikan Godot Editor Settings menunjuk SDK/JDK dan export templates yang cocok. Simpan preset dengan nama `Android` atau atur `ANDROID_EXPORT_PRESET`; `game/export_presets.cfg` sengaja diabaikan Git karena menyimpan konfigurasi mesin/signing lokal. Gunakan preset debug tanpa keystore rilis.
+10. Siapkan toolchain Android dan **preset export lokal**. Toolchain: `./scripts/setup_android_sdk.sh --guide` lalu `./scripts/setup_android_sdk.sh --install-packages`, kemudian arahkan Godot Editor Settings ke SDK/JDK tersebut. Preset: `python3 tools/android_preset.py scaffold --package-id <application-id> --arch arm64-v8a` (atau `patch` bila preset sudah dibuat lewat `Project > Export > Add... > Android`), lalu `python3 tools/android_preset.py check`. Gunakan application ID nyata (bukan `com.example.*`) dan preset debug tanpa keystore rilis. `game/export_presets.cfg` sengaja diabaikan Git karena menyimpan konfigurasi mesin/signing lokal. Prosedur lengkap, checklist perangkat, dan cara profiling ada di [`ANDROID_BASELINE.md`](ANDROID_BASELINE.md).
 
 11. Jalankan pipeline debug setelah preflight pass:
 

@@ -1,5 +1,15 @@
 # Character and weapon asset inspection
 
+> **2026-10-17 update — resolved.** The rigged hero (`HERO+3d+model.glb`) and the
+> rifle (`futuristic gun 3d model.glb`) were integrated into the player scene.
+> The hero ships 79 joints and five clips (`idle`, `run`, `walk` plus baked
+> `aim`/`fire`), the rifle carries a baked `MuzzlePoint`, and the muzzle flash,
+> projectile spawn and `Muzzle` marker all use it. The sections below describe
+> the **previous** state (`Hero_02.glb` static mesh, placeholder box weapon) and
+> are kept as history. Current pipeline, numbers and evidence:
+> [`HERO_RIG_PIPELINE.md`](HERO_RIG_PIPELINE.md) and
+> `qa-evidence/hero-rig/`.
+
 **Date:** 2026-10-16
 
 **Project:** Godot 4.7.2, project root `game/`

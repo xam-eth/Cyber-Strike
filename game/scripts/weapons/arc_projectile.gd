@@ -78,6 +78,7 @@ func _resolve_shot() -> void:
 		return
 
 	var hit_position: Vector3 = hit.get("position", ray_end)
+	Sfx.play_3d(&"chain_zap", hit_position)
 	_visual_points.append(hit_position)
 	var first_target := hit.get("collider") as CollisionObject3D
 	var damaged_targets: Dictionary = {}

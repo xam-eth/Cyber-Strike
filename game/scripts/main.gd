@@ -24,15 +24,19 @@ func _ready() -> void:
 	touch_controls.movement_changed.connect(player.set_touch_movement)
 	touch_controls.look_delta.connect(player.apply_touch_look)
 	touch_controls.fire_changed.connect(player.set_touch_fire_pressed)
+	touch_controls.aim_changed.connect(player.set_touch_aim_held)
 	touch_controls.weapon_switch_requested.connect(player.select_next_weapon)
 	touch_controls.skill_requested.connect(player.activate_skill)
 	touch_controls.pause_requested.connect(_toggle_pause)
+	touch_controls.sound_mute_requested.connect(_on_sound_mute_requested)
+	touch_controls.set_sound_muted(Sfx.is_muted())
 	player.weapon_changed.connect(touch_controls.set_weapon_label)
 	player.skill_cooldown_changed.connect(touch_controls.set_skill_cooldown)
 	player.skill_used.connect(_on_skill_used)
 	touch_controls.set_weapon_label(player.get_current_weapon_name())
 	touch_controls.set_skill_cooldown(0.0, player.emp_pulse_cooldown)
 	touch_controls.retry_requested.connect(_reset_session)
+	player.aim_changed.connect(touch_controls.set_aim_state)
 	player.shot_fired.connect(_on_shot_fired)
 	player.health_changed.connect(_on_combatant_health_changed)
 	player.damage_received.connect(_on_player_damage_received)
@@ -49,13 +53,21 @@ func _ready() -> void:
 	wave_director.session_ended.connect(_on_wave_session_ended)
 	wave_director.spawn_blocked.connect(_on_wave_spawn_blocked)
 	_update_status()
+	# One line per session so the browser console proves audio came up in the
+	# exported build, not only in the editor.
+	print(Sfx.describe())
 	if start_wave_session_on_ready:
 		wave_director.start_session()
 
 
 func _process(_delta: float) -> void:
+	touch_controls.set_aim_state(player.is_aiming())
 	if Input.is_action_just_pressed("reset_session"):
 		_reset_session()
+	if Input.is_action_just_pressed("toggle_sound"):
+		_on_sound_mute_requested()
+	if Input.is_action_just_pressed("emp_pulse"):
+		player.activate_skill()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -66,6 +78,15 @@ func _unhandled_input(event: InputEvent) -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	_toggle_pause()
 	get_viewport().set_input_as_handled()
+
+
+## Audio mute is owned here rather than in the HUD: the button and the M key go
+## through the same path, and the label is updated from the real audio state
+## instead of being flipped blindly.
+func _on_sound_mute_requested() -> void:
+	var muted := Sfx.toggle_muted()
+	touch_controls.set_sound_muted(muted)
+	Sfx.play_ui(&"ui_click")
 
 
 func _toggle_pause() -> void:
@@ -89,6 +110,7 @@ func _reset_session() -> void:
 	run_stats.reset_run()
 	reward_service.reset_run()
 	wave_director.reset_session()
+	touch_controls.show_help()
 	if start_wave_session_on_ready:
 		wave_director.start_session()
 	_update_status()
@@ -105,6 +127,7 @@ func _on_player_damage_received(_amount: float, _current: float, _maximum: float
 
 
 func _on_player_defeated() -> void:
+	Sfx.play_ui(&"defeat")
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	touch_controls.set_player_down(true)
 	wave_director.end_session()
@@ -112,10 +135,12 @@ func _on_player_defeated() -> void:
 
 
 func _on_target_damage_received(_amount: float, _current: float, _maximum: float) -> void:
+	Sfx.play_ui(&"hit_confirm")
 	touch_controls.show_hit_confirmed()
 
 
 func _on_skill_used(targets_hit: int, _cooldown_seconds: float) -> void:
+	Sfx.play_3d(&"skill_pulse", player.global_position)
 	touch_controls.show_skill_feedback(targets_hit)
 
 
@@ -124,6 +149,7 @@ func _on_combatant_health_changed(_current: float, _maximum: float) -> void:
 
 
 func _on_wave_started(_wave_index: int, _enemy_count: int) -> void:
+	Sfx.play_ui(&"wave_start")
 	run_stats.start_run()
 	_update_status()
 
@@ -138,6 +164,7 @@ func _on_wave_enemy_spawned(enemy: Node3D) -> void:
 
 
 func _on_wave_session_ended(wave_index: int, _total_defeated: int) -> void:
+	Sfx.play_ui(&"session_clear")
 	run_stats.end_run()
 	var run_time := run_stats.get_survival_time_text()
 	var run_kos := run_stats.eliminations
@@ -158,7 +185,7 @@ func _update_status() -> void:
 	var target_health := roundi(training_drone.current_health)
 	var target_maximum := roundi(training_drone.max_health)
 	var status := (
-		"Score: %d · BP earned: %d\nKOs: %d · Time: %s\nTarget: %d / %d · Shots: %d"
+		"Score: %d · BP earned: %d\nKOs: %d · Time: %s\nTarget %d / %d · Shots %d"
 		% [
 			run_stats.run_score,
 			run_stats.bp_earned,
@@ -176,3 +203,13 @@ func _update_status() -> void:
 	var wave_state := wave_director.get_state_label()
 	touch_controls.set_wave_status(wave_number, active_enemies, remaining_enemies, wave_state)
 	touch_controls.set_status(status)
+	(
+		touch_controls
+		. set_run_summary(
+			run_stats.run_score,
+			run_stats.bp_earned,
+			run_stats.eliminations,
+			run_stats.get_survival_time_text(),
+			_shots_fired,
+		)
+	)

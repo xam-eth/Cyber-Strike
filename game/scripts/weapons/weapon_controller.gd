@@ -97,5 +97,6 @@ func try_fire(shooter: CollisionObject3D, muzzle: Marker3D, aim_point: Vector3) 
 	projectile_parent.add_child(projectile)
 	projectile.call("launch", muzzle.global_position, aim_point, shooter, definition)
 	_cooldowns[_current_weapon_index] = 1.0 / definition.fire_rate
+	Sfx.play_shot(definition.weapon_id, muzzle.global_position)
 	shot_fired.emit(definition.weapon_id)
 	return true

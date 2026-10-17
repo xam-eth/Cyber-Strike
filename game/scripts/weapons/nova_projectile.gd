@@ -62,6 +62,7 @@ func _detonate(impact_position: Vector3, direct_target: Object) -> void:
 	_apply_damage_once(direct_target, _damage, damaged_targets)
 	if _splash_damage > 0.0 and _splash_radius > 0.0:
 		_apply_splash_damage(impact_position, damaged_targets)
+	Sfx.play_3d(&"explosion", impact_position)
 	queue_free()
 
 

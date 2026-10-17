@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/player_controller.gd" id="1_player"]
 [ext_resource type="Script" path="res://scripts/camera/camera_rig.gd" id="2_camera"]
@@ -6,6 +6,10 @@
 [ext_resource type="Resource" path="res://resources/weapons/pulse_rifle.tres" id="4_pulse_rifle"]
 [ext_resource type="Resource" path="res://resources/weapons/nova_launcher.tres" id="5_nova_launcher"]
 [ext_resource type="Resource" path="res://resources/weapons/arc_shooter.tres" id="6_arc_shooter"]
+[ext_resource type="Script" path="res://scripts/player/character_visual.gd" id="7_character_visual"]
+[ext_resource type="PackedScene" path="res://assets/characters/hero/hero.glb" id="8_hero"]
+[ext_resource type="PackedScene" path="res://assets/weapons/futuristic_rifle/rifle.glb" id="9_rifle"]
+[ext_resource type="Script" path="res://scripts/effects/muzzle_flash.gd" id="10_muzzle_flash"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape_player"]
 radius = 0.42
@@ -20,14 +24,6 @@ albedo_color = Color(0.08, 0.44, 0.66, 1)
 metallic = 0.42
 roughness = 0.34
 
-[sub_resource type="BoxMesh" id="BoxMesh_weapon"]
-size = Vector3(0.22, 0.18, 0.7)
-
-[sub_resource type="StandardMaterial3D" id="Material_weapon"]
-albedo_color = Color(0.1, 0.16, 0.2, 1)
-metallic = 0.72
-roughness = 0.27
-
 [node name="Player" type="CharacterBody3D"]
 collision_layer = 4
 collision_mask = 1
@@ -38,6 +34,9 @@ position = Vector3(0, 0.9, 0)
 shape = SubResource("CapsuleShape_player")
 
 [node name="VisualRoot" type="Node3D" parent="."]
+script = ExtResource("7_character_visual")
+model_scene = ExtResource("8_hero")
+weapon_scene = ExtResource("9_rifle")
 
 [node name="BodyMesh" type="MeshInstance3D" parent="VisualRoot"]
 position = Vector3(0, 0.9, 0)
@@ -45,22 +44,20 @@ mesh = SubResource("CapsuleMesh_player")
 material_override = SubResource("Material_player")
 
 [node name="WeaponSocket" type="Node3D" parent="VisualRoot"]
-position = Vector3(0.34, 1.18, -0.1)
+position = Vector3(0.33, 1.16, -0.16)
 
-[node name="WeaponBody" type="MeshInstance3D" parent="VisualRoot/WeaponSocket"]
-position = Vector3(0, 0, -0.34)
-mesh = SubResource("BoxMesh_weapon")
-material_override = SubResource("Material_weapon")
+[node name="MuzzleFlash" type="Node3D" parent="VisualRoot/WeaponSocket"]
+script = ExtResource("10_muzzle_flash")
 
 [node name="Muzzle" type="Marker3D" parent="VisualRoot/WeaponSocket"]
-position = Vector3(0, 0, -0.72)
+position = Vector3(0, 0.02, -0.52)
 
 [node name="WeaponController" type="Node" parent="."]
 script = ExtResource("3_weapon_controller")
 weapon_definitions = Array[WeaponDefinition]([ExtResource("4_pulse_rifle"), ExtResource("5_nova_launcher"), ExtResource("6_arc_shooter")])
 
 [node name="CameraRig" type="Node3D" parent="."]
-position = Vector3(0, 1.5, 0)
+position = Vector3(0, 1.58, 0)
 script = ExtResource("2_camera")
 
 [node name="YawPivot" type="Node3D" parent="CameraRig"]
@@ -69,11 +66,12 @@ script = ExtResource("2_camera")
 rotation = Vector3(-0.14, 0, 0)
 
 [node name="SpringArm3D" type="SpringArm3D" parent="CameraRig/YawPivot/PitchPivot"]
-position = Vector3(0.32, 0.08, 0)
-spring_length = 4.15
-margin = 0.18
+position = Vector3(0.55, 0.14, 0)
+spring_length = 4.2
+margin = 0.22
 collision_mask = 1
 
 [node name="Camera3D" type="Camera3D" parent="CameraRig/YawPivot/PitchPivot/SpringArm3D"]
 current = true
-fov = 68.0
+fov = 66.0
+near = 0.08

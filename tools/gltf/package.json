@@ -1,0 +1,13 @@
+{
+  "name": "cyber-strike-gltf-pipeline",
+  "private": true,
+  "type": "module",
+  "description": "Offline GLB processing for the Tripo hero and weapon (decimation, texture resize, glTF surgery).",
+  "dependencies": {
+    "@gltf-transform/core": "4.2.1",
+    "@gltf-transform/extensions": "4.2.1",
+    "@gltf-transform/functions": "4.2.1",
+    "meshoptimizer": "0.22.0",
+    "sharp": "0.33.5"
+  }
+}

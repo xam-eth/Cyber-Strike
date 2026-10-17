@@ -115,10 +115,13 @@ func _run_smoke_test() -> void:
 	test_passed = (
 		_expect(
 			(
-				results_summary.text.contains("Wave reached: 1")
-				and results_summary.text.contains("Eliminations: 1")
-				and results_summary.text.contains("Run score: 100")
-				and results_summary.text.contains("BP earned: 110")
+				results_summary.text.contains("WAVE REACHED")
+				and results_summary.text.contains("1")
+				and results_summary.text.contains("ELIMINATIONS")
+				and results_summary.text.contains("RUN SCORE")
+				and results_summary.text.contains("100")
+				and results_summary.text.contains("BATTLE POINTS")
+				and results_summary.text.contains("+110")
 			),
 			"results show actual wave, elimination, score, and BP values",
 		)

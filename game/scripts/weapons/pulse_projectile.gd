@@ -27,6 +27,18 @@ func launch(
 	_speed = definition.projectile_speed
 	_remaining_range = definition.max_range
 	look_at(global_position + _direction, Vector3.UP)
+	_stretch_tracer()
+
+
+## A 0.1 m sphere at 42 m/s crosses its own diameter every frame, so on a phone
+## it reads as a dot that teleports. The capsule is rotated onto the travel axis
+## and pushed behind the bolt to become a streak.
+func _stretch_tracer() -> void:
+	var tracer := get_node_or_null("Tracer") as MeshInstance3D
+	if tracer == null:
+		return
+	tracer.rotation.x = deg_to_rad(90.0)
+	tracer.position = Vector3(0.0, 0.0, 0.45)
 
 
 func _physics_process(delta: float) -> void:
@@ -50,6 +62,7 @@ func _physics_process(delta: float) -> void:
 			collider.call("apply_damage", _damage, _shooter)
 		var hit_position: Vector3 = hit.get("position", next_position)
 		global_position = hit_position
+		Sfx.play_3d(&"impact", hit_position)
 		queue_free()
 		return
 

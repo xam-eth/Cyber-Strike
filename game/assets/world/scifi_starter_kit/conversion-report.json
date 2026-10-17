@@ -1,0 +1,1476 @@
+{
+  "texture_size": 512,
+  "quality": 80,
+  "models": [
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Doors/DoorWay_01_Large.FBX",
+      "model": "DoorWay_01_Large.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 306,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 15892
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Doors/DoorWay_01_Ramp.FBX",
+      "model": "DoorWay_01_Ramp.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 20,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 2760
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Doors/DoorWay_01_Up.FBX",
+      "model": "DoorWay_01_Up.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 26,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 3152
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Doors/Door_Left_01.FBX",
+      "model": "Door_Left_01.glb",
+      "images": 0,
+      "meshes": 2,
+      "triangles": 566,
+      "materials": [
+        "01 - Default"
+      ],
+      "bytes": 25792
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Doors/Door_Right_01.FBX",
+      "model": "Door_Right_01.glb",
+      "images": 0,
+      "meshes": 2,
+      "triangles": 754,
+      "materials": [
+        "01 - Default"
+      ],
+      "bytes": 33104
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Doors/Door_Vert_01.FBX",
+      "model": "Door_Vert_01.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 152,
+      "materials": [
+        "HD_Wall_11"
+      ],
+      "bytes": 8712
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Fences/Fence_Long_01.FBX",
+      "model": "Fence_Long_01.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 104,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 8652
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Fences/Fence_Short_01.FBX",
+      "model": "Fence_Short_01.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 80,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 6968
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Fences/Fence_Turn_90_Large_01.FBX",
+      "model": "Fence_Turn_90_Large_01.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 300,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 15416
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Fences/Fence_Turn_90_Short_01.FBX",
+      "model": "Fence_Turn_90_Short_01.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 132,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 7408
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Floors/Floor_Angle_01_6x6.FBX",
+      "model": "Floor_Angle_01_6x6.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 8,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 1612
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Floors/Floor_Coin_01_Small.FBX",
+      "model": "Floor_Coin_01_Small.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 2,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 1392
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Floors/Floor_Descent_01.FBX",
+      "model": "Floor_Descent_01.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 166,
+      "materials": [
+        "Alpha_02",
+        "Stuff_01"
+      ],
+      "bytes": 14464
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Floors/Floor_Hole_01.FBX",
+      "model": "Floor_Hole_01.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 72,
+      "materials": [
+        "Alpha_02",
+        "Stuff_01"
+      ],
+      "bytes": 6080
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Floors/Floor_Pipes_01.FBX",
+      "model": "Floor_Pipes_01.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 1136,
+      "materials": [
+        "Stuff_01"
+      ],
+      "bytes": 54832
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Floors/Floor_Squared_01_6x6.FBX",
+      "model": "Floor_Squared_01_6x6.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 8,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 1612
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Floors/Floor_Squared_02_6x6.FBX",
+      "model": "Floor_Squared_02_6x6.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 28,
+      "materials": [
+        "Alpha_02",
+        "Orange"
+      ],
+      "bytes": 3732
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Floors/Floor_Third_01_Strip_2x6.FBX",
+      "model": "Floor_Third_01_Strip_2x6.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 4,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 1548
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Floors/Floor_Third_02_Strip_2x6.FBX",
+      "model": "Floor_Third_02_Strip_2x6.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 4,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 1548
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Floors/Floor_Third_03_Strip_2x6.FBX",
+      "model": "Floor_Third_03_Strip_2x6.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 4,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 1548
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Floors/Floor_Third_04_Strip_2x6.FBX",
+      "model": "Floor_Third_04_Strip_2x6.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 26,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 2608
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Lights/Light_Corridor_01.FBX",
+      "model": "Light_Corridor_01.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 134,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 8268
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Lights/Light_Corridor_02.FBX",
+      "model": "Light_Corridor_02.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 158,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 9584
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Lights/Light_SideLight_01.FBX",
+      "model": "Light_SideLight_01.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 10,
+      "materials": [
+        "01 - Default",
+        "995 - Light"
+      ],
+      "bytes": 2096
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Lights/Light_SideLight_02.FBX",
+      "model": "Light_SideLight_02.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 10,
+      "materials": [
+        "01 - Default",
+        "995 - Light"
+      ],
+      "bytes": 2128
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Lights/Light_SideLight_03.FBX",
+      "model": "Light_SideLight_03.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 10,
+      "materials": [
+        "01 - Default",
+        "995 - Light"
+      ],
+      "bytes": 2128
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Lights/Light_SideLight_04.FBX",
+      "model": "Light_SideLight_04.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 10,
+      "materials": [
+        "01 - Default",
+        "995 - Light"
+      ],
+      "bytes": 2128
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Lights/Light_SideLight_05.FBX",
+      "model": "Light_SideLight_05.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 10,
+      "materials": [
+        "01 - Default",
+        "995 - Light"
+      ],
+      "bytes": 1996
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Props/Airing_01.FBX",
+      "model": "Airing_01.glb",
+      "images": 0,
+      "meshes": 2,
+      "triangles": 469,
+      "materials": [
+        "Alpha_02",
+        "Stuff_01"
+      ],
+      "bytes": 24488
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Props/Crate_01.FBX",
+      "model": "Crate_01.glb",
+      "images": 0,
+      "meshes": 2,
+      "triangles": 168,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 13248
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Roofs/Roof_Angle_01_6x6.FBX",
+      "model": "Roof_Angle_01_6x6.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 106,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 5856
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Roofs/Roof_Glass_01_6x6.FBX",
+      "model": "Roof_Glass_01_6x6.glb",
+      "images": 0,
+      "meshes": 2,
+      "triangles": 192,
+      "materials": [
+        "10 - Default",
+        "Glass"
+      ],
+      "bytes": 16056
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Roofs/Roof_Squared_01_6x6.FBX",
+      "model": "Roof_Squared_01_6x6.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 42,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 3576
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Roofs/Roof_Squared_02_6x6.FBX",
+      "model": "Roof_Squared_02_6x6.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 8,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 1692
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Stairways/Stairway_Angle_Right_01.FBX",
+      "model": "Stairway_Angle_Right_01.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 350,
+      "materials": [
+        "Alpha_02",
+        "Stuff_01"
+      ],
+      "bytes": 23636
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Stairways/Stairway_PillarAngle_01.FBX",
+      "model": "Stairway_PillarAngle_01.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 7,
+      "materials": [
+        "Alpha_02",
+        "Stuff_01"
+      ],
+      "bytes": 2044
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Stairways/Stairway_Plateform_00.FBX",
+      "model": "Stairway_Plateform_00.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 28,
+      "materials": [
+        "Alpha_02",
+        "Stuff_01"
+      ],
+      "bytes": 4280
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Stairways/Stairway_Plateform_01.FBX",
+      "model": "Stairway_Plateform_01.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 236,
+      "materials": [
+        "Alpha_02",
+        "Stuff_01"
+      ],
+      "bytes": 18848
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Stairways/Stairway_Plateform_02.FBX",
+      "model": "Stairway_Plateform_02.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 356,
+      "materials": [
+        "Alpha_02",
+        "Stuff_01"
+      ],
+      "bytes": 24040
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Stairways/Stairway_Plateform_03.FBX",
+      "model": "Stairway_Plateform_03.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 560,
+      "materials": [
+        "Alpha_02",
+        "Stuff_01"
+      ],
+      "bytes": 35196
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Stairways/Stairway_Plateform_04.FBX",
+      "model": "Stairway_Plateform_04.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 236,
+      "materials": [
+        "Alpha_02",
+        "Stuff_01"
+      ],
+      "bytes": 18940
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Stairways/Stairway_Plateform_05.FBX",
+      "model": "Stairway_Plateform_05.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 132,
+      "materials": [
+        "Alpha_02",
+        "Stuff_01"
+      ],
+      "bytes": 11548
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Stairways/Stairway_Plateform_06.FBX",
+      "model": "Stairway_Plateform_06.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 236,
+      "materials": [
+        "Alpha_02",
+        "Stuff_01"
+      ],
+      "bytes": 18940
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Stairways/Stairway_Plateform_07.FBX",
+      "model": "Stairway_Plateform_07.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 483,
+      "materials": [
+        "Alpha_02",
+        "Stuff_01"
+      ],
+      "bytes": 29776
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Stairways/Stairway_Plateform_08.FBX",
+      "model": "Stairway_Plateform_08.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 236,
+      "materials": [
+        "Alpha_02",
+        "Stuff_01"
+      ],
+      "bytes": 18876
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Stairways/Stairway_Plateform_09.FBX",
+      "model": "Stairway_Plateform_09.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 716,
+      "materials": [
+        "Alpha_02",
+        "Stuff_01"
+      ],
+      "bytes": 39780
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Stairways/Stairway_Plateform_10.FBX",
+      "model": "Stairway_Plateform_10.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 356,
+      "materials": [
+        "Alpha_02",
+        "Stuff_01"
+      ],
+      "bytes": 24100
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Stairways/Stairway_Plateform_11.FBX",
+      "model": "Stairway_Plateform_11.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 236,
+      "materials": [
+        "Alpha_02",
+        "Stuff_01"
+      ],
+      "bytes": 18848
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Stairways/Stairway_Slope_45_01.FBX",
+      "model": "Stairway_Slope_45_01.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 236,
+      "materials": [
+        "Alpha_02",
+        "Stuff_01"
+      ],
+      "bytes": 18856
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Stairways/Stairway_Step_01.FBX",
+      "model": "Stairway_Step_01.glb",
+      "images": 0,
+      "meshes": 3,
+      "triangles": 324,
+      "materials": [
+        "Alpha_02",
+        "HD_Wall_02",
+        "Orange",
+        "Stuff_01"
+      ],
+      "bytes": 26592
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Stuff/Air_Grid_01.FBX",
+      "model": "Air_Grid_01.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 70,
+      "materials": [
+        "toto"
+      ],
+      "bytes": 7324
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Stuff/Beam_01.FBX",
+      "model": "Beam_01.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 90,
+      "materials": [
+        "Alpha_02",
+        "Stuff_01"
+      ],
+      "bytes": 7668
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Stuff/Beam_02.FBX",
+      "model": "Beam_02.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 98,
+      "materials": [
+        "Alpha_02",
+        "Stuff_01"
+      ],
+      "bytes": 8228
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Stuff/Beam_03.FBX",
+      "model": "Beam_03.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 32,
+      "materials": [
+        "Alpha_02",
+        "Stuff_01"
+      ],
+      "bytes": 3592
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Stuff/Grid_01.FBX",
+      "model": "Grid_01.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 36,
+      "materials": [
+        "HD_Wall_02"
+      ],
+      "bytes": 3888
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Stuff/Intercom_01.FBX",
+      "model": "Intercom_01.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 34,
+      "materials": [
+        "Stuff_04"
+      ],
+      "bytes": 2984
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Stuff/Intercom_02.FBX",
+      "model": "Intercom_02.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 34,
+      "materials": [
+        "Stuff_04"
+      ],
+      "bytes": 2984
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Stuff/Pipes_01.FBX",
+      "model": "Pipes_01.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 2042,
+      "materials": [
+        "Stuff_01"
+      ],
+      "bytes": 85576
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Stuff/Pipes_02.FBX",
+      "model": "Pipes_02.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 1306,
+      "materials": [
+        "Stuff_01"
+      ],
+      "bytes": 62144
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Stuff/Pipes_03.FBX",
+      "model": "Pipes_03.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 1064,
+      "materials": [
+        "Stuff_01"
+      ],
+      "bytes": 51148
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Symbols/Num_0.FBX",
+      "model": "Num_0.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 2,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 28256
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Symbols/Num_1.FBX",
+      "model": "Num_1.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 2,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 28256
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Symbols/Num_2.FBX",
+      "model": "Num_2.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 2,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 28256
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Symbols/Num_3.FBX",
+      "model": "Num_3.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 2,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 28256
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Symbols/Num_4.FBX",
+      "model": "Num_4.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 2,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 28256
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Symbols/Num_5.FBX",
+      "model": "Num_5.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 2,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 28256
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Symbols/Num_6.FBX",
+      "model": "Num_6.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 2,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 28256
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Symbols/Num_7.FBX",
+      "model": "Num_7.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 2,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 28256
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Symbols/Num_8.FBX",
+      "model": "Num_8.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 2,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 28256
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Symbols/Num_9.FBX",
+      "model": "Num_9.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 2,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 28256
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Symbols/Sign_Caution_01.FBX",
+      "model": "Sign_Caution_01.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 2,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 28272
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Symbols/Sign_Caution_02.FBX",
+      "model": "Sign_Caution_02.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 2,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 28276
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Symbols/Sign_Danger_01.FBX",
+      "model": "Sign_Danger_01.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 2,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 28276
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Symbols/Sign_Danger_02.FBX",
+      "model": "Sign_Danger_02.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 2,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 28276
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Symbols/Symb_Arrow.FBX",
+      "model": "Symb_Arrow.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 2,
+      "materials": [
+        "01 - Default"
+      ],
+      "bytes": 28232
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Symbols/Word_Area.FBX",
+      "model": "Word_Area.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 2,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 28268
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Symbols/Word_Deck.FBX",
+      "model": "Word_Deck.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 2,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 28300
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Symbols/Word_Exit.FBX",
+      "model": "Word_Exit.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 2,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 28268
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Symbols/Word_Lab.FBX",
+      "model": "Word_Lab.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 2,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 28264
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Symbols/Word_Level.FBX",
+      "model": "Word_Level.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 2,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 27344
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Symbols/Word_Tech.FBX",
+      "model": "Word_Tech.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 2,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 27344
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Symbols/Word_Warning.FBX",
+      "model": "Word_Warning.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 2,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 28272
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Symbols/Word_Zone.FBX",
+      "model": "Word_Zone.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 2,
+      "materials": [
+        "Orange"
+      ],
+      "bytes": 28268
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Column_01_Big.FBX",
+      "model": "Column_01_Big.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 292,
+      "materials": [
+        "HD_Wall_02"
+      ],
+      "bytes": 13164
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Porthole_01_Long.FBX",
+      "model": "Porthole_01_Long.glb",
+      "images": 0,
+      "meshes": 2,
+      "triangles": 312,
+      "materials": [
+        "10 - Default",
+        "Glass"
+      ],
+      "bytes": 20524
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Bed_01.FBX",
+      "model": "Wall_Bed_01.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 301,
+      "materials": [
+        "HD_Wall_02"
+      ],
+      "bytes": 10572
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Console_01_Half.FBX",
+      "model": "Wall_Console_01_Half.glb",
+      "images": 0,
+      "meshes": 2,
+      "triangles": 238,
+      "materials": [
+        "Stuff_02"
+      ],
+      "bytes": 17180
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Console_01_Large.FBX",
+      "model": "Wall_Console_01_Large.glb",
+      "images": 0,
+      "meshes": 4,
+      "triangles": 478,
+      "materials": [
+        "Stuff_02"
+      ],
+      "bytes": 33288
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Cube_01_Coin.FBX",
+      "model": "Wall_Cube_01_Coin.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 37,
+      "materials": [
+        "HD_Wall_02",
+        "HD_Wall_02.001"
+      ],
+      "bytes": 3272
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Cube_01_Flat.FBX",
+      "model": "Wall_Cube_01_Flat.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 10,
+      "materials": [
+        "HD_Wall_02"
+      ],
+      "bytes": 2076
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Cube_01_InvertCoin.FBX",
+      "model": "Wall_Cube_01_InvertCoin.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 68,
+      "materials": [
+        "HD_Wall_02",
+        "HD_Wall_04",
+        "HD_Wall_04.001"
+      ],
+      "bytes": 6420
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Cube_01_Long.FBX",
+      "model": "Wall_Cube_01_Long.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 26,
+      "materials": [
+        "HD_Wall_02",
+        "HD_Wall_03"
+      ],
+      "bytes": 3996
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Cube_01_Round.FBX",
+      "model": "Wall_Cube_01_Round.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 68,
+      "materials": [
+        "HD_Wall_02",
+        "HD_Wall_02.001",
+        "HD_Wall_03"
+      ],
+      "bytes": 6416
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Cube_01_Thin.FBX",
+      "model": "Wall_Cube_01_Thin.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 26,
+      "materials": [
+        "HD_Wall_03",
+        "HD_Wall_04"
+      ],
+      "bytes": 3880
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Cube_02_Flat.FBX",
+      "model": "Wall_Cube_02_Flat.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 10,
+      "materials": [
+        "HD_Wall_02",
+        "toto"
+      ],
+      "bytes": 3024
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Down_01_Long.FBX",
+      "model": "Wall_Down_01_Long.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 48,
+      "materials": [
+        "HD_Wall_02",
+        "HD_Wall_05",
+        "HD_Wall_07",
+        "Orange"
+      ],
+      "bytes": 6828
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Gear_01_Half.FBX",
+      "model": "Wall_Gear_01_Half.glb",
+      "images": 0,
+      "meshes": 3,
+      "triangles": 368,
+      "materials": [
+        "Stuff_03"
+      ],
+      "bytes": 21044
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Gear_02_Half.FBX",
+      "model": "Wall_Gear_02_Half.glb",
+      "images": 0,
+      "meshes": 5,
+      "triangles": 610,
+      "materials": [
+        "Stuff_03"
+      ],
+      "bytes": 33188
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Gear_03_Half.FBX",
+      "model": "Wall_Gear_03_Half.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 96,
+      "materials": [
+        "Stuff_03"
+      ],
+      "bytes": 7392
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Inclined_01_Coin.FBX",
+      "model": "Wall_Inclined_01_Coin.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 58,
+      "materials": [
+        "HD_Wall_06",
+        "HD_Wall_08",
+        "Orange"
+      ],
+      "bytes": 3916
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Inclined_01_CoinLeft.FBX",
+      "model": "Wall_Inclined_01_CoinLeft.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 90,
+      "materials": [
+        "HD_Wall_02",
+        "HD_Wall_06",
+        "HD_Wall_08",
+        "Orange"
+      ],
+      "bytes": 8672
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Inclined_01_CoinLeft_Half.FBX",
+      "model": "Wall_Inclined_01_CoinLeft_Half.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 90,
+      "materials": [
+        "HD_Wall_06",
+        "Wall_04",
+        "Wall_09"
+      ],
+      "bytes": 8700
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Inclined_01_CoinRight.FBX",
+      "model": "Wall_Inclined_01_CoinRight.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 90,
+      "materials": [
+        "HD_Wall_02",
+        "HD_Wall_06",
+        "HD_Wall_08",
+        "Orange"
+      ],
+      "bytes": 8664
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Inclined_01_CoinRight_Half.FBX",
+      "model": "Wall_Inclined_01_CoinRight_Half.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 90,
+      "materials": [
+        "HD_Wall_06",
+        "Wall_04",
+        "Wall_09"
+      ],
+      "bytes": 7668
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Inclined_01_Half.FBX",
+      "model": "Wall_Inclined_01_Half.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 90,
+      "materials": [
+        "HD_Wall_06",
+        "Wall_04",
+        "Wall_09"
+      ],
+      "bytes": 7708
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Inclined_01_Long.FBX",
+      "model": "Wall_Inclined_01_Long.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 90,
+      "materials": [
+        "HD_Wall_02",
+        "HD_Wall_06",
+        "HD_Wall_08",
+        "Orange"
+      ],
+      "bytes": 8632
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Inclined_02_Coin.FBX",
+      "model": "Wall_Inclined_02_Coin.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 316,
+      "materials": [
+        "HD_Wall_02",
+        "Wall 10",
+        "Wall_08"
+      ],
+      "bytes": 14372
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Inclined_02_CoinLeft.FBX",
+      "model": "Wall_Inclined_02_CoinLeft.glb",
+      "images": 0,
+      "meshes": 2,
+      "triangles": 330,
+      "materials": [
+        "Glass",
+        "HD_Wall_02",
+        "HD_Wall_08",
+        "Wall_01"
+      ],
+      "bytes": 19760
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Inclined_02_CoinRight.FBX",
+      "model": "Wall_Inclined_02_CoinRight.glb",
+      "images": 0,
+      "meshes": 2,
+      "triangles": 330,
+      "materials": [
+        "Glass",
+        "HD_Wall_02",
+        "HD_Wall_08",
+        "Wall_01"
+      ],
+      "bytes": 19720
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Inclined_02_Long.FBX",
+      "model": "Wall_Inclined_02_Long.glb",
+      "images": 0,
+      "meshes": 2,
+      "triangles": 330,
+      "materials": [
+        "Glass",
+        "HD_Wall_02",
+        "HD_Wall_06",
+        "HD_Wall_08",
+        "Orange"
+      ],
+      "bytes": 20756
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Pipes_01_Large.FBX",
+      "model": "Wall_Pipes_01_Large.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 2418,
+      "materials": [
+        "Stuff_01"
+      ],
+      "bytes": 95384
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Pipes_02_Large.FBX",
+      "model": "Wall_Pipes_02_Large.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 2746,
+      "materials": [
+        "Stuff_01"
+      ],
+      "bytes": 112692
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Simple_01_Coin.FBX",
+      "model": "Wall_Simple_01_Coin.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 294,
+      "materials": [
+        "HD_Wall_02"
+      ],
+      "bytes": 11720
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Simple_01_Half.FBX",
+      "model": "Wall_Simple_01_Half.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 72,
+      "materials": [
+        "HD_Wall_02",
+        "Orange",
+        "toto"
+      ],
+      "bytes": 6960
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Simple_01_InvertCoin.FBX",
+      "model": "Wall_Simple_01_InvertCoin.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 298,
+      "materials": [
+        "HD_Wall_02",
+        "HD_Wall_02.001",
+        "Orange",
+        "toto"
+      ],
+      "bytes": 14140
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Simple_01_Long.FBX",
+      "model": "Wall_Simple_01_Long.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 72,
+      "materials": [
+        "HD_Wall_02",
+        "Orange"
+      ],
+      "bytes": 5972
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Simple_01_Squared.FBX",
+      "model": "Wall_Simple_01_Squared.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 72,
+      "materials": [
+        "HD_Wall_02",
+        "HD_Wall_03",
+        "Orange"
+      ],
+      "bytes": 7036
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Simple_01_TurnLarge_90.FBX",
+      "model": "Wall_Simple_01_TurnLarge_90.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 1554,
+      "materials": [
+        "HD_Wall_02",
+        "Orange"
+      ],
+      "bytes": 54664
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Simple_01_TurnShort_90.FBX",
+      "model": "Wall_Simple_01_TurnShort_90.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 718,
+      "materials": [
+        "HD_Wall_02",
+        "Orange"
+      ],
+      "bytes": 26868
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Simple_02_Long.FBX",
+      "model": "Wall_Simple_02_Long.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 72,
+      "materials": [
+        "HD_Wall_02",
+        "HD_Wall_03",
+        "Orange"
+      ],
+      "bytes": 6924
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Simple_03_Long.FBX",
+      "model": "Wall_Simple_03_Long.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 72,
+      "materials": [
+        "HD_Wall_02",
+        "HD_Wall_03",
+        "Orange"
+      ],
+      "bytes": 6924
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Simple_04_Long.FBX",
+      "model": "Wall_Simple_04_Long.glb",
+      "images": 0,
+      "meshes": 2,
+      "triangles": 344,
+      "materials": [
+        "Glass",
+        "HD_Wall_02",
+        "Orange",
+        "Orange.001"
+      ],
+      "bytes": 20284
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Simple_05_Long.FBX",
+      "model": "Wall_Simple_05_Long.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 476,
+      "materials": [
+        "HD_Wall_02",
+        "HD_Wall_02.001",
+        "HD_Wall_11",
+        "Orange"
+      ],
+      "bytes": 26440
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Table_01.FBX",
+      "model": "Wall_Table_01.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 232,
+      "materials": [
+        "Stuff_03"
+      ],
+      "bytes": 15480
+    },
+    {
+      "source": "3D Scifi Starter Kit Free/_Meshes/Walls/Wall_Up_01_Long.FBX",
+      "model": "Wall_Up_01_Long.glb",
+      "images": 0,
+      "meshes": 1,
+      "triangles": 46,
+      "materials": [
+        "HD_Wall_02",
+        "HD_Wall_03",
+        "HD_Wall_07",
+        "Orange"
+      ],
+      "bytes": 6708
+    }
+  ]
+}

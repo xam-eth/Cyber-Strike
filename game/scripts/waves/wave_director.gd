@@ -165,10 +165,7 @@ func get_state_label() -> String:
 		WaveState.IDLE:
 			return "READY"
 		WaveState.SPAWNING:
-			return (
-				"WAVE %d · ACTIVE %d/%d · LEFT %d"
-				% [current_wave, active_enemy_count, max_active_enemies, enemies_remaining]
-			)
+			return "ACTIVE %d/%d" % [active_enemy_count, max_active_enemies]
 		WaveState.INTERMISSION:
 			return "WAVE %d CLEAR · NEXT IN %d" % [current_wave, ceili(_intermission_timer)]
 		WaveState.GAME_OVER:

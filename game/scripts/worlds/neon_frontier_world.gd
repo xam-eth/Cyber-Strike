@@ -2,6 +2,8 @@
 extends Node3D
 
 const GltfAssetLibrary = preload("res://scripts/worlds/gltf_asset_library.gd")
+const KayKitBaseBuilder = preload("res://scripts/worlds/kaykit_base_builder.gd")
+const ScifiBayBuilder = preload("res://scripts/worlds/scifi_bay_builder.gd")
 const REACTOR_SCENE: PackedScene = preload("res://scenes/worlds/components/reactor_core.tscn")
 const COMMAND_SCENE: PackedScene = preload("res://scenes/worlds/components/command_center.tscn")
 const LAB_SCENE: PackedScene = preload("res://scenes/worlds/components/research_lab.tscn")
@@ -50,6 +52,8 @@ func _ready() -> void:
 	_build_alien_landscape()
 	_build_lighting_and_atmosphere()
 	_build_spawn_beacons()
+	KayKitBaseBuilder.dress_districts(self)
+	ScifiBayBuilder.build(self)
 
 
 func _create_materials() -> void:
@@ -168,39 +172,9 @@ func _build_terrain_and_floor() -> void:
 
 
 func _add_world_bounds() -> void:
-	var bound_material: Material = _materials["rock"]
-	_add_box(
-		"NorthBoundaryCliffCore",
-		Vector3(0.0, 5.0, -99.0),
-		Vector3(192.0, 10.0, 2.0),
-		bound_material,
-		Vector3.ZERO,
-		true
-	)
-	_add_box(
-		"SouthBoundaryCliffCore",
-		Vector3(0.0, 5.0, 79.0),
-		Vector3(192.0, 10.0, 2.0),
-		bound_material,
-		Vector3.ZERO,
-		true
-	)
-	_add_box(
-		"WestBoundaryCliffCore",
-		Vector3(-95.0, 5.0, -10.0),
-		Vector3(2.0, 10.0, 180.0),
-		bound_material,
-		Vector3.ZERO,
-		true
-	)
-	_add_box(
-		"EastBoundaryCliffCore",
-		Vector3(95.0, 5.0, -10.0),
-		Vector3(2.0, 10.0, 180.0),
-		bound_material,
-		Vector3.ZERO,
-		true
-	)
+	# The collision walls and the rocky skyline are built together so the player
+	# never sees the flat box that stops them. See kaykit_base_builder.gd.
+	KayKitBaseBuilder.build_boundary(self, WORLD_WIDTH, WORLD_DEPTH, WORLD_CENTER_Z)
 
 
 func _build_central_arena() -> void:
@@ -1029,7 +1003,7 @@ func _build_defense_perimeter() -> void:
 				"PerimeterDefenseWallSide_%s_%d" % [str(side), segment_index],
 				Vector3(wall_x, 1.15, segment_center),
 				Vector3(0.8, 2.3, segment_length),
-				_materials["blue"],
+				_materials["pearl"],
 				Vector3.ZERO,
 				true
 			)
@@ -1046,7 +1020,7 @@ func _build_defense_perimeter() -> void:
 			"NorthPerimeterDefenseWall_%s" % str(side),
 			Vector3(segment_center, 1.15, -59.0),
 			Vector3(78.0, 2.3, 0.8),
-			_materials["blue"],
+			_materials["pearl"],
 			Vector3.ZERO,
 			true
 		)
@@ -1060,7 +1034,7 @@ func _build_defense_perimeter() -> void:
 			"SouthPerimeterDefenseWall_%s" % str(side),
 			Vector3(segment_center, 1.15, 39.0),
 			Vector3(78.0, 2.3, 0.8),
-			_materials["blue"],
+			_materials["pearl"],
 			Vector3.ZERO,
 			true
 		)
@@ -1368,7 +1342,7 @@ func _build_lighting_and_atmosphere() -> void:
 	sun.name = "FrontierDaylightSun"
 	sun.rotation_degrees = Vector3(-47.0, -31.0, 0.0)
 	sun.light_color = Color(1.0, 0.93, 0.78)
-	sun.light_energy = 1.35
+	sun.light_energy = 0.72
 	sun.shadow_enabled = true
 	sun.directional_shadow_max_distance = 115.0
 	sun.shadow_bias = 0.04
@@ -1387,14 +1361,22 @@ func _build_lighting_and_atmosphere() -> void:
 	sky.sky_material = sky_material
 	environment.sky = sky
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	environment.ambient_light_energy = 0.9
+	environment.ambient_light_energy = 0.36
 	environment.reflected_light_source = Environment.REFLECTION_SOURCE_BG
 	environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	environment.tonemap_exposure = 0.92
+	# The space base is authored in light, toy-like colours; without a little
+	# contrast and saturation the whole frame blows out to white and the player
+	# (a light-suited astronaut) stops reading against the floor.
+	environment.adjustment_enabled = true
+	environment.adjustment_brightness = 0.94
+	environment.adjustment_contrast = 1.18
+	environment.adjustment_saturation = 1.22
 	environment.glow_enabled = true
-	environment.glow_intensity = 0.16
+	environment.glow_intensity = 0.1
 	environment.fog_enabled = true
-	environment.fog_light_color = Color(0.55, 0.77, 0.84)
-	environment.fog_density = 0.0018
+	environment.fog_light_color = Color(0.42, 0.62, 0.72)
+	environment.fog_density = 0.0042
 	environment.fog_aerial_perspective = 0.22
 	var world_environment := WorldEnvironment.new()
 	world_environment.name = "ArenaEnvironment"

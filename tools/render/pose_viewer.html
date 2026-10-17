@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Hero pose viewer</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #10161f; overflow: hidden; }
+  canvas { display: block; }
+  #hud { position: fixed; left: 12px; top: 10px; color: #9fd3ff; font: 12px/1.4 monospace; }
+</style>
+<script type="importmap">
+{ "imports": { "three": "/tools/node_modules/three/build/three.module.js",
+               "three/addons/": "/tools/node_modules/three/examples/jsm/" } }
+</script>
+</head>
+<body>
+<div id="hud"></div>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(1);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x10161f);
+scene.add(new THREE.HemisphereLight(0xdfefff, 0x1b2430, 2.2));
+const key = new THREE.DirectionalLight(0xffffff, 2.6);
+key.position.set(3, 6, 4);
+scene.add(key);
+const rim = new THREE.DirectionalLight(0x88bbff, 1.4);
+rim.position.set(-4, 3, -5);
+scene.add(rim);
+
+const grid = new THREE.GridHelper(6, 24, 0x2f4358, 0x1d2b39);
+grid.position.y = 0.001;
+scene.add(grid);
+
+const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.01, 60);
+const target = new THREE.Object3D();
+scene.add(target);
+
+const loader = new GLTFLoader();
+let hero = null, mixer = null, actions = {};
+let rig = null;
+let rifle = null;
+let socket = null;
+let muzzleBall = null;
+let pending = 0;
+
+window.__frames = 0;
+window.__ready = false;
+window.__error = null;
+
+function loadGLB(url) {
+  return new Promise((resolve, reject) => loader.load(url, resolve, undefined, reject));
+}
+
+function bone(root, name) {
+  let found = null;
+  root.traverse((o) => { if (!found && o.isBone && o.name === name) found = o; });
+  return found;
+}
+
+window.setup = async (opts) => {
+  try {
+    rig = await (await fetch(opts.rigUrl)).json();
+    const heroGltf = await loadGLB(opts.heroUrl);
+    hero = heroGltf.scene;
+    // The game scales the model to target_height; the viewer keeps the same
+    // 1.78 m so screenshots are directly comparable to gameplay.
+    hero.scale.setScalar(opts.height || 1.0);
+    scene.add(hero);
+
+    mixer = new THREE.AnimationMixer(hero);
+    for (const clip of heroGltf.animations) {
+      const action = mixer.clipAction(clip);
+      action.clampWhenFinished = true;
+      actions[clip.name] = action;
+    }
+
+    const weaponGltf = await loadGLB(opts.weaponUrl);
+    rifle = weaponGltf.scene;
+    const hand = bone(hero, rig.hand_bone);
+    if (!hand) throw new Error('hand bone not found: ' + rig.hand_bone);
+    socket = new THREE.Object3D();
+    socket.name = 'WeaponSocket';
+    socket.position.fromArray(rig.weapon_socket.offset || [0, 0, 0]);
+    hand.add(socket);
+    // Socket is in hero-model space, so the weapon scale is in model units.
+    rifle.scale.setScalar(rig.weapon_socket.scale_model_units);
+    socket.add(rifle);
+
+    const muzzleNode = rifle.getObjectByName('MuzzlePoint');
+    muzzleBall = new THREE.Mesh(
+      new THREE.SphereGeometry(0.012, 12, 8),
+      new THREE.MeshBasicMaterial({ color: 0xff9a3c })
+    );
+    (muzzleNode || rifle).add(muzzleBall);
+    if (muzzleNode) muzzleBall.position.set(0, 0, 0);
+
+    window.__clips = Object.keys(actions);
+    window.__ready = true;
+    window.__boneNames = [];
+    hero.traverse((o) => { if (o.isBone) window.__boneNames.push(o.name); });
+  } catch (err) {
+    window.__error = String(err && err.stack || err);
+  }
+};
+
+function socketFor(clip) {
+  const key = (clip === 'aim' || clip === 'fire') ? 'aim_rotation_xyzw' : 'carry_rotation_xyzw';
+  return rig.weapon_socket[key];
+}
+
+window.setPose = (clip, time, weaponVisible = true) => {
+  if (socket) {
+    const q = socketFor(clip);
+    socket.quaternion.set(q[0], q[1], q[2], q[3]);
+  }
+  for (const [name, action] of Object.entries(actions)) {
+    if (name === clip) {
+      action.reset();
+      action.setLoop(THREE.LoopOnce, 1);
+      action.play();
+      action.paused = true;
+      action.time = time;
+    } else {
+      action.stop();
+    }
+  }
+  if (rifle) rifle.visible = weaponVisible;
+  if (muzzleBall) muzzleBall.visible = weaponVisible;
+  mixer.update(0);
+  window.__frames = 0;
+};
+
+window.setCamera = (azimuthDeg, elevationDeg, distance, targetY) => {
+  const az = THREE.MathUtils.degToRad(azimuthDeg);
+  const el = THREE.MathUtils.degToRad(elevationDeg);
+  camera.position.set(
+    Math.sin(az) * Math.cos(el) * distance,
+    targetY + Math.sin(el) * distance,
+    Math.cos(az) * Math.cos(el) * distance
+  );
+  camera.lookAt(0, targetY, 0);
+};
+
+window.measure = () => {
+  if (!hero) return null;
+  hero.updateMatrixWorld(true);
+  const hand = bone(hero, rig.hand_bone);
+  const muzzleNode = rifle && rifle.getObjectByName('MuzzlePoint');
+  const out = {};
+  if (hand) out.hand = hand.getWorldPosition(new THREE.Vector3()).toArray();
+  if (muzzleNode) {
+    out.muzzle = muzzleNode.getWorldPosition(new THREE.Vector3()).toArray();
+    out.muzzleDir = new THREE.Vector3(0, 0, -1)
+      .applyQuaternion(muzzleNode.getWorldQuaternion(new THREE.Quaternion()))
+      .toArray();
+  }
+  if (rifle) {
+    const box = new THREE.Box3().setFromObject(rifle);
+    out.rifleSize = box.getSize(new THREE.Vector3()).toArray();
+  }
+  return out;
+};
+
+function animate() {
+  requestAnimationFrame(animate);
+  if (mixer) mixer.update(0);
+  renderer.render(scene, camera);
+  window.__frames += 1;
+}
+animate();
+
+addEventListener('resize', () => {
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+});
+</script>
+</body>
+</html>

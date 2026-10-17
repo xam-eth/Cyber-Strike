@@ -66,6 +66,90 @@ func _run_smoke_test() -> void:
 			)
 			and test_passed
 		)
+	# The world is now dressed from the whole 57-model pack, not the 7 models of
+	# the first pass. Each district has its own group, and the name of the group
+	# is what tells a reviewer which part of the level to look at.
+	var kit_groups: Dictionary = {
+		"KayKitArenaRim": 16,
+		"KayKitOutpost": 20,
+		"KayKitLandingZone": 10,
+		"KayKitExtraction": 15,
+		"KayKitBossZone": 10,
+		"KayKitRuins": 12,
+		"KayKitPower": 8,
+		"KayKitRoutes": 10,
+		"KayKitTerrainShoulders": 120,
+	}
+	for group_name in kit_groups:
+		var group := world.get_node_or_null(group_name) as Node3D
+		var meshes := 0
+		if group != null:
+			meshes = group.find_children("*", "MeshInstance3D", true, false).size()
+		test_passed = (
+			_expect(
+				meshes >= int(kit_groups[group_name]),
+				"%s is dressed from the KayKit pack (%d meshes)" % [group_name, meshes],
+			)
+			and test_passed
+		)
+	# The uploaded SciFi Starter Kit is the playable interior: a 7x7 floor grid,
+	# wall runs with a lane opening per side, and a door frame on each lane.
+	var bay := world.get_node_or_null("SciFiBay") as Node3D
+	var bay_floor := 0
+	var bay_walls := 0
+	var bay_gates := 0
+	if bay != null:
+		for child in bay.get_children():
+			var child_name := str(child.name)
+			if child_name.begins_with("SciFiBayFloor"):
+				bay_floor += 1
+			elif child_name.begins_with("SciFiBayWall") or child_name.begins_with("SciFiBayCover"):
+				bay_walls += 1
+			elif child_name.begins_with("SciFiBayGate"):
+				bay_gates += 1
+	test_passed = (
+		_expect(
+			bay_floor >= 49 and bay_walls >= 28 and bay_gates == 4,
+			(
+				"the arena interior is built from the uploaded SciFi kit (floor %d, walls %d, gates %d)"
+				% [bay_floor, bay_walls, bay_gates]
+			),
+		)
+		and test_passed
+	)
+	# The boundary is no longer four flat boxes: a collider keeps the player in,
+	# and rock tiles close the horizon. Both have to exist at the same time.
+	for wall_name in [
+		"NorthBoundaryCliffCore",
+		"SouthBoundaryCliffCore",
+		"WestBoundaryCliffCore",
+		"EastBoundaryCliffCore",
+	]:
+		var wall := world.get_node_or_null(wall_name) as Node3D
+		test_passed = (
+			_expect(
+				wall != null and not wall.visible and wall.get_child_count() > 0,
+				"invisible boundary collider still stops the player: " + wall_name,
+			)
+			and test_passed
+		)
+	# Cliff tiles are direct children of the world node, not nested under a
+	# group, so they are counted by name prefix.
+	var cliff_meshes := 0
+	for child in world.get_children():
+		if (
+			String(child.name).begins_with("NorthCliff_")
+			or String(child.name).begins_with("EastCliff_")
+		):
+			cliff_meshes += 1
+	test_passed = (
+		_expect(
+			cliff_meshes >= 16,
+			"the horizon is tiled with rock, not one flat box (%d tiles)" % cliff_meshes
+		)
+		and test_passed
+	)
+
 	var depot_model := world.find_child("KayKitCargoDepot", true, false) as Node3D
 	if depot_model != null:
 		test_passed = (
