@@ -82,6 +82,8 @@ const DEFAULT_NATURE = {
 let kitGrade = { ...DEFAULT_KIT };
 let natureGrade = { ...DEFAULT_NATURE };
 let groundTint = [2.4, 2.35, 2.2];
+let groundMix = 0.6;
+let groundLift = 0;
 let groundRough = 0.92;
 let groundMetal = 0;
 
@@ -91,6 +93,8 @@ export function setWorldGrade({ kit, nature, ground } = {}) {
   natureGrade = { ...DEFAULT_NATURE, ...(nature ?? {}) };
   if (ground) {
     groundTint = ground.tint ?? groundTint;
+    groundMix = ground.mix ?? groundMix;
+    groundLift = ground.lift ?? groundLift;
     groundRough = ground.rough ?? groundRough;
     groundMetal = ground.metal ?? groundMetal;
   }
@@ -101,7 +105,13 @@ export function currentGrade() {
   return {
     kit: { ...kitGrade },
     nature: { ...natureGrade },
-    ground: { tint: [...groundTint], rough: groundRough, metal: groundMetal },
+    ground: {
+      tint: [...groundTint],
+      mix: groundMix,
+      lift: groundLift,
+      rough: groundRough,
+      metal: groundMetal,
+    },
   };
 }
 
@@ -207,12 +217,63 @@ export async function loadModel(id) {
           if (!node.isMesh) return;
           const m = node.material;
           if (!m) return;
-          // The plate is photographed under noon sun; its albedo is far too dark
-          // for a dusk field. Lift the tint above 1.0 (a legal multiplier on the
-          // map) and kill the metalness, so it reads as worn concrete.
-          // Tint is authored in sRGB, like every other colour in the theme.
-          // Setting it as linear made a "dark moss" multiplier render pale green.
-          if (m.color) m.color.setRGB(groundTint[0], groundTint[1], groundTint[2], THREE.SRGBColorSpace);
+          // Two kinds of floor arrive here, and they need opposite treatment:
+          //
+          //   * the scanned stone plate ships a *map*, so the tint multiplies
+          //     it, and `lift` adds some of that same map back as emission —
+          //     the plate was photographed at noon (tarmac is ~0.15 in linear
+          //     light), so it needs both to read as a lit field at night.
+          //   * the Nature Kit's grass tiles ship *no map at all*: their colour
+          //     *is* the surface, so the theme lerps it toward the world's
+          //     ground colour instead of multiplying it.
+          //
+          // Linear, always: `THREE.Color` is linear here and both the validated
+          // export and every grade in this file assume it.
+          if (m.color) {
+            if (m.map) {
+              // `baseColorFactor` is capped at 1 by the glTF specification (the
+              // Khronos validator rejects anything above it), and this plate is
+              // a scan of black tarmac — its own albedo is near zero. A theme
+              // therefore states two things: `tint` (the legal 0–1 colour the
+              // plate is multiplied by) and `lift` (how much of the *same map*
+              // is added back as emission). The lift is what makes a lit yard
+              // out of a scanned black surface without inventing a texture: it
+              // is the plate's own grain, warmed, at a strength the world picks.
+              const peak = Math.max(groundTint[0], groundTint[1], groundTint[2], 1);
+              m.color.setRGB(
+                Math.min(groundTint[0] / peak + 0.06, 1),
+                Math.min(groundTint[1] / peak + 0.06, 1),
+                Math.min(groundTint[2] / peak + 0.06, 1),
+              );
+              // `emissiveFactor` is capped at 1 too, so the multiplier that can
+              // exceed 1 is `emissiveIntensity`, which the exporter writes as
+              // KHR_materials_emissive_strength — the sanctioned way to say
+              // "this surface glows brighter than white".
+              if (groundLift > 0) {
+                const warm = groundTint[0];
+                m.emissiveMap = m.map;
+                m.emissive.setRGB(
+                  Math.min(groundTint[0] / warm, 1),
+                  Math.min(groundTint[1] / warm, 1),
+                  Math.min(groundTint[2] / warm, 1),
+                );
+                m.emissiveIntensity = groundLift;
+              }
+            } else {
+              // No map underneath, so the authored colour *is* the surface. The
+              // Nature Kit's grass is a bright, high-chroma mint; multiplying a
+              // triple into it only makes a darker mint, because a product
+              // cannot desaturate. The theme colour is therefore the *target*,
+              // and the authored colour is lerped to it by `groundMix` — the
+              // difference between a game's lawn and a fluorescent plate.
+              // Authored in sRGB, like the kit grades: read as linear, a moss
+              // green is only two steps below the mint and barely moves.
+              const target = new THREE.Color().setRGB(
+                groundTint[0], groundTint[1], groundTint[2], THREE.SRGBColorSpace,
+              );
+              m.color.lerp(target, groundMix);
+            }
+          }
           m.roughness = groundRough;
           m.metalness = groundMetal;
           m.envMapIntensity = 0.7;

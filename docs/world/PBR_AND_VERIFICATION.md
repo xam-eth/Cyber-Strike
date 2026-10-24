@@ -25,10 +25,18 @@ foliage hue 10% toward the world's moss tone instead of replacing it — running
 foliage through the metal ramp turned Verdant's canopy near-black, and the
 difference is the whole reason the two functions exist.
 
-The ground plate is photographed at noon, so its albedo multiplier is lifted or
-pushed down per theme and metalness dropped to 0. That is a grade on the *tint*,
-not a new texture — the map is still the scanned one. Tints are authored in sRGB
-(`THREE.SRGBColorSpace`) for the same reason the kit grades are.
+The ground plate is photographed at noon — a scan of black tarmac is about 0.15 in
+linear light — so each theme states two numbers: a **tint** (the legal 0–1
+`baseColorFactor` the plate is multiplied by) and a **lift** (how much of that
+same map is added back as emission, written as `KHR_materials_emissive_strength`).
+That is a grade on the scanned surface, not a new texture: the `emissiveTexture`
+*is* the albedo map. Verdant's floor is the exception in kind — the Nature Kit's
+grass tiles carry no map at all, so the theme's colour is lerped into the
+authored grass and `mix` says how far.
+
+Both are linear. Reading them as sRGB clamps a value above 1 to white (an earlier
+build lost the ground this way), and reading a linear ramp as sRGB is what left
+the foundry's yard black beside a lit deck.
 
 The plant and the set pieces are left exactly as their author baked them.
 
@@ -51,9 +59,9 @@ plus three GLBs and `build/worlds/worlds-report.json`:
 Each run prints what it built:
 
 ```
-frostline  10 roles · 36 instances · 113,086 tris · 61 clips · 35 real GLBs · 1427 ms
+frostline  10 roles · 36 instances · 113,086 tris · 61 clips · 35 real GLBs · 1320 ms
 verdant    12 roles · 92 instances · 128,182 tris · 156 clips · 44 real GLBs ·  937 ms
-emberfall  10 roles · 31 instances · 227,811 tris · 31 clips · 29 real GLBs · 2023 ms
+emberfall  10 roles · 47 instances · 247,553 tris · 42 clips · 29 real GLBs · 1973 ms
 ```
 
 * **Asset-policy gate** — `window.__world.proceduralMeshes()` walks the live scene
@@ -84,7 +92,7 @@ measured facts:
 | --- | --- | --- | --- | --- | --- | --- |
 | Frostline Relay | 171.6 × 19.5 × 175.0 m | 113,086 | 182 | 16 | 61 | 5.8 MB |
 | Verdant Bloom | 180.3 × 16.5 × 168.4 m | 128,182 | 221 | 10 | 156 | 3.0 MB |
-| Emberfall Foundry | 320.0 × 24.6 × 196.4 m | 227,811 | 400 | 84 | 31 | 20.5 MB |
+| Emberfall Foundry | 320.0 × 24.6 × 196.4 m | 247,553 | 483 | 84 | 42 | 20.6 MB |
 
 The stage step also runs the **Khronos glTF validator** on the exact bytes Godot
 imports and fails on any error, because a file only three.js accepts is not a
@@ -93,7 +101,7 @@ shipping asset:
 ```
 frostline  … 5.8 MB · glTF 0E/0W
 verdant    … 3.0 MB · glTF 0E/0W
-emberfall  … 20.5 MB · glTF 0E/0W
+emberfall  … 20.6 MB · glTF 0E/0W
 ```
 
 The in-file triangle count is lower than the drawn count because the exporter

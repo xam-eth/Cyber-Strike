@@ -9,7 +9,7 @@ and placed by code that creates no geometry of its own.
 | --- | --- | --- | --- |
 | **Frostline Relay** | defence | polar dusk — white ice, cyan light, visible air | comms array, relay masts, cryo condensers, ice spires, frozen hauler |
 | **Verdant Bloom** | recovery | humid overgrowth — moss, spore light, green sun | bio domes, giant flora, spore vents, overgrown arches, crashed lab, real pine groves |
-| **Emberfall Foundry** | extraction | volcanic industry — basalt, molten seams, ash | smelter towers, ore silos, magma drill rig, gantry cranes, slag pools, the Cinder Yard plant |
+| **Emberfall Foundry** | extraction | volcanic industry — basalt, molten seams, ash | smelter towers, ore silos, magma drill rig, gantry cranes, slag pools, silo rail on the plant approach, the Cinder Yard plant |
 
 ```
 game/assets/world/real/        130 files · 52.8 MB · provenance: real-manifest.json
@@ -32,7 +32,7 @@ tools/asset-forge/src/worlds/
 game/assets/forge/worlds/       staged GLBs Godot imports
   frostline.glb   171.6 × 19.5 × 175.0 m · 113,086 tris · 61 clips · 5.8 MB
   verdant.glb     180.3 × 16.5 × 168.4 m · 128,182 tris · 156 clips · 3.0 MB
-  emberfall.glb   320.0 × 24.6 × 196.4 m · 227,811 tris · 31 clips · 20.5 MB
+  emberfall.glb   320.0 × 24.6 × 196.4 m · 247,553 tris · 42 clips · 20.6 MB
 ```
 
 ## The rule, and how it is enforced

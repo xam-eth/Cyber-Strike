@@ -35,7 +35,7 @@ const EXPECTED := {
 	"frostline_relay": {"meshes": 175, "clips": 60, "textures": 8, "field": Vector2(168.0, 156.0)},
 	"verdant_bloom": {"meshes": 210, "clips": 150, "textures": 4, "field": Vector2(176.0, 164.0)},
 	"emberfall_foundry":
-	{"meshes": 380, "clips": 30, "textures": 40, "field": Vector2(200.0, 176.0)},
+	{"meshes": 400, "clips": 40, "textures": 40, "field": Vector2(200.0, 176.0)},
 }
 
 var _passed := true

@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-24T13:31:17.894Z",
+ "generated": "2026-10-24T14:51:17.712Z",
  "note": "Three mission worlds, each built from real licensed GLBs. Provenance: tools/asset-forge/real/real-manifest.json",
  "attribution": {
   "Kenney Space Kit": "CC0-1.0 — Kenney (www.kenney.nl)",
@@ -116,7 +116,7 @@
     "warnings": 0,
     "khronos": "2.0.0-dev.3.10"
    },
-   "bytes": 6095376
+   "bytes": 6095400
   },
   {
    "id": "verdant",
@@ -322,7 +322,7 @@
     "warnings": 0,
     "khronos": "2.0.0-dev.3.10"
    },
-   "bytes": 3116324
+   "bytes": 3116316
   },
   {
    "id": "emberfall",
@@ -338,9 +338,9 @@
    "measuredHeight": 24.57,
    "measuredWidth": 319.951,
    "measuredDepth": 196.386,
-   "triangles": 227811,
-   "meshes": 400,
-   "materials": 190,
+   "triangles": 247553,
+   "meshes": 415,
+   "materials": 205,
    "textures": 84,
    "clips": [
     "Smelter_A_GlowBand_spin",
@@ -370,10 +370,21 @@
     "FoundryGate_South_Gate_pulse",
     "FoundryGate_North_Beacon_spin",
     "FoundryGate_North_Gate_pulse",
+    "ApproachSilo_A_DrumTop_spin",
+    "ApproachSilo_B_DrumTop_spin",
+    "ApproachSilo_C_DrumTop_spin",
+    "ApproachCrane_Beam_bob",
+    "ApproachSlag_Melt_pulse",
+    "ApproachTurret_Turret_sweep",
+    "ApproachTurret_Sensor_spin",
     "SlagPool_C_Melt_pulse",
     "SlaggedHauler_Hull_sweep",
     "WreckedTransport_00_Hull_sweep",
-    "WreckedTransport_01_Hull_sweep"
+    "WreckedTransport_01_Hull_sweep",
+    "WreckedTransport_02_Hull_sweep",
+    "SlagPool_00_Melt_pulse",
+    "SlagPool_01_Melt_pulse",
+    "SlagPool_02_Melt_pulse"
    ],
    "sockets": [
     "spawn_foundry_yard",
@@ -394,8 +405,8 @@
      "glow": "#ff7a1e"
     },
     "fog": {
-     "color": "#3d1a0f",
-     "density": 0.004
+     "color": "#5a2a16",
+     "density": 0.0016
     }
    },
    "validation": {
@@ -403,7 +414,7 @@
     "warnings": 0,
     "khronos": "2.0.0-dev.3.10"
    },
-   "bytes": 21541292
+   "bytes": 21602200
   }
  ]
 }

@@ -116,7 +116,10 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = config.theme.exposure;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
-renderer.shadowMap.enabled = true;
+// `?shadows=0` renders the same shot without shadow casting. It exists because a
+// shadow bug and a material bug look identical in a still frame, and this is the
+// one switch that tells them apart.
+renderer.shadowMap.enabled = params.get('shadows') !== '0';
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 stage.appendChild(renderer.domElement);
 
@@ -285,6 +288,14 @@ function frame() {
 /* ------------------------------------------------------------ capture API -- */
 window.__world = {
   id: worldId,
+  // Live references for diagnostics. `?debug=1` and the capture gate read state
+  // off these; nothing in the game path touches them.
+  THREE,
+  scene,
+  camera,
+  controls,
+  root: world.root,
+  lights: atmosphere.lights.lights,
   shotNames: Object.keys(cameraShots),
   stats: world.stats,
   clips: world.clips.map((c) => c.name),

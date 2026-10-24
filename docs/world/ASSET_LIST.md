@@ -64,8 +64,8 @@ world may use which.
 | Mission | defence | recovery | extraction |
 | Field | 168 × 156 m | 176 × 164 m | 200 × 176 m |
 | Floor | scanned stone plate | real grass tiles + dirt paths | scanned stone plate |
-| Roles / instances | 10 / 36 | 12 / 92 | 10 / 31 |
-| Animation clips | 61 | 156 | 31 |
+| Roles / instances | 10 / 36 | 12 / 92 | 10 / 47 |
+| Animation clips | 61 | 156 | 42 |
 | Landmark | polar arch gate | fallen scout drone | Cinder Yard power station |
 | Real GLBs referenced | 35 | 44 | 29 |
 

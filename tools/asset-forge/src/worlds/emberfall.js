@@ -72,6 +72,21 @@ export default {
     { role: 'enemy_spawn_gate', name: 'FoundryGate_South', pos: [40, 0, 78], yaw: 180, scale: [1.4, 1.35, 1.25], district: 'guard' },
     { role: 'enemy_spawn_gate', name: 'FoundryGate_North', pos: [40, 0, -74], yaw: 0, scale: [1.4, 1.35, 1.25], district: 'guard' },
 
+    /* ------------------------------------------------- the plant approach */
+    // The east third of the field is the run-up to the Cinder Yard station: a
+    // rail of silos and a second crane so the player has cover on the way in,
+    // and so the largest empty rectangle in this world is not the one the
+    // mission's objective stands behind.
+    { role: 'ore_silo', name: 'ApproachSilo_A', pos: [88, 0, -34], yaw: 15, district: 'approach' },
+    { role: 'ore_silo', name: 'ApproachSilo_B', pos: [104, 0, -6], yaw: 60, district: 'approach' },
+    { role: 'ore_silo', name: 'ApproachSilo_C', pos: [86, 0, 24], yaw: 100, district: 'approach' },
+    { role: 'crane_gantry', name: 'ApproachCrane', pos: [62, 0, -52], yaw: 90, district: 'approach' },
+    { role: 'cover_module', name: 'ApproachCover_A', pos: [58, 0, 8], yaw: 10, district: 'approach' },
+    { role: 'cover_module', name: 'ApproachCover_B', pos: [80, 0, 44], yaw: 75, district: 'approach' },
+    { role: 'slag_pool', name: 'ApproachSlag', pos: [112, 0, 34], yaw: 55, district: 'approach' },
+    { role: 'ash_statue', name: 'ApproachStack', pos: [120, 0, -46], yaw: 12, district: 'approach' },
+    { role: 'defense_turret', name: 'ApproachTurret', pos: [52, 0, -20], yaw: -120, district: 'approach' },
+
     /* ------------------------------------------------------------ slagfield */
     { role: 'ash_statue', name: 'AshColumn_A', pos: [76, 0, -46], yaw: 0, district: 'slagfield' },
     { role: 'ash_statue', name: 'AshColumn_B', pos: [-70, 0, 52], yaw: 30, district: 'slagfield' },
@@ -97,7 +112,13 @@ export default {
       [-88, -52, 0.95],
     ],
     wrecked_transport: [
-      [-58, 62, 0.9, 40], [66, 6, 0.85, -25],
+      [-58, 62, 0.9, 40], [66, 6, 0.85, -25], [96, 60, 0.95, 130],
+    ],
+    slag_pool: [
+      [-14, -54, 0.9, 10], [40, -44, 0.8, 70], [-96, -6, 0.85, 25],
+    ],
+    ash_statue: [
+      [54, 52, 0.9, 0], [-22, 66, 0.85, 45], [122, 12, 0.9, 100],
     ],
   },
 

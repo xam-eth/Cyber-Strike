@@ -26,7 +26,9 @@ export const SHOTS = {
     smelters: { pos: [-14, 16, 26], target: [-50, 8, -8] },
     yard: { pos: [74, 22, 64], target: [32, 6, 12] },
     drill: { pos: [-22, 15, 72], target: [4, 7, 44] },
-    plant: { pos: [104, 28, 6], target: [152, 10, -18] },
+    // The plant is 24 m tall and 200 m long: this camera has to stand back far
+    // enough to photograph it rather than to stand inside it.
+    plant: { pos: [30, 58, 96], target: [166, 14, -18] },
   },
 };
 

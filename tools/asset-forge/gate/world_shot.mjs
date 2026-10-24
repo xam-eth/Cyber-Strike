@@ -91,11 +91,11 @@ for (const worldId of worldIds) {
   const page = await browser.newPage();
   await page.setViewport({ width, height, deviceScaleFactor: 1 });
   page.on('pageerror', (e) => console.error('  pageerror:', e.message));
-  page.on('console', (m) => { if (m.type() === 'error') console.error('  console:', m.text()); });
+  page.on('console', (m) => { if (m.type() === 'error') console.error('  console:', m.text()); else if (has('debug')) console.log('  log:', m.text().slice(0, 900)); });
 
   const t0 = Date.now();
   await page.goto(
-    `http://127.0.0.1:${port}/tools/asset-forge/world.html?capture=1&world=${worldId}&t=${time}&shot=overview${has('debug') ? '&debug=1' : ''}`,
+    `http://127.0.0.1:${port}/tools/asset-forge/world.html?capture=1&world=${worldId}&t=${time}&shot=overview${has('debug') ? '&debug=1' : ''}${has('no-shadows') ? '&shadows=0' : ''}`,
     { waitUntil: 'domcontentloaded', timeout: 180000 },
   );
   await page.waitForFunction(() => window.__ready === true, { timeout: 300000 });
