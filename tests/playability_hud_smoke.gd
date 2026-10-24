@@ -216,18 +216,24 @@ func _run_smoke_test() -> void:
 	)
 	feedback_panel.call("show_message", "EMP PULSE · NO TARGETS")
 	_expect(
-		(controls.get("_feedback_panel").get("_message_label") as Label).text.contains("NO TARGETS"),
+		(controls.get("_feedback_panel").get("_message_label") as Label).text.contains(
+			"NO TARGETS"
+		),
 		"Explore feedback stays legible in the lane between real buttons",
 	)
 	feedback_panel.call("clear_message")
 	_expect(
 		(
 			ring.visible
-			and ring.get_global_rect().get_center().distance_to(
-				skill_button.get_global_rect().get_center()
+			and (
+				(
+					ring.get_global_rect().get_center().distance_to(
+						skill_button.get_global_rect().get_center()
+					)
+					* LANDSCAPE_STRETCH
+				)
+				< 2.0
 			)
-			* LANDSCAPE_STRETCH
-			< 2.0
 		),
 		"EMP cooldown ring stays visibly centred around its icon",
 	)
@@ -384,10 +390,9 @@ func _run_smoke_test() -> void:
 			and fire_button.get_global_rect().size.x * COMPACT_STRETCH >= 178.0
 			and not feedback_panel.get_global_rect().intersects(skill_button.get_global_rect())
 			and not feedback_panel.get_global_rect().intersects(weapon_button.get_global_rect())
-			and (
-				(controls.get("_feedback_panel").get("_message_label") as Label).text
-				.contains("NO TARGETS")
-			)
+			and ((controls.get("_feedback_panel").get("_message_label") as Label).text.contains(
+				"NO TARGETS"
+			))
 		),
 		(
 			(
@@ -642,19 +647,21 @@ func _run_smoke_test() -> void:
 	_expect(
 		(Vector2(player.get("_touch_movement")) - Vector2(0.0, -1.0)).length() < 0.02,
 		(
-			"left-side touch drag maps to forward movement input (origin=%s move_id=%d "
-			+ "over_hud=%s paused=%s down=%s help=%s size=%s debug=%s)"
-		)
-		% [
-			joystick_origin,
-			int(controls.get("_move_touch_id")),
-			controls.call("_is_over_hud", joystick_origin),
-			paused,
-			controls.get("_player_down"),
-			(controls.get("_help_panel") as Control).get_global_rect(),
-			controls.size,
-			controls.get("_last_touch_debug"),
-		],
+			(
+				"left-side touch drag maps to forward movement input (origin=%s move_id=%d "
+				+ "over_hud=%s paused=%s down=%s help=%s size=%s debug=%s)"
+			)
+			% [
+				joystick_origin,
+				int(controls.get("_move_touch_id")),
+				controls.call("_is_over_hud", joystick_origin),
+				paused,
+				controls.get("_player_down"),
+				(controls.get("_help_panel") as Control).get_global_rect(),
+				controls.size,
+				controls.get("_last_touch_debug"),
+			]
+		),
 	)
 	for _frame in 18:
 		await physics_frame
@@ -741,7 +748,21 @@ func _run_smoke_test() -> void:
 	controls.call("_input", look_drag)
 	_expect(
 		not is_equal_approx(yaw_pivot.rotation.y, yaw_before),
-		"right-side touch drag rotates the over-the-shoulder camera",
+		(
+			(
+				"right-side touch drag rotates the over-the-shoulder camera "
+				+ "(look=%s zone_over_hud=%s paused=%s down=%s look_id=%d scrim=%s hit=%s)"
+			)
+			% [
+				look_touch.position,
+				controls.call("_is_over_hud", look_touch.position),
+				paused,
+				controls.get("_player_down"),
+				int(controls.get("_touch").look_touch_id),
+				(controls.get("_scrim") as Control).visible,
+				controls.get("_last_touch_debug"),
+			]
+		),
 	)
 	var look_release := InputEventScreenTouch.new()
 	look_release.index = 72
@@ -876,7 +897,20 @@ func _run_smoke_test() -> void:
 			and wave_title.text == "EXPLORE THE FRONTIER"
 			and int(wave_director.get("current_wave")) == 0
 		),
-		"CANCEL DEFENSE during preparation unpauses and restores safe Explore",
+		(
+			(
+				"CANCEL DEFENSE during preparation unpauses and restores safe Explore "
+				+ "(paused=%s panel=%s down=%s hp=%s title=%s wave=%d)"
+			)
+			% [
+				paused,
+				pause_panel.visible,
+				player.call("is_defeated"),
+				health_bar.value,
+				wave_title.text,
+				int(wave_director.get("current_wave")),
+			]
+		),
 	)
 	print("Playability/HUD smoke test: %d failure(s)" % _failures)
 	main_scene.queue_free()
