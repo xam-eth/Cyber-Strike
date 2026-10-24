@@ -27,6 +27,7 @@ export function std() {
     green: glow('ok', 1.3, { base: 'ok' }),
     danger: glow('danger', 1.2),
     violet: glow('ability', 1.3),
+    violetDim: glow('ability', 0.34),
     glass: glass('info', { opacity: 0.18 }),
     gap: shadowGap(),
   };

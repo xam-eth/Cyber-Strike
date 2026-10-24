@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-24T03:23:17.201Z",
+  "generated": "2026-10-24T04:16:31.507Z",
   "cell": 240,
   "columns": 6,
   "note": "Nearest-neighbour downscale of build/renders/<id>/view-034-*.png. Sheets are review aids: a sheet cannot prove a model is right, it is where a human looks.",
@@ -149,7 +149,7 @@
       "x": 980,
       "y": 248,
       "size": 240,
-      "render": "build/renders/alien_drone_wreck/view-034-16.png"
+      "render": "build/renders/alien_drone_wreck/view-055-30.png"
     },
     {
       "id": "crystal_cluster",
@@ -359,7 +359,7 @@
       "x": 492,
       "y": 4,
       "size": 240,
-      "render": "build/renders/training_drone/view-034-16.png"
+      "render": "build/renders/training_drone/view-075-22.png"
     },
     {
       "id": "pulse_bolt",

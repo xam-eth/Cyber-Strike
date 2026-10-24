@@ -1,0 +1,807 @@
+{
+  "generated": "2026-10-24T04:18:14.085Z",
+  "note": "Written by tools/asset-forge/gate/stage_into_game.mjs — the forge → Godot contract. Verified by tools/asset-forge/godot/verify_import.gd.",
+  "entries": [
+    {
+      "id": "reactor_core",
+      "category": "world",
+      "name": "Reactor Core",
+      "resource": "res://assets/forge/world/reactor_core.glb",
+      "source": "game/scenes/worlds/components/reactor_core.tscn",
+      "targetHeight": 6,
+      "targetLength": null,
+      "normalisedBy": "height",
+      "measuredHeight": 6,
+      "measuredWidth": 5.518,
+      "triangles": 8728,
+      "clips": [
+        "core_pulse"
+      ],
+      "sockets": [
+        "charge_fx"
+      ],
+      "bytes": 723532
+    },
+    {
+      "id": "command_center",
+      "category": "world",
+      "name": "Command Centre",
+      "resource": "res://assets/forge/world/command_center.glb",
+      "source": "game/scenes/worlds/components/command_center.tscn",
+      "targetHeight": 7.5,
+      "targetLength": null,
+      "normalisedBy": "height",
+      "measuredHeight": 7.5,
+      "measuredWidth": 7.12,
+      "triangles": 5484,
+      "clips": [
+        "beacon_pulse"
+      ],
+      "sockets": [
+        "dish_yaw",
+        "door"
+      ],
+      "bytes": 439096
+    },
+    {
+      "id": "research_lab",
+      "category": "world",
+      "name": "Research Laboratory",
+      "resource": "res://assets/forge/world/research_lab.glb",
+      "source": "game/scenes/worlds/components/research_lab.tscn",
+      "targetHeight": 5.5,
+      "targetLength": null,
+      "normalisedBy": "height",
+      "measuredHeight": 5.5,
+      "measuredWidth": 8.631,
+      "triangles": 4688,
+      "clips": [
+        "sample_cycle"
+      ],
+      "sockets": [
+        "vessel"
+      ],
+      "bytes": 391032
+    },
+    {
+      "id": "equipment_depot",
+      "category": "world",
+      "name": "Equipment Depot",
+      "resource": "res://assets/forge/world/equipment_depot.glb",
+      "source": "game/scenes/worlds/components/equipment_depot.tscn",
+      "targetHeight": 4.6,
+      "targetLength": null,
+      "normalisedBy": "height",
+      "measuredHeight": 4.6,
+      "measuredWidth": 6.799,
+      "triangles": 3920,
+      "clips": [
+        "lamp_pulse"
+      ],
+      "sockets": [
+        "cargo_slot",
+        "door"
+      ],
+      "bytes": 381096
+    },
+    {
+      "id": "generator_bank",
+      "category": "world",
+      "name": "Generator Bank",
+      "resource": "res://assets/forge/world/generator_bank.glb",
+      "source": "game/scenes/worlds/components/generator_bank.tscn",
+      "targetHeight": 6.5,
+      "targetLength": null,
+      "normalisedBy": "height",
+      "measuredHeight": 6.5,
+      "measuredWidth": 8.643,
+      "triangles": 10368,
+      "clips": [
+        "energy_columns"
+      ],
+      "sockets": [
+        "feed_pipe"
+      ],
+      "bytes": 579988
+    },
+    {
+      "id": "landing_pad",
+      "category": "world",
+      "name": "Landing Pad",
+      "resource": "res://assets/forge/world/landing_pad.glb",
+      "source": "game/scenes/worlds/components/landing_pad.tscn",
+      "targetHeight": 1.2,
+      "targetLength": null,
+      "normalisedBy": "height",
+      "measuredHeight": 1.2,
+      "measuredWidth": 9.848,
+      "triangles": 3672,
+      "clips": [
+        "beacon_cycle"
+      ],
+      "sockets": [
+        "pad_centre"
+      ],
+      "bytes": 299600
+    },
+    {
+      "id": "boss_gate",
+      "category": "world",
+      "name": "Boss Gate",
+      "resource": "res://assets/forge/world/boss_gate.glb",
+      "source": "game/scenes/worlds/components/boss_gate.tscn",
+      "targetHeight": 11,
+      "targetLength": null,
+      "normalisedBy": "height",
+      "measuredHeight": 11,
+      "measuredWidth": 10.462,
+      "triangles": 6300,
+      "clips": [
+        "gate_open"
+      ],
+      "sockets": [
+        "shutter_l",
+        "shutter_r"
+      ],
+      "bytes": 639440
+    },
+    {
+      "id": "defense_turret",
+      "category": "world",
+      "name": "Defence Turret",
+      "resource": "res://assets/forge/world/defense_turret.glb",
+      "source": "game/scenes/worlds/components/defense_turret.tscn",
+      "targetHeight": 2.8,
+      "targetLength": null,
+      "normalisedBy": "height",
+      "measuredHeight": 2.8,
+      "measuredWidth": 2.728,
+      "triangles": 2884,
+      "clips": [
+        "yaw_sweep",
+        "fire_recoil"
+      ],
+      "sockets": [
+        "muzzle_l",
+        "muzzle_r",
+        "sensor"
+      ],
+      "bytes": 237548
+    },
+    {
+      "id": "sensor_tower",
+      "category": "world",
+      "name": "Sensor Tower",
+      "resource": "res://assets/forge/world/sensor_tower.glb",
+      "source": "game/scenes/worlds/components/sensor_tower.tscn",
+      "targetHeight": 11,
+      "targetLength": null,
+      "normalisedBy": "height",
+      "measuredHeight": 11,
+      "measuredWidth": 4.113,
+      "triangles": 3840,
+      "clips": [
+        "dish_scan"
+      ],
+      "sockets": [
+        "dish",
+        "beacon"
+      ],
+      "bytes": 372832
+    },
+    {
+      "id": "wrecked_transport",
+      "category": "world",
+      "name": "Wrecked Transport",
+      "resource": "res://assets/forge/world/wrecked_transport.glb",
+      "source": "game/scenes/worlds/components/wrecked_transport.tscn",
+      "targetHeight": 3.4,
+      "targetLength": null,
+      "normalisedBy": "height",
+      "measuredHeight": 3.4,
+      "measuredWidth": 5.977,
+      "triangles": 1692,
+      "clips": [
+        "ember_flicker"
+      ],
+      "sockets": [
+        "hull_cut",
+        "wing_l"
+      ],
+      "bytes": 187024
+    },
+    {
+      "id": "alien_drone_wreck",
+      "category": "world",
+      "name": "Alien Drone Wreck",
+      "resource": "res://assets/forge/world/alien_drone_wreck.glb",
+      "source": "game/scenes/worlds/components/alien_drone_wreck.tscn",
+      "targetHeight": 2.4,
+      "targetLength": null,
+      "normalisedBy": "height",
+      "measuredHeight": 2.4,
+      "measuredWidth": 3.154,
+      "triangles": 7300,
+      "clips": [
+        "sensor_fade"
+      ],
+      "sockets": [
+        "sensor_core",
+        "arm_l",
+        "arm_r"
+      ],
+      "bytes": 607376
+    },
+    {
+      "id": "crystal_cluster",
+      "category": "world",
+      "name": "Crystal Cluster",
+      "resource": "res://assets/forge/world/crystal_cluster.glb",
+      "source": "game/scenes/worlds/components/crystal_cluster.tscn",
+      "targetHeight": 3.2,
+      "targetLength": null,
+      "normalisedBy": "height",
+      "measuredHeight": 3.2,
+      "measuredWidth": 3.214,
+      "triangles": 940,
+      "clips": [
+        "shimmer"
+      ],
+      "sockets": [
+        "harvest_point"
+      ],
+      "bytes": 127148
+    },
+    {
+      "id": "alien_flora",
+      "category": "world",
+      "name": "Alien Flora",
+      "resource": "res://assets/forge/world/alien_flora.glb",
+      "source": "game/scenes/worlds/components/alien_flora.tscn",
+      "targetHeight": 1.8,
+      "targetLength": null,
+      "normalisedBy": "height",
+      "measuredHeight": 1.8,
+      "measuredWidth": 1.305,
+      "triangles": 2504,
+      "clips": [
+        "sway"
+      ],
+      "sockets": [
+        "root"
+      ],
+      "bytes": 130732
+    },
+    {
+      "id": "rock_cluster",
+      "category": "world",
+      "name": "Rock Cluster",
+      "resource": "res://assets/forge/world/rock_cluster.glb",
+      "source": "game/scenes/worlds/components/rock_cluster.tscn",
+      "targetHeight": 3.6,
+      "targetLength": null,
+      "normalisedBy": "height",
+      "measuredHeight": 3.6,
+      "measuredWidth": 7.381,
+      "triangles": 1124,
+      "clips": [],
+      "sockets": [
+        "base"
+      ],
+      "bytes": 139680
+    },
+    {
+      "id": "enemy_spawn_gate",
+      "category": "world",
+      "name": "Enemy Spawn Gate",
+      "resource": "res://assets/forge/world/enemy_spawn_gate.glb",
+      "source": "game/scenes/worlds/components/enemy_spawn_gate.tscn",
+      "targetHeight": 5.2,
+      "targetLength": null,
+      "normalisedBy": "height",
+      "measuredHeight": 5.2,
+      "measuredWidth": 6.163,
+      "triangles": 7616,
+      "clips": [
+        "strip_pulse"
+      ],
+      "sockets": [
+        "spawn_point"
+      ],
+      "bytes": 686152
+    },
+    {
+      "id": "cover_module",
+      "category": "world",
+      "name": "Cover Module",
+      "resource": "res://assets/forge/world/cover_module.glb",
+      "source": "game/scenes/worlds/components/cover_module.tscn",
+      "targetHeight": 1.15,
+      "targetLength": null,
+      "normalisedBy": "height",
+      "measuredHeight": 1.15,
+      "measuredWidth": 2.2,
+      "triangles": 4160,
+      "clips": [],
+      "sockets": [
+        "top_mark"
+      ],
+      "bytes": 428600
+    },
+    {
+      "id": "exo_operative",
+      "category": "hero",
+      "name": "Exo Operative (default)",
+      "resource": "res://assets/forge/hero/exo_operative.glb",
+      "source": "game/resources/heroes/exo_operative.tres",
+      "targetHeight": 1.8,
+      "targetLength": null,
+      "normalisedBy": "height",
+      "measuredHeight": 1.8,
+      "measuredWidth": 0.641,
+      "triangles": 4928,
+      "clips": [
+        "idle",
+        "aim",
+        "fire"
+      ],
+      "sockets": [
+        "hand_r",
+        "muzzle",
+        "chest_core"
+      ],
+      "bytes": 491288
+    },
+    {
+      "id": "exo_combat_tech",
+      "category": "hero",
+      "name": "Exo Operative — Combat Tech",
+      "resource": "res://assets/forge/hero/exo_combat_tech.glb",
+      "source": "IAP_CONCEPT.md#pillar-2--character-identity",
+      "targetHeight": 1.8,
+      "targetLength": null,
+      "normalisedBy": "height",
+      "measuredHeight": 1.8,
+      "measuredWidth": 0.636,
+      "triangles": 5660,
+      "clips": [
+        "idle",
+        "aim",
+        "fire"
+      ],
+      "sockets": [
+        "hand_r",
+        "muzzle",
+        "chest_core"
+      ],
+      "bytes": 565040
+    },
+    {
+      "id": "exo_void_runner",
+      "category": "hero",
+      "name": "Exo Operative — Void Runner",
+      "resource": "res://assets/forge/hero/exo_void_runner.glb",
+      "source": "IAP_CONCEPT.md#pillar-2--character-identity",
+      "targetHeight": 1.8,
+      "targetLength": null,
+      "normalisedBy": "height",
+      "measuredHeight": 1.8,
+      "measuredWidth": 0.628,
+      "triangles": 5336,
+      "clips": [
+        "idle",
+        "aim",
+        "fire"
+      ],
+      "sockets": [
+        "hand_r",
+        "muzzle",
+        "chest_core"
+      ],
+      "bytes": 538052
+    },
+    {
+      "id": "exo_neon_phantom",
+      "category": "hero",
+      "name": "Exo Operative — Neon Phantom",
+      "resource": "res://assets/forge/hero/exo_neon_phantom.glb",
+      "source": "IAP_CONCEPT.md#pillar-2--character-identity",
+      "targetHeight": 1.8,
+      "targetLength": null,
+      "normalisedBy": "height",
+      "measuredHeight": 1.8,
+      "measuredWidth": 0.628,
+      "triangles": 5228,
+      "clips": [
+        "idle",
+        "aim",
+        "fire"
+      ],
+      "sockets": [
+        "hand_r",
+        "muzzle",
+        "chest_core"
+      ],
+      "bytes": 526840
+    },
+    {
+      "id": "exo_rogue_engineer",
+      "category": "hero",
+      "name": "Exo Operative — Rogue Engineer",
+      "resource": "res://assets/forge/hero/exo_rogue_engineer.glb",
+      "source": "IAP_CONCEPT.md#pillar-2--character-identity",
+      "targetHeight": 1.8,
+      "targetLength": null,
+      "normalisedBy": "height",
+      "measuredHeight": 1.8,
+      "measuredWidth": 0.641,
+      "triangles": 5440,
+      "clips": [
+        "idle",
+        "aim",
+        "fire"
+      ],
+      "sockets": [
+        "hand_r",
+        "muzzle",
+        "chest_core"
+      ],
+      "bytes": 544404
+    },
+    {
+      "id": "exo_alien_hunter",
+      "category": "hero",
+      "name": "Exo Operative — Alien Hunter",
+      "resource": "res://assets/forge/hero/exo_alien_hunter.glb",
+      "source": "IAP_CONCEPT.md#pillar-2--character-identity",
+      "targetHeight": 1.8,
+      "targetLength": null,
+      "normalisedBy": "height",
+      "measuredHeight": 1.8,
+      "measuredWidth": 0.695,
+      "triangles": 5548,
+      "clips": [
+        "idle",
+        "aim",
+        "fire"
+      ],
+      "sockets": [
+        "hand_r",
+        "muzzle",
+        "chest_core"
+      ],
+      "bytes": 571112
+    },
+    {
+      "id": "pulse_rifle",
+      "category": "weapon",
+      "name": "Pulse Rifle",
+      "resource": "res://assets/forge/weapon/pulse_rifle.glb",
+      "source": "game/resources/weapons/pulse_rifle.tres",
+      "targetHeight": null,
+      "targetLength": 0.95,
+      "normalisedBy": "height",
+      "measuredHeight": 0.374,
+      "measuredWidth": 0.155,
+      "triangles": 1316,
+      "clips": [
+        "idle",
+        "fire_recoil",
+        "reload"
+      ],
+      "sockets": [
+        "muzzle",
+        "grip_r",
+        "grip_l",
+        "scope"
+      ],
+      "bytes": 162884
+    },
+    {
+      "id": "nova_launcher",
+      "category": "weapon",
+      "name": "Nova Launcher",
+      "resource": "res://assets/forge/weapon/nova_launcher.glb",
+      "source": "game/resources/weapons/nova_launcher.tres",
+      "targetHeight": null,
+      "targetLength": 1.05,
+      "normalisedBy": "height",
+      "measuredHeight": 0.427,
+      "measuredWidth": 0.206,
+      "triangles": 1520,
+      "clips": [
+        "idle",
+        "fire_recoil",
+        "reload"
+      ],
+      "sockets": [
+        "muzzle",
+        "grip_r",
+        "grip_l",
+        "drum"
+      ],
+      "bytes": 159844
+    },
+    {
+      "id": "arc_shooter",
+      "category": "weapon",
+      "name": "Arc Shooter",
+      "resource": "res://assets/forge/weapon/arc_shooter.glb",
+      "source": "game/resources/weapons/arc_shooter.tres",
+      "targetHeight": null,
+      "targetLength": 1,
+      "normalisedBy": "height",
+      "measuredHeight": 0.443,
+      "measuredWidth": 0.15,
+      "triangles": 1992,
+      "clips": [
+        "idle",
+        "fire_recoil",
+        "reload"
+      ],
+      "sockets": [
+        "muzzle",
+        "grip_r",
+        "prong_l",
+        "prong_r"
+      ],
+      "bytes": 171760
+    },
+    {
+      "id": "scatter_blaster",
+      "category": "weapon",
+      "name": "Scatter Blaster",
+      "resource": "res://assets/forge/weapon/scatter_blaster.glb",
+      "source": "IAP_CONCEPT.md#pillar-1--weapon-collection",
+      "targetHeight": null,
+      "targetLength": 0.85,
+      "normalisedBy": "height",
+      "measuredHeight": 0.469,
+      "measuredWidth": 0.227,
+      "triangles": 1404,
+      "clips": [
+        "idle",
+        "fire_recoil",
+        "reload"
+      ],
+      "sockets": [
+        "muzzle",
+        "grip_r",
+        "grip_l"
+      ],
+      "bytes": 148324
+    },
+    {
+      "id": "rail_cannon",
+      "category": "weapon",
+      "name": "Rail Cannon",
+      "resource": "res://assets/forge/weapon/rail_cannon.glb",
+      "source": "IAP_CONCEPT.md#pillar-1--weapon-collection",
+      "targetHeight": null,
+      "targetLength": 1.25,
+      "normalisedBy": "height",
+      "measuredHeight": 0.421,
+      "measuredWidth": 0.163,
+      "triangles": 2164,
+      "clips": [
+        "idle",
+        "charge",
+        "fire_recoil"
+      ],
+      "sockets": [
+        "muzzle",
+        "grip_r",
+        "grip_l",
+        "coil"
+      ],
+      "bytes": 193740
+    },
+    {
+      "id": "gravity_gun",
+      "category": "weapon",
+      "name": "Gravity Gun",
+      "resource": "res://assets/forge/weapon/gravity_gun.glb",
+      "source": "IAP_CONCEPT.md#pillar-1--weapon-collection",
+      "targetHeight": null,
+      "targetLength": 1,
+      "normalisedBy": "height",
+      "measuredHeight": 0.451,
+      "measuredWidth": 0.222,
+      "triangles": 2028,
+      "clips": [
+        "idle",
+        "charge",
+        "fire_recoil"
+      ],
+      "sockets": [
+        "muzzle",
+        "grip_r",
+        "core"
+      ],
+      "bytes": 171896
+    },
+    {
+      "id": "arc_shooter_void_edition",
+      "category": "weapon",
+      "name": "Arc Shooter — Void Edition",
+      "resource": "res://assets/forge/weapon/arc_shooter_void_edition.glb",
+      "source": "IAP_CONCEPT.md#pillar-1--weapon-collection",
+      "targetHeight": null,
+      "targetLength": 1,
+      "normalisedBy": "height",
+      "measuredHeight": 0.443,
+      "measuredWidth": 0.15,
+      "triangles": 1992,
+      "clips": [
+        "idle",
+        "fire_recoil",
+        "reload"
+      ],
+      "sockets": [
+        "muzzle",
+        "grip_r",
+        "prong_l",
+        "prong_r"
+      ],
+      "bytes": 171776
+    },
+    {
+      "id": "runner",
+      "category": "enemy",
+      "name": "Runner",
+      "resource": "res://assets/forge/enemy/runner.glb",
+      "source": "game/scenes/enemies/runner.tscn",
+      "targetHeight": 1.72,
+      "targetLength": null,
+      "normalisedBy": "height",
+      "measuredHeight": 1.72,
+      "measuredWidth": 0.908,
+      "triangles": 3796,
+      "clips": [
+        "idle",
+        "run",
+        "hit",
+        "death"
+      ],
+      "sockets": [
+        "spine",
+        "claw_l",
+        "claw_r"
+      ],
+      "bytes": 378712
+    },
+    {
+      "id": "shooter",
+      "category": "enemy",
+      "name": "Shooter",
+      "resource": "res://assets/forge/enemy/shooter.glb",
+      "source": "game/scenes/enemies/shooter.tscn",
+      "targetHeight": 1.62,
+      "targetLength": null,
+      "normalisedBy": "height",
+      "measuredHeight": 1.62,
+      "measuredWidth": 0.577,
+      "triangles": 5284,
+      "clips": [
+        "idle",
+        "run",
+        "aim",
+        "death"
+      ],
+      "sockets": [
+        "hand_r",
+        "chest"
+      ],
+      "bytes": 530196
+    },
+    {
+      "id": "training_drone",
+      "category": "enemy",
+      "name": "Training Drone",
+      "resource": "res://assets/forge/enemy/training_drone.glb",
+      "source": "game/scenes/enemies/training_drone.tscn",
+      "targetHeight": 1.15,
+      "targetLength": null,
+      "normalisedBy": "height",
+      "measuredHeight": 1.15,
+      "measuredWidth": 1.139,
+      "triangles": 4328,
+      "clips": [
+        "hover",
+        "hit",
+        "death"
+      ],
+      "sockets": [
+        "hover_ring",
+        "sensor"
+      ],
+      "bytes": 347280
+    },
+    {
+      "id": "pulse_bolt",
+      "category": "vfx",
+      "name": "Pulse Bolt",
+      "resource": "res://assets/forge/vfx/pulse_bolt.glb",
+      "source": "game/scenes/weapons/pulse_projectile.tscn",
+      "targetHeight": null,
+      "targetLength": 1.2,
+      "normalisedBy": "height",
+      "measuredHeight": 0.205,
+      "measuredWidth": 0.21,
+      "triangles": 480,
+      "clips": [
+        "travel",
+        "impact"
+      ],
+      "sockets": [
+        "head",
+        "tail"
+      ],
+      "bytes": 34924
+    },
+    {
+      "id": "nova_shockwave",
+      "category": "vfx",
+      "name": "Nova Shockwave",
+      "resource": "res://assets/forge/vfx/nova_shockwave.glb",
+      "source": "game/scenes/weapons/nova_projectile.tscn",
+      "targetHeight": 4,
+      "targetLength": null,
+      "normalisedBy": "height",
+      "measuredHeight": 4,
+      "measuredWidth": 3.363,
+      "triangles": 2376,
+      "clips": [
+        "expand",
+        "fade"
+      ],
+      "sockets": [
+        "centre"
+      ],
+      "bytes": 80136
+    },
+    {
+      "id": "arc_chain",
+      "category": "vfx",
+      "name": "Arc Chain",
+      "resource": "res://assets/forge/vfx/arc_chain.glb",
+      "source": "game/scenes/weapons/arc_projectile.tscn",
+      "targetHeight": null,
+      "targetLength": 6,
+      "normalisedBy": "height",
+      "measuredHeight": 0.805,
+      "measuredWidth": 2.839,
+      "triangles": 1452,
+      "clips": [
+        "strike",
+        "fork"
+      ],
+      "sockets": [
+        "origin",
+        "fork_a",
+        "fork_b"
+      ],
+      "bytes": 129368
+    },
+    {
+      "id": "impact_burst",
+      "category": "vfx",
+      "name": "Impact Burst",
+      "resource": "res://assets/forge/vfx/impact_burst.glb",
+      "source": "game/scripts/weapons/impact_burst.gd",
+      "targetHeight": 0.7,
+      "targetLength": null,
+      "normalisedBy": "height",
+      "measuredHeight": 0.7,
+      "measuredWidth": 0.504,
+      "triangles": 992,
+      "clips": [
+        "burst"
+      ],
+      "sockets": [
+        "centre"
+      ],
+      "bytes": 47984
+    }
+  ]
+}

@@ -195,6 +195,7 @@ for (const entry of entries) {
       fs.writeFileSync(path.join(catDir, `${entry.id}.glb`), glbBytes);
     }
 
+    if (glbBytes) checks.push(await C.checkGltfConformance(glbBytes));
     checks.push(C.checkCatalogSource(entry));
     checks.push(C.checkMeta(entry, stats, meta ?? {}));
     checks.push(C.checkNormalisation(stats));

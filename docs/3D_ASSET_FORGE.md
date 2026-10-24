@@ -139,7 +139,7 @@ missing, and the GLB check fails if the socket node did not survive export.
 
 ## 4. The quality gate
 
-`node tools/asset-forge/gate/run_gate.mjs` — 18 checks per asset, all measured:
+`node tools/asset-forge/gate/run_gate.mjs` — 19 checks per asset, all measured:
 
 | Check | Rule |
 | --- | --- |
@@ -159,9 +159,10 @@ missing, and the GLB check fails if the socket node did not survive export.
 | `materials-on-palette` | every authored colour is within 6/255 of a palette token |
 | `deterministic-rebuild` | rebuilding the module produces an identical geometry hash |
 | `glb-valid` | glTF 2.0 binary: magic, version, declared length, JSON chunk, ≥1 mesh, declared animations and sockets present as nodes |
+| `gltf-conformance` | the file passes the **Khronos glTF validator** with 0 errors and 0 warnings — the rules Godot's importer reads |
 | `render-coverage` | the asset covers 1.5–90% of the frame in each of three views (per-entry floors for thin props) |
 | `render-luma` | luma spread ≥ 0.30 and std ≥ 0.045 — the render is not a flat silhouette |
-| `views-differ` | the three views are not the same projection (best pair differs ≥ 0.12) |
+| `views-differ` | the three views are not the same projection (best pair differs ≥ 0.12; rotationally symmetric subjects may declare a lower `views_differ_min`, printed in the message) |
 
 The gate is **deterministic-only**. It cannot see whether a model *looks like*
 its reference — so the renders and `review/<category>.png` contact sheets exist
@@ -201,6 +202,50 @@ The gate is not decoration; these are real defects it refused:
   RAF loop had reached. Capture mode now holds the model at its rest pose unless
   a time is passed, which makes measurement deterministic again.
 
+### 4.2 Why the clips had to become vector channels
+
+Per-axis track authoring (`rotation.x`, `scale.y`) is readable in three.js and
+**impossible in glTF**: a glTF channel addresses a whole property
+(`translation`/`rotation`/`scale`), never one axis. The per-axis form produced
+two defects that the structural GLB check did not see, and the Khronos validator
+did:
+
+| Symptom | Validator code | Cause | Fix |
+| --- | --- | --- | --- |
+| hero clips exported with **zero channels** | `EMPTY_ENTITY` | three's exporter cannot map `ArmR.rotation[x]` to a node property | rotation is baked to `quaternion` tracks |
+| VFX scale tracks rejected | `ANIMATION_SAMPLER_OUTPUT_ACCESSOR_INVALID_FORMAT` (`SCALAR` where `VEC3` required) | one scalar accessor per axis | position/scale grouped into `VectorKeyframeTrack` |
+| drone `death` clip invalid | `ANIMATION_DUPLICATE_TARGETS` | two channels on one `scale` target | same grouping |
+
+`src/runtime/rig.js` now groups tracks by (node, channel), samples each axis
+onto the union of key times and emits **one** quaternion or vector track. The
+mixer motion is unchanged; the export is legal. Result: **36/36 GLBs pass the
+Khronos validator with 0 errors, 0 warnings**, and that is now a gate check
+(`gltf-conformance`) rather than a one-off manual run.
+
+### 4.3 Proving it works *in Godot*
+
+Valid glTF is necessary, not sufficient. The repo now carries the engine-side
+check, and the honest status of it:
+
+* `tools/asset-forge/gate/stage_into_game.mjs` copies all 36 GLBs to
+  `game/assets/forge/<category>/` and writes `forge_manifest.json` — the
+  contract (resource path, target size, clips, sockets) the engine verifies
+  against. **Committed**, because Godot can only import files inside the project.
+* `tools/asset-forge/godot/verify_import.gd` loads every `.glb` through the
+  engine, instantiates it, measures the real AABB, and fails if the height, any
+  declared clip, or any declared socket is missing after import. It writes a JSON
+  report and exits non-zero on failure.
+* `tools/asset-forge/godot/run_verify.sh` runs the import step and then the
+  verifier.
+
+**Not yet run.** No Godot binary could be obtained in the environment this was
+built in (direct downloads are blocked; no Godot package exists on npm or PyPI
+that ships the executable), so the script exits 2 with an explanatory message
+rather than pretending. The GDScript itself passes `gdparse` + `gdlint`. Until
+`run_verify.sh` reports `PASSED` on a machine with Godot 4.7.2, the correct
+statement is: *the GLBs are spec-valid and staged, and their in-engine import has
+not been verified.* The forge never claims a green light it did not see.
+
 ## 5. Running it
 
 ```bash
@@ -215,10 +260,15 @@ node tools/asset-forge/gate/run_gate.mjs
 node tools/asset-forge/gate/run_gate.mjs --only reactor_core,pulse_rifle
 node tools/asset-forge/gate/run_gate.mjs --no-glb        # faster, skips export
 
-# 3. review sheets, then animation filmstrips
+# 3. review sheets, reference-vs-render pairs, then animation filmstrips
 node tools/asset-forge/gate/contact_sheet.mjs
+node tools/asset-forge/gate/compare_sheet.mjs                # REF | RENDER, one row per asset
 node tools/asset-forge/gate/anim_strip.mjs                       # every declared clip, 34 models → 72 strips
 node tools/asset-forge/gate/anim_strip.mjs --only exo_operative --frames 8 --cell 220 --az 90
+
+# 5. stage for the engine, then verify inside Godot (needs a Godot 4.x binary)
+node tools/asset-forge/gate/stage_into_game.mjs
+tools/asset-forge/godot/run_verify.sh
 
 # 4. look at one asset interactively (orbit, wireframe, spin, clip)
 python3 -m http.server 800 --bind 0.0.0.0
@@ -234,6 +284,8 @@ Outputs:
 | `tools/asset-forge/results.json` | yes | measured summary of the last full run |
 | `tools/asset-forge/review/*.png` | yes | contact sheets used for visual review |
 | `tools/asset-forge/review/anim/*.png` + `anim.json` | yes | one filmstrip per declared clip (6 sampled frames each) — the evidence that a clip actually moves the model |
+| `tools/asset-forge/review/compare/*.png` + `compare.json` | yes | reference image next to the built render, one row per asset — the evidence for "matches the reference" |
+| `game/assets/forge/**` + `forge_manifest.json` | yes | the imports staged inside the Godot project, plus the manifest the in-engine verifier checks |
 | `tools/asset-forge/build/` | **no** (git-ignored) | renders, per-clip stills, `.glb` exports, full `quality-report.json` |
 
 ## 6. Status — what is real, what is not
@@ -279,6 +331,31 @@ Honest status at the time of writing:
 
 ## 7. Review notes (what changed because a human looked)
 
+The review loop is now mechanical: `gate/compare_sheet.mjs` writes
+`review/compare/<category>.png` with the reference on the left and the built
+render on the right, one row per asset, plus `compare.json` listing which assets
+have no reference yet. That sheet is what the notes below were written against —
+"it looks close enough" is not a review, a side-by-side is.
+
+* **Alien drone wreck** — first build was a grey box on thin legs with a glowing
+  disc on top; the reference is a **domed hull rolled onto one side**, buried in
+  soil, with overlapping armour petals, a broken segmented ring hoop, two ringed
+  emerald sensor ports and exposed ribs. Rebuilt from the dome outward (6,808 →
+  7,300 tris). Its plates now sit on the ellipsoid surface via
+  `quaternion.setFromUnitVectors(+Y, normal)` — the first attempt mapped +Z and
+  every plate stood on edge.
+* **Enemy spawn gate** — was a rectangular steel gantry with no portal at all;
+  the reference is a **pointed gothic arch** full of violet energy. Rebuilt on a
+  quadratic ogive with tangent-aligned ribs, scale plates, red eye-lamps, a
+  chevroned plinth per leg and a dim violet membrane with a hot rim. Three
+  iterations were needed: the first arch segments were not rotated to the curve
+  (floating bricks), the second crossed at the crown (basket weave), the third
+  is one swept polyline rib.
+* **Training drone** — was a pale dome with a blown cyan ball; the reference is a
+  **dark armoured pod** wearing a wide cyan visor, a segmented skirt ring with
+  four amber thruster nozzles and a stub cannon. Rebuilt and re-toned (4,328 tris).
+* **Cover module / defence turret / runner** — see the earlier notes below.
+
 * **Reactor** — first build was a black silhouette: `MeshStandardMaterial` with
   metalness 0.72 and no environment returns black. The viewer now builds a
   procedural gradient environment from palette tokens, and the plating order was
@@ -321,11 +398,8 @@ Honest status at the time of writing:
 
 ## 8. Limits and next steps
 
-1. **26 reference images remain** (the platform caps generation at 10 per turn),
-   then a full gate run. Ordered by what the review needs most: world props
-   (`alien_drone_wreck`, `crystal_cluster`, `alien_flora`, `rock_cluster`,
-   `enemy_spawn_gate`, `cover_module`), enemies (`runner`, `shooter`,
-   `training_drone`), heroes, weapons, VFX.
+1. **16 reference images remain** (the platform caps generation at 10 per turn):
+   6 heroes, 6 weapons, 4 VFX. They are planned in batches of ten in §9.
 2. **Godot import** — the exported GLBs need importing into
    `game/assets/forge/`, with scale/pivot verification in-engine and a
    replacement of the three `WeaponDefinition.model_scene` entries that today
@@ -335,3 +409,17 @@ Honest status at the time of writing:
    stylised low-poly character. This pipeline will not fake a skinned mesh.
 4. **Single reference per asset** — one view cannot reveal hidden sides. The
    models are consistent and on-palette, not photogrammetrically faithful.
+
+## 9. The remaining plan — batches of ten
+
+The generator allows **10 images per session**, so the remaining 16 references are
+planned as two batches and nothing is generated past ten in one session.
+
+| Batch | Assets | Why this order |
+| --- | --- | --- |
+| **B1 (10)** | `exo_operative`, `exo_combat_tech`, `exo_void_runner`, `exo_neon_phantom`, `exo_rogue_engineer`, `exo_alien_hunter`, `nova_launcher`, `arc_shooter`, `scatter_blaster`, `rail_cannon` | The six hero skins are one silhouette with five documented themes — with references, "is the skin distinct enough" becomes a picture question instead of an opinion. The four weapons complete the visible loadout. |
+| **B2 (6)** | `gravity_gun`, `arc_shooter_void_edition`, `pulse_bolt`, `nova_shockwave`, `arc_chain`, `impact_burst` | Remaining two weapons plus all four VFX. VFX are last on purpose: their references matter least (they are additive sprite-like effects judged in motion), so they are not allowed to hold up the character work. |
+
+After B2 the forge holds **36/36 references**, and `meta-matches-catalog` becomes
+a meaningful check for every asset instead of a to-do list. The 4 unused image
+slots in B2 stay unused rather than being filled with variants nobody asked for.

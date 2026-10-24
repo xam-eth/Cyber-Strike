@@ -11,5 +11,8 @@
     "@sparticuz/chromium": "153.0.0",
     "puppeteer-core": "24.31.0",
     "three": "^0.170.0"
+  },
+  "dependencies": {
+    "gltf-validator": "^2.0.0-dev.3.10"
   }
 }

@@ -28,27 +28,88 @@ export function socket(parent, name, { x = 0, y = 0, z = 0, rx = 0, ry = 0, rz =
  * `tracks: [{ node: 'Core', property: 'rotation.y', keys: [[0,0],[2,6.28]] }]`
  */
 /**
- * three.js track names are `node.property` or `node.property[index]`.
- * `ArmR.rotation.x` is *not* that: the parser reads it as node `ArmR.rotation`
- * and property `x`, which silently binds to nothing (the mixer logs a warning
- * and the model sits still). Every dotted axis is therefore rewritten to the
- * bracket form here, once, instead of being remembered by every model file.
+ * Clip authoring, in two layers.
+ *
+ * Model files describe animation as `{ node, property: 'rotation.x', keys }`,
+ * which is readable but is **not** something a glTF file can hold: glTF
+ * animation channels address a whole node property (`translation`, `rotation`,
+ * `scale`), never a single axis. Authoring per-axis tracks and exporting them
+ * produced two real defects, caught by the Khronos validator:
+ *
+ *   · `ArmR.rotation[x]` — three's exporter cannot map a bracketed *rotation*
+ *     track to a node target, so the clip exported with **zero channels**
+ *     (`EMPTY_ENTITY`). The clip played in three.js and vanished in the GLB.
+ *   · `HoverRing.scale.x` + `HoverRing.scale.y` — two scalar accessors on one
+ *     `scale` target (`ANIMATION_DUPLICATE_TARGETS`, and `SCALAR` where glTF
+ *     requires `VEC3`).
+ *
+ * So `clip()` groups tracks by (node, channel), samples every axis onto the
+ * union of key times, and emits one `QuaternionKeyframeTrack` for rotation or
+ * one `VectorKeyframeTrack` for position/scale. The mixer gets the same motion;
+ * the GLB gets channels a spec-compliant importer — Godot included — can read.
  */
-export function trackName(node, property) {
-  const dot = property.lastIndexOf('.');
-  if (dot === -1) return `${node}.${property}`;
-  return `${node}.${property.slice(0, dot)}[${property.slice(dot + 1)}]`;
+const AXES = ['x', 'y', 'z'];
+const CHANNEL_DEFAULT = { rotation: 0, position: 0, scale: 1 };
+
+function splitProperty(property) {
+  const [base, axis] = String(property).split('.');
+  if (!(base in CHANNEL_DEFAULT)) throw new Error(`cannot animate property "${property}"`);
+  return { base, axis: axis ?? null };
+}
+
+/** Piecewise-linear sample of `keys` ([[time, value], …]) at `t`. */
+function sampleKeys(keys, t, fallback) {
+  if (!keys?.length) return fallback;
+  if (t <= keys[0][0]) return keys[0][1];
+  for (let i = 1; i < keys.length; i += 1) {
+    const [t1, v1] = keys[i];
+    const [t0, v0] = keys[i - 1];
+    if (t <= t1) {
+      const span = t1 - t0;
+      return span <= 0 ? v1 : v0 + ((v1 - v0) * (t - t0)) / span;
+    }
+  }
+  return keys[keys.length - 1][1];
 }
 
 export function clip(name, duration, tracks) {
-  const c = new THREE.AnimationClip(name, duration, tracks.map((t) => new THREE.NumberKeyframeTrack(
-    trackName(t.node, t.property),
-    t.keys.map((k) => k[0]),
-    t.keys.map((k) => k[1]),
-  )));
-  // `targets` is the authoritative list of nodes this clip addresses. The track
-  // string alone is ambiguous ("Plasma.scale.x" has three dot-separated parts),
-  // so the gate validates the recorded targets instead of re-parsing the name.
+  const groups = new Map();
+  for (const track of tracks) {
+    const { base, axis } = splitProperty(track.property);
+    const key = `${track.node}\u0000${base}`;
+    if (!groups.has(key)) groups.set(key, { node: track.node, base, axes: {} });
+    groups.get(key).axes[axis ?? 'all'] = track.keys;
+  }
+
+  const out = [];
+  for (const group of groups.values()) {
+    const { node, base, axes } = group;
+    const fallback = CHANNEL_DEFAULT[base];
+    const timeSet = new Set();
+    for (const keys of Object.values(axes)) for (const [t] of keys) timeSet.add(t);
+    const times = [...timeSet].sort((a, b) => a - b);
+    const value = (axis, t) => (axis ? sampleKeys(axes[axis], t, fallback) : fallback);
+
+    if (base === 'rotation') {
+      const values = [];
+      const euler = new THREE.Euler();
+      const quat = new THREE.Quaternion();
+      for (const t of times) {
+        euler.set(value('x', t), value('y', t), value('z', t), 'XYZ');
+        quat.setFromEuler(euler);
+        values.push(quat.x, quat.y, quat.z, quat.w);
+      }
+      out.push(new THREE.QuaternionKeyframeTrack(`${node}.quaternion`, times, values));
+    } else {
+      const values = [];
+      for (const t of times) values.push(value('x', t), value('y', t), value('z', t));
+      out.push(new THREE.VectorKeyframeTrack(`${node}.${base}`, times, values));
+    }
+  }
+
+  const c = new THREE.AnimationClip(name, duration, out);
+  // `targets` is the authoritative list of nodes this clip addresses, used by
+  // the gate's clip-targets-exist check.
   c.userData = { forged: true, targets: [...new Set(tracks.map((t) => t.node))] };
   return c;
 }

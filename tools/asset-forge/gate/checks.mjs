@@ -286,6 +286,31 @@ export function checkGlb(bytes, stats, entry) {
 
 /* ---------------------------------------------------------------- renders */
 
+/**
+ * Khronos glTF 2.0 conformance — the contract an engine importer actually
+ * consumes. Structural checks ("magic, version, length") passed while 17 of the
+ * 36 exports were invalid: hero clips exported with **zero channels**
+ * (`EMPTY_ENTITY`), scale tracks exported as `SCALAR` where glTF requires
+ * `VEC3`, and two channels targeting one node (`ANIMATION_DUPLICATE_TARGETS`).
+ * Godot's importer reads exactly these rules, so this check is the closest thing
+ * to an engine-side answer that can run without launching the engine.
+ */
+export async function checkGltfConformance(bytes) {
+  const mod = await import('gltf-validator');
+  const validator = mod.default?.validateBytes ? mod.default : mod;
+  const report = await validator.validateBytes(new Uint8Array(bytes), { maxIssues: 40 });
+  const { numErrors, numWarnings } = report.issues;
+  const first = report.issues.messages.filter((m) => m.severity <= 1).slice(0, 3)
+    .map((m) => `${m.code} ${m.pointer}: ${m.message}`);
+  return verdict(
+    'gltf-conformance',
+    numErrors === 0 && numWarnings === 0,
+    numErrors || numWarnings
+      ? `${numErrors} error(s), ${numWarnings} warning(s) — ${first.join(' | ')}`
+      : `Khronos validator clean (${report.validatorVersion ? `validator ${report.validatorVersion}` : '0 errors, 0 warnings'})`,
+  );
+}
+
 export function checkRenders(entry, shots) {
   // A long thin prop legitimately covers less of the frame than a building; the
   // floor is per-entry so the check measures "is it framed", not "is it bulky".
@@ -325,9 +350,15 @@ export function checkRenders(entry, shots) {
   }
   const strongest = pairs.reduce((a, b) => (b.d > a.d ? b : a), pairs[0]);
   const weakest = pairs.reduce((a, b) => (b.d < a.d ? b : a), pairs[0]);
+  // Some shapes are genuinely rotationally symmetric: a domed wreck photographs
+  // almost the same from every side, which is a property of the subject, not a
+  // defect in the model. Such an entry may declare a lower floor in the catalog
+  // (`views_differ_min`), the same way thin props declare `render_coverage_min`.
+  // The floor is printed in the message so a review can see it was relaxed.
+  const differMin = entry.views_differ_min ?? 0.12;
   results.push(verdict(
-    'views-differ', strongest.d >= 0.12 && weakest.d >= 0.005,
-    `best pair ${strongest.pair} differs by ${strongest.d.toFixed(3)} (needs ≥0.12), closest ${weakest.pair} by ${weakest.d.toFixed(3)} (needs ≥0.005 — a symmetric hero legitimately differs little front-to-three-quarter)`,
+    'views-differ', strongest.d >= differMin && weakest.d >= 0.005,
+    `best pair ${strongest.pair} differs by ${strongest.d.toFixed(3)} (needs ≥${differMin}), closest ${weakest.pair} by ${weakest.d.toFixed(3)} (needs ≥0.005 — a symmetric hero legitimately differs little front-to-three-quarter)`,
     { viewDistance: strongest.d, viewDistanceMin: weakest.d },
   ));
 

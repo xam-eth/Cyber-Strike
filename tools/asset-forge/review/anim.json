@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-24T03:24:48.800Z",
+  "generated": "2026-10-24T04:18:10.149Z",
   "note": "Filmstrips sampled from the model’s own AnimationClip at N evenly spaced times. Frames are screenshots of a software renderer; they prove the clip exists and moves, not that it is well animated.",
   "frames": 6,
   "cell": 200,
@@ -275,14 +275,14 @@
         {
           "clip": "strip_pulse",
           "file": "review/anim/enemy_spawn_gate-strip_pulse.png",
-          "duration": 1.4,
+          "duration": 3,
           "samples": [
             0,
-            0.233,
-            0.466,
-            0.699,
-            0.932,
-            1.165
+            0.499,
+            0.999,
+            1.498,
+            1.998,
+            2.498
           ]
         }
       ]

@@ -1,10 +1,19 @@
 /**
- * alien_drone_wreck — insect chassis, luminous sensor core, broken arms
+ * alien_drone_wreck — the downed reconnaissance drone
  * (`game/scenes/worlds/components/alien_drone_wreck.tscn`).
+ *
+ * Built from the reference image, not from a generic "crashed robot": the
+ * reference is a **domed hull rolled onto one side**, half-buried in dark soil,
+ * with overlapping armour petals peeled open at the crown, a broken segmented
+ * ring hoop standing off the back, two ringed emerald sensor ports facing the
+ * camera, and exposed ribs and cabling in the gap. The first pass was a grey box
+ * on four thin legs — a table, not a wreck — and the reference review rejected
+ * it outright.
  */
+import * as THREE from 'three';
 import { at, box, bevelBox, cyl, cone, sphere, torus, strut, greebles, group, cable, rng } from '../runtime/kit.js';
 import { std } from '../runtime/parts.js';
-import { socket, finalize, pulseClip, sweepClip } from '../runtime/rig.js';
+import { socket, finalize, pulseClip } from '../runtime/rig.js';
 
 export const meta = {
   id: 'alien_drone_wreck',
@@ -24,74 +33,152 @@ export function build() {
   const m = std();
   const rand = rng(777);
   const root = group('AlienDroneWreck');
+  const hull = group('Hull');
+  hull.rotation.set(-0.12, 0.42, 0.3); // rolled onto one side, nose up
+  root.add(hull);
 
-  /* chassis: tapered carapace, half-rolled onto one side ---------------- */
-  const chassis = group('Chassis');
-  chassis.rotation.set(0.12, 0.5, 0.22);
-  chassis.position.y = 0.62;
-  chassis.add(at(bevelBox(1.5, 0.62, 2.3, m.bright, { radius: 0.09 }), {}));
-  chassis.add(at(box(1.54, 0.16, 1.2, m.dark), { y: 0.1, z: -0.4 }));
-  // ridged spines along the top
-  for (let i = 0; i < 5; i += 1) {
-    const ridge = at(cone(0.16, 0.4 + 0.1 * Math.sin(i), 4, m.bright), { y: 0.34, z: -0.9 + i * 0.45 });
-    ridge.rotation.set(0.3, 0.78, 0);
-    chassis.add(ridge);
+  /* soil bed: the wreck is buried, not standing on a floor ------------------ */
+  const soil = group('Soil');
+  soil.add(at(sphere(1.22, m.dark, { widthSegments: 14, heightSegments: 6 }), { y: 0.06, sy: 0.26 }));
+  soil.add(at(sphere(0.72, m.dark, { widthSegments: 10, heightSegments: 5 }), { x: -0.7, y: 0.05, z: 0.5, sy: 0.3 }));
+  for (let i = 0; i < 7; i += 1) {
+    const shard = at(bevelBox(0.3 + rand() * 0.34, 0.06, 0.22 + rand() * 0.26, i % 2 ? m.mid : m.dark, { radius: 0.01 }), {
+      x: (rand() - 0.5) * 3.0, y: 0.04, z: (rand() - 0.5) * 2.8, ry: rand() * 3.14,
+    });
+    shard.rotation.z = (rand() - 0.5) * 0.3;
+    soil.add(shard);
   }
-  chassis.add(at(bevelBox(1.1, 0.4, 0.8, m.dark, { radius: 0.05 }), { y: 0.1, z: 1.15 }));
-  chassis.add(at(torus(0.34, 0.05, m.bright, { radial: 5, tubular: 16 }), { y: 0.28, z: 0.55, rx: Math.PI / 2 }));
-  // organic under-plate
-  chassis.add(at(sphere(0.52, m.mid, { widthSegments: 12, heightSegments: 6 }), { y: -0.2, z: 0.2, sy: 0.5 }));
-  chassis.add(greebles({ w: 1.3, h: 0.5, d: 2.1, face: '+x', count: 8, seed: 121, materials: [m.dark, m.bright], centre: [0, 0, 0] }));
-  root.add(chassis);
+  root.add(soil);
 
-  /* sensor core --------------------------------------------------------- */
-  const core = group('SensorCore');
-  core.position.set(0.1, 1.0, 0.6);
-  core.add(at(cyl(0.22, 0.26, 0.14, 10, m.dark), {}));
-  core.add(at(sphere(0.2, m.cyan, { widthSegments: 12, heightSegments: 8 }), { y: 0.16 }));
-  core.add(at(torus(0.24, 0.02, m.green, { radial: 4, tubular: 14 }), { y: 0.16, rx: Math.PI / 2 }));
-  root.add(core);
+  /* domed hull shell -------------------------------------------------------- */
+  hull.position.y = 0.62;
+  const R = 1.0;
+  const SQUASH = 0.78;
+  const shell = at(sphere(R, m.mid, { widthSegments: 16, heightSegments: 10 }), { y: 0.16 });
+  shell.scale.set(1.0, SQUASH, 1.14);
+  hull.add(shell);
+  // the dark belly, exposed where the plates have gone
+  const belly = at(sphere(R * 0.94, m.dark, { widthSegments: 14, heightSegments: 8 }), { y: 0.1, z: -0.02 });
+  belly.scale.set(1.0, SQUASH, 1.1);
+  hull.add(belly);
 
-  /* broken arms --------------------------------------------------------- */
-  const arm = (side) => {
-    const g = group(side < 0 ? 'ArmL' : 'ArmR');
-    const shoulder = [side * 0.72, 0.68, 0.35];
-    g.add(strut(shoulder, [side * 1.15, 0.9, 0.55], 0.07, m.bright, { segments: 6 }));
-    g.add(at(sphere(0.1, m.mid, { widthSegments: 8, heightSegments: 5 }), { x: side * 0.72, y: 0.68, z: 0.35 }));
-    g.add(at(sphere(0.09, m.dark, { heightSegments: 6 }), { x: side * 1.15, y: 0.9, z: 0.55 }));
-    // forearm bends the wrong way because it is broken
-    g.add(strut([side * 1.15, 0.9, 0.55], [side * 1.5, 1.05, 0.1], 0.055, m.mid, { segments: 6 }));
-    g.add(at(sphere(0.075, m.dark, { heightSegments: 6 }), { x: side * 1.5, y: 1.05, z: 0.1 }));
-    // claw plates
-    for (let i = 0; i < 3; i += 1) {
-      const a = -0.5 + i * 0.5;
-      g.add(strut([side * 1.5, 1.05, 0.1], [side * (1.72 + 0.1 * Math.cos(a)), 0.82 + 0.16 * Math.sin(a), -0.16 + i * 0.12], 0.03, m.bright, { segments: 4 }));
+  /* overlapping armour petals, seated ON the dome --------------------------- *
+   * The previous version placed them at 0.5 of the radius, i.e. entirely
+   * inside the shell, so the render showed a smooth ball. Each plate is now
+   * dropped onto the ellipsoid and rotated so its face lies along the surface
+   * normal. */
+  const normal = new THREE.Vector3();
+  const plateW = 0.5;
+  const plateH = 0.42;
+  for (let i = 0; i < 12; i += 1) {
+    const theta = 0.75 + (i % 3) * 0.35;                 // crown band, overlapping
+    const phi = (i / 12) * Math.PI * 2 + (i % 2) * 0.26; // around the dome
+    normal.set(Math.sin(theta) * Math.cos(phi), Math.cos(theta), Math.sin(theta) * Math.sin(phi)).normalize();
+    // scale: sunk into the shell so the plate edges overlap, not hover
+    const plateMesh = at(bevelBox(plateW, 0.05, plateH, i % 4 === 0 ? m.bright : m.mid, { radius: 0.012 }), {});
+    plateMesh.position.set(
+      normal.x * R * 1.0,
+      normal.y * R * SQUASH + 0.16,
+      normal.z * R * 1.06,
+    );
+    // the plate's large face is its +Y (thickness is the 0.05 axis), so map
+    // +Y onto the surface normal — mapping +Z left every plate standing on edge
+    plateMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
+    hull.add(plateMesh);
+    // dark seam just under the plate edge, so the plating reads as layers
+    const seam = at(box(plateW * 0.94, 0.02, 0.05, m.dark), {});
+    seam.position.copy(plateMesh.position).addScaledVector(normal, -0.03);
+    seam.quaternion.copy(plateMesh.quaternion);
+    hull.add(seam);
+  }
+
+  /* peeled petals at the crown: the reason this reads as a wreck ------------ */
+  const peel = group('PeeledPlates');
+  for (let i = 0; i < 3; i += 1) {
+    const p = at(bevelBox(0.42 - i * 0.07, 0.035, 0.34, m.ink, { radius: 0.01 }), {
+      x: -0.24 + i * 0.24, y: 0.86 + i * 0.04, z: -0.18 - i * 0.1,
+    });
+    p.rotation.set(-0.42 - i * 0.08, 0.28 + i * 0.18, 0.18);
+    peel.add(p);
+  }
+  // torn lip where the petal broke away
+  peel.add(at(box(0.5, 0.06, 0.1, m.dark), { x: -0.05, y: 0.9, z: -0.02, rx: -0.4 }));
+  hull.add(peel);
+
+  /* sensor ports: two ringed emerald eyes on the exposed face -------------- */
+  const port = (name, x, y, z, r) => {
+    const g = group(name);
+    g.add(at(cyl(r, r * 1.08, 0.12, 12, m.dark, { axis: 'z' }), { x, y, z }));
+    g.add(at(cyl(r * 0.92, r * 0.92, 0.04, 12, m.mid, { axis: 'z' }), { x, y, z: z + 0.06 }));
+    g.add(at(sphere(r * 0.8, m.greenDim, { widthSegments: 12, heightSegments: 8 }), { x, y, z: z + 0.07 }));
+    g.add(at(sphere(r * 0.42, m.green, { widthSegments: 10, heightSegments: 6 }), { x, y, z: z + 0.11 }));
+    // retaining ring + 6 bolt lugs, as in the reference
+    g.add(at(torus(r * 0.98, 0.02, m.bright, { radial: 4, tubular: 18 }), { x, y, z: z + 0.09 }));
+    for (let i = 0; i < 6; i += 1) {
+      const a = (i / 6) * Math.PI * 2;
+      g.add(at(box(0.035, 0.035, 0.05, m.bright), { x: x + Math.cos(a) * r * 0.82, y: y + Math.sin(a) * r * 0.82, z: z + 0.1 }));
     }
-    // second arm lolls on the ground
-    g.add(strut([side * 0.7, 0.4, -0.3], [side * 1.25, 0.12, -0.75], 0.06, m.mid, { segments: 6 }));
-    g.add(at(cone(0.1, 0.34, 5, m.bright), { x: side * 1.35, y: 0.14, z: -0.9, rz: Math.PI / 2 }));
     return g;
   };
-  root.add(arm(-1), arm(1));
+  hull.add(port('PortA', 0.36, 0.1, 0.86, 0.26));
+  const corePort = port('PortB', -0.2, 0.42, 0.9, 0.3);
+  hull.add(corePort);
 
-  /* severed cable + scorch plate --------------------------------------- */
-  root.add(cable([0.45, 0.9, -0.6], [1.3, 0.1, -1.5], 0.035, m.gap, { sag: 0.35 }));
-  root.add(cable([-0.5, 0.85, 0.9], [-1.1, 0.08, 1.7], 0.03, m.gap, { sag: 0.3 }));
-  for (let i = 0; i < 5; i += 1) {
-    root.add(at(box(0.24 + rand() * 0.3, 0.05, 0.2 + rand() * 0.3, i % 2 ? m.dark : m.bright), {
-      x: (rand() - 0.5) * 3.4, y: 0.03, z: (rand() - 0.5) * 3.4, ry: rand() * 3.14,
-    }));
+  /* exposed ribs between hull and ring ------------------------------------- */
+  for (let i = 0; i < 4; i += 1) {
+    const rib = at(torus(0.5 + i * 0.06, 0.022, m.dark, { radial: 4, tubular: 16 }), {
+      x: 0.1 + i * 0.02, y: 0.3, z: -0.35 - i * 0.08, rx: Math.PI / 2,
+    });
+    rib.scale.set(1, 1, 0.55);
+    hull.add(rib);
   }
 
-  const sensorSocket = socket(core, 'sensor_core', { y: 0.16 });
-  const armL = socket(root, 'arm_l', { x: -0.72, y: 0.68, z: 0.35 });
-  const armR = socket(root, 'arm_r', { x: 0.72, y: 0.68, z: 0.35 });
+  /* broken ring hoop: segmented, with a missing arc ------------------------- */
+  const hoop = group('RingHoop');
+  hoop.position.set(0.55, 0.5, -0.45);
+  const RR = 0.92;
+  const segs = 18;
+  for (let i = 0; i < segs; i += 1) {
+    // skip three segments — the break in the ring
+    if (i >= 11 && i <= 13) continue;
+    const a = (i / segs) * Math.PI * 2;
+    const seg = at(bevelBox(0.3, 0.16, 0.16, i % 3 === 0 ? m.mid : m.bright, { radius: 0.02 }), {
+      x: Math.cos(a) * RR, y: Math.sin(a) * RR, z: 0,
+    });
+    seg.rotation.z = a + Math.PI / 2;
+    hoop.add(seg);
+    if (i === 6) hoop.add(at(box(0.3, 0.05, 0.17, m.warn), { x: Math.cos(a) * RR, y: Math.sin(a) * RR, z: 0.01, rz: a + Math.PI / 2 }));
+  }
+  hoop.rotation.set(0.1, -0.55, 0.15);
+  hull.add(hoop);
+
+  /* torn stubs and cabling ------------------------------------------------- */
+  const stub = (side) => {
+    const g = group(side < 0 ? 'ArmL' : 'ArmR');
+    const base = [side * 0.62, 0.12, 0.2];
+    g.add(strut(base, [side * 0.98, -0.06, 0.42], 0.075, m.mid, { segments: 6 }));
+    g.add(at(cone(0.09, 0.26, 5, m.bright), { x: side * 1.05, y: -0.1, z: 0.5, rz: Math.PI / 2, ry: side * 0.5 }));
+    g.add(strut(base, [side * 0.8, 0.16, -0.1], 0.05, m.dark, { segments: 5 }));
+    return g;
+  };
+  const armL = stub(-1);
+  const armR = stub(1);
+  hull.add(armL, armR);
+  root.add(cable([0.5, 0.5, 0.2], [1.2, 0.06, -0.7], 0.03, m.gap, { sag: 0.28 }));
+  root.add(cable([-0.4, 0.55, 0.4], [-1.15, 0.05, 0.9], 0.026, m.gap, { sag: 0.24 }));
+
+  /* vents on the surviving skirt ------------------------------------------- */
+  hull.add(greebles({ w: 1.4, h: 0.3, d: 0.4, face: '+z', count: 5, seed: 121, materials: [m.dark, m.mid], centre: [0, 0.0, 0.72] }));
+
+  const sensorSocket = socket(corePort, 'sensor_core', { y: 0.0, z: 0.16 });
+  const armLSocket = socket(armL, 'arm_l', { x: -1.05, y: -0.1, z: 0.5 });
+  const armRSocket = socket(armR, 'arm_r', { x: 1.05, y: -0.1, z: 0.5 });
 
   return finalize(root, {
     meta,
-    sockets: { sensor_core: sensorSocket, arm_l: armL, arm_r: armR },
-    clips: [pulseClip('sensor_fade', 'SensorCore', { from: 0.45, to: 1.0, duration: 4.2 })],
+    sockets: { sensor_core: sensorSocket, arm_l: armLSocket, arm_r: armRSocket },
+    clips: [pulseClip('sensor_fade', 'PortB', { from: 0.45, to: 1.0, duration: 4.2 })],
   });
 }
 
-void sweepClip; void box; void bevelBox;
+void box; void bevelBox; void cyl; void sphere; void torus; void cone;
