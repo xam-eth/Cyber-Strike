@@ -1,272 +1,276 @@
 {
- "$comment": "Single source of truth for the 3D asset forge. Every entry names the existing game file that proves the asset belongs to Exocomplict / NEON FRONTIER, so the list cannot drift into invented content. `verified_by: tools/asset-forge/gate/check_catalog.mjs` asserts each `source` path exists and each `id` has a reference image and a model module.",
- "project": "Exocomplict \u2014 NEON FRONTIER",
- "palette_source": "game/scripts/ui/aegis_tokens.gd",
- "palette": {
-  "void": "#05080c",
-  "panel": "#0b131b",
-  "panel_2": "#111c26",
-  "panel_3": "#16232e",
-  "line": "#27384a",
-  "line_hi": "#4e6a7e",
-  "ink": "#edf5fb",
-  "ink_2": "#a9bccb",
-  "ink_3": "#7c94a6",
-  "accent": "#ffb020",
-  "ok": "#37e08c",
-  "info": "#54c8ff",
-  "danger": "#ff5a5a",
-  "ability": "#b79cff"
- },
- "image_budget": {},
- "entries": [
-  {
-   "id": "reactor_core",
-   "category": "world",
-   "name": "Reactor Core",
-   "source": "game/scenes/worlds/components/reactor_core.tscn",
-   "role": "Central suspended cyan/emerald reactor; combat lane stays open underneath.",
-   "target_height_m": 6.0,
-   "animations": [
-    "core_pulse"
-   ],
-   "sockets": [
-    "charge_fx"
-   ]
+  "$comment": "Single source of truth for the 3D asset forge. Every entry names the existing game file that proves the asset belongs to Exocomplict / NEON FRONTIER, so the list cannot drift into invented content. `verified_by: tools/asset-forge/gate/check_catalog.mjs` asserts each `source` path exists and each `id` has a reference image and a model module.",
+  "project": "Exocomplict — NEON FRONTIER",
+  "palette_source": "game/scripts/ui/aegis_tokens.gd",
+  "palette": {
+    "void": "#05080c",
+    "panel": "#0b131b",
+    "panel_2": "#111c26",
+    "panel_3": "#16232e",
+    "line": "#27384a",
+    "line_hi": "#4e6a7e",
+    "ink": "#edf5fb",
+    "ink_2": "#a9bccb",
+    "ink_3": "#7c94a6",
+    "accent": "#ffb020",
+    "ok": "#37e08c",
+    "info": "#54c8ff",
+    "danger": "#ff5a5a",
+    "ability": "#b79cff"
   },
-  {
-   "id": "command_center",
-   "category": "world",
-   "name": "Command Centre",
-   "source": "game/scenes/worlds/components/command_center.tscn",
-   "role": "West outpost: armoured hull, raised command bridge, visor windows, antenna mast and dish.",
-   "target_height_m": 7.5,
-   "animations": [
-    "beacon_pulse"
-   ],
-   "sockets": [
-    "dish_yaw",
-    "door"
-   ]
-  },
-  {
-   "id": "research_lab",
-   "category": "world",
-   "name": "Research Laboratory",
-   "source": "game/scenes/worlds/components/research_lab.tscn",
-   "role": "Ceramic lab shell with a glass sampling vessel and sample core.",
-   "target_height_m": 5.5,
-   "animations": [
-    "sample"
-   ],
-   "sockets": [
-    "vessel"
-   ]
-  },
-  {
-   "id": "equipment_depot",
-   "category": "world",
-   "name": "Equipment Depot",
-   "source": "game/scenes/worlds/components/equipment_depot.tscn",
-   "role": "Supply depot with stacked cargo and a service frame.",
-   "target_height_m": 4.6,
-   "animations": [
-    "lamp_pulse"
-   ],
-   "sockets": [
-    "cargo_slot",
-    "door"
-   ]
-  },
-  {
-   "id": "generator_bank",
-   "category": "world",
-   "name": "Generator Bank",
-   "source": "game/scenes/worlds/components/generator_bank.tscn",
-   "role": "Three contained generator towers with luminous energy columns and feed pipes.",
-   "target_height_m": 6.5,
-   "animations": [
-    "energy_columns"
-   ],
-   "sockets": [
-    "feed_pipe"
-   ]
-  },
-  {
-   "id": "landing_pad",
-   "category": "world",
-   "name": "Landing Pad",
-   "source": "game/scenes/worlds/components/landing_pad.tscn",
-   "role": "Raised vehicle apron with safety edges and beacon lights.",
-   "target_height_m": 1.2,
-   "target_width_m": 14.0,
-   "animations": [
-    "beacon"
-   ],
-   "sockets": [
-    "pad_centre"
-   ]
-  },
-  {
-   "id": "boss_gate",
-   "category": "world",
-   "name": "Boss Gate",
-   "source": "game/scenes/worlds/components/boss_gate.tscn",
-   "role": "Reinforced docking frame with shutter leaves that open once the generators are down.",
-   "target_height_m": 11.0,
-   "animations": [
-    "gate_open"
-   ],
-   "sockets": [
-    "shutter_l",
-    "shutter_r"
-   ]
-  },
-  {
-   "id": "defense_turret",
-   "category": "world",
-   "name": "Defence Turret",
-   "source": "game/scenes/worlds/components/defense_turret.tscn",
-   "role": "Yaw bearing, armoured housing, twin barrels, optical sensor.",
-   "target_height_m": 2.8,
-   "animations": [
-    "yaw_sweep",
-    "fire_recoil"
-   ],
-   "sockets": [
-    "muzzle_l",
-    "muzzle_r",
-    "sensor"
-   ]
-  },
-  {
-   "id": "sensor_tower",
-   "category": "world",
-   "name": "Sensor Tower",
-   "source": "game/scenes/worlds/components/sensor_tower.tscn",
-   "role": "Structural shaft with observation cabin, radar plates and dishes.",
-   "target_height_m": 11.0,
-   "animations": [
-    "dish_scan"
-   ],
-   "sockets": [
-    "dish",
-    "beacon"
-   ]
-  },
-  {
-   "id": "wrecked_transport",
-   "category": "world",
-   "name": "Wrecked Transport",
-   "source": "game/scenes/worlds/components/wrecked_transport.tscn",
-   "role": "Broken hull, glazed cockpit, separated wings, engines, hot impact damage.",
-   "target_height_m": 3.4,
-   "target_width_m": 9.0,
-   "animations": [
-    "ember_flicker"
-   ],
-   "sockets": [
-    "hull_cut",
-    "wing_l"
-   ]
-  },
-  {
-   "id": "alien_drone_wreck",
-   "category": "world",
-   "name": "Alien Drone Wreck",
-   "source": "game/scenes/worlds/components/alien_drone_wreck.tscn",
-   "role": "Chassis, luminous sensor core, broken articulated arms and claw plates.",
-   "target_height_m": 2.4,
-   "animations": [
-    "sensor_fade"
-   ],
-   "sockets": [
-    "sensor_core",
-    "arm_l",
-    "arm_r"
-   ],
-   "views": [
+  "image_budget": {},
+  "entries": [
     {
-     "az": 0,
-     "el": 14
+      "id": "reactor_core",
+      "category": "world",
+      "name": "Reactor Core",
+      "source": "game/scenes/worlds/components/reactor_core.tscn",
+      "role": "Central suspended cyan/emerald reactor; combat lane stays open underneath.",
+      "target_height_m": 6.0,
+      "animations": [
+        "core_pulse"
+      ],
+      "sockets": [
+        "charge_fx"
+      ]
     },
     {
-     "az": 55,
-     "el": 30
+      "id": "command_center",
+      "category": "world",
+      "name": "Command Centre",
+      "source": "game/scenes/worlds/components/command_center.tscn",
+      "role": "West outpost: armoured hull, raised command bridge, visor windows, antenna mast and dish.",
+      "target_height_m": 7.5,
+      "animations": [
+        "beacon_pulse"
+      ],
+      "sockets": [
+        "dish_yaw",
+        "door"
+      ]
     },
     {
-     "az": 140,
-     "el": 10
+      "id": "research_lab",
+      "category": "world",
+      "name": "Research Laboratory",
+      "source": "game/scenes/worlds/components/research_lab.tscn",
+      "role": "Ceramic lab shell with a glass sampling vessel and sample core.",
+      "target_height_m": 5.5,
+      "animations": [
+        "sample"
+      ],
+      "sockets": [
+        "vessel"
+      ]
+    },
+    {
+      "id": "equipment_depot",
+      "category": "world",
+      "name": "Equipment Depot",
+      "source": "game/scenes/worlds/components/equipment_depot.tscn",
+      "role": "Supply depot with stacked cargo and a service frame.",
+      "target_height_m": 4.6,
+      "animations": [
+        "lamp_pulse"
+      ],
+      "sockets": [
+        "cargo_slot",
+        "door"
+      ]
+    },
+    {
+      "id": "generator_bank",
+      "category": "world",
+      "name": "Generator Bank",
+      "source": "game/scenes/worlds/components/generator_bank.tscn",
+      "role": "Three contained generator towers with luminous energy columns and feed pipes.",
+      "target_height_m": 6.5,
+      "animations": [
+        "energy_columns"
+      ],
+      "sockets": [
+        "feed_pipe"
+      ]
+    },
+    {
+      "id": "landing_pad",
+      "category": "world",
+      "name": "Landing Pad",
+      "source": "game/scenes/worlds/components/landing_pad.tscn",
+      "role": "Raised vehicle apron with safety edges and beacon lights.",
+      "target_height_m": 1.2,
+      "target_width_m": 14.0,
+      "animations": [
+        "beacon"
+      ],
+      "sockets": [
+        "pad_centre"
+      ],
+      "render_coverage_min": 0.02
+    },
+    {
+      "id": "boss_gate",
+      "category": "world",
+      "name": "Boss Gate",
+      "source": "game/scenes/worlds/components/boss_gate.tscn",
+      "role": "Reinforced docking frame with shutter leaves that open once the generators are down.",
+      "target_height_m": 11.0,
+      "animations": [
+        "gate_open"
+      ],
+      "sockets": [
+        "shutter_l",
+        "shutter_r"
+      ]
+    },
+    {
+      "id": "defense_turret",
+      "category": "world",
+      "name": "Defence Turret",
+      "source": "game/scenes/worlds/components/defense_turret.tscn",
+      "role": "Yaw bearing, armoured housing, twin barrels, optical sensor.",
+      "target_height_m": 2.8,
+      "animations": [
+        "yaw_sweep",
+        "fire_recoil"
+      ],
+      "sockets": [
+        "muzzle_l",
+        "muzzle_r",
+        "sensor"
+      ]
+    },
+    {
+      "id": "sensor_tower",
+      "category": "world",
+      "name": "Sensor Tower",
+      "source": "game/scenes/worlds/components/sensor_tower.tscn",
+      "role": "Structural shaft with observation cabin, radar plates and dishes.",
+      "target_height_m": 11.0,
+      "animations": [
+        "dish_scan"
+      ],
+      "sockets": [
+        "dish",
+        "beacon"
+      ],
+      "render_coverage_min": 0.03
+    },
+    {
+      "id": "wrecked_transport",
+      "category": "world",
+      "name": "Wrecked Transport",
+      "source": "game/scenes/worlds/components/wrecked_transport.tscn",
+      "role": "Broken hull, glazed cockpit, separated wings, engines, hot impact damage.",
+      "target_height_m": 3.4,
+      "target_width_m": 9.0,
+      "animations": [
+        "ember_flicker"
+      ],
+      "sockets": [
+        "hull_cut",
+        "wing_l"
+      ],
+      "render_coverage_min": 0.035
+    },
+    {
+      "id": "alien_drone_wreck",
+      "category": "world",
+      "name": "Alien Drone Wreck",
+      "source": "game/scenes/worlds/components/alien_drone_wreck.tscn",
+      "role": "Chassis, luminous sensor core, broken articulated arms and claw plates.",
+      "target_height_m": 2.4,
+      "animations": [
+        "sensor_fade"
+      ],
+      "sockets": [
+        "sensor_core",
+        "arm_l",
+        "arm_r"
+      ],
+      "views": [
+        {
+          "az": 0,
+          "el": 14
+        },
+        {
+          "az": 55,
+          "el": 30
+        },
+        {
+          "az": 140,
+          "el": 10
+        }
+      ],
+      "views_differ_min": 0.07
+    },
+    {
+      "id": "crystal_cluster",
+      "category": "world",
+      "name": "Crystal Cluster",
+      "source": "game/scenes/worlds/components/crystal_cluster.tscn",
+      "role": "Tapered cyan/emerald/turquoise mineral shards on geological roots.",
+      "target_height_m": 3.2,
+      "animations": [
+        "shimmer"
+      ],
+      "sockets": [
+        "harvest_point"
+      ]
+    },
+    {
+      "id": "alien_flora",
+      "category": "world",
+      "name": "Alien Flora",
+      "source": "game/scenes/worlds/components/alien_flora.tscn",
+      "role": "Luminous buds, varied leaves and arching fronds.",
+      "target_height_m": 1.8,
+      "animations": [
+        "sway"
+      ],
+      "sockets": [
+        "root"
+      ]
+    },
+    {
+      "id": "rock_cluster",
+      "category": "world",
+      "name": "Rock Cluster",
+      "source": "game/scenes/worlds/components/rock_cluster.tscn",
+      "role": "Warm sandstone/rose boundary rocks.",
+      "target_height_m": 3.6,
+      "animations": [],
+      "sockets": [
+        "base"
+      ]
+    },
+    {
+      "id": "enemy_spawn_gate",
+      "category": "world",
+      "name": "Enemy Spawn Gate",
+      "source": "game/scenes/worlds/components/enemy_spawn_gate.tscn",
+      "role": "Open arch frame with warning panels, cyan guide strips and beacons; passage stays clear.",
+      "target_height_m": 5.2,
+      "animations": [
+        "strip_pulse"
+      ],
+      "sockets": [
+        "spawn_point"
+      ]
+    },
+    {
+      "id": "cover_module",
+      "category": "world",
+      "name": "Cover Module",
+      "source": "game/scenes/worlds/components/cover_module.tscn",
+      "role": "Segmented waist-high armoured cover with hazard top marking and signal panels.",
+      "target_height_m": 1.15,
+      "target_width_m": 3.0,
+      "animations": [],
+      "sockets": [
+        "top_mark"
+      ],
+      "render_coverage_min": 0.04
     }
-   ],
-   "views_differ_min": 0.07
-  },
-  {
-   "id": "crystal_cluster",
-   "category": "world",
-   "name": "Crystal Cluster",
-   "source": "game/scenes/worlds/components/crystal_cluster.tscn",
-   "role": "Tapered cyan/emerald/turquoise mineral shards on geological roots.",
-   "target_height_m": 3.2,
-   "animations": [
-    "shimmer"
-   ],
-   "sockets": [
-    "harvest_point"
-   ]
-  },
-  {
-   "id": "alien_flora",
-   "category": "world",
-   "name": "Alien Flora",
-   "source": "game/scenes/worlds/components/alien_flora.tscn",
-   "role": "Luminous buds, varied leaves and arching fronds.",
-   "target_height_m": 1.8,
-   "animations": [
-    "sway"
-   ],
-   "sockets": [
-    "root"
-   ]
-  },
-  {
-   "id": "rock_cluster",
-   "category": "world",
-   "name": "Rock Cluster",
-   "source": "game/scenes/worlds/components/rock_cluster.tscn",
-   "role": "Warm sandstone/rose boundary rocks.",
-   "target_height_m": 3.6,
-   "animations": [],
-   "sockets": [
-    "base"
-   ]
-  },
-  {
-   "id": "enemy_spawn_gate",
-   "category": "world",
-   "name": "Enemy Spawn Gate",
-   "source": "game/scenes/worlds/components/enemy_spawn_gate.tscn",
-   "role": "Open arch frame with warning panels, cyan guide strips and beacons; passage stays clear.",
-   "target_height_m": 5.2,
-   "animations": [
-    "strip_pulse"
-   ],
-   "sockets": [
-    "spawn_point"
-   ]
-  },
-  {
-   "id": "cover_module",
-   "category": "world",
-   "name": "Cover Module",
-   "source": "game/scenes/worlds/components/cover_module.tscn",
-   "role": "Segmented waist-high armoured cover with hazard top marking and signal panels.",
-   "target_height_m": 1.15,
-   "target_width_m": 3.0,
-   "animations": [],
-   "sockets": [
-    "top_mark"
-   ]
-  }
- ]
+  ]
 }

@@ -207,7 +207,7 @@ const SHOTS = {
   arena:     { pos: [24, 13, 26],   target: [0, 5, 0] },
   outpost:   { pos: [-18, 15, 12],  target: [-52, 5, -4] },
   extraction:{ pos: [24, 13, -12],  target: [46, 5, -36] },
-  boss:      { pos: [0, 17, -38],   target: [0, 8, -83] },
+  boss:      { pos: [30, 15, -44],  target: [0, 9, -82] },
   perimeter: { pos: [96, 26, 54],   target: [38, 4, 12] },
   wilds:     { pos: [-16, 12, 74],  target: [-40, 3, 50] },
   skyline:   { pos: [150, 26, -12], target: [0, 8, -30] },
@@ -338,6 +338,17 @@ window.__world = {
     if (texSize && texSize !== textureSize()) {
       throw new Error('texture size is fixed at load time; reload with ?tex=' + texSize);
     }
+    // A black emissive with intensity !== 1 makes the exporter emit
+    // KHR_materials_emissive_strength with a zero factor, which the Khronos
+    // validator warns about. Normalise it at the door.
+    world.root.traverse((node) => {
+      const materials = Array.isArray(node.material) ? node.material : [node.material];
+      for (const m of materials) {
+        if (m && m.emissive && m.emissive.getHex() === 0 && m.emissiveIntensity !== 1) {
+          m.emissiveIntensity = 1;
+        }
+      }
+    });
     const { GLTFExporter } = await import('three/addons/exporters/GLTFExporter.js');
     const exporter = new GLTFExporter();
     const buffer = await exporter.parseAsync(world.root, {

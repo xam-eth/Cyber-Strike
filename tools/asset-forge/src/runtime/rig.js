@@ -225,6 +225,80 @@ export function normalize(root, meta) {
 }
 
 /**
+ * Give every mesh that needs one a tangent attribute.
+ *
+ * A material with a tangent-space normal map is not portable without TANGENT:
+ * runtimes either generate it (slow, and they may use a different handedness
+ * convention) or the validator warns `MESH_PRIMITIVE_GENERATED_TANGENT_SPACE`.
+ * three.js computes them from uv + normal, so do it once at finalize time and
+ * the exported GLB carries them explicitly.
+ */
+export function ensureTangents(root) {
+  root.traverse((node) => {
+    if (!node.isMesh || !node.geometry) return;
+    const materials = Array.isArray(node.material) ? node.material : [node.material];
+    if (!materials.some((m) => m && m.normalMap)) return; // only normal-mapped parts need TANGENT
+    const geometry = node.geometry;
+    if (geometry.getAttribute('tangent')) return;
+    if (!geometry.getAttribute('uv') || !geometry.getAttribute('normal')) return;
+    if (!geometry.getIndex()) {
+      // computeTangents() requires an index. A sequential one is geometry-neutral
+      // and costs 2-4 bytes per vertex.
+      const count = geometry.getAttribute('position').count;
+      const wide = count > 65535;
+      const index = wide ? new Uint32Array(count) : new Uint16Array(count);
+      for (let i = 0; i < count; i += 1) index[i] = i;
+      geometry.setIndex(new THREE.BufferAttribute(index, 1));
+    }
+    try {
+      geometry.computeTangents();
+      sanitiseTangents(geometry);
+    } catch {
+      // A primitive without enough uv variation cannot produce tangents; leaving
+      // it alone is better than writing a degenerate attribute.
+    }
+  });
+}
+
+/**
+ * Repair degenerate tangents.
+ *
+ * `computeTangents()` writes (0,0,0,0) for vertices whose triangles have no uv
+ * area (a fused seam, a degenerate strip). A zero-length TANGENT makes the
+ * validator fail with ACCESSOR_VECTOR3_NON_UNIT, and a runtime that trusts it
+ * renders black. Any vector orthogonal to the vertex normal is a valid
+ * replacement — the shading is identical where the uv basis is undefined.
+ */
+function sanitiseTangents(geometry) {
+  const tangent = geometry.getAttribute('tangent');
+  const normal = geometry.getAttribute('normal');
+  if (!tangent || !normal) return;
+  for (let i = 0; i < tangent.count; i += 1) {
+    let x = tangent.getX(i);
+    let y = tangent.getY(i);
+    let z = tangent.getZ(i);
+    let w = tangent.getW(i);
+    const length = Math.hypot(x, y, z);
+    if (length > 1e-6) {
+      tangent.setXYZW(i, x / length, y / length, z / length, w < 0 ? -1 : 1);
+      continue;
+    }
+    const nx = normal.getX(i);
+    const ny = normal.getY(i);
+    const nz = normal.getZ(i);
+    // Cross the normal with whichever world axis it is least parallel to.
+    const ax = Math.abs(ny) > 0.9 ? 1 : 0;
+    const ay = Math.abs(ny) > 0.9 ? 0 : 1;
+    x = ay * nz - 0 * ny;
+    y = 0 * nx - ax * nz;
+    z = ax * ny - ay * nx;
+    const fallback = Math.hypot(x, y, z) || 1;
+    tangent.setXYZW(i, x / fallback, y / fallback, z / fallback, 1);
+  }
+  tangent.needsUpdate = true;
+}
+
+/**
  * Finish a model: name its sockets, make every node name unique (three.js and
  * the glTF animation resolver address nodes by name, so a duplicate "Collar"
  * silently animates the wrong object), stamp metadata, return the payload the
@@ -238,6 +312,7 @@ export function finalize(root, { meta, sockets = {}, clips: animationClips = [] 
     socketMap[key] = node;
   }
   uniquifyNames(root, new Set(Object.values(socketMap)));
+  ensureTangents(root);
   for (const [key, node] of Object.entries(socketMap)) {
     if (node.name !== key) node.name = key;
   }

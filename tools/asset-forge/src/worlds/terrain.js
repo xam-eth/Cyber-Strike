@@ -263,7 +263,7 @@ export function buildTerrain() {
   const materials = {
     // The ground plane: coarse, near-black basalt with faint grain.
     ground: groundMaterial('panel', { roughness: 0.94, metalness: 0.06, repeat: 64 }),
-    shelf: groundMaterial('panel2', { roughness: 0.9, metalness: 0.08, repeat: 40 }),
+    shelf: groundMaterial('void', { roughness: 0.95, metalness: 0.05, repeat: 40 }),
     road: groundMaterial('panel3', { roughness: 0.42, metalness: 0.35, repeat: 14 }),
     deck: groundMaterial('panel3', { roughness: 0.46, metalness: 0.3, repeat: 16 }),
     deckInlay: groundMaterial('line', { roughness: 0.55, metalness: 0.45, repeat: 12 }),
@@ -274,8 +274,8 @@ export function buildTerrain() {
     routeSignal: groundMaterial('info', { roughness: 0.36, metalness: 0.25, repeat: 8, emissive: PALETTE.info, emissiveIntensity: 0.85 }),
     routeEdge: groundMaterial('accent', { roughness: 0.6, metalness: 0.2, repeat: 8, emissive: PALETTE.accent, emissiveIntensity: 0.35 }),
     crackedPad: groundMaterial('panel2', { roughness: 0.9, metalness: 0.1, repeat: 18 }),
-    apron: groundMaterial('panel3', { roughness: 0.8, metalness: 0.16, repeat: 12 }),
-    apronEdge: groundMaterial('lineHi', { roughness: 0.5, metalness: 0.3, repeat: 8, emissive: PALETTE.info, emissiveIntensity: 0.5 }),
+    apron: groundMaterial('panel2', { roughness: 0.86, metalness: 0.12, repeat: 12 }),
+    apronEdge: groundMaterial('lineHi', { roughness: 0.5, metalness: 0.3, repeat: 8, emissive: PALETTE.info, emissiveIntensity: 0.35 }),
     crate: groundMaterial('panel3', { roughness: 0.72, metalness: 0.24, repeat: 2 }),
     crateAccent: groundMaterial('line', { roughness: 0.6, metalness: 0.3, repeat: 2 }),
     bollard: groundMaterial('lineHi', { roughness: 0.55, metalness: 0.4, repeat: 1, emissive: PALETTE.accent, emissiveIntensity: 0.4 }),
