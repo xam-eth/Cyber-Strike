@@ -45,7 +45,9 @@ function prefixTrack(clipIn, prefix, name) {
   // `motionClip` was already given the fully prefixed node name, so the track
   // names are final — re-prefixing here silently produced orphan tracks.
   const tracks = clipIn.tracks.map((track) => track.clone());
-  const out = new THREE.AnimationClip(`${prefix}.${name}`, clipIn.duration, tracks);
+  // Dots are legal in glTF but Godot's importer rewrites them, so the clip name
+  // is written exactly the way both engines will report it.
+  const out = new THREE.AnimationClip(`${prefix}_${name}`, clipIn.duration, tracks);
   out.userData = { instance: prefix, source: name };
   return out;
 }

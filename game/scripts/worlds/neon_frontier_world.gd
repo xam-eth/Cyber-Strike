@@ -73,9 +73,10 @@ func _instance_real_world() -> void:
 ## own player, rooted at the GLB so the tracks resolve, so every district moves at
 ## the same time instead of one prop winning the whole animation.
 func _start_authored_motion() -> void:
-	var imported := _world.find_child("*", "AnimationPlayer", true, false) as AnimationPlayer
-	if imported == null:
+	var found := _world.find_children("*", "AnimationPlayer", true, false)
+	if found.is_empty():
 		return
+	var imported := found[0] as AnimationPlayer
 	imported.name = "MotionLibrary"
 	imported.active = false
 	for clip_name in imported.get_animation_list():
