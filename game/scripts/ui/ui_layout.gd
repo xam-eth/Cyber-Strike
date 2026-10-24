@@ -126,7 +126,12 @@ static func desktop(hud) -> void:
 		0,
 		0,
 		0,
-		Rect2(inset + 404.0 * unit + 12.0 * unit, hud._top_inset + 64.0 * unit, 186.0 * unit, 52.0 * unit)
+		Rect2(
+			inset + 404.0 * unit + 12.0 * unit,
+			hud._top_inset + 64.0 * unit,
+			186.0 * unit,
+			52.0 * unit
+		)
 	)
 	_place(
 		hud._score_chip,
