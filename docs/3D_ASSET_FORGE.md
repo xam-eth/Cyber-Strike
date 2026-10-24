@@ -139,7 +139,7 @@ missing, and the GLB check fails if the socket node did not survive export.
 
 ## 4. The quality gate
 
-`node tools/asset-forge/gate/run_gate.mjs` — 19 checks per asset, all measured:
+`node tools/asset-forge/gate/run_gate.mjs` — 20 checks per asset, all measured:
 
 | Check | Rule |
 | --- | --- |
@@ -160,6 +160,7 @@ missing, and the GLB check fails if the socket node did not survive export.
 | `deterministic-rebuild` | rebuilding the module produces an identical geometry hash |
 | `glb-valid` | glTF 2.0 binary: magic, version, declared length, JSON chunk, ≥1 mesh, declared animations and sockets present as nodes |
 | `gltf-conformance` | the file passes the **Khronos glTF validator** with 0 errors and 0 warnings — the rules Godot's importer reads |
+| `glb-matches-measured` | the exported GLB's own bounding box matches the in-memory measurement within 1% (catches pose baked into the file) |
 | `render-coverage` | the asset covers 1.5–90% of the frame in each of three views (per-entry floors for thin props) |
 | `render-luma` | luma spread ≥ 0.30 and std ≥ 0.045 — the render is not a flat silhouette |
 | `views-differ` | the three views are not the same projection (best pair differs ≥ 0.12; rotationally symmetric subjects may declare a lower `views_differ_min`, printed in the message) |
@@ -222,29 +223,61 @@ mixer motion is unchanged; the export is legal. Result: **36/36 GLBs pass the
 Khronos validator with 0 errors, 0 warnings**, and that is now a gate check
 (`gltf-conformance`) rather than a one-off manual run.
 
-### 4.3 Proving it works *in Godot*
+### 4.3 Verified inside Godot — 36/36
 
-Valid glTF is necessary, not sufficient. The repo now carries the engine-side
-check, and the honest status of it:
+Valid glTF is necessary, not sufficient. The engine check runs on every
+`[forge-verify]` commit and its result is committed back to
+`qa-evidence/forge/import-report.json` (the artifact and log hosts are not
+reachable from the development sandbox, so git is the channel back — the same
+pattern the `lfs-convert` and `hero-blender` jobs already use).
 
-* `tools/asset-forge/gate/stage_into_game.mjs` copies all 36 GLBs to
-  `game/assets/forge/<category>/` and writes `forge_manifest.json` — the
-  contract (resource path, target size, clips, sockets) the engine verifies
-  against. **Committed**, because Godot can only import files inside the project.
-* `tools/asset-forge/godot/verify_import.gd` loads every `.glb` through the
-  engine, instantiates it, measures the real AABB, and fails if the height, any
-  declared clip, or any declared socket is missing after import. It writes a JSON
-  report and exits non-zero on failure.
-* `tools/asset-forge/godot/run_verify.sh` runs the import step and then the
-  verifier.
+| Piece | What it does |
+| --- | --- |
+| `.github/workflows/godot-ci.yml` → `forge-verify` | installs the pinned Godot 4.7.2-stable via `scripts/install_godot.sh`, runs the real importer, runs the verifier, commits the report |
+| `gate/stage_into_game.mjs` | copies the 36 GLBs to `game/assets/forge/` and writes `forge_manifest.json` (resource path, target size, normalisation axis, clips, sockets) |
+| `godot/verify_import.gd` | `load()`s every asset, instantiates it, measures the real AABB, and fails if height, any declared clip, or any declared socket is missing after import |
 
-**Not yet run.** No Godot binary could be obtained in the environment this was
-built in (direct downloads are blocked; no Godot package exists on npm or PyPI
-that ships the executable), so the script exits 2 with an explanatory message
-rather than pretending. The GDScript itself passes `gdparse` + `gdlint`. Until
-`run_verify.sh` reports `PASSED` on a machine with Godot 4.7.2, the correct
-statement is: *the GLBs are spec-valid and staged, and their in-engine import has
-not been verified.* The forge never claims a green light it did not see.
+**Result on Godot 4.7.2-stable (official), run `40065094729`:**
+
+```
+checked 36 · passed 36 · failed 0
+```
+
+Every asset imports, every declared clip arrives in the `AnimationPlayer`, every
+declared socket survives as a named node, and every measured size matches the
+manifest. The check is strict enough to be worth having: the same job's first run
+failed 7 of 36, and every failure was a real defect (see §4.4).
+
+### 4.4 What the engine found that three.js could not
+
+The first `forge-verify` run reported **29 passed, 7 failed**. The engine was
+right in all seven cases, and a GLB parsed directly in Node reproduced Godot's
+numbers exactly — so the fault was in the forge, not the measurement.
+
+| Asset | Godot | Should be | Cause |
+| --- | --- | --- | --- |
+| `runner` | 1.444 m | 1.72 m | exported at its **death pose** |
+| `impact_burst` | 0.271 m | 0.70 m | exported at a **collapsed animation frame** |
+| `landing_pad` | 1.428 m | 1.20 m | same class (beacon pulse pose) |
+| `command_center` | 8.004 m | 7.50 m | same class (dish/beacon pose) |
+| `rail_cannon` | 1.429 m | 1.25 m | same class |
+| `nova_shockwave` | 3.733 m | 4.00 m | same class |
+| `research_lab` / `landing_pad` | clip `sample` / `beacon` | `sample_cycle` / `beacon_cycle` | Godot imports those names without the `_cycle` suffix |
+
+The root cause of the first six: `run_gate.mjs` rendered a filmstrip by calling
+`playClip()` for every declared clip **and then exported the GLB**. Playing a
+clip leaves the posed transforms on the graph, and the exporter writes the
+current transforms as the rest pose — so the file shipped posed. Every three.js
+check stayed green because every one of them measured the in-memory model, not
+the file. Fixes:
+
+* export happens **before** any clip is played;
+* new check **`glb-matches-measured`** (20th) parses the exported GLB itself and
+  requires its bounding box to agree with the in-memory measurement within 1%;
+* the two clip names are now what the importer produces.
+
+This is the honest lesson of the exercise: a green in-browser suite said nothing
+about the file that ships. Only the engine did.
 
 ## 5. Running it
 
@@ -266,7 +299,9 @@ node tools/asset-forge/gate/compare_sheet.mjs                # REF | RENDER, one
 node tools/asset-forge/gate/anim_strip.mjs                       # every declared clip, 34 models → 72 strips
 node tools/asset-forge/gate/anim_strip.mjs --only exo_operative --frames 8 --cell 220 --az 90
 
-# 5. stage for the engine, then verify inside Godot (needs a Godot 4.x binary)
+# 5. stage for the engine, then verify inside Godot — locally if the engine is
+#    installed, otherwise the same verifier runs on CI via the [forge-verify]
+#    commit marker and commits qa-evidence/forge/import-report.json back
 node tools/asset-forge/gate/stage_into_game.mjs
 tools/asset-forge/godot/run_verify.sh
 
@@ -313,11 +348,12 @@ Honest status at the time of writing:
   turret, sensor tower, damaged transport) plus the hero and weapon families
   reviewed through contact sheets. Several of those reviews changed the model
   (see §4.1 and §7).
-* **GLB exports verified structurally** (chunks, meshes, node names, animations)
-  — **not yet imported into Godot.** Importing is a separate, unverified step;
-  nothing in this document claims the models are in `game/assets/` or referenced
-  by a `.tscn`. That integration is the next deliberate action, and it will be
-  reported with its own evidence.
+* **Verified inside Godot 4.7.2-stable: 36/36** (§4.3). Every asset is staged in
+  `game/assets/forge/` and imports, with its declared clips and sockets intact
+  and its measured size matching the manifest. That is engine-level import
+  evidence, not a claim that the game *uses* them: no `.tscn` references a forged
+  model yet, and the three `WeaponDefinition.model_scene` entries still point at
+  `rifle.glb`. Wiring them into scenes is the next deliberate action.
 * **Performance figures are from software rendering** (SwiftShader). Triangle
   and mesh counts are real and are what a mobile GPU budget should be read
   against; frame timings are not.
@@ -400,10 +436,11 @@ have no reference yet. That sheet is what the notes below were written against �
 
 1. **16 reference images remain** (the platform caps generation at 10 per turn):
    6 heroes, 6 weapons, 4 VFX. They are planned in batches of ten in §9.
-2. **Godot import** — the exported GLBs need importing into
-   `game/assets/forge/`, with scale/pivot verification in-engine and a
-   replacement of the three `WeaponDefinition.model_scene` entries that today
-   all point at `rifle.glb`.
+2. **Wire the imports into the game** — import is proven (§4.3, 36/36), but no
+   `.tscn` references a forged model yet and the three
+   `WeaponDefinition.model_scene` entries still point at `rifle.glb`. That is the
+   next action, and it will be reported with its own evidence (a scene that
+   instantiates `res://assets/forge/...` and boots in the headless smoke tests).
 3. **No skinning** — if a hero needs close-up deformation, the honest options
    are (a) export the hierarchy to Blender and rig it, or (b) keep it as a
    stylised low-poly character. This pipeline will not fake a skinned mesh.
