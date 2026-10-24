@@ -76,6 +76,9 @@ const viewports = (viewportArgs.length ? viewportArgs : ['844x390', '667x375']).
 const outDir = path.resolve(ROOT, flag('--out', path.join('exports', 'web-qa')));
 const bootTimeoutMs = Number(flag('--timeout', '45')) * 1000;
 const asJson = has('--json');
+// Keep stdout machine-readable in --json mode. Progress remains visible on
+// stderr instead of being silently discarded or corrupting the JSON report.
+const progress = (message) => (asJson ? console.error(message) : console.log(message));
 // Play pass: seconds of scripted input after boot. 0 keeps the fast boot check.
 const playSeconds = Math.max(0, Number(flag('--play', '0')) || 0);
 const playShotEvery = Math.max(1, Number(flag('--play-shot-every', '5')) || 5);
@@ -365,7 +368,7 @@ async function checkPage(target, viewport) {
     for (let i = 0; i < 240 && !/stage (CHAPTER|DASHBOARD|HERO|WEAPON|WORLD|PRELOAD)/.test(stageLine()); i += 1) {
       await new Promise((r) => setTimeout(r, 1000));
     }
-    if (!reached()) console.log(`  journey: front-end at ${stageLine().trim() || '(no stage yet)'}`);
+    if (!reached()) progress(`  journey: front-end at ${stageLine().trim() || '(no stage yet)'}`);
     let vanguardSelectionHandled = false;
     for (let press = 0; press < 16 && !reached(); press += 1) {
       const before = stageLine();
@@ -404,7 +407,7 @@ async function checkPage(target, viewport) {
         await new Promise((r) => setTimeout(r, 400));
       }
     }
-    if (!reached()) console.log(`  journey stalled at: ${stageLine().trim() || '(unknown)'}`);
+    if (!reached()) progress(`  journey stalled at: ${stageLine().trim() || '(unknown)'}`);
     return reached();
   };
 
@@ -572,7 +575,7 @@ async function checkPage(target, viewport) {
     await page.keyboard.press('KeyP');
     await new Promise((r) => setTimeout(r, 600));
     const engaged = consoleLines.some((line) => line.includes('World tour: review camera engaged'));
-    if (!engaged) console.log('  tour: the review camera did not engage (no World tour: log line)');
+    if (!engaged) progress('  tour: the review camera did not engage (no World tour: log line)');
     for (const digit of ['Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'Digit6', 'Digit7', 'Digit8']) {
       await page.keyboard.press(digit);
       await new Promise((r) => setTimeout(r, tourWaitMs));
