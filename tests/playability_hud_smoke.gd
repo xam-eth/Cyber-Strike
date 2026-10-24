@@ -911,7 +911,7 @@ func _run_smoke_test() -> void:
 		(
 			(
 				"CANCEL DEFENSE during preparation unpauses and restores safe Explore "
-				+ "(paused=%s panel=%s down=%s hp=%s title=%s wave=%d)"
+				+ "(paused=%s panel=%s down=%s hp=%s title=%s wave=%d restart=%s rect=%s hit=%s)"
 			)
 			% [
 				paused,
@@ -920,6 +920,9 @@ func _run_smoke_test() -> void:
 				health_bar.value,
 				wave_title.text,
 				int(wave_director.get("current_wave")),
+				restart_button.text,
+				restart_button.get_global_rect(),
+				controls.get("_last_touch_debug"),
 			]
 		),
 	)
