@@ -6,7 +6,7 @@
 ## player who moved between the two tabs saw the same screen twice. That is the
 ## defect this file answers: HOME is now a *manifest*, not a model.
 ##
-## What it says, in one column, top to bottom:
+## What it says: the three rows, then the record and the actions beside them.
 ##
 ##   * a heading and the profile line -- where you are, and how many runs you
 ##     have finished;
@@ -46,16 +46,13 @@ var _top: HBoxContainer
 
 # --- the column ------------------------------------------------------------- #
 var _root: VBoxContainer
-## Heading and profile line. Portrait keeps them; a 390 px landscape screen
-## spends that height on the rows instead.
+## Heading and profile line. A 390 px landscape screen spends that height on
+## the rows instead, so both give way on a compact screen.
 var _intro: HBoxContainer
 var _heading: Label
 var _profile_line: Label
-## The three rows, and the two arrangements they can sit in: a column under the
-## heading (portrait), or a column beside the record and the actions
-## (landscape), because 390 px of height cannot hold heading, rows, actions and
-## ribbon at once.
-var _body_portrait: VBoxContainer
+## The three rows, beside the record and the actions: 390 px of height cannot
+## hold heading, rows, actions and ribbon stacked in one column.
 var _body_landscape: HBoxContainer
 var _rows: VBoxContainer
 var _rail: VBoxContainer
@@ -174,12 +171,6 @@ func _build_intro() -> void:
 
 
 func _build_bands() -> void:
-	_body_portrait = VBoxContainer.new()
-	_body_portrait.name = &"BoardBandsPortrait"
-	_body_portrait.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_body_portrait.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	physical_separation(_body_portrait, 12)
-
 	_body_landscape = HBoxContainer.new()
 	_body_landscape.name = &"BoardBandsLandscape"
 	_body_landscape.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -191,7 +182,7 @@ func _build_bands() -> void:
 	_rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	physical_separation(_rows, 12)
 
-	# The right column of the landscape arrangement. It has a width of its own,
+	# The right column. It has a width of its own,
 	# or it takes the width of its widest child and the rows lose the screen.
 	_rail = VBoxContainer.new()
 	_rail.name = &"BoardRail"
@@ -237,6 +228,10 @@ func _make_row(number: String, caption: String, accent: Color) -> Dictionary:
 	var panel := AegisPanel.new()
 	panel.name = &"Step" + number
 	panel.interactive = false
+	# Each row is a plate cut on its trailing corner, so the three rows read as
+	# one machined stack rather than three rounded cards.
+	panel.bezel = true
+	panel.cut_top_right = AegisBezel.CUT
 	panel.accent_side = "left"
 	panel.accent_color = accent
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -293,6 +288,11 @@ func _build_ribbon() -> void:
 	_ribbon = AegisPanel.new()
 	_ribbon.name = &"RecordRibbon"
 	_ribbon.interactive = false
+	# The ribbon points the other way from the rows: it is the reading at the
+	# foot of the board, not a step in it.
+	_ribbon.bezel = true
+	_ribbon.cut_top_left = AegisBezel.CUT_SM
+	_ribbon.cut_bottom_right = AegisBezel.CUT_LG
 	_ribbon.accent_side = "top"
 	_ribbon.accent_color = AegisTokens.INFO
 	_ribbon.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -440,84 +440,51 @@ func refresh_profile() -> void:
 # --- arrangement ------------------------------------------------------------ #
 
 
-## Portrait: heading, the three rows, the record, the actions -- one column, in
-## the order a player reads them, with DEPLOY last and therefore nearest the
-## thumb. Landscape: the rows keep the height they need
-## and the record and actions move into a rail beside them, because 390 px of
-## height cannot hold four bands.
+## One arrangement: the rows keep the height they need on the left, the record
+## and the actions sit in a rail beside them. 390 px of height cannot hold four
+## bands, so the stacked column is gone rather than kept unreachable.
 ##
 ## Every block is detached before it is re-parented, so the arrangement never
-## depends on the order it was first built in, and only a real orientation
-## change rebuilds it.
+## depends on the order it was first built in.
 func _apply_orientation() -> void:
-	var landscape := is_landscape()
-	var placed := (
-		_body_landscape.get_parent() != null if landscape else _body_portrait.get_parent() != null
-	)
-	if landscape == _landscape_built and placed:
+	if _landscape_built and _body_landscape.get_parent() != null:
 		return
-	_landscape_built = landscape
-	# `_rail` is in this list too: it only exists in the landscape arrangement,
-	# and re-adding a child that still holds its old parent is an error.
+	_landscape_built = true
 	for block in [_rows, _rail, _actions, _ribbon]:
 		if block.get_parent() != null:
 			block.get_parent().remove_child(block)
-	if landscape:
-		if _body_portrait.get_parent() == _root:
-			_root.remove_child(_body_portrait)
-		if _body_landscape.get_parent() == null:
-			_root.add_child(_body_landscape)
-		_body_landscape.add_child(_rows)
-		_body_landscape.add_child(_rail)
-		_rail.add_child(_ribbon)
-		_rail.add_child(_actions)
-		_rows.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		_rail.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	else:
-		if _body_landscape.get_parent() == _root:
-			_root.remove_child(_body_landscape)
-		if _body_portrait.get_parent() == null:
-			_root.add_child(_body_portrait)
-		_body_portrait.add_child(_rows)
-		_body_portrait.add_child(_ribbon)
-		_body_portrait.add_child(_actions)
-		_rows.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_root.add_child(_body_landscape)
+	_body_landscape.add_child(_rows)
+	_body_landscape.add_child(_rail)
+	_rail.add_child(_ribbon)
+	_rail.add_child(_actions)
+	_rows.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_rail.size_flags_vertical = Control.SIZE_EXPAND_FILL
 
 
-## Four budgets, measured on the four viewports the smoke test uses. Nothing
-## here invents a target: the rows keep their height, the buttons keep their
-## touch floor, and the *copy* gives way first.
+## Two budgets, measured on the landscape viewports the smoke test uses.
+## Nothing here invents a target: the rows keep their height, the buttons keep
+## their touch floor, and the *copy* gives way first.
 func _apply_density() -> void:
-	var landscape := is_landscape()
 	var height := physical_size().y
 	var width := physical_size().x
-	var compact := height < (520.0 if landscape else 900.0)
-	var cramped := not landscape and height < 700.0
-	# A width budget as well as a height one. On a 390 px phone the rows are
-	# three plates and three names wide before any copy wraps, and 844 px of
-	# height says nothing about that: measured at 390x844 the row minimum came
-	# out 472 px and every label under it was drawn past the right edge.
+	# A landscape phone is wide but 390 px tall: that is the compact budget.
+	var compact := height < 520.0
+	# A width budget as well as a height one: the rail shares the width with the
+	# rows, so on a narrow window every caption in a row has to give up its
+	# minimum too.
 	var narrow := width < 560.0
-	# A landscape phone is wide but 390 px tall, so it lands in `compact`, and
-	# its rail still shares the width with the rows: every caption in a row has
-	# to give up its minimum there too.
-	var tight := cramped or narrow or (landscape and compact)
-	var desktop := not compact and height >= 600.0
-	var short_landscape := landscape and compact
+	var tight := narrow or compact
 
 	apply_safe_margins(
-		_margin,
-		20.0 if compact else 36.0,
-		8.0 if (cramped or short_landscape) else (16.0 if compact else 28.0),
-		8.0 if compact else 28.0
+		_margin, 20.0 if compact else 36.0, 8.0 if compact else 28.0, 8.0 if compact else 28.0
 	)
 
-	var pad := px(4.0 if cramped else (6.0 if compact else 12.0))
+	var pad := px(6.0 if compact else 12.0)
 	for panel in [_hero_row, _mission_row, _arsenal_row, _ribbon]:
 		panel.set_surface_pad(pad)
 
-	physical_separation(_root, 8.0 if cramped else (12.0 if compact else 20.0))
-	physical_separation(_body_portrait, 8.0 if cramped else (10.0 if compact else 16.0))
+	physical_separation(_root, 12.0 if compact else 20.0)
 	physical_separation(_body_landscape, 14.0 if compact else 24.0)
 	physical_separation(_rows, 8.0 if compact else 14.0)
 	physical_separation(_rail, 10.0 if compact else 16.0)
@@ -526,24 +493,9 @@ func _apply_density() -> void:
 	physical_separation(_top, 10.0 if compact else 16.0)
 
 	# --- row and button heights ----------------------------------------- #
-	var row_height := 104.0
-	var plate := Vector2(112.0, 84.0)
-	var touch := 68.0
-	if desktop:
-		row_height = 112.0
-		plate = Vector2(120.0, 90.0)
-		touch = 72.0
-	elif short_landscape:
-		row_height = 84.0
-		plate = Vector2(84.0, 62.0)
-		touch = 64.0
-	elif cramped:
-		row_height = 88.0
-		plate = Vector2(72.0, 54.0)
-		touch = 64.0
-	elif compact:
-		row_height = 96.0
-		plate = Vector2(96.0, 72.0)
+	var row_height := 84.0 if compact else 112.0
+	var plate := Vector2(84.0, 62.0) if compact else Vector2(120.0, 90.0)
+	var touch := 64.0 if compact else 72.0
 	if narrow:
 		# The plate is the first thing that gives way, not a target.
 		plate = Vector2(64.0, 48.0)
@@ -557,43 +509,35 @@ func _apply_density() -> void:
 	for numeral in _numerals:
 		numeral.visible = width >= 520.0
 
-	if landscape:
-		# A share of the screen, not a constant: 340 px of rail plus the rows'
-		# own minimum is 988 px on an 844 px screen, which drew the rail off the
-		# right edge at 844x390 (measured in the r4 capture).
-		_rail.custom_minimum_size.x = px(minf(340.0, width * 0.34))
-		_rows.custom_minimum_size.x = 0.0
-	else:
-		_rail.custom_minimum_size.x = 0.0
+	# A share of the screen, not a constant: 340 px of rail plus the rows' own
+	# minimum is 988 px on an 844 px screen, which drew the rail off the right
+	# edge at 844x390 (measured in the r4 capture).
+	_rail.custom_minimum_size.x = px(minf(340.0, width * 0.34))
+	_rows.custom_minimum_size.x = 0.0
 
 	# --- what gives way -------------------------------------------------- #
-	_intro.visible = not (cramped or short_landscape)
+	_intro.visible = not compact
 	# The heading stays (it is what makes the page a board), the profile line
 	# goes: "PROFILE · FIELD READY" beside a 265 px wordmark is 472 px of row on
 	# a 390 px screen.
-	_profile_line.visible = not (cramped or short_landscape or narrow)
-	_hero_caption.visible = not cramped
-	_mission_caption.visible = not cramped
-	_arsenal_caption.visible = not cramped
+	_profile_line.visible = not (compact or narrow)
 	# The brief is the theatre's own paragraph, cut to one sentence; the row
-	# above already names it, so a short screen keeps the name and drops this.
-	_mission_brief.visible = not (cramped or compact)
-	_hero_status.visible = not (cramped and not landscape)
-	_arsenal_state.visible = not (cramped or compact)
-	_loadout.visible = not (cramped or short_landscape)
+	# above already names it, so a compact screen keeps the name and drops this.
+	_mission_brief.visible = not compact
+	_arsenal_state.visible = not compact
+	_loadout.visible = not compact
 	for item in _loadout_items:
-		item.visible = not (cramped or short_landscape)
+		item.visible = not compact
 		_limit_lines(item, 1)
-	_deploy_caption.visible = not cramped
 	_limit_lines(_mission_brief, 1)
 	_limit_lines(_arsenal_state, 1)
 	_limit_lines(_loadout, 2)
 	_limit_lines(_deploy_caption, 1)
 
 	# `clip_text` is what takes a label's text out of its *minimum* width. On a
-	# 360 px phone a name set in `title` plus a 72 px plate plus a numeral is
-	# wider than the screen, and a row that wraps its own name still measures
-	# the longest word.
+	# narrow window a name set in `title` plus a plate plus a numeral is wider
+	# than the screen, and a row that wraps its own name still measures the
+	# longest word.
 	for label in [_hero_name_label, _mission_name, _arsenal_name]:
 		label.clip_text = tight
 		_limit_lines(label, 2)

@@ -1,0 +1,58 @@
+{
+  "tag": "L4",
+  "viewports": [
+    "844x390"
+  ],
+  "screens": [
+    {
+      "screen": "opening",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/L4/opening-844x390.png",
+      "blank": false,
+      "errors": [
+        "TypeError: Cannot set properties of null (setting 'textContent')"
+      ],
+      "width": 844,
+      "height": 390,
+      "bytes": 113635,
+      "lumaMean": 17.779839460434044,
+      "lumaStdDev": 25.060827548854924,
+      "uniqueColors": 784
+    },
+    {
+      "screen": "hub",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/L4/hub-844x390.png",
+      "blank": false,
+      "errors": [
+        "TypeError: Cannot set properties of null (setting 'textContent')",
+        "TypeError: Cannot set properties of null (setting 'textContent')"
+      ],
+      "width": 844,
+      "height": 390,
+      "bytes": 113635,
+      "lumaMean": 17.779839460434044,
+      "lumaStdDev": 25.060827548854924,
+      "uniqueColors": 784
+    },
+    {
+      "screen": "settings",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/L4/settings-844x390.png",
+      "blank": false,
+      "errors": [
+        "TypeError: Cannot set properties of null (setting 'textContent')",
+        "TypeError: Cannot set properties of null (setting 'textContent')",
+        "TypeError: Cannot set properties of null (setting 'textContent')"
+      ],
+      "width": 844,
+      "height": 390,
+      "bytes": 113635,
+      "lumaMean": 17.779839460434044,
+      "lumaStdDev": 25.060827548854924,
+      "uniqueColors": 784
+    }
+  ],
+  "failures": 0,
+  "generatedAt": "2026-10-24T10:58:51.238Z"
+}

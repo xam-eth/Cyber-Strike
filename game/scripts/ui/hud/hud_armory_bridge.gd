@@ -38,11 +38,9 @@ static func refresh(
 static func refresh_entry_label(hud) -> void:
 	if not is_instance_valid(hud._armory_button):
 		return
-	# Currency lives in the Armory/Results; repeating it on the 106–148 px
-	# portrait action clips the text and hides more of the world than it helps.
-	hud._armory_button.text = (
-		"ARMORY" if hud._touch_mode and hud._portrait else "ARMORY · %d BP" % hud._state.wallet_bp
-	)
+	# The only armory action is the 186 px landscape plate, which fits the
+	# balance; the Armory and Results panels still carry the full figure.
+	hud._armory_button.text = "ARMORY · %d BP" % hud._state.wallet_bp
 
 
 static func show_panel(hud) -> void:

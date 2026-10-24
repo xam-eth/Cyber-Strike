@@ -1,0 +1,143 @@
+@font-face {
+  font-family: 'Rajdhani';
+  src: url('./fonts/rajdhani-latin-400-normal.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Rajdhani';
+  src: url('./fonts/rajdhani-latin-500-normal.woff2') format('woff2');
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Rajdhani';
+  src: url('./fonts/rajdhani-latin-600-normal.woff2') format('woff2');
+  font-weight: 600;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Rajdhani';
+  src: url('./fonts/rajdhani-latin-700-normal.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Chakra Petch';
+  src: url('./fonts/ChakraPetch-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Chakra Petch';
+  src: url('./fonts/ChakraPetch-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-display: swap;
+}
+
+/*
+ * AEGIS player tokens.
+ *
+ * These are the same values as game/scripts/ui/aegis_tokens.gd, written for the
+ * web layer so the browser front end and the in-engine HUD cannot drift apart.
+ * If a value changes here it must change there, and vice versa; the palette is
+ * small on purpose.
+ *
+ * Rule for the accent: amber is action, focus and the one number that matters.
+ * An amber surface that is not a control is a mistake. Health is mint, armour is
+ * cyan, damage is red, ability is violet — and status is never colour alone.
+ */
+:root {
+  /* colour */
+  --void: #05080c;
+  --void-2: #080d13;
+  --panel: #0b131b;
+  --panel-2: #111c26;
+  --panel-3: #16232e;
+  --line: #27384a;
+  --line-hi: #4e6a7e;
+  --ink: #edf5fb;
+  --ink-2: #a9bccb;
+  --ink-3: #7c94a6;
+  --accent: #ffb020;
+  --accent-ink: #171005;
+  --accent-dim: #b87a12;
+  --ok: #37e08c;
+  --info: #54c8ff;
+  --danger: #ff5a5a;
+  --ability: #b79cff;
+
+  /* translucency */
+  --panel-a92: rgba(11, 19, 27, 0.92);
+  --panel-a78: rgba(11, 19, 27, 0.78);
+  --panel-a56: rgba(11, 19, 27, 0.56);
+  --scrim: rgba(5, 8, 12, 0.68);
+  --hair: rgba(78, 106, 126, 0.34);
+
+  /* type */
+  --font-display: 'Rajdhani', 'Chakra Petch', system-ui, sans-serif;
+  --font-ui: 'Chakra Petch', 'Rajdhani', system-ui, sans-serif;
+
+  --text-display: clamp(2.4rem, 5.6vw, 4.6rem);
+  --text-title: clamp(1.5rem, 2.6vw, 2.1rem);
+  --text-heading: 1.06rem;
+  --text-body: 0.92rem;
+  --text-label: 0.72rem;
+  --text-micro: 0.64rem;
+
+  --track-display: 0.16em;
+  --track-label: 0.18em;
+  --track-micro: 0.22em;
+
+  /* space — 4px base, 8px rhythm */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+  --s6: 32px;
+  --s7: 48px;
+  --s8: 64px;
+
+  /* shape
+     The bezel is cut, not rounded: five chamfer steps, one 45 degree angle.
+     A plate names how much it cuts each corner (--tl/--tr/--br/--bl) and the
+     hairline along every cut is drawn by the shape layer, never by a border. */
+  --cut-xs: 5px;
+  --cut-sm: 8px;
+  --cut: 12px;
+  --cut-lg: 22px;
+  --cut-xl: 32px;
+  --radius: 0px;
+  --edge: 2px;
+
+  /* motion */
+  --motion-fast: 120ms;
+  --motion-base: 200ms;
+  --motion-slow: 420ms;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  /* layout */
+  --tap: 44px;
+  --tap-lg: 56px;
+  --gutter: clamp(16px, 3.2vw, 40px);
+  --maxw: 1240px;
+  --safe-t: env(safe-area-inset-top, 0px);
+  --safe-r: env(safe-area-inset-right, 0px);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-l: env(safe-area-inset-left, 0px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-fast: 1ms;
+    --motion-base: 1ms;
+    --motion-slow: 1ms;
+  }
+}
+
+html[data-motion='reduced'] {
+  --motion-fast: 1ms;
+  --motion-base: 1ms;
+  --motion-slow: 1ms;
+}

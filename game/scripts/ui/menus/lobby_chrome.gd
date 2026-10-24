@@ -18,9 +18,8 @@
 ##   * where do I go    -- the gear, which opens settings over any lobby page.
 ##
 ## Sizes are authored in *physical* pixels through `MenuStage.physical_min_size`
-## and re-authored on every resize, so the same dock is 56 px tall on a phone
-## held upright and 64 px on a desktop, not "whatever the theme happened to use
-## at 1280x720".
+## and re-authored on every resize, so the same dock is 64 px tall on a phone
+## held sideways, not "whatever the theme happened to use at 1280x720".
 class_name LobbyChrome
 extends RefCounted
 
@@ -165,8 +164,8 @@ func _build_nav() -> void:
 		glyph.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		glyph.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		# Centred at a fixed size, not full-rect: a full-rect child of a Button
-		# draws over the button's own text, which is exactly what happened on the
-		# desktop dock -- three large glyphs sat on top of HOME / OPERATIVE /
+		# draws over the button's own text, which is exactly what happened on a
+		# wide dock -- three large glyphs sat on top of HOME / OPERATIVE /
 		# THEATRE. The size is set in `_apply_density`.
 		glyph.set_anchors_preset(Control.PRESET_FULL_RECT)
 		button.add_child(glyph)
@@ -300,10 +299,9 @@ func _on_tab_pressed(tab_id: StringName) -> void:
 ## The dock is the one row that has to hold identity, navigation, two figures, a
 ## portrait and a control, so it is also the row most able to push the page
 ## wider than the screen. A table of breakpoints was tried and kept costing
-## frames: the thresholds were tuned against the portrait phone and the desktop
-## and said nothing about a 844x390 landscape phone, where the runs chip was
-## still shown and the gear was drawn 120 px past the right edge (measured in
-## the r4 capture, `?qa_menu=1`).
+## frames: the thresholds were tuned against other viewports and said nothing
+## about an 844x390 phone, where the runs chip was still shown and the gear was
+## drawn 120 px past the right edge (measured in the r4 capture, `?qa_menu=1`).
 ##
 ## So the dock now walks its own contents from richest to leanest and keeps the
 ## first configuration whose real combined minimum width fits the screen. What
@@ -366,13 +364,14 @@ func _width_at(level: int) -> float:
 	return width + GAPS + SLACK
 
 
-## True on a landscape phone, where the tabs are glyphs whatever the width says.
+## True on a compact landscape phone, where the tabs are glyphs whatever the
+## width says.
 func _wordless() -> bool:
-	return _stage.is_landscape() and _stage.physical_size().y < 520.0
+	return _stage.physical_size().y < 520.0
 
 
 func _apply_level(level: int) -> void:
-	# A landscape phone is wide enough for words and only 390 px tall. A tab
+	# A phone in landscape is wide enough for words and only 390 px tall. A tab
 	# that carries a word has to meet the 64 px touch floor, which would cost
 	# the dock a fifth of that height; the glyphs are distinct and the tooltip
 	# names them, so in that one case the tabs go wordless whatever the width

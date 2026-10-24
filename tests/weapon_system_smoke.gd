@@ -33,7 +33,6 @@ func _run_smoke_test() -> void:
 	var muzzle: Marker3D = player.get_node("VisualRoot/WeaponSocket/Muzzle")
 	var controls: Node = main_scene.get_node("HUD/TouchControls")
 	var weapon_button := controls.get("_weapon_button") as Button
-	var weapon_meta := controls.get("_desktop_weapon_meta") as Label
 	var ammo_chip := controls.get("_touch_ammo_chip") as Control
 	var weapon_name := ammo_chip.get("weapon_label") as Label
 	var touch_ammo := ammo_chip.get("value_label") as Label
@@ -46,8 +45,8 @@ func _run_smoke_test() -> void:
 	)
 	test_passed = (
 		_expect(
-			weapon_meta.text.contains("24/24") and touch_ammo.text == "24/24",
-			"desktop and touch HUD start with a full Pulse magazine",
+			weapon_name.text == "PULSE" and touch_ammo.text == "24/24",
+			"the HUD starts with a full Pulse magazine",
 		)
 		and test_passed
 	)
@@ -226,9 +225,8 @@ func _run_smoke_test() -> void:
 			(
 				int(weapon_controller.call("get_current_ammo")) == 22
 				and touch_ammo.text == "22/24"
-				and weapon_meta.text.contains("22/24")
 			),
-			"each successful Pulse shot spends a round and updates both HUDs",
+			"each successful Pulse shot spends a round and updates the HUD",
 		)
 		and test_passed
 	)
@@ -388,9 +386,8 @@ func _run_smoke_test() -> void:
 				and not rejected_during_reload
 				and weapon_controller.call("is_reloading")
 				and touch_ammo.text == "RELOAD"
-				and weapon_meta.text.contains("RELOADING")
 			),
-			"empty magazine auto-reloads and locks fire in both HUDs",
+			"empty magazine auto-reloads and locks fire",
 		)
 		and test_passed
 	)

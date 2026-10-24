@@ -1,0 +1,36 @@
+{
+  "tag": "L2",
+  "viewports": [
+    "844x390"
+  ],
+  "screens": [
+    {
+      "screen": "hub",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/L2/hub-844x390.png",
+      "blank": false,
+      "errors": [],
+      "width": 844,
+      "height": 390,
+      "bytes": 105338,
+      "lumaMean": 22.518674484116598,
+      "lumaStdDev": 33.054774018153196,
+      "uniqueColors": 1523
+    },
+    {
+      "screen": "settings",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/L2/settings-844x390.png",
+      "blank": false,
+      "errors": [],
+      "width": 844,
+      "height": 390,
+      "bytes": 68265,
+      "lumaMean": 20.161477095139684,
+      "lumaStdDev": 22.11348778367406,
+      "uniqueColors": 432
+    }
+  ],
+  "failures": 0,
+  "generatedAt": "2026-10-24T10:57:12.700Z"
+}

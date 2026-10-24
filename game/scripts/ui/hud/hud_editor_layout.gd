@@ -22,7 +22,6 @@ const CONTROLS := {
 static func apply(hud) -> void:
 	if hud._hud_preset == "MINIMAL":
 		hud._help_panel.visible = false
-		hud._desktop_hint.visible = false
 		hud._run_card.visible = false
 		hud._score_chip.visible = false
 	elif hud._hud_preset == "ADVANCED" and not hud.get_tree().paused:

@@ -1035,6 +1035,20 @@ def check_web_preview(report: Report, root: Path, game_root: Path) -> None:
         problems += 1
     else:
         text = landing.read_text(encoding="utf-8", errors="replace")
+        # The boot logic lives in the shell module (ui/shell.js); the page is the
+        # scaffold. Both count as "the landing page" for these checks, because the
+        # failure each needle guards against happens in whichever file boots the
+        # engine -- a page that loads ./web/index.js as a static tag, reads the
+        # export config from ./web/index.html, sets config.executable and calls
+        # startGame. Search both so the rule survives the refactor.
+        companions = [
+            path
+            for path in (root / "ui" / "shell.js", root / "ui" / "shell.mjs")
+            if path.exists()
+        ]
+        surfaces = [(landing, text)] + [
+            (path, path.read_text(encoding="utf-8", errors="replace")) for path in companions
+        ]
         # Each of these encodes a failure that was observed for real in a browser.
         for needle, why in (
             ("./web/index.html", "must read the export config from ./web/index.html"),
@@ -1054,7 +1068,7 @@ def check_web_preview(report: Report, root: Path, game_root: Path) -> None:
             ),
             ("startGame", "must call Engine.startGame()"),
         ):
-            if needle not in text:
+            if not any(needle in body for _, body in surfaces):
                 report.fail(check, f"index.html {why}", "index.html")
                 problems += 1
 

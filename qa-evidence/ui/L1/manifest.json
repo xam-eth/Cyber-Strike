@@ -1,0 +1,115 @@
+{
+  "tag": "L1",
+  "viewports": [
+    "844x390",
+    "1280x720"
+  ],
+  "screens": [
+    {
+      "screen": "opening",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/L1/opening-844x390.png",
+      "blank": false,
+      "errors": [],
+      "width": 844,
+      "height": 390,
+      "bytes": 112214,
+      "lumaMean": 20.085647860591504,
+      "lumaStdDev": 33.40496754701059,
+      "uniqueColors": 902
+    },
+    {
+      "screen": "hub",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/L1/hub-844x390.png",
+      "blank": false,
+      "errors": [],
+      "width": 844,
+      "height": 390,
+      "bytes": 113227,
+      "lumaMean": 25.78217967985613,
+      "lumaStdDev": 33.95796549247028,
+      "uniqueColors": 1881
+    },
+    {
+      "screen": "deploy",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/L1/deploy-844x390.png",
+      "blank": false,
+      "errors": [],
+      "width": 844,
+      "height": 390,
+      "bytes": 112214,
+      "lumaMean": 20.085647860591504,
+      "lumaStdDev": 33.40496754701059,
+      "uniqueColors": 902
+    },
+    {
+      "screen": "settings",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/L1/settings-844x390.png",
+      "blank": false,
+      "errors": [],
+      "width": 844,
+      "height": 390,
+      "bytes": 68265,
+      "lumaMean": 20.161477095139684,
+      "lumaStdDev": 22.11348778367406,
+      "uniqueColors": 432
+    },
+    {
+      "screen": "opening",
+      "viewport": "1280x720",
+      "file": "qa-evidence/ui/L1/opening-1280x720.png",
+      "blank": false,
+      "errors": [],
+      "width": 1280,
+      "height": 720,
+      "bytes": 235803,
+      "lumaMean": 15.329462191084765,
+      "lumaStdDev": 25.08669561993325,
+      "uniqueColors": 940
+    },
+    {
+      "screen": "hub",
+      "viewport": "1280x720",
+      "file": "qa-evidence/ui/L1/hub-1280x720.png",
+      "blank": false,
+      "errors": [],
+      "width": 1280,
+      "height": 720,
+      "bytes": 196458,
+      "lumaMean": 17.863024241965253,
+      "lumaStdDev": 24.37674992785443,
+      "uniqueColors": 2432
+    },
+    {
+      "screen": "deploy",
+      "viewport": "1280x720",
+      "file": "qa-evidence/ui/L1/deploy-1280x720.png",
+      "blank": false,
+      "errors": [],
+      "width": 1280,
+      "height": 720,
+      "bytes": 235803,
+      "lumaMean": 15.329462191084765,
+      "lumaStdDev": 25.08669561993325,
+      "uniqueColors": 940
+    },
+    {
+      "screen": "settings",
+      "viewport": "1280x720",
+      "file": "qa-evidence/ui/L1/settings-1280x720.png",
+      "blank": false,
+      "errors": [],
+      "width": 1280,
+      "height": 720,
+      "bytes": 171424,
+      "lumaMean": 17.91710978533358,
+      "lumaStdDev": 18.230027067377787,
+      "uniqueColors": 616
+    }
+  ],
+  "failures": 0,
+  "generatedAt": "2026-10-24T10:56:38.729Z"
+}

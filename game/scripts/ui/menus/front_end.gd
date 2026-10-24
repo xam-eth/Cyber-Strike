@@ -78,22 +78,40 @@ func _ready() -> void:
 		stage.set_physics_process(false)
 		_stages[key] = stage
 	progression_service.profile_changed.connect(_on_profile_changed)
+	# GAMEPLAY remains an explicit raw-engine QA hand-off. The player shell uses
+	# WORLD instead, preserving theatre/loadout selection. Entering a stage and
+	# then changing the scene out from under it leaves that stage's awaited frames
+	# resuming on a freed node -- a real "data.tree is null" error in the log.
+	if _qa_stage_name() == &"GAMEPLAY":
+		call_deferred("start_gameplay")
+		return
 	_enter(&"BOOT", {})
 	_enter_qa_stage()
 
 
+## The stage name in `?qa_stage=`, or an empty name outside a browser / without
+## the flag. `GAMEPLAY` is not a stage: it is the scene PRELOAD changes to, and
+## the player-facing web shell uses it to hand the screen over after its own hub.
+func _qa_stage_name() -> StringName:
+	if not OS.has_feature("web"):
+		return &""
+	var requested: Variant = JavaScriptBridge.eval(
+		"new URLSearchParams(location.search).get('qa_stage') || ''"
+	)
+	return StringName(str(requested))
+
+
 ## QA hook, web only: `?qa_stage=DASHBOARD` lands straight on a stage so a
-## build can be photographed without playing through to it. Same mechanism as
+## build can be photographed without playing through to it, and
+## `?qa_stage=GAMEPLAY` enters the world with the profile's current loadout --
+## the hand-off the player-facing web shell uses. Same mechanism as
 ## the existing `?qa_camera` / `?qa_touch` flags in camera_rig.gd and
 ## hud_encounter_ui.gd, and equally inert outside a browser.
 func _enter_qa_stage() -> void:
 	if not OS.has_feature("web"):
 		return
 	_enter_qa_world()
-	var requested: Variant = JavaScriptBridge.eval(
-		"new URLSearchParams(location.search).get('qa_stage') || ''"
-	)
-	var stage_name := StringName(str(requested))
+	var stage_name := _qa_stage_name()
 	if stage_name == &"" or not STAGE_SCENES.has(stage_name):
 		return
 	call_deferred("_enter", stage_name, _qa_payload(stage_name))
@@ -190,6 +208,7 @@ func _enter(stage_name: StringName, stage_payload: Dictionary) -> void:
 	stage.payload = stage_payload
 	stage.visible = true
 	stage.enter(stage_payload)
+	stage.focus_primary()
 	print("FrontEnd: stage %s" % stage_name)
 	_report_menu_rects()
 

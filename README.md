@@ -40,13 +40,13 @@ Open `game/project.godot` in Godot 4.7.2 and run the main scene to explore the w
 # 2. Install the pinned Godot 4.7.2 editor (+ export templates) outside the repo
 ./scripts/install_godot.sh --with-templates
 
-# 3. Import the project and run all 29 smoke tests with per-test logs
+# 3. Import the project and run all 28 smoke tests with per-test logs
 ./scripts/run_smoke_tests.sh
 ./scripts/run_smoke_tests.sh --list                 # available tests
 ./scripts/run_smoke_tests.sh wave_director_smoke    # a single test
 ```
 
-`scripts/run_smoke_tests.sh` performs the headless Editor import and then every smoke test with `--headless --path game --script <absolute-test-path>`, writing logs to the git-ignored `exports/test-logs/`. The 29 tests cover the front end, both worlds, content showcases, combat, the Pulse Rifle vertical slice, waves, rewards, progression, HUD/touch, audio, effects, and content data. Use `--list` for the authoritative inventory. The equivalent manual commands are:
+`scripts/run_smoke_tests.sh` performs the headless Editor import and then every smoke test with `--headless --path game --script <absolute-test-path>`, writing logs to the git-ignored `exports/test-logs/`. The 28 tests cover the front end, both worlds, content showcases, combat, the Pulse Rifle vertical slice, waves, rewards, progression, landscape HUD/touch, audio, effects, and content data. Use `--list` for the authoritative inventory. The equivalent manual commands are:
 
 ```bash
 godot --headless --editor --path game --quit
@@ -85,7 +85,9 @@ same run presses F10 in the engine, walks the eight review vantages and saves on
 `qa-evidence/world-kit/` was captured, from the shipped `web/` payload rather than from a separate scene.
 
 The web export is single-threaded (`variant/thread_support=false`) so it runs on a plain static server without
-COOP/COEP headers, and it uses a custom shell at `game/web_shell/index.html`. The web platform always uses the
+COOP/COEP headers. The player meets the game through the front end at the repository root (`index.html` + `ui/`), which
+covers opening, hub, mission select and launch, then hands the screen to the engine. Export builds use the equivalent
+shell at `game/web_shell/index.html`. The web platform always uses the
 Compatibility (WebGL 2) renderer, while Android keeps the `mobile` renderer — see [`WEB_PREVIEW.md`](WEB_PREVIEW.md)
 for the differences that must not be mistaken for Android behaviour.
 

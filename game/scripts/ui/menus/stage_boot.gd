@@ -49,14 +49,13 @@ func _ready() -> void:
 	physical_separation(column, 32)
 	centre.add_child(column)
 
-	# Two authored sizes: a portrait phone is 390 px wide and cannot hold a
-	# 540 px wordmark without it hanging off both edges, while a desktop has
-	# the width to make the mark the thing the screen opens on.
+	# One authored size: the mark is what the screen opens on, so it takes the
+	# width it needs on a phone held sideways.
 	_mark = TextureRect.new()
 	_mark.texture = try_texture("res://assets/ui/logo_wordmark.png")
 	_mark.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_mark.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	_size_both(_mark, Vector2(300.0, 75.0), Vector2(540.0, 135.0))
+	_size(_mark, Vector2(540.0, 135.0))
 	column.add_child(_mark)
 
 	var holder := VBoxContainer.new()

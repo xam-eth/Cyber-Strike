@@ -1,9 +1,9 @@
 # Smoke tests
 
-27 GDScript tests, 8,340 lines, run headlessly on the pinned Godot 4.7.2 build.
+28 GDScript tests, 8,792 lines, run headlessly on the pinned Godot 4.7.2 build.
 
 ```bash
-scripts/run_smoke_tests.sh            # import once, then run all 27
+scripts/run_smoke_tests.sh            # import once, then run all 28
 scripts/run_smoke_tests.sh --list     # names
 scripts/run_smoke_tests.sh audio_smoke   # one test
 ```

@@ -135,7 +135,6 @@ Jangan pasang SDK iklan, plugin IAP, Google Play Billing wrapper, atau masukkan 
    godot --headless --path game --script res://tests/playability_hud_smoke.gd
    godot --headless --path game --script res://tests/ui_settings_smoke.gd
    godot --headless --path game --script res://tests/hud_editor_smoke.gd
-   godot --headless --path game --script res://tests/pause_gesture_smoke.gd
 godot --headless --path game --script res://tests/enemy_visual_smoke.gd
 godot --headless --path game --script res://tests/audio_smoke.gd
 godot --headless --path game --script res://tests/effects_smoke.gd

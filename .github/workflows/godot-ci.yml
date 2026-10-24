@@ -243,6 +243,27 @@ jobs:
           PY
           exit "$qa_status"
 
+      - name: Browser world-selection contract
+        run: |
+          # The shell must not bypass HERO/WORLD and silently launch a default
+          # theatre. Drive its real DEPLOY hand-off, select Vanguard on the
+          # engine's WORLD stage, and require the selected world to build.
+          qa_status=0
+          node tools/web_qa.mjs --page / --viewport 844x390 --timeout 120 \
+            --journey --select-vanguard --out exports/web-qa/vanguard \
+            --json > exports/web-qa-vanguard-report.json || qa_status=$?
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path("exports/web-qa-vanguard-report.json").read_text())
+          for page in report["pages"]:
+              print(f'WORLD selection: {"PASS" if not page["failed"] else "FAIL"} | {page["target"]}')
+              for failure in page["failed"]:
+                  print(f"::error title=World selection QA::{failure}")
+          raise SystemExit(0 if report["ok"] else 1)
+          PY
+          exit "$qa_status"
+
       - name: Upload the web QA screenshots
         if: always()
         uses: actions/upload-artifact@v4
@@ -370,8 +391,12 @@ jobs:
           mkdir -p site
           cp -R artifacts/web site/web
           cp index.html site/index.html
+          # The player front end (ui/) is part of the landing page: its tokens,
+          # styles, self-hosted fonts and shell script must ship beside it.
+          cp -R ui site/ui
           # The landing page loads ./web/index.html, which is valid on Pages too.
           grep -q "web/index.html" site/index.html
+          grep -q "ui/shell.js" site/index.html
           touch site/.nojekyll   # serve files verbatim, skip Jekyll
           echo "site contents:"
           find site -maxdepth 2 -type f -printf '%P %s bytes\n' | sort

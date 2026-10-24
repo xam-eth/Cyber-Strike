@@ -135,3 +135,15 @@ only an opinion is not here.
     `interfaceingame.com`-class captures of *Doomsday: Last Survivors*
     (filehorse.com screenshot 03 and the appgrowing.net opening capture,
     reviewed 2026-10-24).
+31. **Landscape touch is the only layout that ships.** A portrait arrangement and
+    a desktop arrangement were maintained beside the phone-on-its-side one, and
+    each was a second thing to measure: the HUD carried `desktop()`,
+    `touch_portrait()` and `touch_landscape()`; the menus carried a card column
+    and a card row; the pause gesture existed only to give the portrait seam a
+    back button. Only the landscape composition was ever QA'd with real pixels,
+    so the other two drifted and the drift was the defect. Everything that is
+    not landscape has been deleted — `ui_layout.landscape()` is the one layout,
+    `touch_controls.gd` has no desktop widgets, `menu_stage.gd` keeps the
+    landscape composition at every window size, and a portrait window is answered
+    by the web shell's rotation notice. The two QA viewports are 844x390 and
+    667x375.

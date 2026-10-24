@@ -23,8 +23,8 @@ Integration target: `arena/0b0dc2fd-cyber-strike`
 | Gameplay Core | `arena/0b0dc2fd-cyber-strike` | `51f1dac382db4d60722dabee7826de14e53036bd` | Existing enemy definitions, Runner correction, vertical-slice test, gameplay contracts |
 | World Design | `arena/e7fb25af-cyber-strike` | `71e40ba36028530ce72a43a398d8913ea2ebe1b2` | Real staged Frontier world, Vanguard Station, world selection, asset forge, world/UI/content dependencies |
 | Character Content | `arena/9f883711-cyber-strike` | `9e0ddadcb73aec9bdc935bbc905ecdce23e33568` | Older direct tier-1 Tripo hero integration with idle/walk/run only |
-| UI/UX Workflow | `arena/c8558858-cyber-strike` | `e5ba023c9a6e523b03fff2ca29889d0e76ec2d29` | EXOCONFLICT screens/assets and a separate `ExoconflictFlow` prototype |
-| Additional repair branch, not assumed to be a domain | `arena/c08beb55-cyber-strike` | `39db9acf6e178028179d476b60ac9c95d880a30d` | Inspected because it contains phase-2/static-call and later UI repairs; not blindly merged |
+| UI/UX Workflow | `arena/c08beb55-cyber-strike` | `f99fb06fbaa3943d83ccc63cd235df86cd69e19d` | Actual player shell, AEGIS/HUD/front-end work, landscape-only interaction, and UI tests; selected for reconciled merge |
+| Former incorrect UI mapping — not a disposition | `arena/c8558858-cyber-strike` | `e5ba023c9a6e523b03fff2ca29889d0e76ec2d29` | Its `ExoconflictFlow` audit does not describe the actual UI source and was not used to accept or reject `c08beb55` |
 | Tooling/already integrated | `arena/5257bce8-cyber-strike` | `224ec13eebf7d4f895b4c1ef231a66c9de1629d5` | Already an ancestor of Gameplay Core; no integration needed |
 
 ### Baseline implementation facts
@@ -33,7 +33,7 @@ Integration target: `arena/0b0dc2fd-cyber-strike`
 - `main.tscn` composed the hero, Neon Frontier, HUD, WaveDirector, rewards, and progression.
 - Hero, weapon, world, and enemy definitions existed; file presence alone was not treated as runtime proof.
 - The active hero was already a later optimized Tripo derivative with ten animation clips, not the older branch's three-clip direct integration.
-- The active front end was already newer than the UI candidate and used authoritative content registries.
+- The active engine front end used authoritative content registries. The actual UI branch added a newer player shell and presentation workflow that had to be connected to—not replace—those contracts.
 - Milestone upgrade selection/application and elites remained absent. They were not invented for integration completeness.
 
 ## 2. Dependency and ownership map
@@ -67,11 +67,13 @@ Integration was performed with a traceable merge. `main.tscn` required a semanti
 
 The old branch was not merged because doing so would downgrade the active hero and add an unused 24 MB source copy. Remaining provenance/mobile-budget work is tracked in issue #4; it is not evidence that the current hero is absent.
 
-### UI/UX Workflow — parallel prototype blocked; newer front end preserved
+### UI/UX Workflow — actual source reconciled with the registry-driven engine journey
 
-**VERIFIED:** in the source tree, `ExoconflictFlow` was not registered as an autoload, instantiated by a production scene, or connected to gameplay. Its `selection_complete` had no production listener. It used separate content dictionaries, including `nexus01` instead of the authoritative `exo_operative`, and its source branch had failed CI plus an indentation defect in `character_visual.gd`.
+**VERIFIED:** the actual source is `arena/c08beb55-cyber-strike` / `f99fb06`, with 35 unique commits and 113 changed files from merge-base `3eb146e`. It supplies the HTML/CSS player shell, self-hosted fonts, AEGIS bezel and HUD/front-end changes, landscape-only layouts, and UI tests. The earlier `c8558858` / `ExoconflictFlow` mapping was incorrect and is not this branch's disposition.
 
-The older branch was not merged over the newer registry-driven `FrontEnd`. Issue #5 requests UI/UX reconciliation rather than asking Gameplay Core to invent the visual/navigation decision. Existing safe-area handling and the current UI/gameplay adapters remain in the integrated implementation.
+The source shell sent DEPLOY directly to `qa_stage=GAMEPLAY`, bypassing the engine's HERO/WORLD selection. Integration retains the shell but hands off to `qa_stage=WORLD`, preserving both registered worlds, the saved-loadout journey, and `ProgressionService` without a second JavaScript roster. Landscape-only is retained as an explicit UI-domain decision documented in `docs/DECISIONS.md` §31; portrait/desktop arrangements and `HudPauseGesture` are intentionally removed with their obsolete test.
+
+Source headless CI was 26/27: CANCEL DEFENSE did not complete and several tests logged out-of-tree `grab_focus()` errors. Those failures block a playability claim. The integration keeps Core lifecycle rules unchanged, guards deferred focus, and separates Retry → Pause → Cancel taps with actionable-panel assertions. Issue #8 and [`issues/UI_UX_WORKFLOW_INTEGRATION.md`](issues/UI_UX_WORKFLOW_INTEGRATION.md) carry the corrected remote/local scope; remote edit/closure of incorrectly mapped issue #5 was permission-denied.
 
 ## 4. Integration rules applied
 

@@ -33,7 +33,7 @@ const SHOWCASE_HEIGHT := 1.78
 ## How much of the showcase box the operative fills.
 ##
 ## One number for every box: the fill is solved against the box's own aspect, so
-## a tall portrait slot and a wide landscape one both get an operative that fills
+## a tall slot and a wide one both get an operative that fills
 ## the same fraction of what is available. 0.84 leaves the helmet and the boots
 ## clear of the edges -- raising it per orientation is what cropped the head at
 ## 1280x720.
@@ -54,10 +54,9 @@ var _continue: AegisButton
 var _selected := OPERATIVE_ID
 var _select_requested := false
 
-# Containers that move between the portrait and landscape arrangements.
+# The two columns of the one (landscape) arrangement.
 var _stack: VBoxContainer
 var _header: HBoxContainer
-var _body_portrait: VBoxContainer
 var _body_landscape: HBoxContainer
 var _col_left: VBoxContainer
 var _col_right: VBoxContainer
@@ -144,8 +143,9 @@ func _on_weapon_pressed(weapon_id: StringName) -> void:
 	_refresh()
 
 
-## Three chips in a portrait column cost 192 px of height and put the action row
-## 76 px past the bottom edge on a 1280x720 desktop; side by side they cost 64.
+## A column of three chips costs 192 px of height; side by side they cost 64.
+## The rail only stacks when the window is too narrow to hold three chips, which
+## is the same test the rest of the screen uses.
 func _orient_rail(horizontal: bool) -> void:
 	if not is_instance_valid(_weapon_row):
 		return
@@ -290,10 +290,6 @@ func _build_header() -> void:
 
 
 func _build_body_containers() -> void:
-	_body_portrait = VBoxContainer.new()
-	_body_portrait.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	physical_separation(_body_portrait, 14)
-
 	_body_landscape = HBoxContainer.new()
 	_body_landscape.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	physical_separation(_body_landscape, 18)
@@ -307,13 +303,13 @@ func _build_body_containers() -> void:
 	_col_right.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	physical_separation(_col_right, 14)
 
-	_stack.add_child(_body_portrait)
+	_stack.add_child(_body_landscape)
 
 
 func _build_carousel() -> void:
 	_carousel_wrap = VBoxContainer.new()
 	physical_separation(_carousel_wrap, 10)
-	_body_portrait.add_child(_carousel_wrap)
+	_col_right.add_child(_carousel_wrap)
 
 	_carousel = ScrollContainer.new()
 	_carousel.name = &"HeroCarousel"
@@ -359,7 +355,7 @@ func _build_chip(definition: HeroDefinition) -> Control:
 	chip.mouse_filter = Control.MOUSE_FILTER_STOP
 	chip.set_meta("hero_id", String(definition.hero_id))
 	chip.tooltip_text = "%s — %s" % [definition.display_name, definition.status_line.to_lower()]
-	_size_both(chip, Vector2(104.0, 104.0), Vector2(84.0, 84.0))
+	_size(chip, Vector2(84.0, 84.0))
 	AegisTheme.set_button_variant(chip, "round")
 	chip.pressed.connect(_on_chip_pressed.bind(definition.hero_id))
 	_cards.append(chip)
@@ -382,7 +378,7 @@ func _build_locked_chip(index: int) -> Control:
 	chip.focus_mode = Control.FOCUS_NONE
 	chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	chip.tooltip_text = "No rig and no definition in this build"
-	_size_both(chip, Vector2(84.0, 84.0), Vector2(68.0, 68.0))
+	_size(chip, Vector2(68.0, 68.0))
 	AegisTheme.set_button_variant(chip, "round")
 	_locked.append(chip)
 
@@ -415,7 +411,7 @@ func _build_showcase() -> void:
 	_showcase_holder.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_showcase_holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_showcase_holder.clip_contents = false
-	_body_portrait.add_child(_showcase_holder)
+	_col_left.add_child(_showcase_holder)
 
 	_showcase = ShowcaseViewportScript.new()
 	_showcase.name = &"HeroShowcase"
@@ -426,10 +422,14 @@ func _build_showcase() -> void:
 func _build_panel() -> void:
 	_panel = AegisPanel.new()
 	_panel.interactive = false
+	# The operative's read-out is cut deep on the corner that meets the model, so
+	# the card leans into the showcase instead of sitting beside it.
+	_panel.bezel = true
+	_panel.cut_bottom_left = AegisBezel.CUT_LG
 	_panel.accent_side = "top"
 	_panel.accent_color = AegisTokens.INFO
 	_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_body_portrait.add_child(_panel)
+	_col_right.add_child(_panel)
 
 	var column := VBoxContainer.new()
 	physical_separation(column, 10)
@@ -499,10 +499,10 @@ func _build_panel() -> void:
 func _build_actions() -> void:
 	_actions = HBoxContainer.new()
 	physical_separation(_actions, 14)
-	# Parented here, in the portrait arrangement, exactly like the other blocks:
-	# `_apply_orientation()` returns early when the orientation has not changed,
-	# so a first layout must not depend on it to put anything in the tree.
-	_body_portrait.add_child(_actions)
+	# Parented here exactly like the other blocks: `_apply_orientation()` returns
+	# early when the composition has already been built, so a first layout must
+	# not depend on it to put anything in the tree.
+	_col_right.add_child(_actions)
 
 	_select_button = make_button("EQUIPPED", "round", "Keep this operative selected")
 	_select_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -669,44 +669,25 @@ func _on_resized() -> void:
 		_showcase.frame_to_fill(SHOWCASE_FILL, 0.06)
 
 
-## Portrait stacks the carousel, the model and the panel. Landscape puts the
-## model on the left and everything that is read or tapped on the right, because
-## a 390 px tall screen cannot stack three bands and still show a hero.
+## One composition: the model on the left, everything that is read or tapped on
+## the right. A 390 px tall screen cannot stack three bands and still show a
+## hero, so the stacked arrangement is gone rather than kept unreachable.
 func _apply_orientation() -> void:
-	var landscape := is_landscape()
-	if landscape == _landscape_built:
+	if _landscape_built:
 		return
-	_landscape_built = landscape
+	_landscape_built = true
 	for block in [_carousel_wrap, _showcase_holder, _panel, _actions]:
 		if block.get_parent() != null:
 			block.get_parent().remove_child(block)
-	if landscape:
-		_stack.remove_child(_body_portrait)
-		_stack.add_child(_body_landscape)
-		_body_landscape.add_child(_col_left)
-		_body_landscape.add_child(_col_right)
-		_col_left.add_child(_showcase_holder)
-		_col_right.add_child(_carousel_wrap)
-		_col_right.add_child(_panel)
-		_col_right.add_child(_actions)
-		_panel.size_flags_vertical = Control.SIZE_SHRINK_END
-		_showcase_holder.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	else:
-		if _body_landscape.get_parent() == _stack:
-			_stack.remove_child(_body_landscape)
-		if _col_left.get_parent() == _body_landscape:
-			_body_landscape.remove_child(_col_left)
-		if _col_right.get_parent() == _body_landscape:
-			_body_landscape.remove_child(_col_right)
-		_stack.add_child(_body_portrait)
-		_body_portrait.add_child(_carousel_wrap)
-		_body_portrait.add_child(_showcase_holder)
-		_body_portrait.add_child(_panel)
-		_body_portrait.add_child(_actions)
-		_panel.size_flags_vertical = Control.SIZE_SHRINK_END
-	# Landscape has room for the full label; portrait shares the header with the
-	# status line and clipped it to "SELECT OPER…" in the first capture.
-	physical_min_size(_carousel, 0.0, 84.0 if landscape else 120.0)
+	_body_landscape.add_child(_col_left)
+	_body_landscape.add_child(_col_right)
+	_col_left.add_child(_showcase_holder)
+	_col_right.add_child(_carousel_wrap)
+	_col_right.add_child(_panel)
+	_col_right.add_child(_actions)
+	_panel.size_flags_vertical = Control.SIZE_SHRINK_END
+	_showcase_holder.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	physical_min_size(_carousel, 0.0, 84.0)
 	# The right-hand column had no width of its own, so it took the width of its
 	# widest child and every line in the information card was ellipsised at ~250
 	# px on a 1280 px screen ("2 OPERATIVE SLOTS IN...", "The operative fielded
@@ -714,9 +695,8 @@ func _apply_orientation() -> void:
 	# over each other. A rail with a width of its own is the fix the capture
 	# asked for; the model keeps the rest of the canvas.
 	_col_right.size_flags_horizontal = Control.SIZE_SHRINK_END
-	if landscape:
-		var rail := 340.0 if physical_size().y < 520.0 else minf(440.0, physical_size().x * 0.36)
-		_col_right.custom_minimum_size.x = px(rail)
+	var rail := 340.0 if physical_size().y < 520.0 else minf(440.0, physical_size().x * 0.36)
+	_col_right.custom_minimum_size.x = px(rail)
 
 
 ## The model is the subject, so when height is short the *chrome* gives way, not
@@ -726,45 +706,43 @@ func _apply_orientation() -> void:
 func _apply_density() -> void:
 	if _chrome != null:
 		_chrome.refit()
-	var width := physical_size().x
-	# A 390 px tall landscape screen has no room under the operative for three
-	# 52 px chips: they drew 104 px tall at y=333 and the last line of the panel
-	# fell off the bottom. The armory swaps weapons, and the stat line below
-	# still names what is equipped, so the rail gives way -- copy before
-	# controls, and a control that cannot be reached is not a control.
-	var short_landscape := is_landscape() and physical_size().y < 520.0
+	# A 390 px tall screen has no room under the operative for three 52 px chips:
+	# they drew 104 px tall at y=333 and the last line of the panel fell off the
+	# bottom. The stat line still names what is equipped, so the rail gives way --
+	# copy before controls, and a control that cannot be reached is not a control.
+	var short_screen := physical_size().y < 520.0
 	if is_instance_valid(_weapon_row):
-		_weapon_row.visible = not short_landscape
+		_weapon_row.visible = not short_screen
 	# On a 390 px tall landscape screen the two action buttons were 19 px past the
 	# bottom edge; this line is the 21 px that pays for them.
 	if is_instance_valid(_development_label):
-		_development_label.visible = not short_landscape
+		_development_label.visible = not short_screen
 	# Two more lines that restate what is already on screen: the role is the
 	# card's own subtitle and the loadout is the rail. On 390 px of height they
 	# are the difference between the buttons fitting and not.
 	if is_instance_valid(_role_label):
-		_role_label.visible = not short_landscape
+		_role_label.visible = not short_screen
 	if is_instance_valid(_loadout_label):
-		_loadout_label.visible = not short_landscape
+		_loadout_label.visible = not short_screen
 	if is_instance_valid(_weapon_stat):
 		# The stat line is one more row than the old header had, and on 390 px of
 		# height it was the row that pushed EQUIPPED/CONTINUE past the bottom edge.
-		_weapon_stat.visible = not short_landscape
+		_weapon_stat.visible = not short_screen
 	for pin in _weapon_pins:
 		# 64 px is the project's touch floor (`AegisTokens.MIN_TOUCH_PX`); 52 was
-		# under it on every portrait size the suite measures.
+		# under it on every size the suite measures.
 		# "NOVA LAUNCHER · 120 BP" is three lines in a 143 px chip; 64 px clipped
 		# the third. 76 is still above the touch floor and fits the text.
 		physical_min_size(
 			pin,
 			0.0,
-			AegisTokens.MIN_TOUCH_PX if is_landscape() else maxf(AegisTokens.MIN_TOUCH_PX, 76.0),
+			AegisTokens.MIN_TOUCH_PX,
 		)
-	# A phone in portrait has 640-844 px of height and three 64 px chips is 192 of
-	# it: the action row landed 14 px below the bottom edge. What a phone shows
-	# is the gun it will deploy with; the other two are priced, disabled and
-	# named in the armory, which is where buying happens anyway.
-	var room_for_rail := physical_size().y >= (520.0 if is_landscape() else 900.0)
+	# Three 64 px chips in the column is 192 px of height, and with the actions
+	# below them the row landed 14 px past the bottom edge. What a phone shows is
+	# the gun it will deploy with; the other two are priced, disabled and named
+	# in the armory, which is where buying happens anyway.
+	var room_for_rail := physical_size().y >= 520.0
 	_orient_rail(physical_size().x >= 720.0)
 	for pin in _weapon_pins:
 		var owned := true
@@ -778,11 +756,10 @@ func _apply_density() -> void:
 	# A column, always: a `vertical` flag is not a container class, and the flag
 	# silently did nothing on this build. The rail is a list of choices.
 	if is_instance_valid(_carousel_wrap):
-		_carousel_wrap.visible = not short_landscape
-	var short_screen := physical_size().y < (520.0 if is_landscape() else 760.0)
-	# Same trade as the old WEAPON page: on a portrait phone the header keeps BACK and the
-	# heading, and the field-ready state lives on the card itself.
-	_status_label.visible = is_landscape() or physical_size().x >= 560.0
+		_carousel_wrap.visible = not short_screen
+	# The header keeps BACK and the heading; the field-ready state lives on the
+	# card itself.
+	_status_label.visible = true
 	# 64 px chips clipped their own slot label: "SLOT 02" is 71 px at the current
 	# `label_s` size, and menu_layout_smoke asserted exactly that on the pushed
 	# build (text 548,142 71x20 in card 548,120 64x64). A 390 px tall landscape
@@ -795,12 +772,9 @@ func _apply_density() -> void:
 		if control == null:
 			continue
 		if control.has_meta("px_landscape"):
-			control.set_meta("px_portrait", compact_chip)
 			control.set_meta("px_landscape", compact_chip)
 		physical_min_size(control, compact_chip.x, compact_chip.y)
-	# Landscape has room for the full label; portrait shares the header with the
-	# status line and clipped it to "SELECT OPER…" when it did not fit.
-	# A 390 px tall landscape screen cannot hold the heading, the showcase, the
+	# A 390 px tall screen cannot hold the heading, the showcase, the
 	# carousel, three panel lines and two 64 px actions. The two descriptive
 	# lines are the part that goes: the name above them already says what the
 	# operative is, and the panel keeps the actions it exists to reach.
@@ -809,11 +783,11 @@ func _apply_density() -> void:
 	_loadout_label.visible = not short_screen
 	physical_separation(_actions, 8.0 if short_screen else 14.0)
 	physical_min_size(_continue, 0.0, AegisTokens.MIN_TOUCH_PX)
-	_heading.text = "SELECT OPERATIVE" if is_landscape() else "OPERATIVE"
-	# BACK + heading + status have to share 288 px on a 360 px phone. "OPERATIVE"
-	# set in `display_m` is 208 of them, which is what pushed the heading to
-	# x=162 and its right edge to 370 (menu_layout_smoke, 360x640). The heading
-	# steps down one role there; the wording is the same.
+	_heading.text = "SELECT OPERATIVE"
+	# BACK + heading + status have to share the header. "OPERATIVE" set in
+	# `display_m` is 208 px at the smallest width the suite measures, which is
+	# what pushed the heading past the right edge once. It steps down one role on
+	# a narrow window; the wording is the same.
 	var narrow := physical_size().x < 420.0
 	var heading_role := "heading" if narrow else "display_m"
 	_heading.set_meta("aegis_role", heading_role)
@@ -824,12 +798,9 @@ func _apply_density() -> void:
 	)
 	# 88 px of carousel plus 84 px chips plus the header, the panel and a 64 px
 	# action row was 400 px of content on a 390 px screen -- the actions drew at
-	# y=345. The carousel gives up 24 px and the chips 12 on a short landscape.
-	var carousel_height := (
-		64.0 if (short_screen and is_landscape()) else (88.0 if short_screen else 120.0)
-	)
+	# y=345. The carousel gives up 24 px and the chips 12 on a short screen.
+	var carousel_height := 64.0 if short_screen else 120.0
 	physical_min_size(_carousel, 0.0, carousel_height)
 	physical_min_size(_carousel_wrap, 0.0, 0.0)
 	physical_separation(_stack, 8.0 if short_screen else 14.0)
-	physical_separation(_body_portrait, 8.0 if short_screen else 14.0)
 	physical_separation(_carousel_wrap, 4.0 if short_screen else 10.0)

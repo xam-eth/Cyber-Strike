@@ -10,19 +10,18 @@ static func build_pause(hud) -> void:
 	hud._pause_panel = AegisPanel.new()
 	hud._pause_panel.name = "PausePanel"
 	hud._pause_panel.interactive = true
+	# A modal is the largest plate in the HUD, so it carries the deepest cut --
+	# the same 22 px the menu cards use, which is what makes the overlay read as
+	# part of the same machine as the screen behind it.
+	hud._pause_panel.bezel = true
+	hud._pause_panel.cut_top_left = AegisBezel.CUT_LG
+	hud._pause_panel.cut_bottom_right = AegisBezel.CUT_LG
 	hud._pause_panel.visible = false
 	hud.add_child(hud._pause_panel)
 
 	var content := VBoxContainer.new()
 	content.add_theme_constant_override("separation", 12)
 	hud._pause_panel.add_child(content)
-
-	hud._pause_swipe_handle = ColorRect.new()
-	hud._pause_swipe_handle.name = "PauseSwipeHandle"
-	hud._pause_swipe_handle.color = AegisTokens.LINE_HI
-	hud._pause_swipe_handle.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	hud._pause_swipe_handle.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	content.add_child(hud._pause_swipe_handle)
 
 	var eyebrow: Label = hud._label("RUN SUSPENDED", "label", AegisTokens.ACCENT)
 	content.add_child(eyebrow)
@@ -79,6 +78,9 @@ static func build_results(hud) -> void:
 	hud._results_panel = AegisPanel.new()
 	hud._results_panel.name = "ResultsPanel"
 	hud._results_panel.interactive = true
+	hud._results_panel.bezel = true
+	hud._results_panel.cut_top_left = AegisBezel.CUT_LG
+	hud._results_panel.cut_bottom_right = AegisBezel.CUT_LG
 	hud._results_panel.visible = false
 	hud.add_child(hud._results_panel)
 
@@ -235,7 +237,10 @@ static func show_help(hud) -> void:
 	if not is_instance_valid(hud._help_panel):
 		return
 	hud._help_panel.modulate.a = 1.0
-	hud._help_panel.visible = not (hud._touch_mode and hud._narrow and not hud._portrait)
+	# Shown when asked for, including on a narrow phone: the plate fades after
+	# HELP_FADE_SECONDS and the first input retires it, so it is a hint rather
+	# than an overlay that stays over the play area.
+	hud._help_panel.visible = true
 
 
 static func results_visible(hud) -> bool:
@@ -293,10 +298,6 @@ static func show_results(
 		hud._compact_card,
 		hud._score_chip,
 		hud._run_card,
-		hud._desktop_hint,
-		hud._desktop_weapon_card,
-		hud._emp_chip,
-		hud._ads_chip,
 		hud._skill_ring,
 		hud._touch_ammo_chip,
 	]:
@@ -326,7 +327,7 @@ static func hide_results(hud) -> void:
 
 
 ## Pause is a whole-screen state, not one panel: it decides the scrim, the
-## control hint, the desktop legend, which buttons are dead, and whether the
+## control hint, the help plate, which buttons are dead, and whether the
 ## pause card gets the focus. Keeping all of it in one function is the point —
 ## a half-applied pause is worse than none — but the function belongs with the
 ## panels it drives, not on the facade.
@@ -363,10 +364,6 @@ static func apply_paused(hud, paused: bool) -> void:
 	if is_instance_valid(hud._help_panel):
 		hud._help_panel.visible = (
 			not paused and hud._help_remaining > 0.0 and not hud._results_visible()
-		)
-	if is_instance_valid(hud._desktop_hint):
-		hud._desktop_hint.visible = (
-			not paused and not hud._touch_mode and not hud._results_visible()
 		)
 	if is_instance_valid(hud._fire_button):
 		hud._fire_button.disabled = paused or hud._player_down

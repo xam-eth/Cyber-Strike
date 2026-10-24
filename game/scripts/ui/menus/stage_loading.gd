@@ -170,7 +170,7 @@ func _build_caption() -> void:
 	_mark.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_mark.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	_mark.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_size_both(_mark, Vector2(340.0, 85.0), Vector2(720.0, 180.0))
+	_size(_mark, Vector2(720.0, 180.0))
 	column.add_child(_mark)
 
 	# One row, the same shape the reference uses: what is happening on the

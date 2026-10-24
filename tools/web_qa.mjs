@@ -6,7 +6,7 @@
  *   node tools/web_qa.mjs --json               # machine-readable report
  *   node tools/web_qa.mjs --url http://host/   # check an already-running server
  *   node tools/web_qa.mjs --page /web/index.html --page /
- *   node tools/web_qa.mjs --viewport 390x844 --viewport 1280x720
+ *   node tools/web_qa.mjs --viewport 844x390 --viewport 667x375
  *   node tools/web_qa.mjs --play 30         # also play: click, move, shoot, film
  *   node tools/web_qa.mjs --play 30 --hold 955,636 --touch --still
  *       # hold the AIM button with a real touch event, standing still
@@ -14,14 +14,16 @@
  *   node tools/web_qa.mjs --menus --settings  # also open/settings screenshot, Esc/back
  *   node tools/web_qa.mjs --menus --settings-tabs # capture Controls, HUD, Access tabs
  *   node tools/web_qa.mjs --menus --settings --editor # HUD tab/editor screenshot
- *   node tools/web_qa.mjs --menus --swipe --viewport 390x844 # portrait sheet gesture
+ *   node tools/web_qa.mjs --menus --viewport 844x390   # lobby pages and overlays
  *   node tools/web_qa.mjs --tour          # world review camera: P (F10 is browser-reserved) + keys 1-8
  *   node tools/web_qa.mjs --encounter-prep --explore-wait 8000
  *       # safe Explore + deliberate B + preparation; Defense is NOT claimed
  *   node tools/web_qa.mjs --encounter --explore-wait 8000 --encounter-timeout 600
  *       # strict: await a real Defense transition (software WebGL can be slow)
+ *   node tools/web_qa.mjs --page / --journey --select-vanguard
+ *       # require WORLD, choose the second theatre, verify its real gameplay build
  *   node tools/web_qa.mjs --page / --encounter --select-vanguard
- *       # choose the second theatre, then verify its real gameplay build
+ *       # additionally request Defense in that selected theatre
  *
  * `--hold` exists because the touch HUD lives inside the WebGL canvas: the AIM
  * button cannot be found with a DOM selector, so its canvas coordinates (read
@@ -67,7 +69,7 @@ const has = (name) => argv.includes(name);
 const pages = argv.reduce((list, arg, i) => (arg === '--page' ? [...list, argv[i + 1]] : list), []);
 const targets = pages.length ? pages : ['/', '/web/index.html'];
 const viewportArgs = argv.reduce((list, arg, i) => (arg === '--viewport' ? [...list, argv[i + 1]] : list), []);
-const viewports = (viewportArgs.length ? viewportArgs : ['1280x720', '390x844']).map((spec) => {
+const viewports = (viewportArgs.length ? viewportArgs : ['844x390', '667x375']).map((spec) => {
   const [w, h] = spec.split('x').map(Number);
   return { spec, width: w || 1280, height: h || 720 };
 });
@@ -87,6 +89,9 @@ const encounterMode = requireDefense || has('--encounter-prep');
 const encounterTimeoutMs = Math.max(0, Number(flag('--encounter-timeout', '600')) || 0) * 1000;
 const exploreWaitMs = Number(flag('--explore-wait', '8000'));
 const selectVanguard = has('--select-vanguard');
+// Journey-only mode proves the shell -> WORLD -> selected theatre -> Explore
+// hand-off without adding combat, audio, or a timed play claim to that check.
+const journeyMode = has('--journey') || selectVanguard;
 const port = Number(flag('--port', '8126'));
 
 let chromium;
@@ -186,6 +191,24 @@ async function checkPage(target, viewport) {
 
   const started = Date.now();
   await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+
+  // The player front end does not boot the engine on load: it opens on the
+  // opening screen and starts the world when the player deploys. Walk it the way
+  // a player does, so this gate keeps testing the real path instead of an
+  // auto-boot that only exists for tests. Pages without the shell (the raw
+  // /web/ build) skip this.
+  const isFrontEnd = await page.evaluate(() => !!document.getElementById('hub-deploy'));
+  if (isFrontEnd) {
+    await page
+      .waitForFunction(() => {
+        const enter = document.getElementById('opening-enter');
+        return enter && !enter.disabled;
+      }, { timeout: 30000 })
+      .catch(() => {});
+    await page.evaluate(() => document.getElementById('opening-enter')?.click());
+    await page.waitForFunction(() => document.body.dataset.screen === 'hub', { timeout: 15000 }).catch(() => {});
+    await page.evaluate(() => document.getElementById('hub-deploy')?.click());
+  }
 
   let booted = false;
   let version = null;
@@ -304,17 +327,7 @@ async function checkPage(target, viewport) {
         await page.keyboard.press('Escape');
         await new Promise((r) => setTimeout(r, 250));
       }
-      if (has('--swipe') && viewport.height > viewport.width) {
-        // The portrait bottom sheet sits 34 physical px above the gesture
-        // area and is 340 px tall. Start at its 48x4 grip, not on RESUME.
-        const gripX = viewport.width / 2;
-        const gripY = viewport.height - 34 - 340 + 18;
-        await page.touchscreen.touchStart(gripX, gripY);
-        await page.touchscreen.touchMove(gripX, gripY + 100);
-        await page.touchscreen.touchEnd();
-      } else {
-        await page.keyboard.press('Escape');
-      }
+      await page.keyboard.press('Escape');
       await new Promise((r) => setTimeout(r, 350));
     }
   }
@@ -398,7 +411,7 @@ async function checkPage(target, viewport) {
   // Reach gameplay before any encounter input or screenshots. Running this
   // after the encounter block photographed menus and sent B to the front end.
   let inGameplay = false;
-  if (booted && (tourMode || encounterMode || playSeconds > 0)) {
+  if (booted && (journeyMode || tourMode || encounterMode || playSeconds > 0)) {
     inGameplay = await advanceToGameplay();
   }
 
@@ -617,10 +630,17 @@ async function checkPage(target, viewport) {
       consoleLines.some((line) => line.includes('World tour: review camera engaged')),
     ]);
   }
+  if (journeyMode) {
+    checks.push(['shell reached WORLD and then the gameplay scene', inGameplay]);
+  }
   if (selectVanguard) {
     checks.push([
       'front-end selection built Vanguard Station gameplay',
       inGameplay && consoleLines.some((line) => line.includes('VanguardStation:')),
+    ]);
+    checks.push([
+      'shell offered the engine WORLD stage before launch',
+      consoleLines.some((line) => line.includes('FrontEnd: stage WORLD')),
     ]);
   }
   if (encounterMode) {
@@ -643,7 +663,7 @@ async function checkPage(target, viewport) {
     checks.push(['pause menu captured a frame', menuFrames.length >= 1]);
     checks.push(['ESC opened the pause state', menuLines.some((line) => line.includes('HUD: paused'))]);
     checks.push([
-      has('--swipe') && viewport.height > viewport.width ? 'portrait swipe resumed the game' : 'ESC resumed the game',
+      'ESC resumed the game',
       menuLines.some((line) => line.includes('HUD: resumed')),
     ]);
     if (has('--settings') || has('--editor') || has('--settings-tabs')) {
