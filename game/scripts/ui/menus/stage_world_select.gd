@@ -364,6 +364,7 @@ func _on_pin_pressed(world_id: StringName) -> void:
 	if world_id == _selected:
 		return
 	progression.select_world(world_id)
+	print("FrontEnd: world selected %s" % world_id)
 	_refresh()
 
 

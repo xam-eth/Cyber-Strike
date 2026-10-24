@@ -168,7 +168,10 @@ function awaitConsoleText(page, existingLines, text, timeoutMs) {
 }
 
 async function checkPage(target, viewport) {
-  const url = `${baseUrl}${target}`;
+  const url = new URL(`${baseUrl}${target}`);
+  // WORLD selection uses the engine's measured Control rectangles, never a
+  // second set of guessed layout coordinates in the browser harness.
+  if (selectVanguard) url.searchParams.set('qa_menu', '1');
   const page = await browser.newPage();
   // A narrow viewport alone is not a phone: without touch emulation Godot
   // correctly hides the thumb controls, so mobile screenshots used to QA the
@@ -185,7 +188,13 @@ async function checkPage(target, viewport) {
   const pageErrors = [];
   const badResponses = [];
   const failedRequests = [];
-  page.on('console', (m) => consoleLines.push(`${m.type()}: ${m.text().slice(0, 220)}`));
+  page.on('console', (m) => {
+    const text = m.text();
+    // Menu QA is a single line carrying every rendered Control rect. Keep it
+    // intact; truncating it at the normal 220 characters hides the pin/launch.
+    const limit = text.startsWith('Menu QA:') ? 12000 : 220;
+    consoleLines.push(`${m.type()}: ${text.slice(0, limit)}`);
+  });
   page.on('pageerror', (e) => pageErrors.push(String(e).slice(0, 300)));
   page.on('response', (r) => {
     if (r.status() >= 400) badResponses.push(`${r.status()} ${r.url().replace(baseUrl, '')}`);
@@ -193,7 +202,7 @@ async function checkPage(target, viewport) {
   page.on('requestfailed', (r) => failedRequests.push(`${r.url().replace(baseUrl, '')} ${r.failure()?.errorText}`));
 
   const started = Date.now();
-  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await page.goto(url.toString(), { waitUntil: 'domcontentloaded', timeout: 60000 });
 
   // The player front end does not boot the engine on load: it opens on the
   // opening screen and starts the world when the player deploys. Walk it the way
@@ -353,6 +362,48 @@ async function checkPage(target, viewport) {
   // it, and the button's global rect reads 0,0 while the stage sits in the
   // front-end viewport — all three measured, see
   // docs/DECISIONS.md §12.3.
+  const worldControlCenter = (label) => {
+    const line = [...consoleLines]
+      .reverse()
+      .find((entry) => entry.includes('Menu QA:') && entry.includes('STAGE=WORLD'));
+    if (!line) return null;
+    const physical = line.match(/PHYSICAL=(\d+)x(\d+)/);
+    const rect = line.match(new RegExp(`(?:^|[|\\s])${label}=(\\d+),(\\d+),(\\d+)x(\\d+)`));
+    if (!physical || !rect) return null;
+    return {
+      x: Number(rect[1]) + Number(rect[3]) / 2,
+      y: Number(rect[2]) + Number(rect[4]) / 2,
+      physicalWidth: Number(physical[1]),
+      physicalHeight: Number(physical[2]),
+    };
+  };
+
+  const clickWorldControl = async (label) => {
+    let center = null;
+    // FrontEnd prints Menu QA two frames after entering WORLD. Wait for that
+    // measurement rather than clicking wherever the previous layout happened
+    // to put the same button.
+    for (let attempt = 0; attempt < 40 && !center; attempt += 1) {
+      center = worldControlCenter(label);
+      if (!center) await new Promise((resolve) => setTimeout(resolve, 250));
+    }
+    if (!center) {
+      progress(`  WORLD selection: no measured rect for ${label}`);
+      return false;
+    }
+    const point = await page.evaluate((measured) => {
+      const bounds = document.querySelector('canvas')?.getBoundingClientRect();
+      if (!bounds || !measured.physicalWidth || !measured.physicalHeight) return null;
+      return {
+        x: bounds.x + (measured.x / measured.physicalWidth) * bounds.width,
+        y: bounds.y + (measured.y / measured.physicalHeight) * bounds.height,
+      };
+    }, center);
+    if (!point) return false;
+    await page.mouse.click(point.x, point.y);
+    return true;
+  };
+
   const advanceToGameplay = async () => {
     const reached = () => consoleLines.some((line) => line.includes('Encounter: Explore safe'));
     const stageLine = () => consoleLines.filter((l) => l.includes('FrontEnd: stage')).pop() || '';
@@ -373,20 +424,29 @@ async function checkPage(target, viewport) {
     for (let press = 0; press < 16 && !reached(); press += 1) {
       const before = stageLine();
       if (selectVanguard && /stage WORLD/.test(before) && !vanguardSelectionHandled) {
-        // The browser can consume Tab outside the Godot canvas, so keyboard
-        // focus is not a reliable selector here. These canvas-relative points
-        // hit the second theatre pin and LAUNCH in the landscape layout. The
-        // runtime VanguardStation log below, not the click itself, is the pass
-        // condition; a changed layout therefore fails instead of faking a pass.
+        // Keyboard focus is not a reliable selector in headless Chromium, and
+        // fixed fractions silently selected Neon after the UI layout changed.
+        // Click the real measured pin, require its selection log, then click
+        // the real measured LAUNCH rect. A miss fails before a default world
+        // can be presented as a Vanguard success.
         const worldFrame = path.join(outDir, `${slug}-${viewport.spec}-world-select.png`);
         await page.screenshot({ path: worldFrame });
-        await page.mouse.click(viewport.width * 0.74, viewport.height * 0.915);
-        await new Promise((r) => setTimeout(r, 700));
+        if (!(await clickWorldControl('VanguardStationPin'))) return false;
+        const selected = await awaitConsoleText(
+          page,
+          consoleLines,
+          'FrontEnd: world selected vanguard_station',
+          10000,
+        );
+        if (!selected) {
+          progress('  WORLD selection: Vanguard pin did not select vanguard_station');
+          return false;
+        }
         const selectedFrame = path.join(outDir, `${slug}-${viewport.spec}-world-selected.png`);
         await page.screenshot({ path: selectedFrame });
-        await page.mouse.click(viewport.width * 0.847, viewport.height * 0.795);
-        await new Promise((r) => setTimeout(r, 1000));
+        if (!(await clickWorldControl('LAUNCH'))) return false;
         vanguardSelectionHandled = true;
+        await awaitConsoleText(page, consoleLines, 'FrontEnd: stage PRELOAD', 10000);
         continue;
       }
       // Enter first: a stage built while the window already had focus owns it.
@@ -638,6 +698,10 @@ async function checkPage(target, viewport) {
   }
   if (selectVanguard) {
     checks.push([
+      'WORLD pin selected Vanguard before launch',
+      consoleLines.some((line) => line.includes('FrontEnd: world selected vanguard_station')),
+    ]);
+    checks.push([
       'front-end selection built Vanguard Station gameplay',
       inGameplay && consoleLines.some((line) => line.includes('VanguardStation:')),
     ]);
@@ -714,7 +778,7 @@ async function checkPage(target, viewport) {
     target,
     viewport: viewport.spec,
     touchDevice,
-    url,
+    url: url.toString(),
     ms: Date.now() - started,
     booted,
     engine: version ? version.replace(/^\w+: /, '') : null,
