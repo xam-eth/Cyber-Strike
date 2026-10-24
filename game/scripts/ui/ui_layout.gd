@@ -102,7 +102,13 @@ static func desktop(hud) -> void:
 	_place_in_top_bar(hud._health_card, 0, 0, 0, 0, Rect2(0, 0, 268.0 * unit, 56.0 * unit))
 	# Destiny-style objective hierarchy: the task sits below health on the
 	# left, never across the sightline in the centre of the screen.
-	_place_in_top_bar(hud._wave_card, 0, 0, 0, 0, Rect2(0, 64.0 * unit, 306.0 * unit, 56.0 * unit))
+	#
+	# 306 px was measured against the title alone, so the right-aligned state
+	# label ("NO HOSTILES") painted past the panel and under the armory chip
+	# beside it. The card now reserves that third: icon + title + subtitle on
+	# the left, the state on its own right-hand slot, and the armory chip starts
+	# past the panel instead of inside it.
+	_place_in_top_bar(hud._wave_card, 0, 0, 0, 0, Rect2(0, 64.0 * unit, 404.0 * unit, 56.0 * unit))
 	_place(
 		hud._defense_button,
 		0,
@@ -120,7 +126,7 @@ static func desktop(hud) -> void:
 		0,
 		0,
 		0,
-		Rect2(inset + 320.0 * unit, hud._top_inset + 64.0 * unit, 186.0 * unit, 52.0 * unit)
+		Rect2(inset + 404.0 * unit + 12.0 * unit, hud._top_inset + 64.0 * unit, 186.0 * unit, 52.0 * unit)
 	)
 	_place(
 		hud._score_chip,

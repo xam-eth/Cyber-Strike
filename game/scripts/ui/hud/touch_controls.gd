@@ -516,9 +516,14 @@ func set_weapon_label(display_name: String) -> void:
 func _update_weapon_ammo(remaining: int, capacity: int, reloading: bool) -> void:
 	var text := "RELOADING" if reloading else "%d/%d" % [remaining, capacity]
 	if is_instance_valid(_desktop_weapon_meta):
+		# The card is 268 px wide and the old "U ARMORY TO UNLOCK" tail was cut
+		# off mid-word at every desktop size. With one weapon there is nothing to
+		# swap to, and the armory key is already in the help line, so the meta
+		# keeps to what it can actually show: the magazine and the reload key.
 		_desktop_weapon_meta.text = (
-			"%s · G RELOAD · %s"
-			% [text, "E/Q SWAP" if _state.available_weapons > 1 else "U ARMORY TO UNLOCK"]
+			"%s · G RELOAD · E/Q SWAP" % text
+			if _state.available_weapons > 1
+			else "%s · G RELOAD" % text
 		)
 	if is_instance_valid(_touch_ammo_chip):
 		_touch_ammo_chip.set_ammo(remaining, capacity, reloading)

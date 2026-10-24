@@ -78,8 +78,27 @@ func _ready() -> void:
 		stage.set_physics_process(false)
 		_stages[key] = stage
 	progression_service.profile_changed.connect(_on_profile_changed)
+	# The web shell has already played the opening, so the GAMEPLAY hand-off
+	# enters the world without entering BOOT first. Entering a stage and then
+	# changing the scene out from under it leaves that stage's awaited frames
+	# resuming on a freed node -- a real "data.tree is null" error in the log.
+	if _qa_stage_name() == &"GAMEPLAY":
+		call_deferred("start_gameplay")
+		return
 	_enter(&"BOOT", {})
 	_enter_qa_stage()
+
+
+## The stage name in `?qa_stage=`, or an empty name outside a browser / without
+## the flag. `GAMEPLAY` is not a stage: it is the scene PRELOAD changes to, and
+## the player-facing web shell uses it to hand the screen over after its own hub.
+func _qa_stage_name() -> StringName:
+	if not OS.has_feature("web"):
+		return &""
+	var requested: Variant = JavaScriptBridge.eval(
+		"new URLSearchParams(location.search).get('qa_stage') || ''"
+	)
+	return StringName(str(requested))
 
 
 ## QA hook, web only: `?qa_stage=DASHBOARD` lands straight on a stage so a
@@ -92,16 +111,7 @@ func _enter_qa_stage() -> void:
 	if not OS.has_feature("web"):
 		return
 	_enter_qa_world()
-	var requested: Variant = JavaScriptBridge.eval(
-		"new URLSearchParams(location.search).get('qa_stage') || ''"
-	)
-	var stage_name := StringName(str(requested))
-	# GAMEPLAY is not a stage: it is the scene the PRELOAD stage changes to. The
-	# player-facing shell owns HOME, so `?qa_stage=GAMEPLAY` goes straight into
-	# the world rather than showing a second front end right after the first.
-	if stage_name == &"GAMEPLAY":
-		call_deferred("start_gameplay")
-		return
+	var stage_name := _qa_stage_name()
 	if stage_name == &"" or not STAGE_SCENES.has(stage_name):
 		return
 	call_deferred("_enter", stage_name, _qa_payload(stage_name))
