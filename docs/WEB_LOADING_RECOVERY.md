@@ -18,7 +18,7 @@ The root shell changes `config.executable` to `./web/index`. Godot then looks up
 
 Browser instrumentation before the correction recorded many real byte events with `total = 0`. The shell correctly refused to invent a percentage from those events, but the visible bar therefore remained indeterminate. The shell now preserves the exported keys and adds the two rewritten paths.
 
-After the correction, both recovery cases reported one consistent total: **135,101,506 bytes** (39,514,754-byte WASM + 95,586,752-byte PCK).
+After the correction, both recovery cases on final payload `b055f0d` reported one consistent total: **135,101,522 bytes** (39,514,754-byte WASM + 95,586,768-byte PCK).
 
 ### 2. WASM initialization failures never rejected `startGame()` — VERIFIED
 
@@ -49,31 +49,31 @@ Command:
 ```bash
 node tools/web_loading_qa.mjs \
   --throughput-mbps 100 --timeout 150 \
-  --out exports/integration-audit/loading-gate-final --json
+  --out exports/integration-audit/loading-gate-final-b055f0d --json
 ```
 
-Local ignored report: `exports/integration-audit/loading-gate-final/report.json`.
+Local ignored report on payload `b055f0d`: `exports/integration-audit/loading-gate-final-b055f0d/report.json`.
 
 **PASS for both `index.wasm` and `index.pck`, with browser cache disabled:**
 
 - the selected asset was actually interrupted;
 - the error UI exposed retry and kept the canvas hidden;
 - no unhandled page rejection occurred;
-- retry downloaded to a final `135101506 / 135101506` callback;
+- retry downloaded to a final `135101522 / 135101522` callback;
 - rendered progress was monotonic from 0 through 100;
 - a fresh Godot banner and `FrontEnd: stage WORLD` appeared;
 - the real canvas was revealed.
 
-A separate truncated-body diagnostic used a static server that declared the full content length, sent only 2 MiB, and closed the socket. Both WASM and PCK produced `ERR_CONTENT_LENGTH_MISMATCH`, then the readable **Koneksi dunia terputus** state with retry and a hidden canvas. After the server stopped truncating responses, retry reached `dunia siap`, a fresh Godot banner, WORLD, and the revealed canvas for both assets. Reports: `exports/integration-audit/loading-midstream-wasm-retry-2.json` and `loading-midstream-pck-retry.json`.
+A separate pre-publication truncated-body diagnostic used a static server that declared the full content length, sent only 2 MiB, and closed the socket. Both WASM and PCK produced `ERR_CONTENT_LENGTH_MISMATCH`, then the readable **Koneksi dunia terputus** state with retry and a hidden canvas. After the server stopped truncating responses, retry reached `dunia siap`, a fresh Godot banner, WORLD, and the revealed canvas for both assets. Reports: `exports/integration-audit/loading-midstream-wasm-retry-2.json` and `loading-midstream-pck-retry.json`.
 
-Additional local regression evidence:
+Additional pre-publication local regression evidence (CI repeated these gates on the final export):
 
 - `node tools/web_qa.mjs --timeout 120`: **4/4 PASS** for `/` and `/web/index.html` at 844×390 and 667×375; report `exports/integration-audit/loading-final-basic-report.json`.
 - Strict DEPLOY → WORLD → measured Vanguard selection: **PASS**, including `FrontEnd: world selected vanguard_station` and `VanguardStation: 421 kit modules, 17 omnis, 4 rooms`; report `exports/integration-audit/loading-final-vanguard-report.json`.
 - `scripts/dev_check.sh`: **0 failed steps**; 75 GDScripts, project doctor 0 FAIL/30 WARN, 40 tooling tests, 28-test inventory intact. Local Godot/preset checks remained skipped because Godot is unavailable locally.
 - JavaScript syntax and export-script shell syntax: **PASS**.
 
-The CI `web-preview` job also runs the interrupted-download recovery gate before the WORLD-selection contract.
+CI run [40103458382](https://github.com/xam-eth/Cyber-Strike/actions/runs/40103458382) on source `eac21bfce04d230a3ecc3c44d9b3b6b24af03e5d` completed **SUCCESS** and published payload `b055f0dca4f35fcc0d67a7f4485ff8494c36548e`. Its check-runs confirm 28/28 import-OK Godot 4.7.2 tests, four Chromium boots, `Loading recovery: index.wasm PASS | index.pck PASS`, static delivery, and the WORLD → Vanguard contract. The recovery gate runs before the WORLD-selection contract in `web-preview`.
 
 ## Remaining limits and player action
 

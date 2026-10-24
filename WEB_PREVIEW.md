@@ -7,7 +7,7 @@
 
 >
 >
-> **Status integrasi saat ini:** payload `cec0fdd` berasal dari source `9e82c0b`; PCK berukuran 95,586,752 bytes (873 files) dan total `web/` sekitar 130 MiB. CI `40099367032` lulus static, 28/28 Godot test, export, empat browser boot, dan kontrak WORLD → Vanguard. Rincian serta batas bukti ada di [`docs/INTEGRATION_VALIDATION_REPORT.md`](docs/INTEGRATION_VALIDATION_REPORT.md).
+> **Status preview saat ini:** payload `b055f0d` berasal dari source `eac21bf`; PCK berukuran 95,586,768 bytes (873 files) dan total `web/` sekitar 130 MiB. CI `40103458382` lulus static, 28/28 Godot test, export, empat browser boot, interrupted-download recovery untuk WASM/PCK, dan kontrak WORLD → Vanguard. Rincian integrasi serta batas bukti ada di [`docs/INTEGRATION_VALIDATION_REPORT.md`](docs/INTEGRATION_VALIDATION_REPORT.md); diagnosis loading saat ini ada di [`docs/WEB_LOADING_RECOVERY.md`](docs/WEB_LOADING_RECOVERY.md).
 >
 > **Status verifikasi (baseline lama di bawah ini; ukuran berikut bukan payload current):** seluruh wiring statis sudah diperiksa (`tools/web_preset.py check`, `tools/project_doctor.py` → 0 FAIL, 22 unit test). Ekspor Web nyata sudah berhasil di CI (run `38919299364`, job `web-preview` hijau). Hasil terukur:
 
@@ -23,7 +23,7 @@ Artefak CI `web-preview` (zip, isi `web/` + `README.txt`) ≈ **10 MB** karena w
 
 **Bukti browser (dijalankan di sandbox ini, Chromium headless + WebGL 2):** `node tools/web_qa.mjs` → **2/2 halaman PASS**, keduanya mem-boot Godot `4.7.2.stable.official.ed1daf0bf`, kanvas 1280×720, WebGL hidup, tanpa error halaman maupun permintaan gagal. Tangkapan layar: `exports/web-qa/root.png` dan `exports/web-qa/web-index-html.png`.
 
-> **Catatan bandwidth:** muat pertama mengunduh WASM 39,514,754 bytes + PCK 95,586,752 bytes = **135.1 MB** (sekitar **128.8 MiB**), belum termasuk loader/HTML. `python -m http.server` tidak mengompresi keduanya; forwarded port atau Wi-Fi dapat membuat unduhan lama. Layar DEPLOY sekarang menampilkan byte gabungan yang nyata, error yang dapat diulang, dan watchdog bila tidak ada kemajuan. Jangan tutup/muat ulang saat byte masih bergerak; perilaku cache tetap bergantung pada server/proxy. Diagnosis dan bukti: [`docs/WEB_LOADING_RECOVERY.md`](docs/WEB_LOADING_RECOVERY.md).
+> **Catatan bandwidth:** muat pertama mengunduh WASM 39,514,754 bytes + PCK 95,586,768 bytes = **135.1 MB** (sekitar **128.8 MiB**), belum termasuk loader/HTML. `python -m http.server` tidak mengompresi keduanya; forwarded port atau Wi-Fi dapat membuat unduhan lama. Layar DEPLOY sekarang menampilkan byte gabungan yang nyata, error yang dapat diulang, dan watchdog bila tidak ada kemajuan. Jangan tutup/muat ulang saat byte masih bergerak; perilaku cache tetap bergantung pada server/proxy. Diagnosis dan bukti: [`docs/WEB_LOADING_RECOVERY.md`](docs/WEB_LOADING_RECOVERY.md).
 
 ---
 
@@ -199,7 +199,7 @@ Artinya build Android tetap memakai renderer `mobile` (sesuai `PROJECT_DECISIONS
 | Loading lama tetapi byte/persen bergerak | Muat pertama memang 135.1 MB dan `http.server` tidak mengompresi | Biarkan tab aktif sampai 100%; jangan reload. Lewat forwarded port/Wi-Fi waktunya bergantung pada koneksi nyata |
 | `Koneksi dunia terputus` atau server mencatat BrokenPipe | Browser/proxy menutup response sebelum aset selesai | Tekan **Coba lagi**, periksa koneksi, dan catat aset yang gagal di Network. Favicon 404 bukan penyebab boot |
 | `Unduhan dunia berhenti` / `Dunia terlalu lama disiapkan` | Tidak ada kemajuan selama 3 menit, atau aset lengkap tetapi engine belum mulai | Tekan **Coba lagi**; bila berulang simpan judul/detail layar serta Console/Network untuk membedakan delivery dari engine start |
-| Loading tanpa persen pada checkout lama | Path `./web/index` tidak memiliki entri `fileSizes`, sehingga callback ber-`total=0` | Pull perbaikan dan buka halaman `/` baru; regression gate membuktikan total 135,101,506 bytes |
+| Loading tanpa persen pada checkout lama | Path `./web/index` tidak memiliki entri `fileSizes`, sehingga callback ber-`total=0` | Pull perbaikan dan buka halaman `/` baru; regression gate membuktikan total 135,101,522 bytes |
 | Layar hitam, progres macet | WebGL 2 tidak tersedia/terblokir | Gunakan Chrome/Firefox/Edge terbaru; cek `chrome://gpu`; hindari mode hemat data |
 | Pesan "The following features ... are missing" | Browser tidak mendukung WebGL 2 atau canvas diblokir | Perbarui browser; pastikan bukan di iframe yang membatasi; jangan aktifkan thread support |
 | `404` pada `index.wasm` / `index.pck` | Server dijalankan dari folder yang salah | Jalankan `python -m http.server 800` **dari root repo** (atau `--directory <web>`) |

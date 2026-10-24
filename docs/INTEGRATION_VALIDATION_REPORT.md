@@ -150,4 +150,17 @@ Earlier deep browser evidence from payload `26debc5` remains historical and was 
 
 ## 8. Handoff
 
-The branch now contains one connected game rather than parallel unused World, Character, and UI modules. Continue from the open issues above without replacing the optimized hero, bypassing WORLD selection, restoring undocumented parallel layouts, or treating CI as device/visual acceptance. The validated runtime source is `9e82c0b`; its generated payload is `cec0fdd`; the final documentation handoff preserves those code/payload identities.
+The branch now contains one connected game rather than parallel unused World, Character, and UI modules. Continue from the open issues above without replacing the optimized hero, bypassing WORLD selection, restoring undocumented parallel layouts, or treating CI as device/visual acceptance. The validated integration runtime source was `9e82c0b`; its generated payload was `cec0fdd`. The current Web follow-up below preserves those integrations and supersedes only the current preview source/payload checkpoint.
+
+## 9. Current Web loading follow-up
+
+**Status remains INTEGRATED WITH OPEN ISSUES.** The player-reported stuck DEPLOY/loading handoff was investigated separately; no World, Character, combat, reward, or progression rules were changed.
+
+- Source repair: `eac21bfce04d230a3ecc3c44d9b3b6b24af03e5d` (`Repair web loading progress and recovery`).
+- Current generated payload: `b055f0dca4f35fcc0d67a7f4485ff8494c36548e`; PCK **95,586,768 bytes**, **873 files**, payload audit **PASS**.
+- CI [40103458382](https://github.com/xam-eth/Cyber-Strike/actions/runs/40103458382): **SUCCESS** — static checks, 28/28 import-OK Godot tests, export/delivery, four browser boots, interrupted WASM/PCK recovery, and WORLD → Vanguard.
+- **VERIFIED defects:** rewritten `./web/index` asset paths lacked matching `fileSizes` keys, producing real byte callbacks with `total=0`; Godot `doInit()` also accepted but did not use `reject` for three initialization stages.
+- **VERIFIED recovery:** final-payload local gates report `135101522 / 135101522`, monotonic 0→100 progress, and retry into WORLD for both interrupted WASM and PCK. Truncated-body diagnostics also produced an actionable error and successful retry rather than an endless overlay.
+- Exact diagnosis, commands, evidence boundaries, and player troubleshooting: [`WEB_LOADING_RECOVERY.md`](WEB_LOADING_RECOVERY.md).
+
+The precise external browser/proxy cause of the user's original BrokenPipe remains **UNKNOWN**. Android, physical-device performance/touch, complete human gameplay, and final visual acceptance remain unverified; the loading repair does not close those issues.
