@@ -156,7 +156,9 @@ func _run_smoke_test() -> void:
 	)
 	print("Central-to-boss traversal ended at %s." % player.global_position)
 
-	player.global_position = Vector3(-40.0, 0.0, 0.0)
+	# Along z = 8 the outpost lane is clear: the command centre sits at z = -4 and
+	# the depot at z = 19, and both are solid now that the props have colliders.
+	player.global_position = Vector3(-40.0, 0.0, 8.0)
 	player.set("velocity", Vector3.ZERO)
 	player.call("set_touch_movement", Vector2.LEFT)
 	for _frame in 400:
