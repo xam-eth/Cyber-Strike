@@ -19,7 +19,7 @@
  */
 'use strict';
 
-const SCREENS = ['opening', 'hub', 'settings', 'launch'];
+const SCREENS = ['opening', 'hub', 'arsenal', 'settings', 'launch'];
 const params = new URLSearchParams(location.search);
 
 const el = (id) => document.getElementById(id);
@@ -27,7 +27,7 @@ const screens = Object.fromEntries(SCREENS.map((name) => [name, el(`screen-${nam
 
 const prefsKey = 'aegis.prefs';
 const prefs = Object.assign(
-  { touch: params.has('touch_preview'), motion: false, fullscreen: false },
+  { touch: params.has('touch_preview'), motion: false, fullscreen: false, weapon: 'pulse_rifle' },
   readPrefs(),
 );
 
@@ -73,6 +73,7 @@ function show(name, options = {}) {
 
 function back() {
   if (current === 'settings') show('hub');
+  else if (current === 'arsenal') show('hub');
   else if (current === 'hub') show('opening', { focus: false });
 }
 
@@ -111,6 +112,43 @@ function paintReadouts() {
  * has to be measurable. Each line lights when its check resolves, which is why
  * the enter button is disabled until all three have.
  */
+/* --------------------------------------------------------------- loadout */
+
+/*
+ * The weapons are the ones the game ships, with the numbers out of their own
+ * definitions (`game/resources/weapons/*.tres`): damage per shot, rounds per
+ * second, magazine. Costs are ProgressionService.COSTS. The shell does not
+ * unlock anything -- BP is spent in the arena -- so a weapon with a price is
+ * listed, priced and not selectable here, which is the same rule the in-game
+ * armory follows.
+ */
+const WEAPONS = {
+  pulse_rifle: { name: 'Pulse Rifle', cost: 0 },
+  nova_launcher: { name: 'Nova Launcher', cost: 120 },
+  arc_shooter: { name: 'Arc Shooter', cost: 250 },
+};
+
+function loadoutLabel() {
+  const weapon = WEAPONS[prefs.weapon] || WEAPONS.pulse_rifle;
+  return `EXO · ${weapon.name}`;
+}
+
+function paintLoadout() {
+  for (const button of document.querySelectorAll('.weapon')) {
+    const locked = Number(button.dataset.cost) > 0;
+    // A priced weapon is not "selected", it is "available later": pressing it
+    // moves the focus ring and nothing else, so the screen never claims a
+    // loadout the game would refuse. `aria-disabled` is how that is said, and
+    // it is the same attribute the CSS colours the price from.
+    button.setAttribute('aria-pressed', String(!locked && button.dataset.weapon === prefs.weapon));
+    button.setAttribute('aria-disabled', String(locked));
+  }
+  const meta = el('arsenal-deploy-meta');
+  if (meta) meta.textContent = loadoutLabel();
+  const hub = el('hub-operative-meta');
+  if (hub) hub.textContent = loadoutLabel();
+}
+
 const checks = { engine: false, payload: false, display: false };
 
 const CHECK_COPY = {
@@ -212,6 +250,9 @@ function deploy() {
   // player back at the opening.
   const url = new URL(location.href);
   url.searchParams.set('qa_stage', 'GAMEPLAY');
+  // The engine reads these in ProgressionService.load_profile(): the shell's
+  // choice is the run's loadout, not a picture of one.
+  url.searchParams.set('weapon', prefs.weapon);
   history.replaceState(null, '', url);
 
   bootEngine();
@@ -311,6 +352,17 @@ function revealCanvas() {
 
 el('opening-enter').addEventListener('click', () => show('hub'));
 el('hub-deploy').addEventListener('click', () => deploy());
+el('hub-card-operative').addEventListener('click', () => show('arsenal'));
+el('arsenal-back').addEventListener('click', () => show('hub'));
+el('arsenal-deploy').addEventListener('click', () => deploy());
+for (const button of document.querySelectorAll('.weapon')) {
+  button.addEventListener('click', () => {
+    if (Number(button.dataset.cost) > 0) return;
+    prefs.weapon = button.dataset.weapon;
+    savePrefs();
+    paintLoadout();
+  });
+}
 el('hub-card-controls').addEventListener('click', () => show('settings'));
 el('hub-card-display').addEventListener('click', () => show('settings'));
 el('settings-close').addEventListener('click', () => show('hub'));
@@ -375,6 +427,7 @@ function lockLandscape() {
 applyMotionPref();
 applyPrefsToUrl();
 paintReadouts();
+paintLoadout();
 runOpeningChecks();
 
 // QA and deep links: a page that asks for an engine stage boots immediately and

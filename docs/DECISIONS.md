@@ -147,3 +147,15 @@ only an opinion is not here.
     landscape composition at every window size, and a portrait window is answered
     by the web shell's rotation notice. The two QA viewports are 844x390 and
     667x375.
+32. **The shell owns the loadout, and it hands it over in the URL.** The player
+    shell (`ui/`) is where a run is chosen, so it is where the operative and the
+    weapon are chosen too; there was no way to pick either before Deploy. The
+    shell cannot call into `ProgressionService` — the engine has not started —
+    so Deploy writes `?weapon=<id>` into the URL and
+    `ProgressionService._apply_web_loadout()` reads it after the saved profile
+    and before anything is emitted. That reader is not a second save file: an
+    unknown id falls back to the default and a still-locked weapon is refused,
+    exactly like `select_weapon()`, so a hand-edited URL cannot field a weapon
+    the player has not bought. BP is still spent in the arena, never in the
+    shell, which is why the rack lists a priced weapon with its price and does
+    not let you take it.

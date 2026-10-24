@@ -186,6 +186,33 @@ which is the failure BUG 2 was about. Back navigation is wired to `ui_cancel`
 with a per-stage `BACK_TARGET`, plus an on-screen BACK button on each selection
 screen for devices with no Escape key.
 
+## The web shell (`ui/`) — HOME for the web build
+
+The engine's own board is not what a browser first meets. `index.html` + `ui/shell.js`
+own the pages before the world, and the engine boots behind them only once Deploy
+is pressed:
+
+```
+opening ──> hub ──> arsenal ──> deploy (launch) ──> the world
+              │         │
+              └────────>└──> settings (from any row, Esc returns)
+```
+
+| Page | What it is |
+| --- | --- |
+| opening | three real checks (loader present, payload answers, viewport measured) and one way in |
+| hub | the deployment board: one command plate, one mission slate, three numbered rows |
+| arsenal | the operative bay (portrait, status, chassis read-out, roster) and the weapon rack |
+| settings | the console drawer: switches, the key list, the build stamps |
+| launch | the hand-off: a bay plate, a manifest, and a rail that reports the engine's own byte count |
+
+Every page is a plate with the same 45 degree cut vocabulary (docs/UI_UX_REDESIGN_SPEC.md §3A);
+what changes per page is the silhouette and the one motif, not the colour. The
+loadout chosen on the arsenal page leaves as `?weapon=`, which the engine reads in
+`ProgressionService._apply_web_loadout()` (docs/DECISIONS.md 32).
+`tools/ui_shots.mjs` photographs all five pages at 844x390 and 667x375 and fails a
+frame that is blank or that puts anything outside the viewport.
+
 ## Layout at phone sizes
 
 The project stretches a 1280x720 canvas with `aspect=expand`, so on the shipped

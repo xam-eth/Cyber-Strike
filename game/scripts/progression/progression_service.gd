@@ -85,7 +85,27 @@ func load_profile() -> void:
 	# A weapon can be selected and then lost to a reset save, so re-gate it.
 	if not is_unlocked(selected_weapon_id):
 		selected_weapon_id = DEFAULT_WEAPON_ID
+	_apply_web_loadout()
 	profile_changed.emit()
+
+
+## The web shell owns HOME, so the loadout the player picked there arrives as a
+## URL parameter rather than as a call into this service. It is read here, after
+## the saved profile and before anything is emitted, so one code path decides
+## what the run deploys with.
+##
+## It cannot unlock anything: an id that is unknown falls back to the default and
+## an id that is still locked is refused, exactly like `select_weapon()`. A
+## hand-edited URL therefore cannot field a weapon the player has not bought.
+func _apply_web_loadout() -> void:
+	if not OS.has_feature("web"):
+		return
+	var requested: Variant = JavaScriptBridge.eval(
+		"new URLSearchParams(location.search).get('weapon') || ''"
+	)
+	var weapon_id := _known_id(requested, WEAPON_IDS, &"")
+	if weapon_id != &"" and is_unlocked(weapon_id):
+		selected_weapon_id = weapon_id
 
 
 ## An edited user:// file must not be able to invent a hero, weapon or world.

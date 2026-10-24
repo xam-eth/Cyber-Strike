@@ -43,6 +43,7 @@ const viewports = list('--viewport').length ? list('--viewport') : ['844x390', '
 const SCREENS = [
   { id: 'opening', query: '?ui=opening' },
   { id: 'hub', query: '?ui=hub' },
+  { id: 'arsenal', query: '?ui=arsenal' },
   { id: 'settings', query: '?ui=settings' },
   // The hand-off screen is the one the player sees while the world loads, so it
   // is photographed like any other: a launch card that overflows or renders

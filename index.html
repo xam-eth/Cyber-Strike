@@ -152,14 +152,139 @@
                   </span>
                   <span class="card__go">Lihat ›</span>
                 </button>
-                <button class="card card--row card--row-alt" id="hub-card-display" type="button">
+                <button class="card card--row card--row-alt" id="hub-card-operative" type="button">
                   <span class="card__top"><span class="card__index">02</span></span>
+                  <span class="card__body">
+                    <span class="card__title">Operatif</span>
+                    <span class="card__desc" id="hub-operative-meta">EXO · Pulse Rifle</span>
+                  </span>
+                  <span class="card__go">Pilih ›</span>
+                </button>
+                <button class="card card--row card--row-lead" id="hub-card-display" type="button">
+                  <span class="card__top"><span class="card__index">03</span></span>
                   <span class="card__body">
                     <span class="card__title">Tampilan</span>
                     <span class="card__desc">HUD sentuh, gerak, layar penuh.</span>
                   </span>
                   <span class="card__go">Atur ›</span>
                 </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================================================= OPERATIF -->
+        <section class="screen" id="screen-arsenal" aria-labelledby="arsenal-title">
+          <div class="screen__inner">
+            <div class="arsenal">
+              <!-- The operative is the subject, so the bay is the big plate and
+                   the portrait is cut into it at the same 45 degrees as every
+                   other card in the product. -->
+              <div class="panel panel--solid arsenal__bay">
+                <div class="bay__id">
+                  <div class="bay__portrait">
+                    <img src="./game/assets/ui/portrait_hero.png" alt="Operatif EXO dalam livery AEGIS" />
+                    <span class="bay__portrait-cut" aria-hidden="true"></span>
+                  </div>
+                  <div class="bay__copy">
+                    <p class="eyebrow">Operatif lapangan</p>
+                    <h1 class="bay__name" id="arsenal-title">EXO Operative</h1>
+                    <p class="bay__role" id="arsenal-role">
+                      Chassis E-07 dengan livery AEGIS. Satu rangka yang sama untuk setiap
+                      operatif: yang dipilih adalah corak lapangannya, bukan statistik.
+                    </p>
+                    <div class="bay__tags">
+                      <span class="chip chip--ok" id="arsenal-status">Field ready</span>
+                      <span class="chip chip--quiet">Chassis E-07</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- The roster is the truth the game can load: one slot is the
+                     operative you spawn as, the other two are marked as not
+                     built yet instead of being painted as selectable. The name
+                     is not repeated in the slot -- it is the heading above --
+                     so each key only has to say which slot and what state. -->
+                <!-- The bay's lower half is instrument space, not a gap: the
+                     three numbers a player can actually verify about this
+                     operative, out of the same files the game loads. -->
+                <div class="statusgrid bay__data">
+                  <div><span class="metric__key">Chassis</span><span class="metric__val">E-07</span></div>
+                  <div><span class="metric__key">Tinggi rig</span><span class="metric__val">1.78 m</span></div>
+                  <div><span class="metric__key">Slot</span><span class="metric__val" data-tone="accent">01 / 03</span></div>
+                </div>
+
+                <div class="roster-wrap">
+                  <ul class="roster" id="arsenal-roster" aria-label="Daftar operatif">
+                    <li class="slot slot--ready" data-active="true" data-hero="exo_operative">
+                      <span class="slot__no">01</span>
+                      <span class="slot__state">siap</span>
+                    </li>
+                    <li class="slot slot--locked" aria-disabled="true">
+                      <span class="slot__no">02</span>
+                      <span class="slot__state">kosong</span>
+                    </li>
+                    <li class="slot slot--locked" aria-disabled="true">
+                      <span class="slot__no">03</span>
+                      <span class="slot__state">kosong</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="arsenal__side">
+                <div class="panel panel--solid rack">
+                  <div class="rack__head">
+                    <p class="eyebrow">Rak senjata</p>
+                    <span class="rack__note">BP dibelanjakan di dalam arena</span>
+                  </div>
+
+                  <!-- Every row is a spec line, not a menu item: the numbers are
+                       the weapons' own definitions, and the pip meter shows the
+                       one comparison a player makes by eye -- damage per shot. -->
+                  <ul class="rack__list" id="arsenal-rack">
+                    <li>
+                      <button class="weapon" type="button" data-weapon="pulse_rifle" data-cost="0" aria-pressed="true">
+                        <span class="weapon__mark">PR</span>
+                        <span class="weapon__name">Pulse Rifle</span>
+                        <span class="weapon__spec"><b>18</b> dmg · <b>5.0</b>/s · <b>24</b></span>
+                        <span class="weapon__pips" data-pips="2" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+                        <span class="weapon__state">terpasang</span>
+                      </button>
+                    </li>
+                    <li>
+                      <button class="weapon" type="button" data-weapon="nova_launcher" data-cost="120" aria-disabled="true">
+                        <span class="weapon__mark">NV</span>
+                        <span class="weapon__name">Nova Launcher</span>
+                        <span class="weapon__spec"><b>34</b> dmg · <b>0.8</b>/s · <b>6</b></span>
+                        <span class="weapon__pips" data-pips="3" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+                        <span class="weapon__state">120 BP</span>
+                      </button>
+                    </li>
+                    <li>
+                      <button class="weapon" type="button" data-weapon="arc_shooter" data-cost="250" aria-disabled="true">
+                        <span class="weapon__mark">AR</span>
+                        <span class="weapon__name">Arc Shooter</span>
+                        <span class="weapon__spec"><b>20</b> dmg · <b>2.0</b>/s · <b>12</b></span>
+                        <span class="weapon__pips" data-pips="2" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+                        <span class="weapon__state">250 BP</span>
+                      </button>
+                    </li>
+                  </ul>
+
+                  <p class="rack__hint">
+                    Dua senjata terakhir dibuka dengan Battle Points di arena. Pilihan di sini
+                    adalah yang terbawa saat Deploy.
+                  </p>
+                </div>
+
+                <div class="arsenal__actions">
+                  <button class="btn btn--primary" id="arsenal-deploy" type="button">
+                    <span>Deploy</span>
+                    <span class="btn__meta" id="arsenal-deploy-meta">EXO · Pulse Rifle</span>
+                  </button>
+                  <button class="btn btn--ghost" id="arsenal-back" type="button">Kembali</button>
+                </div>
               </div>
             </div>
           </div>
