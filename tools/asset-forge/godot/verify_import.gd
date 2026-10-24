@@ -211,7 +211,11 @@ func _finish() -> void:
 		"rows": _rows,
 		"failures": _failures,
 	}
-	var out := "user://forge_import_report.json"
+	# CI writes the report into the repository so it can be committed back and
+	# read by a human or a later step; a local run keeps it in user://.
+	var out := OS.get_environment("FORGE_REPORT")
+	if out.is_empty():
+		out = "user://forge_import_report.json"
 	var f := FileAccess.open(out, FileAccess.WRITE)
 	if f != null:
 		f.store_string(JSON.stringify(report, "  "))
@@ -221,6 +225,7 @@ func _finish() -> void:
 	print("%d checked · %d passed · %d failed" % [_rows.size(), passed, _rows.size() - passed])
 	for message in _failures:
 		print("  ✗ %s" % message)
-	print("report: %s" % ProjectSettings.globalize_path(out))
+	var written := ProjectSettings.globalize_path(out) if out.begins_with("user://") else out
+	print("report: %s" % written)
 	print("== forge import verification %s ==" % ("PASSED" if _failures.is_empty() else "FAILED"))
 	quit(0 if _failures.is_empty() else 1)
