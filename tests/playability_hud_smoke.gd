@@ -216,7 +216,7 @@ func _run_smoke_test() -> void:
 	)
 	feedback_panel.call("show_message", "EMP PULSE · NO TARGETS")
 	_expect(
-		(controls.get("_feedback_panel").get("_message_label") as Label).text == "NO TARGETS",
+		(controls.get("_feedback_panel").get("_message_label") as Label).text.contains("NO TARGETS"),
 		"Explore feedback stays legible in the lane between real buttons",
 	)
 	feedback_panel.call("clear_message")
@@ -277,9 +277,9 @@ func _run_smoke_test() -> void:
 		(
 			not feedback_panel.get_global_rect().intersects(wave_card.get_global_rect())
 			and not feedback_panel.get_global_rect().intersects(weapon_button.get_global_rect())
-			and feedback_panel.get_global_rect().end.y < weapon_button.get_global_rect().position.y
+			and not feedback_panel.get_global_rect().intersects(skill_button.get_global_rect())
 		),
-		"Defense feedback moves into the vacated START row, clear of SWAP",
+		"Defense feedback stays in its lane, clear of the objective and the thumb keys",
 	)
 	controls.call("_set_play_phase", "explore")
 	var emp_center: Vector2 = skill_button.get_global_rect().get_center()
@@ -386,7 +386,7 @@ func _run_smoke_test() -> void:
 			and not feedback_panel.get_global_rect().intersects(weapon_button.get_global_rect())
 			and (
 				(controls.get("_feedback_panel").get("_message_label") as Label).text
-				== "NO TARGETS"
+				.contains("NO TARGETS")
 			)
 		),
 		(

@@ -42,9 +42,12 @@ const MIN_PHYSICAL_FONT_PX: float = AegisTokens.MIN_PHYSICAL_FONT_PX
 const COMPACT_LINES: int = 4
 ## The one help block. Keys and thumbs are both listed because both work on the
 ## landscape HUD: a phone reads the right column, a laptop the left.
+## The one legend the HUD shows. It names the touch controls first, because a
+## thumb is what the layout is built for; the keys that do the same thing follow
+## in the same line.
 const HELP_TEXT := (
-	"STICK / WASD MOVE · DRAG / MOUSE LOOK\n"
-	+ "FIRE · AIM · EMP · SWAP · B DEFENSE\n"
+	"STICK MOVE · DRAG LOOK · HOLD AIM\n"
+	+ "FIRE · EMP · SWAP · B DEFENSE\n"
 	+ "U ARMORY · G RELOAD · ESC PAUSE"
 )
 const HELP_FADE_SECONDS: float = 1.5

@@ -228,7 +228,10 @@ static func show_help(hud) -> void:
 	if not is_instance_valid(hud._help_panel):
 		return
 	hud._help_panel.modulate.a = 1.0
-	hud._help_panel.visible = not (hud._touch_mode and hud._narrow)
+	# Shown when asked for, including on a narrow phone: the plate fades after
+	# HELP_FADE_SECONDS and the first input retires it, so it is a hint rather
+	# than an overlay that stays over the play area.
+	hud._help_panel.visible = true
 
 
 static func results_visible(hud) -> bool:
