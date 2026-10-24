@@ -662,6 +662,11 @@ func _run_smoke_test() -> void:
 		player.global_position.z < initial_position.z - 0.35,
 		"touch movement moves the player through the 3D world",
 	)
+	# A full-tilt stick walks the player a long way, and a smoke test that leaves
+	# it there makes every later check depend on how far it happened to travel.
+	# Put it back on its mark: the assertion above is the one that cares.
+	player.global_position = initial_position
+	player.set("velocity", Vector3.ZERO)
 	var joystick_release := InputEventScreenTouch.new()
 	joystick_release.index = 71
 	joystick_release.position = joystick_drag.position
@@ -912,6 +917,7 @@ func _test_joystick_vector(
 	)
 	_send_screen_touch(controls, touch_id, origin + drag_delta, false)
 	player.set("velocity", Vector3.ZERO)
+	player.global_position = start_position
 
 
 func _touch_button_debug(controls: Control) -> String:
