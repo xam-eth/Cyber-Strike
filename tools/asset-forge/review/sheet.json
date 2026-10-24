@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-24T02:51:04.680Z",
+  "generated": "2026-10-24T03:23:17.201Z",
   "cell": 240,
   "columns": 6,
   "note": "Nearest-neighbour downscale of build/renders/<id>/view-034-*.png. Sheets are review aids: a sheet cannot prove a model is right, it is where a human looks.",
@@ -49,7 +49,7 @@
       "x": 4,
       "y": 4,
       "size": 240,
-      "render": "build/renders/reactor_core/view-034-14.png"
+      "render": "build/renders/reactor_core/view-034-16.png"
     },
     {
       "id": "command_center",
@@ -59,7 +59,7 @@
       "x": 248,
       "y": 4,
       "size": 240,
-      "render": "build/renders/command_center/view-034-14.png"
+      "render": "build/renders/command_center/view-034-16.png"
     },
     {
       "id": "research_lab",
@@ -209,7 +209,7 @@
       "x": 4,
       "y": 4,
       "size": 240,
-      "render": "build/renders/exo_operative/view-034-16.png"
+      "render": "build/renders/exo_operative/view-040-12.png"
     },
     {
       "id": "exo_combat_tech",
@@ -219,7 +219,7 @@
       "x": 248,
       "y": 4,
       "size": 240,
-      "render": "build/renders/exo_combat_tech/view-034-16.png"
+      "render": "build/renders/exo_combat_tech/view-040-12.png"
     },
     {
       "id": "exo_void_runner",
@@ -229,7 +229,7 @@
       "x": 492,
       "y": 4,
       "size": 240,
-      "render": "build/renders/exo_void_runner/view-034-16.png"
+      "render": "build/renders/exo_void_runner/view-040-12.png"
     },
     {
       "id": "exo_neon_phantom",
@@ -239,7 +239,7 @@
       "x": 736,
       "y": 4,
       "size": 240,
-      "render": "build/renders/exo_neon_phantom/view-034-16.png"
+      "render": "build/renders/exo_neon_phantom/view-040-12.png"
     },
     {
       "id": "exo_rogue_engineer",
@@ -249,7 +249,7 @@
       "x": 980,
       "y": 4,
       "size": 240,
-      "render": "build/renders/exo_rogue_engineer/view-034-16.png"
+      "render": "build/renders/exo_rogue_engineer/view-040-12.png"
     },
     {
       "id": "exo_alien_hunter",
@@ -259,7 +259,7 @@
       "x": 1224,
       "y": 4,
       "size": 240,
-      "render": "build/renders/exo_alien_hunter/view-034-16.png"
+      "render": "build/renders/exo_alien_hunter/view-040-12.png"
     },
     {
       "id": "pulse_rifle",
@@ -269,7 +269,7 @@
       "x": 4,
       "y": 4,
       "size": 240,
-      "render": "build/renders/pulse_rifle/view-034-16.png"
+      "render": "build/renders/pulse_rifle/view-035-18.png"
     },
     {
       "id": "nova_launcher",
@@ -279,7 +279,7 @@
       "x": 248,
       "y": 4,
       "size": 240,
-      "render": "build/renders/nova_launcher/view-034-16.png"
+      "render": "build/renders/nova_launcher/view-035-18.png"
     },
     {
       "id": "arc_shooter",
@@ -289,7 +289,7 @@
       "x": 492,
       "y": 4,
       "size": 240,
-      "render": "build/renders/arc_shooter/view-034-16.png"
+      "render": "build/renders/arc_shooter/view-035-18.png"
     },
     {
       "id": "scatter_blaster",
@@ -309,7 +309,7 @@
       "x": 980,
       "y": 4,
       "size": 240,
-      "render": "build/renders/rail_cannon/view-034-16.png"
+      "render": "build/renders/rail_cannon/view-035-18.png"
     },
     {
       "id": "gravity_gun",
@@ -329,7 +329,7 @@
       "x": 4,
       "y": 248,
       "size": 240,
-      "render": "build/renders/arc_shooter_void_edition/view-034-16.png"
+      "render": "build/renders/arc_shooter_void_edition/view-035-18.png"
     },
     {
       "id": "runner",
@@ -369,7 +369,7 @@
       "x": 4,
       "y": 4,
       "size": 240,
-      "render": "build/renders/pulse_bolt/view-034-16.png"
+      "render": "build/renders/pulse_bolt/view-035-22.png"
     },
     {
       "id": "nova_shockwave",
@@ -379,7 +379,7 @@
       "x": 248,
       "y": 4,
       "size": 240,
-      "render": "build/renders/nova_shockwave/view-034-16.png"
+      "render": "build/renders/nova_shockwave/view-035-22.png"
     },
     {
       "id": "arc_chain",
@@ -389,7 +389,7 @@
       "x": 492,
       "y": 4,
       "size": 240,
-      "render": "build/renders/arc_chain/view-034-16.png"
+      "render": "build/renders/arc_chain/view-035-22.png"
     },
     {
       "id": "impact_burst",
@@ -399,7 +399,7 @@
       "x": 736,
       "y": 4,
       "size": 240,
-      "render": "build/renders/impact_burst/view-034-16.png"
+      "render": "build/renders/impact_burst/view-035-22.png"
     }
   ]
 }

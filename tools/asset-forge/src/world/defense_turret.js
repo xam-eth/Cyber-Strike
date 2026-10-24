@@ -86,6 +86,33 @@ export function build() {
   yaw.add(at(box(0.5, 0.16, 0.2, m.dark), { y: 0.72, z: 0.55 }));
   yaw.add(at(beacon(m, { y: 1.0, r: 0.05, name: 'StatusLight' }), { x: 0.42, z: -0.4 }));
 
+  /* asymmetric kit -------------------------------------------------------- *
+   * A turret that is symmetric in plan view renders almost identically from
+   * 0° and 90°, which the views-differ check flags (it scored 0.109 against a
+   * 0.12 floor). Real turrets are lopsided because the feed, the cable run and
+   * the tools all live on one side, so the detail is added asymmetrically. */
+  // ammunition feed drum on the right flank
+  const feed = group('AmmoFeed');
+  feed.add(at(cyl(0.24, 0.24, 0.26, 12, m.mid, { axis: 'x' }), { x: 0.74, y: 0.52, z: -0.1 }));
+  feed.add(at(cyl(0.26, 0.26, 0.04, 12, m.dark, { axis: 'x' }), { x: 0.86, y: 0.52, z: -0.1 }));
+  feed.add(at(boltRing({ radius: 0.17, count: 8, size: 0.022, material: m.bright, axis: 'x', y: 0.88 }), { y: 0.52, z: -0.1 }));
+  feed.add(at(box(0.16, 0.1, 0.3, m.dark), { x: 0.62, y: 0.62, z: -0.32 }));
+  housing.add(feed);
+  // cable conduit down the left flank, into the base
+  for (let i = 0; i < 5; i += 1) {
+    const seg = at(cyl(0.035, 0.035, 0.16, 6, m.dark), { x: -0.66, y: 0.95 - i * 0.17, z: -0.5 });
+    seg.rotation.z = i < 2 ? 0.2 : -0.15;
+    housing.add(seg);
+  }
+  root.add(at(box(0.12, 0.5, 0.12, m.dark), { x: -0.78, y: 0.6, z: -0.5 }));
+  // rear maintenance hatch, offset to one side
+  housing.add(at(box(0.34, 0.4, 0.05, m.dark), { x: 0.22, y: 0.58, z: -0.72 }));
+  housing.add(at(box(0.2, 0.24, 0.03, m.mid), { x: 0.22, y: 0.58, z: -0.76 }));
+  // ladder rungs on one side of the pedestal only
+  for (let i = 0; i < 3; i += 1) {
+    root.add(at(box(0.24, 0.03, 0.04, m.mid), { x: -0.5, y: 0.55 + i * 0.18, z: 0.22 }));
+  }
+
   root.add(yaw);
 
   const muzzleL = socket(barrelL, 'muzzle_l', { x: -0.26, y: 0.72, z: 2.16 });

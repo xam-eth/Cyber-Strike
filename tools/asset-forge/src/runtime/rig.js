@@ -27,9 +27,22 @@ export function socket(parent, name, { x = 0, y = 0, z = 0, rx = 0, ry = 0, rz =
  * Build a clip from terse track descriptors.
  * `tracks: [{ node: 'Core', property: 'rotation.y', keys: [[0,0],[2,6.28]] }]`
  */
+/**
+ * three.js track names are `node.property` or `node.property[index]`.
+ * `ArmR.rotation.x` is *not* that: the parser reads it as node `ArmR.rotation`
+ * and property `x`, which silently binds to nothing (the mixer logs a warning
+ * and the model sits still). Every dotted axis is therefore rewritten to the
+ * bracket form here, once, instead of being remembered by every model file.
+ */
+export function trackName(node, property) {
+  const dot = property.lastIndexOf('.');
+  if (dot === -1) return `${node}.${property}`;
+  return `${node}.${property.slice(0, dot)}[${property.slice(dot + 1)}]`;
+}
+
 export function clip(name, duration, tracks) {
   const c = new THREE.AnimationClip(name, duration, tracks.map((t) => new THREE.NumberKeyframeTrack(
-    `${t.node}.${t.property}`,
+    trackName(t.node, t.property),
     t.keys.map((k) => k[0]),
     t.keys.map((k) => k[1]),
   )));

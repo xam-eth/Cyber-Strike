@@ -129,6 +129,7 @@ function viewFile(id) {
 fs.mkdirSync(REVIEW, { recursive: true });
 const sheets = [];
 const cells = [];
+const stale = [];
 
 const categories = [...new Set(catalog.entries.map((e) => e.category))];
 for (const category of categories) {
@@ -147,6 +148,12 @@ for (const category of categories) {
     blit(canvas, frame, ox, oy);
     const file = viewFile(entry.id);
     if (file) {
+      // A sheet is only evidence if the pixels are newer than the code. Stale
+      // renders once hid a skin change completely, so say so out loud.
+      const srcFile = path.join(FORGE, 'src', entry.category, `${entry.id}.js`);
+      if (fs.existsSync(srcFile) && fs.statSync(file).mtimeMs < fs.statSync(srcFile).mtimeMs) {
+        stale.push(`${entry.id} (${path.basename(file)} older than ${path.basename(srcFile)})`);
+      }
       const img = decodePng(fs.readFileSync(file));
       const small = downscale(img, CELL - 2);
       blit(canvas, small, ox + 1, oy + 1);
@@ -168,3 +175,9 @@ fs.writeFileSync(path.join(REVIEW, 'sheet.json'), `${JSON.stringify({
   cells,
 }, null, 2)}\n`);
 console.log(`wrote review/sheet.json`);
+if (stale.length) {
+  console.warn(`\n⚠ ${stale.length} stale render(s) — run run_gate.mjs before trusting this sheet:`);
+  for (const m of stale) console.warn(`  · ${m}`);
+} else {
+  console.log('freshness: every cell is newer than its model source');
+}

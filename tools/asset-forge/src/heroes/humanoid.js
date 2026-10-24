@@ -118,8 +118,8 @@ export const SKINS = {
     // Not a hero skin: the Shooter enemy's body uses the same hierarchy with a
     // hostile palette, which is why the enemy reads as the same army.
     label: 'Hostile Trooper',
-    plating: 'line',
-    secondary: 'panel3',
+    plating: 'ink3',
+    secondary: 'line',
     under: 'panel2',
     energy: 'danger',
     trim: 'danger',
@@ -135,9 +135,11 @@ export const SKINS = {
   },
   alien_hunter: {
     label: 'Alien Hunter',
-    plating: 'line',
-    secondary: 'panel2',
-    under: 'panel3',
+    // Growth-plate armour: mid-tone chitin over the darkest underlayer. `line`
+    // on `panel2` rendered as a black slab side-on (coverage 0.0 at az 90).
+    plating: 'ink3',
+    secondary: 'line',
+    under: 'panel2',
     energy: 'ok',
     trim: 'ok',
     backpack: false,
@@ -361,6 +363,22 @@ export function buildHumanoid(skinKey, meta) {
         torso.add(shell);
       }
     }
+    // dorsal ridge: the shell grows backwards, which is what gives the hunter a
+    // real silhouette from the side instead of a flat profile.
+    for (let i = 0; i < 4; i += 1) {
+      const backPlate = at(bevelBox(0.13 - i * 0.015, 0.1, 0.16, secondary, { radius: 0.03 }), { y: 0.44 - i * 0.13, z: -0.19 - i * 0.012 });
+      backPlate.rotation.x = -0.25;
+      torso.add(backPlate);
+      const spine = at(cone(0.026, 0.13, 4, energyDim), { y: 0.5 - i * 0.13, z: -0.27 });
+      spine.rotation.x = Math.PI * 0.62;
+      torso.add(spine);
+    }
+    for (const sx of [-1, 1]) {
+      const fan = at(cone(0.04, 0.22, 5, energyDim), { x: sx * 0.1, y: 0.1, z: -0.2 });
+      fan.rotation.x = Math.PI * 0.66;
+      fan.rotation.z = sx * 0.25;
+      torso.add(fan);
+    }
   }
 
   hips.add(torso);
@@ -376,7 +394,10 @@ export function buildHumanoid(skinKey, meta) {
       { node: 'ArmR', property: 'rotation.z', keys: [[0, 0], [1.6, -0.03], [3.2, 0]] },
       { node: 'Head', property: 'rotation.y', keys: [[0, -0.05], [1.6, 0.05], [3.2, -0.05]] },
     ]),
-    // aim: both arms up, torso squared to the camera, weapon hand forward
+    // aim: both arms up and forward. The visor, jaw and chest plate all sit on
+    // +Z, i.e. the hero faces +Z (the glTF forward convention, and the same way
+    // every enemy is built), so a NEGATIVE rotation.x swings a hanging arm from
+    // -Y toward +Z. Positive values threw the arms out behind the hero's back.
     clip('aim', 1.6, [
       { node: 'ArmR', property: 'rotation.x', keys: [[0, -0.02], [0.5, -1.42], [1.6, -1.42]] },
       { node: 'ArmR', property: 'rotation.z', keys: [[0, 0], [0.5, -0.18], [1.6, -0.18]] },
@@ -385,7 +406,8 @@ export function buildHumanoid(skinKey, meta) {
       { node: 'Torso', property: 'rotation.y', keys: [[0, 0], [0.5, -0.16], [1.6, -0.16]] },
       { node: 'Head', property: 'rotation.y', keys: [[0, 0], [0.5, 0.12], [1.6, 0.12]] },
     ]),
-    // fire: the recoil kick layered on the aim pose
+    // fire: the recoil kick layered on the aim pose — the arm drives further
+    // forward (-x) and the torso rocks back (top toward -Z = positive rotation.x)
     clip('fire', 0.4, [
       { node: 'ArmR', property: 'rotation.x', keys: [[0, -1.42], [0.06, -1.56], [0.4, -1.42]] },
       { node: 'Torso', property: 'rotation.x', keys: [[0, 0], [0.06, 0.05], [0.4, 0]] },

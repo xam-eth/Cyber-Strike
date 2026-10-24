@@ -271,6 +271,8 @@ function setWireframe(on) {
   });
 }
 
+const autoPlay = !capture;
+
 export async function loadModel(id) {
   const entry = registry[id];
   if (!entry) throw new Error(`unknown model ${id}`);
@@ -283,10 +285,16 @@ export async function loadModel(id) {
   current = { ...payload, framing };
   if (payload.clips?.length) {
     mixer = new THREE.AnimationMixer(payload.root);
-    const action = mixer.clipAction(payload.clips[0]);
-    action.play();
     const t = params.get('t');
-    if (t !== null) { mixer.setTime(Number(t)); }
+    // In capture mode nothing plays unless a time was asked for. Otherwise the
+    // gate measures and renders whatever frame the RAF loop happened to reach,
+    // which made `height-within-tolerance` (impact_burst flipped between 0.36 m
+    // and 0.70 m) and `views-differ` (the turret's yaw sweep) flaky.
+    if (autoPlay || t !== null) {
+      const action = mixer.clipAction(payload.clips[0]);
+      action.play();
+      if (t !== null) { mixer.setTime(Number(t)); }
+    }
   }
   setWireframe(showWire);
   document.querySelectorAll('button.item').forEach((b) => b.classList.toggle('active', b.dataset.id === id));
@@ -350,6 +358,29 @@ window.__debugProbe = async () => {
   }, null, 1);
 };
 
+window.__debugArm = () => {
+  const found = {};
+  current?.root?.traverse((o) => {
+    if (['ArmR', 'ArmL', 'Torso', 'Head', 'Body'].includes(o.name)) found[o.name] = [o.rotation.x, o.rotation.y, o.rotation.z].map((v) => +v.toFixed(3));
+  });
+  const allNames = [];
+  current?.root?.traverse((o) => { if (o.name) allNames.push(o.name); });
+  const found2 = current?.root?.getObjectByName?.('ArmR');
+  const binds = [];
+  if (mixer) {
+    for (const act of mixer._actions) {
+      for (const pb of act._propertyBindings ?? []) {
+        binds.push({
+          track: pb.binding.path,
+          node: pb.binding.node ? pb.binding.node.name : null,
+          parsed: pb.binding.parsedPath ? `${pb.binding.parsedPath.nodeName}|${pb.binding.parsedPath.propertyName}|${pb.binding.parsedPath.propertyIndex}` : null,
+        });
+      }
+    }
+  }
+  return { mixerRoot: mixer?._root?.name ?? null, mixerRootHas: mixer?._root?.getObjectByName?.('ArmR') ? 'yes' : 'no', allNames, found2: found2 ? found2.name : null, rootName: current?.root?.name, found, mixerTime: mixer ? +mixer.time.toFixed(3) : null, clips: (current?.clips ?? []).map((c) => [c.name, c.tracks.map((t) => t.name)]), binds };
+};
+
 window.__registryLookup = async (id) => (registry[id] ? registry[id].load() : null);
 
 window.__api = {
@@ -400,6 +431,21 @@ window.__api = {
     const clipTracks = (current.clips ?? []).map((c) => ({
       name: c.name, duration: c.duration, tracks: c.tracks.map((t) => t.name), targets: c.userData?.targets ?? [],
     }));
+    // Resolve every track the way the mixer will: a name can be "legal" and
+    // still bind to nothing. three.js reads `ArmR.rotation.x` as node
+    // `ArmR.rotation` + property `x`, logs a warning and animates no model, so
+    // this check parses each track and requires the node *and* the property to
+    // actually resolve.
+    const clipBindings = (current.clips ?? []).map((c) => ({
+      name: c.name,
+      unresolved: c.tracks.map((t) => t.name).filter((name) => {
+        const parsed = THREE.PropertyBinding.parseTrackName(name);
+        const node = THREE.PropertyBinding.findNode(root, parsed.nodeName);
+        if (!node) return true;
+        const prop = String(parsed.propertyName ?? '').split('.')[0];
+        return !(prop in node);
+      }),
+    }));
     const nodeNameList = [];
     root.traverse((o) => { if (o.name) nodeNameList.push(o.name); });
     return {
@@ -420,11 +466,13 @@ window.__api = {
       socketNames,
       forge: current.root.userData?.forge ?? null,
       clips: clipTracks,
+      clipBindings,
     };
   },
   /** Render N views and return PNG data URLs; used by the gate, not by the UI. */
   async shots(views = [{ az: 0, el: 8 }, { az: 34, el: 12 }, { az: 90, el: 8 }], size = 720) {
     if (!current) throw new Error('no model loaded');
+    if (size && size !== renderer.domElement.width) await window.__api.resize(size);
     const out = [];
     const prevSpin = spin;
     spin = false;
@@ -475,6 +523,10 @@ window.__api = {
     return true;
   },
   async clips() { return (current?.clips ?? []).map((c) => c.name); },
+  async clipDuration(name) {
+    const c = (current?.clips ?? []).find((x) => x.name === name);
+    return c ? c.duration : 0;
+  },
   /**
    * Build the same model a second time from a cache-busted module URL and hash
    * the geometry again. Determinism is measured, not assumed: the gate compares

@@ -163,6 +163,11 @@ for (const entry of entries) {
       buffer: Buffer.from(s.dataUrl.split(',')[1], 'base64'),
     }));
     const dir = path.join(outDir, entry.id);
+    // Wipe stale renders before writing. Without this a directory keeps views
+    // from an older catalog (e.g. `view-034-16.png`) and the contact sheet can
+    // composite a render that no longer matches the model — which is exactly how
+    // a stale hero sheet survived a skin change.
+    fs.rmSync(dir, { recursive: true, force: true });
     fs.mkdirSync(dir, { recursive: true });
     for (const s of shotBuffers) {
       fs.writeFileSync(path.join(dir, `view-${String(s.view.az).padStart(3, '0')}-${s.view.el}.png`), s.buffer);
@@ -199,6 +204,7 @@ for (const entry of entries) {
     checks.push(C.checkSockets(entry, stats));
     checks.push(C.checkClips(entry, stats));
     checks.push(C.checkClipTargets(stats));
+    checks.push(C.checkClipBindings(stats));
     checks.push(C.checkUniqueNames(stats));
     checks.push(C.checkGeometryFinite(stats));
     checks.push(C.checkMaterials(stats));

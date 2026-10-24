@@ -172,6 +172,28 @@ export function checkClipTargets(stats) {
   return verdict('clip-targets-exist', bad.length === 0, bad.length ? `dangling targets: ${bad.join('; ')}` : 'every clip target exists in the graph');
 }
 
+/**
+ * A clip target can exist and still animate nothing. three.js resolves tracks
+ * as `nodeName.propertyName[propertyIndex]`; `ArmR.rotation.x` is parsed as
+ * node `ArmR.rotation`, which never exists, and the mixer only logs a warning.
+ * Every model in this set shipped with that bug for a while and every other
+ * check stayed green, so the binding is now verified explicitly.
+ */
+export function checkClipBindings(stats) {
+  const bad = [];
+  for (const clip of stats.clipBindings ?? []) {
+    for (const track of clip.unresolved ?? []) bad.push(`${clip.name} → ${track}`);
+  }
+  if (!(stats.clipBindings ?? []).length) {
+    return verdict('clip-bindings-resolve', true, 'static asset (no clips)');
+  }
+  return verdict(
+    'clip-bindings-resolve',
+    bad.length === 0,
+    bad.length ? `tracks that bind to nothing: ${bad.join('; ')}` : 'every track resolves to a node property',
+  );
+}
+
 export function checkUniqueNames(stats) {
   const dupes = stats.duplicatedNames ?? [];
   return verdict('unique-node-names', dupes.length === 0, dupes.length ? `duplicated: ${[...new Set(dupes)].join(', ')}` : `${stats.nodeCount} named nodes, no duplicates`);
