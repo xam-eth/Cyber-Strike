@@ -26,13 +26,13 @@ const SPAWN_GATE_SCENE: PackedScene = preload(
 )
 const COVER_SCENE: PackedScene = preload("res://scenes/worlds/components/cover_module.tscn")
 
-## Component motion (halos spinning, dishes scanning, beacons pulsing) is a
-## game-time effect; see `neon_frontier_motion.gd` for the per-asset rule table.
-@export var animate_components: bool = true
-
 const WORLD_WIDTH: float = 192.0
 const WORLD_DEPTH: float = 180.0
 const WORLD_CENTER_Z: float = -10.0
+
+## Component motion (halos spinning, dishes scanning, beacons pulsing) is a
+## game-time effect; see `neon_frontier_motion.gd` for the per-asset rule table.
+@export var animate_components: bool = true
 
 var _materials: Dictionary = {}
 var _active_geometry_parent: Node3D

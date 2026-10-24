@@ -26,7 +26,8 @@ const TAU_LOCAL := TAU
 ## One row per asset kind. `speed` is radians (or cycles) per second, so the
 ## numbers are directly comparable across components.
 const RULES: Dictionary = {
-	"reactor_core": [
+	"reactor_core":
+	[
 		{"match": "ContainmentLowerHalo", "mode": "spin", "axis": "y", "speed": 0.55},
 		{"match": "ContainmentUpperHalo", "mode": "spin", "axis": "y", "speed": -0.42},
 		{"match": "ReactorServiceRing", "mode": "spin", "axis": "y", "speed": 0.22},
@@ -35,12 +36,14 @@ const RULES: Dictionary = {
 		{"match": "EmeraldEnergyColumn", "mode": "pulse", "amount": 0.03, "speed": 1.4},
 		{"match": "ReactorBeacon", "mode": "pulse", "amount": 0.18, "speed": 3.4},
 	],
-	"command_center": [
+	"command_center":
+	[
 		{"match": "CommandAntennaDish", "mode": "spin", "axis": "y", "speed": 0.6},
 		{"match": "CommandRoofBeaconLens", "mode": "pulse", "amount": 0.22, "speed": 3.0},
 		{"match": "CommandMainDoor", "mode": "bob", "amount": 0.06, "speed": 0.9},
 	],
-	"research_lab": [
+	"research_lab":
+	[
 		{"match": "ResearchSampleColumn", "mode": "pulse", "amount": 0.06, "speed": 2.6},
 		{"match": "ResearchVesselRing", "mode": "spin", "axis": "y", "speed": 0.8},
 		{
@@ -52,61 +55,73 @@ const RULES: Dictionary = {
 		},
 		{"match": "ResearchRoofPod", "mode": "sweep", "axis": "x", "amount": 0.08, "speed": 1.1},
 	],
-	"equipment_depot": [
+	"equipment_depot":
+	[
 		{"match": "SciFiEquipmentDepotFacade", "mode": "bob", "amount": 0.02, "speed": 1.2},
 	],
-	"generator_bank": [
+	"generator_bank":
+	[
 		{"match": "GeneratorEnergyColumn", "mode": "pulse", "amount": 0.07, "speed": 2.4},
 		{"match": "GeneratorCrown", "mode": "spin", "axis": "y", "speed": 0.5},
 		{"match": "GeneratorManifoldGlow", "mode": "pulse", "amount": 0.16, "speed": 3.8},
 	],
-	"landing_pad": [
+	"landing_pad":
+	[
 		{"match": "LandingPadBeaconLens", "mode": "pulse", "amount": 0.3, "speed": 3.2},
 		{"match": "LandingPadCenterStroke", "mode": "pulse", "amount": 0.08, "speed": 1.6},
 	],
-	"boss_gate": [
+	"boss_gate":
+	[
 		{"match": "BossGateHeaderEnergy", "mode": "pulse", "amount": 0.05, "speed": 1.8},
 		{"match": "BossGateShutterLight", "mode": "pulse", "amount": 0.35, "speed": 4.2},
 		{"match": "BossGateEnergyRail", "mode": "pulse", "amount": 0.04, "speed": 2.6},
 		{"match": "BossGateConduitNode", "mode": "spin", "axis": "z", "speed": 1.1},
 	],
-	"defense_turret": [
+	"defense_turret":
+	[
 		{"match": "TurretHousing", "mode": "sweep", "axis": "y", "amount": 0.85, "speed": 0.55},
 		{"match": "TurretBarrel", "mode": "bob", "amount": 0.05, "speed": 2.2, "axis": "z"},
 		{"match": "TurretSensor", "mode": "pulse", "amount": 0.14, "speed": 2.8},
 	],
-	"sensor_tower": [
+	"sensor_tower":
+	[
 		{"match": "SensorTowerRadar", "mode": "spin", "axis": "y", "speed": 1.3},
 		{"match": "SensorTowerDish", "mode": "sweep", "axis": "y", "amount": 0.45, "speed": 0.8},
 		{"match": "SensorTowerAntenna", "mode": "sweep", "axis": "z", "amount": 0.04, "speed": 1.4},
 		{"match": "SensorTowerBandLight", "mode": "pulse", "amount": 0.1, "speed": 2.0},
 	],
-	"wrecked_transport": [
+	"wrecked_transport":
+	[
 		{"match": "TransportFireGlow", "mode": "pulse", "amount": 0.35, "speed": 5.2},
 		{"match": "TransportEngineGlow", "mode": "pulse", "amount": 0.22, "speed": 3.6},
 	],
-	"alien_drone_wreck": [
+	"alien_drone_wreck":
+	[
 		{"match": "DroneCoreLens", "mode": "pulse", "amount": 0.22, "speed": 1.6},
 		{"match": "DroneSparkingCable", "mode": "pulse", "amount": 0.5, "speed": 7.0},
 	],
 	# `props.gd` builds these; shards and lanterms are separate meshes, so the
 	# prefix matters — "Crystal" would also catch "CrystalRoot".
-	"crystal_cluster": [
+	"crystal_cluster":
+	[
 		{"match": "CrystalShard", "mode": "pulse", "amount": 0.035, "speed": 1.1},
 		{"match": "CrystalSmallShard", "mode": "pulse", "amount": 0.05, "speed": 1.6},
 		{"match": "FloraLantern", "mode": "pulse", "amount": 0.2, "speed": 2.4},
 	],
-	"alien_flora": [
+	"alien_flora":
+	[
 		{"match": "FloraArchingFrond", "mode": "sweep", "axis": "z", "amount": 0.07, "speed": 1.5},
 		{"match": "FloraStem", "mode": "sweep", "axis": "z", "amount": 0.04, "speed": 1.2},
 		{"match": "FloraLantern", "mode": "pulse", "amount": 0.18, "speed": 2.6},
 	],
 	"rock_cluster": [],
-	"enemy_spawn_gate": [
+	"enemy_spawn_gate":
+	[
 		{"match": "SpawnGateEnergyLintel", "mode": "pulse", "amount": 0.09, "speed": 1.9},
 		{"match": "SpawnGateBeacon", "mode": "pulse", "amount": 0.28, "speed": 3.6},
 	],
-	"cover_module": [
+	"cover_module":
+	[
 		{"match": "CoverModuleSignal", "mode": "pulse", "amount": 0.3, "speed": 2.6},
 	],
 }
@@ -152,13 +167,18 @@ func _collect() -> void:
 			var mesh := node as Node3D
 			if mesh == null:
 				continue
-			_targets.append({
-				"node": mesh,
-				"rest_position": mesh.position,
-				"rest_rotation": mesh.rotation,
-				"rest_scale": mesh.scale,
-				"rule": rule,
-			})
+			(
+				_targets
+				. append(
+					{
+						"node": mesh,
+						"rest_position": mesh.position,
+						"rest_rotation": mesh.rotation,
+						"rest_scale": mesh.scale,
+						"rule": rule,
+					}
+				)
+			)
 
 
 func _apply(target: Dictionary) -> void:
