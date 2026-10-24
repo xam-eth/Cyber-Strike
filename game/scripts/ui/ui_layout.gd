@@ -23,7 +23,8 @@ static func over_hud(hud, position: Vector2) -> bool:
 		hud._defense_button,
 		hud._armory_button,
 		hud._armory_panel,
-		hud._help_panel,
+		# Not the help plate: it is a hint with no action in it, so a drag that
+		# starts on the hint must still move the player.
 		hud._fire_button,
 		hud._weapon_button,
 		hud._skill_button,
