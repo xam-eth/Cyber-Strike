@@ -26,6 +26,7 @@ extends SceneTree
 ##
 const MainScene = preload("res://scenes/main.tscn")
 const WorldScene = preload("res://scenes/worlds/mission_world.tscn")
+const WorldScript = preload("res://scripts/worlds/mission_world.gd")
 
 ## Per world: the number of meshes and clips the staged GLB is known to carry. The
 ## floors sit just under those counts, so losing a district fails the test while a
@@ -45,6 +46,21 @@ func _initialize() -> void:
 
 
 func _run_smoke_test() -> void:
+	# The launcher selects by world id, so every registry id has to resolve back to
+	# itself. This is the bug that shipped once: the map of launcher ids to worlds
+	# held the forge's short names and not the ids the launcher actually uses, so
+	# the default world silently refused to build.
+	for definition in WorldDefinition.DEFINITION_IDS:
+		if not WorldMood.MOODS.has(String(definition)):
+			continue
+		_passed = (
+			_expect(
+				WorldScript.world_for_selection(String(definition)) == String(definition),
+				"the launcher id '%s' resolves to that world" % definition,
+			)
+			and _passed
+		)
+
 	var seen_key_colors: Array[Color] = []
 	for world_id in WorldMood.MOOD_ORDER:
 		var key_color: Variant = await _check_world(world_id)

@@ -37,13 +37,14 @@ const WORLD_SCENES := {
 }
 ## Mission order; the first is the default theatre.
 const WORLD_ORDER: Array[String] = ["frostline_relay", "verdant_bloom", "emberfall_foundry"]
-## Launcher ids (ProgressionService.selected_world_id) → world ids.
-const SELECTION_MAP := {
+## The forge's theme ids, accepted as aliases for the world ids. The registry
+## selects with the world id itself (they are the same strings), so the map is
+## not a second list of ids to keep in sync — it only adds the short names the
+## capture tooling uses.
+const SELECTION_ALIASES := {
 	"frostline": "frostline_relay",
 	"verdant": "verdant_bloom",
-	"verdant_bloom": "verdant_bloom",
 	"emberfall": "emberfall_foundry",
-	"emberfall_foundry": "emberfall_foundry",
 }
 
 ## Collision for the real props. The GLB is a visual scene: it has no physics, so
@@ -116,7 +117,16 @@ func _is_selected() -> bool:
 	# Otherwise only the selected theatre builds. An empty selection means a
 	# fresh profile, which loads the first mission.
 	var selected := String(WorldSelection.selected(self))
-	return selected == "" or SELECTION_MAP.has(selected)
+	return selected == "" or not world_for_selection(selected).is_empty()
+
+
+## Which world a launcher selection means. A world id is its own selection; the
+## forge's theme ids are aliases. Anything else — the station's id, a stale save
+## — means this node is not the theatre the player chose, and it stays empty.
+static func world_for_selection(selected: String) -> String:
+	if WORLD_SCENES.has(selected):
+		return selected
+	return String(SELECTION_ALIASES.get(selected, ""))
 
 
 ## Which mission world this node is. An explicit override wins; otherwise the
@@ -125,8 +135,9 @@ func _world_id() -> String:
 	if not world_override.is_empty():
 		return world_override
 	var selected := String(WorldSelection.selected(self))
-	if SELECTION_MAP.has(selected):
-		return SELECTION_MAP[selected]
+	var resolved := world_for_selection(selected)
+	if not resolved.is_empty():
+		return resolved
 	return WORLD_ORDER[0]
 
 
