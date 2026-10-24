@@ -37,6 +37,7 @@ const flag = (name, def) => {
   const index = argv.indexOf(name);
   return index === -1 ? def : argv[index + 1];
 };
+const arg = (name) => argv.includes(name);
 const list = (name) => argv.reduce((acc, arg, i) => (arg === name ? [...acc, argv[i + 1]] : acc), []);
 
 const tag = flag('--tag', 'flow');
@@ -94,7 +95,11 @@ for (const viewport of viewports) {
     consoleLines.push(`${message.type()}: ${text.slice(0, 240)}`);
     if (message.type() === 'error') consoleErrors.push(text.slice(0, 240));
   });
-  await page.setViewport({ width, height, deviceScaleFactor: 1 });
+  // A narrow viewport alone is not a phone: without touch emulation the engine
+  // correctly shows its desktop HUD, and a "portrait" frame would then be
+  // evidence for a layout no phone ever gets. Same rule as tools/web_qa.mjs.
+  const touchDevice = arg('--touch') || Math.min(width, height) < 600;
+  await page.setViewport({ width, height, deviceScaleFactor: 1, hasTouch: touchDevice, isMobile: touchDevice });
 
   const shoot = async (name, expectScreen) => {
     const file = path.join(outDir, `${name}-${viewport}.png`);
