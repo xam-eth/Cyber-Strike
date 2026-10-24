@@ -617,6 +617,11 @@ func _run_smoke_test() -> void:
 
 	var initial_position: Vector3 = player.global_position
 	var joystick_origin: Vector2 = controls.get("_joystick_center")
+	# The stick is a *physical* 64 px ring, so its radius in canvas units grows as
+	# the stretch shrinks: 118 px at 844x390, 123 at 667x375. A fixed 90 px drag
+	# is only 0.73 of that, which reads as a half tilt, not a full one. Every
+	# drag below therefore starts from the radius itself.
+	var reach: float = maxf(90.0, float(controls.get("_joystick_radius")) * 1.2)
 	var outside_ring := joystick_origin - Vector2(0.0, 180.0)
 	_send_screen_touch(controls, 93, outside_ring, true)
 	_expect(
@@ -631,8 +636,8 @@ func _run_smoke_test() -> void:
 	controls.call("_input", joystick_touch)
 	var joystick_drag := InputEventScreenDrag.new()
 	joystick_drag.index = 71
-	joystick_drag.position = joystick_touch.position + Vector2(0.0, -90.0)
-	joystick_drag.relative = Vector2(0.0, -90.0)
+	joystick_drag.position = joystick_touch.position + Vector2(0.0, -reach)
+	joystick_drag.relative = Vector2(0.0, -reach)
 	controls.call("_input", joystick_drag)
 	_expect(
 		(Vector2(player.get("_touch_movement")) - Vector2(0.0, -1.0)).length() < 0.02,
@@ -667,23 +672,23 @@ func _run_smoke_test() -> void:
 		"releasing the movement touch clears the virtual joystick",
 	)
 	await _test_joystick_vector(
-		controls, player, 80, joystick_origin, Vector2(0.0, -90.0), Vector2(0.0, -1.0), "up"
+		controls, player, 80, joystick_origin, Vector2(0.0, -reach), Vector2(0.0, -1.0), "up"
 	)
 	await _test_joystick_vector(
-		controls, player, 81, joystick_origin, Vector2(0.0, 90.0), Vector2(0.0, 1.0), "down"
+		controls, player, 81, joystick_origin, Vector2(0.0, reach), Vector2(0.0, 1.0), "down"
 	)
 	await _test_joystick_vector(
-		controls, player, 82, joystick_origin, Vector2(-90.0, 0.0), Vector2(-1.0, 0.0), "left"
+		controls, player, 82, joystick_origin, Vector2(-reach, 0.0), Vector2(-1.0, 0.0), "left"
 	)
 	await _test_joystick_vector(
-		controls, player, 83, joystick_origin, Vector2(90.0, 0.0), Vector2(1.0, 0.0), "right"
+		controls, player, 83, joystick_origin, Vector2(reach, 0.0), Vector2(1.0, 0.0), "right"
 	)
 	await _test_joystick_vector(
 		controls,
 		player,
 		84,
 		joystick_origin,
-		Vector2(-90.0, -90.0),
+		Vector2(-reach, -reach),
 		Vector2(-1.0, -1.0).normalized(),
 		"up-left diagonal"
 	)
@@ -692,7 +697,7 @@ func _run_smoke_test() -> void:
 		player,
 		85,
 		joystick_origin,
-		Vector2(90.0, -90.0),
+		Vector2(reach, -reach),
 		Vector2(1.0, -1.0).normalized(),
 		"up-right diagonal"
 	)
@@ -701,7 +706,7 @@ func _run_smoke_test() -> void:
 		player,
 		86,
 		joystick_origin,
-		Vector2(-90.0, 90.0),
+		Vector2(-reach, reach),
 		Vector2(-1.0, 1.0).normalized(),
 		"down-left diagonal"
 	)
@@ -710,7 +715,7 @@ func _run_smoke_test() -> void:
 		player,
 		87,
 		joystick_origin,
-		Vector2(90.0, 90.0),
+		Vector2(reach, reach),
 		Vector2(1.0, 1.0).normalized(),
 		"down-right diagonal"
 	)

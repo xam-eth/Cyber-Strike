@@ -45,10 +45,11 @@ const COMPACT_LINES: int = 4
 ## The one legend the HUD shows. It names the touch controls first, because a
 ## thumb is what the layout is built for; the keys that do the same thing follow
 ## in the same line.
+## Two lines, because the plate it sits on is sized for two: the layout reserves
+## `_help_block_height(2)` in the quiet lane between the thumb zones, and a third
+## line is what pushed the plate past the lane and clipped its own last row.
 const HELP_TEXT := (
-	"STICK MOVE · DRAG LOOK · HOLD AIM\n"
-	+ "FIRE · EMP · SWAP · B DEFENSE\n"
-	+ "U ARMORY · G RELOAD · ESC PAUSE"
+	"STICK MOVE · DRAG LOOK · HOLD AIM\n" + "FIRE · EMP · SWAP · B DEFENSE · ESC PAUSE"
 )
 const HELP_FADE_SECONDS: float = 1.5
 ## The browser toolbar now starts folded into a single chip. Keep the vitals
