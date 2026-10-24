@@ -21,7 +21,7 @@ export const meta = {
   triangleBudget: 60000,
   meshBudget: 600,
   sockets: ['vessel'],
-  animations: ['sample_cycle'],
+  animations: ['sample'],
 };
 
 export function build() {
@@ -126,7 +126,7 @@ export function build() {
   return finalize(root, {
     meta,
     sockets: { vessel: vesselSocket },
-    clips: [pulseClip('sample_cycle', 'SampleCore', { from: 0.9, to: 1.08, duration: 3.4 })],
+    clips: [pulseClip('sample', 'SampleCore', { from: 0.9, to: 1.08, duration: 3.4 })],
   });
 }
 

@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-24T04:18:14.085Z",
+  "generated": "2026-10-24T05:08:23.741Z",
   "note": "Written by tools/asset-forge/gate/stage_into_game.mjs — the forge → Godot contract. Verified by tools/asset-forge/godot/verify_import.gd.",
   "entries": [
     {
@@ -20,7 +20,7 @@
       "sockets": [
         "charge_fx"
       ],
-      "bytes": 723532
+      "bytes": 723464
     },
     {
       "id": "command_center",
@@ -41,7 +41,7 @@
         "dish_yaw",
         "door"
       ],
-      "bytes": 439096
+      "bytes": 439028
     },
     {
       "id": "research_lab",
@@ -56,12 +56,12 @@
       "measuredWidth": 8.631,
       "triangles": 4688,
       "clips": [
-        "sample_cycle"
+        "sample"
       ],
       "sockets": [
         "vessel"
       ],
-      "bytes": 391032
+      "bytes": 390952
     },
     {
       "id": "equipment_depot",
@@ -82,7 +82,7 @@
         "cargo_slot",
         "door"
       ],
-      "bytes": 381096
+      "bytes": 381028
     },
     {
       "id": "generator_bank",
@@ -102,7 +102,7 @@
       "sockets": [
         "feed_pipe"
       ],
-      "bytes": 579988
+      "bytes": 579924
     },
     {
       "id": "landing_pad",
@@ -117,12 +117,12 @@
       "measuredWidth": 9.848,
       "triangles": 3672,
       "clips": [
-        "beacon_cycle"
+        "beacon"
       ],
       "sockets": [
         "pad_centre"
       ],
-      "bytes": 299600
+      "bytes": 299520
     },
     {
       "id": "boss_gate",
@@ -143,7 +143,7 @@
         "shutter_l",
         "shutter_r"
       ],
-      "bytes": 639440
+      "bytes": 639364
     },
     {
       "id": "defense_turret",
@@ -166,7 +166,7 @@
         "muzzle_r",
         "sensor"
       ],
-      "bytes": 237548
+      "bytes": 237424
     },
     {
       "id": "sensor_tower",
@@ -187,7 +187,7 @@
         "dish",
         "beacon"
       ],
-      "bytes": 372832
+      "bytes": 372792
     },
     {
       "id": "wrecked_transport",
@@ -208,7 +208,7 @@
         "hull_cut",
         "wing_l"
       ],
-      "bytes": 187024
+      "bytes": 186960
     },
     {
       "id": "alien_drone_wreck",
@@ -230,7 +230,7 @@
         "arm_l",
         "arm_r"
       ],
-      "bytes": 607376
+      "bytes": 607308
     },
     {
       "id": "crystal_cluster",
@@ -250,7 +250,7 @@
       "sockets": [
         "harvest_point"
       ],
-      "bytes": 127148
+      "bytes": 127080
     },
     {
       "id": "alien_flora",
@@ -270,7 +270,7 @@
       "sockets": [
         "root"
       ],
-      "bytes": 130732
+      "bytes": 130676
     },
     {
       "id": "rock_cluster",
@@ -308,7 +308,7 @@
       "sockets": [
         "spawn_point"
       ],
-      "bytes": 686152
+      "bytes": 686088
     },
     {
       "id": "cover_module",
@@ -350,7 +350,7 @@
         "muzzle",
         "chest_core"
       ],
-      "bytes": 491288
+      "bytes": 491144
     },
     {
       "id": "exo_combat_tech",
@@ -374,7 +374,7 @@
         "muzzle",
         "chest_core"
       ],
-      "bytes": 565040
+      "bytes": 564896
     },
     {
       "id": "exo_void_runner",
@@ -398,7 +398,7 @@
         "muzzle",
         "chest_core"
       ],
-      "bytes": 538052
+      "bytes": 537904
     },
     {
       "id": "exo_neon_phantom",
@@ -422,7 +422,7 @@
         "muzzle",
         "chest_core"
       ],
-      "bytes": 526840
+      "bytes": 526696
     },
     {
       "id": "exo_rogue_engineer",
@@ -446,7 +446,7 @@
         "muzzle",
         "chest_core"
       ],
-      "bytes": 544404
+      "bytes": 544260
     },
     {
       "id": "exo_alien_hunter",
@@ -470,7 +470,7 @@
         "muzzle",
         "chest_core"
       ],
-      "bytes": 571112
+      "bytes": 570964
     },
     {
       "id": "pulse_rifle",
@@ -495,7 +495,7 @@
         "grip_l",
         "scope"
       ],
-      "bytes": 162884
+      "bytes": 162788
     },
     {
       "id": "nova_launcher",
@@ -520,7 +520,7 @@
         "grip_l",
         "drum"
       ],
-      "bytes": 159844
+      "bytes": 159748
     },
     {
       "id": "arc_shooter",
@@ -545,7 +545,7 @@
         "prong_l",
         "prong_r"
       ],
-      "bytes": 171760
+      "bytes": 171660
     },
     {
       "id": "scatter_blaster",
@@ -569,7 +569,7 @@
         "grip_r",
         "grip_l"
       ],
-      "bytes": 148324
+      "bytes": 148224
     },
     {
       "id": "rail_cannon",
@@ -594,7 +594,7 @@
         "grip_l",
         "coil"
       ],
-      "bytes": 193740
+      "bytes": 193608
     },
     {
       "id": "gravity_gun",
@@ -618,7 +618,7 @@
         "grip_r",
         "core"
       ],
-      "bytes": 171896
+      "bytes": 171764
     },
     {
       "id": "arc_shooter_void_edition",
@@ -643,7 +643,7 @@
         "prong_l",
         "prong_r"
       ],
-      "bytes": 171776
+      "bytes": 171680
     },
     {
       "id": "runner",
@@ -668,7 +668,7 @@
         "claw_l",
         "claw_r"
       ],
-      "bytes": 378712
+      "bytes": 378532
     },
     {
       "id": "shooter",
@@ -692,7 +692,7 @@
         "hand_r",
         "chest"
       ],
-      "bytes": 530196
+      "bytes": 529984
     },
     {
       "id": "training_drone",
@@ -715,7 +715,7 @@
         "hover_ring",
         "sensor"
       ],
-      "bytes": 347280
+      "bytes": 347132
     },
     {
       "id": "pulse_bolt",
@@ -737,7 +737,7 @@
         "head",
         "tail"
       ],
-      "bytes": 34924
+      "bytes": 34856
     },
     {
       "id": "nova_shockwave",
@@ -758,7 +758,7 @@
       "sockets": [
         "centre"
       ],
-      "bytes": 80136
+      "bytes": 80020
     },
     {
       "id": "arc_chain",
@@ -781,7 +781,7 @@
         "fork_a",
         "fork_b"
       ],
-      "bytes": 129368
+      "bytes": 129284
     },
     {
       "id": "impact_burst",
@@ -801,7 +801,7 @@
       "sockets": [
         "centre"
       ],
-      "bytes": 47984
+      "bytes": 47864
     }
   ]
 }

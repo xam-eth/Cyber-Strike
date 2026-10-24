@@ -22,7 +22,7 @@ export const meta = {
   triangleBudget: 50000,
   meshBudget: 500,
   sockets: ['pad_centre'],
-  animations: ['beacon_cycle'],
+  animations: ['beacon'],
   origin: 'ground',
 };
 
@@ -89,7 +89,7 @@ export function build() {
   return finalize(root, {
     meta,
     sockets: { pad_centre: centre },
-    clips: [pulseClip('beacon_cycle', 'Beacon', { from: 0.75, to: 1.35, duration: 2.4 })],
+    clips: [pulseClip('beacon', 'Beacon', { from: 0.75, to: 1.35, duration: 2.4 })],
   });
 }
 

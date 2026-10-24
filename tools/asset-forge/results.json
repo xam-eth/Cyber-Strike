@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-24T04:16:30.698Z",
+  "generated": "2026-10-24T05:08:17.601Z",
   "tool": "tools/asset-forge/gate/run_gate.mjs",
   "renderer": "pinned Chromium, SwiftShader (software) — frame rate is not representative",
   "palette": {
@@ -17,7 +17,7 @@
   "totals": {
     "triangles": 138484,
     "meshes": 3223,
-    "glbBytes": 12336436
+    "glbBytes": 12332896
   },
   "results": [
     {
@@ -44,10 +44,25 @@
         "lumaSpread": 0.902,
         "viewDistance": 0.296,
         "geometryHash": 739802549,
-        "glbBytes": 723532
+        "glbBytes": 723464
       },
       "failing": [],
       "checks": [
+        {
+          "check": "glb-matches-measured",
+          "pass": true,
+          "detail": "exported 5.518×6.000×4.260 m vs measured 5.518×6.000×4.260 m (largest axis drift 0.0% on x, needs ≤1%)",
+          "exported": {
+            "x": 5.518357702819019,
+            "y": 6,
+            "z": 4.259534613472518
+          },
+          "measured": {
+            "x": 5.518357702819019,
+            "y": 6,
+            "z": 4.259534613472518
+          }
+        },
         {
           "check": "gltf-conformance",
           "pass": true,
@@ -143,7 +158,7 @@
           "check": "glb-valid",
           "pass": true,
           "detail": "glTF 2.0, 707 kB, 140 meshes, 22 nodes, 1 animations",
-          "bytes": 723532,
+          "bytes": 723464,
           "meshes": 140,
           "nodes": 22,
           "animations": [
@@ -197,7 +212,7 @@
           "viewDistanceMin": 0.20682951461869137
         }
       ],
-      "ms": 4678
+      "ms": 4938
     },
     {
       "id": "command_center",
@@ -225,10 +240,25 @@
         "lumaSpread": 0.886,
         "viewDistance": 0.123,
         "geometryHash": 3897827787,
-        "glbBytes": 439096
+        "glbBytes": 439028
       },
       "failing": [],
       "checks": [
+        {
+          "check": "glb-matches-measured",
+          "pass": true,
+          "detail": "exported 7.120×7.500×6.007 m vs measured 7.120×7.500×6.007 m (largest axis drift 0.0% on x, needs ≤1%)",
+          "exported": {
+            "x": 7.1195491913686055,
+            "y": 7.5,
+            "z": 6.007119646793753
+          },
+          "measured": {
+            "x": 7.1195491913686055,
+            "y": 7.5,
+            "z": 6.007119646793753
+          }
+        },
         {
           "check": "gltf-conformance",
           "pass": true,
@@ -324,7 +354,7 @@
           "check": "glb-valid",
           "pass": true,
           "detail": "glTF 2.0, 429 kB, 133 meshes, 40 nodes, 2 animations",
-          "bytes": 439096,
+          "bytes": 439028,
           "meshes": 133,
           "nodes": 40,
           "animations": [
@@ -379,7 +409,7 @@
           "viewDistanceMin": 0.10372799940995125
         }
       ],
-      "ms": 9135
+      "ms": 7454
     },
     {
       "id": "research_lab",
@@ -399,16 +429,31 @@
           "vessel"
         ],
         "clips": [
-          "sample_cycle"
+          "sample"
         ],
         "coverage": 0.303,
         "lumaSpread": 0.847,
         "viewDistance": 0.381,
         "geometryHash": 2180496953,
-        "glbBytes": 391032
+        "glbBytes": 390952
       },
       "failing": [],
       "checks": [
+        {
+          "check": "glb-matches-measured",
+          "pass": true,
+          "detail": "exported 8.631×5.500×6.204 m vs measured 8.631×5.500×6.204 m (largest axis drift 0.0% on x, needs ≤1%)",
+          "exported": {
+            "x": 8.630931130758569,
+            "y": 5.5,
+            "z": 6.204302788888472
+          },
+          "measured": {
+            "x": 8.630931130758569,
+            "y": 5.5,
+            "z": 6.204302788888472
+          }
+        },
         {
           "check": "gltf-conformance",
           "pass": true,
@@ -467,7 +512,7 @@
         {
           "check": "clips-declared",
           "pass": true,
-          "detail": "1 clips: sample_cycle"
+          "detail": "1 clips: sample"
         },
         {
           "check": "clip-targets-exist",
@@ -504,11 +549,11 @@
           "check": "glb-valid",
           "pass": true,
           "detail": "glTF 2.0, 382 kB, 88 meshes, 22 nodes, 1 animations",
-          "bytes": 391032,
+          "bytes": 390952,
           "meshes": 88,
           "nodes": 22,
           "animations": [
-            "sample_cycle"
+            "sample"
           ]
         },
         {
@@ -558,7 +603,7 @@
           "viewDistanceMin": 0.16914519504114922
         }
       ],
-      "ms": 11760
+      "ms": 8932
     },
     {
       "id": "equipment_depot",
@@ -585,10 +630,25 @@
         "lumaSpread": 0.846,
         "viewDistance": 0.266,
         "geometryHash": 3440739798,
-        "glbBytes": 381096
+        "glbBytes": 381028
       },
       "failing": [],
       "checks": [
+        {
+          "check": "glb-matches-measured",
+          "pass": true,
+          "detail": "exported 6.799×4.600×6.068 m vs measured 6.799×4.600×6.068 m (largest axis drift 0.0% on x, needs ≤1%)",
+          "exported": {
+            "x": 6.7990763142532264,
+            "y": 4.6,
+            "z": 6.06817553321898
+          },
+          "measured": {
+            "x": 6.7990763142532264,
+            "y": 4.6,
+            "z": 6.06817553321898
+          }
+        },
         {
           "check": "gltf-conformance",
           "pass": true,
@@ -684,7 +744,7 @@
           "check": "glb-valid",
           "pass": true,
           "detail": "glTF 2.0, 372 kB, 126 meshes, 29 nodes, 1 animations",
-          "bytes": 381096,
+          "bytes": 381028,
           "meshes": 126,
           "nodes": 29,
           "animations": [
@@ -738,7 +798,7 @@
           "viewDistanceMin": 0.07626074670873428
         }
       ],
-      "ms": 10046
+      "ms": 5365
     },
     {
       "id": "generator_bank",
@@ -764,10 +824,25 @@
         "lumaSpread": 0.862,
         "viewDistance": 0.495,
         "geometryHash": 1747579981,
-        "glbBytes": 579988
+        "glbBytes": 579924
       },
       "failing": [],
       "checks": [
+        {
+          "check": "glb-matches-measured",
+          "pass": true,
+          "detail": "exported 8.643×6.500×4.172 m vs measured 8.643×6.500×4.172 m (largest axis drift 0.0% on x, needs ≤1%)",
+          "exported": {
+            "x": 8.643308741313735,
+            "y": 6.5,
+            "z": 4.171717778294534
+          },
+          "measured": {
+            "x": 8.643308741313735,
+            "y": 6.5,
+            "z": 4.171717778294534
+          }
+        },
         {
           "check": "gltf-conformance",
           "pass": true,
@@ -863,7 +938,7 @@
           "check": "glb-valid",
           "pass": true,
           "detail": "glTF 2.0, 566 kB, 136 meshes, 38 nodes, 1 animations",
-          "bytes": 579988,
+          "bytes": 579924,
           "meshes": 136,
           "nodes": 38,
           "animations": [
@@ -917,7 +992,7 @@
           "viewDistanceMin": 0.1689014338924153
         }
       ],
-      "ms": 9641
+      "ms": 6633
     },
     {
       "id": "landing_pad",
@@ -937,16 +1012,31 @@
           "pad_centre"
         ],
         "clips": [
-          "beacon_cycle"
+          "beacon"
         ],
         "coverage": 0.104,
         "lumaSpread": 0.827,
         "viewDistance": 0.333,
         "geometryHash": 567967341,
-        "glbBytes": 299600
+        "glbBytes": 299520
       },
       "failing": [],
       "checks": [
+        {
+          "check": "glb-matches-measured",
+          "pass": true,
+          "detail": "exported 9.848×1.200×11.967 m vs measured 9.848×1.200×11.967 m (largest axis drift 0.0% on x, needs ≤1%)",
+          "exported": {
+            "x": 9.847522565901224,
+            "y": 1.2000000000000002,
+            "z": 11.967368070876681
+          },
+          "measured": {
+            "x": 9.847522565901224,
+            "y": 1.2000000000000002,
+            "z": 11.967368070876681
+          }
+        },
         {
           "check": "gltf-conformance",
           "pass": true,
@@ -1005,7 +1095,7 @@
         {
           "check": "clips-declared",
           "pass": true,
-          "detail": "1 clips: beacon_cycle"
+          "detail": "1 clips: beacon"
         },
         {
           "check": "clip-targets-exist",
@@ -1042,11 +1132,11 @@
           "check": "glb-valid",
           "pass": true,
           "detail": "glTF 2.0, 293 kB, 109 meshes, 27 nodes, 1 animations",
-          "bytes": 299600,
+          "bytes": 299520,
           "meshes": 109,
           "nodes": 27,
           "animations": [
-            "beacon_cycle"
+            "beacon"
           ]
         },
         {
@@ -1096,7 +1186,7 @@
           "viewDistanceMin": 0.07798541952765314
         }
       ],
-      "ms": 8073
+      "ms": 3927
     },
     {
       "id": "boss_gate",
@@ -1123,10 +1213,25 @@
         "lumaSpread": 0.862,
         "viewDistance": 0.409,
         "geometryHash": 3629476411,
-        "glbBytes": 639440
+        "glbBytes": 639364
       },
       "failing": [],
       "checks": [
+        {
+          "check": "glb-matches-measured",
+          "pass": true,
+          "detail": "exported 10.462×11.000×4.362 m vs measured 10.462×11.000×4.362 m (largest axis drift 0.0% on x, needs ≤1%)",
+          "exported": {
+            "x": 10.461956570520966,
+            "y": 11,
+            "z": 4.362137682550456
+          },
+          "measured": {
+            "x": 10.461956570520966,
+            "y": 11,
+            "z": 4.362137682550456
+          }
+        },
         {
           "check": "gltf-conformance",
           "pass": true,
@@ -1222,7 +1327,7 @@
           "check": "glb-valid",
           "pass": true,
           "detail": "glTF 2.0, 624 kB, 167 meshes, 18 nodes, 1 animations",
-          "bytes": 639440,
+          "bytes": 639364,
           "meshes": 167,
           "nodes": 18,
           "animations": [
@@ -1276,7 +1381,7 @@
           "viewDistanceMin": 0.15178581958243853
         }
       ],
-      "ms": 7529
+      "ms": 5805
     },
     {
       "id": "defense_turret",
@@ -1305,10 +1410,25 @@
         "lumaSpread": 0.848,
         "viewDistance": 0.206,
         "geometryHash": 3616991291,
-        "glbBytes": 237548
+        "glbBytes": 237424
       },
       "failing": [],
       "checks": [
+        {
+          "check": "glb-matches-measured",
+          "pass": true,
+          "detail": "exported 2.728×2.800×3.884 m vs measured 2.728×2.800×3.884 m (largest axis drift 0.0% on x, needs ≤1%)",
+          "exported": {
+            "x": 2.727657710140487,
+            "y": 2.799999999999999,
+            "z": 3.8839474434626933
+          },
+          "measured": {
+            "x": 2.727657710140487,
+            "y": 2.799999999999999,
+            "z": 3.8839474434626933
+          }
+        },
         {
           "check": "gltf-conformance",
           "pass": true,
@@ -1404,7 +1524,7 @@
           "check": "glb-valid",
           "pass": true,
           "detail": "glTF 2.0, 232 kB, 71 meshes, 17 nodes, 2 animations",
-          "bytes": 237548,
+          "bytes": 237424,
           "meshes": 71,
           "nodes": 17,
           "animations": [
@@ -1459,7 +1579,7 @@
           "viewDistanceMin": 0.1065261596173005
         }
       ],
-      "ms": 6608
+      "ms": 4190
     },
     {
       "id": "sensor_tower",
@@ -1487,10 +1607,25 @@
         "lumaSpread": 0.831,
         "viewDistance": 0.446,
         "geometryHash": 3459041451,
-        "glbBytes": 372832
+        "glbBytes": 372792
       },
       "failing": [],
       "checks": [
+        {
+          "check": "glb-matches-measured",
+          "pass": true,
+          "detail": "exported 4.113×11.000×6.086 m vs measured 4.113×11.000×6.086 m (largest axis drift 0.0% on x, needs ≤1%)",
+          "exported": {
+            "x": 4.1125886075647875,
+            "y": 11,
+            "z": 6.086228345019345
+          },
+          "measured": {
+            "x": 4.1125886075647875,
+            "y": 11,
+            "z": 6.086228345019345
+          }
+        },
         {
           "check": "gltf-conformance",
           "pass": true,
@@ -1586,7 +1721,7 @@
           "check": "glb-valid",
           "pass": true,
           "detail": "glTF 2.0, 364 kB, 125 meshes, 19 nodes, 2 animations",
-          "bytes": 372832,
+          "bytes": 372792,
           "meshes": 125,
           "nodes": 19,
           "animations": [
@@ -1641,7 +1776,7 @@
           "viewDistanceMin": 0.1994291848859181
         }
       ],
-      "ms": 2785
+      "ms": 1854
     },
     {
       "id": "wrecked_transport",
@@ -1668,10 +1803,25 @@
         "lumaSpread": 0.82,
         "viewDistance": 0.312,
         "geometryHash": 4050599164,
-        "glbBytes": 187024
+        "glbBytes": 186960
       },
       "failing": [],
       "checks": [
+        {
+          "check": "glb-matches-measured",
+          "pass": true,
+          "detail": "exported 5.977×3.400×6.135 m vs measured 5.977×3.400×6.135 m (largest axis drift 0.0% on x, needs ≤1%)",
+          "exported": {
+            "x": 5.976833817457802,
+            "y": 3.4,
+            "z": 6.135118725990852
+          },
+          "measured": {
+            "x": 5.976833817457802,
+            "y": 3.4,
+            "z": 6.135118725990852
+          }
+        },
         {
           "check": "gltf-conformance",
           "pass": true,
@@ -1767,7 +1917,7 @@
           "check": "glb-valid",
           "pass": true,
           "detail": "glTF 2.0, 183 kB, 79 meshes, 10 nodes, 1 animations",
-          "bytes": 187024,
+          "bytes": 186960,
           "meshes": 79,
           "nodes": 10,
           "animations": [
@@ -1821,7 +1971,7 @@
           "viewDistanceMin": 0.28725060595832663
         }
       ],
-      "ms": 3691
+      "ms": 2598
     },
     {
       "id": "alien_drone_wreck",
@@ -1849,10 +1999,25 @@
         "lumaSpread": 0,
         "viewDistance": 0.111,
         "geometryHash": 568785236,
-        "glbBytes": 607376
+        "glbBytes": 607308
       },
       "failing": [],
       "checks": [
+        {
+          "check": "glb-matches-measured",
+          "pass": true,
+          "detail": "exported 3.154×2.400×2.818 m vs measured 3.154×2.400×2.818 m (largest axis drift 0.0% on x, needs ≤1%)",
+          "exported": {
+            "x": 3.1538412573726893,
+            "y": 2.4,
+            "z": 2.8180977142072474
+          },
+          "measured": {
+            "x": 3.1538412573726893,
+            "y": 2.4,
+            "z": 2.8180977142072474
+          }
+        },
         {
           "check": "gltf-conformance",
           "pass": true,
@@ -1948,7 +2113,7 @@
           "check": "glb-valid",
           "pass": true,
           "detail": "glTF 2.0, 593 kB, 94 meshes, 13 nodes, 1 animations",
-          "bytes": 607376,
+          "bytes": 607308,
           "meshes": 94,
           "nodes": 13,
           "animations": [
@@ -2002,7 +2167,7 @@
           "viewDistanceMin": 0.07282331072481452
         }
       ],
-      "ms": 4905
+      "ms": 3888
     },
     {
       "id": "crystal_cluster",
@@ -2028,10 +2193,25 @@
         "lumaSpread": 0.861,
         "viewDistance": 0.139,
         "geometryHash": 3621711671,
-        "glbBytes": 127148
+        "glbBytes": 127080
       },
       "failing": [],
       "checks": [
+        {
+          "check": "glb-matches-measured",
+          "pass": true,
+          "detail": "exported 3.214×3.200×3.381 m vs measured 3.214×3.200×3.381 m (largest axis drift 0.0% on x, needs ≤1%)",
+          "exported": {
+            "x": 3.214055121099083,
+            "y": 3.1999999999999997,
+            "z": 3.381120980665989
+          },
+          "measured": {
+            "x": 3.214055121099083,
+            "y": 3.1999999999999997,
+            "z": 3.381120980665989
+          }
+        },
         {
           "check": "gltf-conformance",
           "pass": true,
@@ -2127,7 +2307,7 @@
           "check": "glb-valid",
           "pass": true,
           "detail": "glTF 2.0, 124 kB, 55 meshes, 19 nodes, 1 animations",
-          "bytes": 127148,
+          "bytes": 127080,
           "meshes": 55,
           "nodes": 19,
           "animations": [
@@ -2181,7 +2361,7 @@
           "viewDistanceMin": 0.06488902290378029
         }
       ],
-      "ms": 4840
+      "ms": 2448
     },
     {
       "id": "alien_flora",
@@ -2207,10 +2387,25 @@
         "lumaSpread": 0.838,
         "viewDistance": 0.171,
         "geometryHash": 476288686,
-        "glbBytes": 130732
+        "glbBytes": 130676
       },
       "failing": [],
       "checks": [
+        {
+          "check": "glb-matches-measured",
+          "pass": true,
+          "detail": "exported 1.305×1.800×1.553 m vs measured 1.305×1.800×1.553 m (largest axis drift 0.0% on x, needs ≤1%)",
+          "exported": {
+            "x": 1.304790053264913,
+            "y": 1.8,
+            "z": 1.5527391433834945
+          },
+          "measured": {
+            "x": 1.304790053264913,
+            "y": 1.8,
+            "z": 1.5527391433834945
+          }
+        },
         {
           "check": "gltf-conformance",
           "pass": true,
@@ -2306,7 +2501,7 @@
           "check": "glb-valid",
           "pass": true,
           "detail": "glTF 2.0, 128 kB, 43 meshes, 8 nodes, 1 animations",
-          "bytes": 130732,
+          "bytes": 130676,
           "meshes": 43,
           "nodes": 8,
           "animations": [
@@ -2360,7 +2555,7 @@
           "viewDistanceMin": 0.11903578407088944
         }
       ],
-      "ms": 3302
+      "ms": 1849
     },
     {
       "id": "rock_cluster",
@@ -2388,6 +2583,21 @@
       },
       "failing": [],
       "checks": [
+        {
+          "check": "glb-matches-measured",
+          "pass": true,
+          "detail": "exported 7.381×3.600×7.026 m vs measured 7.381×3.600×7.026 m (largest axis drift 0.0% on x, needs ≤1%)",
+          "exported": {
+            "x": 7.380500375605443,
+            "y": 3.5999999999999996,
+            "z": 7.026071251209818
+          },
+          "measured": {
+            "x": 7.380500375605443,
+            "y": 3.5999999999999996,
+            "z": 7.026071251209818
+          }
+        },
         {
           "check": "gltf-conformance",
           "pass": true,
@@ -2535,7 +2745,7 @@
           "viewDistanceMin": 0.10144463234066403
         }
       ],
-      "ms": 1703
+      "ms": 1031
     },
     {
       "id": "enemy_spawn_gate",
@@ -2561,10 +2771,25 @@
         "lumaSpread": 0.829,
         "viewDistance": 0.594,
         "geometryHash": 396345625,
-        "glbBytes": 686152
+        "glbBytes": 686088
       },
       "failing": [],
       "checks": [
+        {
+          "check": "glb-matches-measured",
+          "pass": true,
+          "detail": "exported 6.163×5.200×2.504 m vs measured 6.163×5.200×2.504 m (largest axis drift 0.0% on x, needs ≤1%)",
+          "exported": {
+            "x": 6.162963041193038,
+            "y": 5.2,
+            "z": 2.5037036063412748
+          },
+          "measured": {
+            "x": 6.162963041193038,
+            "y": 5.2,
+            "z": 2.5037036063412748
+          }
+        },
         {
           "check": "gltf-conformance",
           "pass": true,
@@ -2660,7 +2885,7 @@
           "check": "glb-valid",
           "pass": true,
           "detail": "glTF 2.0, 670 kB, 145 meshes, 18 nodes, 1 animations",
-          "bytes": 686152,
+          "bytes": 686088,
           "meshes": 145,
           "nodes": 18,
           "animations": [
@@ -2714,7 +2939,7 @@
           "viewDistanceMin": 0.15620471772282063
         }
       ],
-      "ms": 5610
+      "ms": 4819
     },
     {
       "id": "cover_module",
@@ -2742,6 +2967,21 @@
       },
       "failing": [],
       "checks": [
+        {
+          "check": "glb-matches-measured",
+          "pass": true,
+          "detail": "exported 2.200×1.150×0.684 m vs measured 2.200×1.150×0.684 m (largest axis drift 0.0% on x, needs ≤1%)",
+          "exported": {
+            "x": 2.1998272595069306,
+            "y": 1.15,
+            "z": 0.6842250118978577
+          },
+          "measured": {
+            "x": 2.1998272595069306,
+            "y": 1.15,
+            "z": 0.6842250118978577
+          }
+        },
         {
           "check": "gltf-conformance",
           "pass": true,
@@ -2889,7 +3129,7 @@
           "viewDistanceMin": 0.13154978859131294
         }
       ],
-      "ms": 5981
+      "ms": 3358
     },
     {
       "id": "exo_operative",
@@ -2919,12 +3159,27 @@
         "lumaSpread": 0,
         "viewDistance": 0.201,
         "geometryHash": 1745151991,
-        "glbBytes": 491288
+        "glbBytes": 491144
       },
       "failing": [
         "meta-matches-catalog: reference references/heroes/exo_operative.png missing on disk"
       ],
       "checks": [
+        {
+          "check": "glb-matches-measured",
+          "pass": true,
+          "detail": "exported 0.641×1.800×0.310 m vs measured 0.641×1.800×0.310 m (largest axis drift 0.0% on x, needs ≤1%)",
+          "exported": {
+            "x": 0.6413721712925557,
+            "y": 1.8,
+            "z": 0.3102661655910494
+          },
+          "measured": {
+            "x": 0.6413721712925557,
+            "y": 1.8,
+            "z": 0.3102661655910494
+          }
+        },
         {
           "check": "gltf-conformance",
           "pass": true,
@@ -3020,7 +3275,7 @@
           "check": "glb-valid",
           "pass": true,
           "detail": "glTF 2.0, 480 kB, 80 meshes, 14 nodes, 3 animations",
-          "bytes": 491288,
+          "bytes": 491144,
           "meshes": 80,
           "nodes": 14,
           "animations": [
@@ -3076,7 +3331,7 @@
           "viewDistanceMin": 0.04115230268777281
         }
       ],
-      "ms": 6859
+      "ms": 4202
     },
     {
       "id": "exo_combat_tech",
@@ -3106,12 +3361,27 @@
         "lumaSpread": 0,
         "viewDistance": 0.21,
         "geometryHash": 723786455,
-        "glbBytes": 565040
+        "glbBytes": 564896
       },
       "failing": [
         "meta-matches-catalog: reference references/heroes/exo_combat_tech.png missing on disk"
       ],
       "checks": [
+        {
+          "check": "glb-matches-measured",
+          "pass": true,
+          "detail": "exported 0.636×1.800×0.512 m vs measured 0.636×1.800×0.512 m (largest axis drift 0.0% on x, needs ≤1%)",
+          "exported": {
+            "x": 0.6363715336717404,
+            "y": 1.7999999999999998,
+            "z": 0.5115694162449841
+          },
+          "measured": {
+            "x": 0.6363715336717404,
+            "y": 1.7999999999999998,
+            "z": 0.5115694162449841
+          }
+        },
         {
           "check": "gltf-conformance",
           "pass": true,
@@ -3207,7 +3477,7 @@
           "check": "glb-valid",
           "pass": true,
           "detail": "glTF 2.0, 552 kB, 93 meshes, 15 nodes, 3 animations",
-          "bytes": 565040,
+          "bytes": 564896,
           "meshes": 93,
           "nodes": 15,
           "animations": [
@@ -3263,7 +3533,7 @@
           "viewDistanceMin": 0.06637251092560292
         }
       ],
-      "ms": 4528
+      "ms": 3103
     },
     {
       "id": "exo_void_runner",
@@ -3293,12 +3563,27 @@
         "lumaSpread": 0,
         "viewDistance": 0.213,
         "geometryHash": 1861148495,
-        "glbBytes": 538052
+        "glbBytes": 537904
       },
       "failing": [
         "meta-matches-catalog: reference references/heroes/exo_void_runner.png missing on disk"
       ],
       "checks": [
+        {
+          "check": "glb-matches-measured",
+          "pass": true,
+          "detail": "exported 0.628×1.800×0.397 m vs measured 0.628×1.800×0.397 m (largest axis drift 0.0% on x, needs ≤1%)",
+          "exported": {
+            "x": 0.6278444709004786,
+            "y": 1.8,
+            "z": 0.3970589121871284
+          },
+          "measured": {
+            "x": 0.6278444709004786,
+            "y": 1.8,
+            "z": 0.3970589121871284
+          }
+        },
         {
           "check": "gltf-conformance",
           "pass": true,
@@ -3394,7 +3679,7 @@
           "check": "glb-valid",
           "pass": true,
           "detail": "glTF 2.0, 525 kB, 90 meshes, 15 nodes, 3 animations",
-          "bytes": 538052,
+          "bytes": 537904,
           "meshes": 90,
           "nodes": 15,
           "animations": [
@@ -3450,7 +3735,7 @@
           "viewDistanceMin": 0.0667464821658762
         }
       ],
-      "ms": 4255
+      "ms": 3616
     },
     {
       "id": "exo_neon_phantom",
@@ -3480,12 +3765,27 @@
         "lumaSpread": 0,
         "viewDistance": 0.258,
         "geometryHash": 3266293219,
-        "glbBytes": 526840
+        "glbBytes": 526696
       },
       "failing": [
         "meta-matches-catalog: reference references/heroes/exo_neon_phantom.png missing on disk"
       ],
       "checks": [
+        {
+          "check": "glb-matches-measured",
+          "pass": true,
+          "detail": "exported 0.628×1.800×0.397 m vs measured 0.628×1.800×0.397 m (largest axis drift 0.0% on x, needs ≤1%)",
+          "exported": {
+            "x": 0.6278444709004786,
+            "y": 1.8,
+            "z": 0.3970589121871284
+          },
+          "measured": {
+            "x": 0.6278444709004786,
+            "y": 1.8,
+            "z": 0.3970589121871284
+          }
+        },
         {
           "check": "gltf-conformance",
           "pass": true,
@@ -3581,7 +3881,7 @@
           "check": "glb-valid",
           "pass": true,
           "detail": "glTF 2.0, 514 kB, 89 meshes, 15 nodes, 3 animations",
-          "bytes": 526840,
+          "bytes": 526696,
           "meshes": 89,
           "nodes": 15,
           "animations": [
@@ -3637,7 +3937,7 @@
           "viewDistanceMin": 0.07515359784616016
         }
       ],
-      "ms": 4450
+      "ms": 3932
     },
     {
       "id": "exo_rogue_engineer",
@@ -3667,12 +3967,27 @@
         "lumaSpread": 0,
         "viewDistance": 0.202,
         "geometryHash": 53455443,
-        "glbBytes": 544404
+        "glbBytes": 544260
       },
       "failing": [
         "meta-matches-catalog: reference references/heroes/exo_rogue_engineer.png missing on disk"
       ],
       "checks": [
+        {
+          "check": "glb-matches-measured",
+          "pass": true,
+          "detail": "exported 0.641×1.800×0.516 m vs measured 0.641×1.800×0.516 m (largest axis drift 0.0% on x, needs ≤1%)",
+          "exported": {
+            "x": 0.6413721712925557,
+            "y": 1.8,
+            "z": 0.5155893529221842
+          },
+          "measured": {
+            "x": 0.6413721712925557,
+            "y": 1.8,
+            "z": 0.5155893529221842
+          }
+        },
         {
           "check": "gltf-conformance",
           "pass": true,
@@ -3768,7 +4083,7 @@
           "check": "glb-valid",
           "pass": true,
           "detail": "glTF 2.0, 532 kB, 92 meshes, 16 nodes, 3 animations",
-          "bytes": 544404,
+          "bytes": 544260,
           "meshes": 92,
           "nodes": 16,
           "animations": [
@@ -3824,7 +4139,7 @@
           "viewDistanceMin": 0.0805999364257769
         }
       ],
-      "ms": 4257
+      "ms": 3396
     },
     {
       "id": "exo_alien_hunter",
@@ -3854,12 +4169,27 @@
         "lumaSpread": 0,
         "viewDistance": 0.264,
         "geometryHash": 4228571879,
-        "glbBytes": 571112
+        "glbBytes": 570964
       },
       "failing": [
         "meta-matches-catalog: reference references/heroes/exo_alien_hunter.png missing on disk"
       ],
       "checks": [
+        {
+          "check": "glb-matches-measured",
+          "pass": true,
+          "detail": "exported 0.695×1.800×0.497 m vs measured 0.695×1.800×0.497 m (largest axis drift 0.0% on x, needs ≤1%)",
+          "exported": {
+            "x": 0.6947963749319168,
+            "y": 1.8,
+            "z": 0.49734452529668655
+          },
+          "measured": {
+            "x": 0.6947963749319168,
+            "y": 1.8,
+            "z": 0.49734452529668655
+          }
+        },
         {
           "check": "gltf-conformance",
           "pass": true,
@@ -3955,7 +4285,7 @@
           "check": "glb-valid",
           "pass": true,
           "detail": "glTF 2.0, 558 kB, 103 meshes, 15 nodes, 3 animations",
-          "bytes": 571112,
+          "bytes": 570964,
           "meshes": 103,
           "nodes": 15,
           "animations": [
@@ -4011,7 +4341,7 @@
           "viewDistanceMin": 0.1487726037395709
         }
       ],
-      "ms": 4539
+      "ms": 3379
     },
     {
       "id": "pulse_rifle",
@@ -4042,10 +4372,25 @@
         "lumaSpread": 0,
         "viewDistance": 0.695,
         "geometryHash": 1187010177,
-        "glbBytes": 162884
+        "glbBytes": 162788
       },
       "failing": [],
       "checks": [
+        {
+          "check": "glb-matches-measured",
+          "pass": true,
+          "detail": "exported 0.155×0.374×1.000 m vs measured 0.155×0.374×1.000 m (largest axis drift 0.0% on x, needs ≤1%)",
+          "exported": {
+            "x": 0.15537353592452402,
+            "y": 0.3737375446083556,
+            "z": 1
+          },
+          "measured": {
+            "x": 0.15537353592452402,
+            "y": 0.3737375446083556,
+            "z": 1
+          }
+        },
         {
           "check": "gltf-conformance",
           "pass": true,
@@ -4141,7 +4486,7 @@
           "check": "glb-valid",
           "pass": true,
           "detail": "glTF 2.0, 159 kB, 61 meshes, 15 nodes, 3 animations",
-          "bytes": 162884,
+          "bytes": 162788,
           "meshes": 61,
           "nodes": 15,
           "animations": [
@@ -4197,7 +4542,7 @@
           "viewDistanceMin": 0.42472058231039755
         }
       ],
-      "ms": 3511
+      "ms": 2463
     },
     {
       "id": "nova_launcher",
@@ -4228,12 +4573,27 @@
         "lumaSpread": 0,
         "viewDistance": 0.593,
         "geometryHash": 2268772621,
-        "glbBytes": 159844
+        "glbBytes": 159748
       },
       "failing": [
         "meta-matches-catalog: reference references/weapons/nova_launcher.png missing on disk"
       ],
       "checks": [
+        {
+          "check": "glb-matches-measured",
+          "pass": true,
+          "detail": "exported 0.206×0.427×1.050 m vs measured 0.206×0.427×1.050 m (largest axis drift 0.0% on x, needs ≤1%)",
+          "exported": {
+            "x": 0.20568070831290558,
+            "y": 0.42664812038648114,
+            "z": 1.05
+          },
+          "measured": {
+            "x": 0.20568070831290558,
+            "y": 0.42664812038648114,
+            "z": 1.05
+          }
+        },
         {
           "check": "gltf-conformance",
           "pass": true,
@@ -4329,7 +4689,7 @@
           "check": "glb-valid",
           "pass": true,
           "detail": "glTF 2.0, 156 kB, 55 meshes, 14 nodes, 3 animations",
-          "bytes": 159844,
+          "bytes": 159748,
           "meshes": 55,
           "nodes": 14,
           "animations": [
@@ -4385,7 +4745,7 @@
           "viewDistanceMin": 0.29865804383326766
         }
       ],
-      "ms": 3138
+      "ms": 2544
     },
     {
       "id": "arc_shooter",
@@ -4417,12 +4777,27 @@
         "lumaSpread": 0,
         "viewDistance": 0.561,
         "geometryHash": 17062377,
-        "glbBytes": 171760
+        "glbBytes": 171660
       },
       "failing": [
         "meta-matches-catalog: reference references/weapons/arc_shooter.png missing on disk"
       ],
       "checks": [
+        {
+          "check": "glb-matches-measured",
+          "pass": true,
+          "detail": "exported 0.150×0.443×1.000 m vs measured 0.150×0.443×1.000 m (largest axis drift 0.0% on x, needs ≤1%)",
+          "exported": {
+            "x": 0.1501421795834193,
+            "y": 0.44347346432010615,
+            "z": 1
+          },
+          "measured": {
+            "x": 0.1501421795834193,
+            "y": 0.44347346432010615,
+            "z": 1
+          }
+        },
         {
           "check": "gltf-conformance",
           "pass": true,
@@ -4518,7 +4893,7 @@
           "check": "glb-valid",
           "pass": true,
           "detail": "glTF 2.0, 168 kB, 61 meshes, 17 nodes, 3 animations",
-          "bytes": 171760,
+          "bytes": 171660,
           "meshes": 61,
           "nodes": 17,
           "animations": [
@@ -4574,7 +4949,7 @@
           "viewDistanceMin": 0.31210597114563055
         }
       ],
-      "ms": 3519
+      "ms": 2602
     },
     {
       "id": "scatter_blaster",
@@ -4604,12 +4979,27 @@
         "lumaSpread": 0,
         "viewDistance": 0.626,
         "geometryHash": 2480611657,
-        "glbBytes": 148324
+        "glbBytes": 148224
       },
       "failing": [
         "meta-matches-catalog: reference references/weapons/scatter_blaster.png missing on disk"
       ],
       "checks": [
+        {
+          "check": "glb-matches-measured",
+          "pass": true,
+          "detail": "exported 0.227×0.469×0.850 m vs measured 0.227×0.469×0.850 m (largest axis drift 0.0% on x, needs ≤1%)",
+          "exported": {
+            "x": 0.22685184949755322,
+            "y": 0.4685931776646993,
+            "z": 0.85
+          },
+          "measured": {
+            "x": 0.22685184949755322,
+            "y": 0.4685931776646993,
+            "z": 0.85
+          }
+        },
         {
           "check": "gltf-conformance",
           "pass": true,
@@ -4705,7 +5095,7 @@
           "check": "glb-valid",
           "pass": true,
           "detail": "glTF 2.0, 145 kB, 53 meshes, 13 nodes, 3 animations",
-          "bytes": 148324,
+          "bytes": 148224,
           "meshes": 53,
           "nodes": 13,
           "animations": [
@@ -4761,7 +5151,7 @@
           "viewDistanceMin": 0.31884923483143124
         }
       ],
-      "ms": 4577
+      "ms": 3251
     },
     {
       "id": "rail_cannon",
@@ -4792,12 +5182,27 @@
         "lumaSpread": 0,
         "viewDistance": 0.693,
         "geometryHash": 3767403889,
-        "glbBytes": 193740
+        "glbBytes": 193608
       },
       "failing": [
         "meta-matches-catalog: reference references/weapons/rail_cannon.png missing on disk"
       ],
       "checks": [
+        {
+          "check": "glb-matches-measured",
+          "pass": true,
+          "detail": "exported 0.163×0.421×1.250 m vs measured 0.163×0.421×1.250 m (largest axis drift 0.0% on x, needs ≤1%)",
+          "exported": {
+            "x": 0.1631941727636671,
+            "y": 0.42124868129996806,
+            "z": 1.25
+          },
+          "measured": {
+            "x": 0.1631941727636671,
+            "y": 0.42124868129996806,
+            "z": 1.25
+          }
+        },
         {
           "check": "gltf-conformance",
           "pass": true,
@@ -4893,7 +5298,7 @@
           "check": "glb-valid",
           "pass": true,
           "detail": "glTF 2.0, 189 kB, 71 meshes, 16 nodes, 3 animations",
-          "bytes": 193740,
+          "bytes": 193608,
           "meshes": 71,
           "nodes": 16,
           "animations": [
@@ -4949,7 +5354,7 @@
           "viewDistanceMin": 0.5090180428871705
         }
       ],
-      "ms": 3632
+      "ms": 2472
     },
     {
       "id": "gravity_gun",
@@ -4980,12 +5385,27 @@
         "lumaSpread": 0,
         "viewDistance": 0.547,
         "geometryHash": 2808215483,
-        "glbBytes": 171896
+        "glbBytes": 171764
       },
       "failing": [
         "meta-matches-catalog: reference references/weapons/gravity_gun.png missing on disk"
       ],
       "checks": [
+        {
+          "check": "glb-matches-measured",
+          "pass": true,
+          "detail": "exported 0.222×0.451×1.000 m vs measured 0.222×0.451×1.000 m (largest axis drift 0.0% on x, needs ≤1%)",
+          "exported": {
+            "x": 0.22173912593820228,
+            "y": 0.4509396791986463,
+            "z": 1
+          },
+          "measured": {
+            "x": 0.22173912593820228,
+            "y": 0.4509396791986463,
+            "z": 1
+          }
+        },
         {
           "check": "gltf-conformance",
           "pass": true,
@@ -5081,7 +5501,7 @@
           "check": "glb-valid",
           "pass": true,
           "detail": "glTF 2.0, 168 kB, 58 meshes, 15 nodes, 3 animations",
-          "bytes": 171896,
+          "bytes": 171764,
           "meshes": 58,
           "nodes": 15,
           "animations": [
@@ -5137,7 +5557,7 @@
           "viewDistanceMin": 0.2956884792622282
         }
       ],
-      "ms": 3407
+      "ms": 3182
     },
     {
       "id": "arc_shooter_void_edition",
@@ -5169,12 +5589,27 @@
         "lumaSpread": 0,
         "viewDistance": 0.644,
         "geometryHash": 17062377,
-        "glbBytes": 171776
+        "glbBytes": 171680
       },
       "failing": [
         "meta-matches-catalog: reference references/weapons/arc_shooter_void_edition.png missing on disk"
       ],
       "checks": [
+        {
+          "check": "glb-matches-measured",
+          "pass": true,
+          "detail": "exported 0.150×0.443×1.000 m vs measured 0.150×0.443×1.000 m (largest axis drift 0.0% on x, needs ≤1%)",
+          "exported": {
+            "x": 0.1501421795834193,
+            "y": 0.44347346432010615,
+            "z": 1
+          },
+          "measured": {
+            "x": 0.1501421795834193,
+            "y": 0.44347346432010615,
+            "z": 1
+          }
+        },
         {
           "check": "gltf-conformance",
           "pass": true,
@@ -5270,7 +5705,7 @@
           "check": "glb-valid",
           "pass": true,
           "detail": "glTF 2.0, 168 kB, 61 meshes, 17 nodes, 3 animations",
-          "bytes": 171776,
+          "bytes": 171680,
           "meshes": 61,
           "nodes": 17,
           "animations": [
@@ -5326,7 +5761,7 @@
           "viewDistanceMin": 0.4088023979903673
         }
       ],
-      "ms": 3111
+      "ms": 2534
     },
     {
       "id": "runner",
@@ -5357,10 +5792,25 @@
         "lumaSpread": 0.908,
         "viewDistance": 0.565,
         "geometryHash": 2398517567,
-        "glbBytes": 378712
+        "glbBytes": 378532
       },
       "failing": [],
       "checks": [
+        {
+          "check": "glb-matches-measured",
+          "pass": true,
+          "detail": "exported 0.908×1.720×1.979 m vs measured 0.908×1.720×1.979 m (largest axis drift 0.0% on x, needs ≤1%)",
+          "exported": {
+            "x": 0.9075686815099033,
+            "y": 1.7199999999999998,
+            "z": 1.9794926237586457
+          },
+          "measured": {
+            "x": 0.9075686815099033,
+            "y": 1.7199999999999998,
+            "z": 1.9794926237586457
+          }
+        },
         {
           "check": "gltf-conformance",
           "pass": true,
@@ -5456,7 +5906,7 @@
           "check": "glb-valid",
           "pass": true,
           "detail": "glTF 2.0, 370 kB, 92 meshes, 20 nodes, 4 animations",
-          "bytes": 378712,
+          "bytes": 378532,
           "meshes": 92,
           "nodes": 20,
           "animations": [
@@ -5513,7 +5963,7 @@
           "viewDistanceMin": 0.3271861712029692
         }
       ],
-      "ms": 2822
+      "ms": 2232
     },
     {
       "id": "shooter",
@@ -5543,10 +5993,25 @@
         "lumaSpread": 0.758,
         "viewDistance": 0.358,
         "geometryHash": 2439713415,
-        "glbBytes": 530196
+        "glbBytes": 529984
       },
       "failing": [],
       "checks": [
+        {
+          "check": "glb-matches-measured",
+          "pass": true,
+          "detail": "exported 0.577×1.620×0.464 m vs measured 0.577×1.620×0.464 m (largest axis drift 0.0% on x, needs ≤1%)",
+          "exported": {
+            "x": 0.5772349541633002,
+            "y": 1.6200000000000003,
+            "z": 0.4640304176299659
+          },
+          "measured": {
+            "x": 0.5772349541633002,
+            "y": 1.6200000000000003,
+            "z": 0.4640304176299659
+          }
+        },
         {
           "check": "gltf-conformance",
           "pass": true,
@@ -5642,7 +6107,7 @@
           "check": "glb-valid",
           "pass": true,
           "detail": "glTF 2.0, 518 kB, 88 meshes, 15 nodes, 4 animations",
-          "bytes": 530196,
+          "bytes": 529984,
           "meshes": 88,
           "nodes": 15,
           "animations": [
@@ -5699,7 +6164,7 @@
           "viewDistanceMin": 0.12047884043262791
         }
       ],
-      "ms": 4182
+      "ms": 3320
     },
     {
       "id": "training_drone",
@@ -5728,10 +6193,25 @@
         "lumaSpread": 0,
         "viewDistance": 0.079,
         "geometryHash": 390872233,
-        "glbBytes": 347280
+        "glbBytes": 347132
       },
       "failing": [],
       "checks": [
+        {
+          "check": "glb-matches-measured",
+          "pass": true,
+          "detail": "exported 1.139×1.150×1.147 m vs measured 1.139×1.150×1.147 m (largest axis drift 0.0% on x, needs ≤1%)",
+          "exported": {
+            "x": 1.1386138647055584,
+            "y": 1.1500000000000004,
+            "z": 1.1473841672815053
+          },
+          "measured": {
+            "x": 1.1386138647055584,
+            "y": 1.1500000000000004,
+            "z": 1.1473841672815053
+          }
+        },
         {
           "check": "gltf-conformance",
           "pass": true,
@@ -5827,7 +6307,7 @@
           "check": "glb-valid",
           "pass": true,
           "detail": "glTF 2.0, 339 kB, 66 meshes, 9 nodes, 3 animations",
-          "bytes": 347280,
+          "bytes": 347132,
           "meshes": 66,
           "nodes": 9,
           "animations": [
@@ -5883,7 +6363,7 @@
           "viewDistanceMin": 0.06003865863047053
         }
       ],
-      "ms": 5764
+      "ms": 4407
     },
     {
       "id": "pulse_bolt",
@@ -5911,12 +6391,27 @@
         "lumaSpread": 0,
         "viewDistance": 0.648,
         "geometryHash": 2060187595,
-        "glbBytes": 34924
+        "glbBytes": 34856
       },
       "failing": [
         "meta-matches-catalog: reference references/vfx/pulse_bolt.png missing on disk"
       ],
       "checks": [
+        {
+          "check": "glb-matches-measured",
+          "pass": true,
+          "detail": "exported 0.210×0.205×1.200 m vs measured 0.210×0.205×1.200 m (largest axis drift 0.0% on x, needs ≤1%)",
+          "exported": {
+            "x": 0.21028571508238914,
+            "y": 0.20501341176390284,
+            "z": 1.1999999999999997
+          },
+          "measured": {
+            "x": 0.21028571508238914,
+            "y": 0.20501341176390284,
+            "z": 1.1999999999999997
+          }
+        },
         {
           "check": "gltf-conformance",
           "pass": true,
@@ -6012,7 +6507,7 @@
           "check": "glb-valid",
           "pass": true,
           "detail": "glTF 2.0, 34 kB, 10 meshes, 5 nodes, 2 animations",
-          "bytes": 34924,
+          "bytes": 34856,
           "meshes": 10,
           "nodes": 5,
           "animations": [
@@ -6067,7 +6562,7 @@
           "viewDistanceMin": 0.3760628582960278
         }
       ],
-      "ms": 2144
+      "ms": 1317
     },
     {
       "id": "nova_shockwave",
@@ -6094,12 +6589,27 @@
         "lumaSpread": 0,
         "viewDistance": 0.227,
         "geometryHash": 2493468191,
-        "glbBytes": 80136
+        "glbBytes": 80020
       },
       "failing": [
         "meta-matches-catalog: reference references/vfx/nova_shockwave.png missing on disk"
       ],
       "checks": [
+        {
+          "check": "glb-matches-measured",
+          "pass": true,
+          "detail": "exported 3.363×4.000×3.363 m vs measured 3.363×4.000×3.363 m (largest axis drift 0.0% on x, needs ≤1%)",
+          "exported": {
+            "x": 3.3627575018961777,
+            "y": 3.9999999999999996,
+            "z": 3.3627575018961777
+          },
+          "measured": {
+            "x": 3.3627575018961777,
+            "y": 3.9999999999999996,
+            "z": 3.3627575018961777
+          }
+        },
         {
           "check": "gltf-conformance",
           "pass": true,
@@ -6195,7 +6705,7 @@
           "check": "glb-valid",
           "pass": true,
           "detail": "glTF 2.0, 78 kB, 9 meshes, 5 nodes, 2 animations",
-          "bytes": 80136,
+          "bytes": 80020,
           "meshes": 9,
           "nodes": 5,
           "animations": [
@@ -6250,7 +6760,7 @@
           "viewDistanceMin": 0.07204665660045073
         }
       ],
-      "ms": 1662
+      "ms": 1742
     },
     {
       "id": "arc_chain",
@@ -6279,12 +6789,27 @@
         "lumaSpread": 0,
         "viewDistance": 0.806,
         "geometryHash": 2092057525,
-        "glbBytes": 129368
+        "glbBytes": 129284
       },
       "failing": [
         "meta-matches-catalog: reference references/vfx/arc_chain.png missing on disk"
       ],
       "checks": [
+        {
+          "check": "glb-matches-measured",
+          "pass": true,
+          "detail": "exported 2.839×0.805×6.000 m vs measured 2.839×0.805×6.000 m (largest axis drift 0.0% on x, needs ≤1%)",
+          "exported": {
+            "x": 2.839069772087411,
+            "y": 0.8046254849413395,
+            "z": 6
+          },
+          "measured": {
+            "x": 2.839069772087411,
+            "y": 0.8046254849413395,
+            "z": 6
+          }
+        },
         {
           "check": "gltf-conformance",
           "pass": true,
@@ -6380,7 +6905,7 @@
           "check": "glb-valid",
           "pass": true,
           "detail": "glTF 2.0, 126 kB, 50 meshes, 10 nodes, 2 animations",
-          "bytes": 129368,
+          "bytes": 129284,
           "meshes": 50,
           "nodes": 10,
           "animations": [
@@ -6435,7 +6960,7 @@
           "viewDistanceMin": 0.6722694186225467
         }
       ],
-      "ms": 918
+      "ms": 798
     },
     {
       "id": "impact_burst",
@@ -6461,12 +6986,27 @@
         "lumaSpread": 0,
         "viewDistance": 0.262,
         "geometryHash": 1303019311,
-        "glbBytes": 47984
+        "glbBytes": 47864
       },
       "failing": [
         "meta-matches-catalog: reference references/vfx/impact_burst.png missing on disk"
       ],
       "checks": [
+        {
+          "check": "glb-matches-measured",
+          "pass": true,
+          "detail": "exported 0.504×0.700×0.692 m vs measured 0.504×0.700×0.692 m (largest axis drift 0.0% on x, needs ≤1%)",
+          "exported": {
+            "x": 0.5044493516502898,
+            "y": 0.7000000000000001,
+            "z": 0.6924630347138039
+          },
+          "measured": {
+            "x": 0.5044493516502898,
+            "y": 0.7000000000000001,
+            "z": 0.6924630347138039
+          }
+        },
         {
           "check": "gltf-conformance",
           "pass": true,
@@ -6562,7 +7102,7 @@
           "check": "glb-valid",
           "pass": true,
           "detail": "glTF 2.0, 47 kB, 13 meshes, 3 nodes, 1 animations",
-          "bytes": 47984,
+          "bytes": 47864,
           "meshes": 13,
           "nodes": 3,
           "animations": [
@@ -6616,7 +7156,7 @@
           "viewDistanceMin": 0.09016562843564646
         }
       ],
-      "ms": 1212
+      "ms": 908
     }
   ]
 }

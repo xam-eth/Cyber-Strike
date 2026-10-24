@@ -173,6 +173,21 @@ for (const entry of entries) {
       fs.writeFileSync(path.join(dir, `view-${String(s.view.az).padStart(3, '0')}-${s.view.el}.png`), s.buffer);
     }
 
+    // GLB export — deliberately BEFORE any clip is played. `playClip` leaves the
+    // posed node transforms on the graph and the exporter writes the *current*
+    // transforms as the rest pose, so exporting after the filmstrip loop baked
+    // animated poses into seven files: `runner` shipped at its death pose
+    // (1.44 m instead of 1.72 m) and `impact_burst` at a collapsed frame
+    // (0.27 m instead of 0.70 m). Godot imported exactly what was written.
+    let glbBytes = null;
+    if (!has('--no-glb')) {
+      const b64 = await page.evaluate(() => window.__api.glb());
+      glbBytes = Buffer.from(b64, 'base64');
+      const catDir = path.join(glbDir, entry.category);
+      fs.mkdirSync(catDir, { recursive: true });
+      fs.writeFileSync(path.join(catDir, `${entry.id}.glb`), glbBytes);
+    }
+
     // per-clip pose frames, so an animation can be reviewed as a still
     for (const clipName of entry.animations ?? []) {
       const played = await page.evaluate((n) => window.__api.playClip(n, 0.4), clipName);
@@ -185,17 +200,10 @@ for (const entry of entries) {
       }
     }
 
-    // GLB export
-    let glbBytes = null;
-    if (!has('--no-glb')) {
-      const b64 = await page.evaluate(() => window.__api.glb());
-      glbBytes = Buffer.from(b64, 'base64');
-      const catDir = path.join(glbDir, entry.category);
-      fs.mkdirSync(catDir, { recursive: true });
-      fs.writeFileSync(path.join(catDir, `${entry.id}.glb`), glbBytes);
+    if (glbBytes) {
+      checks.push(C.checkGlbMatchesMeasured(glbBytes, stats));
+      checks.push(await C.checkGltfConformance(glbBytes));
     }
-
-    if (glbBytes) checks.push(await C.checkGltfConformance(glbBytes));
     checks.push(C.checkCatalogSource(entry));
     checks.push(C.checkMeta(entry, stats, meta ?? {}));
     checks.push(C.checkNormalisation(stats));

@@ -61,7 +61,7 @@
    "role": "Ceramic lab shell with a glass sampling vessel and sample core.",
    "target_height_m": 5.5,
    "animations": [
-    "sample_cycle"
+    "sample"
    ],
    "sockets": [
     "vessel"
@@ -105,7 +105,7 @@
    "target_height_m": 1.2,
    "target_width_m": 14.0,
    "animations": [
-    "beacon_cycle"
+    "beacon"
    ],
    "sockets": [
     "pad_centre"

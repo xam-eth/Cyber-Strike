@@ -311,6 +311,105 @@ export async function checkGltfConformance(bytes) {
   );
 }
 
+/**
+ * Bounding box of a GLB, computed from the file alone: node transforms composed
+ * down the scene graph, each mesh primitive's POSITION accessor min/max
+ * transformed into world space. Independent of three.js, the gallery and any
+ * engine, which is what makes it usable as a cross-check.
+ */
+export function glbAabb(bytes) {
+  const b = bytes;
+  const jsonLen = b.readUInt32LE(12);
+  const g = JSON.parse(b.slice(20, 20 + jsonLen).toString('utf8'));
+  const ident = () => [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+  const mul = (A, B) => {
+    const O = new Array(16).fill(0);
+    for (let c = 0; c < 4; c += 1) {
+      for (let r = 0; r < 4; r += 1) {
+        let sum = 0;
+        for (let k = 0; k < 4; k += 1) sum += A[k * 4 + r] * B[c * 4 + k];
+        O[c * 4 + r] = sum;
+      }
+    }
+    return O;
+  };
+  const local = (node) => {
+    if (node.matrix) return node.matrix.slice();
+    const [tx, ty, tz] = node.translation ?? [0, 0, 0];
+    const [x, y, z, w] = node.rotation ?? [0, 0, 0, 1];
+    const [sx, sy, sz] = node.scale ?? [1, 1, 1];
+    const R = [
+      1 - 2 * (y * y + z * z), 2 * (x * y + z * w), 2 * (x * z - y * w), 0,
+      2 * (x * y - z * w), 1 - 2 * (x * x + z * z), 2 * (y * z + x * w), 0,
+      2 * (x * z + y * w), 2 * (y * z - x * w), 1 - 2 * (x * x + y * y), 0,
+      0, 0, 0, 1,
+    ];
+    const S = [sx, 0, 0, 0, 0, sy, 0, 0, 0, 0, sz, 0, 0, 0, 0, 1];
+    const M = mul(R, S);
+    M[12] = tx; M[13] = ty; M[14] = tz;
+    return M;
+  };
+  const min = [Infinity, Infinity, Infinity];
+  const max = [-Infinity, -Infinity, -Infinity];
+  const walk = (i, parent) => {
+    const node = g.nodes[i];
+    const world = mul(parent, local(node));
+    if (node.mesh !== undefined) {
+      for (const prim of g.meshes[node.mesh].primitives) {
+        const acc = g.accessors[prim.attributes.POSITION];
+        if (!acc?.min || !acc?.max) continue;
+        for (let k = 0; k < 8; k += 1) {
+          const p = [k & 1 ? acc.max[0] : acc.min[0], k & 2 ? acc.max[1] : acc.min[1], k & 4 ? acc.max[2] : acc.min[2]];
+          const wx = world[0] * p[0] + world[4] * p[1] + world[8] * p[2] + world[12];
+          const wy = world[1] * p[0] + world[5] * p[1] + world[9] * p[2] + world[13];
+          const wz = world[2] * p[0] + world[6] * p[1] + world[10] * p[2] + world[14];
+          min[0] = Math.min(min[0], wx); min[1] = Math.min(min[1], wy); min[2] = Math.min(min[2], wz);
+          max[0] = Math.max(max[0], wx); max[1] = Math.max(max[1], wy); max[2] = Math.max(max[2], wz);
+        }
+      }
+    }
+    for (const child of node.children ?? []) walk(child, world);
+  };
+  for (const rootIndex of g.scenes[g.scene ?? 0].nodes) walk(rootIndex, ident());
+  return {
+    size: { x: max[0] - min[0], y: max[1] - min[1], z: max[2] - min[2] },
+    minY: min[1],
+    animations: (g.animations ?? []).map((a) => a.name),
+  };
+}
+
+/**
+ * The exported file must be the model that was measured and rendered.
+ *
+ * This is the check that would have caught the worst defect in the whole forge:
+ * `run_gate` played every clip to render a filmstrip and *then* exported, so the
+ * posed transforms became the rest pose in the file. Seven GLBs shipped at the
+ * wrong size — `runner` at its death pose (1.44 m vs the 1.72 m the gate
+ * reported), `impact_burst` at a collapsed frame (0.27 m vs 0.70 m). Every
+ * three.js check stayed green because they all measured the in-memory graph, not
+ * the file. Godot found it.
+ */
+export function checkGlbMatchesMeasured(bytes, stats) {
+  const box = glbAabb(bytes);
+  const pairs = [
+    ['x', box.size.x, stats.size.x],
+    ['y', box.size.y, stats.size.y],
+    ['z', box.size.z, stats.size.z],
+  ];
+  const worst = pairs
+    .map(([axis, exported, measured]) => ({ axis, exported, measured, delta: Math.abs(exported - measured) / Math.max(measured, 1e-6) }))
+    .reduce((a, b) => (b.delta > a.delta ? b : a));
+  const ok = worst.delta <= 0.01;
+  return verdict(
+    'glb-matches-measured',
+    ok,
+    `exported ${box.size.x.toFixed(3)}×${box.size.y.toFixed(3)}×${box.size.z.toFixed(3)} m vs measured `
+      + `${stats.size.x.toFixed(3)}×${stats.size.y.toFixed(3)}×${stats.size.z.toFixed(3)} m `
+      + `(largest axis drift ${(worst.delta * 100).toFixed(1)}% on ${worst.axis}, needs ≤1%)`,
+    { exported: box.size, measured: stats.size },
+  );
+}
+
 export function checkRenders(entry, shots) {
   // A long thin prop legitimately covers less of the frame than a building; the
   // floor is per-entry so the check measures "is it framed", not "is it bulky".
