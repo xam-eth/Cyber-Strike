@@ -104,6 +104,11 @@ world GLBs into `game/assets/forge/world/` and writes
 `game/assets/forge/forge_manifest.json` — the contract the Godot verifier checks
 the import against.
 
+**Current result:** Godot `4.7.2-stable (official)` · **checked 16 · passed 16 ·
+failed 0** (`qa-evidence/forge/import-report.json`). Every asset imported at
+exactly its catalogued height (delta 0.000 m) with all of its clips and sockets,
+which is the engine agreeing with the browser rather than with a comment.
+
 ## 3. What viewing the renders changed
 
 Each of these was found by looking at a PNG, not by reading code:
