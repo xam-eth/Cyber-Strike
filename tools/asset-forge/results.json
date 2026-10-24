@@ -1,0 +1,203 @@
+{
+  "generated": "2026-10-24T02:48:17.781Z",
+  "tool": "tools/asset-forge/gate/run_gate.mjs",
+  "renderer": "pinned Chromium, SwiftShader (software) — frame rate is not representative",
+  "palette": {
+    "check": "palette-source",
+    "pass": true,
+    "detail": "14 tokens match game/scripts/ui/aegis_tokens.gd"
+  },
+  "catalogEntries": 36,
+  "modelsWired": 36,
+  "modelsMeasured": 1,
+  "passed": 0,
+  "failed": 1,
+  "notBuilt": [],
+  "errored": [],
+  "totals": {
+    "triangles": 2816,
+    "meshes": 67,
+    "glbBytes": 252992
+  },
+  "results": [
+    {
+      "id": "runner",
+      "category": "enemy",
+      "name": "Runner",
+      "status": "fail",
+      "reference": "references/enemies/runner.png",
+      "measured": {
+        "height_m": 1.72,
+        "width_m": 0.714,
+        "depth_m": 1.408,
+        "triangles": 2816,
+        "meshes": 67,
+        "materials": 6,
+        "nodes": 20,
+        "sockets": [
+          "spine",
+          "claw_l",
+          "claw_r"
+        ],
+        "clips": [
+          "idle",
+          "run",
+          "hit",
+          "death"
+        ],
+        "coverage": 0.093,
+        "lumaSpread": 0.87,
+        "viewDistance": 0.617,
+        "geometryHash": 2045365941,
+        "glbBytes": 252992
+      },
+      "failing": [
+        "meta-matches-catalog: reference references/enemies/runner.png missing on disk"
+      ],
+      "checks": [
+        {
+          "check": "catalog-source-exists",
+          "pass": true,
+          "detail": "game/scenes/enemies/runner.tscn"
+        },
+        {
+          "check": "meta-matches-catalog",
+          "pass": false,
+          "detail": "reference references/enemies/runner.png missing on disk"
+        },
+        {
+          "check": "normalisation-recorded",
+          "pass": true,
+          "detail": "authored 1.50 m × 1.146 = target, ground offset -0.016 m (factor must stay in 0.5–2.0)",
+          "scale": 1.1459,
+          "authoredHeight": 1.501,
+          "groundOffset": -0.016
+        },
+        {
+          "check": "height-within-tolerance",
+          "pass": true,
+          "detail": "height 1.720 m vs target 1.72 m (±0.206)",
+          "measured": 1.7199999999999998,
+          "target": 1.72,
+          "tolerance": 0.2064
+        },
+        {
+          "check": "origin-sane",
+          "pass": true,
+          "detail": "ground-contact, minY 0.000 m (ground)"
+        },
+        {
+          "check": "triangle-budget",
+          "pass": true,
+          "detail": "2816 / 120000 triangles",
+          "measured": 2816,
+          "budget": 120000
+        },
+        {
+          "check": "mesh-budget",
+          "pass": true,
+          "detail": "67 / 900 meshes",
+          "measured": 67,
+          "budget": 900
+        },
+        {
+          "check": "sockets-declared",
+          "pass": true,
+          "detail": "3/3 declared sockets present"
+        },
+        {
+          "check": "clips-declared",
+          "pass": true,
+          "detail": "4 clips: idle, run, hit, death"
+        },
+        {
+          "check": "clip-targets-exist",
+          "pass": true,
+          "detail": "every clip target exists in the graph"
+        },
+        {
+          "check": "unique-node-names",
+          "pass": true,
+          "detail": "20 named nodes, no duplicates"
+        },
+        {
+          "check": "geometry-finite",
+          "pass": true,
+          "detail": "bbox 0.71×1.72×1.41 m, 5354 vertices"
+        },
+        {
+          "check": "materials-on-palette",
+          "pass": true,
+          "detail": "6 materials, 6 unique, all on palette",
+          "materialCount": 6
+        },
+        {
+          "check": "deterministic-rebuild",
+          "pass": true,
+          "detail": "rebuild hash 2045365941 matches"
+        },
+        {
+          "check": "glb-valid",
+          "pass": true,
+          "detail": "glTF 2.0, 247 kB, 67 meshes, 20 nodes, 4 animations",
+          "bytes": 252992,
+          "meshes": 67,
+          "nodes": 20,
+          "animations": [
+            "idle",
+            "run",
+            "hit",
+            "death"
+          ]
+        },
+        {
+          "check": "render-coverage@0/8",
+          "pass": true,
+          "detail": "coverage 11.3% (needs 2–90%)",
+          "coverage": 0.11307484567901234
+        },
+        {
+          "check": "render-luma@0/8",
+          "pass": true,
+          "detail": "luma spread 0.86, std 0.172 (needs ≥0.30 / ≥0.045)",
+          "lumaSpread": 0.8615654901960784,
+          "stdLuma": 0.17225888988358198
+        },
+        {
+          "check": "render-coverage@34/16",
+          "pass": true,
+          "detail": "coverage 9.3% (needs 2–90%)",
+          "coverage": 0.09323688271604938
+        },
+        {
+          "check": "render-luma@34/16",
+          "pass": true,
+          "detail": "luma spread 0.87, std 0.171 (needs ≥0.30 / ≥0.045)",
+          "lumaSpread": 0.8702713725490195,
+          "stdLuma": 0.1709061304902391
+        },
+        {
+          "check": "render-coverage@90/42",
+          "pass": true,
+          "detail": "coverage 10.2% (needs 2–90%)",
+          "coverage": 0.1021141975308642
+        },
+        {
+          "check": "render-luma@90/42",
+          "pass": true,
+          "detail": "luma spread 0.92, std 0.168 (needs ≥0.30 / ≥0.045)",
+          "lumaSpread": 0.9203058823529411,
+          "stdLuma": 0.16799909759577836
+        },
+        {
+          "check": "views-differ",
+          "pass": true,
+          "detail": "best pair 0° vs 90° differs by 0.617 (needs ≥0.12), closest 34° vs 90° by 0.333 (needs ≥0.005 — a symmetric hero legitimately differs little front-to-three-quarter)",
+          "viewDistance": 0.6168149571554857,
+          "viewDistanceMin": 0.3331398554058068
+        }
+      ],
+      "ms": 3079
+    }
+  ]
+}
