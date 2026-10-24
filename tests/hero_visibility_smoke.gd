@@ -85,6 +85,7 @@ func _run_smoke_test() -> void:
 	_check_unoccluded(main_scene, posed, camera, [player])
 	_check_screen_cover(posed, camera)
 	_check_winding(meshes)
+	_check_character_fill(visual)
 	_check_material(meshes)
 	_check_weapon(visual, player, camera)
 	_check_fallback(visual)
@@ -306,6 +307,22 @@ func _check_winding(meshes: Array) -> void:
 				% [instance.name, flipped * 100.0]
 			),
 		)
+
+
+## The avatar has a light of its own, and it is cheap.
+##
+## The arena's key is a single hard sun and its fill is ambient, so the side of
+## the operative facing away from the sun measured luma ~0 in the browser capture
+## until this light existed: a silhouette with no panel detail on a phone. The
+## assertion is on the properties that keep it cheap and local -- no shadow, a
+## short range -- not on the exact energy, which is a look.
+func _check_character_fill(visual: Node3D) -> void:
+	var fill := visual.get_node_or_null("CharacterFill") as OmniLight3D
+	if not _expect(fill != null, "the avatar carries its own fill light"):
+		return
+	_expect(not fill.shadow_enabled, "the avatar's fill light does not cast a shadow")
+	_expect(fill.omni_range <= 3.0, "the avatar's fill light stays close to the avatar")
+	_expect(fill.light_energy > 0.4, "the avatar's fill light is strong enough to reveal form")
 
 
 func _check_material(meshes: Array) -> void:

@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Real model inspector</title>
+<style>html,body{margin:0;background:#0a1017;overflow:hidden}#hud{position:fixed;left:8px;bottom:8px;color:#9fb6c8;font:11px ui-monospace,monospace}</style>
+<script type="importmap">
+{ "imports": {
+  "three": "/tools/asset-forge/vendor/three/three.module.js",
+  "three/addons/": "/tools/asset-forge/vendor/three/addons/"
+} }
+</script>
+</head>
+<body>
+<div id="hud">loading…</div>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+const params = new URLSearchParams(location.search);
+const url = params.get('url');
+const view = params.get('view') || 'orbit';
+const hud = document.getElementById('hud');
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(1);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.shadowMap.enabled = true;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#0a1017');
+const camera = new THREE.PerspectiveCamera(38, window.innerWidth / window.innerHeight, 0.05, 5000);
+
+scene.add(new THREE.HemisphereLight(0xbcd4e8, 0x22303c, 2.2));
+const sun = new THREE.DirectionalLight('#fff0d8', 3.2);
+sun.position.set(60, 90, 40);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+scene.add(sun);
+const fill = new THREE.DirectionalLight('#7fb6ff', 1.1); fill.position.set(-50, 30, -40); scene.add(fill);
+
+async function env() {
+  const w = 32, h = 16, data = new Uint8Array(w * h * 4);
+  for (let y = 0; y < h; y += 1) {
+    const t = 1 - y / h;
+    const c = new THREE.Color('#243444').lerp(new THREE.Color('#8fa8bd'), t ** 1.4);
+    for (let x = 0; x < w; x += 1) {
+      const i = (y * w + x) * 4;
+      data[i] = c.r * 255; data[i + 1] = c.g * 255; data[i + 2] = c.b * 255; data[i + 3] = 255;
+    }
+  }
+  const tex = new THREE.DataTexture(data, w, h, THREE.RGBAFormat);
+  tex.mapping = THREE.EquirectangularReflectionMapping;
+  tex.colorSpace = THREE.SRGBColorSpace; tex.needsUpdate = true;
+  const pm = new THREE.PMREMGenerator(renderer);
+  scene.environment = pm.fromEquirectangular(tex).texture;
+  scene.environmentIntensity = 1.0;
+}
+await env();
+
+const loader = new GLTFLoader();
+const gltf = await loader.loadAsync(url);
+const root = gltf.scene;
+scene.add(root);
+
+const box = new THREE.Box3().setFromObject(root);
+const size = box.getSize(new THREE.Vector3());
+const centre = box.getCenter(new THREE.Vector3());
+const radius = Math.max(size.x, size.y, size.z) * 0.5;
+
+const dirs = {
+  orbit: new THREE.Vector3(0.9, 0.55, 1.0),
+  front: new THREE.Vector3(0, 0.25, 1),
+  top: new THREE.Vector3(0.001, 1, 0.001),
+  side: new THREE.Vector3(1, 0.2, 0),
+};
+const d = dirs[view] ?? dirs.orbit;
+const dist = radius / Math.tan((camera.fov * Math.PI) / 360) * 1.25;
+camera.position.copy(centre).addScaledVector(d.clone().normalize(), dist);
+camera.near = Math.max(dist / 2000, 0.01); camera.far = dist * 12;
+camera.lookAt(centre);
+camera.updateProjectionMatrix();
+sun.position.copy(centre).addScaledVector(new THREE.Vector3(0.6, 1, 0.4).normalize(), Math.max(radius * 4, 20));
+sun.target.position.copy(centre); scene.add(sun.target);
+sun.shadow.camera.left = -radius * 2; sun.shadow.camera.right = radius * 2;
+sun.shadow.camera.top = radius * 2; sun.shadow.camera.bottom = -radius * 2;
+sun.shadow.camera.far = radius * 12; sun.shadow.camera.updateProjectionMatrix();
+
+let meshes = 0, tris = 0;
+root.traverse((n) => {
+  if (!n.isMesh) return;
+  meshes += 1;
+  n.castShadow = true; n.receiveShadow = true;
+  const g = n.geometry;
+  tris += (g.index ? g.index.count : g.getAttribute('position').count) / 3;
+});
+
+renderer.render(scene, camera);
+renderer.render(scene, camera); // second pass: shadow map warm
+hud.textContent = `${url.split('/').pop()} · ${meshes} meshes · ${Math.round(tris).toLocaleString()} tris · ${size.x.toFixed(2)}×${size.y.toFixed(2)}×${size.z.toFixed(2)} m`;
+window.__ready = true;
+window.__info = { meshes, tris: Math.round(tris), size: size.toArray(), centre: centre.toArray() };
+</script>
+</body>
+</html>

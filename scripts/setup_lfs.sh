@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Verify and configure Git LFS for Project Overdrive.
+# Verify and configure Git LFS for Exocomplict.
 #
 # The tracking rules live in .gitattributes and are committed, so a machine
 # with git-lfs needs no per-repo setup: this script only checks the tool is
@@ -12,7 +12,7 @@
 #
 # Why this exists: the repository carries 217 MB of tracked files, 75 MB of it
 # build output that CI regenerates and uploads as an artifact every push
-# (docs/AUDIT_2026-10-21.md §4). New commits get lighter the moment LFS is in
+# (docs/DECISIONS.md §4). New commits get lighter the moment LFS is in
 # place; history only gets lighter if someone runs --migrate, which rewrites
 # every commit and therefore needs every collaborator to re-clone.
 
@@ -24,7 +24,7 @@ DO_MIGRATE=0
 
 cd "$ROOT_DIR"
 
-printf 'Git LFS setup — Project Overdrive\n\n'
+printf 'Git LFS setup — Exocomplict\n\n'
 
 # --- 1. is the tool there ---------------------------------------------------
 if ! command -v git-lfs >/dev/null 2>&1 && ! git lfs version >/dev/null 2>&1; then

@@ -1,10 +1,11 @@
-; Project Overdrive — combat prototype with the NEON FRONTIER world
+; Exocomplict — Stellar Horizon. The product name is the wordmark; there is
+; no working title left anywhere that a player can reach.
 ; Engine baseline: Godot 4.7.2-stable (provisional; see TOOLCHAIN_SETUP.md)
 config_version=5
 
 [application]
-config/name="Project Overdrive - Combat Prototype"
-config/description="Mobile-first third-person sci-fi shooter with a connected 3D NEON FRONTIER world."
+config/name="Exocomplict"
+config/description="Stellar Horizon — a mobile-first third-person sci-fi shooter set in the NEON FRONTIER."
 run/main_scene="res://scenes/ui/front_end.tscn"
 config/icon="res://icon.svg"
 config/features=PackedStringArray("4.7")

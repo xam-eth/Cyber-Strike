@@ -9,7 +9,7 @@
 > perimeter; KayKit runtime scripts and files were removed. Existing procedural
 > foundations/ramps/supports remain for gameplay and need visual review before
 > the world can be called fully art-finished. See
-> [`docs/REBASE_VISUAL_GAMEPLAY_2026-10-18.md`](docs/REBASE_VISUAL_GAMEPLAY_2026-10-18.md)
+> [`docs/DECISIONS.md`](docs/DECISIONS.md)
 > for the approved direction and still-open gates.
 
 The level used to be a blockout: a flat plane, four box cliffs and a few GLTF
@@ -126,7 +126,7 @@ whose download host is unreachable from this sandbox, and GitHub artifact
 downloads are blocked too, so no data can be pulled in either direction except
 through git. The CI job `lfs-pack` resolves the archive on a runner, converts
 every FBX with Blender (`tools/convert_fbx_pack.py`) and commits 2.4 MB of GLB:
-**125 converted, 0 failed**. `docs/LFS_ASSET_MANIFEST.md` is the full manifest.
+**125 converted, 0 failed**. `docs/ARCHITECTURE.md` is the full manifest.
 
 | | Before | Now |
 |---|---|---|

@@ -17,7 +17,6 @@ const FRONT_END_ART := [
 	"res://assets/ui/loading_keyart.jpg",
 	"res://assets/ui/dashboard_bg.jpg",
 	"res://assets/ui/logo_wordmark.png",
-	"res://assets/ui/loading_robot_sheet.png",
 	"res://assets/ui/portrait_hero.png",
 	"res://assets/ui/world_neon_frontier.jpg",
 	"res://assets/ui/weapon_pulse_rifle.png",
@@ -25,6 +24,7 @@ const FRONT_END_ART := [
 	"res://assets/ui/weapon_arc_shooter.png",
 ]
 
+var _mark: TextureRect
 var _bar: MenuIndeterminateBar
 var _status: Label
 var _hold_remaining := 0.0
@@ -46,24 +46,27 @@ func _ready() -> void:
 
 	var column := VBoxContainer.new()
 	column.alignment = BoxContainer.ALIGNMENT_CENTER
-	physical_separation(column, 24)
+	physical_separation(column, 32)
 	centre.add_child(column)
 
-	var mark := TextureRect.new()
-	mark.texture = try_texture("res://assets/ui/logo_wordmark.png")
-	mark.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	mark.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	physical_min_size(mark, 360.0, 90.0)
-	column.add_child(mark)
+	# Two authored sizes: a portrait phone is 390 px wide and cannot hold a
+	# 540 px wordmark without it hanging off both edges, while a desktop has
+	# the width to make the mark the thing the screen opens on.
+	_mark = TextureRect.new()
+	_mark.texture = try_texture("res://assets/ui/logo_wordmark.png")
+	_mark.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_mark.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_size_both(_mark, Vector2(300.0, 75.0), Vector2(540.0, 135.0))
+	column.add_child(_mark)
 
 	var holder := VBoxContainer.new()
 	holder.alignment = BoxContainer.ALIGNMENT_CENTER
-	physical_separation(holder, 10)
+	physical_separation(holder, 14)
 	column.add_child(holder)
 
 	_bar = MenuIndeterminateBar.new()
 	_bar.reduce_motion = bool(AegisPreferences.read().get("reduce_motion", false))
-	physical_min_size(_bar, 240.0, 6.0)
+	physical_min_size(_bar, 420.0, 10.0)
 	holder.add_child(_bar)
 
 	_status = make_label(STATUS, "label", AegisTokens.INK_2)
@@ -100,3 +103,4 @@ func _process(delta: float) -> void:
 
 func _on_resized() -> void:
 	relayout()
+	_orient_nodes([_mark])

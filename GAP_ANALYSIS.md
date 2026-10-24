@@ -1,4 +1,4 @@
-# Project Overdrive — Analisis Gap & Status Verifikasi
+# Exocomplict — Analisis Gap & Status Verifikasi
 
 > **Tanggal:** 16 Oktober 2026 · **Branch:** `arena/5257bce8-cyber-strike` · **Pin engine:** Godot 4.7.2-stable (`.godot-version`)
 >
@@ -185,7 +185,7 @@ python3 tools/project_doctor.py            # atau: .venv/bin/python tools/projec
 ./scripts/check_toolchain.sh
 
 # 5. Preset Android lokal (git-ignored) tanpa GUI Editor
-python3 tools/android_preset.py scaffold --package-id com.studioanda.projectoverdrive
+python3 tools/android_preset.py scaffold --package-id com.studioanda.exocomplict
 python3 tools/android_preset.py check
 
 # 6. Build APK debug, lalu ikuti runbook perangkat + profiling

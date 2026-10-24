@@ -1,7 +1,7 @@
 ## Base class for one screen of the front-end journey.
 ##
-## The journey is BOOT -> LOADING -> CINEMATIC -> CHAPTER -> DASHBOARD -> HERO
-## -> WEAPON -> WORLD -> PRELOAD -> gameplay. A stage owns its own layout and
+## The journey is BOOT -> LOADING -> CHAPTER -> DASHBOARD -> HERO -> WORLD
+## -> PRELOAD -> gameplay. A stage owns its own layout and
 ## its own input, and knows nothing about the others: it finishes by emitting
 ## `completed` with the name of the stage it wants next, and `FrontEnd` decides
 ## whether that request is legal. Keeping the decision in one place is what
@@ -20,7 +20,7 @@ const SCROLL_DEADZONE := 10.0
 
 ## Widest a landscape card may be. Wide enough for a plate and two lines of
 ## text, narrow enough that two of them fit on an 844 px wide screen.
-const LANDSCAPE_CARD_WIDTH := 340.0
+const LANDSCAPE_CARD_WIDTH := 400.0
 
 ## Set by FrontEnd when the stage is instantiated, before `enter()` runs.
 ## Typed as Node rather than FrontEnd because the two cannot preload each other;
@@ -58,7 +58,7 @@ var _stretch := 1.0
 ## Connects `resized` once per stage, however many times the stage is entered.
 ##
 ## Stages are entered over and over in one session -- HERO to DASHBOARD and
-## back, WEAPON to HERO and back -- and every one of them connected `resized`
+## back, WORLD to HERO and back -- and every one of them connected `resized`
 ## from `enter()`. The second visit stacked a second handler: Godot printed
 ## "Signal 'resized' is already connected to given callable" and every later
 ## resize ran that stage's layout twice, once more per revisit. Guarding it here
@@ -86,6 +86,15 @@ func exit() -> void:
 ## window (headless runs report a 64x64 dummy, which would make every layout
 ## decision wrong in the same way UiLayout guards against it).
 func physical_size() -> Vector2:
+	# A stage drawn inside a SubViewport -- the layout probe in
+	# `tests/menu_layout_smoke.gd` mounts the real front end in one and resizes
+	# it -- is the size of *that* viewport, not of the window behind it. Reading
+	# the window there made every stage lay out for the headless runner's
+	# default window while the probe measured against 390x844, so the two
+	# disagreed about every size and neither was wrong about the screen it saw.
+	var viewport := get_viewport()
+	if viewport is SubViewport:
+		return Vector2(viewport.size)
 	var window := get_window()
 	if is_instance_valid(window):
 		var window_size := Vector2(window.size)
@@ -165,7 +174,7 @@ func make_button(
 		#     mouse_filter = MOUSE_FILTER_STOP so a click is absorbed by the
 		#     GUI before the stage's _unhandled_input() sees it, and the
 		#     button's global rect reads 0,0 while it is inside the front-end
-		#     viewport — see docs/AUDIT_2026-10-21.md §12.3 for the three
+		#     viewport — see docs/DECISIONS.md §12.3 for the three
 		#     approaches that were measured and did not work.
 		# Deferred: the button has to be in the tree before it can take focus.
 		button.grab_focus.call_deferred()
@@ -300,14 +309,14 @@ func _make_card_list(scroll: ScrollContainer) -> Dictionary:
 	var column := VBoxContainer.new()
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	physical_separation(column, 12)
+	physical_separation(column, 16)
 	host.add_child(column)
 
 	var row := HBoxContainer.new()
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.visible = false
-	physical_separation(row, 12)
+	physical_separation(row, 16)
 	host.add_child(row)
 	_card_scroll = scroll
 	# Screen events only reach `_input()` on a node that processes input.
@@ -360,13 +369,13 @@ func _make_selection_split(info_width: float) -> Dictionary:
 	# the 284 px a landscape phone actually has.
 	split.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	split.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	physical_separation(split, 18)
+	physical_separation(split, 22)
 	var info := VBoxContainer.new()
 	# SHRINK_BEGIN, not the default FILL: the column keeps its authored width
 	# and the card list takes everything that is left.
 	info.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	info.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	physical_separation(info, 14)
+	physical_separation(info, 18)
 	_size_both(info, Vector2(info_width, 0.0), Vector2(info_width, 0.0))
 	# Remembered for `_orient_selection`, which narrows the column on a wide
 	# screen every time the stage is resized.
@@ -449,6 +458,27 @@ func card_line(text: String, role: String, color: Color) -> Label:
 	return label
 
 
+## Holds a line of card copy to `limit` lines with an ellipsis.
+##
+## Cards are buttons with children laid over them, so a child that grows does
+## not grow the card -- it draws past the card's rounded edge and over whatever
+## is below. The weapon list did exactly that at 390x844: the ARC SHOOTER's stat
+## line ran out of its card and into the Battle Points legend. Fixed card
+## heights are safe only if the copy has a bound, and this is the bound.
+## A one-line label that is allowed to ellipsise should not claim its text as
+## its *minimum* width: that is how a caption 20 px too long made a whole page
+## wider than the phone it was drawn on. `clip_text` takes the text out of the
+## minimum size calculation, and the overrun behaviour below still draws the
+## ellipsis.
+func _limit_lines(label: Label, limit: int) -> Label:
+	label.max_lines_visible = limit
+	label.clip_text = limit > 0
+	label.text_overrun_behavior = (
+		TextServer.OVERRUN_TRIM_ELLIPSIS if limit > 0 else TextServer.OVERRUN_NO_TRIMMING
+	)
+	return label
+
+
 ## Creates the full-rect safe-area container a menu screen lays out in.
 func make_margin() -> MarginContainer:
 	_margin = MarginContainer.new()
@@ -461,7 +491,10 @@ func make_margin() -> MarginContainer:
 ## Push a container's margins out to the safe area plus a comfortable inset.
 ## Every menu screen calls this so the reserved edge is defined once.
 func apply_safe_margins(
-	container: MarginContainer, extra_side: float = 28.0, extra_bottom: float = 24.0
+	container: MarginContainer,
+	extra_side: float = 36.0,
+	extra_bottom: float = 28.0,
+	extra_top: float = 28.0
 ) -> void:
 	_refresh_metrics()
 	var insets := _safe_insets(physical_size())
@@ -474,7 +507,19 @@ func apply_safe_margins(
 	container.add_theme_constant_override(
 		"margin_bottom", roundi(px(maxf(insets.z, 0.0) + extra_bottom))
 	)
-	container.add_theme_constant_override("margin_top", roundi(_top_inset() + px(24.0)))
+	container.add_theme_constant_override("margin_top", roundi(_top_inset() + px(extra_top)))
+
+
+## The horizontal margin the stage's own layout container reserves, in physical
+## pixels. Shared chrome asks for it instead of guessing a breakpoint: a dock
+## that budgets the window and forgets the margin overflows by exactly that
+## margin, which is how a 360 px page measured 362 px wide.
+func margin_side() -> float:
+	if not is_instance_valid(_margin):
+		return 0.0
+	var left := float(_margin.get_theme_constant(&"margin_left"))
+	var right := float(_margin.get_theme_constant(&"margin_right"))
+	return maxf(left, right) * _stretch
 
 
 ## Grow every font under `root` so it renders at MIN_PHYSICAL_FONT_PX on the
@@ -500,6 +545,17 @@ func _grow_label(label: Label, floor_size: int) -> void:
 	var wanted := maxi(roundi(float(AegisTheme.type_size(role)) * scale), floor_size)
 	if label.get_theme_font_size("font_size") < wanted:
 		AegisTheme.resize_label(label, role, wanted)
+	# A wrapped Label reports the height of the *narrowest* layout it can be
+	# squeezed into, so `max_lines_visible = 1` plus autowrap gives a container a
+	# minimum height well under the line it draws. That is how HERO's information
+	# card ended up 50 px tall around three 20 px lines, with the first and the
+	# last drawn outside the card. A single-line label reserves one line, measured
+	# from the font it will finally use.
+	if label.max_lines_visible > 0:
+		var font := label.get_theme_font("font")
+		if font != null:
+			var line := float(font.get_height(label.get_theme_font_size("font_size")))
+			label.custom_minimum_size.y = maxf(label.custom_minimum_size.y, line)
 
 
 func _grow_button(button: Button, floor_size: int) -> void:

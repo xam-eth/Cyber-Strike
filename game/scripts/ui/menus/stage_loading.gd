@@ -1,29 +1,47 @@
 ## LOADING and PRELOAD: one implementation, two stages.
 ##
-## The bar is driven by `ResourceLoader.load_threaded_get_status`, so the
+## The screen is a **poster, not a dialog**. The reference is the opening of a
+## mobile survival title (Doomsday): full-bleed key art edge to edge, no
+## letterbox, a heavy gradient to near-black across the lower half, and the
+## product mark sitting in that dark band at a size it could be read across a
+## room. Measured off the reference frames: the mark spans roughly 60 % of the
+## frame width, sits with its cap-height centre about 88 % down, and the only
+## other element on the screen is a small low-contrast credit line under it.
+##
+## What that rules out, and why each one was already a defect here:
+##
+##   * a flat void plate with a wordmark floating in the optical centre -- that
+##     is BOOT's composition, and two stages that look the same are one stage
+##     printed twice;
+##   * a "LOADING" heading, a status count and a percentage stacked as a form --
+##     the reference has one line of small type and the player reads the bar,
+##     not a table;
+##   * the wordmark at 440 px in the middle of the screen -- on a poster the
+##     mark is large and anchored, and the art is what the screen is for.
+##
+## The bar is still driven by `ResourceLoader.load_threaded_get_status`, so the
 ## percentage is the engine's own count of resources fetched, not a timer. When
-## there is nothing real to load the stage refuses to invent a number: it shows
-## an indeterminate sweep instead and says so.
+## there is nothing real to load the stage refuses to invent a number: the
+## hairline becomes an indeterminate sweep instead.
 ##
 ## Payload:
 ##   targets: Array[String]  resource paths to fetch, in order
-##   title:   String         heading text
+##   title:   String         the caption over the bar
 ##   next:    StringName     stage to enter when the queue drains
 ##   scene:   String         if set, change to this scene instead of going to a
 ##                           stage (used by PRELOAD for the gameplay scene)
 extends MenuStage
 
-## The walk cycle built by tools/art/build_ui_art.py: 2048x512, four 512 px
-## cells. Keeping the animation in a single atlas means one import and one draw
-## call instead of four textures swapping.
-const ROBOT_SHEET := "res://assets/ui/loading_robot_sheet.png"
-## Asset C as a real video, encoded from the same four frames by
-## tools/art/build_ui_video.py. The sheet is the fallback, not the other way
-## round: a device that cannot decode Theora still gets the walk cycle.
-const ROBOT_VIDEO := "res://assets/ui/loading_robot.ogv"
-const ROBOT_CELL := 512.0
-const ROBOT_FRAMES := 4
-const ROBOT_FPS := 8.0
+## The poster. Kept as a literal so `data_source_smoke` can prove the file
+## exists -- and it is the front end's key art, which `BOOT.FRONT_END_ART`
+## loads with real progress before this screen is reached.
+const KEY_ART := "res://assets/ui/loading_keyart.jpg"
+const WORDMARK := "res://assets/ui/logo_wordmark.png"
+
+## How much of the frame the bottom gradient covers. 0.52 is measured off the
+## reference: the artwork is legible down to the horizon and the title band is
+## the bottom half, so the mark never sits on a busy part of the picture.
+const SCRIM_HEIGHT := 0.52
 
 var _targets: Array[String] = []
 var _index := 0
@@ -32,28 +50,102 @@ var _title: Label
 var _bar: ProgressBar
 var _percent: Label
 var _status: Label
-var _robot: TextureRect
-var _robot_atlas: AtlasTexture
-var _robot_video: VideoStreamPlayer
-var _robot_time := 0.0
+var _mark: TextureRect
 var _indeterminate: MenuIndeterminateBar
 var _reduce_motion := false
 var _done := false
+## QA only (`?qa_hold=1`): stop at 100 % instead of leaving the stage. A web
+## build finishes this preload within one frame, so the screen cannot otherwise
+## be photographed or reviewed at all -- and "it is always too fast to see" is
+## not a reason to ship a screen nobody has looked at. Inert in the real flow:
+## FrontEnd only sets it from the QA deep link, and nothing else reads it.
+var _hold := false
+var _scrim_top: TextureRect
+var _scrim_bottom: TextureRect
+var _bottom_gap: Control
 
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
-	add_child(make_backdrop("res://assets/ui/loading_keyart.jpg"))
+	_build_poster()
+	_build_caption()
 
-	# The key art is a photograph; a flat scrim is what makes the caption and
-	# the bar readable on top of it at every aspect ratio.
-	var scrim := ColorRect.new()
-	scrim.color = Color(AegisTokens.VOID, 0.5)
-	scrim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_connect_resized(_on_resized)
+	relayout()
+	_apply_poster()
+
+
+## The picture, and the darkness it needs. Key art is drawn with
+## `STRETCH_KEEP_ASPECT_COVERED`: the reference is full-bleed at every aspect,
+## and letterboxing a phone would put two black bars over the one thing the
+## screen exists to show. The two gradients are what let white type sit on a
+## photograph without a plate behind it -- a flat scrim dulls the whole image,
+## a gradient only dims the band the type is in.
+func _build_poster() -> void:
+	# Anything at all behind the art, so a decode that has not landed yet is a
+	# dark frame rather than the uninitialised grey of the viewport. Added
+	# first: a sibling drawn earlier is a sibling drawn under.
+	var plate := ColorRect.new()
+	plate.name = &"LoadingPlate"
+	plate.color = AegisTokens.VOID
+	plate.set_anchors_preset(Control.PRESET_FULL_RECT)
+	plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(plate)
+
+	var art := TextureRect.new()
+	art.name = &"LoadingKeyArt"
+	art.texture = try_texture(KEY_ART)
+	art.set_anchors_preset(Control.PRESET_FULL_RECT)
+	art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(art)
+
+	# `true` ramps near-black at the top down to transparent: the top band.
+	_scrim_top = _make_scrim(true)
+	_scrim_top.name = &"LoadingScrimTop"
+	add_child(_scrim_top)
+	# `false` ramps transparent at the top down to near-black: the bottom band.
+	_scrim_bottom = _make_scrim(false)
+	_scrim_bottom.name = &"LoadingScrimBottom"
+	add_child(_scrim_bottom)
+
+
+## A vertical gradient from transparent to near-black. Built as a
+## `GradientTexture2D` because a `ColorRect` has one colour and stacking four
+## of them to fake a ramp leaves visible steps on a 720 px-tall frame.
+func _make_scrim(upwards: bool) -> TextureRect:
+	var gradient := Gradient.new()
+	gradient.offsets = PackedFloat32Array([0.0, 0.62, 1.0])
+	gradient.colors = PackedColorArray(
+		[
+			Color(AegisTokens.VOID, 0.0),
+			Color(AegisTokens.VOID, 0.45),
+			Color(AegisTokens.VOID, 0.97),
+		]
+	)
+	var texture := GradientTexture2D.new()
+	texture.gradient = gradient
+	texture.fill = GradientTexture2D.FILL_LINEAR
+	texture.fill_from = Vector2(0.0, 1.0) if upwards else Vector2(0.0, 0.0)
+	texture.fill_to = Vector2(0.0, 0.0) if upwards else Vector2(0.0, 1.0)
+	texture.width = 8
+	texture.height = 256
+
+	var scrim := TextureRect.new()
+	scrim.texture = texture
+	scrim.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	scrim.stretch_mode = TextureRect.STRETCH_SCALE
 	scrim.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(scrim)
+	return scrim
 
+
+## The title band, anchored to the bottom of the frame: the mark, one caption
+## row, and the hairline. A `VBoxContainer` with an expanding spacer above it
+## is what pins the block down instead of leaving it in the optical centre.
+func _build_caption() -> void:
 	var margin := MarginContainer.new()
+	margin.name = &"LoadingBand"
 	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
 	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(margin)
@@ -61,66 +153,86 @@ func _ready() -> void:
 
 	var column := VBoxContainer.new()
 	column.alignment = BoxContainer.ALIGNMENT_END
-	physical_separation(column, 14)
+	physical_separation(column, 18)
 	margin.add_child(column)
 
-	var spacer := Control.new()
-	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	column.add_child(spacer)
+	var top_spacer := Control.new()
+	top_spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	top_spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(top_spacer)
 
-	_title = make_label("LOADING", "display_l", AegisTokens.INK)
-	column.add_child(_title)
+	# The mark comes first: a player who alt-tabs back mid-load should recognise
+	# the product before reading the status line. Two authored sizes, because a
+	# 390 px phone cannot hold a 620 px wordmark.
+	_mark = TextureRect.new()
+	_mark.name = &"Wordmark"
+	_mark.texture = try_texture(WORDMARK)
+	_mark.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_mark.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_mark.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_size_both(_mark, Vector2(340.0, 85.0), Vector2(720.0, 180.0))
+	column.add_child(_mark)
 
-	_status = make_label("", "label", AegisTokens.INK_2)
+	# One row, the same shape the reference uses: what is happening on the
+	# left, the figure on the right, both small. Two lines of copy under a
+	# poster title is a dialog; this is a credit line.
+	var headline := HBoxContainer.new()
+	physical_separation(headline, 16)
+	column.add_child(headline)
+
+	# `label`, not `label_s`: at 1280x720 the canvas scale is 1, so `label_s`
+	# drew a 14 px credit line under a 720 px wordmark and the frame read as a
+	# mock-up. The floor for supporting text in this project is 16 px
+	# (docs/DECISIONS.md 20).
+	_title = make_label("LOADING", "label", AegisTokens.INK_2)
+	_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	headline.add_child(_title)
+
+	_percent = make_label("", "mono_m", AegisTokens.INK)
+	_percent.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	headline.add_child(_percent)
+
+	_status = make_label("", "label", AegisTokens.INK_3)
 	column.add_child(_status)
 
-	_robot = TextureRect.new()
-	_robot.name = &"RobotSheet"
-	_robot.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	_robot.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	_robot.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	physical_min_size(_robot, 160.0, 160.0)
-	_robot.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var sheet := try_texture(ROBOT_SHEET)
-	if sheet != null:
-		_robot_atlas = AtlasTexture.new()
-		_robot_atlas.atlas = sheet
-		_robot_atlas.region = Rect2(0.0, 0.0, ROBOT_CELL, ROBOT_CELL)
-		_robot.texture = _robot_atlas
-	column.add_child(_robot)
-
-	_robot_video = VideoStreamPlayer.new()
-	_robot_video.name = &"RobotVideo"
-	_robot_video.stream = try_video(ROBOT_VIDEO)
-	_robot_video.expand = true
-	# `expand` stretches the frame to whatever rect the container gives the
-	# player, and the column is 318 px wide: a square 512x512 loop came out
-	# 318x160, i.e. twice as wide as tall, while the sprite-sheet fallback drew
-	# the same robot at 160x160. Shrink-and-centre makes both paths agree.
-	_robot_video.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	_robot_video.loop = true
-	_robot_video.autoplay = false
-	_robot_video.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	physical_min_size(_robot_video, 160.0, 160.0)
-	column.add_child(_robot_video)
-
+	# The hairline: 3 physical px of amber across the full text width. It is
+	# the only element on the screen that moves, which is what makes it
+	# readable as progress rather than as a decorative rule.
 	_bar = ProgressBar.new()
+	_bar.name = &"LoadingBar"
 	_bar.show_percentage = false
 	_bar.min_value = 0.0
 	_bar.max_value = 1.0
 	_bar.value = 0.0
-	physical_min_size(_bar, 0.0, 8.0)
+	physical_min_size(_bar, 0.0, 3.0)
+	# Not the default theme: an unstyled `ProgressBar` draws Godot's grey
+	# trough, which on a photograph reads as a browser widget. The track is
+	# line-coloured at a third of its alpha and the fill is the one amber the
+	# palette allows, so the hairline belongs to the palette rather than to the
+	# engine.
+	var track := StyleBoxFlat.new()
+	track.bg_color = Color(AegisTokens.LINE, 0.55)
+	var fill := StyleBoxFlat.new()
+	fill.bg_color = AegisTokens.ACCENT
+	_bar.add_theme_stylebox_override("background", track)
+	_bar.add_theme_stylebox_override("fill", fill)
 	column.add_child(_bar)
 
 	_indeterminate = MenuIndeterminateBar.new()
-	physical_min_size(_indeterminate, 0.0, 8.0)
+	_indeterminate.name = &"LoadingSweep"
+	physical_min_size(_indeterminate, 0.0, 3.0)
 	_indeterminate.visible = false
 	column.add_child(_indeterminate)
 
-	_percent = make_label("", "mono_m", AegisTokens.INFO)
-	_connect_resized(_on_resized)
-	relayout()
-	column.add_child(_percent)
+	# Breathing room under the bar. The web shell draws its own control chip in
+	# the bottom-left corner, and the poster's credit line sat on top of it
+	# (measured on the first 1280x720 frame of this design). Five per cent of
+	# the frame keeps the whole band clear of it without moving the band up
+	# into the picture.
+	_bottom_gap = Control.new()
+	_bottom_gap.name = &"LoadingGap"
+	_bottom_gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(_bottom_gap)
 
 
 func enter(stage_payload: Dictionary) -> void:
@@ -131,8 +243,9 @@ func enter(stage_payload: Dictionary) -> void:
 	_index = 0
 	_failed = []
 	_done = false
-	_robot_time = 0.0
+	_hold = bool(stage_payload.get("hold", false))
 	_title.text = str(stage_payload.get("title", "LOADING"))
+	_apply_poster()
 	var total := _targets.size()
 	if total == 0:
 		# Nothing measurable to fetch: say so rather than animating a number.
@@ -149,7 +262,6 @@ func enter(stage_payload: Dictionary) -> void:
 		_percent.text = "0%"
 		_status.text = "0 / %d" % total
 		ResourceLoader.load_threaded_request(_targets[0])
-	_use_video_robot(_robot_video.stream != null and not _reduce_motion)
 	set_process(true)
 	# An empty queue still has to leave the stage; give it one beat.
 	if total == 0:
@@ -159,31 +271,9 @@ func enter(stage_payload: Dictionary) -> void:
 func exit() -> void:
 	set_process(false)
 	_indeterminate.set_running(false)
-	if is_instance_valid(_robot_video) and _robot_video.is_playing():
-		_robot_video.stop()
 
 
-## The video and the sprite sheet are one animation in two containers, so only
-## one of them is ever on screen. `reduce_motion` holds the first frame of
-## whichever is in use, which for the video means not starting it at all.
-func _use_video_robot(use_video: bool) -> void:
-	_robot_video.visible = use_video
-	_robot.visible = not use_video and _robot_atlas != null
-	if use_video:
-		# No length in the log line: `stream_length` reads 0.00 until the
-		# decoder opens, and the number belongs to the test that waits for it.
-		print("MenuLoading: playing the encoded walk cycle")
-		_robot_video.play()
-	else:
-		_robot_video.stop()
-		_robot_video.stream_position = 0.0
-
-
-func _process(delta: float) -> void:
-	if _robot.visible and _robot_atlas != null and not _reduce_motion:
-		_robot_time += delta
-		var frame := int(_robot_time * ROBOT_FPS) % ROBOT_FRAMES
-		_robot_atlas.region = Rect2(frame * ROBOT_CELL, 0.0, ROBOT_CELL, ROBOT_CELL)
+func _process(_delta: float) -> void:
 	if _done or _index >= _targets.size():
 		return
 	var progress: Array = []
@@ -222,6 +312,9 @@ func _finish() -> void:
 	_indeterminate.set_running(false)
 	_bar.value = 1.0
 	_percent.text = "100%"
+	_status.text = "READY"
+	if _hold:
+		return
 	var scene_path := str(payload.get("scene", ""))
 	if not scene_path.is_empty():
 		if not _failed.is_empty():
@@ -250,3 +343,28 @@ func _change_scene(scene_path: String) -> void:
 
 func _on_resized() -> void:
 	relayout()
+	_orient_nodes([_mark])
+	_apply_poster()
+
+
+## The two bands that darken the picture, in physical pixels off the frame's
+## own size: the bottom scrim is `SCRIM_HEIGHT` of it and the top one is a
+## notch's worth, so the wordmark band sits on near-black at any aspect.
+func _apply_poster() -> void:
+	var frame := physical_size()
+	if is_instance_valid(_bottom_gap):
+		physical_min_size(_bottom_gap, 0.0, maxf(frame.y * 0.05, 20.0))
+	if is_instance_valid(_scrim_bottom):
+		_scrim_bottom.anchor_left = 0.0
+		_scrim_bottom.anchor_right = 1.0
+		_scrim_bottom.anchor_top = 1.0
+		_scrim_bottom.anchor_bottom = 1.0
+		_scrim_bottom.offset_top = -frame.y * SCRIM_HEIGHT
+		_scrim_bottom.offset_bottom = 0.0
+	if is_instance_valid(_scrim_top):
+		_scrim_top.anchor_left = 0.0
+		_scrim_top.anchor_right = 1.0
+		_scrim_top.anchor_top = 0.0
+		_scrim_top.anchor_bottom = 0.0
+		_scrim_top.offset_top = 0.0
+		_scrim_top.offset_bottom = maxf(frame.y * 0.16, 64.0)

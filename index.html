@@ -4,16 +4,16 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 		<meta name="theme-color" content="#05070d">
-		<title>Project Overdrive — WebAssembly Preview</title>
+		<title>Exocomplict</title>
 		<!--
-			Halaman pemain untuk preview WebAssembly Project Overdrive.
+			Halaman pemain Exocomplict.
 
 			Jalankan dari root repo:
 
 			    python -m http.server 800 --bind 0.0.0.0
 			    http://localhost:800/
 
-			Halaman ini TIDAK memakai iframe: ia meng-import build Godot dari ./web/
+			Halaman ini TIDAK memakai iframe: ia meng-import build dari ./web/
 			(fetch konfigurasi ekspor dari ./web/index.html, lalu memuat ./web/index.js
 			dan memanggil Engine.startGame) sehingga game tampil langsung di halaman ini.
 			Struktur ini mengikuti pola repo xam-eth/Scary-Night: halaman di root yang
@@ -127,45 +127,45 @@
 			.panel .warn { color: var(--warn); }
 			body.hide-ui .chips, body.hide-ui .panel { display: none; }
 
-			/* ---------- boot ---------- */
+			/* ---------- boot ----------
+			   A flat, empty frame. It used to carry the product wordmark, a
+			   sentence naming the engine and its version, and a percentage that
+			   counted bytes the browser had already fetched. All three are gone
+			   (docs/DECISIONS.md 17): the opening is the game's, not the
+			   runtime's, and a launch screen that talks about its own plumbing
+			   reads as a developer preview rather than a product. What is left
+			   is one hairline that fills as the payload arrives, so a slow
+			   connection is not an empty black rectangle. It holds no words at
+			   all, so there is nothing here for a screenshot to quote. */
 			#boot {
 				position: fixed;
 				inset: 0;
 				z-index: 20;
 				display: grid;
-				place-content: center;
-				gap: 1rem;
-				padding: 2rem;
-				text-align: center;
-				background:
-					radial-gradient(circle at 20% 10%, rgba(36, 211, 255, 0.16), transparent 55%),
-					radial-gradient(circle at 80% 90%, rgba(124, 255, 203, 0.12), transparent 52%),
-					var(--bg);
+				align-content: end;
+				justify-items: center;
+				padding: 0 0 14vh;
+				background: var(--bg);
 			}
 
 			#boot[hidden] { display: none; }
-			#boot h1 {
-				margin: 0;
-				font-size: clamp(1.4rem, 4vw, 2.4rem);
-				font-weight: 700;
-				letter-spacing: 0.32em;
-				text-transform: uppercase;
-			}
-
-			#boot h1 span { color: var(--cyan); }
-			#boot .sub { color: var(--muted); font-size: 0.8rem; letter-spacing: 0.22em; text-transform: uppercase; }
 			#bar {
-				width: min(30rem, 70vw);
-				height: 0.4rem;
-				margin: 0 auto;
-				border: 1px solid var(--line);
-				border-radius: 999px;
+				width: min(18rem, 52vw);
+				height: 2px;
 				overflow: hidden;
-				background: rgba(255, 255, 255, 0.04);
+				background: rgba(255, 255, 255, 0.07);
 			}
 
-			#bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--cyan), var(--emerald)); transition: width 0.2s linear; }
-			#boot-status { color: var(--muted); font-size: 0.78rem; letter-spacing: 0.1em; }
+			#bar i { display: block; height: 100%; width: 0; background: var(--cyan); transition: width 0.2s linear; }
+			/* Read by a screen reader, never drawn: the launch frame has no copy. */
+			.visually-hidden {
+				position: absolute;
+				width: 1px;
+				height: 1px;
+				overflow: hidden;
+				clip-path: inset(50%);
+				white-space: nowrap;
+			}
 
 			/* ---------- failure card ---------- */
 			#failure {
@@ -214,7 +214,7 @@
 	</head>
 	<body>
 		<!-- Kanvas milik halaman ini; engine Godot mengambil elemen ini. -->
-		<canvas id="canvas" tabindex="-1" aria-label="Project Overdrive. Jelajahi dengan aman, tekan B untuk memulai Defense. WASD bergerak, klik kanan membidik, klik kiri menembak, E ganti senjata, Esc pause, R retry."></canvas>
+		<canvas id="canvas" tabindex="-1" aria-label="Exocomplict. Jelajahi dengan aman, tekan B untuk memulai Defense. WASD bergerak, klik kanan membidik, klik kiri menembak, E ganti senjata, Esc pause, R retry."></canvas>
 
 		<div class="overlay" id="shell-ui">
 			<div class="chips" id="chips" data-collapsed="true">
@@ -237,10 +237,8 @@
 		</div>
 
 		<div id="boot">
-			<h1>Project <span>Overdrive</span></h1>
-			<div class="sub">WebAssembly preview · Godot 4.7.2</div>
 			<div id="bar"><i></i></div>
-			<div id="boot-status">menyiapkan…</div>
+			<p id="boot-status" class="visually-hidden" role="status" aria-live="polite">memuat…</p>
 		</div>
 
 		<div id="failure" hidden>
@@ -369,15 +367,15 @@
 				}
 
 				const engine = new EngineClass(config);
-				bootStatus.textContent = 'memuat berkas game…';
+				bootStatus.textContent = 'memuat…';
 
 				engine.startGame({
 					onProgress: (current, total) => {
 						if (current > 0 && total > 0) {
 							bootBar.style.width = `${Math.floor((current / total) * 100)}%`;
-							bootStatus.textContent = `${Math.floor((current / total) * 100)}% dimuat`;
+							bootStatus.textContent = `${Math.floor((current / total) * 100)}%`;
 						} else {
-							bootStatus.textContent = 'memuat berkas game…';
+							bootStatus.textContent = 'memuat…';
 						}
 					},
 				}).then(() => {

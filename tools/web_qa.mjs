@@ -15,7 +15,7 @@
  *   node tools/web_qa.mjs --menus --settings-tabs # capture Controls, HUD, Access tabs
  *   node tools/web_qa.mjs --menus --settings --editor # HUD tab/editor screenshot
  *   node tools/web_qa.mjs --menus --swipe --viewport 390x844 # portrait sheet gesture
- *   node tools/web_qa.mjs --tour          # world review camera: F10 + keys 1-8
+ *   node tools/web_qa.mjs --tour          # world review camera: P (F10 is browser-reserved) + keys 1-8
  *   node tools/web_qa.mjs --encounter-prep --explore-wait 8000
  *       # safe Explore + deliberate B + preparation; Defense is NOT claimed
  *   node tools/web_qa.mjs --encounter --explore-wait 8000 --encounter-timeout 600
@@ -325,7 +325,7 @@ async function checkPage(target, viewport) {
   // (`MenuCTA: x,y,w,h in <viewport w>,<viewport h>`) and this pass clicks it,
   // stage by stage, until the gameplay scene reports in. Without it the tour
   // pressed F10 in the front-end menu, where the review camera does not exist,
-  // and reported eight menu frames as a success (docs/AUDIT_2026-10-21.md
+  // and reported eight menu frames as a success (docs/DECISIONS.md
   // §12.3).
   // Each stage opens with its primary action focused, so ui_accept (Enter)
   // activates it: one Enter per stage, no coordinates and no guessing. A Godot
@@ -333,7 +333,7 @@ async function checkPage(target, viewport) {
   // means the GUI absorbs a click before the stage's _unhandled_input() sees
   // it, and the button's global rect reads 0,0 while the stage sits in the
   // front-end viewport — all three measured, see
-  // docs/AUDIT_2026-10-21.md §12.3.
+  // docs/DECISIONS.md §12.3.
   const advanceToGameplay = async () => {
     const reached = () => consoleLines.some((line) => line.includes('Encounter: Explore safe'));
     const stageLine = () => consoleLines.filter((l) => l.includes('FrontEnd: stage')).pop() || '';
@@ -374,24 +374,6 @@ async function checkPage(target, viewport) {
     return reached();
   };
 
-  /* ---------- optional world tour ---------- */
-  const tourFrames = [];
-  let inGameplay = false;
-  if (booted && (tourMode || encounterMode)) {
-    inGameplay = await advanceToGameplay();
-  }
-  if (booted && tourMode && inGameplay) {
-    await page.keyboard.press('F10');
-    await new Promise((r) => setTimeout(r, 600));
-    for (const digit of ['Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'Digit6', 'Digit7', 'Digit8']) {
-      await page.keyboard.press(digit);
-      await new Promise((r) => setTimeout(r, tourWaitMs));
-      const frame = path.join(outDir, `${slug}-${viewport.spec}-tour-${digit.replace('Digit', '')}.png`);
-      await page.screenshot({ path: frame });
-      tourFrames.push(path.relative(ROOT, frame));
-    }
-  }
-
   /* ---------- explicit Explore → Preparing → Defense check ---------- */
   const encounterFrames = [];
   let safeBeforeActivation = false;
@@ -429,6 +411,18 @@ async function checkPage(target, viewport) {
       await page.screenshot({ path: phaseFrame });
       encounterFrames.push(path.relative(ROOT, phaseFrame));
     }
+  }
+
+  /* ---------- walk the front end to the gameplay scene ---------- */
+  // A play pass acts on the *gameplay* scene, so it needs the journey walked
+  // even when no tour or encounter was asked for. Before this, `--play` on its
+  // own clicked the centre of whichever menu stage was on screen: the shot
+  // check could never pass, which is worse than no check
+  // (docs/DECISIONS.md §12.3, the same defect as the tour
+  // photographing the menu).
+  let inGameplay = false;
+  if (booted && (tourMode || encounterMode || playSeconds > 0)) {
+    inGameplay = await advanceToGameplay();
   }
 
   /* ---------- optional play pass ---------- */
@@ -524,10 +518,46 @@ async function checkPage(target, viewport) {
     }
   }
 
+  /* ---------- optional world tour (last: it pauses the simulation) ---------- */
+  const tourFrames = [];
+  if (booted && tourMode && inGameplay) {
+    // Click the canvas first: a Godot window only owns keyboard focus after a
+    // user gesture, and keys sent to an unfocused page go nowhere.
+    const viewportCentre = await page.evaluate(() => {
+      const canvas = document.querySelector('canvas');
+      if (!canvas) return null;
+      const rect = canvas.getBoundingClientRect();
+      return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
+    });
+    if (viewportCentre) await page.mouse.click(viewportCentre.x, viewportCentre.y);
+    // P, not F10: F10 is reserved by browsers and never reaches the page, so
+    // the review camera was never engaged while this pass reported that it had
+    // captured a "world tour" (docs/DECISIONS.md §12.3).
+    await page.keyboard.press('KeyP');
+    await new Promise((r) => setTimeout(r, 600));
+    const engaged = consoleLines.some((line) => line.includes('World tour: review camera engaged'));
+    if (!engaged) console.log('  tour: the review camera did not engage (no World tour: log line)');
+    for (const digit of ['Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'Digit6', 'Digit7', 'Digit8']) {
+      await page.keyboard.press(digit);
+      await new Promise((r) => setTimeout(r, tourWaitMs));
+      const frame = path.join(outDir, `${slug}-${viewport.spec}-tour-${digit.replace('Digit', '')}.png`);
+      await page.screenshot({ path: frame });
+      tourFrames.push(path.relative(ROOT, frame));
+    }
+    // The review rig freezes the simulation on purpose. It is the last thing
+    // this run does for exactly that reason: earlier it ran before the play
+    // pass, the release key never reached the game (the same window-focus
+    // problem as §12.3), and the play pass then fired into a paused game while
+    // the report blamed the audio pipeline. Ordering beats a key press here;
+    // the assertion below still proves the rig was engaged.
+    await page.keyboard.press('KeyP');
+    await new Promise((r) => setTimeout(r, 600));
+  }
+  await page.close();
+
   const audioLines = consoleLines.filter((line) => line.includes('Audio:'));
   const menuLines = consoleLines.filter((line) => line.includes('HUD: '));
   const scriptErrors = consoleLines.filter((line) => /SCRIPT ERROR:|Parse Error:/.test(line));
-  await page.close();
 
   const checks = [
     ['engine booted (console banner)', booted],
@@ -552,6 +582,16 @@ async function checkPage(target, viewport) {
     checks.push([
       `world tour frames differ (${hashes.size} distinct of ${tourFrames.length})`,
       tourFrames.length > 0 && hashes.size >= 2,
+    ]);
+    // The tour is the last thing a run does, because the rig pauses the
+    // simulation while it tours. What is worth asserting is that the rig ran in
+    // gameplay at all — the eight frames above only mean something if the
+    // review camera moved, and the release key is not asserted: it depends on
+    // the Godot window owning keyboard focus, which a freshly loaded page does
+    // not have (docs/DECISIONS.md §12.3). Ordering removes the need.
+    checks.push([
+      'world tour engaged the review camera in gameplay',
+      consoleLines.some((line) => line.includes('World tour: review camera engaged')),
     ]);
   }
   if (encounterMode) {
@@ -596,12 +636,18 @@ async function checkPage(target, viewport) {
   if (playSeconds > 0) {
     checks.push(['scripted play captured frames', frames.length > 0]);
     checks.push(['audio pipeline reported itself', audioLines.length > 0]);
-    checks.push([
-      encounterMode ? 'audio played a voice in the browser' : 'weapon shot played in the browser',
-      audioLines.some((line) =>
-        encounterMode ? line.includes('first voice played') : line.includes('first voice played (shot_'),
-      ),
-    ]);
+    checks.push(
+      encounterMode
+        ? ['audio played a voice in the browser', audioLines.some((line) => line.includes('first voice played'))]
+        : [
+            'weapon shot played in the browser',
+            // The first voice of a session is usually a menu/session sound, so
+            // matching the *first-voice* line reported a failure while the
+            // magazine was one round down. The engine now logs the first
+            // weapon voice separately (audio_director._note_played).
+            audioLines.some((line) => line.includes('first weapon voice played')),
+          ],
+    );
     checks.push([
       'the mute control reaches the audio pipeline',
       // Exact transition only. Browser user:// persists between viewport runs:

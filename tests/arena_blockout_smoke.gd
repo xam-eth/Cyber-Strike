@@ -18,7 +18,24 @@ func _run_smoke_test() -> void:
 	var arena: Node3D = main_scene.get_node("NeonFrontier")
 	var player: Node3D = main_scene.get_node("Player")
 	var test_passed := true
-	for required_node in ["CentralReactor", "ServiceDeck", "ServiceRamp", "ArenaEnvironment"]:
+	# The blockout used to be procedural geometry. It is now the staged real world,
+	# so what this test guards is that the arena still exists as a place to fight
+	# in: a real reactor, a lit environment and a walkable floor.
+	var real_world := arena.get_node_or_null("RealFrontierWorld") as Node3D
+	test_passed = (
+		_expect(real_world != null, "the arena is the staged real GLB world") and test_passed
+	)
+	var arena_meshes: Array[Node] = (
+		real_world.find_children("*", "MeshInstance3D", true, false) if real_world != null else []
+	)
+	test_passed = (
+		_expect(
+			arena_meshes.size() >= 400,
+			"the arena's geometry comes from the real asset file (%d meshes)" % arena_meshes.size(),
+		)
+		and test_passed
+	)
+	for required_node in ["ArenaFloor", "ArenaEnvironment", "FrontierDaylightSun"]:
 		test_passed = (
 			_expect(
 				arena.get_node_or_null(required_node) != null,
@@ -26,36 +43,20 @@ func _run_smoke_test() -> void:
 			)
 			and test_passed
 		)
-	var beacon_count := 0
-	for child in arena.get_children():
-		if str(child.name).ends_with("_Beacon"):
-			beacon_count += 1
-	test_passed = (
-		_expect(
-			(
-				beacon_count == main_scene.get_node("SpawnPoints").get_child_count() - 1
-				and main_scene.get_node_or_null("SpawnPoints/SpawnSouth") != null
-				and arena.get_node_or_null("SpawnSouth_Beacon") == null
-				and arena.get_node_or_null("SpawnSouth_Core") == null
-			),
-			"combat south spawn remains, but its near-camera decorative beacon is hidden",
-		)
-		and test_passed
-	)
 
 	player.global_position = Vector3(5.5, 0.0, 5.5)
 	player.set("velocity", Vector3.ZERO)
 	player.call("set_touch_movement", Vector2.RIGHT)
 	for _frame in 120:
 		await physics_frame
-		if player.global_position.x >= 10.2 and player.global_position.y >= 0.4:
+		if player.global_position.x >= 10.2:
 			break
 	player.call("set_touch_movement", Vector2.ZERO)
-	print("Service ramp test ended at player position %s." % player.global_position)
+	print("Arena traversal ended at player position %s." % player.global_position)
 	test_passed = (
 		_expect(
-			player.global_position.x >= 10.2 and player.global_position.y >= 0.4,
-			"player can walk up the low service ramp onto the deck",
+			player.global_position.x >= 10.2,
+			"player can cross the arena floor on the real world's collision layer",
 		)
 		and test_passed
 	)

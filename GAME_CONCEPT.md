@@ -1,4 +1,4 @@
-PROJECT OVERDRIVE
+EXOCOMPLICT
 
 Game Concept & Technical Design Document
 
@@ -10,7 +10,7 @@ Engine: Godot 4.x
 Programming Language: GDScript
 Initial Mode: Single-player
 Future Direction: Optional multiplayer
-Working Title: Project Overdrive
+Working Title: Exocomplict
 
 ---
 
@@ -18,7 +18,7 @@ Working Title: Project Overdrive
 
 1.1 Product Vision
 
-Project Overdrive adalah game third-person shooter futuristik yang berfokus pada pengalaman menembak yang responsif, senjata dengan karakteristik unik, efek visual yang memuaskan, dan progression sederhana yang mendorong pemain terus bermain.
+Exocomplict adalah game third-person shooter futuristik yang berfokus pada pengalaman menembak yang responsif, senjata dengan karakteristik unik, efek visual yang memuaskan, dan progression sederhana yang mendorong pemain terus bermain.
 
 Pemain mengendalikan karakter futuristik dari kamera di belakang karakter. Mereka memasuki arena, menghadapi gelombang musuh, mendapatkan Battle Points, membuka senjata, dan menguji berbagai pola tembakan untuk memperoleh skor lebih tinggi.
 
@@ -269,7 +269,7 @@ Pemisahan camera ray dan muzzle direction penting agar proyektil tidak menembus 
 
 6. WEAPON SYSTEM
 
-Weapon system adalah salah satu subsistem paling penting dalam Project Overdrive.
+Weapon system adalah salah satu subsistem paling penting dalam Exocomplict.
 
 6.1 Weapon Design Principles
 
@@ -1353,7 +1353,7 @@ Nilai ambang untuk setiap indikator harus ditentukan setelah playtest awal, buka
 
 23. FINAL PRODUCT DEFINITION
 
-Project Overdrive adalah single-player, mobile-first third-person arena shooter dengan kamera over-the-shoulder, senjata futuristik dengan mekanik dan efek tembakan berbeda, survival berbasis wave, serta progression berbasis Battle Points.
+Exocomplict adalah single-player, mobile-first third-person arena shooter dengan kamera over-the-shoulder, senjata futuristik dengan mekanik dan efek tembakan berbeda, survival berbasis wave, serta progression berbasis Battle Points.
 
 Identitas utamanya bukan cerita yang panjang atau kompleksitas strategi.
 

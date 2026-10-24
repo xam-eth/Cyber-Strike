@@ -1,6 +1,6 @@
-# Project Overdrive — NEON FRONTIER World Prototype
+# Exocomplict — NEON FRONTIER World Prototype
 
-**Project Overdrive** is a mobile-first, single-player third-person sci-fi action shooter prototype. **NEON FRONTIER** is its connected 3D world—not a static concept image. The current blockout uses reusable Godot components and some licensed KayKit GLTF props; provenance is in [`game/assets/world/kaykit_space_base_bits/`](game/assets/world/kaykit_space_base_bits/) and [`WORLD_BLOCKOUT.md`](WORLD_BLOCKOUT.md). Ten real Kenney Space Kit GLBs are in the repository; the player avatar and all three enemy types now render fitted models from that kit instead of placeholder capsules.
+**Exocomplict** is a mobile-first, single-player third-person sci-fi action shooter prototype. **NEON FRONTIER** is its connected 3D world—not a static concept image. The current blockout uses reusable Godot components and some licensed KayKit GLTF props; provenance is in [`game/assets/world/kaykit_space_base_bits/`](game/assets/world/kaykit_space_base_bits/) and [`WORLD_BLOCKOUT.md`](WORLD_BLOCKOUT.md). Ten real Kenney Space Kit GLBs are in the repository; the player avatar and all three enemy types now render fitted models from that kit instead of placeholder capsules.
 
 ## Start here
 
@@ -19,6 +19,7 @@
 - [`WORLD_KIT_BUILD.md`](WORLD_KIT_BUILD.md) — how the level is assembled from the KayKit Space Base Bits pack, and how to review it in-game.
 - [`GAME_OVERVIEW.md`](GAME_OVERVIEW.md) — gameplay/visual overview.
 - [`TOOLCHAIN_SETUP.md`](TOOLCHAIN_SETUP.md) — Godot/Android/Blender setup and asset workflow.
+- [`docs/3D_ASSET_FORGE.md`](docs/3D_ASSET_FORGE.md) — code-only three.js models for the world/hero/weapon/enemy/VFX kit, rebuilt from reference images behind a deterministic quality gate (`tools/asset-forge/`), plus the two installed agent skill sets in `.claude/skills/`.
 
 ## Playable 3D world
 
@@ -28,7 +29,7 @@ The player now boots into **safe Explore**: no Wave Director starts until the pl
 
 **Previously verified (headless, before the current GLTF/skill integration):** an earlier checkout passed nine world/combat/playability smoke tests, including the original touch/HUD checks and central-to-boss/landing-pad traversal. **Current worktree (checked 18 Oct 2026):** static GDScript parse, `gdlint`, and `gdformat --check` pass for all 63 GDScript files (gdtoolkit 4.5.0 via `./scripts/dev_check.sh`), and the static project doctor reports 0 failures (13 non-blocking warnings) across scene references, node paths, script-to-node types, input actions, signals, groups, weapon contracts, glTF integrity, and documentation drift. The **thirteen smoke tests on commit `125b2ee`** (world/arena/traversal, weapons, combat feedback, waves, rewards, shooter AI, HUD/touch, enemy visuals, audio, combat effects, and the rigged hero) passed headlessly on real Godot 4.7.2-stable in CI. All fifteen smoke tests, including settings and the HUD editor, passed on commit `4fcbf5f` in CI. The same workflow runs static checks and exports a WebAssembly preview; visual browser QA still must be done separately. That verifies gameplay logic only — the checks cannot see rendering, frame time, or device input. Browser gameplay was additionally checked by hand through the WebAssembly preview: `qa-evidence/enemies-and-audio/` holds frames from ~40 s and ~73 s of scripted play (runner reached melee range, dealt damage, HUD updated) plus the audio log lines, and `qa-evidence/hud-mobile/` holds the portrait/landscape layouts and the mute assertion. That run is a headless Chromium with **software rendering**, so its frame rate is not representative of a real GPU browser. **Not verified:** Android touch behaviour on a real device, mobile performance, Android export, and whether a human actually hears the audio on that device.
 
-**Actor presentation:** the player is the uploaded rigged hero (`game/assets/characters/hero/hero.glb`) holding the uploaded rifle (`game/assets/weapons/futuristic_rifle/rifle.glb`). A `BoneAttachment3D` on `R_Hand` and measured `MuzzlePoint` align shots with the barrel; five clips exist, but moving aim, reload, hit/death, Blender inspection, and weapon identity still need production review ([`HERO_RIG_PIPELINE.md`](HERO_RIG_PIPELINE.md)). The world now instantiates the user-uploaded FBX SciFi kit converted to GLB for its central bay, district landmarks, landing deck and perimeter; KayKit runtime scripts/assets have been removed. Procedural foundations and details remain, and **this is not a claim of final FBX-only art** ([`docs/REBASE_VISUAL_GAMEPLAY_2026-10-18.md`](docs/REBASE_VISUAL_GAMEPLAY_2026-10-18.md)). Enemies remain Kenney kit GLBs. Audio is synthesised at runtime, not final authored sound ([`AUDIO_SYSTEM.md`](AUDIO_SYSTEM.md)). Android device QA, polish and visual acceptance are still open.
+**Actor presentation:** the player is the uploaded rigged hero (`game/assets/characters/hero/hero.glb`) holding the uploaded rifle (`game/assets/weapons/futuristic_rifle/rifle.glb`). A `BoneAttachment3D` on `R_Hand` and measured `MuzzlePoint` align shots with the barrel; five clips exist, but moving aim, reload, hit/death, Blender inspection, and weapon identity still need production review ([`HERO_RIG_PIPELINE.md`](HERO_RIG_PIPELINE.md)). The world now instantiates the user-uploaded FBX SciFi kit converted to GLB for its central bay, district landmarks, landing deck and perimeter; KayKit runtime scripts/assets have been removed. Procedural foundations and details remain, and **this is not a claim of final FBX-only art** ([`docs/DECISIONS.md`](docs/DECISIONS.md)). Enemies remain Kenney kit GLBs. Audio is synthesised at runtime, not final authored sound ([`AUDIO_SYSTEM.md`](AUDIO_SYSTEM.md)). Android device QA, polish and visual acceptance are still open.
 
 Open `game/project.godot` in Godot 4.7.2 and run the main scene to explore the world. Install the pinned engine build and run everything without a GUI:
 
@@ -39,13 +40,13 @@ Open `game/project.godot` in Godot 4.7.2 and run the main scene to explore the w
 # 2. Install the pinned Godot 4.7.2 editor (+ export templates) outside the repo
 ./scripts/install_godot.sh --with-templates
 
-# 3. Import the project and run all 27 smoke tests with per-test logs
+# 3. Import the project and run all 29 smoke tests with per-test logs
 ./scripts/run_smoke_tests.sh
 ./scripts/run_smoke_tests.sh --list                 # available tests
 ./scripts/run_smoke_tests.sh wave_director_smoke    # a single test
 ```
 
-`scripts/run_smoke_tests.sh` performs the headless Editor import and then every smoke test with `--headless --path game --script <absolute-test-path>`, writing logs to the git-ignored `exports/test-logs/`. The 27 tests cover the front end, world, combat, the Pulse Rifle vertical slice, waves, rewards, progression, HUD/touch, audio, effects, and content data. Use `--list` for the authoritative inventory. The equivalent manual commands are:
+`scripts/run_smoke_tests.sh` performs the headless Editor import and then every smoke test with `--headless --path game --script <absolute-test-path>`, writing logs to the git-ignored `exports/test-logs/`. The 29 tests cover the front end, both worlds, content showcases, combat, the Pulse Rifle vertical slice, waves, rewards, progression, HUD/touch, audio, effects, and content data. Use `--list` for the authoritative inventory. The equivalent manual commands are:
 
 ```bash
 godot --headless --editor --path game --quit
@@ -98,7 +99,7 @@ The local toolchain and preset can be prepared without the Editor GUI:
 ./scripts/install_godot.sh --with-templates     # pinned editor + export templates
 ./scripts/setup_android_sdk.sh --guide           # JDK/SDK instructions per OS
 ./scripts/setup_android_sdk.sh --install-packages
-python3 tools/android_preset.py scaffold --package-id com.yourstudio.projectoverdrive
+python3 tools/android_preset.py scaffold --package-id com.yourstudio.exocomplict
 python3 tools/android_preset.py check
 ```
 
@@ -111,7 +112,7 @@ Then run:
 
 `ANDROID_BASELINE.md` covers the device installation commands, the manual touch/pause/retry checklist, the profiling procedure, and the gate-E acceptance criteria.
 
-The export script imports in headless Editor mode, runs all `tests/*_smoke.gd` scripts, exports `exports/project-overdrive-debug.apk`, and checks the APK archive when `unzip` is installed. Override the preset/output with `ANDROID_EXPORT_PRESET` and `ANDROID_APK_PATH`; set `GODOT_BIN` if the executable is not named `godot` or `godot4`. It does not install SDK packages, create release signing keys, or deploy to a device. **This workflow is prepared, not executed here:** Godot, JDK, Android SDK/ADB and Gradle are unavailable in the current environment, so no APK or Android runtime result is claimed. Use [`TOOLCHAIN_SETUP.md`](TOOLCHAIN_SETUP.md) for setup details.
+The export script imports in headless Editor mode, runs all `tests/*_smoke.gd` scripts, exports `exports/exocomplict-debug.apk`, and checks the APK archive when `unzip` is installed. Override the preset/output with `ANDROID_EXPORT_PRESET` and `ANDROID_APK_PATH`; set `GODOT_BIN` if the executable is not named `godot` or `godot4`. It does not install SDK packages, create release signing keys, or deploy to a device. **This workflow is prepared, not executed here:** Godot, JDK, Android SDK/ADB and Gradle are unavailable in the current environment, so no APK or Android runtime result is claimed. Use [`TOOLCHAIN_SETUP.md`](TOOLCHAIN_SETUP.md) for setup details.
 
 ## Toolchain check
 

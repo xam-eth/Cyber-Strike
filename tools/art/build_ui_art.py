@@ -7,18 +7,22 @@ shipping textures the game loads.
 
 Why a build step instead of committing the raw downloads: the generator emits
 whatever canvas it likes (a 1024x1024 wordmark with the glyphs in a 891x218
-band, six 1408x768 robot frames whose subject wanders across the frame). The
-game needs tight, predictable textures, and a hand-cropped PNG that nobody can
-reproduce is how an art pipeline rots. Every rule below is deterministic, so
-deleting ``game/assets/ui/`` and re-running this reproduces it byte for byte
-from the generated sources.
+band). The game needs tight, predictable textures, and a hand-cropped PNG that
+nobody can reproduce is how an art pipeline rots. Every rule below is
+deterministic, so deleting ``game/assets/ui/`` and re-running this reproduces
+it byte for byte from the generated sources.
+
+The wordmark used to ship with the generator's backdrop baked in -- a near-black
+navy plate that read as a black box behind the logo on every menu that drew it,
+which is what review called out on 2026-10-23. ``key_to_alpha`` removes it: the
+plate's own luminance is measured from the source's most common colour, and
+every pixel's alpha is its luminance above that floor, so the metal glyphs and
+their glow stay and the field they were painted on does not.
 
 What it does:
   * crops to content where the subject floats on a flat backdrop,
-  * uses the *union* of the content boxes for animation frames, so the robot
-    does not jitter between cells,
+  * keys that backdrop out of the wordmark instead of shipping it as a plate,
   * letterboxes or centre-crops to the shipping aspect without stretching,
-  * packs the walk cycle into one horizontal sprite sheet,
   * audits every output against the ART_DIRECTION.md palette and fails loudly
     when a texture drifts outside it,
   * writes game/assets/ui/art_manifest.json with the real, measured
@@ -87,15 +91,6 @@ def content_box(image: Image.Image, tolerance: int = 45) -> tuple[int, int, int,
     return (int(box[0] * sx), int(box[1] * sy), int(box[2] * sx), int(box[3] * sy))
 
 
-def union_box(boxes: list[tuple[int, int, int, int]]) -> tuple[int, int, int, int]:
-    return (
-        min(b[0] for b in boxes),
-        min(b[1] for b in boxes),
-        max(b[2] for b in boxes),
-        max(b[3] for b in boxes),
-    )
-
-
 def cover(image: Image.Image, size: tuple[int, int]) -> Image.Image:
     """Scale to fill `size` and centre-crop the overflow. Never stretches."""
     sw, sh = image.size
@@ -105,6 +100,59 @@ def cover(image: Image.Image, size: tuple[int, int]) -> Image.Image:
     left = (resized.size[0] - tw) // 2
     top = (resized.size[1] - th) // 2
     return resized.crop((left, top, left + tw, top + th))
+
+
+def luminance(rgb: tuple[float, float, float]) -> float:
+    """Rec. 709 luma. Used to measure a backdrop against the ink on top of it."""
+    return 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]
+
+
+def dominant_colour(image: Image.Image) -> tuple[int, int, int]:
+    """The plate colour: the most common colour in a thumbnail of the image."""
+    probe = image.copy()
+    probe.thumbnail((320, 320))
+    return Counter(probe.convert("RGB").getdata()).most_common(1)[0][0]
+
+
+def key_to_alpha(
+    image: Image.Image, plate: tuple[int, int, int], low: float = 2.0, span: float = 16.0
+) -> Image.Image:
+    """Replace a painted backdrop with transparency.
+
+    Every pixel keeps its colour and gains an alpha equal to how far its luma
+    rises above the plate's own, ramped over `span`. Two reasons it is a luma
+    ramp rather than a hard chroma key: the plate is not one value (it has a
+    soft blue falloff toward the glyphs), and the glyphs are metal, so a
+    threshold that removed the plate cleanly also ate their shaded edges --
+    measured on the shipped 1024x1024 source, a hard key at 24 left the letter
+    interiors transparent while a ramp kept them solid.
+
+    `low` keeps the plate's noise floor fully transparent; `span` is the width
+    of the fade that gives the glow around the glyphs its soft edge.
+    """
+    rgb = image.convert("RGB")
+    floor = luminance(plate)
+    out = Image.new("RGBA", rgb.size)
+    source = rgb.load()
+    target = out.load()
+    for y in range(rgb.size[1]):
+        for x in range(rgb.size[0]):
+            r, g, b = source[x, y]
+            delta = luminance((r, g, b)) - floor - low
+            alpha = 0 if delta <= 0.0 else (255 if delta >= span else round(delta / span * 255))
+            target[x, y] = (r, g, b, alpha)
+    return out
+
+
+def contain_alpha(image: Image.Image, size: tuple[int, int]) -> Image.Image:
+    """`contain`, letterboxed onto transparency instead of a colour."""
+    sw, sh = image.size
+    tw, th = size
+    scale = min(tw / sw, th / sh)
+    resized = image.resize((max(1, round(sw * scale)), max(1, round(sh * scale))), Image.LANCZOS)
+    canvas = Image.new("RGBA", size, (0, 0, 0, 0))
+    canvas.paste(resized, ((tw - resized.size[0]) // 2, (th - resized.size[1]) // 2))
+    return canvas
 
 
 def contain(image: Image.Image, size: tuple[int, int], fill: tuple[int, int, int]) -> Image.Image:
@@ -141,7 +189,17 @@ def classify(r: int, g: int, b: int) -> str:
 
 
 def audit(image_path: Path, max_off_palette: float = 0.06) -> dict:
-    probe = Image.open(image_path).convert("RGB")
+    # An RGBA texture is audited as it is seen: composited over the backdrop
+    # the UI draws it on. Auditing the raw channels would count the
+    # transparent field's leftover navy as if it shipped.
+    source = Image.open(image_path)
+    if source.mode in ("RGBA", "LA", "P"):
+        source = source.convert("RGBA")
+        flat = Image.new("RGB", source.size, BACKDROP)
+        flat.paste(source, (0, 0), source)
+        probe = flat
+    else:
+        probe = source.convert("RGB")
     probe.thumbnail((200, 200))
     pixels = list(probe.getdata())
     counts = Counter(classify(r, g, b) for r, g, b in pixels)
@@ -158,8 +216,12 @@ def audit(image_path: Path, max_off_palette: float = 0.06) -> dict:
 # --------------------------------------------------------------------------- #
 # the build
 # --------------------------------------------------------------------------- #
-ROBOT_FRAMES = ["robot_walk_02.png", "robot_walk_03.png", "robot_walk_04.png", "robot_walk_alt1.png"]
-ROBOT_CELL = 512
+# The wordmark's plate is measurable, and the key is authored from the source
+# rather than from a magic threshold: the fade starts where the plate's luma
+# ends and spans 16 levels, which is the width of the soft edge around the
+# glyphs. See `key_to_alpha`.
+WORDMARK_KEY_LOW = 2.0
+WORDMARK_KEY_SPAN = 16.0
 
 # Photographic backdrops ship as JPEG: they are opaque full-bleed images with
 # no alpha and no hard edges, and a 1920x1080 painting costs 2.8 MB as PNG
@@ -167,7 +229,7 @@ ROBOT_CELL = 512
 # portraits, the weapon plates - stays PNG.
 JOBS = [
     # key, source, mode, target, out_name, format
-    ("wordmark", "wordmark.png", "content", (1024, 256), "logo_wordmark.png", "PNG"),
+    ("wordmark", "wordmark.png", "content_key", (1024, 256), "logo_wordmark.png", "PNG"),
     ("loading_keyart", "loading_keyart_16x9.png", "cover", (1920, 1080), "loading_keyart.jpg", "JPEG"),
     ("dashboard_bg", "dashboard_bg.png", "cover", (1920, 1080), "dashboard_bg.jpg", "JPEG"),
     ("hero_portrait", "hero_portrait.png", "cover", (768, 1024), "portrait_hero.png", "PNG"),
@@ -206,6 +268,14 @@ def build(args: argparse.Namespace) -> int:
             box = content_box(image)
             image = image.crop(box)
             image = contain(image, size, BACKDROP)
+        elif mode == "content_key":
+            # Key first, crop second, so the crop is measured on the art and not
+            # on the glow the key leaves behind.
+            plate = dominant_colour(image)
+            keyed = key_to_alpha(image, plate, WORDMARK_KEY_LOW, WORDMARK_KEY_SPAN)
+            box = content_box(image)
+            keyed = keyed.crop(box)
+            image = contain_alpha(keyed, size)
         elif mode == "content_cover":
             box = content_box(image)
             image = cover(image.crop(box), size)
@@ -215,7 +285,7 @@ def build(args: argparse.Namespace) -> int:
         if not args.check:
             save(image, target, fmt)
         report = audit(target if not args.check else source)
-        manifest["assets"].append({
+        entry = {
             "key": key,
             "file": f"res://assets/ui/{out_name}",
             "format": fmt,
@@ -223,51 +293,15 @@ def build(args: argparse.Namespace) -> int:
             "size": list(image.size),
             "mode": mode,
             **report,
-        })
+        }
+        if mode == "content_key":
+            entry["alpha"] = "luma key of the painted backdrop, baked into the PNG"
+            entry["key_threshold"] = {"low": WORDMARK_KEY_LOW, "span": WORDMARK_KEY_SPAN}
+        manifest["assets"].append(entry)
         flag = "ok " if report["within_palette"] else "DRIFT"
-        print(f"{flag} {out_name:<28} {image.size[0]}x{image.size[1]}  "
+        alpha_note = "  alpha" if image.mode == "RGBA" else ""
+        print(f"{flag} {out_name:<28} {image.size[0]}x{image.size[1]}{alpha_note}  "
               f"off-palette {report['off_palette_share'] * 100:.1f}%")
-
-    # --- the walk cycle: one sheet, one union crop, one scale -------------- #
-    frames = [SRC / name for name in ROBOT_FRAMES]
-    if all(frame.exists() for frame in frames):
-        opened = [Image.open(frame).convert("RGB") for frame in frames]
-        box = union_box([content_box(frame) for frame in opened])
-        crops = [frame.crop(box) for frame in opened]
-        scale = min(ROBOT_CELL / crops[0].size[0], ROBOT_CELL / crops[0].size[1])
-        cells = [
-            crop.resize(
-                (max(1, round(crop.size[0] * scale)), max(1, round(crop.size[1] * scale))),
-                Image.LANCZOS,
-            )
-            for crop in crops
-        ]
-        sheet = Image.new("RGB", (ROBOT_CELL * len(cells), ROBOT_CELL), BACKDROP)
-        for index, cell in enumerate(cells):
-            sheet.paste(cell, (index * ROBOT_CELL + (ROBOT_CELL - cell.size[0]) // 2,
-                               ROBOT_CELL - cell.size[1]))
-        target = OUT / "loading_robot_sheet.png"
-        if not args.check:
-            save(sheet, target, "PNG")
-        report = audit(target if not args.check else frames[0])
-        manifest["assets"].append({
-            "key": "loading_robot",
-            "file": f"res://assets/ui/{target.name}",
-            "format": "PNG",
-            "source": [f"res://assets/ui/generated/{name}" for name in ROBOT_FRAMES],
-            "size": list(sheet.size),
-            "cell": [ROBOT_CELL, ROBOT_CELL],
-            "frames": len(cells),
-            "fps": 8,
-            "union_crop": list(box),
-            **report,
-        })
-        flag = "ok " if report["within_palette"] else "DRIFT"
-        print(f"{flag} {target.name:<28} {sheet.size[0]}x{sheet.size[1]}  "
-              f"{len(cells)} frames @ {ROBOT_CELL}px  "
-              f"off-palette {report['off_palette_share'] * 100:.1f}%")
-    else:
-        problems.append("loading_robot: one or more walk frames are missing")
 
     if args.check:
         print("\n--check: nothing written.")

@@ -34,6 +34,13 @@ const DEFAULT_WEAPON_ID := &"pulse_rifle"
 @export var weapon_id: StringName = &""
 @export var display_name: String = ""
 @export_multiline var role_description: String = ""
+## The mesh the player holds, declared here so the WEAPON showcase and
+## `player.tscn` cannot disagree. All three definitions currently point at the
+## same `rifle.glb`, which is the truth of this build: there is one weapon mesh.
+## The showcase shows that mesh and does not pretend each weapon has its own
+## silhouette; `showcase_smoke.gd` asserts every definition's model is the exact
+## resource the player scene instantiates.
+@export var model_scene: PackedScene
 @export var projectile_scene: PackedScene
 @export_range(0.1, 20.0, 0.1) var fire_rate: float = 5.0
 @export_range(1, 100, 1) var magazine_size: int = 24
@@ -54,6 +61,9 @@ func is_valid_definition() -> bool:
 		weapon_id != &""
 		and not display_name.strip_edges().is_empty()
 		and is_instance_valid(projectile_scene)
+		# A weapon with no mesh cannot be held in gameplay or shown in the
+		# selection screen, so the registry would be selling a statistic.
+		and is_instance_valid(model_scene)
 		and fire_rate > 0.0
 		and magazine_size > 0
 		and reload_seconds > 0.0

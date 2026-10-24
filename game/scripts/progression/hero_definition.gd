@@ -40,6 +40,20 @@ const DEFAULT_HERO_ID := &"exo_operative"
 @export var status_line: String = ""
 @export var field_ready: bool = true
 
+## The rigged model, declared once and used by both the HERO showcase and the
+## player avatar. Before this field the model path existed only inside
+## `player.tscn`, so a selection screen had to either guess it or fall back to a
+## painted portrait -- and a showcase showing a different model from the one
+## that spawns is the same class of lie as a card quoting the wrong damage
+## number. `showcase_smoke.gd` asserts this resource and the scene's
+## `VisualRoot.model_scene` are the same file.
+@export var model_scene: PackedScene
+## Showcase clips, in the order the screen should cycle them. They are checked
+## against the GLB before anything plays (`ShowcaseViewport` only ever calls
+## `has_animation`), and `showcase_smoke.gd` fails if one is not in the file --
+## an animation name is not a thing to assume, it is a thing to measure.
+@export var showcase_clips: Array[String] = ["idle", "aim", "fire"]
+
 
 func is_valid_definition() -> bool:
 	return (
@@ -51,6 +65,8 @@ func is_valid_definition() -> bool:
 		# player sees before the briefing, so an empty path would render a blank
 		# card rather than fall back to anything.
 		and ResourceLoader.exists(portrait_path)
+		# A hero with no rig cannot be shown in the showcase or in gameplay.
+		and is_instance_valid(model_scene)
 	)
 
 

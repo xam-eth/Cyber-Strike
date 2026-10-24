@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="WorldDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/world_definition.gd" id="1_definition"]
+[ext_resource type="PackedScene" path="res://scenes/worlds/vanguard_station.tscn" id="2_world"]
+
+[resource]
+script = ExtResource("1_definition")
+world_id = &"vanguard_station"
+display_name = "Vanguard Station"
+role_description = "Dock 07 of a dead orbital station: a gantry hall under a glass roof, a reactor hall behind a pressure door, a cargo bay and a corridor that runs out of light. Built from the imported sci-fi module kit, room by room."
+world_scene = ExtResource("2_world")
+plate_path = "res://assets/ui/world_vanguard_station.jpg"
+status_line = "OPEN"
+zone_title = "DOCK 07 · STATION"
+zone_subtitle = "SAFE ZONE · SEALS OPEN"
+field_ready = true

@@ -11,4 +11,6 @@ role_description = "An open training theatre: reactor, command centre, research 
 world_scene = ExtResource("2_world")
 plate_path = "res://assets/ui/world_neon_frontier.jpg"
 status_line = "OPEN"
+zone_title = "EXPLORE THE FRONTIER"
+zone_subtitle = "SAFE ZONE · MOVE FREELY"
 field_ready = true

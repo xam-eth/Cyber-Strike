@@ -30,7 +30,7 @@ import android_preset as base  # noqa: E402  (shared preset helpers)
 
 PLATFORM = "Web"
 DEFAULT_SHELL = "res://web_shell/index.html"
-SHELL_MARKER = "overdrive-shell"
+SHELL_MARKER = "exocomplict-shell"
 
 # Placeholders substituted by the Godot web exporter inside the custom shell.
 REQUIRED_PLACEHOLDERS = (
@@ -156,7 +156,7 @@ def validate(preset: base.Preset, name: str, repo_root: Path, allow_threads: boo
     if resize_policy not in ("0", "1", "2"):
         problems.append(f"html/canvas_resize_policy '{resize_policy}' is not a known value (0/1/2)")
     if not shell:
-        problems.append("html/custom_html_shell is empty; the custom Project Overdrive shell would not be used")
+        problems.append("html/custom_html_shell is empty; the custom Exocomplict shell would not be used")
 
     shell_problems, shell_notes = check_shell(repo_root, shell) if shell else ([], [])
     problems.extend(shell_problems)

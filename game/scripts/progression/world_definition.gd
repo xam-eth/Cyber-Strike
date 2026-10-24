@@ -21,12 +21,14 @@ extends Resource
 ## that at runtime, and a copy of it here would go stale the moment it is tuned.
 const DEFINITION_PATHS := {
 	&"neon_frontier": "res://resources/worlds/neon_frontier.tres",
+	&"vanguard_station": "res://resources/worlds/vanguard_station.tres",
 }
 
 ## Stable iteration order for the registry (GDScript dictionaries keep
 ## insertion order, but a named list is what a screen should read).
 const DEFINITION_IDS: Array[StringName] = [
 	&"neon_frontier",
+	&"vanguard_station",
 ]
 
 ## The theatre the profile falls back to when a save names one that no longer
@@ -39,6 +41,12 @@ const DEFAULT_WORLD_ID := &"neon_frontier"
 @export var world_scene: PackedScene
 @export var plate_path: String = ""
 @export var status_line: String = ""
+## The objective card's explore-mode copy. It lived as two literals inside
+## `hud_encounter_ui.gd`, so the second theatre described itself as a frontier
+## with a safe zone to move freely in. A world now says what its own quiet state
+## is; the HUD reads it instead of remembering one world's wording.
+@export var zone_title: String = "EXPLORE THE FRONTIER"
+@export var zone_subtitle: String = "SAFE ZONE · MOVE FREELY"
 @export var field_ready: bool = true
 
 

@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>NEON FRONTIER · Frontier Outpost — World Viewer</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  :root {
+    --void:#05080c; --panel:#0b131b; --panel2:#111c26; --line:#27384a; --lineHi:#4e6a7e;
+    --ink:#edf5fb; --ink2:#a9bccb; --accent:#ffb020; --info:#54c8ff; --ok:#37e08c;
+    --ui: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing:border-box; }
+  html,body { margin:0; height:100%; background:var(--void); color:var(--ink); font-family:var(--ui); overflow:hidden; }
+  #stage { position:fixed; inset:0; }
+  canvas { display:block; }
+
+  #panel {
+    position:fixed; top:14px; left:14px; width:272px; max-height:calc(100% - 28px); overflow:auto;
+    background:rgba(11,19,27,.88); border:1px solid var(--line); border-radius:6px;
+    padding:12px; backdrop-filter:blur(8px);
+  }
+  #panel h1 { font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--ink2); margin:0 0 2px; }
+  #panel .sub { font-size:10px; color:var(--lineHi); letter-spacing:.1em; margin-bottom:10px; }
+  .group { border-top:1px solid var(--line); padding-top:9px; margin-top:9px; }
+  .label { font-size:9px; letter-spacing:.16em; color:var(--lineHi); text-transform:uppercase; margin-bottom:5px; }
+  .row { display:flex; flex-wrap:wrap; gap:4px; }
+  button {
+    background:transparent; color:var(--ink2); border:1px solid var(--line); border-radius:3px;
+    padding:4px 7px; font:inherit; font-size:10px; cursor:pointer; letter-spacing:.04em;
+  }
+  button:hover { border-color:var(--lineHi); color:var(--ink); }
+  button.on { border-color:var(--info); color:var(--ink); background:var(--panel2); }
+  button.dim { opacity:.45; }
+  input[type=range] { width:100%; accent-color:var(--info); margin:6px 0 0; }
+  #stats { font-size:10px; line-height:1.65; color:var(--ink2); }
+  #stats b { color:var(--ink); font-weight:600; }
+  #credits { font-size:9px; line-height:1.6; color:var(--lineHi); }
+  #hint { position:fixed; right:14px; bottom:12px; font-size:10px; color:var(--lineHi); text-align:right; line-height:1.6; }
+  #loading {
+    position:fixed; inset:0; display:grid; place-items:center; background:var(--void);
+    color:var(--ink2); font-size:12px; letter-spacing:.1em; z-index:10;
+  }
+  #loading.done { display:none; }
+  body.capture #panel, body.capture #hint { display:none; }
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "/tools/asset-forge/vendor/three/three.module.js",
+    "three/addons/": "/tools/asset-forge/vendor/three/addons/"
+  }
+}
+</script>
+</head>
+<body>
+<div id="stage"></div>
+<div id="loading">building the world from real assets…</div>
+<aside id="panel">
+  <h1>Neon Frontier</h1>
+  <div class="sub">FRONTIER OUTPOST · 192 × 180 m</div>
+
+  <div class="group">
+    <div class="label">Camera</div>
+    <div class="row" id="shots"></div>
+  </div>
+
+  <div class="group">
+    <div class="label">Districts</div>
+    <div class="row" id="districts"></div>
+  </div>
+
+  <div class="group">
+    <div class="label">Playback</div>
+    <div class="row">
+      <button id="btn-play" class="on">PAUSE</button>
+      <button id="btn-slow">0.5×</button>
+      <button id="btn-fast">2×</button>
+    </div>
+    <input id="scrub" type="range" min="0" max="24" step="0.05" value="0" />
+  </div>
+
+  <div class="group">
+    <div class="label">World</div>
+    <div id="stats">building…</div>
+  </div>
+
+  <div class="group">
+    <div class="label">Assets</div>
+    <div id="credits">every mesh is a real licensed GLB</div>
+  </div>
+</aside>
+<div id="hint">drag to orbit · scroll to zoom · right-drag to pan</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+import { buildWorld, worldLighting } from '/tools/asset-forge/src/worlds/neon_frontier.js';
+import { PALETTE } from '/tools/asset-forge/src/runtime/palette.js';
+
+const params = new URLSearchParams(location.search);
+const capture = params.has('capture');
+if (capture) document.body.classList.add('capture');
+
+/* --------------------------------------------------------------- renderer -- */
+const stage = document.getElementById('stage');
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1);
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.08;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+stage.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+const HORIZON = '#0b1622';
+scene.background = new THREE.Color(HORIZON);
+scene.fog = new THREE.FogExp2(HORIZON, 0.0030);
+
+const camera = new THREE.PerspectiveCamera(38, window.innerWidth / window.innerHeight, 0.3, 900);
+
+function skyDome() {
+  const geo = new THREE.SphereGeometry(430, 32, 16);
+  const mat = new THREE.ShaderMaterial({
+    side: THREE.BackSide,
+    depthWrite: false,
+    uniforms: {
+      top: { value: new THREE.Color('#060c15') },
+      mid: { value: new THREE.Color('#13283c') },
+      bottom: { value: new THREE.Color(HORIZON) },
+      glow: { value: new THREE.Color(PALETTE.info) },
+    },
+    vertexShader: 'varying vec3 vPos; void main(){ vPos = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
+    fragmentShader: `
+      uniform vec3 top; uniform vec3 mid; uniform vec3 bottom; uniform vec3 glow;
+      varying vec3 vPos;
+      void main(){
+        float h = normalize(vPos).y;
+        vec3 c = mix(bottom, mid, smoothstep(-0.15, 0.28, h));
+        c = mix(c, top, smoothstep(0.25, 0.95, h));
+        float band = exp(-pow((h - 0.04) * 9.0, 2.0));
+        c += glow * band * 0.05;
+        gl_FragColor = vec4(c, 1.0);
+      }`,
+  });
+  return new THREE.Mesh(geo, mat);
+}
+scene.add(skyDome());
+worldLighting(scene);
+
+function buildEnvironment() {
+  const width = 64; const height = 32;
+  const data = new Uint8Array(width * height * 4);
+  const stops = [[0.0, PALETTE.void], [0.42, PALETTE.panel3], [0.55, PALETTE.lineHi], [0.72, PALETTE.ink3], [1.0, PALETTE.ink2]]
+    .map(([t, hex]) => [t, new THREE.Color(hex)]);
+  for (let y = 0; y < height; y += 1) {
+    const t = 1 - y / (height - 1);
+    let a = stops[0]; let b = stops[stops.length - 1];
+    for (let i = 0; i < stops.length - 1; i += 1) {
+      if (t >= stops[i][0] && t <= stops[i + 1][0]) { a = stops[i]; b = stops[i + 1]; break; }
+    }
+    const span = b[0] - a[0] || 1;
+    const col = a[1].clone().lerp(b[1], (t - a[0]) / span);
+    for (let x = 0; x < width; x += 1) {
+      const i = (y * width + x) * 4;
+      data[i] = Math.round(col.r * 255); data[i + 1] = Math.round(col.g * 255);
+      data[i + 2] = Math.round(col.b * 255); data[i + 3] = 255;
+    }
+  }
+  const tex = new THREE.DataTexture(data, width, height, THREE.RGBAFormat);
+  tex.mapping = THREE.EquirectangularReflectionMapping;
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.needsUpdate = true;
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  const env = pmrem.fromEquirectangular(tex).texture;
+  tex.dispose(); pmrem.dispose();
+  return env;
+}
+scene.environment = buildEnvironment();
+scene.environmentIntensity = 1.15;
+
+/* ----------------------------------------------------------------- world -- */
+const loading = document.getElementById('loading');
+const started = performance.now();
+const world = await buildWorld();
+scene.add(world.root);
+const buildMs = Math.round(performance.now() - started);
+loading.classList.add('done');
+
+const mixer = new THREE.AnimationMixer(world.root);
+world.clips.forEach((clip) => {
+  const action = mixer.clipAction(clip);
+  action.setLoop(THREE.LoopRepeat, Infinity);
+  action.play();
+});
+
+/* --------------------------------------------------------------- controls -- */
+const SHOTS = {
+  overview:  { pos: [186, 108, 148], target: [48, 6, -22] },
+  arena:     { pos: [24, 13, 26],   target: [0, 5, 0] },
+  outpost:   { pos: [-18, 15, 12],  target: [-52, 5, -4] },
+  extraction:{ pos: [30, 16, -8],   target: [46, 6, -34] },
+  powerplant:{ pos: [86, 26, 30],   target: [136, 12, -8] },
+  boss:      { pos: [52, 30, -44], target: [0, 11, -83] },
+  perimeter: { pos: [104, 28, 62],  target: [34, 4, 6] },
+  wilds:     { pos: [-16, 16, 86],  target: [-44, 3, 52] },
+  skyline:   { pos: [176, 18, -58], target: [18, 12, -6] },
+};
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.07;
+controls.maxPolarAngle = Math.PI * 0.495;
+controls.minDistance = 4;
+controls.maxDistance = 460;
+
+function setShot(name) {
+  const shot = SHOTS[name] ?? SHOTS.overview;
+  camera.position.set(...shot.pos);
+  controls.target.set(...shot.target);
+  camera.lookAt(controls.target);
+  controls.update();
+  for (const b of document.querySelectorAll('#shots button')) b.classList.toggle('on', b.dataset.shot === name);
+}
+
+const shotsRow = document.getElementById('shots');
+for (const name of Object.keys(SHOTS)) {
+  const b = document.createElement('button');
+  b.textContent = name;
+  b.dataset.shot = name;
+  b.onclick = () => setShot(name);
+  shotsRow.appendChild(b);
+}
+setShot(params.get('shot') || 'overview');
+
+const districtRow = document.getElementById('districts');
+const districtNodes = [];
+world.root.traverse((n) => { if (n.name.startsWith('District_')) districtNodes.push(n); });
+for (const node of districtNodes) {
+  const b = document.createElement('button');
+  b.textContent = node.name.replace('District_', '');
+  b.classList.add('on');
+  b.onclick = () => {
+    node.visible = !node.visible;
+    b.classList.toggle('on', node.visible);
+    b.classList.toggle('dim', !node.visible);
+  };
+  districtRow.appendChild(b);
+}
+
+/* --------------------------------------------------------------- playback -- */
+let playing = !capture;
+const playBtn = document.getElementById('btn-play');
+const scrub = document.getElementById('scrub');
+const CYCLE = 24;
+playBtn.textContent = playing ? 'PAUSE' : 'PLAY';
+playBtn.onclick = () => {
+  playing = !playing;
+  playBtn.textContent = playing ? 'PAUSE' : 'PLAY';
+  playBtn.classList.toggle('on', playing);
+};
+document.getElementById('btn-slow').onclick = () => { mixer.timeScale = 0.5; };
+document.getElementById('btn-fast').onclick = () => { mixer.timeScale = 2; };
+scrub.oninput = () => { playing = false; playBtn.textContent = 'PLAY'; mixer.setTime(Number(scrub.value)); };
+
+const startTime = Number(params.get('t') || 0);
+if (startTime > 0) { playing = false; mixer.setTime(startTime); }
+
+/* ------------------------------------------------------------------ stats -- */
+const stats = document.getElementById('stats');
+const rows = [
+  ['roles', `${world.stats.roles} · ${world.stats.instances} instances`],
+  ['real files', String(world.stats.realFiles)],
+  ['triangles', world.stats.triangles.toLocaleString('en-US')],
+  ['clips', String(world.clips.length)],
+  ['build', `${buildMs} ms`],
+];
+stats.innerHTML = rows.map(([k, v]) => `${k}: <b>${v}</b>`).join('<br>');
+
+/* ------------------------------------------------------------------ loop -- */
+const clock = new THREE.Clock();
+function resize() {
+  const w = window.innerWidth; const h = window.innerHeight;
+  renderer.setSize(w, h);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', resize);
+
+function frame() {
+  const dt = Math.min(clock.getDelta(), 0.1);
+  if (playing) {
+    mixer.update(dt);
+    scrub.value = String(mixer.time % CYCLE);
+  }
+  controls.update();
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+
+/* ------------------------------------------------------------ capture API -- */
+window.__world = {
+  stats: world.stats,
+  clips: world.clips.map((c) => c.name),
+  buildMs,
+  setShot,
+  seek: (t) => { playing = false; mixer.setTime(t); return mixer.time; },
+  hideDistricts: (names = []) => {
+    for (const node of districtNodes) node.visible = !names.includes(node.name.replace('District_', ''));
+  },
+  /** Meshes in the live scene that do not come from a real GLB — must be empty. */
+  proceduralMeshes: () => {
+    const offenders = [];
+    world.root.traverse((n) => {
+      if (n.isMesh && !n.userData.realSource) offenders.push(n.name || '(unnamed)');
+    });
+    return offenders;
+  },
+  worldInfo: () => {
+    // World-space bounds of the assembled scene: what Godot's importer will
+    // measure on the other side, so the manifest target is comparable.
+    const box = new THREE.Box3().setFromObject(world.root);
+    const size = box.getSize(new THREE.Vector3());
+    const centre = box.getCenter(new THREE.Vector3());
+    return {
+      meta: world.meta,
+      stats: world.stats,
+      bounds: {
+        min: box.min.toArray().map((v) => +v.toFixed(3)),
+        max: box.max.toArray().map((v) => +v.toFixed(3)),
+        size: size.toArray().map((v) => +v.toFixed(3)),
+        centre: centre.toArray().map((v) => +v.toFixed(3)),
+      },
+    };
+  },
+
+  /**
+   * Export the assembled world as one GLB. Every texture in it is embedded from
+   * the source files, so the result is viewable on its own — no side-car maps.
+   */
+  exportGLB: async () => {
+    playing = false;
+    mixer.setTime(0);
+    const exporter = new GLTFExporter();
+    // Ship the motion too: the clips ride along as glTF animations, so the file
+    // is a living world in any viewer, not a sculpture.
+    const buffer = await exporter.parseAsync(world.root, {
+      binary: true,
+      onlyVisible: true,
+      maxTextureSize: 2048,
+      animations: world.clips,
+    });
+    return new Uint8Array(buffer);
+  },
+};
+
+if (params.has('debug')) {
+  const seen = new Map();
+  world.root.traverse((n) => {
+    if (!n.isMesh) return;
+    const m = n.material;
+    const key = `${m.name || '?'}|${m.color?.getHexString?.()}|map:${!!m.map}|metal:${m.metalness}`;
+    if (!seen.has(key)) seen.set(key, n.userData.realSource?.split('/').slice(-1)[0]);
+  });
+  console.log('MATERIALS', JSON.stringify([...seen].slice(0, 40)));
+  const lights = [];
+  scene.traverse((n) => { if (n.isLight) lights.push(`${n.name}:${n.intensity}`); });
+  console.log('LIGHTS', lights.join(' '));
+  console.log('EXPOSURE', renderer.toneMappingExposure);
+}
+
+window.__ready = true;
+resize();
+frame();
+</script>
+</body>
+</html>

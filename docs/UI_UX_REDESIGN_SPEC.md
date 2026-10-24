@@ -3,8 +3,7 @@
 **Tanggal spesifikasi:** 17 Oktober 2026
 **Status (koreksi 18 Oktober 2026):** persetujuan AEGIS adalah **historis**; pengguna menolak hasil visual, animasi, pacing, dan keterbacaan UI build sekarang. Arah redesign **belum disepakati ulang**.
 **Branch:** `arena/5257bce8-cyber-strike` · **PR:** #1 (open, jangan di-merge)
-**Papan visual:** [`docs/ui-redesign/board/`](ui-redesign/board) — 7 board, PNG + SVG
-**Audit ulang dan rujukan game rilis:** [`REBASE_VISUAL_GAMEPLAY_2026-10-18.md`](REBASE_VISUAL_GAMEPLAY_2026-10-18.md)
+**Audit ulang dan rujukan game rilis:** [`DECISIONS.md`](DECISIONS.md)
 
 Dokumen ini mencatat arah token/layout AEGIS yang **pernah** disetujui, bukan
 spesifikasi kualitas visual final. Angka pada board adalah target desain waktu
@@ -34,7 +33,7 @@ sudah ada di dunia, tetapi merapikannya menjadi sistem:
 * panel gelap **92%** dengan hairline 1px dan **corner bracket**, bukan kotak penuh;
 * **satu aksen amber** untuk aksi/fokus, mint untuk health, cyan untuk armor,
   merah untuk damage, violet untuk EMP;
-* **Chakra Petch** untuk display, **Barlow** untuk UI, **JetBrains Mono** untuk
+* **Chakra Petch** untuk display, **Rajdhani** untuk UI, **JetBrains Mono** untuk
   semua angka (tabular);
 * **Phosphor Icons** (MIT) regular + fill;
 * target sentuh **44px adalah lantai**, FIRE 92px;
@@ -46,7 +45,9 @@ sudah ada di dunia, tetapi merapikannya menjadi sistem:
 ## 1. Keputusan visual (historis; validasi ulang diperlukan)
 
 1. **Arah visual A — Aegis Industrial**, aksen amber `#FFB020`.
-2. **Tipografi:** Chakra Petch / Barlow / JetBrains Mono (OFL, ikut di repo).
+2. **Tipografi:** Chakra Petch / Rajdhani / JetBrains Mono (OFL, ikut di repo).
+   Rajdhani menggantikan Barlow: keduanya condensed dan bersudut, dan baris
+   uppercase ala lobby terbaca lebih baik di Rajdhani pada ukuran yang sama.
 3. **Ikon:** Phosphor (MIT), regular untuk default, fill untuk state aktif.
 4. **Mobile:** landscape sebagai mode utama, portrait tetap didukung.
 5. **HUD editor** dikerjakan pada milestone M4, bukan ditunda ke v2.
@@ -143,7 +144,7 @@ tombol danger selalu *outlined*, tidak pernah filled.
 | Tabler | ~5.000 | MIT | Strokenya lebih ringan |
 
 Semua komersial-aman tanpa atribusi wajib; lisensi tetap disertakan di
-`docs/ui-redesign/assets/icons/LICENSE-Phosphor.txt`.
+`game/assets/ui/icons/LICENSE-Phosphor.txt`.
 
 ---
 
@@ -205,10 +206,10 @@ dipakai untuk health.
 | Display XL | Chakra Petch 600 | 40 / 44 | +2% | judul hasil |
 | Display L | Chakra Petch 600 | 28 / 32 | +2% | judul menu |
 | Heading | Chakra Petch 600 | 18 / 22 | +1% | judul kartu |
-| Title | Barlow 600 | 15 / 20 | +1% | nama senjata |
-| Body | Barlow 400 | 14 / 20 | 0 | deskripsi |
-| Label | Barlow 500 | 11 / 14 | **+12%** | label uppercase |
-| Caption | Barlow 400 | 11 / 14 | +2% | catatan |
+| Title | Rajdhani 600 | 15 / 20 | +1% | nama senjata |
+| Body | Rajdhani 400 | 14 / 20 | 0 | deskripsi |
+| Label | Rajdhani 500 | 11 / 14 | **+12%** | label uppercase |
+| Caption | Rajdhani 400 | 11 / 14 | +2% | catatan |
 | Mono XL | JetBrains Mono 500 | 34 / 34 | 0 | ammo |
 | Mono L | JetBrains Mono 500 | 20 / 22 | 0 | timer besar |
 | Mono M | JetBrains Mono 500 | 13 / 16 | 0 | skor, KOs |
@@ -419,7 +420,6 @@ diimplementasikan; perlu validasi touch asli di perangkat.
 ## 8. Ikon
 
 41 glyph regular + 16 fill, semuanya Phosphor (MIT). Lihat
-[`board/07-icons.png`](ui-redesign/board/07-icons.png).
 
 | Aksi | Ikon | State |
 |---|---|---|
@@ -502,7 +502,7 @@ nama signal di tengah refactor.
 * Bracket sudut digambar oleh `BracketPanel._draw()` (8 garis) — jauh lebih
   murah daripada nine-patch dan tetap tajam di semua skala.
 * Font: impor 6 TTF; buat `FontVariation` untuk weight, atau pakai family
-  terpisah (Chakra Petch 600 / Barlow 400·500·600 / JetBrains Mono 500).
+  terpisah (Chakra Petch 600 / Rajdhani 400·500·600 / JetBrains Mono 500).
 * Ikon: impor SVG pada 1× dan 2×; `TextureRect` + `modulate` untuk warna state.
 * Jangan memakai `theme_override` ad-hoc di 20 tempat; semua lewat `AegisTheme`.
 
@@ -607,7 +607,7 @@ Estimasi kasar: M0–M2 = 2 hari, M3–M4 = 2 hari, M5–M6 = 1 hari.
 
 Pertanyaan di bawah berasal dari fase AEGIS. **Jangan** menganggap keputusan
 historisnya masih berlaku; keputusan yang memblokir redesign tercantum dalam
-[`REBASE_VISUAL_GAMEPLAY_2026-10-18.md` §4](REBASE_VISUAL_GAMEPLAY_2026-10-18.md#4-keputusan-pengguna-yang-masih-dibutuhkan).
+[`DECISIONS.md` §4](DECISIONS.md#4-keputusan-pengguna-yang-masih-dibutuhkan).
 
 1. Apakah aksen amber disetujui, atau tetap mint/cyan seperti reticle sekarang?
 2. Portrait: dipertahankan sebagai mode setara, atau hanya fallback?

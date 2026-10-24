@@ -98,24 +98,42 @@ func _check_asset(entry: Dictionary) -> void:
 		"%s is dominated by a palette family, not by off-palette noise (%s)" % [key, dominant],
 	)
 
-	if key == "loading_robot":
-		var cell: Array = entry.get("cell", [0, 0]) as Array
-		var frames: int = int(entry.get("frames", 0))
-		_expect(
-			frames > 1 and is_equal_approx(fmod(actual.x, float(cell[0])), 0.0),
-			(
-				"the walk sheet divides into %d whole %dpx frames (width %.0f)"
-				% [
-					frames,
-					int(cell[0]),
-					actual.x,
-				]
-			),
-		)
-		_expect(
-			is_equal_approx(actual.y, float(cell[1])),
-			"the walk sheet is exactly one cell tall (%.0f px)" % actual.y,
-		)
+	# The wordmark is the one texture whose alpha matters: it is drawn over the
+	# menus, so a plate baked into it reads as a black box behind the logo. The
+	# manifest records that it is keyed; this checks the pixels agree, because a
+	# manifest entry is a claim about a file, not a property of one.
+	if key == "wordmark":
+		_check_wordmark_alpha()
+
+
+func _check_wordmark_alpha() -> void:
+	var texture := load("res://assets/ui/logo_wordmark.png") as Texture2D
+	if not _expect(texture != null, "the wordmark loads as a texture"):
+		return
+	var image := texture.get_image()
+	if not _expect(image != null, "the wordmark's pixels can be read back"):
+		return
+	image.decompress()
+	if not _expect(
+		image.detect_alpha() != Image.ALPHA_NONE,
+		"the wordmark carries an alpha channel (no black plate behind it)",
+	):
+		return
+	# Three corners, not one: the art is not guaranteed to sit dead centre in
+	# whichever canvas the generator produced, but a plate would reach all of
+	# them and a keyed mark reaches none.
+	var transparent := 0
+	for corner in [
+		Vector2i(0, 0),
+		Vector2i(image.get_width() - 1, 0),
+		Vector2i(0, image.get_height() - 1),
+	]:
+		if image.get_pixelv(corner).a < 0.05:
+			transparent += 1
+	_expect(
+		transparent == 3,
+		"the wordmark's corners are transparent (%d of 3, so no backdrop)" % transparent,
+	)
 
 
 # --- pixel helpers ----------------------------------------------------------

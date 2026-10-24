@@ -41,9 +41,45 @@ extends PanelContainer
 		accent_width = value
 		queue_redraw()
 
+## 0.0 keeps whatever the caller set; anything else is drawn behind the content.
+@export_range(0.0, 1.0, 0.01) var surface_alpha: float = AegisTokens.PANEL_ALPHA_SOFT
+## Inset from the card's edge to its content, in canvas units. A 360 px phone
+## cannot pay 24 px of width for two padded cards, so a stage that measures its
+## own budget calls `set_surface_pad()` instead of accepting the default.
+@export var surface_pad: float = 12.0
+
+
+## Rebuilds the card's surface at a different inset. Called from a layout pass,
+## which runs after `_ready()`, so it also re-checks the override.
+func set_surface_pad(value: float) -> void:
+	surface_pad = value
+	apply_surface()
+
+
+func apply_surface() -> void:
+	if surface_alpha <= 0.0:
+		return
+	add_theme_stylebox_override(
+		"panel",
+		AegisTheme.panel_style(
+			Color(AegisTokens.PANEL, surface_alpha),
+			Color(AegisTokens.LINE, 0.95),
+			1,
+			AegisTokens.RADIUS,
+			surface_pad
+		)
+	)
+
 
 func _ready() -> void:
 	resized.connect(queue_redraw)
+	# Every menu card was a bare PanelContainer with no "panel" stylebox: Godot's
+	# default draws almost nothing, so HERO's information card, the dashboard
+	# blocks and the theatre cards were text floating over a 3D scene. The HUD
+	# builds its own styles and sets an override before or after this runs, so an
+	# existing override always wins.
+	if not has_theme_stylebox_override("panel"):
+		apply_surface()
 	if not interactive:
 		mouse_filter = Control.MOUSE_FILTER_IGNORE
 

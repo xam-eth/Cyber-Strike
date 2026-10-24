@@ -42,7 +42,7 @@ MAGIC = b"GDPC"
 DIR_OFFSET_POS = 32
 
 # Patterns that must never reach a player. The tests are 8,141 lines of
-# assertions; `scripts/qa` is the keyboard review rig (see docs/AUDIT_2026-10-21.md
+# assertions; `scripts/qa` is the keyboard review rig (see docs/DECISIONS.md
 # §5 — it is currently instanced in main.tscn, so it is reported, not failed).
 FORBIDDEN = {
     "tests/": ("the smoke test suite", True),
@@ -104,7 +104,7 @@ def pck_bytes(path: str) -> tuple[bytes, str]:
 
     A Godot Android APK is a zip; the non-Gradle export drops the pack in
     `assets/`. Reading it out means the same check covers both build paths from
-    the same gate (docs/STRUCTURE_PLAN.md §4).
+    the same gate (docs/ARCHITECTURE.md §4).
     """
     if path.endswith(".pck"):
         with open(path, "rb") as handle:

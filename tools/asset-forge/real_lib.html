@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Real asset library — contact sheet</title>
+<style>
+  html,body{margin:0;background:#05080c;color:#edf5fb;font:11px ui-monospace,Menlo,monospace}
+  canvas{display:block}
+  #status{position:fixed;left:8px;bottom:8px;color:#54c8ff}
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "/tools/asset-forge/vendor/three/three.module.js",
+  "three/addons/": "/tools/asset-forge/vendor/three/addons/"
+} }
+</script>
+</head>
+<body>
+<canvas id="sheet"></canvas>
+<div id="status">loading…</div>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+const params = new URLSearchParams(location.search);
+const CELL = Number(params.get('cell') || 200);
+const COLS = Number(params.get('cols') || 10);
+const PAD = 18;
+const LABEL = 16;
+
+const SHEET = document.getElementById('sheet');
+const status = document.getElementById('status');
+
+/* A throwaway WebGL renderer draws one model at a time; the tiles are copied
+   into the 2D canvas, so 90 models cost one context, not ninety. */
+const tile = document.createElement('canvas');
+tile.width = CELL; tile.height = CELL;
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1);
+renderer.setSize(CELL, CELL);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#0b131b');
+scene.add(new THREE.HemisphereLight(0x9fb6c8, 0x1b2430, 2.4));
+const key = new THREE.DirectionalLight(0xffffff, 2.6); key.position.set(3, 6, 4); scene.add(key);
+const fill = new THREE.DirectionalLight(0x88bbff, 1.0); fill.position.set(-4, 2, -3); scene.add(fill);
+
+const camera = new THREE.PerspectiveCamera(30, 1, 0.01, 1000);
+const holder = new THREE.Group();
+scene.add(holder);
+
+const loader = new GLTFLoader();
+
+function frame(object) {
+  const box = new THREE.Box3().setFromObject(object);
+  const size = box.getSize(new THREE.Vector3());
+  const centre = box.getCenter(new THREE.Vector3());
+  const radius = Math.max(size.x, size.y, size.z) * 0.75 || 1;
+  const dist = radius / Math.tan((camera.fov * Math.PI) / 360) * 1.55;
+  const dir = new THREE.Vector3(0.72, 0.5, 0.85).normalize();
+  camera.position.copy(centre).addScaledVector(dir, dist);
+  camera.lookAt(centre);
+  camera.near = dist / 100; camera.far = dist * 10;
+  camera.updateProjectionMatrix();
+}
+
+async function main() {
+  const list = await (await fetch('/tools/asset-forge/build/real-lib.json')).json();
+  const rows = Math.ceil(list.items.length / COLS);
+  SHEET.width = COLS * CELL;
+  SHEET.height = rows * (CELL + LABEL);
+  const ctx = SHEET.getContext('2d');
+  ctx.fillStyle = '#0b131b';
+  ctx.fillRect(0, 0, SHEET.width, SHEET.height);
+
+  for (let i = 0; i < list.items.length; i += 1) {
+    const item = list.items[i];
+    const gltf = await loader.loadAsync(item.url);
+    const root = gltf.scene;
+    root.traverse((n) => { if (n.isMesh) { n.material = new THREE.MeshStandardMaterial({ color: n.material.color ?? 0xcccccc, roughness: 0.72, metalness: 0.12 }); } });
+    holder.add(root);
+    frame(root);
+    renderer.render(scene, camera);
+    const x = (i % COLS) * CELL;
+    const y = Math.floor(i / COLS) * (CELL + LABEL);
+    ctx.drawImage(renderer.domElement, x, y);
+    ctx.fillStyle = '#a9bccb';
+    ctx.font = '11px ui-monospace, Menlo, monospace';
+    ctx.fillText(item.id, x + 4, y + CELL + 12);
+    holder.remove(root);
+    status.textContent = `${i + 1}/${list.items.length} ${item.id}`;
+  }
+  status.textContent = `done — ${list.items.length} models`;
+  window.__sheetReady = true;
+}
+main().catch((e) => { status.textContent = String(e); window.__sheetError = String(e); });
+</script>
+</body>
+</html>
