@@ -1,0 +1,801 @@
+{
+  "checked": 36,
+  "failed": 7,
+  "failures": [
+    "command_center: height 8.004 m vs target 7.500 m (6.7% off, tolerance 6%)",
+    "research_lab: clip 'sample_cycle' missing after import (got: sample)",
+    "landing_pad: height 1.428 m vs target 1.200 m (19.0% off, tolerance 6%)",
+    "landing_pad: clip 'beacon_cycle' missing after import (got: beacon)",
+    "rail_cannon: length 1.429 m vs target 1.250 m (14.3% off, tolerance 10%)",
+    "runner: height 1.444 m vs target 1.720 m (16.0% off, tolerance 6%)",
+    "nova_shockwave: height 3.733 m vs target 4.000 m (6.7% off, tolerance 6%)",
+    "impact_burst: height 0.271 m vs target 0.700 m (61.3% off, tolerance 6%)"
+  ],
+  "generated": "2026-10-24T05:02:42",
+  "godot": "4.7.2-stable (official)",
+  "passed": 29,
+  "rows": [
+    {
+      "category": "world",
+      "clips": [
+        "core_pulse"
+      ],
+      "delta": 0.0,
+      "depth_m": 4.26,
+      "height_m": 6.0,
+      "id": "reactor_core",
+      "nodes": 182,
+      "ok": true,
+      "problems": [],
+      "resource": "res://assets/forge/world/reactor_core.glb",
+      "sockets": [
+        "charge_fx"
+      ],
+      "target_m": 6.0,
+      "width_m": 5.518
+    },
+    {
+      "category": "world",
+      "clips": [
+        "beacon_pulse",
+        "dish_scan"
+      ],
+      "delta": 0.0672,
+      "depth_m": 6.007,
+      "height_m": 8.004,
+      "id": "command_center",
+      "nodes": 213,
+      "ok": false,
+      "problems": [
+        "height 8.004 m vs target 7.500 m (6.7% off, tolerance 6%)"
+      ],
+      "resource": "res://assets/forge/world/command_center.glb",
+      "sockets": [
+        "dish_yaw",
+        "door"
+      ],
+      "target_m": 7.5,
+      "width_m": 7.12
+    },
+    {
+      "category": "world",
+      "clips": [
+        "sample"
+      ],
+      "delta": 0.0,
+      "depth_m": 6.204,
+      "height_m": 5.5,
+      "id": "research_lab",
+      "nodes": 119,
+      "ok": false,
+      "problems": [
+        "clip 'sample_cycle' missing after import (got: sample)"
+      ],
+      "resource": "res://assets/forge/world/research_lab.glb",
+      "sockets": [
+        "vessel"
+      ],
+      "target_m": 5.5,
+      "width_m": 8.631
+    },
+    {
+      "category": "world",
+      "clips": [
+        "lamp_pulse"
+      ],
+      "delta": 0.0,
+      "depth_m": 6.068,
+      "height_m": 4.6,
+      "id": "equipment_depot",
+      "nodes": 169,
+      "ok": true,
+      "problems": [],
+      "resource": "res://assets/forge/world/equipment_depot.glb",
+      "sockets": [
+        "cargo_slot",
+        "door"
+      ],
+      "target_m": 4.6,
+      "width_m": 6.799
+    },
+    {
+      "category": "world",
+      "clips": [
+        "energy_columns"
+      ],
+      "delta": 0.0,
+      "depth_m": 4.172,
+      "height_m": 6.5,
+      "id": "generator_bank",
+      "nodes": 290,
+      "ok": true,
+      "problems": [],
+      "resource": "res://assets/forge/world/generator_bank.glb",
+      "sockets": [
+        "feed_pipe"
+      ],
+      "target_m": 6.5,
+      "width_m": 8.643
+    },
+    {
+      "category": "world",
+      "clips": [
+        "beacon"
+      ],
+      "delta": 0.1902,
+      "depth_m": 11.967,
+      "height_m": 1.428,
+      "id": "landing_pad",
+      "nodes": 150,
+      "ok": false,
+      "problems": [
+        "height 1.428 m vs target 1.200 m (19.0% off, tolerance 6%)",
+        "clip 'beacon_cycle' missing after import (got: beacon)"
+      ],
+      "resource": "res://assets/forge/world/landing_pad.glb",
+      "sockets": [
+        "pad_centre"
+      ],
+      "target_m": 1.2,
+      "width_m": 9.848
+    },
+    {
+      "category": "world",
+      "clips": [
+        "gate_open"
+      ],
+      "delta": 0.0,
+      "depth_m": 4.362,
+      "height_m": 11.0,
+      "id": "boss_gate",
+      "nodes": 201,
+      "ok": true,
+      "problems": [],
+      "resource": "res://assets/forge/world/boss_gate.glb",
+      "sockets": [
+        "shutter_l",
+        "shutter_r"
+      ],
+      "target_m": 11.0,
+      "width_m": 10.462
+    },
+    {
+      "category": "world",
+      "clips": [
+        "fire_recoil",
+        "yaw_sweep"
+      ],
+      "delta": 0.0,
+      "depth_m": 3.782,
+      "height_m": 2.8,
+      "id": "defense_turret",
+      "nodes": 110,
+      "ok": true,
+      "problems": [],
+      "resource": "res://assets/forge/world/defense_turret.glb",
+      "sockets": [
+        "muzzle_l",
+        "muzzle_r",
+        "sensor"
+      ],
+      "target_m": 2.8,
+      "width_m": 2.728
+    },
+    {
+      "category": "world",
+      "clips": [
+        "beacon_pulse",
+        "dish_scan"
+      ],
+      "delta": 0.0,
+      "depth_m": 6.086,
+      "height_m": 11.0,
+      "id": "sensor_tower",
+      "nodes": 167,
+      "ok": true,
+      "problems": [],
+      "resource": "res://assets/forge/world/sensor_tower.glb",
+      "sockets": [
+        "dish",
+        "beacon"
+      ],
+      "target_m": 11.0,
+      "width_m": 4.113
+    },
+    {
+      "category": "world",
+      "clips": [
+        "ember_flicker"
+      ],
+      "delta": 0.0281,
+      "depth_m": 6.135,
+      "height_m": 3.496,
+      "id": "wrecked_transport",
+      "nodes": 91,
+      "ok": true,
+      "problems": [],
+      "resource": "res://assets/forge/world/wrecked_transport.glb",
+      "sockets": [
+        "hull_cut",
+        "wing_l"
+      ],
+      "target_m": 3.4,
+      "width_m": 5.977
+    },
+    {
+      "category": "world",
+      "clips": [
+        "sensor_fade"
+      ],
+      "delta": 0.0,
+      "depth_m": 2.818,
+      "height_m": 2.4,
+      "id": "alien_drone_wreck",
+      "nodes": 109,
+      "ok": true,
+      "problems": [],
+      "resource": "res://assets/forge/world/alien_drone_wreck.glb",
+      "sockets": [
+        "sensor_core",
+        "arm_l",
+        "arm_r"
+      ],
+      "target_m": 2.4,
+      "width_m": 3.154
+    },
+    {
+      "category": "world",
+      "clips": [
+        "shimmer"
+      ],
+      "delta": 0.0065,
+      "depth_m": 3.381,
+      "height_m": 3.221,
+      "id": "crystal_cluster",
+      "nodes": 76,
+      "ok": true,
+      "problems": [],
+      "resource": "res://assets/forge/world/crystal_cluster.glb",
+      "sockets": [
+        "harvest_point"
+      ],
+      "target_m": 3.2,
+      "width_m": 3.214
+    },
+    {
+      "category": "world",
+      "clips": [
+        "sway"
+      ],
+      "delta": 0.0027,
+      "depth_m": 1.553,
+      "height_m": 1.795,
+      "id": "alien_flora",
+      "nodes": 53,
+      "ok": true,
+      "problems": [],
+      "resource": "res://assets/forge/world/alien_flora.glb",
+      "sockets": [
+        "root"
+      ],
+      "target_m": 1.8,
+      "width_m": 1.305
+    },
+    {
+      "category": "world",
+      "clips": [],
+      "delta": 0.0,
+      "depth_m": 7.026,
+      "height_m": 3.6,
+      "id": "rock_cluster",
+      "nodes": 31,
+      "ok": true,
+      "problems": [],
+      "resource": "res://assets/forge/world/rock_cluster.glb",
+      "sockets": [
+        "base"
+      ],
+      "target_m": 3.6,
+      "width_m": 7.38
+    },
+    {
+      "category": "world",
+      "clips": [
+        "strip_pulse"
+      ],
+      "delta": 0.0355,
+      "depth_m": 2.504,
+      "height_m": 5.385,
+      "id": "enemy_spawn_gate",
+      "nodes": 165,
+      "ok": true,
+      "problems": [],
+      "resource": "res://assets/forge/world/enemy_spawn_gate.glb",
+      "sockets": [
+        "spawn_point"
+      ],
+      "target_m": 5.2,
+      "width_m": 6.163
+    },
+    {
+      "category": "world",
+      "clips": [],
+      "delta": 0.0,
+      "depth_m": 0.684,
+      "height_m": 1.15,
+      "id": "cover_module",
+      "nodes": 122,
+      "ok": true,
+      "problems": [],
+      "resource": "res://assets/forge/world/cover_module.glb",
+      "sockets": [
+        "top_mark"
+      ],
+      "target_m": 1.15,
+      "width_m": 2.2
+    },
+    {
+      "category": "hero",
+      "clips": [
+        "aim",
+        "fire",
+        "idle"
+      ],
+      "delta": 0.0007,
+      "depth_m": 0.796,
+      "height_m": 1.801,
+      "id": "exo_operative",
+      "nodes": 96,
+      "ok": true,
+      "problems": [],
+      "resource": "res://assets/forge/hero/exo_operative.glb",
+      "sockets": [
+        "hand_r",
+        "muzzle",
+        "chest_core"
+      ],
+      "target_m": 1.8,
+      "width_m": 0.641
+    },
+    {
+      "category": "hero",
+      "clips": [
+        "aim",
+        "fire",
+        "idle"
+      ],
+      "delta": 0.0001,
+      "depth_m": 0.991,
+      "height_m": 1.8,
+      "id": "exo_combat_tech",
+      "nodes": 110,
+      "ok": true,
+      "problems": [],
+      "resource": "res://assets/forge/hero/exo_combat_tech.glb",
+      "sockets": [
+        "hand_r",
+        "muzzle",
+        "chest_core"
+      ],
+      "target_m": 1.8,
+      "width_m": 0.636
+    },
+    {
+      "category": "hero",
+      "clips": [
+        "aim",
+        "fire",
+        "idle"
+      ],
+      "delta": 0.0001,
+      "depth_m": 0.866,
+      "height_m": 1.8,
+      "id": "exo_void_runner",
+      "nodes": 107,
+      "ok": true,
+      "problems": [],
+      "resource": "res://assets/forge/hero/exo_void_runner.glb",
+      "sockets": [
+        "hand_r",
+        "muzzle",
+        "chest_core"
+      ],
+      "target_m": 1.8,
+      "width_m": 0.628
+    },
+    {
+      "category": "hero",
+      "clips": [
+        "aim",
+        "fire",
+        "idle"
+      ],
+      "delta": 0.0004,
+      "depth_m": 0.869,
+      "height_m": 1.801,
+      "id": "exo_neon_phantom",
+      "nodes": 106,
+      "ok": true,
+      "problems": [],
+      "resource": "res://assets/forge/hero/exo_neon_phantom.glb",
+      "sockets": [
+        "hand_r",
+        "muzzle",
+        "chest_core"
+      ],
+      "target_m": 1.8,
+      "width_m": 0.628
+    },
+    {
+      "category": "hero",
+      "clips": [
+        "aim",
+        "fire",
+        "idle"
+      ],
+      "delta": 0.0002,
+      "depth_m": 0.995,
+      "height_m": 1.8,
+      "id": "exo_rogue_engineer",
+      "nodes": 110,
+      "ok": true,
+      "problems": [],
+      "resource": "res://assets/forge/hero/exo_rogue_engineer.glb",
+      "sockets": [
+        "hand_r",
+        "muzzle",
+        "chest_core"
+      ],
+      "target_m": 1.8,
+      "width_m": 0.641
+    },
+    {
+      "category": "hero",
+      "clips": [
+        "aim",
+        "fire",
+        "idle"
+      ],
+      "delta": 0.0003,
+      "depth_m": 0.977,
+      "height_m": 1.8,
+      "id": "exo_alien_hunter",
+      "nodes": 120,
+      "ok": true,
+      "problems": [],
+      "resource": "res://assets/forge/hero/exo_alien_hunter.glb",
+      "sockets": [
+        "hand_r",
+        "muzzle",
+        "chest_core"
+      ],
+      "target_m": 1.8,
+      "width_m": 0.695
+    },
+    {
+      "category": "weapon",
+      "clips": [
+        "fire_recoil",
+        "idle",
+        "reload"
+      ],
+      "delta": 0.0526,
+      "depth_m": 1.0,
+      "height_m": 0.463,
+      "id": "pulse_rifle",
+      "nodes": 78,
+      "ok": true,
+      "problems": [],
+      "resource": "res://assets/forge/weapon/pulse_rifle.glb",
+      "sockets": [
+        "muzzle",
+        "grip_r",
+        "grip_l",
+        "scope"
+      ],
+      "target_m": 0.95,
+      "width_m": 0.169
+    },
+    {
+      "category": "weapon",
+      "clips": [
+        "fire_recoil",
+        "idle",
+        "reload"
+      ],
+      "delta": 0.0,
+      "depth_m": 1.05,
+      "height_m": 0.426,
+      "id": "nova_launcher",
+      "nodes": 71,
+      "ok": true,
+      "problems": [],
+      "resource": "res://assets/forge/weapon/nova_launcher.glb",
+      "sockets": [
+        "muzzle",
+        "grip_r",
+        "grip_l",
+        "drum"
+      ],
+      "target_m": 1.05,
+      "width_m": 0.246
+    },
+    {
+      "category": "weapon",
+      "clips": [
+        "fire_recoil",
+        "idle",
+        "reload"
+      ],
+      "delta": 0.0,
+      "depth_m": 1.0,
+      "height_m": 0.446,
+      "id": "arc_shooter",
+      "nodes": 85,
+      "ok": true,
+      "problems": [],
+      "resource": "res://assets/forge/weapon/arc_shooter.glb",
+      "sockets": [
+        "muzzle",
+        "grip_r",
+        "prong_l",
+        "prong_r"
+      ],
+      "target_m": 1.0,
+      "width_m": 0.178
+    },
+    {
+      "category": "weapon",
+      "clips": [
+        "fire_recoil",
+        "idle",
+        "reload"
+      ],
+      "delta": 0.0,
+      "depth_m": 0.85,
+      "height_m": 0.469,
+      "id": "scatter_blaster",
+      "nodes": 73,
+      "ok": true,
+      "problems": [],
+      "resource": "res://assets/forge/weapon/scatter_blaster.glb",
+      "sockets": [
+        "muzzle",
+        "grip_r",
+        "grip_l"
+      ],
+      "target_m": 0.85,
+      "width_m": 0.253
+    },
+    {
+      "category": "weapon",
+      "clips": [
+        "charge",
+        "fire_recoil",
+        "idle"
+      ],
+      "delta": 0.1434,
+      "depth_m": 1.429,
+      "height_m": 0.415,
+      "id": "rail_cannon",
+      "nodes": 94,
+      "ok": false,
+      "problems": [
+        "length 1.429 m vs target 1.250 m (14.3% off, tolerance 10%)"
+      ],
+      "resource": "res://assets/forge/weapon/rail_cannon.glb",
+      "sockets": [
+        "muzzle",
+        "grip_r",
+        "grip_l",
+        "coil"
+      ],
+      "target_m": 1.25,
+      "width_m": 0.163
+    },
+    {
+      "category": "weapon",
+      "clips": [
+        "charge",
+        "fire_recoil",
+        "idle"
+      ],
+      "delta": 0.0618,
+      "depth_m": 1.062,
+      "height_m": 0.452,
+      "id": "gravity_gun",
+      "nodes": 80,
+      "ok": true,
+      "problems": [],
+      "resource": "res://assets/forge/weapon/gravity_gun.glb",
+      "sockets": [
+        "muzzle",
+        "grip_r",
+        "core"
+      ],
+      "target_m": 1.0,
+      "width_m": 0.222
+    },
+    {
+      "category": "weapon",
+      "clips": [
+        "fire_recoil",
+        "idle",
+        "reload"
+      ],
+      "delta": 0.0,
+      "depth_m": 1.0,
+      "height_m": 0.446,
+      "id": "arc_shooter_void_edition",
+      "nodes": 85,
+      "ok": true,
+      "problems": [],
+      "resource": "res://assets/forge/weapon/arc_shooter_void_edition.glb",
+      "sockets": [
+        "muzzle",
+        "grip_r",
+        "prong_l",
+        "prong_r"
+      ],
+      "target_m": 1.0,
+      "width_m": 0.178
+    },
+    {
+      "category": "enemy",
+      "clips": [
+        "death",
+        "hit",
+        "idle",
+        "run"
+      ],
+      "delta": 0.1603,
+      "depth_m": 2.229,
+      "height_m": 1.444,
+      "id": "runner",
+      "nodes": 108,
+      "ok": false,
+      "problems": [
+        "height 1.444 m vs target 1.720 m (16.0% off, tolerance 6%)"
+      ],
+      "resource": "res://assets/forge/enemy/runner.glb",
+      "sockets": [
+        "spine",
+        "claw_l",
+        "claw_r"
+      ],
+      "target_m": 1.72,
+      "width_m": 0.908
+    },
+    {
+      "category": "enemy",
+      "clips": [
+        "aim",
+        "death",
+        "idle",
+        "run"
+      ],
+      "delta": 0.0025,
+      "depth_m": 0.506,
+      "height_m": 1.624,
+      "id": "shooter",
+      "nodes": 105,
+      "ok": true,
+      "problems": [],
+      "resource": "res://assets/forge/enemy/shooter.glb",
+      "sockets": [
+        "hand_r",
+        "chest"
+      ],
+      "target_m": 1.62,
+      "width_m": 0.576
+    },
+    {
+      "category": "enemy",
+      "clips": [
+        "death",
+        "hit",
+        "hover"
+      ],
+      "delta": 0.0519,
+      "depth_m": 1.147,
+      "height_m": 1.09,
+      "id": "training_drone",
+      "nodes": 77,
+      "ok": true,
+      "problems": [],
+      "resource": "res://assets/forge/enemy/training_drone.glb",
+      "sockets": [
+        "hover_ring",
+        "sensor"
+      ],
+      "target_m": 1.15,
+      "width_m": 1.146
+    },
+    {
+      "category": "vfx",
+      "clips": [
+        "impact",
+        "travel"
+      ],
+      "delta": 0.0533,
+      "depth_m": 1.264,
+      "height_m": 0.243,
+      "id": "pulse_bolt",
+      "nodes": 17,
+      "ok": true,
+      "problems": [],
+      "resource": "res://assets/forge/vfx/pulse_bolt.glb",
+      "sockets": [
+        "head",
+        "tail"
+      ],
+      "target_m": 1.2,
+      "width_m": 0.25
+    },
+    {
+      "category": "vfx",
+      "clips": [
+        "expand",
+        "fade"
+      ],
+      "delta": 0.0667,
+      "depth_m": 3.513,
+      "height_m": 3.733,
+      "id": "nova_shockwave",
+      "nodes": 16,
+      "ok": false,
+      "problems": [
+        "height 3.733 m vs target 4.000 m (6.7% off, tolerance 6%)"
+      ],
+      "resource": "res://assets/forge/vfx/nova_shockwave.glb",
+      "sockets": [
+        "centre"
+      ],
+      "target_m": 4.0,
+      "width_m": 3.513
+    },
+    {
+      "category": "vfx",
+      "clips": [
+        "fork",
+        "strike"
+      ],
+      "delta": 0.0,
+      "depth_m": 6.0,
+      "height_m": 0.805,
+      "id": "arc_chain",
+      "nodes": 62,
+      "ok": true,
+      "problems": [],
+      "resource": "res://assets/forge/vfx/arc_chain.glb",
+      "sockets": [
+        "origin",
+        "fork_a",
+        "fork_b"
+      ],
+      "target_m": 6.0,
+      "width_m": 2.839
+    },
+    {
+      "category": "vfx",
+      "clips": [
+        "burst"
+      ],
+      "delta": 0.6132,
+      "depth_m": 0.336,
+      "height_m": 0.271,
+      "id": "impact_burst",
+      "nodes": 18,
+      "ok": false,
+      "problems": [
+        "height 0.271 m vs target 0.700 m (61.3% off, tolerance 6%)"
+      ],
+      "resource": "res://assets/forge/vfx/impact_burst.glb",
+      "sockets": [
+        "centre"
+      ],
+      "target_m": 0.7,
+      "width_m": 0.32
+    }
+  ]
+}
