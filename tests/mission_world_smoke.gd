@@ -274,14 +274,20 @@ func _check_gameplay_scene() -> void:
 	var player: Node3D = main_scene.get_node("Player")
 
 	var real_world := world.get_node_or_null("RealFrontierWorld") as Node3D
-	if real_world == null:
-		print(
+	_passed = (
+		_expect(
+			real_world != null,
 			(
-				"gameplay scene: launcher selected '%s', world children: %s"
-				% [String(WorldSelection.selected(world)), world.get_children()]
-			)
+				"the gameplay scene builds a world (launcher selected '%s', node has %d child(ren), script %s)"
+				% [
+					String(WorldSelection.selected(world)),
+					world.get_child_count(),
+					"present" if world.get_script() != null else "MISSING",
+				]
+			),
 		)
-	_passed = _expect(real_world != null, "the gameplay scene builds a world") and _passed
+		and _passed
+	)
 	if real_world == null:
 		main_scene.queue_free()
 		await process_frame
