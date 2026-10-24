@@ -7,7 +7,9 @@
 
 >
 >
-> **Status verifikasi (baseline lama di bawah ini):** seluruh wiring statis sudah diperiksa (`tools/web_preset.py check`, `tools/project_doctor.py` → 0 FAIL, 22 unit test). Ekspor Web nyata sudah berhasil di CI (run `38919299364`, job `web-preview` hijau). Hasil terukur:
+> **Status integrasi saat ini:** payload `cec0fdd` berasal dari source `9e82c0b`; PCK berukuran 95,586,752 bytes (873 files) dan total `web/` sekitar 130 MiB. CI `40099367032` lulus static, 28/28 Godot test, export, empat browser boot, dan kontrak WORLD → Vanguard. Rincian serta batas bukti ada di [`docs/INTEGRATION_VALIDATION_REPORT.md`](docs/INTEGRATION_VALIDATION_REPORT.md).
+>
+> **Status verifikasi (baseline lama di bawah ini; ukuran berikut bukan payload current):** seluruh wiring statis sudah diperiksa (`tools/web_preset.py check`, `tools/project_doctor.py` → 0 FAIL, 22 unit test). Ekspor Web nyata sudah berhasil di CI (run `38919299364`, job `web-preview` hijau). Hasil terukur:
 
 | Bagian | Ukuran | Content-Type dari `python -m http.server` |
 |---|---|---|
@@ -131,8 +133,8 @@ Opsi: `--debug` (build debug, error lebih jelas, ukuran lebih besar), `--output 
 
 | Berkas | Peran |
 |---|---|
-| `index.html` (root repo) | **Halaman game**: meng-import `web/` di halaman yang sama (kanvas penuh layar + chip status/kontrol/fullscreen). Menampilkan kartu diagnostik bila `web/` belum ada, konfigurasi ekspor tidak terbaca, atau WebGL 2 tidak tersedia. Tanpa CDN, tanpa build step. |
-| `tools/web_qa.mjs` | QA browser headless: menyajikan repo, membuka `/` dan `/web/index.html`, memeriksa banner engine, WebGL 2, ukuran kanvas, 4xx/5xx, kartu error; menulis tangkapan layar dan laporan `--json`. Mode `--play <detik>` memainkan game dengan input sungguhan, menulis foto berseri, dan memverifikasi pipeline audio. |
+| `index.html` + `ui/` (root repo) | **Player shell**: opening → hub → launch, lalu menyerahkan perjalanan ke stage WORLD/loadout milik engine. Memuat `web/` tanpa CDN/build step, memakai font lokal, dan menampilkan kegagalan payload/WebGL yang dapat dibaca. Portrait mendapat layar instruksi rotasi; produk saat ini landscape-only. |
+| `tools/web_qa.mjs` | QA browser headless: menyajikan repo, membuka `/` dan `/web/index.html`, memeriksa banner engine, WebGL 2, ukuran kanvas, 4xx/5xx, kartu error; menulis tangkapan layar dan laporan `--json`. Mode `--journey --select-vanguard` mewajibkan WORLD dan log build dunia yang dipilih; `--play <detik>` menambah input/audio, bukan bukti satu run penuh. |
 | `game/web_shell/index.html` | **Custom Godot HTML shell** (dipakai lewat `html/custom_html_shell`). Menambah boot overlay bertema (progress bar + persentase), HUD atas (chip build, Fullscreen, Hide UI), panel kontrol yang bisa dilipat, dan penanganan error yang menampilkan pesan gagal yang dapat dibaca. Placeholder `$GODOT_*` resmi dipertahankan. |
 | `tools/web_preset.py` | `ensure` / `check` / `show` untuk preset Web (thread support, custom shell, resize policy, PWA off). |
 | `scripts/export_web_preview.sh` | Pipeline ekspor web 5 langkah + verifikasi. |
@@ -166,14 +168,14 @@ Artinya build Android tetap memakai renderer `mobile` (sesuai `PROJECT_DECISIONS
 |---|---|---|
 | Bergerak | WASD | joystick ibu jari di sisi kiri |
 | Membidik | tahan klik kanan + gerakkan mouse | geser di sisi kanan |
-| Menembak | tahan klik kiri | tahan ikon senjata menembak (kanan bawah, 112×112 px portrait) |
+| Menembak | tahan klik kiri atau tahan ikon FIRE | tahan ikon FIRE (kanan bawah, 180×180 px pada layout acuan landscape) |
 | Ganti senjata / Armory | E atau U | ikon senjata/rotasi di samping readout amunisi |
 | Skill EMP | tombol F | ikon petir/pulse ungu di kanan bawah |
 | Mulai Defense | B setelah menjelajah | tombol START DEFENSE (countdown sebelum wave) |
 | Pause / Resume | Esc | tombol PAUSE / RESUME |
 | Retry / kembali ke Explore | R untuk retry, setelah hasil pilih kembali | tombol RETRY DEFENSE atau EXPLORE pada hasil |
 
-**Tidak ada wave otomatis saat boot**. Menembak training target di Explore tidak memulai Defense. Tombol **HIDE UI** di shell hanya menyembunyikan lapisan HTML (chip/panel kontrol), bukan HUD di dalam game.
+**Tidak ada wave otomatis saat boot**. Menembak training target di Explore tidak memulai Defense. DEPLOY membuka WORLD/loadout milik engine; memilih LAUNCH tetap masuk ke Explore yang aman. Layout produk saat ini **landscape-only** (844×390 dan 667×375 dalam QA); portrait menampilkan instruksi rotasi, bukan susunan HUD alternatif. Tombol **HIDE UI** pada raw shell hanya menyembunyikan lapisan HTML, bukan HUD di dalam game.
 
 ## 6. Batas yang harus diingat (jujur)
 
@@ -182,7 +184,8 @@ Artinya build Android tetap memakai renderer `mobile` (sesuai `PROJECT_DECISIONS
 - **Single-thread.** Build ini tidak memakai `Thread` Godot; jangan menilai audio latency atau paralelisme dari preview.
 - **Ukuran unduhan.** WebAssembly engine + pack biasanya beberapa puluh MB; muat pertama lambat, berikutnya ter-cache.
 - **Bukan jalur distribusi.** Ini alat review. Publikasi tetap: Godot → GLB/PCK → Android (APK/AAB).
-- **Bukti browser terbatas per payload.** Payload `abec6e5` membuktikan KO +10 BP dan satu clear +120 BP; payload `318ef35` **dan** `b499bb5` masing-masing membuktikan clear +120 yang dilanjutkan unlock/equip Nova serta satu shot saat replay. `pre-tracer-fix-held.png` vs `08-portrait-fire-held.png` memperlihatkan garis tembakan di dekat hero lebih ramping, **bukan** sign-off VFX. Variasi spawn sebelum koreksi menghasilkan +0/+10; 2/2 pass pada flank baru bukan statistik reliabilitas global. Bukti kualitas motion/VFX dan kenyamanan fisik masih terbatas; reaktor dan area floor terlalu biru di banyak frame. Android nyata tetap terpisah.
+- **Payload integrasi `cec0fdd`:** laporan lokal `exports/integration-audit/` membuktikan seleksi/build Vanguard, Neon Explore → Preparing → Defense dengan tembakan/audio/mute, pause/settings, dan enam frame shell pada dua ukuran landscape. Pass Neon tidak membuktikan KO, reward, Results, atau satu run penuh; Android/perangkat nyata tetap UNKNOWN.
+- **Bukti browser lama, terbatas per payload.** Payload `abec6e5` membuktikan KO +10 BP dan satu clear +120 BP; payload `318ef35` **dan** `b499bb5` masing-masing membuktikan clear +120 yang dilanjutkan unlock/equip Nova serta satu shot saat replay. `pre-tracer-fix-held.png` vs `08-portrait-fire-held.png` memperlihatkan garis tembakan di dekat hero lebih ramping, **bukan** sign-off VFX. Variasi spawn sebelum koreksi menghasilkan +0/+10; 2/2 pass pada flank baru bukan statistik reliabilitas global. Bukti kualitas motion/VFX dan kenyamanan fisik masih terbatas; reaktor dan area floor terlalu biru di banyak frame. Android nyata tetap terpisah.
 
 ## 7. Troubleshooting
 

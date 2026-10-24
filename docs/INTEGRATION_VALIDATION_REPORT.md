@@ -8,123 +8,146 @@ Baseline and ownership: [`INTEGRATION_BASELINE.md`](INTEGRATION_BASELINE.md)
 
 # INTEGRATED WITH OPEN ISSUES
 
-The actual World implementation is merged; the newer optimized Character implementation and registry-driven UI already present in Gameplay Core are preserved and connected to it. Both registered worlds reach real gameplay, the saved-loadout contract is covered, the Godot suite passes, the Web payload publishes, and browser encounter/tour checks run against the exported game.
+**VERIFIED:** the real World Design implementation is merged, the newer optimized Character implementation remains active, and the **actual** UI/UX Workflow branch is now merged and connected to the same registry/progression/gameplay contracts. The integrated source passes 28/28 Godot tests, static checks, Web export, four Chromium boot checks, and a strict WORLD → Vanguard selection gate. The regenerated payload also passes local Vanguard, Neon encounter/input/audio, HUD pause/settings, shell-frame, and payload-content checks.
 
-This is **not** a claim of final visual acceptance, full human gameplay completion, Android export, physical touch-device behavior, mobile performance, or retention improvement. Issues #4–#7 remain open as described below. The older Character/UI side branches were deliberately not merged over newer implementations; that is a source disposition, not a missing runtime module.
+This is not a claim of final visual acceptance, a complete human run, Android export, physical touch behavior, mobile performance, or retention improvement. Issues #4, #6, #7, and #8 remain open. Remote issue #5 is based on an incorrect UI source mapping and could not be edited or closed with the integration token; issue #8 and the tracked local correction supersede it.
 
-## 2. Traceable integration checkpoints
+## 2. Source dispositions and traceable checkpoints
 
-| Checkpoint | Commit | Result |
+| Role / checkpoint | Exact branch / commit | Disposition and evidence |
 |---|---|---|
-| Pre-integration Gameplay Core | `51f1dac382db4d60722dabee7826de14e53036bd` | Baseline audit and ownership map |
-| World merge | `b24c90916483ea60eb844651ae5ca1507dde2392` | Merge parents `51f1dac` and `71e40ba3`; preserved both sides' compatible work |
-| Selection/export reconciliation | `c2e9996` | Saved-world assertion, authoring-input exclusion, payload regression checks |
-| Published payload used for deep browser QA | `26debc5` | Generated Web PCK/html from `c2e9996`; 95,602,192-byte PCK |
-| Final validated handoff source | `ec8e624dd756fb3a3a6f50a8bfbdd65aff54388b` | Documentation, QA harness, and comment reconciliation; final CI `40088522484` passed |
-| Final published payload | `c26d4e508dd55266ad9fec8d0e5707e494312e2a` | Generated from `ec8e624`; 95,602,304-byte PCK; payload audit passed |
+| Gameplay Core baseline | `arena/0b0dc2fd-cyber-strike` / `51f1dac382db4d60722dabee7826de14e53036bd` | Baseline audit; gameplay implementation at `ad6a221dda7a426a409071258d432951b4ff061b` |
+| World Design source | `arena/e7fb25af-cyber-strike` / `71e40ba36028530ce72a43a398d8913ea2ebe1b2` | **Merged** as second parent of `b24c90916483ea60eb844651ae5ca1507dde2392` |
+| Character Content candidate | `arena/9f883711-cyber-strike` / `9e0ddadcb73aec9bdc935bbc905ecdce23e33568` | **Not merged:** older three-clip, 482,282-triangle candidate would downgrade the active optimized ten-clip, 36,151-triangle hero |
+| Actual UI/UX Workflow source | `arena/c08beb55-cyber-strike` / `f99fb06fbaa3943d83ccc63cd235df86cd69e19d` | **Merged** as second parent of `2243a5f888d379fc5a6457bd5984529b2dc26e3e`; first parent `c104a32d2428480598ec92ffe6f9e7e136c30a01` |
+| Incorrect former UI mapping | `arena/c8558858-cyber-strike` / `e5ba023c9a6e523b03fff2ca29889d0e76ec2d29` | Its `ExoconflictFlow` findings are not a disposition of the actual UI branch and were not used to reject it |
+| World selection/export reconciliation | `c2e9996babb100c6f02e82bb2a4bd233b8572d50` | Saved-world assertion, authoring-input exclusion, payload regression checks |
+| Pre-UI validated source/payload | `ec8e624dd756fb3a3a6f50a8bfbdd65aff54388b` / `c26d4e508dd55266ad9fec8d0e5707e494312e2a` | Historical 29-test and browser evidence only; not evidence for the actual UI merge |
+| Browser JSON repair | `66ad67940893128bc2658c00e7fd6ebc18f3c5cf` | Journey progress moved to stderr in `--json` mode after local reproduction |
+| Measured WORLD selector repair | `9e82c0b0d655ddee44cedc682b6742cb9bfcaab0` | Final validated source; CI run `40099367032` **SUCCESS** |
+| Final generated payload | `cec0fddf95ebb47cc4218a8b67a6e62eb2cb88b1` | Generated from `9e82c0b`; 95,586,752-byte PCK; payload audit passed |
 
-The World merge used a real merge commit. No source branch was deleted, no history was rewritten or force-pushed, no uncommitted work was discarded, and nothing was merged to `main`.
+The World and actual UI integrations use real merge commits. No source branch was deleted, no history was rewritten or force-pushed, nothing was merged to `main`, and no uncommitted work was discarded. Safety stash `bedfbdd8a2e315c0b10efd071fee47cce5bca9c5` remains retained.
 
-### Merge conflicts and resolutions
+## 3. Conflicts and semantic reconciliation
 
-- `game/scenes/main.tscn`: kept World selection, both world scenes, early ProgressionService, HUD/gameplay composition, **and** Gameplay Core's explicit Runner/Shooter `EnemyDefinition` resources. Resolved as a shared-composition conflict.
-- `docs/ARCHITECTURE.md`: retained World's architecture/module inventory and restored Gameplay Core contract/test/EnemyDefinition guidance. Regenerated the marked module map and verified it with `tools/module_map.py --check`.
-- Agent-only `.claude` metadata from the source tree was not retained as a product runtime input.
-- Character and UI source branches were not merged after implementation comparison showed that they would downgrade or parallelize newer active systems.
+### World merge
 
-## 3. Integrated, already present, and blocked work
+- `game/scenes/main.tscn`: preserved World selection, both world scenes, early `ProgressionService`, HUD/gameplay composition, **and** Core's explicit Runner/Shooter `EnemyDefinition` resources. This was a shared-composition conflict, not a one-sided file choice.
+- `docs/ARCHITECTURE.md`: retained the World architecture and Core contract/test guidance; regenerated the marked module map.
+- The old non-static World build-call defect was repaired by the World implementation rather than repeating the old manual three-`static` edit.
 
-### World Design — integrated
+### Actual UI merge
 
-**VERIFIED:** `arena/e7fb25af-cyber-strike` / `71e40ba36028530ce72a43a398d8913ea2ebe1b2` is the second parent of `b24c909`.
+The merge of `f99fb06` produced exactly four textual/binary conflicts:
 
-Integrated behavior includes the staged real Neon Frontier GLB, Vanguard Station, world registry/build gates, selection-aware startup, authored world motion, world tests, asset-forge provenance/tooling, and static-call checking. The old non-static World build-call defect is gone; the merged suite passes.
+- `README.md`: retained the integrated World/Character/test inventory and the actual UI shell workflow; updated the suite to 28 tests.
+- `docs/ARCHITECTURE.md`: retained compatible guidance from both sides and regenerated the module map after semantic reconciliation.
+- `web/index.html`: retained the then-current integrated config only until CI could regenerate it. The final config now names the 95,586,752-byte PCK.
+- `web/index.pck`: retained the newer pre-merge integrated binary only as a conflict-resolution placeholder. It was **not** used as evidence for the UI merge; CI replaced it with `cec0fdd`.
 
-Non-runtime `game/assets/world/real/` authoring inputs remain in source for reproducibility but are excluded from player exports. The required staged runtime asset `game/assets/forge/world/world.glb` remains included.
+Textual auto-merges were also inspected and reconciled:
 
-### Character Content — newer implementation already present; old branch superseded
+- **Shared shell contract:** source `ui/shell.js` sent DEPLOY to `qa_stage=GAMEPLAY`, bypassing HERO/WORLD. The integrated adapter sends it to `qa_stage=WORLD`, preserving both registered worlds, loadout selection, and `ProgressionService`. No JavaScript content registry was added.
+- **UI-domain layout decision:** landscape-only is intentional and documented in `docs/DECISIONS.md` §31. Portrait/desktop HUD arrangements, `HudPauseGesture`, and its obsolete test were removed with that behavior; the resulting suite has 28 tests. This was not silently “repaired” by restoring a second layout.
+- **Front-end focus:** deferred primary-button focus now checks that the Control is valid, visible, and inside the tree; entering a stage focuses its primary action through the same guard.
+- **Pause/retry/cancel:** the source's 26/27 CANCEL DEFENSE failure was not treated as proof of a Core lifecycle defect. The smoke journey now lets results teardown and pause layout settle between separate Retry → Pause → Cancel taps and asserts an actionable pause panel before cancellation. Damage, waves, rewards, and run-lifecycle rules were not changed for this UI failure.
+- **Browser regression 1:** journey logging contaminated `--json` stdout. `66ad679` moved progress to stderr; the corrected report was parsed successfully locally.
+- **Browser regression 2:** CI `40098902155` reached WORLD and gameplay but failed the Vanguard build assertion. Fixed fractional coordinates were replaced by the engine's `qa_menu` Control rectangles. QA now requires `FrontEnd: world selected vanguard_station` before clicking the measured LAUNCH rect, then requires the real `VanguardStation:` build log.
+- `front_end.gd`, `stage_world_select.gd`, HUD/input/layout modules, tests, and `tools/web_qa.mjs` were checked for removed desktop/portrait references; none remain.
 
-**VERIFIED:** active `hero.glb` is the optimized derivative documented by `HERO_RIG_PIPELINE.md`: ten clips (`aim`, `aim_run`, `aim_walk`, `death`, `fire`, `hit`, `idle`, `reload`, `run`, `walk`) and about 36k triangles. Browser logs confirm ten clips and `fallback=no`.
+## 4. Integrated, already present, and blocked work
 
-The Character candidate `arena/9f883711-cyber-strike` / `9e0ddadc` has only idle/walk/run and about 482k triangles. Merging its direct adapter/source copy would replace a more complete optimized hero with an older integration. It was not merged. Character rights/provenance and representative mobile-budget evidence remain open in issue #4; the ready-to-submit correction is tracked at [`issues/CHARACTER_CONTENT_INTEGRATION.md`](issues/CHARACTER_CONTENT_INTEGRATION.md).
+### World Design — INTEGRATED
 
-### UI/UX Workflow — current newer front end retained; parallel prototype blocked
+**VERIFIED:** the staged Neon Frontier GLB, Vanguard Station, world registry/build gates, selection-aware startup, authored world motion, world tests, asset provenance/forge tooling, and static-call checking are connected. Non-runtime `game/assets/world/real/` authoring inputs remain in source but are excluded from player exports; required staged runtime assets remain included.
 
-**VERIFIED:** the integrated game still starts through `front_end.tscn` and the registry-driven stage flow. The same `ProgressionService` supplies hero/weapon/world selection to gameplay. Browser QA walks the actual screens rather than booting `main.tscn` directly.
+### Character Content — NEWER IMPLEMENTATION ALREADY PRESENT
 
-The UI candidate `arena/c8558858-cyber-strike` / `e5ba023c` adds an uninstantiated `ExoconflictFlow`, independent selections/content ids, a hardcoded `nexus01`, and no production `selection_complete` listener. Its branch CI was red and its source has an additional `character_visual.gd` indentation defect. It was not merged over the newer UI. Issue #5 owns the domain reconciliation decision.
+**VERIFIED:** active `hero.glb` has ten clips (`aim`, `aim_run`, `aim_walk`, `death`, `fire`, `hit`, `idle`, `reload`, `run`, `walk`), 36,151 triangles, and `fallback=no` in browser logs. The older candidate has idle/walk/run only and 482,282 triangles. Merging it would remove combat animation behavior and add an unused high-budget source copy, so it was not merged.
 
-### Gameplay Core repairs and reconciliation
+Character rights/provenance and representative mobile-budget evidence remain open in issue #4. The corrected ready-to-submit scope is tracked at [`issues/CHARACTER_CONTENT_INTEGRATION.md`](issues/CHARACTER_CONTENT_INTEGRATION.md).
 
-- Explicit enemy definitions remain connected to `WaveDirector`; no duplicate wave manager was introduced.
-- Saved Arc Shooter + Vanguard Station selection is applied through the real front end into `main.tscn`; the test asserts both the saved weapon and selected world build gate.
-- Export authoring-input exclusion reduced the PCK without removing runtime world assets.
-- `tools/check_payload.py` now hard-fails if `assets/world/real/` enters an exported pack.
-- Browser QA now enters gameplay **before** encounter input/screenshots, requires gameplay before scripted play, and has a `--select-vanguard` path whose pass condition is the real `VanguardStation:` runtime log.
+### UI/UX Workflow — INTEGRATED WITH VISUAL/DEVICE FOLLOW-UP
 
-## 4. Automated and runtime evidence
+**VERIFIED:** the actual `c08beb55` shell, local fonts, AEGIS presentation, landscape front end/HUD, and UI tests are integrated. The root shell hands off to the engine WORLD stage, and the same authoritative definitions and `ProgressionService` drive selection and gameplay.
 
-### Static and Godot CI
+**Open:** human visual approval and physical-device behavior are not established. Captured frames support layout/interaction diagnostics, including readable pause/settings panels, but also justify UI review of the pause hint's arrow glyph and small-bottom-action spacing. Those observations are not relabelled as a gameplay blocker or as final art acceptance. Corrected scope and next actions are in issue #8 / [`issues/UI_UX_WORKFLOW_INTEGRATION.md`](issues/UI_UX_WORKFLOW_INTEGRATION.md).
 
-Final CI run: [40088522484](https://github.com/xam-eth/Cyber-Strike/actions/runs/40088522484) at source commit `ec8e624dd756fb3a3a6f50a8bfbdd65aff54388b`. The same gate also passed as run `40086792388` at `c2e9996`.
+### Gameplay Core — PRESERVED AND ADAPTED
 
-| Check | Evidence |
+- Explicit enemy definitions, combat orchestration, damage/health, waves, rewards, run lifecycle, and upgrade/progression contracts remain under Core.
+- Saved Arc Shooter + Vanguard selection still reaches `main.tscn`; `front_end_journey_smoke.gd` covers the saved-loadout contract.
+- Export authoring-input exclusion and `tools/check_payload.py` prevent the 55 MB source authoring library from entering the player PCK without deleting source assets.
+- No duplicate wave manager, parallel gameplay state machine, second selection roster, new economy, elite system, or unapproved upgrade hook was introduced.
+
+## 5. Evidence by verification level
+
+### Static evidence — VERIFIED
+
+Final CI run: [40099367032](https://github.com/xam-eth/Cyber-Strike/actions/runs/40099367032), source `9e82c0b0d655ddee44cedc682b6742cb9bfcaab0`.
+
+- Static development job: **PASS** — GDScript parse/lint/format, project doctor, tooling, static calls, layer boundaries, smoke inventory, and handover map.
+- Local available static gate: **PASS** — 75 GDScript files and 36 tooling tests; local Godot and local export-preset steps were explicitly skipped.
+- `node --check ui/shell.js` and `node --check tools/web_qa.mjs`: **PASS**.
+
+Static success was not treated as playability evidence.
+
+### Headless engine evidence — VERIFIED
+
+- Engine: `4.7.2.stable.official.ed1daf0bf`.
+- Final CI engine job `120888148266`: **28 passed, 0 failed (of 28, import ok)**.
+- The suite includes front-end journey, menu layout, showcase, data source, landscape HUD/touch, CANCEL DEFENSE, both worlds, hero/showcase, combat, rewards, progression, and the gameplay vertical slice.
+- The same 28/28 result was observed on merge commit `2243a5f` before the two browser-harness repairs; those repairs did not alter combat rules.
+- Local engine: **NOT RUN** — no local Godot installation. Engine evidence above is CI evidence.
+
+### Web export, delivery, and CI browser evidence — VERIFIED
+
+Final CI Web job `120888148274`: **PASS**.
+
+- Web export and static delivery passed; html/js/wasm/pck returned HTTP 200.
+- Chromium boot checks passed `/` and `/web/index.html` at **844×390** and **667×375**.
+- `Browser world-selection contract` passed: engine WORLD stage, measured Vanguard pin selection, real gameplay entry, and Vanguard build assertion.
+- Payload commit/push completed and produced `cec0fddf95ebb47cc4218a8b67a6e62eb2cb88b1`.
+- Final `web/index.pck`: **95,586,752 bytes**, **873 packed files**; local `tools/check_payload.py` **PASS**, with no authoring-source `assets/world/real/` entries.
+- GitHub Pages deployment remained skipped by its existing branch condition. This is committed static payload publication, not a Pages-deployment claim.
+
+Earlier UI merge runs `40098741822` and `40098902155` were not counted as final passes. The first had a locally reproduced JSON-report defect; the second specifically failed `front-end selection built Vanguard Station gameplay`. Neither published a payload. Their repairs are recorded above and the replacement run is the successful gate.
+
+### Interactive browser evidence on final payload `cec0fdd` — VERIFIED FOR THE REQUESTED CHECKS
+
+Reports and frames are under ignored `exports/integration-audit/`; they are not presented as committed visual sign-off artifacts.
+
+| Evidence path | Result and limits |
 |---|---|
-| Static development checks | **PASS** — GDScript parse/lint/format, project doctor, tooling, static calls, boundaries, inventory, handover map |
-| Tooling self-tests | **PASS** — 36 tests, including Web preset exclusion regression |
-| Godot engine | `4.7.2.stable.official.ed1daf0bf` |
-| Import + smoke suite | **29 passed, 0 failed (of 29, import ok)** |
-| Gameplay vertical slice | Included in the passing suite: real spawned Runner, two projectile hits, KO/wave rewards, intermission to wave two |
-| Saved-loadout reconciliation | Edited `front_end_journey_smoke.gd` was included in the passing 29-test commit |
-| Local engine | **NOT RUN** — no local Godot installation; the real engine evidence above is CI, not an assumed local result |
+| `ui-final-vanguard/report.json` | **PASS** — `FrontEnd: world selected vanguard_station`; `VanguardStation: 421 kit modules, 17 omnis, 4 rooms`; safe Explore reached. No full run claimed |
+| `ui-final-neon/report.json` | **PASS for requested checks** — Explore → Preparing Defense (5 s) → Defense started; scripted firing, first weapon voice, mute and unmute all observed. Frames show health 100 → 92 and ammo 24 → 22. No KO, reward, Results, or complete-run claim |
+| `ui-final-hud/report.json` | **PASS** — paused → settings opened → settings closed → resumed; Controls/HUD/Access tabs and Access-bottom scrolling captured |
+| `ui-final-shell/manifest.json` | **PASS, 6/6 frames** — opening/hub/settings at 844×390 and 667×375; no blank frame, DOM overflow, or console error |
 
-Local `./scripts/dev_check.sh` also passed all available steps for 75 GDScript files and 36 tooling tests; local Godot/preset steps were explicitly skipped.
+Selected WORLD, Neon Defense/play, pause, shell, and Access frames were inspected as visual diagnostics. They establish nonblank rendered UI and the specific visible changes above, not human visual acceptance, GPU performance, or physical touch behavior. The Neon close-structure framing remains covered by issue #7.
 
-### Web export and publication
+Earlier deep browser evidence from payload `26debc5` remains historical and was not reused as proof for this UI merge. A full eight-vantage tour was not rerun on `cec0fdd`.
 
-Final CI Web job `120856253130` passed export, static delivery, artifact upload, Chromium QA, and payload commit/push.
+## 6. Open issues and concrete next actions
 
-- Previous merged PCK: **150,015,960 bytes**; payload publication failed after generation.
-- First repaired PCK (`26debc5`): **95,602,192 bytes**; payload publication **passed**.
-- Final PCK (`c26d4e5`): **95,602,304 bytes**; final payload publication **passed**.
-- Static delivery returned HTTP 200 for html/js/wasm/pck.
-- CI Chromium boots passed `/` and `/web/index.html` at **1280×720** and **390×844**.
-- Local `tools/check_payload.py web/index.pck`: **PASS**, 873 packed files; no authoring-source `assets/world/real/` payload entries.
-- The 55 MB source authoring library was not deleted; only its export inclusion changed.
-
-GitHub Pages deployment was skipped by its existing branch condition. This is **committed static payload publication**, not a claim of a Pages deployment.
-
-### Deep browser QA against committed payload `26debc5`
-
-All commands used the actual exported game in headless Chromium/WebGL, not a scene mock. Reports and frames are under ignored `exports/integration-audit/`. These deep interaction passes predate final payload `c26d4e5`; the intervening source changes are documentation, external QA tooling, and one GDScript comment. Final CI rerun passed all 29 engine tests, export, and four browser boots, but the deeper encounter/tour scripts were not rerun on `c26d4e5`.
-
-| Pass | Result and limits |
-|---|---|
-| `browser-vanguard-3/report.json` | **PASS** — real theatre selection visibly changed to Vanguard Station; runtime logged `VanguardStation: 421 kit modules, 17 omnis, 4 rooms`; Explore → Preparing → Defense completed; no script/page/request errors |
-| `browser-neon-combat/report.json` | **PASS for requested checks** — default front-end journey, safe Explore, preparation, Defense, scripted input, audio pipeline, weapon voice, and mute control. Frames show health changing 100 → 92 and ammo 24 → 23. No KO/reward/full Results claim |
-| `browser-neon-tour/report.json` | **PASS** — real gameplay reached, review camera engaged/released, eight of eight tour frames distinct. Spot-checked frames show actual staged world geometry across multiple districts |
-
-Two earlier Vanguard harness attempts correctly failed their selected-world assertion and built Neon instead; they were not counted as passes. The final canvas-selector run passed only after the selected screen and runtime build both showed Vanguard.
-
-The browser used software rendering. These results establish real exported behavior and provide visual diagnostic frames, not GPU performance, final art approval, or physical touch evidence.
-
-## 5. Open issues and concrete next actions
-
-| Issue | Owner | Why it remains open | Next action and validation |
+| Issue | Owner | Current status | Next action and required validation |
 |---|---|---|---|
-| [#4 Character integration follow-up](https://github.com/xam-eth/Cyber-Strike/issues/4) | Character Content | Source/derived-asset rights and representative mobile budgets are not fully evidenced. GitHub denied both correction edit and comment, so the remote issue still has its original broader body. | Character owner: apply the tracked correction in `docs/issues/CHARACTER_CONTENT_INTEGRATION.md`, attach provenance/license evidence, and profile representative devices. Do not replace the optimized ten-clip hero with the old candidate. |
-| [#5 UI/UX parallel front-end reconciliation](https://github.com/xam-eth/Cyber-Strike/issues/5) | UI/UX Workflow | The source branch's EXOCONFLICT flow is disconnected, duplicates selection state, and had parse/CI failures. | UI owner: choose which approved presentation/navigation work belongs in the registry-driven `FrontEnd`; remove/retire the parallel flow or connect it through the authoritative contracts. Validate startup, saved selections, parse, CI, and browser navigation. |
-| [#6 Canonical product spelling](https://github.com/xam-eth/Cyber-Strike/issues/6) | UI/UX + project owner | Imported `Exocomplict` conflicts with assignment `EXOCOMFLICT`; package identity cannot be renamed unilaterally by Core. | Confirm one canonical spelling, then coordinate window/Web/Android/docs changes and rerun metadata/static/browser checks. |
-| [#7 Neon spawn/camera framing](https://github.com/xam-eth/Cyber-Strike/issues/7) | World Design + Gameplay Core | Real browser frames at `(0,0,8)` are dominated by a close structure; traversal passes, so this is not labelled a hard movement blocker. | Inspect world-owned spawn landmarks and Core camera/prop collision together. Add a selected-world-aware spawn contract if needed; validate desktop/portrait first frames and both world/traversal suites. |
+| [#4 Character integration follow-up](https://github.com/xam-eth/Cyber-Strike/issues/4) | Character Content | Optimized hero is integrated; source/derived rights and representative mobile budgets are unverified. Remote correction was permission-denied, so the remote body remains broader than the tracked correction. | Apply `docs/issues/CHARACTER_CONTENT_INTEGRATION.md`; document usage/redistribution terms and profile intended mobile hardware. Preserve ten clips, attachment/muzzle contracts, and all hero/showcase/gameplay tests |
+| [#5 Incorrect UI source mapping](https://github.com/xam-eth/Cyber-Strike/issues/5) | UI/UX + maintainer | Remote issue remains open but audits the wrong branch. Edit and close were both denied by GitHub permissions. **Superseded by #8**, not a valid reason to reject the actual UI implementation | Maintainer: close or re-scope #5 manually to point to #8 and `docs/issues/UI_UX_WORKFLOW_INTEGRATION.md`; do not reuse its `ExoconflictFlow` disposition |
+| [#6 Canonical product spelling](https://github.com/xam-eth/Cyber-Strike/issues/6) | UI/UX + project owner | Imported `Exocomplict` conflicts with the assignment spelling; Core cannot choose the product identity unilaterally | Confirm one canonical spelling, then coordinate window/Web/Android/docs changes and rerun metadata/static/browser checks |
+| [#7 Neon spawn/camera framing](https://github.com/xam-eth/Cyber-Strike/issues/7) | World Design + Gameplay Core | Final Neon frames still show a close structure dominating the initial/combat view; traversal evidence does not prove a hard movement blocker | Inspect world-owned spawn landmarks and Core camera/prop collision together. Validate first frames and traversal in both worlds at 844×390 and 667×375; do not claim a movement blocker without reproduction |
+| [#8 Actual UI integration and review](https://github.com/xam-eth/Cyber-Strike/issues/8) | UI/UX Workflow | Technical selection/engine/browser gates pass. Human visual and physical-device acceptance remain open; pause glyph/small-action spacing deserve targeted review. GitHub denied the validation comment, so the tracked local issue document carries the update | Review `SETTINGS → CONTROLS` glyph rendering and bottom Access action spacing in the captured frames; correct confirmed font/layout defects at both landscape sizes. Then run shell shots, HUD smoke, pause/settings browser QA, and physical touch review before visual/device sign-off |
 
-### Additional unverified or deliberately unchanged behavior
+## 7. Explicitly unverified or unchanged
 
-- **UNKNOWN:** physical Android/touch-device behavior, Android APK/AAB export, device thermal/frame-time performance, human heard audio, and full human visual acceptance.
-- **UNKNOWN:** complete human Prepare → Deploy → Fight → Adapt → Survive → Reward → Upgrade → Redeploy playthrough. Automated tests cover existing combat/reward/progression pieces; browser QA does not complete a full run.
+- **UNKNOWN:** a complete human Prepare → Deploy → Fight → Adapt → Survive → Reward → Upgrade → Redeploy playthrough. Automated tests cover the existing pieces; the browser passes do not complete a full run.
+- **UNKNOWN:** Android APK/AAB export, physical Android/touch behavior, thermal/frame-time/memory performance, human heard audio, and retention impact.
+- **UNKNOWN:** final visual quality, animation/effects approval, every settings gesture, and every device orientation during live combat.
 - **VERIFIED absent, not an integration regression:** milestone upgrade selection/application and elites were absent from the approved baseline and were not invented.
-- **Unchanged:** repository default remains `pulse_rifle`. “Energy Rifle” mapping and Overcharge/Rapid Pulse/Chain Reactor remain unapproved design candidates.
-- **Not claimed:** retention improvement, final effects/animation quality, every menu/settings gesture, or every device orientation during live combat.
+- **Unchanged:** repository default remains `pulse_rifle`. “Energy Rifle” mapping and Overcharge/Rapid Pulse/Chain Reactor remain unapproved candidates.
+- **Not claimed:** KO/reward/Results from the final Neon browser pass, full combat/redeem/redeploy browser completion, or physical-device performance.
 
-## 6. Handoff
+## 8. Handoff
 
-The integrated branch is suitable for continued domain review and further validation with the open issues above. It is not a release-quality/device-acceptance sign-off. Preserve the traceable merge/source dispositions, keep runtime staged assets while excluding authoring-only inputs, and require the corresponding runtime/visual/device evidence before upgrading this status.
+The branch now contains one connected game rather than parallel unused World, Character, and UI modules. Continue from the open issues above without replacing the optimized hero, bypassing WORLD selection, restoring undocumented parallel layouts, or treating CI as device/visual acceptance. The validated runtime source is `9e82c0b`; its generated payload is `cec0fdd`; the final documentation handoff preserves those code/payload identities.

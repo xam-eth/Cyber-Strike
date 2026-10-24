@@ -13,7 +13,7 @@
 - The current `game/assets/characters/hero/hero.glb` is a later optimized derivative of the same Tripo asset, supported by `HERO_RIG_PIPELINE.md`, matching source bounds/image names/joint structure, and the repository's GLTF/Blender authoring pipeline.
 - Current runtime asset: approximately 36k triangles, 3.06 MB, the same 79-joint rig, and ten clips: `aim`, `aim_run`, `aim_walk`, `death`, `fire`, `hit`, `idle`, `reload`, `run`, `walk`.
 - The older direct `player_controller` idle/walk/run adapter is superseded by the newer `CharacterVisual` combat/attachment implementation.
-- Final reconciliation CI run `40088522484` passed all 29 Godot tests, including hero rig, hero visibility, showcase, and the gameplay vertical slice.
+- Pre-UI reconciliation CI run `40088522484` passed all 29 then-current Godot tests. After the actual UI merge and its intentional removal of the obsolete portrait pause-gesture test, final CI run `40099367032` passed 28/28, including hero rig, hero visibility, showcase, and the gameplay vertical slice.
 
 ## Current behavior
 

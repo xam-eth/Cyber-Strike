@@ -1,9 +1,12 @@
 # Front-end journey
 
-status: implemented. `tests/front_end_journey_smoke.gd` walks the whole
-journey and `tests/menu_layout_smoke.gd` measures every screen at four
-viewport sizes; both are green. This file describes what is in the tree and what
-each stage actually does; where a claim could not be verified it says so.
+status: implemented. `tests/front_end_journey_smoke.gd` walks the engine
+journey and `tests/menu_layout_smoke.gd` measures every interactive stage at the
+two shipping landscape sizes, 844×390 and 667×375. See the integration validation
+report for the exact commit and current result rather than treating this design
+document as a runtime pass. The root web shell hands DEPLOY to WORLD, preserving
+this registry-driven journey. Portrait arrangements described below are historical:
+`docs/DECISIONS.md` §31 makes landscape-only the current UI-domain behavior.
 
 Before this work the game booted straight into `scenes/main.tscn`. The journey
 below did not exist at any point — no boot screen, no loading screen, no

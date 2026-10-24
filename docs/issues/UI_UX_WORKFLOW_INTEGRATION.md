@@ -5,7 +5,7 @@
 **Title:** UI/UX: preserve world/loadout selection and validate the integrated landscape workflow
 **Owning domain:** UI/UX Workflow
 **Severity:** High
-**Integration status:** The actual UI source is being integrated through a traceable merge. This issue remains open until the merged engine and browser evidence satisfies the acceptance criteria; physical-device and human visual acceptance are separate, unverified gates.
+**Integration status:** Technical integration is validated at source `9e82c0b` and payload `cec0fdd`: 28/28 engine tests, Web export, four boot checks, strict WORLD → Vanguard selection, Neon encounter/input/audio, and pause/settings browser checks pass. This issue remains open for the explicitly unverified human visual and physical-device acceptance gates, plus the targeted glyph/spacing review below.
 
 ## Corrected evidence
 
@@ -37,6 +37,14 @@ Direct GAMEPLAY hand-off makes the integrated World and loadout work unreachable
 - Make deferred focus conditional on a valid, visible, in-tree Control, and focus the primary action when a stage is entered.
 - Let results teardown and pause layout settle between distinct Retry, Pause, and Cancel taps in the smoke journey; retain an explicit assertion that the pause panel is actionable before testing CANCEL DEFENSE.
 - Keep combat orchestration, damage/health, waves, rewards, and run lifecycle under Gameplay Core without rule changes for this UI repair.
+
+## Validation outcome and remaining UI-owner action
+
+- Merge `2243a5f` has parents `c104a32` and actual UI tip `f99fb06`; repairs `66ad679` and `9e82c0b` preserve that integration.
+- CI `40099367032` passed static checks, 28/28 Godot tests, Web export/delivery, four Chromium boots, and the strict WORLD → Vanguard contract. Payload `cec0fdd` passed the 873-file content audit.
+- Final-payload reports under `exports/integration-audit/` verify Vanguard selection/build, Neon Explore → Preparing → Defense with firing/audio/mute, pause/settings/tab navigation, and six nonblank shell frames at 844×390 / 667×375.
+- Visual diagnostic frames are not human visual acceptance. Inspect the `SETTINGS → CONTROLS` arrow glyph in the pause hint and the bottom Access action spacing. If the glyph is unsupported or an action is clipped, UI/UX should correct the font fallback/copy or layout rather than Core changing gameplay behavior.
+- Reproduce the visual review with `node tools/web_qa.mjs --page '/web/index.html?qa_stage=GAMEPLAY' --viewport 844x390 --menus --settings --settings-tabs`, then repeat at 667×375 and on the intended touch device. Require readable supported glyphs, fully visible actions, and unchanged pause/resume/settings behavior.
 
 ## Acceptance criteria
 

@@ -42,6 +42,7 @@ Integration target: `arena/0b0dc2fd-cyber-strike`
 |---|---|---|
 | `game/project.godot` | Engine/version, startup, input, autoload configuration | Shared infrastructure. Do not change engine/rendering to hide integration defects. |
 | `front_end.tscn`, `FrontEnd`, `MenuStage` | Launch the real gameplay scene and report loading errors | UI owns navigation/presentation. Only one production flow may be authoritative. |
+| `index.html`, `ui/shell.js` | Provide the payload and preserve the real selection/loading contract | UI owns the web opening/hub. DEPLOY must enter engine WORLD, not bypass loadout/theatre selection or duplicate registries in JavaScript. |
 | `HeroDefinition`, `WeaponDefinition`, `WorldDefinition` | Stable ids and valid resource references | Character/World own content; UI reads definitions rather than maintaining another roster. |
 | `ProgressionService` | Persist and validate selected ids, unlocks, wallet, and profile | Shared Core contract. Front-end and gameplay instances reconcile through the same profile path. |
 | `main.tscn`, `main.gd` | Composition root, saved weapon application, run lifecycle, reward orchestration | Must preserve both world initialization order and explicit enemy definitions. |
