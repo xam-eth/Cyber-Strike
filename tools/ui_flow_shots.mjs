@@ -4,16 +4,15 @@
  *
  *   node tools/ui_flow_shots.mjs --tag r3
  *   node tools/ui_flow_shots.mjs --tag r3 --viewport 390x844
- *   node tools/ui_flow_shots.mjs --tag r3 --mission defense
+ *   node tools/ui_flow_shots.mjs --tag r3 --viewport 844x390
  *
  * What it does, in order, with real clicks on the real buttons:
  *
  *   opening  -> click Masuk
- *   hub      -> click Deploy
- *   deploy   -> click a mission card
- *   launch   -> wait for the engine's own progress, photograph it mid-load
+ *   hub      -> click Kontrol (the settings sheet), close it
+ *   launch   -> click Deploy, wait for the engine's own progress, photograph it
  *   world    -> wait for the canvas to be handed over, photograph the world
- *   gameplay -> press B (defense) or move/fire (explore) and photograph again
+ *   gameplay -> move and fire, photograph again
  *
  * Two things make this evidence rather than decoration: every step asserts the
  * screen it expected is the active one (so a broken transition fails the run),
@@ -43,7 +42,6 @@ const list = (name) => argv.reduce((acc, arg, i) => (arg === name ? [...acc, arg
 const tag = flag('--tag', 'flow');
 const outDir = path.resolve(ROOT, flag('--out', path.join('qa-evidence', 'ui', tag)));
 const port = Number(flag('--port', '8174'));
-const mission = flag('--mission', 'explore');
 const viewports = list('--viewport').length ? list('--viewport') : ['1280x720', '390x844'];
 const worldTimeout = Number(flag('--world-timeout', '180000'));
 
@@ -138,16 +136,18 @@ for (const viewport of viewports) {
   await settled(page);
   await shoot('02-hub', 'hub');
 
-  await page.click('#hub-deploy');
-  await page.waitForFunction(() => document.body.dataset.screen === 'deploy', { timeout: 10000 });
+  await page.click('#hub-controls');
+  await page.waitForFunction(() => document.body.dataset.screen === 'settings', { timeout: 10000 });
   await settled(page);
-  await shoot('03-deploy', 'deploy');
+  await shoot('03-settings', 'settings');
+  await page.click('#settings-close');
+  await page.waitForFunction(() => document.body.dataset.screen === 'hub', { timeout: 10000 });
 
-  await page.click(mission === 'defense' ? '#card-defense' : '#card-explore');
+  await page.click('#hub-deploy');
   await page.waitForFunction(() => document.body.dataset.screen === 'launch', { timeout: 10000 });
   // Mid-load, with real byte progress if the engine has reported any.
   await page
-    .waitForFunction(() => document.getElementById('launch-percent').textContent !== '—', { timeout: 60000 })
+    .waitForFunction(() => document.getElementById('launch-percent').textContent !== '—', { timeout: 90000 })
     .catch(() => {});
   await settled(page);
   await shoot('04-launch', 'launch');
@@ -157,19 +157,13 @@ for (const viewport of viewports) {
   await new Promise((resolve) => setTimeout(resolve, 2500));
   await shoot('05-world', null);
 
-  if (mission === 'defense') {
-    // The shell presses B once the world is live; give the countdown a moment.
-    await new Promise((resolve) => setTimeout(resolve, 4500));
-    await shoot('06-defense', null);
-  } else {
-    const centre = { x: Math.round(width / 2), y: Math.round(height / 2) };
-    await page.mouse.click(centre.x, centre.y);
-    await page.keyboard.down('KeyW');
-    await new Promise((resolve) => setTimeout(resolve, 1200));
-    await page.keyboard.up('KeyW');
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    await shoot('06-gameplay', null);
-  }
+  const centre = { x: Math.round(width / 2), y: Math.round(height / 2) };
+  await page.mouse.click(centre.x, centre.y);
+  await page.keyboard.down('KeyW');
+  await new Promise((resolve) => setTimeout(resolve, 1200));
+  await page.keyboard.up('KeyW');
+  await new Promise((resolve) => setTimeout(resolve, 800));
+  await shoot('06-gameplay', null);
 
   steps[steps.length - 1].consoleErrors = consoleErrors.slice(0, 12);
   steps[steps.length - 1].console = consoleLines.slice(-25);
@@ -182,7 +176,6 @@ fs.writeFileSync(
   JSON.stringify(
     {
       tag,
-      mission,
       viewports,
       entry: 'index.html',
       steps,

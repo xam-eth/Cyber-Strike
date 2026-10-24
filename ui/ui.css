@@ -1,7 +1,7 @@
 /* ==========================================================================
    AEGIS player shell
    --------------------------------------------------------------------------
-   One stylesheet for the web front end: the opening, the hub, mission cards,
+   One stylesheet for the web front end: the opening, the hub, cards,
    settings, and the hand-off to gameplay. Components are named for what they
    are in the game, not for where they sit, so the in-engine theme can adopt
    them one at a time without a second visual language appearing.
@@ -584,110 +584,79 @@ body[data-mode='playing'] #canvas {
    Cards
    ========================================================================== */
 
-.cards {
-  display: grid;
-  gap: var(--s4);
-  grid-template-columns: 1fr;
-  align-items: stretch;
-}
-
+/* The row card: an index, a title with one line of what is behind it, and a
+   verb. Used for everything the hub links to, so the list reads as a manifest
+   of the console rather than a stack of buttons. */
 .card {
-  --card-accent: var(--line-hi);
   position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--s3);
-  padding: var(--s4) var(--s4) var(--s3);
-  background: linear-gradient(180deg, rgba(17, 28, 38, 0.92), rgba(11, 19, 27, 0.86));
-  border: 1px solid var(--hair);
-  border-radius: var(--radius);
+  width: 100%;
+  padding: var(--s3) var(--s4) var(--s3) var(--s4);
   text-align: left;
   color: inherit;
-  font: inherit;
-  overflow: hidden;
+  background: linear-gradient(180deg, rgba(17, 28, 38, 0.82), rgba(11, 19, 27, 0.9));
+  border: 1px solid var(--hair);
+  border-left: 2px solid var(--line-hi);
+  border-radius: var(--radius);
   cursor: pointer;
   transition:
     border-color var(--motion-fast) var(--ease),
-    transform var(--motion-fast) var(--ease),
-    background var(--motion-fast) var(--ease);
-}
-
-/* The left rail: the card's state, readable at a glance and never colour-only
-   (the text row beside it says the same thing). */
-.card::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: var(--edge);
-  background: var(--card-accent);
-  opacity: 0.55;
-  transition: opacity var(--motion-fast) var(--ease);
+    background var(--motion-fast) var(--ease),
+    transform var(--motion-fast) var(--ease);
 }
 
 .card:hover,
 .card:focus-visible {
-  border-color: rgba(78, 106, 126, 0.7);
-  background: linear-gradient(180deg, rgba(22, 35, 46, 0.96), rgba(11, 19, 27, 0.92));
-}
-
-.card:hover::before,
-.card:focus-visible::before {
-  opacity: 1;
-}
-
-.card[data-mode='safe'] {
-  --card-accent: var(--info);
-}
-.card[data-mode='defense'] {
-  --card-accent: var(--accent);
-}
-.card[data-state='locked'] {
-  --card-accent: var(--line);
-  cursor: not-allowed;
-}
-.card[data-state='locked'] .card__title,
-.card[data-state='locked'] .card__desc {
-  color: var(--ink-3);
+  background: linear-gradient(180deg, rgba(22, 35, 46, 0.9), rgba(11, 19, 27, 0.94));
+  border-left-color: var(--accent);
 }
 
 .card__top {
   display: flex;
   align-items: center;
-  gap: var(--s2);
+  gap: var(--s3);
 }
 
 .card__index {
   font-family: var(--font-ui);
-  font-weight: 600;
   font-size: var(--text-micro);
   letter-spacing: var(--track-micro);
   color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
 .card__title {
   font-family: var(--font-display);
+  font-size: 1.5rem;
   font-weight: 600;
-  font-size: 1.32rem;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  line-height: 1.02;
+  color: var(--ink);
 }
 
 .card__desc {
-  color: var(--ink-2);
-  font-size: 0.84rem;
-  line-height: 1.5;
+  color: var(--ink-3);
+  font-size: 0.86rem;
+  line-height: 1.45;
 }
 
-.card__meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--s2) var(--s4);
-  padding-top: var(--s3);
-  border-top: 1px solid var(--hair);
-  margin-top: auto;
+.card__go {
+  margin-left: auto;
+  font-family: var(--font-ui);
+  font-size: var(--text-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--ink-3);
+  align-self: center;
 }
 
 .metric {
@@ -723,37 +692,24 @@ body[data-mode='playing'] #canvas {
 .card--row {
   flex-direction: row;
   align-items: center;
-  gap: var(--s4);
-  padding: var(--s3) var(--s4);
+  gap: var(--s3);
   min-height: var(--tap-lg);
+  padding: var(--s3) var(--s4);
+  border-left-width: 1px;
+  border-left-color: var(--hair);
 }
 
-.card--row::before {
-  width: 3px;
+.card--row:hover,
+.card--row:focus-visible {
+  border-left-color: var(--accent);
 }
 
-.card--row .card__body {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
+.card--row .card__top {
+  flex: 0 0 auto;
 }
 
 .card--row .card__title {
-  font-size: 1rem;
-}
-
-.card--row .card__desc {
-  font-size: 0.78rem;
-}
-
-.card--row .card__go {
-  margin-left: auto;
-  color: var(--ink-3);
-  font-size: var(--text-label);
-  letter-spacing: var(--track-label);
-  text-transform: uppercase;
-  white-space: nowrap;
+  font-size: 1.12rem;
 }
 
 /* ==========================================================================
@@ -833,6 +789,13 @@ body[data-mode='playing'] #canvas {
 }
 
 /* The product wordmark, used the way the engine uses it: the logo is the name. */
+.hub__brief {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  padding: var(--s3) var(--s4);
+}
+
 .hub__mark-wrap {
   margin: 0;
 }
@@ -1130,20 +1093,12 @@ body[data-mode='playing'] #canvas {
   }
 }
 
-/* Landscape with room: the hub becomes two columns and cards sit side by side.
+/* Landscape with room: the hub becomes two columns.
    720px is the honest threshold — a phone on its side is 844x390 and needs the
    two-column hub just as much as a laptop does. */
 @media (min-width: 720px) and (orientation: landscape) {
   .opening {
     grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.85fr);
-  }
-
-  .cards {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .cards--three {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .hub {

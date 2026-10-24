@@ -1,0 +1,89 @@
+{
+  "tag": "t2",
+  "viewports": [
+    "1280x720",
+    "844x390"
+  ],
+  "screens": [
+    {
+      "screen": "opening",
+      "viewport": "1280x720",
+      "file": "qa-evidence/ui/t2/opening-1280x720.png",
+      "blank": false,
+      "errors": [],
+      "width": 1280,
+      "height": 720,
+      "bytes": 251343,
+      "lumaMean": 16.96264492028845,
+      "lumaStdDev": 30.136407942175655,
+      "uniqueColors": 988
+    },
+    {
+      "screen": "hub",
+      "viewport": "1280x720",
+      "file": "qa-evidence/ui/t2/hub-1280x720.png",
+      "blank": false,
+      "errors": [],
+      "width": 1280,
+      "height": 720,
+      "bytes": 269247,
+      "lumaMean": 20.736494167005535,
+      "lumaStdDev": 26.342712916804196,
+      "uniqueColors": 4506
+    },
+    {
+      "screen": "settings",
+      "viewport": "1280x720",
+      "file": "qa-evidence/ui/t2/settings-1280x720.png",
+      "blank": false,
+      "errors": [],
+      "width": 1280,
+      "height": 720,
+      "bytes": 175110,
+      "lumaMean": 18.077303154912332,
+      "lumaStdDev": 18.165524102689705,
+      "uniqueColors": 604
+    },
+    {
+      "screen": "opening",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/t2/opening-844x390.png",
+      "blank": false,
+      "errors": [],
+      "width": 844,
+      "height": 390,
+      "bytes": 117430,
+      "lumaMean": 21.6361647326141,
+      "lumaStdDev": 36.35450403993138,
+      "uniqueColors": 917
+    },
+    {
+      "screen": "hub",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/t2/hub-844x390.png",
+      "blank": false,
+      "errors": [],
+      "width": 844,
+      "height": 390,
+      "bytes": 133063,
+      "lumaMean": 27.13495493016231,
+      "lumaStdDev": 35.77169120722268,
+      "uniqueColors": 3063
+    },
+    {
+      "screen": "settings",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/t2/settings-844x390.png",
+      "blank": false,
+      "errors": [],
+      "width": 844,
+      "height": 390,
+      "bytes": 68912,
+      "lumaMean": 20.25334441984576,
+      "lumaStdDev": 22.37382181973304,
+      "uniqueColors": 433
+    }
+  ],
+  "failures": 0,
+  "generatedAt": "2026-10-24T09:24:08.638Z"
+}

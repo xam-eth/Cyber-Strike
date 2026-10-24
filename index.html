@@ -109,12 +109,13 @@
                 </h1>
                 <p class="body">
                   Sektor 07, dunia Neon Frontier. Jalur menuju arena pusat bersih, menara reaktor
-                  menyala, dan tiga pos luar masih memancarkan sinyal. Pilih cara Anda masuk.
+                  menyala, dan tiga pos luar masih memancarkan sinyal. Teater ini sudah terbuka:
+                  satu tombol membawa Anda masuk.
                 </p>
                 <div class="hub__actions">
                   <button class="btn btn--primary" id="hub-deploy" type="button">
                     <span>Deploy</span>
-                    <span class="btn__meta">2 misi</span>
+                    <span class="btn__meta" id="hub-deploy-meta">siap</span>
                   </button>
                   <button class="btn btn--ghost" id="hub-controls" type="button">Kontrol</button>
                 </div>
@@ -140,16 +141,17 @@
               </div>
 
               <div class="hub__side">
-                <button class="card card--row" id="hub-card-mi" type="button">
-                  <span class="card__top"><span class="card__index">01</span></span>
-                  <span class="card__body">
-                    <span class="card__title">Misi</span>
-                    <span class="card__desc">Jelajah aman atau pertahankan inti.</span>
-                  </span>
-                  <span class="card__go">Buka ›</span>
-                </button>
+                <div class="panel panel--bracketed hub__brief">
+                  <p class="eyebrow">Misi hari ini</p>
+                  <ul class="linklist">
+                    <li data-shown="true" data-tone="ok"><i class="tick"></i><span>Teater</span><b>Neon Frontier</b></li>
+                    <li data-shown="true"><i class="tick"></i><span>Mulai</span><b>Jelajah bebas</b></li>
+                    <li data-shown="true"><i class="tick"></i><span>Gelombang</span><b>Tekan B</b></li>
+                    <li data-shown="true"><i class="tick"></i><span>Keluar</span><b>Esc</b></li>
+                  </ul>
+                </div>
                 <button class="card card--row" id="hub-card-controls" type="button">
-                  <span class="card__top"><span class="card__index">02</span></span>
+                  <span class="card__top"><span class="card__index">01</span></span>
                   <span class="card__body">
                     <span class="card__title">Kontrol</span>
                     <span class="card__desc">Keyboard, tetikus, dan sentuh.</span>
@@ -157,71 +159,13 @@
                   <span class="card__go">Lihat ›</span>
                 </button>
                 <button class="card card--row" id="hub-card-display" type="button">
-                  <span class="card__top"><span class="card__index">03</span></span>
+                  <span class="card__top"><span class="card__index">02</span></span>
                   <span class="card__body">
                     <span class="card__title">Tampilan</span>
                     <span class="card__desc">HUD sentuh, gerak, layar penuh.</span>
                   </span>
                   <span class="card__go">Atur ›</span>
                 </button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- ========================================================= DEPLOY -->
-        <section class="screen" id="screen-deploy" aria-labelledby="deploy-title">
-          <div class="screen__inner">
-            <div class="screen__head">
-              <p class="eyebrow">Deploy · pilih cara masuk</p>
-              <h1 class="title" id="deploy-title">Dua misi, satu sektor</h1>
-              <p class="body">
-                Keduanya memakai dunia yang sama. Bedanya hanya pada apa yang mengejar Anda:
-                tidak ada, atau gelombang yang tidak berhenti.
-              </p>
-            </div>
-
-            <div class="cards">
-              <button class="card" type="button" data-mode="safe" data-start="explore" id="card-explore">
-                <span class="card__top">
-                  <span class="card__index">MISI 01</span>
-                  <span class="chip chip--info">Rekomendasi</span>
-                </span>
-                <span class="card__title">Jelajah aman</span>
-                <span class="card__desc">
-                  Perhatikan arena, hafalkan jalur, uji senjata pada sasaran diam. Tidak ada
-                  gelombang otomatis sampai Anda memutuskannya sendiri.
-                </span>
-                <span class="card__meta">
-                  <span class="metric"><span class="metric__key">Ancaman</span><span class="metric__val" data-tone="ok">Tidak ada</span></span>
-                  <span class="metric"><span class="metric__key">Mulai</span><span class="metric__val">Langsung</span></span>
-                  <span class="metric"><span class="metric__key">Keluar</span><span class="metric__val">Pause</span></span>
-                </span>
-              </button>
-
-              <button class="card" type="button" data-mode="defense" data-start="defense" id="card-defense">
-                <span class="card__top">
-                  <span class="card__index">MISI 02</span>
-                  <span class="chip chip--accent">Gelombang</span>
-                </span>
-                <span class="card__title">Pertahanan inti</span>
-                <span class="card__desc">
-                  Gelombang runner dan shooter masuk berurutan begitu Anda memulainya di
-                  dalam dunia (tombol B). Skor, BP, dan waktu dicatat di layar hasil.
-                </span>
-                <span class="card__meta">
-                  <span class="metric"><span class="metric__key">Ancaman</span><span class="metric__val" data-tone="accent">Beruntun</span></span>
-                  <span class="metric"><span class="metric__key">Mulai</span><span class="metric__val">Tekan B</span></span>
-                  <span class="metric"><span class="metric__key">Keluar</span><span class="metric__val">Hasil</span></span>
-                </span>
-              </button>
-            </div>
-
-            <div class="screen__head">
-              <div class="rule"></div>
-              <div class="hub__actions">
-                <button class="btn btn--ghost" id="deploy-back" type="button">‹ Kembali</button>
-                <span class="opening__hint">Tekan Enter untuk misi yang disorot · Esc untuk kembali</span>
               </div>
             </div>
           </div>
@@ -293,7 +237,7 @@
         <section class="screen" id="screen-launch" aria-labelledby="launch-title">
           <div class="screen__inner">
             <div class="opening">
-              <p class="eyebrow" id="launch-eyebrow">Deploy · jelajah aman</p>
+              <p class="eyebrow" id="launch-eyebrow">Deploy · sektor 07</p>
               <h1 class="title" id="launch-title">Menyiapkan dunia</h1>
               <div class="progress" id="launch-progress" data-indeterminate="true" role="progressbar" aria-valuemin="0" aria-valuemax="100">
                 <span class="progress__fill" id="launch-fill"></span>

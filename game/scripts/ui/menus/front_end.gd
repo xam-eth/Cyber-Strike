@@ -83,7 +83,9 @@ func _ready() -> void:
 
 
 ## QA hook, web only: `?qa_stage=DASHBOARD` lands straight on a stage so a
-## build can be photographed without playing through to it. Same mechanism as
+## build can be photographed without playing through to it, and
+## `?qa_stage=GAMEPLAY` enters the world with the profile's current loadout --
+## the hand-off the player-facing web shell uses. Same mechanism as
 ## the existing `?qa_camera` / `?qa_touch` flags in camera_rig.gd and
 ## hud_encounter_ui.gd, and equally inert outside a browser.
 func _enter_qa_stage() -> void:
@@ -94,6 +96,12 @@ func _enter_qa_stage() -> void:
 		"new URLSearchParams(location.search).get('qa_stage') || ''"
 	)
 	var stage_name := StringName(str(requested))
+	# GAMEPLAY is not a stage: it is the scene the PRELOAD stage changes to. The
+	# player-facing shell owns HOME, so `?qa_stage=GAMEPLAY` goes straight into
+	# the world rather than showing a second front end right after the first.
+	if stage_name == &"GAMEPLAY":
+		call_deferred("start_gameplay")
+		return
 	if stage_name == &"" or not STAGE_SCENES.has(stage_name):
 		return
 	call_deferred("_enter", stage_name, _qa_payload(stage_name))

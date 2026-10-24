@@ -5,7 +5,8 @@
  * splash and a debug chip bar. A player's first seconds are the opening of the
  * game, not the start of a download, so the front end of the *player journey*
  * lives here, in HTML, with the engine booting behind it only once the player
- * has chosen a mission.
+ * has pressed Deploy. HOME is this shell, once: the engine's own board is not
+ * shown after it, which is why the hand-off goes straight into the world.
  *
  * Three rules it keeps:
  *   1. Nothing on screen is invented. Progress is the engine's byte count, the
@@ -18,7 +19,7 @@
  */
 'use strict';
 
-const SCREENS = ['opening', 'hub', 'deploy', 'settings', 'launch'];
+const SCREENS = ['opening', 'hub', 'settings', 'launch'];
 const params = new URLSearchParams(location.search);
 
 const el = (id) => document.getElementById(id);
@@ -33,7 +34,6 @@ const prefs = Object.assign(
 let current = 'opening';
 let engineReady = false;
 let engineStarted = false;
-let mission = params.get('deploy') || '';
 let hold = params.has('ui_hold');
 
 function readPrefs() {
@@ -72,8 +72,7 @@ function show(name, options = {}) {
 }
 
 function back() {
-  if (current === 'deploy') show('hub');
-  else if (current === 'settings') show('hub');
+  if (current === 'settings') show('hub');
   else if (current === 'hub') show('opening', { focus: false });
 }
 
@@ -104,7 +103,6 @@ function paintReadouts() {
   el('about-storage').textContent = 'lokal';
   el('strip-engine').dataset.state = engineReady ? 'ok' : 'warn';
   el('strip-engine-label').textContent = engineReady ? 'siap' : 'siaga';
-  if (mission) el('hub-session').textContent = 'berjalan';
 }
 
 /* -------------------------------------------------------------- opening */
@@ -148,7 +146,7 @@ async function runOpeningChecks() {
 
   // Line 2: the payload. A HEAD for the pack file is the cheapest honest proof
   // that this checkout can actually run, and it fails loudly on a fresh clone
-  // before the player commits to a mission.
+  // before the player commits to a deployment.
   try {
     const response = await fetch('./web/index.pck', { method: 'HEAD', cache: 'no-store' });
     markCheck('payload', response.ok);
@@ -196,27 +194,27 @@ function applyMotionPref() {
   document.documentElement.dataset.motion = prefs.motion ? 'reduced' : 'full';
 }
 
-function deploy(kind) {
-  mission = kind;
-  el('launch-eyebrow').textContent = kind === 'defense' ? 'Deploy · pertahanan inti' : 'Deploy · jelajah aman';
-  el('launch-title').textContent = kind === 'defense' ? 'Menyiapkan pertahanan' : 'Menyiapkan dunia';
+/*
+ * Deploy is one action, not a mode switch: the engine's own Explore is the
+ * default state of the theatre and starting waves stays a decision the player
+ * makes inside it (B). The shell therefore launches the world and nothing else —
+ * it never starts an encounter on the player's behalf.
+ */
+function deploy() {
+  el('launch-title').textContent = 'Menyiapkan dunia';
   show('launch', { focus: false });
   el('canvas').dataset.hidden = 'true';
 
-  // The URL carries the mission into the engine's own hook, so a reload resumes
-  // the same hand-off instead of dropping the player back at the opening.
+  // The URL carries the hand-off, so a reload resumes it instead of dropping the
+  // player back at the opening.
   const url = new URL(location.href);
-  url.searchParams.set('deploy', kind);
-  // DASHBOARD, not BOOT: the shell has already opened the game, so the engine
-  // must not replay its own boot, chapter card or intro. The board is the first
-  // engine screen the player sees, and it is where the loadout lives.
-  url.searchParams.set('qa_stage', 'DASHBOARD');
+  url.searchParams.set('qa_stage', 'GAMEPLAY');
   history.replaceState(null, '', url);
 
-  bootEngine(kind);
+  bootEngine();
 }
 
-async function bootEngine(kind) {
+async function bootEngine() {
   if (engineStarted) return;
   engineStarted = true;
 
@@ -267,10 +265,9 @@ async function bootEngine(kind) {
       progress.dataset.indeterminate = 'false';
       fill.style.width = '100%';
       percent.textContent = '100%';
-      status.textContent = kind === 'defense' ? 'menyiapkan pertahanan' : 'dunia siap';
-      hint.textContent =
-        kind === 'defense' ? 'Di dalam dunia, tekan B untuk memulai gelombang pertama.' : 'Masuk ke dunia…';
-      revealCanvas(kind);
+      status.textContent = 'dunia siap';
+      hint.textContent = 'Masuk ke dunia…';
+      revealCanvas();
     },
     (error) => launchFailed('Dunia gagal dimuat', String(error)),
   );
@@ -286,7 +283,7 @@ function launchFailed(title, detail) {
   el('strip-engine-label').textContent = 'gagal';
 }
 
-function revealCanvas(kind) {
+function revealCanvas() {
   if (hold) return;
   // A short beat so the player reads "dunia siap" and the fade does not look like
   // a dropped frame. Then the canvas takes the screen and the shell goes away.
@@ -306,16 +303,11 @@ function revealCanvas(kind) {
 /* ---------------------------------------------------------------- wiring */
 
 el('opening-enter').addEventListener('click', () => show('hub'));
-el('hub-deploy').addEventListener('click', () => show('deploy'));
-el('hub-card-mi').addEventListener('click', () => show('deploy'));
+el('hub-deploy').addEventListener('click', () => deploy());
 el('hub-controls').addEventListener('click', () => show('settings'));
 el('hub-card-controls').addEventListener('click', () => show('settings'));
 el('hub-card-display').addEventListener('click', () => show('settings'));
-el('deploy-back').addEventListener('click', () => show('hub'));
 el('settings-close').addEventListener('click', () => show('hub'));
-
-el('card-explore').addEventListener('click', () => deploy('explore'));
-el('card-defense').addEventListener('click', () => deploy('defense'));
 
 setSwitch('opt-touch', prefs.touch, (value) => {
   prefs.touch = value;
@@ -368,22 +360,14 @@ runOpeningChecks();
 // waits for the real engine before revealing anything.
 const qaStage = params.get('qa_stage');
 if (qaStage) {
-  mission = params.get('deploy') || 'explore';
-  el('launch-eyebrow').textContent = 'Deploy · ' + (mission === 'defense' ? 'pertahanan inti' : 'jelajah aman');
   show('launch', { focus: false });
-  bootEngine(mission);
+  bootEngine();
 }
 
 const forced = params.get('ui');
 if (forced && SCREENS.includes(forced)) {
-  if (forced === 'launch' && mission) {
-    deploy(mission);
-  } else {
-    show(forced, { focus: false });
-  }
-} else if (params.get('deploy') && !qaStage) {
-  mission = params.get('deploy');
-  deploy(mission);
+  if (forced === 'launch') deploy();
+  else show(forced, { focus: false });
 } else if (!qaStage) {
   show('opening', { focus: false });
 }
