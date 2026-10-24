@@ -20,6 +20,8 @@ This is **not** a claim of final visual acceptance, full human gameplay completi
 | World merge | `b24c90916483ea60eb844651ae5ca1507dde2392` | Merge parents `51f1dac` and `71e40ba3`; preserved both sides' compatible work |
 | Selection/export reconciliation | `c2e9996` | Saved-world assertion, authoring-input exclusion, payload regression checks |
 | Published payload used for deep browser QA | `26debc5` | Generated Web PCK/html from `c2e9996`; 95,602,192-byte PCK |
+| Final validated handoff source | `ec8e624dd756fb3a3a6f50a8bfbdd65aff54388b` | Documentation, QA harness, and comment reconciliation; final CI `40088522484` passed |
+| Final published payload | `c26d4e508dd55266ad9fec8d0e5707e494312e2a` | Generated from `ec8e624`; 95,602,304-byte PCK; payload audit passed |
 
 The World merge used a real merge commit. No source branch was deleted, no history was rewritten or force-pushed, no uncommitted work was discarded, and nothing was merged to `main`.
 
@@ -64,7 +66,7 @@ The UI candidate `arena/c8558858-cyber-strike` / `e5ba023c` adds an uninstantiat
 
 ### Static and Godot CI
 
-CI run: [40086792388](https://github.com/xam-eth/Cyber-Strike/actions/runs/40086792388) at source commit `c2e9996`.
+Final CI run: [40088522484](https://github.com/xam-eth/Cyber-Strike/actions/runs/40088522484) at source commit `ec8e624dd756fb3a3a6f50a8bfbdd65aff54388b`. The same gate also passed as run `40086792388` at `c2e9996`.
 
 | Check | Evidence |
 |---|---|
@@ -80,10 +82,11 @@ Local `./scripts/dev_check.sh` also passed all available steps for 75 GDScript f
 
 ### Web export and publication
 
-CI Web job `120851271325` passed export, static delivery, artifact upload, Chromium QA, and payload commit/push.
+Final CI Web job `120856253130` passed export, static delivery, artifact upload, Chromium QA, and payload commit/push.
 
 - Previous merged PCK: **150,015,960 bytes**; payload publication failed after generation.
-- Repaired PCK: **95,602,192 bytes**; payload publication **passed**.
+- First repaired PCK (`26debc5`): **95,602,192 bytes**; payload publication **passed**.
+- Final PCK (`c26d4e5`): **95,602,304 bytes**; final payload publication **passed**.
 - Static delivery returned HTTP 200 for html/js/wasm/pck.
 - CI Chromium boots passed `/` and `/web/index.html` at **1280×720** and **390×844**.
 - Local `tools/check_payload.py web/index.pck`: **PASS**, 873 packed files; no authoring-source `assets/world/real/` payload entries.
@@ -93,7 +96,7 @@ GitHub Pages deployment was skipped by its existing branch condition. This is **
 
 ### Deep browser QA against committed payload `26debc5`
 
-All commands used the actual exported game in headless Chromium/WebGL, not a scene mock. Reports and frames are under ignored `exports/integration-audit/`.
+All commands used the actual exported game in headless Chromium/WebGL, not a scene mock. Reports and frames are under ignored `exports/integration-audit/`. These deep interaction passes predate final payload `c26d4e5`; the intervening source changes are documentation, external QA tooling, and one GDScript comment. Final CI rerun passed all 29 engine tests, export, and four browser boots, but the deeper encounter/tour scripts were not rerun on `c26d4e5`.
 
 | Pass | Result and limits |
 |---|---|
