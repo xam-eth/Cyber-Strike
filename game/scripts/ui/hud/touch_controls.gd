@@ -37,6 +37,10 @@ const MIN_PHYSICAL_FONT_PX: float = AegisTokens.MIN_PHYSICAL_FONT_PX
 const COMPACT_LINES: int = 4
 const DESKTOP_HINT := "WASD MOVE · DRAG/RMB LOOK · LMB FIRE · " + "B DEFENSE · U ARMORY · ESC PAUSE"
 const DESKTOP_HINT_SHORT := "WASD MOVE · B DEFENSE · U ARMORY · ESC PAUSE"
+## A phone in portrait has ~366 px for this line at 390 px wide, and the short
+## hint above still ends cut off mid-word ("ESC PAUS"). This is the same set of
+## keys with the ones a narrow screen cannot afford left out.
+const DESKTOP_HINT_PORTRAIT := "WASD · B DEFENSE · ESC PAUSE"
 const HELP_TEXT := (
 	"WASD MOVE · DRAG/RMB LOOK · LMB FIRE / HOLD FIRE\n"
 	+ "B DEFENSE · U ARMORY · G RELOAD · E/Q SWAP\n"
@@ -1010,7 +1014,11 @@ func _layout_controls(
 	_narrow = physical_width < NARROW_WIDTH
 	_portrait = physical_height > physical_width
 	if is_instance_valid(_desktop_hint):
-		_desktop_hint.text = DESKTOP_HINT_SHORT if _narrow else DESKTOP_HINT
+		_desktop_hint.text = (
+			DESKTOP_HINT_PORTRAIT
+			if _portrait and _narrow
+			else (DESKTOP_HINT_SHORT if _narrow else DESKTOP_HINT)
+		)
 	if is_instance_valid(_help_label):
 		_help_label.text = (
 			(MOBILE_HELP_TEXT if _portrait else MOBILE_HELP_LANDSCAPE)
