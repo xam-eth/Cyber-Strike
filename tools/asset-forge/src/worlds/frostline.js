@@ -49,8 +49,12 @@ export default {
   layout: [
     /* ---------------------------------------------------- the uplink core */
     { role: 'comms_array', name: 'PrimaryUplink', pos: [0, 0, 0], yaw: 12, district: 'core' },
-    { role: 'relay_mast', name: 'RelayMast_North', pos: [-13, 0, -12], yaw: 0, district: 'core' },
-    { role: 'relay_mast', name: 'RelayMast_South', pos: [13, 0, -12], yaw: 0, district: 'core' },
+    // The masts frame the uplink from outside the spawn ring. At ±13 they stood
+    // within two metres of the north-west and north-east spawn markers, which
+    // left the wave director with no valid flank to send the second tutorial
+    // Runner down.
+    { role: 'relay_mast', name: 'RelayMast_North', pos: [-20, 0, -17], yaw: 0, district: 'core' },
+    { role: 'relay_mast', name: 'RelayMast_South', pos: [20, 0, -17], yaw: 0, district: 'core' },
     { role: 'relay_mast', name: 'RelayMast_SouthFront', pos: [0, 0, 13], yaw: 0, district: 'core' },
     { role: 'cover_module', name: 'CoverWest', pos: [-8, 0, 3], yaw: -12, district: 'core' },
     { role: 'cover_module', name: 'CoverEast', pos: [8, 0, 4], yaw: 78, district: 'core' },
