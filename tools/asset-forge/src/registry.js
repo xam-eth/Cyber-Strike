@@ -17,26 +17,6 @@ import * as alien_flora from './world/alien_flora.js';
 import * as rock_cluster from './world/rock_cluster.js';
 import * as enemy_spawn_gate from './world/enemy_spawn_gate.js';
 import * as cover_module from './world/cover_module.js';
-import * as exo_operative from './heroes/exo_operative.js';
-import * as exo_combat_tech from './heroes/exo_combat_tech.js';
-import * as exo_void_runner from './heroes/exo_void_runner.js';
-import * as exo_neon_phantom from './heroes/exo_neon_phantom.js';
-import * as exo_rogue_engineer from './heroes/exo_rogue_engineer.js';
-import * as exo_alien_hunter from './heroes/exo_alien_hunter.js';
-import * as pulse_rifle from './weapons/pulse_rifle.js';
-import * as nova_launcher from './weapons/nova_launcher.js';
-import * as arc_shooter from './weapons/arc_shooter.js';
-import * as scatter_blaster from './weapons/scatter_blaster.js';
-import * as rail_cannon from './weapons/rail_cannon.js';
-import * as gravity_gun from './weapons/gravity_gun.js';
-import * as arc_shooter_void_edition from './weapons/arc_shooter_void_edition.js';
-import * as runner from './enemies/runner.js';
-import * as shooter from './enemies/shooter.js';
-import * as training_drone from './enemies/training_drone.js';
-import * as pulse_bolt from './vfx/pulse_bolt.js';
-import * as nova_shockwave from './vfx/nova_shockwave.js';
-import * as arc_chain from './vfx/arc_chain.js';
-import * as impact_burst from './vfx/impact_burst.js';
 
 export const registry = {
   "reactor_core": { name: "Reactor Core", category: "world", load: () => Promise.resolve({ build: reactor_core.build, meta: reactor_core.metaById?.["reactor_core"] ?? reactor_core.meta }) },
@@ -55,26 +35,6 @@ export const registry = {
   "rock_cluster": { name: "Rock Cluster", category: "world", load: () => Promise.resolve({ build: rock_cluster.build, meta: rock_cluster.metaById?.["rock_cluster"] ?? rock_cluster.meta }) },
   "enemy_spawn_gate": { name: "Enemy Spawn Gate", category: "world", load: () => Promise.resolve({ build: enemy_spawn_gate.build, meta: enemy_spawn_gate.metaById?.["enemy_spawn_gate"] ?? enemy_spawn_gate.meta }) },
   "cover_module": { name: "Cover Module", category: "world", load: () => Promise.resolve({ build: cover_module.build, meta: cover_module.metaById?.["cover_module"] ?? cover_module.meta }) },
-  "exo_operative": { name: "Exo Operative (default)", category: "hero", load: () => Promise.resolve({ build: exo_operative.build, meta: exo_operative.metaById?.["exo_operative"] ?? exo_operative.meta }) },
-  "exo_combat_tech": { name: "Exo Operative — Combat Tech", category: "hero", load: () => Promise.resolve({ build: exo_combat_tech.build, meta: exo_combat_tech.metaById?.["exo_combat_tech"] ?? exo_combat_tech.meta }) },
-  "exo_void_runner": { name: "Exo Operative — Void Runner", category: "hero", load: () => Promise.resolve({ build: exo_void_runner.build, meta: exo_void_runner.metaById?.["exo_void_runner"] ?? exo_void_runner.meta }) },
-  "exo_neon_phantom": { name: "Exo Operative — Neon Phantom", category: "hero", load: () => Promise.resolve({ build: exo_neon_phantom.build, meta: exo_neon_phantom.metaById?.["exo_neon_phantom"] ?? exo_neon_phantom.meta }) },
-  "exo_rogue_engineer": { name: "Exo Operative — Rogue Engineer", category: "hero", load: () => Promise.resolve({ build: exo_rogue_engineer.build, meta: exo_rogue_engineer.metaById?.["exo_rogue_engineer"] ?? exo_rogue_engineer.meta }) },
-  "exo_alien_hunter": { name: "Exo Operative — Alien Hunter", category: "hero", load: () => Promise.resolve({ build: exo_alien_hunter.build, meta: exo_alien_hunter.metaById?.["exo_alien_hunter"] ?? exo_alien_hunter.meta }) },
-  "pulse_rifle": { name: "Pulse Rifle", category: "weapon", load: () => Promise.resolve({ build: pulse_rifle.build, meta: pulse_rifle.metaById?.["pulse_rifle"] ?? pulse_rifle.meta }) },
-  "nova_launcher": { name: "Nova Launcher", category: "weapon", load: () => Promise.resolve({ build: nova_launcher.build, meta: nova_launcher.metaById?.["nova_launcher"] ?? nova_launcher.meta }) },
-  "arc_shooter": { name: "Arc Shooter", category: "weapon", load: () => Promise.resolve({ build: arc_shooter.build, meta: arc_shooter.metaById?.["arc_shooter"] ?? arc_shooter.meta }) },
-  "scatter_blaster": { name: "Scatter Blaster", category: "weapon", load: () => Promise.resolve({ build: scatter_blaster.build, meta: scatter_blaster.metaById?.["scatter_blaster"] ?? scatter_blaster.meta }) },
-  "rail_cannon": { name: "Rail Cannon", category: "weapon", load: () => Promise.resolve({ build: rail_cannon.build, meta: rail_cannon.metaById?.["rail_cannon"] ?? rail_cannon.meta }) },
-  "gravity_gun": { name: "Gravity Gun", category: "weapon", load: () => Promise.resolve({ build: gravity_gun.build, meta: gravity_gun.metaById?.["gravity_gun"] ?? gravity_gun.meta }) },
-  "arc_shooter_void_edition": { name: "Arc Shooter — Void Edition", category: "weapon", load: () => Promise.resolve({ build: arc_shooter_void_edition.build, meta: arc_shooter_void_edition.metaById?.["arc_shooter_void_edition"] ?? arc_shooter_void_edition.meta }) },
-  "runner": { name: "Runner", category: "enemy", load: () => Promise.resolve({ build: runner.build, meta: runner.metaById?.["runner"] ?? runner.meta }) },
-  "shooter": { name: "Shooter", category: "enemy", load: () => Promise.resolve({ build: shooter.build, meta: shooter.metaById?.["shooter"] ?? shooter.meta }) },
-  "training_drone": { name: "Training Drone", category: "enemy", load: () => Promise.resolve({ build: training_drone.build, meta: training_drone.metaById?.["training_drone"] ?? training_drone.meta }) },
-  "pulse_bolt": { name: "Pulse Bolt", category: "vfx", load: () => Promise.resolve({ build: pulse_bolt.build, meta: pulse_bolt.metaById?.["pulse_bolt"] ?? pulse_bolt.meta }) },
-  "nova_shockwave": { name: "Nova Shockwave", category: "vfx", load: () => Promise.resolve({ build: nova_shockwave.build, meta: nova_shockwave.metaById?.["nova_shockwave"] ?? nova_shockwave.meta }) },
-  "arc_chain": { name: "Arc Chain", category: "vfx", load: () => Promise.resolve({ build: arc_chain.build, meta: arc_chain.metaById?.["arc_chain"] ?? arc_chain.meta }) },
-  "impact_burst": { name: "Impact Burst", category: "vfx", load: () => Promise.resolve({ build: impact_burst.build, meta: impact_burst.metaById?.["impact_burst"] ?? impact_burst.meta }) },
 };
 
 export const catalogOrder = [
@@ -93,27 +53,7 @@ export const catalogOrder = [
   "alien_flora",
   "rock_cluster",
   "enemy_spawn_gate",
-  "cover_module",
-  "exo_operative",
-  "exo_combat_tech",
-  "exo_void_runner",
-  "exo_neon_phantom",
-  "exo_rogue_engineer",
-  "exo_alien_hunter",
-  "pulse_rifle",
-  "nova_launcher",
-  "arc_shooter",
-  "scatter_blaster",
-  "rail_cannon",
-  "gravity_gun",
-  "arc_shooter_void_edition",
-  "runner",
-  "shooter",
-  "training_drone",
-  "pulse_bolt",
-  "nova_shockwave",
-  "arc_chain",
-  "impact_burst"
+  "cover_module"
 ];
 
 export const missingModels = [];

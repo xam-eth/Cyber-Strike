@@ -2,6 +2,7 @@
 extends Node3D
 
 const ScifiFrontierDresser = preload("res://scripts/worlds/scifi_frontier_dresser.gd")
+const ComponentMotion = preload("res://scripts/worlds/neon_frontier_motion.gd")
 const ScifiBayBuilder = preload("res://scripts/worlds/scifi_bay_builder.gd")
 const REACTOR_SCENE: PackedScene = preload("res://scenes/worlds/components/reactor_core.tscn")
 const COMMAND_SCENE: PackedScene = preload("res://scenes/worlds/components/command_center.tscn")
@@ -24,6 +25,10 @@ const SPAWN_GATE_SCENE: PackedScene = preload(
 	"res://scenes/worlds/components/enemy_spawn_gate.tscn"
 )
 const COVER_SCENE: PackedScene = preload("res://scenes/worlds/components/cover_module.tscn")
+
+## Component motion (halos spinning, dishes scanning, beacons pulsing) is a
+## game-time effect; see `neon_frontier_motion.gd` for the per-asset rule table.
+@export var animate_components: bool = true
 
 const WORLD_WIDTH: float = 192.0
 const WORLD_DEPTH: float = 180.0
@@ -383,6 +388,13 @@ func _place_component(
 	component.scale = component_scale
 	component.set("variant_seed", seed)
 	add_child(component)
+	if animate_components:
+		# The motion node reads the same `asset_kind` the component was built
+		# from, so adding a new component needs no change here.
+		var motion := ComponentMotion.new()
+		motion.name = "ComponentMotion"
+		motion.asset_kind = str(component.get("asset_kind"))
+		component.add_child(motion)
 	return component
 
 

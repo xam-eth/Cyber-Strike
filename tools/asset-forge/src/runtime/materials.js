@@ -10,6 +10,7 @@
  */
 import * as THREE from 'three';
 import { PALETTE } from './palette.js';
+import { applyPbr } from './textures.js';
 
 const cache = new Map();
 
@@ -21,12 +22,12 @@ function key(parts) {
 export function metal(token = 'line', { roughness = 0.55, metalness = 0.55 } = {}) {
   const k = key(['metal', token, roughness, metalness]);
   if (!cache.has(k)) {
-    cache.set(k, new THREE.MeshStandardMaterial({
+    cache.set(k, applyPbr(new THREE.MeshStandardMaterial({
       color: new THREE.Color(PALETTE[token]),
       roughness,
       metalness,
       flatShading: false,
-    }));
+    })));
   }
   return cache.get(k);
 }
@@ -35,11 +36,11 @@ export function metal(token = 'line', { roughness = 0.55, metalness = 0.55 } = {
 export function paint(token = 'ink2', { roughness = 0.72, metalness = 0.16 } = {}) {
   const k = key(['paint', token, roughness, metalness]);
   if (!cache.has(k)) {
-    cache.set(k, new THREE.MeshStandardMaterial({
+    cache.set(k, applyPbr(new THREE.MeshStandardMaterial({
       color: new THREE.Color(PALETTE[token]),
       roughness,
       metalness,
-    }));
+    })));
   }
   return cache.get(k);
 }
@@ -48,13 +49,13 @@ export function paint(token = 'ink2', { roughness = 0.72, metalness = 0.16 } = {
 export function glow(token = 'info', intensity = 1.6, { base = 'panel' } = {}) {
   const k = key(['glow', token, intensity, base]);
   if (!cache.has(k)) {
-    cache.set(k, new THREE.MeshStandardMaterial({
+    cache.set(k, applyPbr(new THREE.MeshStandardMaterial({
       color: new THREE.Color(PALETTE[base]),
       emissive: new THREE.Color(PALETTE[token]),
       emissiveIntensity: intensity,
       roughness: 0.35,
       metalness: 0.1,
-    }));
+    }), { emissiveMap: true }));
   }
   return cache.get(k);
 }
