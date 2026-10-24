@@ -23,6 +23,13 @@ extends Node3D
 
 const WORLD_SCENE: PackedScene = preload("res://assets/forge/world/world.glb")
 
+## Collision for the real props. The GLB is a visual scene: it has no physics, so
+## the player would walk through a hangar. One box per placed role, taken from the
+## bounds of that role's own meshes — no mesh is created, and the collider is
+## invisible. Props the player must be able to move through (the reactor housing,
+## the wave gates, the boss gate) are skipped on purpose.
+const COLLIDER_SKIP := ["Reactor", "WaveEntry", "DockingGate", "Perimeter", "Gate"]
+
 const WORLD_WIDTH: float = 192.0
 const WORLD_DEPTH: float = 180.0
 const WORLD_CENTER_Z: float = -10.0
@@ -47,6 +54,7 @@ func _ready() -> void:
 	_built = true
 	_instance_real_world()
 	_add_collision_floor()
+	_add_prop_colliders()
 	_build_lighting_and_atmosphere()
 	_add_wayfinders()
 
@@ -137,6 +145,58 @@ func _add_collision_floor() -> void:
 		wall.shape = wall_shape
 		wall.position = side["pos"]
 		walls.add_child(wall)
+
+
+func _add_prop_colliders() -> void:
+	var body := StaticBody3D.new()
+	body.name = "FrontierPropCollision"
+	body.collision_layer = 1
+	body.collision_mask = 0
+	add_child(body)
+	var made := 0
+	for district in _world.find_children("District_*", "Node3D", true, false):
+		if str(district.name).ends_with("landmark"):
+			continue
+		for role in district.get_children():
+			var role_name := str(role.name)
+			var skip := false
+			for needle in COLLIDER_SKIP:
+				if role_name.contains(needle):
+					skip = true
+					break
+			if skip or not role is Node3D:
+				continue
+			var box := _role_bounds(role as Node3D)
+			if box.size.y < 1.2 or box.size.x < 0.6:
+				continue
+			var shape := BoxShape3D.new()
+			shape.size = Vector3(
+				maxf(box.size.x * 0.85, 0.4),
+				maxf(box.size.y * 0.92, 0.4),
+				maxf(box.size.z * 0.85, 0.4)
+			)
+			var collider := CollisionShape3D.new()
+			collider.name = "Cover_%s" % role_name
+			collider.shape = shape
+			collider.position = box.get_center()
+			body.add_child(collider)
+			made += 1
+	if made > 0:
+		print("NEON FRONTIER: %d prop colliders derived from the real world" % made)
+
+
+## World-space bounds of a placed role, from the meshes it is made of.
+func _role_bounds(role: Node3D) -> AABB:
+	var merged := AABB()
+	var has_box := false
+	for candidate in role.find_children("*", "MeshInstance3D", true, false):
+		var mesh_instance := candidate as MeshInstance3D
+		if mesh_instance.mesh == null:
+			continue
+		var box := mesh_instance.global_transform * mesh_instance.get_aabb()
+		merged = box if not has_box else merged.merge(box)
+		has_box = true
+	return merged
 
 
 ## Lighting rig. Light is not an asset; it is how the scanned surfaces are read.

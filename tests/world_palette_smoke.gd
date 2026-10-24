@@ -96,22 +96,37 @@ func _check_material_variants_differ() -> void:
 		"hazard trim is not the same value as the deck"
 	)
 
-	# The world's own procedural palette must be dark enough to be the same
-	# picture as the key art: the brightest structural surface stays well under
-	# a mid grey, or the "pastel arena" regression is back.
-	var world := WorldScript.new()
-	world.call("_create_materials")
-	var materials: Dictionary = world.get("_materials")
-	_expect(materials.size() >= 15, "world palette publishes its surfaces (%d)" % materials.size())
-	for key in ["silver", "pearl", "ceramic", "ground"]:
-		var material: StandardMaterial3D = materials[key]
-		var luma := (
-			0.2126 * material.albedo_color.r
-			+ 0.7152 * material.albedo_color.g
-			+ 0.0722 * material.albedo_color.b
+	# The world ships its surfaces inside the staged GLB now. What used to be a
+	# GDScript palette is a set of real materials, so the check is that the world
+	# really carries them: many distinct materials, and photographic maps rather
+	# than flat albedo on the large surfaces.
+	var staged := ResourceLoader.exists("res://assets/forge/world/world.glb")
+	_expect(staged, "the staged real world GLB is importable")
+	if staged:
+		var scene: PackedScene = load("res://assets/forge/world/world.glb")
+		var instance := scene.instantiate() as Node3D
+		var textures := 0
+		var unique: Dictionary = {}
+		for candidate in instance.find_children("*", "MeshInstance3D", true, false):
+			var mesh_instance := candidate as MeshInstance3D
+			if mesh_instance.mesh == null:
+				continue
+			for surface in mesh_instance.mesh.get_surface_count():
+				var material := mesh_instance.get_active_material(surface) as StandardMaterial3D
+				if material == null:
+					continue
+				unique[material.get_instance_id()] = true
+				if material.albedo_texture != null:
+					textures += 1
+		_expect(
+			unique.size() >= 40,
+			"the real world carries its own material library (%d surfaces)" % unique.size()
 		)
-		_expect(luma < 0.25, "world surface '%s' stays structural, luma %.3f < 0.25" % [key, luma])
-	world.free()
+		_expect(
+			textures >= 100,
+			"photographic albedo maps survive the import (%d textured surfaces)" % textures
+		)
+		instance.free()
 
 
 func _expect(condition: bool, message: String) -> void:
