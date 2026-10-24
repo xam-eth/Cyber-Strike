@@ -119,6 +119,8 @@ are real files in the repository and not LFS pointers.
 | [`AUDIT_2026-10-21.md`](AUDIT_2026-10-21.md) | Measured findings, including the mistakes — read this before changing the tooling |
 | [`LFS_ASSET_MANIFEST.md`](LFS_ASSET_MANIFEST.md) | What is under Git LFS, and what deliberately is not |
 | [`../WEB_PREVIEW.md`](../WEB_PREVIEW.md) | Running and exporting the browser preview |
+| [`GAMEPLAY_MECHANICS_AUDIT.md`](GAMEPLAY_MECHANICS_AUDIT.md), [`GAMEPLAY_LOOP_SPEC.md`](GAMEPLAY_LOOP_SPEC.md), [`GAMEPLAY_CONTENT_CONTRACTS.md`](GAMEPLAY_CONTENT_CONTRACTS.md) | Current gameplay ownership, implemented loop, content boundaries, and integration gaps |
+| [`HOOK_AND_RETENTION_SPEC.md`](HOOK_AND_RETENTION_SPEC.md), [`GAMEPLAY_VALIDATION_REPORT.md`](GAMEPLAY_VALIDATION_REPORT.md) | Provisional hook evaluation and actual validation evidence |
 | [`../TOOLCHAIN_SETUP.md`](../TOOLCHAIN_SETUP.md) | Installing Godot 4.7.2 and the export templates |
 | [`../WORLD_BLOCKOUT.md`](../WORLD_BLOCKOUT.md), [`../WORLD_KIT_BUILD.md`](../WORLD_KIT_BUILD.md) | How the world is laid out and what the kit provides |
 | [`../HERO_RIG_PIPELINE.md`](../HERO_RIG_PIPELINE.md) | Hero and weapon rig, muzzle alignment, open animation work |
