@@ -347,7 +347,6 @@ bawah 250px (zona jempol).
 | Toast | hint, konfirmasi | enter/exit | 342×30 | ikon info + teks 10.2 |
 | Hit marker | hit/kill | flash 160ms | 24px | kill = 8 tick merah |
 | Menu row | pause/settings | default/selected/danger | 400×64 | bar 2px accent saat selected |
-| Sheet | menu HP | open/closed | 390×440 | handle 48×4, swipe down |
 | Editor handle | HUD editor | idle/drag | 8×8 | snap 8px |
 
 Semua tombol memakai **focus ring 2px offset 2** — terlihat di keyboard dan
@@ -410,11 +409,10 @@ ini kompromi aksesibilitas yang disengaja, bukan hasil uji kontras di perangkat.
 
 ### 7.6 Menu di HP
 
-Board menargetkan **bottom sheet** 440px dengan handle dan baris 74px.
-Implementasi pause di 390×844 memakai tinggi 340px agar ruang kosong di bawah
-aksi berkurang setelah QA visual; results tetap punya tombol 302×56 dan
-safe area footer 34px. Handle 48×4px dan swipe-down 80px untuk resume sudah
-diimplementasikan; perlu validasi touch asli di perangkat.
+Pause dan results adalah kartu di tengah layar landscape (lebar
+`min(400, w*0.88)` dan `min(600, w*0.92)`), bukan bottom sheet: bottom sheet dan
+gerbang geser 48×4 px hanya masuk akal pada layar portrait, dan layout portrait
+sudah tidak ada. Hasil dan pause memakai baris tombol setinggi 52 px.
 
 ---
 

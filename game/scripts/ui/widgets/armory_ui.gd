@@ -98,7 +98,7 @@ func layout_for(hud) -> void:
 			Color(AegisTokens.LINE_HI, 0.9),
 			1,
 			AegisTokens.RADIUS,
-			hud._to_layout(16.0 if sheet else 12.0)
+			hud._to_layout(14.0)
 		)
 	)
 
