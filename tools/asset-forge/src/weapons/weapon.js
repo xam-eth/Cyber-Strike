@@ -123,6 +123,21 @@ export function buildWeapon(formKey, meta) {
   receiver.add(at(box(0.014, r.h * 0.5, r.d * 0.7, energyDim), { x: r.w / 2, z: 0.02 }));
   receiver.add(at(box(0.014, r.h * 0.5, r.d * 0.7, energyDim), { x: -r.w / 2, z: 0.02 }));
   receiver.add(at(box(r.w * 0.5, 0.04, 0.06, structural), { y: r.h / 2 + 0.02, z: 0.02 }));
+  // Detailed hardware, not a painted brick: inset side panels, end collars,
+  // a vented top cover and a status strip. These are the things that make a
+  // weapon read as machined at third-person distance.
+  for (const sx of [-1, 1]) {
+    receiver.add(at(box(0.008, r.h * 0.62, r.d * 0.62, structural), { x: sx * (r.w / 2 + 0.002), z: 0.0 }));
+    receiver.add(at(box(0.006, r.h * 0.3, r.d * 0.3, rubber), { x: sx * (r.w / 2 + 0.007), z: -0.06 }));
+    for (let i = 0; i < 3; i += 1) {
+      receiver.add(at(box(0.01, 0.008, 0.05, structural), { x: sx * (r.w / 2 + 0.006), y: -0.02 + i * 0.02, z: 0.12 }));
+    }
+  }
+  for (const z of [-r.d * 0.36, r.d * 0.36]) {
+    receiver.add(at(box(r.w * 1.04, r.h * 1.02, 0.018, structural), { z: z + 0.02 }));
+  }
+  receiver.add(at(box(r.w * 0.34, 0.014, r.d * 0.4, energyDim), { y: -r.h / 2 - 0.002, z: 0.04 }));
+  receiver.add(at(box(r.w * 0.5, 0.012, 0.03, structural), { y: r.h / 2 + 0.005, z: -0.12 }));
   // ejection port / status lamp
   receiver.add(at(box(0.05, 0.03, 0.09, rubber), { x: r.w / 2 - 0.005, y: 0.02, z: 0.06 }));
   receiver.add(at(box(0.012, 0.012, 0.03, energy), { x: -r.w / 2 - 0.006, y: 0.03, z: -0.1 }));
@@ -283,10 +298,15 @@ export function buildWeapon(formKey, meta) {
     extras.add(at(cyl(0.018, 0.018, 0.1, 10, energy, { axis: 'z' }), { x: 0.075, y: -0.02, z: 0.1 }));
   }
   if (form.extra.includes('blast_shield')) {
-    const shield = at(box(0.16, 0.14, 0.02, structural), { y: 0.04, z: -0.16 });
-    shield.rotation.x = 0.18;
+    // A deflector, not a billboard: the plate is 0.12 x 0.09 and the hazard
+    // paint is a single 12 mm stripe along its lip.
+    const shield = at(bevelBox(0.13, 0.09, 0.018, structural, { radius: 0.006 }), { y: 0.045, z: -0.17 });
+    shield.rotation.x = 0.24;
     extras.add(shield);
-    extras.add(at(box(0.14, 0.03, 0.026, warn), { y: 0.09, z: -0.16, rx: 0.18 }));
+    const lip = at(box(0.11, 0.012, 0.022, warn), { y: 0.088, z: -0.178 });
+    lip.rotation.x = 0.24;
+    extras.add(lip);
+    for (const sx of [-1, 1]) extras.add(strut([sx * 0.06, 0.02, -0.15], [sx * 0.05, 0.09, -0.18], 0.008, structural, { segments: 4 }));
   }
   if (form.extra.includes('coil_wrap')) {
     for (let i = 0; i < 5; i += 1) {

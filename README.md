@@ -19,6 +19,7 @@
 - [`WORLD_KIT_BUILD.md`](WORLD_KIT_BUILD.md) — how the level is assembled from the KayKit Space Base Bits pack, and how to review it in-game.
 - [`GAME_OVERVIEW.md`](GAME_OVERVIEW.md) — gameplay/visual overview.
 - [`TOOLCHAIN_SETUP.md`](TOOLCHAIN_SETUP.md) — Godot/Android/Blender setup and asset workflow.
+- [`docs/3D_ASSET_FORGE.md`](docs/3D_ASSET_FORGE.md) — code-only three.js models for the world/hero/weapon/enemy/VFX kit, rebuilt from reference images behind a deterministic quality gate (`tools/asset-forge/`), plus the two installed agent skill sets in `.claude/skills/`.
 
 ## Playable 3D world
 

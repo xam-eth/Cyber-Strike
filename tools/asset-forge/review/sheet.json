@@ -1,0 +1,405 @@
+{
+  "generated": "2026-10-24T02:51:04.680Z",
+  "cell": 240,
+  "columns": 6,
+  "note": "Nearest-neighbour downscale of build/renders/<id>/view-034-*.png. Sheets are review aids: a sheet cannot prove a model is right, it is where a human looks.",
+  "sheets": [
+    {
+      "category": "world",
+      "file": "review/world.png",
+      "entries": 16,
+      "grid": "6x3",
+      "cell": 240
+    },
+    {
+      "category": "hero",
+      "file": "review/hero.png",
+      "entries": 6,
+      "grid": "6x1",
+      "cell": 240
+    },
+    {
+      "category": "weapon",
+      "file": "review/weapon.png",
+      "entries": 7,
+      "grid": "6x2",
+      "cell": 240
+    },
+    {
+      "category": "enemy",
+      "file": "review/enemy.png",
+      "entries": 3,
+      "grid": "6x1",
+      "cell": 240
+    },
+    {
+      "category": "vfx",
+      "file": "review/vfx.png",
+      "entries": 4,
+      "grid": "6x1",
+      "cell": 240
+    }
+  ],
+  "cells": [
+    {
+      "id": "reactor_core",
+      "category": "world",
+      "col": 0,
+      "row": 0,
+      "x": 4,
+      "y": 4,
+      "size": 240,
+      "render": "build/renders/reactor_core/view-034-14.png"
+    },
+    {
+      "id": "command_center",
+      "category": "world",
+      "col": 1,
+      "row": 0,
+      "x": 248,
+      "y": 4,
+      "size": 240,
+      "render": "build/renders/command_center/view-034-14.png"
+    },
+    {
+      "id": "research_lab",
+      "category": "world",
+      "col": 2,
+      "row": 0,
+      "x": 492,
+      "y": 4,
+      "size": 240,
+      "render": "build/renders/research_lab/view-034-16.png"
+    },
+    {
+      "id": "equipment_depot",
+      "category": "world",
+      "col": 3,
+      "row": 0,
+      "x": 736,
+      "y": 4,
+      "size": 240,
+      "render": "build/renders/equipment_depot/view-034-16.png"
+    },
+    {
+      "id": "generator_bank",
+      "category": "world",
+      "col": 4,
+      "row": 0,
+      "x": 980,
+      "y": 4,
+      "size": 240,
+      "render": "build/renders/generator_bank/view-034-16.png"
+    },
+    {
+      "id": "landing_pad",
+      "category": "world",
+      "col": 5,
+      "row": 0,
+      "x": 1224,
+      "y": 4,
+      "size": 240,
+      "render": "build/renders/landing_pad/view-034-16.png"
+    },
+    {
+      "id": "boss_gate",
+      "category": "world",
+      "col": 0,
+      "row": 1,
+      "x": 4,
+      "y": 248,
+      "size": 240,
+      "render": "build/renders/boss_gate/view-034-16.png"
+    },
+    {
+      "id": "defense_turret",
+      "category": "world",
+      "col": 1,
+      "row": 1,
+      "x": 248,
+      "y": 248,
+      "size": 240,
+      "render": "build/renders/defense_turret/view-034-16.png"
+    },
+    {
+      "id": "sensor_tower",
+      "category": "world",
+      "col": 2,
+      "row": 1,
+      "x": 492,
+      "y": 248,
+      "size": 240,
+      "render": "build/renders/sensor_tower/view-034-16.png"
+    },
+    {
+      "id": "wrecked_transport",
+      "category": "world",
+      "col": 3,
+      "row": 1,
+      "x": 736,
+      "y": 248,
+      "size": 240,
+      "render": "build/renders/wrecked_transport/view-034-16.png"
+    },
+    {
+      "id": "alien_drone_wreck",
+      "category": "world",
+      "col": 4,
+      "row": 1,
+      "x": 980,
+      "y": 248,
+      "size": 240,
+      "render": "build/renders/alien_drone_wreck/view-034-16.png"
+    },
+    {
+      "id": "crystal_cluster",
+      "category": "world",
+      "col": 5,
+      "row": 1,
+      "x": 1224,
+      "y": 248,
+      "size": 240,
+      "render": "build/renders/crystal_cluster/view-034-16.png"
+    },
+    {
+      "id": "alien_flora",
+      "category": "world",
+      "col": 0,
+      "row": 2,
+      "x": 4,
+      "y": 492,
+      "size": 240,
+      "render": "build/renders/alien_flora/view-034-16.png"
+    },
+    {
+      "id": "rock_cluster",
+      "category": "world",
+      "col": 1,
+      "row": 2,
+      "x": 248,
+      "y": 492,
+      "size": 240,
+      "render": "build/renders/rock_cluster/view-034-16.png"
+    },
+    {
+      "id": "enemy_spawn_gate",
+      "category": "world",
+      "col": 2,
+      "row": 2,
+      "x": 492,
+      "y": 492,
+      "size": 240,
+      "render": "build/renders/enemy_spawn_gate/view-034-16.png"
+    },
+    {
+      "id": "cover_module",
+      "category": "world",
+      "col": 3,
+      "row": 2,
+      "x": 736,
+      "y": 492,
+      "size": 240,
+      "render": "build/renders/cover_module/view-034-16.png"
+    },
+    {
+      "id": "exo_operative",
+      "category": "hero",
+      "col": 0,
+      "row": 0,
+      "x": 4,
+      "y": 4,
+      "size": 240,
+      "render": "build/renders/exo_operative/view-034-16.png"
+    },
+    {
+      "id": "exo_combat_tech",
+      "category": "hero",
+      "col": 1,
+      "row": 0,
+      "x": 248,
+      "y": 4,
+      "size": 240,
+      "render": "build/renders/exo_combat_tech/view-034-16.png"
+    },
+    {
+      "id": "exo_void_runner",
+      "category": "hero",
+      "col": 2,
+      "row": 0,
+      "x": 492,
+      "y": 4,
+      "size": 240,
+      "render": "build/renders/exo_void_runner/view-034-16.png"
+    },
+    {
+      "id": "exo_neon_phantom",
+      "category": "hero",
+      "col": 3,
+      "row": 0,
+      "x": 736,
+      "y": 4,
+      "size": 240,
+      "render": "build/renders/exo_neon_phantom/view-034-16.png"
+    },
+    {
+      "id": "exo_rogue_engineer",
+      "category": "hero",
+      "col": 4,
+      "row": 0,
+      "x": 980,
+      "y": 4,
+      "size": 240,
+      "render": "build/renders/exo_rogue_engineer/view-034-16.png"
+    },
+    {
+      "id": "exo_alien_hunter",
+      "category": "hero",
+      "col": 5,
+      "row": 0,
+      "x": 1224,
+      "y": 4,
+      "size": 240,
+      "render": "build/renders/exo_alien_hunter/view-034-16.png"
+    },
+    {
+      "id": "pulse_rifle",
+      "category": "weapon",
+      "col": 0,
+      "row": 0,
+      "x": 4,
+      "y": 4,
+      "size": 240,
+      "render": "build/renders/pulse_rifle/view-034-16.png"
+    },
+    {
+      "id": "nova_launcher",
+      "category": "weapon",
+      "col": 1,
+      "row": 0,
+      "x": 248,
+      "y": 4,
+      "size": 240,
+      "render": "build/renders/nova_launcher/view-034-16.png"
+    },
+    {
+      "id": "arc_shooter",
+      "category": "weapon",
+      "col": 2,
+      "row": 0,
+      "x": 492,
+      "y": 4,
+      "size": 240,
+      "render": "build/renders/arc_shooter/view-034-16.png"
+    },
+    {
+      "id": "scatter_blaster",
+      "category": "weapon",
+      "col": 3,
+      "row": 0,
+      "x": 736,
+      "y": 4,
+      "size": 240,
+      "render": "build/renders/scatter_blaster/view-035-18.png"
+    },
+    {
+      "id": "rail_cannon",
+      "category": "weapon",
+      "col": 4,
+      "row": 0,
+      "x": 980,
+      "y": 4,
+      "size": 240,
+      "render": "build/renders/rail_cannon/view-034-16.png"
+    },
+    {
+      "id": "gravity_gun",
+      "category": "weapon",
+      "col": 5,
+      "row": 0,
+      "x": 1224,
+      "y": 4,
+      "size": 240,
+      "render": "build/renders/gravity_gun/view-035-18.png"
+    },
+    {
+      "id": "arc_shooter_void_edition",
+      "category": "weapon",
+      "col": 0,
+      "row": 1,
+      "x": 4,
+      "y": 248,
+      "size": 240,
+      "render": "build/renders/arc_shooter_void_edition/view-034-16.png"
+    },
+    {
+      "id": "runner",
+      "category": "enemy",
+      "col": 0,
+      "row": 0,
+      "x": 4,
+      "y": 4,
+      "size": 240,
+      "render": "build/renders/runner/view-034-16.png"
+    },
+    {
+      "id": "shooter",
+      "category": "enemy",
+      "col": 1,
+      "row": 0,
+      "x": 248,
+      "y": 4,
+      "size": 240,
+      "render": "build/renders/shooter/view-034-16.png"
+    },
+    {
+      "id": "training_drone",
+      "category": "enemy",
+      "col": 2,
+      "row": 0,
+      "x": 492,
+      "y": 4,
+      "size": 240,
+      "render": "build/renders/training_drone/view-034-16.png"
+    },
+    {
+      "id": "pulse_bolt",
+      "category": "vfx",
+      "col": 0,
+      "row": 0,
+      "x": 4,
+      "y": 4,
+      "size": 240,
+      "render": "build/renders/pulse_bolt/view-034-16.png"
+    },
+    {
+      "id": "nova_shockwave",
+      "category": "vfx",
+      "col": 1,
+      "row": 0,
+      "x": 248,
+      "y": 4,
+      "size": 240,
+      "render": "build/renders/nova_shockwave/view-034-16.png"
+    },
+    {
+      "id": "arc_chain",
+      "category": "vfx",
+      "col": 2,
+      "row": 0,
+      "x": 492,
+      "y": 4,
+      "size": 240,
+      "render": "build/renders/arc_chain/view-034-16.png"
+    },
+    {
+      "id": "impact_burst",
+      "category": "vfx",
+      "col": 3,
+      "row": 0,
+      "x": 736,
+      "y": 4,
+      "size": 240,
+      "render": "build/renders/impact_burst/view-034-16.png"
+    }
+  ]
+}

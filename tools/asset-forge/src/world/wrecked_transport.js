@@ -30,10 +30,23 @@ export function build() {
 
   /* body: tilted so the nose is buried and the tail lifts --------------- */
   const body = group('Hull');
-  body.position.set(0, 1.05, 0);
-  body.rotation.set(0.06, 0.3, 0.16);
+  body.position.set(0, 0.86, 0);
+  body.rotation.set(0.2, 0.42, 0.19);
 
-  body.add(at(bevelBox(2.0, 1.5, 5.4, m.mid, { radius: 0.06 }), {}));
+  body.add(at(bevelBox(2.0, 1.5, 5.4, m.mid, { radius: 0.06 }), { }));
+  // torn plating along the top seam — a wreck is defined by broken edges
+  for (let i = 0; i < 14; i += 1) {
+    const t = at(box(0.12 + rand() * 0.25, 0.5 + rand() * 0.7, 0.06, i % 2 ? m.bright : m.mid), {
+      x: -0.85 + rand() * 1.7, y: 0.78, z: -2.4 + i * 0.36,
+    });
+    t.rotation.set((rand() - 0.5) * 1.2, rand() * 3.14, (rand() - 0.5) * 1.4);
+    body.add(t);
+  }
+  // creased belly plate and exposed frame ribs where the hull split
+  body.add(at(box(2.04, 0.18, 1.4, m.dark), { y: -0.5, z: 0.6 }));
+  for (let i = 0; i < 4; i += 1) {
+    body.add(at(box(1.9, 0.08, 0.1, m.dark), { y: 0.3 + i * 0.16, z: -0.2 + i * 0.3, rx: 0.2 }));
+  }
   body.add(at(box(2.06, 0.1, 5.2, m.dark), { y: 0.72 }));
   body.add(at(box(2.02, 0.12, 5.0, m.bright), { y: -0.72 }));
   // spine and ribs, plus torn plating
@@ -72,12 +85,18 @@ export function build() {
 
   /* snapped wing lying on the ground ----------------------------------- */
   const wing = group('WingL');
-  wing.add(at(bevelBox(3.0, 0.16, 1.5, m.mid, { radius: 0.03 }), {}));
+  wing.add(at(bevelBox(3.0, 0.16, 1.5, m.mid, { radius: 0.03 }), { }));
+  // snapped root end: jagged stubs instead of a clean cut
+  for (let i = 0; i < 5; i += 1) {
+    const stub = at(box(0.1 + rand() * 0.2, 0.16, 0.1 + rand() * 0.25, m.bright), { x: -1.5 + rand() * 0.2, y: 0.02, z: -0.6 + i * 0.3 });
+    stub.rotation.set(rand() * 0.8, rand() * 1.2, rand() * 0.9);
+    wing.add(stub);
+  }
   wing.add(at(box(3.0, 0.08, 0.2, m.dark), { z: 0.6 }));
   wing.add(at(box(0.5, 0.3, 0.9, m.dark), { x: 1.2, y: 0.1 }));
   wing.add(at(cyl(0.22, 0.26, 0.6, 10, m.bright, { axis: 'z' }), { x: -0.9, z: 0.7 }));
   for (let i = 0; i < 4; i += 1) wing.add(at(box(0.5, 0.05, 0.9, m.dark), { x: -1.4 + i * 0.7, y: 0.09, z: 0.18 }));
-  at(wing, { x: -3.1, y: 0.14, z: 1.9, ry: 0.55, rz: 0.06 });
+  at(wing, { x: -2.5, y: 0.12, z: 1.5, ry: 0.9, rz: 0.05 });
   root.add(wing);
 
   /* scattered debris ---------------------------------------------------- */

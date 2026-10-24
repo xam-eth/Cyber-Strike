@@ -34,7 +34,11 @@ export function build() {
 
   /* ceramic shell ----------------------------------------------------- */
   const shell = group('Shell');
-  shell.add(at(bevelBox(4.2, 2.5, 3.2, m.ink, { radius: 0.14, segments: 3 }), { y: 1.67 }));
+  // Two-tone instead of all-white: a silver shell with graphite reveals and a
+  // ceramic-white crown plate. All-white read as an untextured box in review.
+  shell.add(at(bevelBox(4.2, 2.5, 3.2, m.bright, { radius: 0.14, segments: 3 }), { y: 1.67 }));
+  shell.add(at(box(4.24, 0.9, 3.24, m.dark), { y: 0.92 }));
+  shell.add(at(box(4.22, 0.5, 3.22, m.ink), { y: 2.5 }));
   shell.add(at(bevelBox(4.3, 0.16, 3.3, m.bright, { radius: 0.05 }), { y: 2.95 }));
   // ceramic panel seams
   for (let i = 0; i < 3; i += 1) {
@@ -54,23 +58,24 @@ export function build() {
 
   /* sampling bay: cut-out wall + glass vessel -------------------------- */
   const bay = group('SamplingBay');
-  bay.add(at(box(1.7, 2.4, 0.9, m.gap), { y: 1.62, z: 1.65 }));
-  bay.add(at(box(1.8, 0.16, 1.0, m.dark), { y: 2.86, z: 1.65 }));
-  for (const sx of [-1, 1]) bay.add(at(box(0.14, 2.5, 1.0, m.bright), { x: sx * 0.85, y: 1.6, z: 1.62 }));
+  bay.add(at(box(2.1, 2.5, 0.9, m.gap), { y: 1.67, z: 1.6 }));
+  bay.add(at(box(2.2, 0.18, 1.0, m.dark), { y: 2.95, z: 1.6 }));
+  for (const sx of [-1, 1]) bay.add(at(box(0.16, 2.6, 1.0, m.dark), { x: sx * 1.05, y: 1.65, z: 1.58 }));
+  bay.add(at(box(2.3, 0.08, 0.12, m.cyan), { y: 3.0, z: 2.05 }));
 
   const vessel = group('Vessel');
-  vessel.add(at(cyl(0.42, 0.46, 0.14, 16, m.dark), { y: 0.66 }));
-  vessel.add(at(cyl(0.34, 0.34, 1.9, 20, m.glass, { open: true }), { y: 1.68 }));
+  vessel.add(at(cyl(0.48, 0.52, 0.16, 16, m.dark), { y: 0.66 }));
+  vessel.add(at(cyl(0.38, 0.38, 1.95, 20, m.glass, { open: true }), { y: 1.68 }));
   const sample = group('SampleCore');
-  sample.add(at(cyl(0.2, 0.2, 1.72, 14, m.green), { y: 1.68 }));
-  sample.add(at(cyl(0.1, 0.1, 1.66, 10, m.cyan), { y: 1.68 }));
+  sample.add(at(cyl(0.24, 0.24, 1.76, 14, m.greenDim), { y: 1.68 }));
+  sample.add(at(cyl(0.12, 0.12, 1.7, 10, m.cyan), { y: 1.68 }));
   vessel.add(sample);
   for (const y of [1.0, 1.68, 2.36]) {
     vessel.add(at(torus(0.4, 0.03, m.mid, { radial: 5, tubular: 18 }), { y, rx: Math.PI / 2 }));
   }
   vessel.add(at(cyl(0.46, 0.42, 0.16, 16, m.dark), { y: 2.68 }));
   vessel.add(at(sphere(0.12, m.cyan, { heightSegments: 6 }), { y: 2.82 }));
-  at(vessel, { z: 1.66 });
+  at(vessel, { z: 1.7 });
   bay.add(vessel);
   root.add(bay);
 
@@ -107,7 +112,7 @@ export function build() {
   armB.rotation.z = -0.85;
   arm.add(armB);
   arm.add(at(cyl(0.09, 0.09, 0.16, 8, m.cyan), { x: -0.98, y: 1.42 }));
-  at(arm, { x: 1.85, y: 0.37, z: 1.75 });
+  at(arm, { x: 2.3, y: 0.37, z: 1.3 });
   root.add(arm);
 
   /* signage plate + beacon -------------------------------------------- */

@@ -63,9 +63,11 @@ export const SKINS = {
   },
   void_runner: {
     label: 'Void Runner',
-    plating: 'panel3',
-    secondary: 'line',
-    under: 'void',
+    // Dark, but "dark" has to survive a navy backdrop: graphite plating over a
+    // near-black bodysuit, not black on black.
+    plating: 'line',
+    secondary: 'lineHi',
+    under: 'panel2',
     energy: 'ability',
     trim: 'ability',
     backpack: false,
@@ -76,13 +78,13 @@ export const SKINS = {
     antennas: 0,
     monocular: false,
     organic: false,
-    glowIntensity: 2.2,
+    glowIntensity: 1.35,
   },
   neon_phantom: {
     label: 'Neon Phantom',
-    plating: 'lineHi',
-    secondary: 'panel3',
-    under: 'void',
+    plating: 'ink2',
+    secondary: 'line',
+    under: 'panel3',
     energy: 'info',
     trim: 'info',
     backpack: false,
@@ -93,7 +95,7 @@ export const SKINS = {
     antennas: 0,
     monocular: false,
     organic: false,
-    glowIntensity: 2.6,
+    glowIntensity: 1.7,
   },
   rogue_engineer: {
     label: 'Rogue Engineer',
@@ -160,7 +162,7 @@ export function buildHumanoid(skinKey, meta) {
   const energy = glow(skin.energy, skin.glowIntensity);
   const energyDim = glow(skin.energy, skin.glowIntensity * 0.45);
   const trim = paint(skin.trim, { roughness: 0.55, metalness: 0.06 });
-  const visor = glow(skin.trim === 'ok' ? 'ok' : skin.energy, skin.glowIntensity * 1.3);
+  const visor = glow(skin.trim === 'ok' ? 'ok' : skin.energy, skin.glowIntensity * 0.9);
 
   const root = named(group('Hero'), 'Hero');
   const body = group('Body');
@@ -278,7 +280,7 @@ export function buildHumanoid(skinKey, meta) {
   head.add(at(bevelBox(0.15, 0.07, 0.16, secondary, { radius: 0.025 }), { y: -0.01, z: 0.03 }));
   head.add(at(box(0.1, 0.03, 0.02, under), { y: -0.01, z: 0.115 }));
   // visor band set into the face, angled
-  const visorBar = at(box(0.17, 0.05, 0.02, visor), { y: 0.1, z: 0.1 });
+  const visorBar = at(box(0.165, 0.028, 0.02, visor), { y: 0.1, z: 0.1 });
   visorBar.rotation.x = -0.1;
   head.add(visorBar);
   head.add(at(box(0.19, 0.018, 0.03, secondary), { y: 0.145, z: 0.095 }));
@@ -293,7 +295,7 @@ export function buildHumanoid(skinKey, meta) {
   }
   if (skin.hood) {
     const cloth = paint(skin.plating === 'panel3' ? 'panel3' : 'line', { roughness: 0.9, metalness: 0.02 });
-    const hood = at(bevelBox(0.25, 0.26, 0.27, cloth, { radius: 0.08, segments: 2 }), { y: 0.1, z: -0.05 });
+    const hood = at(bevelBox(0.27, 0.3, 0.29, cloth, { radius: 0.09, segments: 2 }), { y: 0.09, z: -0.06 });
     hood.rotation.x = 0.12;
     head.add(hood);
     head.add(at(box(0.2, 0.06, 0.2, cloth), { y: 0.235, z: -0.04 }));
@@ -315,14 +317,25 @@ export function buildHumanoid(skinKey, meta) {
     torso.add(pack);
   }
   if (skin.cape) {
+    // A cape has to change the outline from the front three-quarter view or it
+    // is not worth the triangles: these panels flare outward and hang below the
+    // hip line, so the silhouette reads "shrouded" instead of "armoured".
     const cape = group('Cape');
-    const cloth = paint(skin.plating, { roughness: 0.92, metalness: 0.02 });
-    for (let i = 0; i < 3; i += 1) {
-      const panel = at(box(0.14, 0.5 - i * 0.06, 0.02, cloth), { x: -0.14 + i * 0.14, y: 0.1 - i * 0.03, z: -0.17 });
-      panel.rotation.x = 0.12 + i * 0.03;
+    const cloth = paint(skin.plating === 'panel3' ? 'panel2' : 'line', { roughness: 0.94, metalness: 0.02 });
+    for (let i = 0; i < 4; i += 1) {
+      const w = 0.16 + i * 0.01;
+      const panel = at(box(w, 0.66 - i * 0.05, 0.025, cloth), {
+        x: -0.21 + i * 0.14, y: -0.04 + i * 0.02, z: -0.17,
+      });
+      panel.rotation.set(0.16 + i * 0.02, 0, (i - 1.5) * 0.06);
       cape.add(panel);
     }
-    cape.add(at(box(0.44, 0.03, 0.05, trim), { y: 0.36, z: -0.16 }));
+    cape.add(at(box(0.5, 0.04, 0.07, secondary), { y: 0.33, z: -0.16 }));
+    for (const sx of [-1, 1]) {
+      const clasp = at(box(0.06, 0.1, 0.05, secondary), { x: sx * 0.2, y: 0.3, z: -0.13 });
+      clasp.rotation.z = sx * 0.3;
+      cape.add(clasp);
+    }
     torso.add(cape);
   }
   if (skin.shoulderRig) {
@@ -340,7 +353,14 @@ export function buildHumanoid(skinKey, meta) {
         torso.add(spike);
       }
     }
-    torso.add(at(sphere(0.1, energyDim, { widthSegments: 10, heightSegments: 6 }), { x: 0.16, y: 0.2, z: 0.1, sy: 0.5 }));
+    // carapace plates over the shoulders instead of a blob on the chest
+    for (const side of [-1, 1]) {
+      for (let i = 0; i < 2; i += 1) {
+        const shell = at(cone(0.05, 0.2, 5, energyDim), { x: side * (0.24 + i * 0.03), y: 0.5 - i * 0.08, z: -0.04 });
+        shell.rotation.z = side * (0.9 + i * 0.2);
+        torso.add(shell);
+      }
+    }
   }
 
   hips.add(torso);

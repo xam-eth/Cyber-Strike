@@ -48,14 +48,15 @@ export function build() {
   const rand = rng(90210);
   const rockDark = metal('line', { roughness: 0.86, metalness: 0.12 });
   const rockMid = paint('ink2', { roughness: 0.9, metalness: 0.08 });
-  const rockWarm = paint('accent', { roughness: 0.88, metalness: 0.06 });
+  const rockWarm = paint('ink3', { roughness: 0.88, metalness: 0.06 });
+  const rockAccent = paint('accent', { roughness: 0.9, metalness: 0.04 });
   const scrub = paint('ok', { roughness: 0.92, metalness: 0.02 });
 
   const root = group('RockCluster');
 
   const plan = [
     { x: 0, z: 0, r: 1.05, mat: rockMid, detail: 2 },
-    { x: 1.15, z: 0.5, r: 0.72, mat: rockWarm, detail: 1 },
+    { x: 1.15, z: 0.5, r: 0.72, mat: rockMid, detail: 1 },
     { x: -1.2, z: 0.3, r: 0.62, mat: rockMid, detail: 1 },
     { x: 0.4, z: -1.15, r: 0.5, mat: rockDark, detail: 1 },
     { x: -0.7, z: -0.95, r: 0.4, mat: rockDark, detail: 1 },
@@ -68,10 +69,16 @@ export function build() {
     root.add(b);
   }
   // a warm strata band across the main boulder
-  const band = boulder(rockWarm, 1.06, 2, rand);
-  band.scale.set(1.0, 0.16, 1.0);
-  at(band, { y: 0.75 });
+  // A thin warm strata line, not a golden shell: the band is 8% of the rock's
+  // height and the accent only touches the sunward side.
+  const band = boulder(rockWarm, 1.04, 2, rand);
+  band.scale.set(1.0, 0.07, 1.0);
+  at(band, { y: 0.62 });
   root.add(band);
+  const accent = boulder(rockAccent, 0.55, 1, rand);
+  accent.scale.set(1.1, 0.12, 1.1);
+  at(accent, { x: 0.35, y: 0.95, z: -0.2 });
+  root.add(accent);
 
   // small scree at the base
   for (let i = 0; i < 10; i += 1) {
