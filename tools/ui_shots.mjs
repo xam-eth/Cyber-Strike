@@ -44,6 +44,10 @@ const SCREENS = [
   { id: 'opening', query: '?ui=opening' },
   { id: 'hub', query: '?ui=hub' },
   { id: 'settings', query: '?ui=settings' },
+  // The hand-off screen is the one the player sees while the world loads, so it
+  // is photographed like any other: a launch card that overflows or renders
+  // blank is a defect a player sees on every single run.
+  { id: 'launch', query: '?ui=launch' },
 ];
 const wanted = only.length ? SCREENS.filter((screen) => only.includes(screen.id)) : SCREENS;
 

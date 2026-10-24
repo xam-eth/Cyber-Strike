@@ -235,16 +235,27 @@
         <!-- ========================================================= LAUNCH -->
         <section class="screen" id="screen-launch" aria-labelledby="launch-title">
           <div class="screen__inner">
-            <div class="opening">
-              <p class="eyebrow" id="launch-eyebrow">Deploy · sektor 07</p>
-              <h1 class="title" id="launch-title">Menyiapkan dunia</h1>
-              <div class="progress" id="launch-progress" data-indeterminate="true" role="progressbar" aria-valuemin="0" aria-valuemax="100">
-                <span class="progress__fill" id="launch-fill"></span>
+            <!-- The hand-off is an airlock, not a download dialog: one bay that
+                 says where the player is going, and one manifest that says what
+                 the gantry is actually doing. -->
+            <div class="launch">
+              <div class="panel launch__bay">
+                <p class="eyebrow" id="launch-eyebrow">Deploy · sektor 07</p>
+                <h1 class="title" id="launch-title">Menyiapkan dunia</h1>
+                <div class="rail" id="launch-progress" data-indeterminate="true" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+                  <span class="rail__fill" id="launch-fill"></span>
+                  <span class="rail__head" aria-hidden="true"></span>
+                </div>
+                <p class="opening__hint" id="launch-hint">Tetap di layar ini sampai dunia siap.</p>
               </div>
-              <ul class="linklist launch__log">
-                <li><i class="tick"></i><span id="launch-status">memuat aset dunia</span><b id="launch-percent">—</b></li>
-              </ul>
-              <p class="opening__hint" id="launch-hint">Tetap di layar ini sampai dunia siap.</p>
+
+              <aside class="panel launch__manifest" aria-label="Siklus angkut">
+                <p class="eyebrow">Siklus angkut</p>
+                <ul class="linklist launch__log">
+                  <li data-shown="true"><i class="tick"></i><span>gerbang</span><b>TERBUKA</b></li>
+                  <li data-shown="true"><i class="tick"></i><span id="launch-status">memuat aset dunia</span><b id="launch-percent">—</b></li>
+                </ul>
+              </aside>
             </div>
           </div>
         </section>

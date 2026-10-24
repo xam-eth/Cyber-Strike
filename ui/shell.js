@@ -257,6 +257,10 @@ async function bootEngine() {
         progress.dataset.indeterminate = 'false';
         progress.setAttribute('aria-valuenow', String(Math.round(ratio * 100)));
         fill.style.width = `${(ratio * 100).toFixed(1)}%`;
+        // The head is a 2 px mark, so it is inset by its own width: at 100 %
+        // it sits on the far end of the channel instead of just past it.
+        el('launch-progress').querySelector('.rail__head').style.left =
+          `calc(${(ratio * 100).toFixed(1)}% - 2px)`;
         percent.textContent = `${Math.floor(ratio * 100)}%`;
         status.textContent = ratio >= 1 ? 'aset lengkap, menyusun dunia' : 'memuat aset dunia';
       }

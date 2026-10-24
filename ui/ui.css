@@ -57,6 +57,27 @@ ul {
   outline-offset: 2px;
 }
 
+/* A clipped plate swallows its own outline: clip-path cuts everything the
+   element paints, ring included. So a cut surface draws focus *inside* its
+   edge -- a 2 px amber rule that follows the chamfer instead of hovering
+   outside it -- and anything that is not clipped keeps the outline above. */
+.btn:focus-visible,
+.card:focus-visible,
+.chip:focus-visible,
+.tab:focus-visible {
+  outline: none;
+  box-shadow:
+    inset 0 0 0 1px var(--accent),
+    inset 0 0 0 4px rgba(255, 176, 32, 0.16);
+}
+
+/* On the amber primary the ring has to be dark: amber on amber is no ring. */
+.btn--primary:focus-visible {
+  box-shadow:
+    inset 0 0 0 2px var(--accent-ink),
+    inset 0 0 0 5px rgba(255, 214, 143, 0.55);
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -1313,23 +1334,108 @@ body[data-mode='playing'] #canvas {
    Loading hand-off
    ========================================================================== */
 
-.progress {
+/* The gantry: two plates on one baseline. The bay points at the world (deep cut
+   on its trailing foot, under the hint), the manifest is cut on the opposite
+   diagonal so the pair reads as a bay and its read-out rather than two boxes. */
+.launch {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(240px, 0.9fr);
+  gap: clamp(var(--s3), 2.6vh, var(--s5));
+  align-items: stretch;
+}
+
+.launch__bay {
+  --tl: var(--cut);
+  --br: var(--cut-xl);
+  --cut-ink-b: var(--accent-dim);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(var(--s2), 1.6vh, var(--s3));
+  padding: clamp(var(--s4), 3vh, var(--s5));
+  min-width: 0;
+}
+
+.launch__bay .title {
+  font-size: clamp(1.5rem, 4.6vh, 2.2rem);
+}
+
+.launch__manifest {
+  --tl: 0px;
+  --tr: var(--cut);
+  --br: 0px;
+  --bl: var(--cut);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  justify-content: center;
+  padding: var(--s3) var(--s4);
+  min-width: 0;
+}
+
+.launch__manifest .linklist li {
+  border-left: 0;
+  border-bottom: 1px solid rgba(39, 56, 74, 0.55);
+  padding-left: 0;
+  background: none;
+}
+
+.launch__manifest .linklist li:last-child {
+  border-bottom: 0;
+}
+
+.launch__manifest .linklist li .tick {
+  width: 5px;
+  height: 5px;
+  background: var(--line-hi);
+  clip-path: polygon(0 0, 100% 0, 100% 60%, 60% 100%, 0 100%);
+}
+
+.launch__manifest .linklist li[data-shown='true'] .tick {
+  background: var(--accent);
+}
+
+/* A machined channel, not a web progress bar: a recessed slot with 8 px ticks
+   cut into it, an amber fill that ends in a 45 degree head, and the head is the
+   only thing that moves while the byte count is indeterminate. */
+.rail {
   position: relative;
-  height: 3px;
-  background: rgba(78, 106, 126, 0.28);
+  height: 10px;
+  margin-top: var(--s2);
+  background:
+    repeating-linear-gradient(90deg, rgba(78, 106, 126, 0.35) 0 1px, transparent 1px 8px)
+      left bottom / 100% 4px no-repeat,
+    rgba(5, 8, 12, 0.9);
+  box-shadow: inset 0 0 0 1px var(--line);
   overflow: hidden;
 }
 
-.progress__fill {
+.rail__fill {
   position: absolute;
-  inset: 0 auto 0 0;
+  inset: 2px auto 2px 0;
   width: 0;
   background: linear-gradient(90deg, var(--accent-dim), var(--accent));
-  box-shadow: 0 0 18px rgba(255, 176, 32, 0.55);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
   transition: width 220ms linear;
 }
 
-.progress[data-indeterminate='true'] .progress__fill {
+.rail__head {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  left: 0;
+  background: var(--accent);
+  box-shadow: 0 0 14px rgba(255, 176, 32, 0.7);
+  opacity: 0;
+  transition: left 220ms linear;
+}
+
+.rail[data-indeterminate='false'] .rail__head {
+  opacity: 1;
+}
+
+.rail[data-indeterminate='true'] .rail__fill {
   width: 34%;
   animation: sweep 1.4s var(--ease) infinite;
 }
