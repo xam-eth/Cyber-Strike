@@ -38,7 +38,7 @@ static func update_objective(
 		hud._wave_chip_label.text = "EXPLORE\nSAFE"
 	elif hud._state.play_phase == "preparing":
 		hud._wave_title_label.text = "DEFENSE IN %d" % hud._state.preparation_seconds
-		# Keep the promise readable in a 390 px portrait objective card.
+		# Keep the promise readable in a 294 px objective card.
 		hud._wave_enemy_label.text = "GET READY · SPAWNS MARKED"
 		hud._wave_state_label.text = "PREPARE"
 		hud._wave_chip_label.text = "DEFENSE\nIN %d" % hud._state.preparation_seconds
@@ -87,9 +87,6 @@ static func apply_context(hud) -> void:
 	hud._run_card.visible = false
 	hud._score_chip.visible = false
 	hud._compact_card.visible = false
-	hud._desktop_hint.visible = (
-		active and not hud._touch_mode and (exploring or preparing) and hud._hud_preset != "MINIMAL"
-	)
 	if is_instance_valid(hud._pause_restart_button):
 		hud._pause_restart_button.text = (
 			"RESET EXPLORATION"
@@ -107,9 +104,7 @@ static func apply_context(hud) -> void:
 
 
 static func weapon_acts_as_armory(hud) -> bool:
-	return (
-		hud._touch_mode and hud._narrow and not hud._portrait and hud._state.play_phase == "explore"
-	)
+	return hud._touch_mode and hud._narrow and hud._state.play_phase == "explore"
 
 
 static func refresh_weapon_action(hud) -> void:

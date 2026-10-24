@@ -1,8 +1,13 @@
 class_name TouchControls
 extends Control
 
-## Shared signal-driven HUD for desktop, touch portrait and touch landscape.
-## Uses the AEGIS tokens from docs/UI_UX_REDESIGN_SPEC.md.
+## Shared signal-driven HUD. One layout: a phone held sideways.
+##
+## The thumb cluster, the objective rail and the docked magazine are the HUD on
+## every device. A mouse and keyboard drive the same controls, and a larger
+## window gets the same composition at a larger scale — there is no desktop
+## variant to drift from the one that is tested. Uses the AEGIS tokens from
+## docs/UI_UX_REDESIGN_SPEC.md.
 
 signal movement_changed(value: Vector2)
 signal look_delta(value: Vector2)
@@ -35,20 +40,13 @@ const MIN_PHYSICAL_FONT_PX: float = AegisTokens.MIN_PHYSICAL_FONT_PX
 ## Lines the narrow-screen data strip must fit: the enemy line plus the wrapped
 ## run summary. Four gives the wrapped summary one line of slack.
 const COMPACT_LINES: int = 4
-const DESKTOP_HINT := "WASD MOVE · DRAG/RMB LOOK · LMB FIRE · " + "B DEFENSE · U ARMORY · ESC PAUSE"
-const DESKTOP_HINT_SHORT := "WASD MOVE · B DEFENSE · U ARMORY · ESC PAUSE"
-## A phone in portrait has ~366 px for this line at 390 px wide, and the short
-## hint above still ends cut off mid-word ("ESC PAUS"). This is the same set of
-## keys with the ones a narrow screen cannot afford left out.
-const DESKTOP_HINT_PORTRAIT := "WASD · B DEFENSE · ESC PAUSE"
+## The one help block. Keys and thumbs are both listed because both work on the
+## landscape HUD: a phone reads the right column, a laptop the left.
 const HELP_TEXT := (
-	"WASD MOVE · DRAG/RMB LOOK · LMB FIRE / HOLD FIRE\n"
-	+ "B DEFENSE · U ARMORY · G RELOAD · E/Q SWAP\n"
-	+ "F EMP · ESC PAUSE"
+	"STICK / WASD MOVE · DRAG / MOUSE LOOK\n"
+	+ "FIRE · AIM · EMP · SWAP · B DEFENSE\n"
+	+ "U ARMORY · G RELOAD · ESC PAUSE"
 )
-const DESKTOP_HELP_LANDSCAPE := "WASD MOVE · MOUSE LOOK\nLMB FIRE · F EMP · ESC PAUSE"
-const MOBILE_HELP_TEXT := "LEFT STICK MOVE · DRAG RIGHT LOOK\nFIRE · HOLD AIM · EMP · SWAP"
-const MOBILE_HELP_LANDSCAPE := "STICK MOVE · DRAG LOOK\nFIRE · AIM · EMP · SWAP"
 const HELP_FADE_SECONDS: float = 1.5
 ## The browser toolbar now starts folded into a single chip. Keep the vitals
 ## below that chip, not below two rows of controls hidden during gameplay.
@@ -99,7 +97,6 @@ var _move_position: Vector2:
 
 var _touch_mode: bool = false
 var _narrow: bool = false
-var _portrait: bool = false
 var _physical_size: Vector2 = Vector2.ZERO
 var _stretch: float = 1.0
 var _ui_scale: float = 1.0
@@ -133,9 +130,6 @@ var _help_panel: AegisPanel
 var _feedback_panel: HudCombatFeedbackUi
 var _armory_panel: ArmoryUi
 var _armory_button: AegisButton
-var _desktop_weapon_card: AegisPanel
-var _ads_chip: AegisPanel
-var _emp_chip: AegisButton
 var _scrim: ColorRect
 
 var _health_heading: Label
@@ -150,14 +144,10 @@ var _status_label: Label
 var _score_value_label: Label
 var _compact_label: Label
 var _help_label: Label
-var _desktop_hint: Label
 var _pause_panel: AegisPanel
 var _pause_label: Label
 var _pause_stats_label: Label
 var _pause_resume_button: AegisButton
-var _pause_swipe_handle: ColorRect
-var _pause_swipe_id: int = -1
-var _pause_swipe_origin: Vector2 = Vector2.ZERO
 var _pause_restart_button: AegisButton
 var _pause_settings_button: AegisButton
 var _settings_menu: AegisSettingsMenu
@@ -169,9 +159,6 @@ var _results_reward_label: Label
 var _results_goal_label: Label
 var _results_goal_progress_label: Label
 var _results_goal_bar: ProgressBar
-var _desktop_weapon_name: Label
-var _desktop_weapon_meta: Label
-var _ads_label: Label
 
 var _fire_button: AegisButton
 var _weapon_button: AegisButton
@@ -275,8 +262,6 @@ func _input(event: InputEvent) -> void:
 		and (event is InputEventScreenTouch or event is InputEventScreenDrag)
 	):
 		# Editor GUI owns touch drags, not the gameplay thumb-zone dispatcher.
-		return
-	if HudPauseGesture.handle(self, event):
 		return
 	if event is InputEventScreenTouch:
 		if event.pressed and not _touch_mode:
@@ -426,21 +411,19 @@ func _apply_context_visibility() -> void:
 	HudEncounterUi.apply_context(self)
 
 
+## The cluster is the HUD on every device. `_touch_mode` still decides which
+## *events* drive it (a finger, or the mouse and keyboard bindings), never
+## whether it is drawn: a layout that disappears on one device cannot be tested
+## on the device it disappears from.
 func _apply_input_mode() -> void:
 	var gameplay_visible := not _results_visible()
-	var desktop := not _touch_mode and not _narrow
 	for button in [_fire_button, _aim_button, _skill_button, _weapon_button]:
 		if is_instance_valid(button):
-			button.visible = _touch_mode and gameplay_visible
-	for control in [_desktop_weapon_card, _ads_chip, _emp_chip]:
-		if is_instance_valid(control):
-			control.visible = desktop and gameplay_visible
-	if is_instance_valid(_desktop_hint):
-		_desktop_hint.visible = not _touch_mode and gameplay_visible and not get_tree().paused
+			button.visible = gameplay_visible
 	if is_instance_valid(_skill_ring):
-		_skill_ring.visible = _touch_mode and gameplay_visible
+		_skill_ring.visible = gameplay_visible
 	if is_instance_valid(_touch_ammo_chip):
-		_touch_ammo_chip.visible = _touch_mode and gameplay_visible
+		_touch_ammo_chip.visible = gameplay_visible
 	if is_instance_valid(_sound_button):
 		_sound_button.visible = not _narrow and gameplay_visible
 	if is_instance_valid(_pause_button):
@@ -513,22 +496,9 @@ func set_weapon_label(display_name: String) -> void:
 	HudEncounterUi.refresh_weapon_action(self)
 	if is_instance_valid(_touch_ammo_chip):
 		_touch_ammo_chip.set_weapon(display_name.get_slice(" ", 0).to_upper())
-	if is_instance_valid(_desktop_weapon_name):
-		_desktop_weapon_name.text = display_name.to_upper()
 
 
 func _update_weapon_ammo(remaining: int, capacity: int, reloading: bool) -> void:
-	var text := "RELOADING" if reloading else "%d/%d" % [remaining, capacity]
-	if is_instance_valid(_desktop_weapon_meta):
-		# The card is 268 px wide and the old "U ARMORY TO UNLOCK" tail was cut
-		# off mid-word at every desktop size. With one weapon there is nothing to
-		# swap to, and the armory key is already in the help line, so the meta
-		# keeps to what it can actually show: the magazine and the reload key.
-		_desktop_weapon_meta.text = (
-			"%s · G RELOAD · E/Q SWAP" % text
-			if _state.available_weapons > 1
-			else "%s · G RELOAD" % text
-		)
 	if is_instance_valid(_touch_ammo_chip):
 		_touch_ammo_chip.set_ammo(remaining, capacity, reloading)
 
@@ -547,7 +517,6 @@ func show_skill_feedback(targets_hit: int) -> void:
 	_skill_feedback_remaining = 1.1
 	_skill_button.text = ""
 	_skill_button.disabled = (_player_down or get_tree().paused or _skill_cooldown_remaining > 0.0)
-	_emp_chip.text = ("EMP · %d HIT" % targets_hit if targets_hit > 0 else "EMP · NO HIT")
 	_feedback_panel.show_message(
 		(
 			"EMP PULSE · %d TARGET%s" % [targets_hit, "" if targets_hit == 1 else "S"]
@@ -570,17 +539,11 @@ func _refresh_skill_button() -> void:
 		_skill_button.tooltip_text = (
 			"EMP Pulse · %d s until ready" % ceili(_skill_cooldown_remaining)
 		)
-		if _skill_feedback_remaining <= 0.0:
-			_emp_chip.text = "EMP · %d s" % ceili(_skill_cooldown_remaining)
 	else:
 		_skill_cooldown_label.text = ""
 		_skill_cooldown_label.visible = false
 		_skill_button.tooltip_text = "EMP Pulse · ready · damages nearby enemies"
-		if _skill_feedback_remaining <= 0.0:
-			_emp_chip.text = "EMP · READY"
 	_skill_button.disabled = (_player_down or get_tree().paused or _skill_cooldown_remaining > 0.0)
-	if is_instance_valid(_emp_chip):
-		_emp_chip.disabled = _skill_cooldown_remaining > 0.0 or _player_down
 	if is_instance_valid(_skill_ring):
 		_skill_ring.remaining = fraction
 		_skill_ring.available = _skill_cooldown_remaining <= 0.0
@@ -700,7 +663,6 @@ func _build_ui() -> void:
 	HudEncounterUi.build_help_panel(self, HELP_TEXT)
 	_build_combat_feedback()
 	_build_touch_buttons()
-	_build_desktop_chips()
 	HudArmoryBridge.install_entry(self)
 	_build_overlays()
 	HudArmoryBridge.install_panel(self)
@@ -816,55 +778,6 @@ func _build_touch_buttons() -> void:
 	_touch_ammo_chip = AegisAmmoChip.new()
 	_touch_ammo_chip.name = "TouchAmmoChip"
 	add_child(_touch_ammo_chip)
-
-
-func _build_desktop_chips() -> void:
-	_desktop_weapon_card = AegisPanel.new()
-	_desktop_weapon_card.name = "DesktopWeaponCard"
-	_desktop_weapon_card.clip_contents = true
-	add_child(_desktop_weapon_card)
-	var weapon_col := VBoxContainer.new()
-	weapon_col.add_theme_constant_override("separation", 3)
-	_desktop_weapon_card.add_child(weapon_col)
-	weapon_col.add_child(_label("ACTIVE WEAPON", "label_s", AegisTokens.INK_3))
-	_desktop_weapon_name = _label("PULSE RIFLE", "title", AegisTokens.INK)
-	weapon_col.add_child(_desktop_weapon_name)
-	_desktop_weapon_meta = _label("E / Q SWAP · 1-3 SLOTS", "label_s", AegisTokens.INK_3)
-	weapon_col.add_child(_desktop_weapon_meta)
-
-	_emp_chip = AegisButton.new()
-	_emp_chip.name = "DesktopEmpChip"
-	_emp_chip.text = "EMP · READY"
-	_emp_chip.focus_mode = Control.FOCUS_NONE
-	_emp_chip.mouse_filter = Control.MOUSE_FILTER_STOP
-	_emp_chip.icon = AegisTheme.icon("lightning", true)
-	_emp_chip.add_theme_constant_override("icon_max_width", 16)
-	AegisTheme.set_button_variant(_emp_chip, "ability")
-	_emp_chip.pressed.connect(_on_skill_pressed)
-	add_child(_emp_chip)
-	_touch_buttons.append(_emp_chip)
-
-	_ads_chip = AegisPanel.new()
-	_ads_chip.name = "AdsChip"
-	_ads_chip.show_brackets = false
-	add_child(_ads_chip)
-	var ads_row := HBoxContainer.new()
-	ads_row.add_theme_constant_override("separation", 6)
-	_ads_chip.add_child(ads_row)
-	var ads_icon := TextureRect.new()
-	ads_icon.texture = AegisTheme.icon("crosshair-simple")
-	ads_icon.custom_minimum_size = Vector2(14.0, 14.0)
-	ads_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	ads_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	ads_icon.modulate = AegisTokens.INK_2
-	ads_row.add_child(ads_icon)
-	_ads_label = _label("ADS", "label_s", AegisTokens.INK_2)
-	_ads_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	ads_row.add_child(_ads_label)
-
-	_desktop_hint = _label(DESKTOP_HINT, "label_s", AegisTokens.INK_2, 1.0, true)
-	_desktop_hint.name = "DesktopHint"
-	add_child(_desktop_hint)
 
 
 func _build_overlays() -> void:
@@ -997,8 +910,8 @@ func _layout_controls(
 		return
 	# Size against the *physical* window, not the logical canvas: with stretch
 	# mode canvas_items the logical canvas keeps its width on a phone and is
-	# only scaled down, so a portrait HUD laid out in logical units would render
-	# at ~30 % of its designed size.
+	# only scaled down, so a HUD laid out in logical units would render at ~30 %
+	# of its designed size on the glass.
 	var physical := (
 		viewport_override if viewport_override != Vector2.ZERO else _resolve_physical_size()
 	)
@@ -1012,28 +925,12 @@ func _layout_controls(
 	_top_inset = _resolve_top_inset()
 	UiLayout.resolve_safe_insets(self, physical)
 	_narrow = physical_width < NARROW_WIDTH
-	_portrait = physical_height > physical_width
-	if is_instance_valid(_desktop_hint):
-		_desktop_hint.text = (
-			DESKTOP_HINT_PORTRAIT
-			if _portrait and _narrow
-			else (DESKTOP_HINT_SHORT if _narrow else DESKTOP_HINT)
-		)
 	if is_instance_valid(_help_label):
-		_help_label.text = (
-			(MOBILE_HELP_TEXT if _portrait else MOBILE_HELP_LANDSCAPE)
-			if _touch_mode and physical_width < 1024.0
-			else (DESKTOP_HELP_LANDSCAPE if _narrow and not _portrait else HELP_TEXT)
-		)
+		_help_label.text = HELP_TEXT
 
 	_refresh_card_styles()
 	_apply_font_scale()
-	if not _touch_mode and not _narrow:
-		UiLayout.desktop(self)
-	elif _portrait:
-		UiLayout.touch_portrait(self)
-	else:
-		UiLayout.touch_landscape(self)
+	UiLayout.landscape(self)
 	HudArmoryBridge.refresh_entry_label(self)
 
 	_layout_overlays()
@@ -1068,7 +965,6 @@ func _layout_overlays() -> void:
 		_feedback_panel.layout_for(self)
 	if is_instance_valid(_armory_panel):
 		_armory_panel.layout_for(self)
-	HudPauseGesture.layout(self)
 	if is_instance_valid(_settings_menu):
 		var width := minf(_to_layout(700.0), size.x * 0.94)
 		var height := minf(_to_layout(520.0), size.y * 0.90)
@@ -1108,7 +1004,7 @@ func _resolve_physical_size() -> Vector2:
 	if is_instance_valid(window):
 		var window_size := Vector2(window.size)
 		# A headless run reports a 64x64 dummy window; trusting it would make the
-		# HUD believe every viewport is a phone and hide the desktop legend.
+		# HUD believe every viewport is a compact phone and drop the copy.
 		if window_size.x >= MIN_WINDOW_PX and window_size.y >= MIN_WINDOW_PX:
 			return window_size
 	return size
@@ -1211,7 +1107,6 @@ func _draw() -> void:
 			_hostile_camera,
 			_hostile_source.call("get_active_enemies"),
 			size,
-			_portrait,
 			_to_layout(1.0)
 		)
 		for bearing in bearings:

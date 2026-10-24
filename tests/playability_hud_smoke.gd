@@ -81,67 +81,19 @@ func _run_smoke_test() -> void:
 		),
 		"START stays legible and tappable without a solid amber rectangle covering the world",
 	)
-	# In portrait the optional help plate must sit below the objective and
-	# Defense button, leaving the centre of the screen unobstructed.
-	controls.call("apply_layout_for_size", Vector2(390.0, 844.0), 1.0)
-	# Containers recompute their rects on the next frame; reading the rects
-	# immediately measures the previous layout and reports a false overlap.
-	await process_frame
-	var defense_bottom := defense_button.get_global_rect().end.y
-	var help_top := help_label.get_global_rect().position.y
-	_expect(
-		help_top >= defense_bottom + 7.0 and not compact_card.visible,
-		"portrait help sits below the start action; the run-data strip stays hidden",
-	)
+	# There is one input mode the HUD ships with: touch. The thumb cluster is the
+	# HUD, and the help plate explains it in the words the buttons use.
 	_expect(
 		(
-			help_label.text.contains("LEFT STICK")
-			and help_label.text.contains("HOLD AIM")
+			fire_button.visible
+			and aim_button.visible
+			and skill_button.visible
+			and help_label.text.contains("STICK MOVE")
+			and help_label.text.contains("AIM")
 			and help_label.text.contains("EMP")
 			and help_label.text.contains("SWAP")
 		),
-		"portrait help explains the mobile controls",
-	)
-	controls.call("apply_layout_for_size", Vector2(1280.0, 720.0), 1.0)
-	_expect(
-		(
-			help_label.autowrap_mode == TextServer.AUTOWRAP_OFF
-			and help_label.clip_text
-			and help_label.text.contains("B DEFENSE")
-			and help_label.text.contains("U ARMORY")
-			and help_label.text.contains("WASD")
-		),
-		"wide help explains desktop bindings without growing over controls",
-	)
-	# Desktop sessions must not keep the thumb cluster on screen: it covered the
-	# play area and swallowed clicks.
-	controls.call("set_touch_mode", false)
-	_expect(
-		not fire_button.visible and not aim_button.visible and not skill_button.visible,
-		"desktop mode hides the thumb controls",
-	)
-	var desktop_hint := controls.get("_desktop_hint") as Label
-	_expect(
-		is_instance_valid(desktop_hint) and desktop_hint.visible,
-		(
-			(
-				"desktop mode shows the keyboard legend (valid=%s visible=%s touch=%s narrow=%s "
-				+ "size=%s physical=%s)"
-			)
-			% [
-				is_instance_valid(desktop_hint),
-				is_instance_valid(desktop_hint) and desktop_hint.visible,
-				controls.call("is_touch_mode"),
-				controls.get("_narrow"),
-				controls.size,
-				controls.get("_physical_size"),
-			]
-		),
-	)
-	controls.call("set_touch_mode", true)
-	_expect(
-		fire_button.visible and aim_button.visible and skill_button.visible,
-		"touch mode restores the thumb controls",
+		"the thumb cluster is the only control set; the help plate names each action",
 	)
 	var weapon_readout := controls.get("_touch_ammo_chip").get("weapon_label") as Label
 	_expect(
@@ -198,9 +150,22 @@ func _run_smoke_test() -> void:
 	)
 	Sfx.set_muted(false)
 	controls.call("set_sound_muted", Sfx.is_muted())
-	# The objective is below the vitals on a phone; run score is reserved for
-	# pause/results instead of spilling over the play area.
-	controls.call("apply_layout_for_size", Vector2(390.0, 844.0), 1.0)
+	# The one viewport: a phone held sideways, with the stretch the engine's
+	# `canvas_items` setting produces for the web build's 1280x720 canvas.
+	const LANDSCAPE_STRETCH := 390.0 / 720.0
+	controls.size = Vector2(844.0 / LANDSCAPE_STRETCH, 390.0 / LANDSCAPE_STRETCH)
+	controls.call("apply_layout_for_size", Vector2(844.0, 390.0), LANDSCAPE_STRETCH)
+	# Containers recompute their rects on the next frame; reading the rects
+	# immediately measures the previous layout and reports a false overlap.
+	await process_frame
+	var vitals_card := controls.get("_health_card") as Control
+	var wave_card := controls.get("_wave_card") as Control
+	var system_row := controls.get("_system_row") as Control
+	var feedback_panel := controls.get("_feedback_panel") as Control
+	var ammo_panel := controls.get("_touch_ammo_chip") as Control
+	var armory := controls.get("_armory_panel") as Control
+	var ring := controls.get("_skill_ring") as Control
+	var landscape_gap := float(controls.call("_to_layout", 5.9))
 	_expect(
 		(
 			not compact_card.visible
@@ -209,59 +174,37 @@ func _run_smoke_test() -> void:
 			and wave_enemy_label.text.contains("SAFE ZONE")
 			and defense_button.visible
 		),
-		"portrait shows a safe Explore objective, not a persistent data table",
+		"Explore shows a safe objective line, not a persistent data table",
 	)
-	# The web build keeps a 1280-unit logical canvas in portrait, so on a phone
-	# the whole HUD used to render at ~30% of its designed size. The layout must
-	# size itself from the physical window instead: a 390 px wide phone therefore
-	# gets portrait body text (~11 px on glass), not 3 px.
-	# As in the real exported portrait canvas, the HUD must span *both* axes
-	# after the physical->logical stretch. Otherwise bottom-anchored actions
-	# sit above the simulated screen and overlap checks judge a fictitious HUD.
-	controls.size = Vector2(390.0 / 0.3047, 844.0 / 0.3047)
-	controls.call("apply_layout_for_size", Vector2(390.0, 844.0), 0.3047)
-	# One frame so the containers settle at the new font sizes before measuring.
-	await process_frame
-	await process_frame
-	var portrait_font := float(pause_button.get_theme_font_size("font_size")) * 0.3047
-	var portrait_body_font := float(wave_enemy_label.get_theme_font_size("font_size")) * 0.3047
-	# Opening/refreshing the armory must not reset its action text to Godot's
-	# unscaled 13-unit default (~4 physical px on a portrait WASM canvas).
-	var armory := controls.get("_armory_panel") as Control
-	armory.call("refresh_profile", 0, 0, {"pulse_rifle": true}, &"pulse_rifle")
-	var buy_button := armory.get("_weapon_buttons")[1] as Button
-	var buy_font := float(buy_button.get_theme_font_size("font_size")) * 0.3047
-	_expect(buy_font >= 14.5, "portrait armory UNLOCK/EQUIP text stays >=15 physical px")
-	var vitals_card := controls.get("_health_card") as Control
-	var wave_card := controls.get("_wave_card") as Control
-	var system_row := controls.get("_system_row") as Control
-	var rail_gap := float(controls.call("_to_layout", 8.0))
 	_expect(
 		(
-			(
-				(
-					wave_card.get_global_rect().position.y
-					>= vitals_card.get_global_rect().end.y + rail_gap - 1.0
-				)
-				and (
-					wave_card.get_global_rect().position.y
-					>= (
-						system_row.get_global_rect().end.y
-						+ float(controls.call("_to_layout", 3.0))
-						- 1.0
-					)
-				)
-			)
+			not wave_card.get_global_rect().intersects(vitals_card.get_global_rect())
+			and not system_row.get_global_rect().intersects(vitals_card.get_global_rect())
 			and (
 				defense_button.get_global_rect().position.y
-				>= wave_card.get_global_rect().end.y + rail_gap - 1.0
+				>= wave_card.get_global_rect().end.y - 1.0
 			)
 		),
-		"portrait objective and start action stack below vitals without overlap",
+		(
+			(
+				"vitals, objective and start action share the top rail without overlap "
+				+ "(vitals=%s objective=%s start=%s system=%s)"
+			)
+			% [
+				vitals_card.get_global_rect(),
+				wave_card.get_global_rect(),
+				defense_button.get_global_rect(),
+				system_row.get_global_rect(),
+			]
+		),
 	)
-	var portrait_gap := float(controls.call("_to_layout", 5.9))
-	var feedback_panel := controls.get("_feedback_panel") as Control
-	var ammo_panel := controls.get("_touch_ammo_chip") as Control
+	# Opening/refreshing the armory must not reset its action text to Godot's
+	# unscaled 13-unit default, which on a scaled canvas is a fraction of a
+	# physical pixel.
+	armory.call("refresh_profile", 0, 0, {"pulse_rifle": true}, &"pulse_rifle")
+	var buy_button := armory.get("_weapon_buttons")[1] as Button
+	var buy_font := float(buy_button.get_theme_font_size("font_size")) * LANDSCAPE_STRETCH
+	_expect(buy_font >= 14.5, "armory UNLOCK/EQUIP text stays >=15 physical px")
 	_expect(
 		(
 			not feedback_panel.get_global_rect().intersects(weapon_button.get_global_rect())
@@ -269,90 +212,46 @@ func _run_smoke_test() -> void:
 			and not feedback_panel.get_global_rect().intersects(skill_button.get_global_rect())
 			and not feedback_panel.get_global_rect().intersects(aim_button.get_global_rect())
 		),
-		"portrait Explore feedback does not hide the SWAP/ammo dock or EMP",
+		"Explore feedback does not hide the SWAP/ammo dock or EMP",
 	)
 	feedback_panel.call("show_message", "EMP PULSE · NO TARGETS")
 	_expect(
-		(controls.get("_feedback_panel").get("_message_label") as Label).text == "NO\nTARGETS",
-		"portrait Explore feedback remains legible in the slim lane between real buttons",
+		(controls.get("_feedback_panel").get("_message_label") as Label).text == "NO TARGETS",
+		"Explore feedback stays legible in the lane between real buttons",
 	)
 	feedback_panel.call("clear_message")
-	var portrait_skill_ring := controls.get("_skill_ring") as Control
 	_expect(
 		(
-			portrait_skill_ring.visible
-			and (
-				(
-					portrait_skill_ring.get_global_rect().get_center().distance_to(
-						skill_button.get_global_rect().get_center()
-					)
-					* 0.3047
-				)
-				< 2.0
+			ring.visible
+			and ring.get_global_rect().get_center().distance_to(
+				skill_button.get_global_rect().get_center()
 			)
+			* LANDSCAPE_STRETCH
+			< 2.0
 		),
-		"portrait EMP cooldown ring stays visibly centred around its icon",
+		"EMP cooldown ring stays visibly centred around its icon",
 	)
 	_expect(
 		(
-			weapon_button.get_global_rect().size.y * 0.3047 >= 122.0
-			and weapon_button.get_global_rect().size.x * 0.3047 >= 122.0
-			and weapon_button.get_global_rect().get_center().x * 0.3047 < 80.0
-			and (
-				weapon_button.get_global_rect().position.y
-				>= defense_button.get_global_rect().end.y + portrait_gap
-			)
-			and fire_button.get_global_rect().size.x * 0.3047 >= 200.0
-			and fire_button.get_global_rect().size.y * 0.3047 >= 200.0
-			and fire_button.get_theme_constant("icon_max_width") * 0.3047 >= 190.0
-			and fire_button.expand_icon
-			and aim_button.get_global_rect().size.x * 0.3047 >= 122.0
-			and aim_button.get_theme_constant("icon_max_width") * 0.3047 >= 113.0
-			and skill_button.get_global_rect().size.x * 0.3047 >= 122.0
-			and skill_button.get_theme_constant("icon_max_width") * 0.3047 >= 110.0
-			and pause_button.get_global_rect().size.x * 0.3047 >= 62.0
-			and pause_button.get_global_rect().size.y * 0.3047 >= 62.0
-			and not weapon_button.get_global_rect().grow(portrait_gap).intersects(
+			weapon_button.get_global_rect().size.x * LANDSCAPE_STRETCH >= 110.0
+			and fire_button.get_global_rect().size.x * LANDSCAPE_STRETCH >= 178.0
+			and fire_button.get_global_rect().size.y * LANDSCAPE_STRETCH >= 178.0
+			and aim_button.get_global_rect().size.x * LANDSCAPE_STRETCH >= 110.0
+			and skill_button.get_global_rect().size.x * LANDSCAPE_STRETCH >= 110.0
+			and not weapon_button.get_global_rect().grow(landscape_gap).intersects(
 				aim_button.get_global_rect()
 			)
-			and not fire_button.get_global_rect().grow(portrait_gap).intersects(
+			and not fire_button.get_global_rect().grow(landscape_gap).intersects(
 				aim_button.get_global_rect()
 			)
-			and not fire_button.get_global_rect().grow(portrait_gap).intersects(
+			and not fire_button.get_global_rect().grow(landscape_gap).intersects(
 				skill_button.get_global_rect()
 			)
 		),
-		"portrait FIRE/ADS/EMP finger targets clear the upper-left SWAP dock and each other",
+		"FIRE 180, AIM/EMP/SWAP 112 finger targets clear each other and the SWAP dock",
 	)
-	_expect(
-		(
-			is_equal_approx(float(controls.get("_ui_scale")), 0.64)
-			and is_equal_approx(float(controls.get("_stretch")), 0.3047)
-			# The promise is about pixels on the glass, not about the canvas: the
-			# web build keeps a 1280-unit logical canvas in portrait, so a 390 px
-			# phone renders every logical pixel at ~0.3x.
-			and portrait_font >= 12.5
-			and portrait_body_font >= 12.5
-			and weapon_button.get_theme_constant("icon_max_width") * 0.3047 >= 113.0
-			and pause_button.get_theme_constant("icon_max_width") * 0.3047 >= 46.0
-			and wave_card.size.y >= wave_enemy_label.get_combined_minimum_size().y
-			and defense_button.get_global_rect().size.y * 0.3047 >= 55.0
-		),
-		(
-			(
-				"portrait HUD text stays >=13 physical px (%.1f / %.1f), "
-				+ "objective and start control fit (%.0f >= %.0f)"
-			)
-			% [
-				portrait_body_font,
-				portrait_font,
-				wave_card.size.y,
-				wave_enemy_label.get_combined_minimum_size().y,
-			]
-		),
-	)
-	# Press the NEW strip left of the old 160px FIRE rect, not its centre.
-	# Rect-size assertions alone would miss a stale dispatcher/hitbox.
+	# Press the left rim of the face, not its centre: rect-size assertions alone
+	# would miss a stale dispatcher/hitbox.
 	var fire_edge: Vector2 = fire_button.get_global_rect().get_center()
 	fire_edge.x = fire_button.get_global_rect().position.x + float(controls.call("_to_layout", 5.0))
 	_expect(
@@ -371,7 +270,7 @@ func _run_smoke_test() -> void:
 	)
 	_expect(
 		controls.call("_find_touch_button", pause_edge) == pause_button,
-		"the 64px Pause face extends beyond the old 56px hitbox",
+		"the Pause face is a touch target out to its drawn edge",
 	)
 	controls.call("_set_play_phase", "defense")
 	_expect(
@@ -380,63 +279,10 @@ func _run_smoke_test() -> void:
 			and not feedback_panel.get_global_rect().intersects(weapon_button.get_global_rect())
 			and feedback_panel.get_global_rect().end.y < weapon_button.get_global_rect().position.y
 		),
-		"portrait Defense feedback moves into the vacated START row, clear of SWAP",
+		"Defense feedback moves into the vacated START row, clear of SWAP",
 	)
 	controls.call("_set_play_phase", "explore")
-	# A 375x667 phone must gain REAL hit area without pushing EMP into the
-	# Explore action row. Do not accept a larger painted icon in the old rect.
-	const SHORT_STRETCH := 375.0 / 1280.0
-	controls.size = Vector2(375.0 / SHORT_STRETCH, 667.0 / SHORT_STRETCH)
-	controls.call("apply_layout_for_size", Vector2(375.0, 667.0), SHORT_STRETCH)
-	await process_frame
-	var short_gap := float(controls.call("_to_layout", 5.0))
-	_expect(
-		(
-			fire_button.get_global_rect().size.x * SHORT_STRETCH >= 184.0
-			and fire_button.get_global_rect().size.y * SHORT_STRETCH >= 184.0
-			and aim_button.get_global_rect().size.x * SHORT_STRETCH >= 106.0
-			and skill_button.get_global_rect().size.x * SHORT_STRETCH >= 106.0
-			and weapon_button.get_global_rect().size.x * SHORT_STRETCH >= 110.0
-			and pause_button.get_global_rect().size.x * SHORT_STRETCH >= 62.0
-			and not feedback_panel.get_global_rect().intersects(skill_button.get_global_rect())
-			and not feedback_panel.get_global_rect().intersects(ammo_panel.get_global_rect())
-			and (
-				(
-					(
-						skill_button.get_global_rect().position.y
-						- (controls.get("_armory_button") as Control).get_global_rect().end.y
-					)
-					* SHORT_STRETCH
-				)
-				>= 6.0
-			)
-			and not fire_button.get_global_rect().grow(short_gap).intersects(
-				aim_button.get_global_rect()
-			)
-			and not aim_button.get_global_rect().grow(short_gap).intersects(
-				skill_button.get_global_rect()
-			)
-			and (
-				(
-					portrait_skill_ring.get_global_rect().get_center().distance_to(
-						skill_button.get_global_rect().get_center()
-					)
-					* SHORT_STRETCH
-				)
-				< 2.0
-			)
-		),
-		"short portrait enlarges button hit rects and keeps EMP below Explore actions",
-	)
-	# The browser's canvas_items layout spans 844 / .541667 logical units,
-	# not the headless runner's default 1280. Resize the HUD rect as well as
-	# overriding physical pixels so the right rail can actually fit on-screen.
-	controls.size = Vector2(844.0 / 0.541667, 390.0 / 0.541667)
-	controls.call("apply_layout_for_size", Vector2(844.0, 390.0), 0.541667)
-	await process_frame
-	var landscape_gap := float(controls.call("_to_layout", 5.9))
 	var emp_center: Vector2 = skill_button.get_global_rect().get_center()
-	var ring := controls.get("_skill_ring") as Control
 	_expect(
 		(
 			weapon_button.get_global_rect().size.y * 0.541667 >= 110.0
@@ -565,16 +411,6 @@ func _run_smoke_test() -> void:
 	_expect(armory.visible and paused, "compact SWAP face opens Armory in Explore")
 	main_scene.call("_close_armory")
 	_expect(not paused, "closing compact Armory resumes safe Explore")
-	controls.size = Vector2(1280.0, 720.0)
-	controls.call("apply_layout_for_size", Vector2(1280.0, 720.0), 1.0)
-	_expect(
-		(
-			not compact_card.visible
-			and not controls.get("_run_card").visible
-			and wave_enemy_label.visible
-		),
-		"desktop retains the left-side objective without the run-data table",
-	)
 	_expect(
 		not help_label.is_visible_in_tree(),
 		"play opens without a large control overlay obscuring the world",
@@ -586,7 +422,7 @@ func _run_smoke_test() -> void:
 	controls.call("show_help")
 	var camera_rig := player.get_node("CameraRig")
 	# The rig pulls back on a narrow viewport, so the rest distance is a floor and
-	# the exported portrait factor is the ceiling.
+	# the exported factor is the ceiling.
 	var rest_distance := float(camera_rig.get("rest_spring_length"))
 	var max_distance := rest_distance * float(camera_rig.get("portrait_distance_factor"))
 	_expect(

@@ -81,7 +81,9 @@ function back() {
 function describeViewport() {
   const w = Math.round(window.innerWidth);
   const h = Math.round(window.innerHeight);
-  return `${w}×${h} · ${w >= h ? 'landscape' : 'portrait'}`;
+  // The shell is landscape-only, so the readout states the measured shape and
+  // flags the one case the product does not serve instead of pretending to.
+  return `${w}×${h} · ${w >= h ? 'mendatar' : 'tegak · tidak didukung'}`;
 }
 
 function describeInput() {
@@ -95,12 +97,9 @@ function describeInput() {
 function paintReadouts() {
   el('strip-view').textContent = describeViewport();
   el('strip-input').textContent = describeInput();
-  el('hub-view').textContent = `${Math.round(window.innerWidth)}×${Math.round(window.innerHeight)}`;
-  el('hub-input').textContent = describeInput();
   el('about-view').textContent = describeViewport();
   el('about-build').textContent = 'lokal';
   el('about-engine').textContent = engineReady ? 'siap' : 'belum dimuat';
-  el('about-storage').textContent = 'lokal';
   el('strip-engine').dataset.state = engineReady ? 'ok' : 'warn';
   el('strip-engine-label').textContent = engineReady ? 'siap' : 'siaga';
 }
@@ -205,6 +204,7 @@ function applyMotionPref() {
  * it never starts an encounter on the player's behalf.
  */
 function deploy() {
+  lockLandscape();
   el('launch-title').textContent = 'Menyiapkan dunia';
   show('launch', { focus: false });
   el('canvas').dataset.hidden = 'true';
@@ -308,7 +308,6 @@ function revealCanvas() {
 
 el('opening-enter').addEventListener('click', () => show('hub'));
 el('hub-deploy').addEventListener('click', () => deploy());
-el('hub-controls').addEventListener('click', () => show('settings'));
 el('hub-card-controls').addEventListener('click', () => show('settings'));
 el('hub-card-display').addEventListener('click', () => show('settings'));
 el('settings-close').addEventListener('click', () => show('hub'));
@@ -349,7 +348,24 @@ document.addEventListener('keydown', (event) => {
 window.addEventListener('resize', paintReadouts);
 document.addEventListener('fullscreenchange', () => {
   el('opt-fullscreen').setAttribute('aria-checked', String(Boolean(document.fullscreenElement)));
+  if (document.fullscreenElement) lockLandscape();
 });
+
+/*
+ * Landscape is the product's only orientation. Fullscreen is the one context a
+ * browser lets a page ask for it (and iOS refuses even there), so the lock is a
+ * best effort: the CSS guard already keeps a portrait window on the rotate
+ * notice, and nothing here blocks the game if the API says no.
+ */
+function lockLandscape() {
+  try {
+    if (typeof screen.orientation?.lock === 'function') {
+      screen.orientation.lock('landscape').catch(() => {});
+    }
+  } catch {
+    /* not supported: the rotate notice is the fallback */
+  }
+}
 
 /* ------------------------------------------------------------------ boot */
 

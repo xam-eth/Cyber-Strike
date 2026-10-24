@@ -38,12 +38,11 @@ const tag = flag('--tag', 'ui');
 const outDir = path.resolve(ROOT, flag('--out', path.join('qa-evidence', 'ui', tag)));
 const port = Number(flag('--port', '8172'));
 const only = list('--only');
-const viewports = list('--viewport').length ? list('--viewport') : ['1280x720', '390x844'];
+const viewports = list('--viewport').length ? list('--viewport') : ['844x390', '1280x720'];
 
 const SCREENS = [
   { id: 'opening', query: '?ui=opening' },
   { id: 'hub', query: '?ui=hub' },
-  { id: 'deploy', query: '?ui=deploy' },
   { id: 'settings', query: '?ui=settings' },
 ];
 const wanted = only.length ? SCREENS.filter((screen) => only.includes(screen.id)) : SCREENS;

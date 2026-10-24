@@ -188,12 +188,17 @@ screen for devices with no Escape key.
 
 ## Layout at phone sizes
 
-The project stretches a 1280x720 canvas with `aspect=expand`, so on a 390x844
-phone the canvas is 1280x2770 at 0.305 scale: a button authored as 60 canvas
-units reaches the screen 18 px tall and a 24 px gap lands at 7. Authoring in
+The project stretches a 1280x720 canvas with `aspect=expand`, so on the shipped
+844x390 phone the canvas is 1558x720 at 0.542 scale: a button authored as 60
+canvas units reaches the screen 32 px tall and a 24 px gap lands at 13. Authoring in
 canvas units is why the first pass read as broken rather than small. Every menu
 size is therefore written in **physical pixels** and converted once, through
 `MenuStage.px()`.
+
+There is one layout: a phone held sideways. A portrait window is refused by the
+web shell's rotation notice, and every stage keeps the landscape composition at
+any window size, so there is no second arrangement to drift from the one that is
+tested.
 
 | `MenuStage` helper | What it is for |
 | --- | --- |
@@ -201,36 +206,36 @@ size is therefore written in **physical pixels** and converted once, through
 | `physical_min_size()` / `physical_separation()` | author a size once, re-convert it on resize or rotation |
 | `card_line()` | card text that wraps to the card instead of widening the screen it lives in |
 | `enforce_font_floor()` | nothing renders below `AegisTokens.MIN_PHYSICAL_FONT_PX` |
-| `is_landscape()` | wider than 1.2x taller |
-| `_size_both()` / `_orient_nodes()` | a portrait size and a landscape size for one control |
-| `_make_card_list()` / `_orient_card_list()` | a card column in portrait, a card row in landscape |
-| `_make_selection_split()` / `_orient_selection()` | the landscape layout: text beside the list |
+| `is_landscape()` | always true; kept for callers that asked |
+| `_size()` / `_orient_nodes()` | one authored size for a control, re-measured on resize |
+| `_make_card_list()` / `_orient_card_list()` | the card row that scrolls sideways |
+| `_make_selection_split()` / `_orient_selection()` | text beside the list |
 
-Orientation is handled on `resized`, so rotating a device re-lays out the screen
-without rebuilding it:
+Every stage re-lays itself out on `resized`, so a window that changes size
+re-flows without being rebuilt:
 
-* **DASHBOARD** stacks wordmark → stats → actions in portrait (DEPLOY last,
-  bottom-anchored, closest to the thumb). In landscape it splits: stats left,
-  actions right. The stack is ~500 px tall and a landscape phone is 390 px,
-  which is what put DEPLOY at y=444, 114 px past the bottom edge.
-* **HERO / WORLD** scroll one card per row in portrait. In landscape the
-  heading, the summary and the footer move into a fixed-width info column and the
-  card list becomes a row that scrolls sideways beside it: a stacked header
-  leaves the list ~130 px of a 390 px screen, and a 216 px card in a 130 px
-  window is unusable. Locked placeholder slots travel with the real cards and
-  stay disabled.
+* **DASHBOARD** splits the rows left and the record and actions right. The
+  stacked version is ~500 px tall and a landscape phone is 390 px, which is what
+  put DEPLOY at y=444, 114 px past the bottom edge.
+* **HERO / WORLD** put the heading, the summary and the footer in a fixed-width
+  info column and make the card list a row that scrolls sideways beside it: a
+  stacked header leaves the list ~130 px of a 390 px screen, and a 216 px card in
+  a 130 px window is unusable. Locked placeholder slots travel with the real
+  cards and stay disabled.
 
 Measured, in physical pixels, from the browser's own rect report
-(`?qa_menu=1`, touch insets `SAFE=8,8,28`) and from `menu_layout_smoke.gd`:
+(`?qa_menu=1`, touch insets `SAFE=8,8,28`) and from `menu_layout_smoke.gd`, on
+the one viewport the front end ships for:
 
-| Screen | 390x844 | 844x390 |
-| --- | --- | --- |
-| DASHBOARD | `DEPLOY=36,732,320x60` | `DEPLOY=427,278,381x60` (was `36,444` — off screen) |
-> Node names in this table were recorded before the HERO card was named from the
-> hero id; the card is now `ExoOperativeCard`, and the rects are unchanged.
+| Screen | 844x390 |
+| --- | --- |
+| DASHBOARD | `DEPLOY=427,278,381x60` (was `36,444` — off screen when the screen stacked) |
+| HERO | `ExoOperativeCard=346,54,340x190`, `BACK=36,282,144x56` |
+| WORLD | `NeonFrontierCard=346,54,340x168`, `LAUNCH` bottom right |
 
-| HERO | `ExoOperativeCard=36,132,318x190`, `BACK=36,736,153x56` | `ExoOperativeCard=346,54,340x190`, `BACK=36,282,144x56` |
-| WORLD | `NeonFrontierCard=36,115,318x168`, `LAUNCH=201,736,153x56` | `NeonFrontierCard=346,54,340x168`, `LAUNCH` bottom right |
+> Node names were recorded before the HERO card was named from the hero id; the
+> card is now `ExoOperativeCard`. The icons in the dock are glyphs at this
+> height, so the tab labels are not part of the measurement.
 
 Every action is 56–60 px tall, and in every measurement above the lowest pixel
 of the last action is at least 24 px clear of the safe area.
@@ -248,12 +253,12 @@ The project ships no video any more, so there is no video asset test and no
 be photographed via `?qa_stage=LOADING|PRELOAD` because with no targets it leaves
 on the next frame.
 
-`tests/menu_layout_smoke.gd` mounts the same scene once and then rotates
-the live viewport through 390x844, 844x390, 360x640 and 1280x720 (sixteen
-stage/size combinations, twelve of them reached by rotation) and asserts, in
-physical pixels, that nothing outside a scroll container is drawn outside the
-viewport, that no button is under the 56 px touch floor, and that every card list
-can be scrolled to the end with the cards moving with it. It prints the same rect
+`tests/menu_layout_smoke.gd` mounts the same scene once and then resizes
+the live viewport from 844x390 to 667x375 (six stage/size combinations, three of
+them reached by resizing) and asserts, in physical pixels, that nothing outside a
+scroll container is drawn outside the viewport, that no button is under the 56 px
+touch floor, and that every card list can be scrolled to the end with the cards
+moving with it. It prints the same rect
 report as `?qa_menu=1`, so the headless numbers and the browser numbers can be
 read against each other.
 

@@ -788,7 +788,28 @@ body[data-mode='playing'] #canvas {
   max-width: 34rem;
 }
 
+/* The settings sheet: one column of switches, one of reference, side by side. */
+.sheet__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: var(--s4);
+  align-items: start;
+  margin-top: var(--s3);
+}
+
+.sheet__col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  min-width: 0;
+}
+
+.sheet__col .statusgrid {
+  margin-top: var(--s3);
+}
+
 /* The product wordmark, used the way the engine uses it: the logo is the name. */
+
 .hub__brief {
   display: flex;
   flex-direction: column;
@@ -1024,170 +1045,217 @@ body[data-mode='playing'] #canvas {
 }
 
 /* ==========================================================================
-   Portrait: one column, tighter rhythm, bigger primary action
+   Landscape: the only layout
+
+   There is one design and it is the phone held sideways. Everything below is a
+   base rule, not a breakpoint: the numbers were measured at 844x390 and every
+   type step is clamped against both width and height, so a 1280x720 laptop or a
+   1920x1080 monitor gets the same composition, larger — never a second layout.
+   A portrait window is not re-arranged; it is told to rotate (see `.rotate`).
    ========================================================================== */
 
-@media (max-width: 719px), (orientation: portrait) and (max-width: 1024px) {
-  :root {
-    --gutter: 18px;
-    --bracket: 10px;
-  }
+.opening {
+  grid-template-columns: minmax(0, 1.5fr) minmax(260px, 0.9fr);
+}
 
-  .strip {
-    gap: var(--s2);
-    font-size: 0.58rem;
-  }
+.hub {
+  grid-template-columns: minmax(0, 1.45fr) minmax(260px, 0.95fr);
+}
 
-  .strip__item--wide {
-    display: none;
-  }
+/* `safe center` is the whole trick of the short landscape screen: the content
+   is optically centred when it fits, and the top stays reachable (instead of
+   being clipped by the centring) the moment it does not. */
+.screen {
+  justify-content: safe center;
+}
 
-  /* The brand is the one item allowed to shrink: the readouts beside it are
-     measured facts and stay at full size. */
-  .strip__mark {
-    letter-spacing: 0.1em;
-    flex: 0 1 auto;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+.screen__inner {
+  margin-block: auto;
+  gap: clamp(var(--s3), 2.4vh, var(--s5));
+}
 
-  .viewport {
-    padding-top: calc(50px + var(--s4) + var(--safe-t));
-  }
+.viewport {
+  padding-top: calc(46px + var(--s3) + var(--safe-t));
+}
 
-  .hub {
-    gap: var(--s4);
-  }
+/* Type scales with the height of a landscape window, which is the dimension a
+   phone actually has to spend: at 390 px tall the display line is 28 px, at
+   720 px tall it is 46 px. */
+.display {
+  font-size: clamp(1.6rem, min(4.2vw, 7vh), 2.9rem);
+  line-height: 1.02;
+}
 
-  .hub__lead {
-    padding: var(--s4);
-  }
+.opening__word {
+  font-size: clamp(1.7rem, min(5vw, 8.4vh), 3.4rem);
+  letter-spacing: 0.12em;
+}
 
-  .card {
-    padding: var(--s3) var(--s3) var(--s2);
-  }
+.title {
+  font-size: clamp(1.25rem, min(3.2vw, 4.6vh), 1.9rem);
+}
 
-  .card__title {
-    font-size: 1.18rem;
-  }
+.body {
+  font-size: clamp(0.78rem, 1.9vh, 0.95rem);
+  line-height: 1.5;
+}
 
-  .card__desc {
-    font-size: 0.8rem;
-  }
+.eyebrow {
+  font-size: clamp(0.56rem, 1.35vh, 0.66rem);
+}
 
-  .btn {
-    width: 100%;
-    padding-inline: var(--s4);
-  }
+.strip {
+  gap: var(--s3);
+  font-size: clamp(0.56rem, 1.5vh, 0.66rem);
+}
 
-  .btn__meta {
-    margin-left: auto;
-  }
+.hub__lead {
+  padding: clamp(var(--s3), 2.6vh, var(--s4));
+  gap: clamp(var(--s2), 1.6vh, var(--s3));
+}
 
-  .opening__word {
-    letter-spacing: 0.2em;
-  }
+.hub__lead .rule {
+  margin-block: 0;
+}
 
-  .statusgrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+.hub__mark {
+  width: clamp(150px, 30vh, 300px);
+}
+
+.hub__lead .body {
+  font-size: clamp(0.76rem, 1.85vh, 0.9rem);
+  line-height: 1.45;
+}
+
+.hub__brief {
+  padding: var(--s2) var(--s3);
+}
+
+.card {
+  gap: var(--s2);
+}
+
+.card__title {
+  font-size: clamp(1rem, 2.8vh, 1.2rem);
+}
+
+.card__desc {
+  font-size: clamp(0.74rem, 1.9vh, 0.86rem);
+}
+
+.card--row {
+  min-height: 0;
+  padding: clamp(var(--s2), 1.9vh, var(--s3)) var(--s3);
+}
+
+.card--row .card__desc {
+  display: none;
+}
+
+.card--row .card__title {
+  font-size: clamp(0.95rem, 2.6vh, 1.12rem);
+}
+
+.screen__head {
+  gap: var(--s2);
+}
+
+.btn--primary {
+  min-height: clamp(44px, 11vh, 56px);
+}
+
+.statusgrid {
+  gap: 1px;
+}
+
+.statusgrid > div {
+  padding: var(--s2) var(--s3);
+}
+
+.statusgrid .metric__val {
+  font-size: clamp(0.8rem, 2vh, 0.95rem);
+}
+
+/* ---- landscape enforcement ------------------------------------------------
+   The product has one orientation. A portrait window gets a single instruction
+   instead of a squeezed copy of the layout, and the shell is not painted at
+   all, so nothing can be photographed or reviewed in an unsupported shape. */
+
+.rotate {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s4);
+  padding: var(--s6) var(--s5);
+  text-align: center;
+  background: var(--void);
+}
+
+.rotate__icon {
+  width: 54px;
+  height: 54px;
+  border: 1px solid var(--line-hi);
+  border-radius: var(--radius);
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+  animation: turn 2.6s var(--ease) infinite;
+}
+
+.rotate__icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.rotate__title {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.rotate__hint {
+  max-width: 30ch;
+  color: var(--ink-3);
+  font-size: var(--text-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+}
+
+@keyframes turn {
+  0%,
+  40% {
+    transform: rotate(0deg);
+  }
+  70%,
+  100% {
+    transform: rotate(90deg);
   }
 }
 
-/* Landscape with room: the hub becomes two columns.
-   720px is the honest threshold — a phone on its side is 844x390 and needs the
-   two-column hub just as much as a laptop does. */
-@media (min-width: 720px) and (orientation: landscape) {
-  .opening {
-    grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.85fr);
-  }
-
-  .hub {
-    grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.9fr);
-  }
-}
-
-/* Short landscape (phones on their side): screens start at the top and scroll,
-   and the type steps down so the whole choice fits without one. */
-@media (orientation: landscape) and (max-height: 560px) {
-  .screen {
-    align-items: flex-start;
-  }
-
-  .screen__inner {
-    margin-block: 0;
-    gap: var(--s4);
-  }
-
-  .viewport {
-    padding-top: calc(46px + var(--s3) + var(--safe-t));
-  }
-
-  .display {
-    font-size: clamp(1.6rem, 4.4vw, 2.2rem);
-  }
-
-  .opening__word {
-    font-size: clamp(1.8rem, 5.4vw, 2.8rem);
-  }
-
-  .body {
-    font-size: 0.82rem;
-  }
-
-  .card__desc {
-    font-size: 0.78rem;
-  }
-
-  .statusgrid > div {
-    padding: var(--s2) var(--s3);
-  }
-
-  .hub__lead {
-    padding: var(--s4);
-    gap: var(--s2);
-  }
-
-  .hub__lead .rule {
-    margin-block: 0;
-  }
-
-  /* On a phone on its side there is no vertical room for a two-line wordmark,
-     so the break becomes a space instead of being cut off. */
-  .hub__mark {
-    width: min(300px, 100%);
-  }
-
-  .hub__lead .body {
-    font-size: 0.78rem;
-    line-height: 1.45;
-  }
-
-  .btn--primary {
-    min-height: 46px;
-  }
-
-  .statusgrid {
-    gap: 1px;
-  }
-
-  .card--row {
-    min-height: 0;
-    padding: var(--s2) var(--s3);
-  }
-
-  .card--row .card__desc {
+@media (orientation: portrait) {
+  #app,
+  .field {
     display: none;
   }
 
-  .screen__head {
-    gap: var(--s2);
+  .rotate {
+    display: flex;
   }
+}
 
-  .title {
-    font-size: clamp(1.3rem, 3.4vw, 1.6rem);
-  }
+html[data-motion='reduced'] .rotate__icon {
+  animation: none;
+}
 
-  .card {
-    gap: var(--s2);
+@media (prefers-reduced-motion: reduce) {
+  .rotate__icon {
+    animation: none;
   }
 }

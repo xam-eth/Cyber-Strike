@@ -49,7 +49,9 @@ sudah ada di dunia, tetapi merapikannya menjadi sistem:
    Rajdhani menggantikan Barlow: keduanya condensed dan bersudut, dan baris
    uppercase ala lobby terbaca lebih baik di Rajdhani pada ukuran yang sama.
 3. **Ikon:** Phosphor (MIT), regular untuk default, fill untuk state aktif.
-4. **Mobile:** landscape sebagai mode utama, portrait tetap didukung.
+4. **Mobile:** landscape adalah satu-satunya layout. Portrait dan desktop tidak
+   punya tata letak sendiri; layar portrait ditolak oleh pemberitahuan rotasi di
+   shell web.
 5. **HUD editor** dikerjakan pada milestone M4, bukan ditunda ke v2.
 
 Kelima keputusan **pernah** disetujui untuk fase AEGIS. Masukan terbaru
@@ -221,7 +223,7 @@ Lantai fisik: **11px** setelah skala kanvas (sudah ada di
 
 * Spacing: kelipatan **4** — `2, 4, 8, 12, 16, 24, 32, 48`.
 * Padding panel **12**; gap antar elemen **8**; jarak antar target sentuh **12**;
-  inset layar **20** (desktop) / **12** (HP).
+  inset layar **12** untuk HP landscape.
 * Radius **0–2px**. Bracket sudut **10px**, stroke **1px**. Accent edge **2px**.
 * Elevasi bukan shadow: `scrim` (0.62–0.74) + panel 92–96%. Tidak ada drop shadow.
 
@@ -267,7 +269,6 @@ Semua durasi berhenti kalau `reduce_motion` aktif.
 | ADS | 1004, 580 | 76×36 | crosshair + label; accent edge saat aktif |
 | EMP | 1088, 580 | 172×36 | ikon, label, `READY`, progres 2px |
 | Weapon | 992, 624 | 268×76 | nama, tipe, ammo mono 30, `3` slot |
-| Legend | 20, 672 | keycaps 22px | WASD/Shift/Space/RMB, hanya desktop |
 | Reticle | 640, 360 | tick 6 · gap 12 | stroke 1.5, titik 2px |
 
 Inset layar 20px; panel tidak boleh menyentuh tepi. Total area atas yang
@@ -574,17 +575,18 @@ Kriteria visual kolom “Selesai bila” harus divalidasi ulang dengan rujukan b
 | # | Isi | File utama | Selesai bila | Status |
 |---|---|---|---|---|
 | M0 | Token + theme + font + ikon | `aegis_tokens.gd`, `aegis_theme.gd`, `assets/ui/` | HUD lama tampil dengan token baru | ✅ token/tema terpasang; arah palet perlu validasi ulang |
-| M1 | HUD desktop baru | `touch_controls.gd`, `hud_layout.gd`, `hud_renderer.gd` | Board 02 cocok di 1280×720; smoke hijau | ✅ kode terpasang; smoke 13/13 (2026-10-17); **bukan** tanda board disetujui |
-| M2 | HUD sentuh + portrait/landscape | `hud_layout.gd` (`touch_portrait`, `touch_landscape`) | Board 03 cocok di 390×844 & 844×390 | ✅ layout mobile tersedia; QA WASM 3 viewport lulus untuk interaksi yang diuji, **bukan** persetujuan keterbacaan |
+| M1 | HUD sentuh landscape | `touch_controls.gd`, `ui/hud/`, `ui_layout.gd` | Board 02 cocok di 844×390; smoke hijau | ✅ satu layout; smoke hijau; **bukan** tanda board disetujui |
+| M2 | HUD landscape-only | `ui_layout.gd` (`landscape()`) | Board 03 cocok di 844×390 & 667×375 | ✅ portrait dan desktop dihapus dari kode; QA frame 844×390 lulus untuk interaksi yang diuji, **bukan** persetujuan keterbacaan |
 | M3 | Pause + results | `_build_pause_menu`, `_build_results_panel` | Board 05; ESC/focus benar | ⏳ Pause diuji pada WASM; **hasil/results belum berhasil dijangkau** pada probe idle, sehingga visual results belum terverifikasi |
 | M4 | Settings + HUD editor | `aegis_settings_menu.gd`, `hud_editor.gd` | Board 06; setting persist | ✅ Interaksi/settings/editor yang diuji lulus smoke dan QA WASM; **bukan persetujuan visual** |
 | M5 | Polish + a11y | theme, motion | `reduce_motion`, kontras, 44px | ⏳ Sebagian preferensi tersedia dan diuji; kontras, animasi, keterbacaan kontrol di tangan pemain/perangkat nyata **belum** divalidasi |
 | M6 | QA + evidence | smoke, `web_qa` | Semua frame + smoke 16/16 | ⏳ CI run `39088836330`: **16/16 smoke PASS**; QA payload `95f39f6`: **3/3 viewport PASS** untuk interaksi yang diuji. Frame results, perbandingan visual game rilis dan QA perangkat nyata **belum selesai** |
 
 Catatan implementasi: HUD tinggal di satu facade (`touch_controls.gd`) dengan
-geometri di `hud_layout.gd` dan gambar reticle/joystick/vignette di
-`hud_renderer.gd`. Nama file lama (`hud_desktop.gd`, `pause_menu.gd`, …) tidak
-dipakai supaya smoke test lama yang membaca field privat HUD tetap valid.
+geometri di `ui/ui_layout.gd` dan modul di `ui/hud/`. Gerbang gestur pause
+(`hud_pause_gesture.gd`) sudah dihapus bersama layout portrait/desktop. Nama file
+lama (`hud_desktop.gd`, `pause_menu.gd`, …) tidak dipakai supaya smoke test lama
+yang membaca field privat HUD tetap valid.
 
 Estimasi kasar: M0–M2 = 2 hari, M3–M4 = 2 hari, M5–M6 = 1 hari.
 

@@ -28,7 +28,7 @@ const LANDSCAPE_CARD_WIDTH := 400.0
 var front_end: Node = null
 ## Whatever the previous stage passed along. Empty on the first stage.
 var payload: Dictionary = {}
-## The card list's scroll container, registered by `_make_card_list()`.
+## The card list's scroll container, registered by the stage that builds it.
 var _card_scroll: ScrollContainer = null
 ## The stage's primary action (DEPLOY, CONTINUE, LAUNCH), remembered by
 ## `make_button()` so it can take focus when the stage opens.
@@ -262,185 +262,31 @@ func relayout() -> void:
 	enforce_font_floor(self, _stretch)
 
 
-## True when the display is meaningfully wider than it is tall.
+## The front end is landscape-only, so every screen composes for it.
 ##
-## A phone held sideways reports something like 844x390. The same vertical
-## stack that reads well in portrait is then ~500 px tall on a 390 px screen,
-## which is what put DEPLOY and CONTINUE off the bottom edge in the QA
-## measurements. Every selection screen and the dashboard branch on this.
+## A vertical stack is ~500 px tall on a phone on its side and that is what put
+## DEPLOY and CONTINUE off the bottom edge in the QA measurements. Rather than
+## maintaining a second arrangement nobody runs, a portrait window is refused
+## by the shell's rotation notice and every screen here keeps the landscape
+## composition at any window size.
 func is_landscape() -> bool:
-	var size := physical_size()
-	return size.x > size.y * 1.2
+	return true
 
 
-## Authors two sizes for a control, portrait and landscape, and applies the
-## portrait one now. `_orient_nodes()` picks the right one on every relayout, so
-## a rotation re-sizes the node instead of the tree being rebuilt.
-func _size_both(control: Control, portrait: Vector2, landscape: Vector2) -> void:
-	control.set_meta("px_portrait", portrait)
-	control.set_meta("px_landscape", landscape)
-	physical_min_size(control, portrait.x, portrait.y)
+## Authors the one size a control has.
+func _size(control: Control, size_px: Vector2) -> void:
+	physical_min_size(control, size_px.x, size_px.y)
 
 
-## Re-applies whichever of the two sizes `_size_both()` recorded matches the
-## screen right now.
+## Re-applies the authored size after a resize. The landscape size is the only
+## one recorded, so this is now a re-measure rather than an orientation switch.
 func _orient_nodes(nodes: Array) -> void:
-	var landscape := is_landscape()
 	for node in nodes:
 		var control := node as Control
 		if control == null or not control.has_meta("px_landscape"):
 			continue
-		var wanted: Vector2 = control.get_meta("px_landscape" if landscape else "px_portrait")
+		var wanted: Vector2 = control.get_meta("px_landscape")
 		physical_min_size(control, wanted.x, wanted.y)
-
-
-## Builds the two list containers a selection screen needs -- a column for
-## portrait, a row for landscape -- inside `scroll`, and returns them keyed as
-## `column`, `row` and `scroll`. Both are built up front so a rotation only
-## moves cards between them.
-func _make_card_list(scroll: ScrollContainer) -> Dictionary:
-	var host := VBoxContainer.new()
-	host.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	host.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	host.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	physical_separation(host, 0)
-	scroll.add_child(host)
-
-	var column := VBoxContainer.new()
-	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	physical_separation(column, 16)
-	host.add_child(column)
-
-	var row := HBoxContainer.new()
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.visible = false
-	physical_separation(row, 16)
-	host.add_child(row)
-	_card_scroll = scroll
-	# Screen events only reach `_input()` on a node that processes input.
-	set_process_input(true)
-	return {"scroll": scroll, "column": column, "row": row}
-
-
-## Moves `cards` into the list container that matches the current orientation,
-## re-sizes each one through `_size_both()`'s metas, and points the scroll
-## container down the axis that now overflows. Returns the list in use.
-##
-## Portrait is one card per row, full width. Landscape is a row of
-## LANDSCAPE_CARD_WIDTH cards that scrolls sideways: a 390 px tall screen only
-## leaves ~130 px of height for the list once the heading and the footer are
-## placed, and a column of cards in that window is unusable.
-func _orient_card_list(lists: Dictionary, cards: Array) -> BoxContainer:
-	var landscape := is_landscape()
-	var column: BoxContainer = lists["column"]
-	var row: BoxContainer = lists["row"]
-	var active: BoxContainer = row if landscape else column
-	for card in cards:
-		var control := card as Control
-		if control == null:
-			continue
-		if control.get_parent() != active:
-			if control.get_parent() != null:
-				control.get_parent().remove_child(control)
-			active.add_child(control)
-		_orient_nodes([control])
-	column.visible = not landscape
-	row.visible = landscape
-	var scroll: ScrollContainer = lists["scroll"]
-	scroll.horizontal_scroll_mode = (
-		ScrollContainer.SCROLL_MODE_AUTO if landscape else ScrollContainer.SCROLL_MODE_DISABLED
-	)
-	scroll.vertical_scroll_mode = (
-		ScrollContainer.SCROLL_MODE_DISABLED if landscape else ScrollContainer.SCROLL_MODE_AUTO
-	)
-	return active
-
-
-## Builds the landscape half of a selection screen: a fixed-width info column
-## that sits beside the card list, so the heading and the footer stop stealing
-## height from the cards on a 390 px tall screen.
-func _make_selection_split(info_width: float) -> Dictionary:
-	var split := HBoxContainer.new()
-	# EXPAND, not the default FILL: a box container only hands a child more
-	# than its minimum size when the child asks to expand, and the split has to
-	# own the full height or the card list keeps its minimum ~200 px instead of
-	# the 284 px a landscape phone actually has.
-	split.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	split.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	physical_separation(split, 22)
-	var info := VBoxContainer.new()
-	# SHRINK_BEGIN, not the default FILL: the column keeps its authored width
-	# and the card list takes everything that is left.
-	info.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	info.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	physical_separation(info, 18)
-	_size_both(info, Vector2(info_width, 0.0), Vector2(info_width, 0.0))
-	# Remembered for `_orient_selection`, which narrows the column on a wide
-	# screen every time the stage is resized.
-	info.set_meta("aegis_info_width", info_width)
-	split.add_child(info)
-	return {"split": split, "info": info}
-
-
-## Arranges a selection screen for the orientation the device is in.
-##
-## `above` and `below` are the blocks in portrait reading order around the card
-## list: heading and summary above it, the explanatory note and the footer
-## below it. Portrait stacks them all in `stack`; landscape puts the text in
-## `info` -- heading and summary at the top, footer at the bottom -- and moves
-## the list beside it, where it has the full 284 px of height a landscape phone
-## has to offer instead of the ~130 px left over underneath a stacked header.
-func _orient_selection(
-	stack: VBoxContainer,
-	split: HBoxContainer,
-	info: VBoxContainer,
-	scroll: ScrollContainer,
-	above: Array,
-	below: Array
-) -> void:
-	var landscape := is_landscape()
-	# Wide screens get a narrower info column so the card list keeps most of the
-	# width: 300 px is a third of a landscape phone but only a quarter of a
-	# 1280 px desktop.
-	var wide: float = info.get_meta("aegis_info_width", 300.0)
-	physical_min_size(info, minf(wide, physical_size().x * 0.4), 0.0)
-	if stack.has_meta("aegis_landscape") and bool(stack.get_meta("aegis_landscape")) == landscape:
-		return
-	stack.set_meta("aegis_landscape", landscape)
-	for block in above + below:
-		var control := block as Control
-		if control.get_parent() != null:
-			control.get_parent().remove_child(control)
-	if scroll.get_parent() != null:
-		scroll.get_parent().remove_child(scroll)
-	if landscape:
-		if split.get_parent() != stack:
-			stack.add_child(split)
-		for block in above:
-			info.add_child(block)
-		var spacer := Control.new()
-		spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		spacer.set_meta("aegis_spacer", true)
-		info.add_child(spacer)
-		for block in below:
-			info.add_child(block)
-		split.add_child(scroll)
-		return
-	if split.get_parent() == stack:
-		stack.remove_child(split)
-	if scroll.get_parent() == split:
-		split.remove_child(scroll)
-	for child in info.get_children():
-		info.remove_child(child)
-		if bool(child.get_meta("aegis_spacer", false)):
-			child.queue_free()
-	for block in above:
-		stack.add_child(block)
-	stack.add_child(scroll)
-	for block in below:
-		stack.add_child(block)
 
 
 ## A line of text inside a card.

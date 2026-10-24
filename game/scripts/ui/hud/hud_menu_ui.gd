@@ -17,13 +17,6 @@ static func build_pause(hud) -> void:
 	content.add_theme_constant_override("separation", 12)
 	hud._pause_panel.add_child(content)
 
-	hud._pause_swipe_handle = ColorRect.new()
-	hud._pause_swipe_handle.name = "PauseSwipeHandle"
-	hud._pause_swipe_handle.color = AegisTokens.LINE_HI
-	hud._pause_swipe_handle.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	hud._pause_swipe_handle.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	content.add_child(hud._pause_swipe_handle)
-
 	var eyebrow: Label = hud._label("RUN SUSPENDED", "label", AegisTokens.ACCENT)
 	content.add_child(eyebrow)
 	hud._pause_label = hud._label("PAUSED", "display_l", AegisTokens.INK)
@@ -235,7 +228,7 @@ static func show_help(hud) -> void:
 	if not is_instance_valid(hud._help_panel):
 		return
 	hud._help_panel.modulate.a = 1.0
-	hud._help_panel.visible = not (hud._touch_mode and hud._narrow and not hud._portrait)
+	hud._help_panel.visible = not (hud._touch_mode and hud._narrow)
 
 
 static func results_visible(hud) -> bool:
@@ -293,10 +286,6 @@ static func show_results(
 		hud._compact_card,
 		hud._score_chip,
 		hud._run_card,
-		hud._desktop_hint,
-		hud._desktop_weapon_card,
-		hud._emp_chip,
-		hud._ads_chip,
 		hud._skill_ring,
 		hud._touch_ammo_chip,
 	]:
@@ -326,7 +315,7 @@ static func hide_results(hud) -> void:
 
 
 ## Pause is a whole-screen state, not one panel: it decides the scrim, the
-## control hint, the desktop legend, which buttons are dead, and whether the
+## control hint, the help plate, which buttons are dead, and whether the
 ## pause card gets the focus. Keeping all of it in one function is the point —
 ## a half-applied pause is worse than none — but the function belongs with the
 ## panels it drives, not on the facade.
@@ -363,10 +352,6 @@ static func apply_paused(hud, paused: bool) -> void:
 	if is_instance_valid(hud._help_panel):
 		hud._help_panel.visible = (
 			not paused and hud._help_remaining > 0.0 and not hud._results_visible()
-		)
-	if is_instance_valid(hud._desktop_hint):
-		hud._desktop_hint.visible = (
-			not paused and not hud._touch_mode and not hud._results_visible()
 		)
 	if is_instance_valid(hud._fire_button):
 		hud._fire_button.disabled = paused or hud._player_down

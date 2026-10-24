@@ -1,15 +1,14 @@
 ## Front-end menu layout probe.
 ##
 ## Screenshots cannot be read in this environment, and a layout that fits one
-## screen can pour off the next: the dashboard that measures 56 px buttons at
-## 390x844 put DEPLOY at y=444 on a 390 px tall landscape screen, and a card
-## list that scrolls nicely in portrait leaves a ~130 px window in landscape.
+## screen can pour off the next: a dashboard that measures 56 px buttons at
+## 390x844 put DEPLOY at y=444 on a 390 px tall screen held sideways.
 ##
 ## So this test mounts the real `front_end.tscn` once, inside a SubViewport
-## sized 390x844, then *rotates* the same live viewport to 844x390, 360x640 and
-## 1280x720 -- the case a browser build cannot produce, because it is fixed at
-## one viewport per launch. At each size it walks every visible control and
-## asserts three things in *physical* pixels:
+## sized 844x390, then *resizes* the same live viewport to 667x375 -- the case a
+## browser build cannot produce, because it is fixed at one viewport per launch.
+## At each size it walks every visible control and asserts three things in
+## *physical* pixels:
 ##
 ##   * nothing that is not inside a scroll container is drawn outside the
 ##     viewport -- the failure that hides a button below the bottom edge;
@@ -27,11 +26,11 @@ const FrontEndScene = preload("res://scenes/ui/front_end.tscn")
 ## Distinct from the real save so the suite never reads a developer profile.
 const PROFILE_PATH := "user://menu_layout_smoke_profile.cfg"
 
+## The two sizes the front end ships for: a large phone and a small one, both
+## held sideways.
 const SIZES := {
-	"portrait": Vector2i(390, 844),
 	"landscape": Vector2i(844, 390),
-	"small portrait": Vector2i(360, 640),
-	"desktop": Vector2i(1280, 720),
+	"small landscape": Vector2i(667, 375),
 }
 ## The screens that carry the layout: the hub and the selection lists.
 ## BOOT/LOADING/CHAPTER/PRELOAD are single-purpose panels with no
@@ -228,11 +227,11 @@ func _card_ancestor(node: Node) -> Control:
 ## The board's *order* is the fix, not its contents.
 ##
 ## HOME is a manifest now, not a showcase (docs/DECISIONS.md 29): three numbered
-## rows, then the record ribbon, then ARMORY and DEPLOY. What this asserts is
-## that stacking in physical pixels -- 01 above 02 above ARMORY above DEPLOY --
-## and that DEPLOY is the bottom row, nearest the thumb, the way Apex's READY bar
-## and Free Fire's start tile are. On a landscape screen the rows keep the left
-## column, so "above" is only required within the rail.
+## rows in the left column, the record ribbon and ARMORY/DEPLOY in the rail
+## beside them. What this asserts is that stacking in physical pixels -- 01
+## above 02 in the rows, ARMORY above DEPLOY in the rail -- and that DEPLOY is
+## the bottom row, nearest the thumb, the way Apex's READY bar and Free Fire's
+## start tile are.
 func _check_dashboard_hierarchy(stage: Control, stretch: float, where: String) -> void:
 	var deploy: Button = _find_button(stage, "DEPLOY")
 	if not _expect(deploy != null, "%s: DEPLOY exists" % where):
@@ -257,19 +256,14 @@ func _check_dashboard_hierarchy(stage: Control, stretch: float, where: String) -
 		deploy.is_visible_in_tree() and not deploy.disabled,
 		"%s: DEPLOY is enabled and on screen" % where,
 	)
-	# Portrait stacks the rows above the actions; landscape puts them in the
-	# left column, where their order to each other is still the manifest's.
+	# The rows keep the left column; their order to each other is still the
+	# manifest's.
 	var hero_rect := _physical(hero.get_global_rect(), stretch)
 	var mission_rect := _physical(mission.get_global_rect(), stretch)
 	_expect(
 		hero_rect.end.y <= mission_rect.position.y + 1.0,
 		"%s: row 01 (operative) sits above row 02 (theatre)" % where,
 	)
-	if not is_landscape(stage):
-		_expect(
-			mission_rect.end.y <= armory_rect.position.y + 1.0,
-			"%s: the rows sit above ARMORY" % where,
-		)
 
 
 ## The whole page must fit, not only its controls.
@@ -372,59 +366,37 @@ func _check(control: Control, rect: Rect2, viewport: Rect2, where: String) -> vo
 
 
 ## A list that claims to scroll has to have somewhere to scroll to, and moving
-## it has to move the cards. The landscape row is the interesting case: three
-## 340 px cards in a 470 px window, where a scroll range of zero would strand
-## the last weapon off screen with no way to reach it.
+## it has to move the cards. The row is the interesting case: three 340 px cards
+## in a 470 px window, where a scroll range of zero would strand the last weapon
+## off screen with no way to reach it.
 func _check_row_scroll(stage: Control, where: String) -> void:
-	var sideways := is_landscape(stage)
 	for child in stage.find_children("*", "ScrollContainer", true, false):
 		var scroll := child as ScrollContainer
 		if scroll == null or not scroll.is_visible_in_tree():
 			continue
-		var bar: ScrollBar = scroll.get_h_scroll_bar() if sideways else scroll.get_v_scroll_bar()
+		var bar: ScrollBar = scroll.get_h_scroll_bar()
 		if not bar.visible or bar.max_value <= 0.0:
 			continue
 		var card: Control = _first_card(scroll)
 		var maximum := float(bar.max_value)
-		var before := 0.0
-		# Portrait scrolls the list down, landscape scrolls it sideways, so the
-		# coordinate that has to move is the axis the scroll runs on.
 		var point_before := card.get_global_rect().position if card != null else Vector2.ZERO
-		if sideways:
-			scroll.scroll_horizontal = int(maximum)
-		else:
-			scroll.scroll_vertical = int(maximum)
+		scroll.scroll_horizontal = int(maximum)
 		await process_frame
 		await process_frame
-		var after := float(scroll.scroll_horizontal if sideways else scroll.scroll_vertical)
+		var after := float(scroll.scroll_horizontal)
 		var point_after := card.get_global_rect().position if card != null else Vector2.ZERO
-		var axis := "sideways" if sideways else "down"
-		_expect(
-			after > before, "%s: the card list scrolls %s (0 -> %d)" % [where, axis, int(after)]
-		)
+		_expect(after > 0.0, "%s: the card list scrolls sideways (0 -> %d)" % [where, int(after)])
 		if card != null:
 			_expect(
+				point_after.x < point_before.x - 1.0,
 				(
-					point_after.x < point_before.x - 1.0
-					if sideways
-					else point_after.y < point_before.y - 1.0
-				),
-				(
-					"%s: scrolling %s moves the cards (first card %d -> %d)"
-					% [
-						where,
-						axis,
-						int(point_before.x if sideways else point_before.y),
-						int(point_after.x if sideways else point_after.y)
-					]
+					"%s: scrolling sideways moves the cards (first card %d -> %d)"
+					% [where, int(point_before.x), int(point_after.x)]
 				)
 			)
 		# Back to the top before the drag: anything measured after it has to be
 		# the drag's doing, not the programmatic scroll's.
-		if sideways:
-			scroll.scroll_horizontal = 0
-		else:
-			scroll.scroll_vertical = 0
+		scroll.scroll_horizontal = 0
 		await process_frame
 		await process_frame
 
@@ -441,18 +413,14 @@ func _check_row_scroll(stage: Control, where: String) -> void:
 ## events to the stage, and the row has to move -- without the drag also
 ## selecting the card it started on, which is the other half of the contract.
 func _check_thumb_drag(stage: Control, where: String) -> void:
-	var sideways := is_landscape(stage)
 	for child in stage.find_children("*", "ScrollContainer", true, false):
 		var scroll := child as ScrollContainer
 		if scroll == null or not scroll.is_visible_in_tree():
 			continue
-		var bar: ScrollBar = scroll.get_h_scroll_bar() if sideways else scroll.get_v_scroll_bar()
+		var bar: ScrollBar = scroll.get_h_scroll_bar()
 		if not bar.visible or bar.max_value <= 0.0:
 			continue
-		if sideways:
-			scroll.scroll_horizontal = 0
-		else:
-			scroll.scroll_vertical = 0
+		scroll.scroll_horizontal = 0
 		# The bar's range is only final once the container has been laid out
 		# after the programmatic scroll above; read it too early and the drag is
 		# measured against a range the row did not have yet.
@@ -464,7 +432,7 @@ func _check_thumb_drag(stage: Control, where: String) -> void:
 		var service := _front_end.get_node_or_null("ProgressionService")
 		var selected_before: Variant = service.get("selected_weapon_id") if service != null else ""
 		var point := scroll.get_global_rect().get_center()
-		var step := Vector2(-30.0, 0.0) if sideways else Vector2(0.0, -30.0)
+		var step := Vector2(-30.0, 0.0)
 
 		var press := InputEventScreenTouch.new()
 		press.index = 0
@@ -480,7 +448,7 @@ func _check_thumb_drag(stage: Control, where: String) -> void:
 			drag.relative = step
 			drag.position = point + step * float(_index + 1)
 			_viewport.push_input(drag)
-			travelled += absf(step.x if sideways else step.y)
+			travelled += absf(step.x)
 			await process_frame
 
 		var release := InputEventScreenTouch.new()
@@ -491,13 +459,12 @@ func _check_thumb_drag(stage: Control, where: String) -> void:
 		await process_frame
 		await process_frame
 
-		var moved := float(scroll.scroll_horizontal if sideways else scroll.scroll_vertical)
-		var axis := "sideways" if sideways else "down"
+		var moved := float(scroll.scroll_horizontal)
 		# A short list reaches its end before the thumb does; landing on the end
 		# is still a scroll, so compare against whichever ran out first.
 		var reachable := minf(travelled, range_now)
-		var message := "%s: a thumb drag scrolls the list %s (%.0f of %.0f px, range %.0f px)"
-		_expect(moved >= reachable * 0.9, message % [where, axis, moved, reachable, range_now])
+		var message := "%s: a thumb drag scrolls the list sideways (%.0f of %.0f px, range %.0f px)"
+		_expect(moved >= reachable * 0.9, message % [where, moved, reachable, range_now])
 		if service != null:
 			_expect(
 				service.get("selected_weapon_id") == selected_before,
@@ -511,13 +478,6 @@ func _first_card(scroll: ScrollContainer) -> Control:
 		if control != null and control.is_visible_in_tree() and control is Button:
 			return control
 	return null
-
-
-## `MenuStage.is_landscape()` for the stage being measured, without assuming the
-## probe's own viewport agrees with what the stage measured.
-func is_landscape(stage: Control) -> bool:
-	var size := Vector2(stage.size)
-	return size.x > size.y * 1.2
 
 
 func _inside_scroll_container(control: Control) -> bool:

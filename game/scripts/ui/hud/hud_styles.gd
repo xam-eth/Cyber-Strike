@@ -30,12 +30,6 @@ static func apply(hud) -> void:
 			Color(AegisTokens.VOID, 0.86), Color(AegisTokens.LINE, 0.9), 1, AegisTokens.RADIUS, pad
 		)
 	)
-	hud._desktop_weapon_card.add_theme_stylebox_override(
-		"panel", AegisTheme.panel_style(fill, AegisTokens.LINE, 1, AegisTokens.RADIUS, pad)
-	)
-	hud._ads_chip.add_theme_stylebox_override(
-		"panel", AegisTheme.panel_style(fill, AegisTokens.LINE, 1, AegisTokens.RADIUS, tight)
-	)
 	hud._pause_panel.add_theme_stylebox_override(
 		"panel",
 		AegisTheme.panel_style(
@@ -127,7 +121,6 @@ static func apply_fonts(hud) -> void:
 	# new diagonal drawing and this ceiling must BOTH be checked in pixels.
 	var icon_px := maxi(roundi(hud._to_layout(20.0)), 12)
 	var icon_button_px := maxf(hud._to_layout(64.0 if hud._touch_mode else 56.0), 32.0)
-	var short_touch: bool = hud._portrait and hud._physical_size.y < 750.0
 	for icon_button in [hud._pause_button, hud._sound_button]:
 		if is_instance_valid(icon_button):
 			icon_button.custom_minimum_size = Vector2(icon_button_px, icon_button_px)
@@ -139,27 +132,18 @@ static func apply_fonts(hud) -> void:
 		hud._skill_button,
 		hud._aim_button,
 		hud._pause_button,
-		hud._sound_button,
-		hud._emp_chip
+		hud._sound_button
 	]:
 		if is_instance_valid(button):
 			var button_icon_px := icon_px
 			if button == hud._fire_button:
-				button_icon_px = roundi(
-					hud._to_layout(180.0 if short_touch else (194.0 if hud._portrait else 170.0))
-				)
+				button_icon_px = roundi(hud._to_layout(170.0))
 			elif button == hud._aim_button:
-				button_icon_px = roundi(
-					hud._to_layout(102.0 if short_touch else (116.0 if hud._portrait else 104.0))
-				)
+				button_icon_px = roundi(hud._to_layout(104.0))
 			elif button == hud._skill_button:
-				button_icon_px = roundi(
-					hud._to_layout(100.0 if short_touch else (112.0 if hud._portrait else 104.0))
-				)
+				button_icon_px = roundi(hud._to_layout(104.0))
 			elif button == hud._weapon_button:
-				button_icon_px = roundi(
-					hud._to_layout(106.0 if short_touch else (116.0 if hud._portrait else 104.0))
-				)
+				button_icon_px = roundi(hud._to_layout(104.0))
 			elif button == hud._pause_button:
 				button_icon_px = roundi(hud._to_layout(48.0 if hud._touch_mode else 40.0))
 			elif button == hud._sound_button:

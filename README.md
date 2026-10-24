@@ -45,7 +45,7 @@ Open `game/project.godot` in Godot 4.7.2 and run the main scene to explore the w
 ./scripts/run_smoke_tests.sh wave_director_smoke    # a single test
 ```
 
-`scripts/run_smoke_tests.sh` performs the headless Editor import and then every smoke test with `--headless --path game --script res://tests/<name>`, writing logs to the git-ignored `exports/test-logs/`. The seventeen tests are `exploration_flow_smoke.gd`, `pause_gesture_smoke.gd`, `neon_frontier_world_smoke.gd`, `arena_blockout_smoke.gd`, `hud_editor_smoke.gd`, `weapon_system_smoke.gd`, `arc_weapon_smoke.gd`, `combat_feedback_smoke.gd`, `wave_director_smoke.gd`, `reward_loop_smoke.gd`, `shooter_enemy_smoke.gd`, `playability_hud_smoke.gd`, `ui_settings_smoke.gd`, `enemy_visual_smoke.gd`, `audio_smoke.gd`, `effects_smoke.gd`, and `hero_rig_smoke.gd`. The equivalent manual commands are:
+`scripts/run_smoke_tests.sh` performs the headless Editor import and then every smoke test with `--headless --path game --script res://tests/<name>`, writing logs to the git-ignored `exports/test-logs/`. The sixteen tests are `exploration_flow_smoke.gd`, `neon_frontier_world_smoke.gd`, `arena_blockout_smoke.gd`, `hud_editor_smoke.gd`, `weapon_system_smoke.gd`, `arc_weapon_smoke.gd`, `combat_feedback_smoke.gd`, `wave_director_smoke.gd`, `reward_loop_smoke.gd`, `shooter_enemy_smoke.gd`, `playability_hud_smoke.gd`, `ui_settings_smoke.gd`, `enemy_visual_smoke.gd`, `audio_smoke.gd`, `effects_smoke.gd`, and `hero_rig_smoke.gd`. The equivalent manual commands are:
 
 ```bash
 godot --headless --editor --path game --quit

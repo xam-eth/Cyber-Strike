@@ -70,10 +70,10 @@ func _ready() -> void:
 	_chrome.navigate.connect(_on_nav_requested)
 	_stack.add_child(_chrome.bar)
 
-	# Two explicit arrangements, the same way HERO does it: a `vertical` flag on
-	# a container is not the same thing as the other container class, and the
-	# landscape body kept stacking its children vertically -- the info panel drew
-	# under the map, 400 px down an 844x390 screen.
+	# Explicit container classes, the same way HERO does it: a `vertical` flag on
+	# a container is not the same thing as the other container class, and a
+	# vertical body stacked the info panel under the map, 400 px down an
+	# 844x390 screen.
 	_body = VBoxContainer.new()
 	_body.name = &"TheatreBody"
 	_body.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -170,7 +170,7 @@ func _build_map() -> void:
 	_map_name.autowrap_mode = TextServer.AUTOWRAP_OFF
 	map_caption.add_child(_map_name)
 
-	_pin_row = VBoxContainer.new()
+	_pin_row = HBoxContainer.new()
 	_pin_row.name = &"TheatrePins"
 	physical_separation(_pin_row, 8)
 	# In the stack, under the body, not floating inside the map: a pin laid out
@@ -274,101 +274,48 @@ func _build_info() -> void:
 	_info_text.add_child(_launch)
 
 
-## Portrait stacks the info under the map; landscape floats it beside the plate.
-## The info panel is the only block with a fixed width, which is what makes the
+## One arrangement: the plate on the left, the theatre's copy on the right. The
+## info panel is the only block with a fixed width, which is what makes the
 ## plate the thing that grows.
 func reframe() -> void:
-	var landscape := is_landscape()
 	var height := physical_size().y
-	var cramped := height < 700.0 and not landscape
-	var short_landscape := landscape and height < 520.0
-	if landscape:
-		_reparent(_map, _side)
-		_reparent(_info, _side)
-		_reparent(_side, _body)
-		_reparent(_pin_row, _stack)
-		_info.size_flags_vertical = Control.SIZE_SHRINK_END
-		physical_min_size(_info, 320.0, 0.0)
-		_info.size_flags_horizontal = Control.SIZE_FILL
-		physical_min_size(_map, 0.0, 0.0)
-		_map.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		_info_text.add_theme_constant_override("separation", 6)
-		physical_min_size(_launch, 0.0, 64.0)
-	else:
-		_reparent(_map, _body)
-		_reparent(_info, _body)
-		_reparent(_pin_row, _stack)
-		_info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		_info.size_flags_vertical = Control.SIZE_SHRINK_END
-		physical_min_size(_info, 0.0, 0.0)
-		# 50 % of the height for the map left nothing for the pins and the panel
-		# on an 844 px phone: both pins drew at y=857. A third of it is enough
-		# for the plate to read, and the body still expands into any slack.
-		physical_min_size(_map, 0.0, height * 0.26)
-		physical_min_size(_launch, 0.0, 72.0)
+	var compact := height < 520.0
+	_reparent(_map, _side)
+	_reparent(_info, _side)
+	_reparent(_side, _body)
+	_info.size_flags_vertical = Control.SIZE_SHRINK_END
+	physical_min_size(_info, 320.0, 0.0)
+	_info.size_flags_horizontal = Control.SIZE_FILL
+	physical_min_size(_map, 0.0, 0.0)
+	_map.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_info_text.add_theme_constant_override("separation", 6)
+	physical_min_size(_launch, 0.0, 64.0)
 	# 64 px is the touch floor (`AegisTokens.MIN_TOUCH_PX`); 56 failed it. Every
 	# child of the row, not just `_pins`: the roadmap slot was built after the
 	# list and kept its 41 px text height.
 	for child in _pin_row.get_children():
 		if child is Control:
 			physical_min_size(child as Control, 0.0, 64.0)
-	_orient_pins(landscape)
 	# 390 px of height is enough for the name and one line about the theatre, not
 	# for the chapter tag as well; the pin under the map already carries the name.
 	# The framed plate's caption already says DEPLOYMENT THEATRE on every screen;
 	# the panel repeating it 40 px lower is the kind of duplicate that reads as a
-	# placeholder. Landscape keeps it because the caption there is off-frame.
-	_chapter.visible = landscape
+	# placeholder.
+	_chapter.visible = true
 	# The framed plate on the left already shows the theatre's name, and three
 	# 64 px pins plus the panel plus the map are what has to fit. The paragraph
 	# stays where there is height for it.
-	_brief.visible = landscape and not short_landscape
+	_brief.visible = not compact
 	# The framed plate's own caption names the theatre; printing it again 40 px
 	# below it is the kind of repetition that reads as a placeholder.
-	_title.visible = landscape
-	# The status line says FIELD READY, which the pin above it already says, and
-	# the three pins plus the panel are what has to fit under the map. Landscape
-	# has the width to say it twice; portrait does not have the height.
-	_status.visible = landscape
-	# A column, always. Two pins side by side need 380 px of text at `label`
-	# size and a 360 px phone has 328; a `vertical` flag on the other container
-	# class is not the same thing and did nothing here.
-	physical_min_size(_status, 0.0, 20.0 if short_landscape else 24.0)
-
-
-## A row of two pins is 64 px tall and fits any landscape screen; a column of
-## two is 128 and did not fit a 390 px one (the second drew at y=350). Portrait
-## has the opposite problem -- two pins side by side need 380 px of text and a
-## 360 px phone has 328 -- so the pins change container with the orientation.
-func _orient_pins(landscape: bool) -> void:
-	var target: Container = _pin_row
-	var wants_row := landscape
-	if (wants_row and target is HBoxContainer) or (not wants_row and target is VBoxContainer):
-		return
-	target = HBoxContainer.new() if wants_row else VBoxContainer.new()
-	target.name = &"TheatrePins"
-	for pin in _pins:
-		if pin.get_parent() != null:
-			pin.get_parent().remove_child(pin)
-		target.add_child(pin)
-	if _pin_row != null and _pin_row.get_parent() != null:
-		var parent := _pin_row.get_parent()
-		var index := _pin_row.get_index()
-		parent.remove_child(_pin_row)
-		parent.add_child(target)
-		parent.move_child(target, index)
-	else:
-		_stack.add_child(target)
-	_pin_row = target
-	physical_separation(_pin_row, 8)
+	_title.visible = true
+	# The status line says FIELD READY, which the pin above it already says.
+	_status.visible = true
+	physical_min_size(_status, 0.0, 20.0 if compact else 24.0)
 
 
 ## Moves a node only when it is somewhere else; re-adding on every resize would
 ## restart the layout every frame.
-## A row of two pins is 64 px tall and fits any landscape screen; a column of
-## two is 128 and did not fit a 390 px one (the second drew at y=350). Portrait
-## has the opposite problem -- two pins side by side need 380 px of text and a
-## 360 px phone has 328 -- so the pins change container with the orientation.
 func _reparent(node: Node, target: Node) -> void:
 	if node.get_parent() == target:
 		return

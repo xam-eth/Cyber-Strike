@@ -9,8 +9,8 @@ extends SceneTree
 ## every check while sitting inside the Android gesture-navigation strip (the
 ## swipe zone that swallows the touch before the game ever sees it).
 ##
-## This test measures exactly that, on the four viewports the project ships
-## for. Every number is a real `Control.get_global_rect()` scaled to physical
+## This test measures exactly that, on the two landscape viewports the project
+## ships for. Every number is a real `Control.get_global_rect()` scaled to physical
 ## pixels, never a design constant:
 ##
 ##   * each bottom-docked control clears the bottom edge by the gesture
@@ -25,12 +25,10 @@ extends SceneTree
 
 const MainScene = preload("res://scenes/main.tscn")
 
-## viewports the HUD ships for: portrait, short portrait, landscape, short
-## landscape. The stretch is what the engine's `canvas_items` + `expand`
+## The two viewports the HUD ships for: a large phone and a small one, both
+## held sideways. The stretch is what the engine's `canvas_items` + `expand`
 ## project setting produces for a 1280x720 logical canvas.
 const VIEWPORTS: Array[Vector2] = [
-	Vector2(390.0, 844.0),
-	Vector2(375.0, 667.0),
 	Vector2(844.0, 390.0),
 	Vector2(667.0, 375.0),
 ]

@@ -1,4 +1,4 @@
-## One settings screen shared by desktop and touch pause menus. Every change
+## One settings screen, used by the pause menu. Every change
 ## is applied and saved immediately; Done returns to the paused run, not a
 ## separate scene. The hosting HUD keeps it alive while SceneTree is paused.
 class_name AegisSettingsMenu

@@ -8,7 +8,6 @@ var _message_label: Label
 var _remaining: float = 0.0
 var _message: String = ""
 var _compact_explore: bool = false
-var _compact_landscape: bool = false
 
 
 func _ready() -> void:
@@ -45,20 +44,12 @@ func show_message(text: String) -> void:
 
 
 func _refresh_message() -> void:
-	# Only the Explore portrait seam needs a compact two-line status. Keep
+	# Only the compact Explore seam needs a two-line status. Keep
 	# complete hit/reward messages in Defense, where the START lane is vacant.
 	if _compact_explore and _message.contains("NO TARGETS"):
 		_message_label.text = "NO\nTARGETS"
 	elif _compact_explore and _message.contains("TARGET"):
 		_message_label.text = "EMP\nHIT"
-	elif _compact_landscape and _message.contains("NO TARGETS"):
-		_message_label.text = "NO TARGETS"
-	elif _compact_landscape and _message.begins_with("EMP PULSE · "):
-		_message_label.text = _message.trim_prefix("EMP PULSE · ")
-	elif _compact_landscape and _message.begins_with("TARGET DOWN · "):
-		_message_label.text = "KO · " + _message.trim_prefix("TARGET DOWN · ")
-	elif _compact_landscape and _message.contains(" CLEAR · "):
-		_message_label.text = "CLEAR · " + _message.get_slice(" CLEAR · ", 1)
 	else:
 		_message_label.text = _message
 
@@ -90,8 +81,9 @@ func layout_for(hud) -> void:
 			hud._to_layout(8.0)
 		)
 	)
-	_compact_explore = hud._touch_mode and hud._portrait and hud._state.play_phase == "explore"
-	_compact_landscape = hud._touch_mode and not hud._portrait and hud._narrow
+	# One lane: the narrow landscape gap between the health rail and the
+	# right-thumb cluster. There is no portrait arrangement to fall back to.
+	_compact_explore = hud._touch_mode and hud._narrow and hud._state.play_phase == "explore"
 	_refresh_message()
 	var width: float = minf(hud._to_layout(272.0), hud.size.x - hud._to_layout(24.0))
 	if hud._touch_mode:
@@ -108,7 +100,7 @@ func layout_for(hud) -> void:
 			top = _below_ammo_dock(hud)
 			width = hud._to_layout(84.0)
 			height = hud._to_layout(44.0)
-		elif not hud._portrait:
+		else:
 			# Lower centre clears the health rail, top-centre Pause and the
 			# right-side action cluster. On a narrow landscape, avoid EMP too.
 			width = hud._to_layout(140.0 if hud._narrow else 214.0)

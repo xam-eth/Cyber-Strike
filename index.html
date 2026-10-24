@@ -36,6 +36,19 @@
     <canvas id="canvas" data-hidden="true" aria-label="Dunia permainan"></canvas>
     <div class="field" aria-hidden="true"></div>
 
+    <!-- The only portrait view: rotate. The product is landscape-only, so this
+         is an instruction, not a second layout. -->
+    <div class="rotate" role="status">
+      <span class="rotate__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+          <rect x="7" y="2.5" width="10" height="19" rx="2" />
+          <path d="M10.5 19h3" />
+        </svg>
+      </span>
+      <p class="rotate__title">Putar perangkat</p>
+      <p class="rotate__hint">Konsol ini hanya berjalan dalam mode mendatar</p>
+    </div>
+
     <div id="app">
       <header class="strip">
         <span class="strip__mark" id="strip-mark">Exocomplict</span>
@@ -117,26 +130,6 @@
                     <span>Deploy</span>
                     <span class="btn__meta" id="hub-deploy-meta">siap</span>
                   </button>
-                  <button class="btn btn--ghost" id="hub-controls" type="button">Kontrol</button>
-                </div>
-                <div class="rule"></div>
-                <div class="statusgrid">
-                  <div>
-                    <span class="metric__key">Mesin</span>
-                    <span class="metric__val" id="hub-engine" data-tone="accent">siaga</span>
-                  </div>
-                  <div>
-                    <span class="metric__key">Masukan</span>
-                    <span class="metric__val" id="hub-input">—</span>
-                  </div>
-                  <div>
-                    <span class="metric__key">Tampilan</span>
-                    <span class="metric__val" id="hub-view">—</span>
-                  </div>
-                  <div>
-                    <span class="metric__key">Sesi</span>
-                    <span class="metric__val" id="hub-session">baru</span>
-                  </div>
                 </div>
               </div>
 
@@ -181,53 +174,54 @@
                 <button class="btn btn--ghost" id="settings-close" type="button">Tutup</button>
               </div>
 
-              <button class="switch" type="button" role="switch" aria-checked="false" id="opt-touch">
-                <span class="switch__text">
-                  <span class="switch__title">HUD sentuh</span>
-                  <span class="switch__hint">Tampilkan joystick dan tombol tembak meski memakai tetikus. Berguna untuk melihat tata letak ponsel.</span>
-                </span>
-                <span class="switch__track" aria-hidden="true"></span>
-              </button>
+              <!-- Two columns in landscape: the switches on the left, what they
+                   do and what the keys are on the right. One column would be
+                   700 px tall on a 390 px screen and need a scroll to reach the
+                   last switch, which is how a settings sheet loses a row. -->
+              <div class="sheet__body">
+                <div class="sheet__col">
+                  <button class="switch" type="button" role="switch" aria-checked="false" id="opt-touch">
+                    <span class="switch__text">
+                      <span class="switch__title">HUD sentuh</span>
+                      <span class="switch__hint">Tampilkan joystick dan tombol tembak meski memakai tetikus.</span>
+                    </span>
+                    <span class="switch__track" aria-hidden="true"></span>
+                  </button>
 
-              <button class="switch" type="button" role="switch" aria-checked="false" id="opt-motion">
-                <span class="switch__text">
-                  <span class="switch__title">Kurangi gerak</span>
-                  <span class="switch__hint">Matikan transisi layar dan animasi latar. Pilihan sistem operasi tetap dihormati.</span>
-                </span>
-                <span class="switch__track" aria-hidden="true"></span>
-              </button>
+                  <button class="switch" type="button" role="switch" aria-checked="false" id="opt-motion">
+                    <span class="switch__text">
+                      <span class="switch__title">Kurangi gerak</span>
+                      <span class="switch__hint">Matikan transisi layar dan animasi latar.</span>
+                    </span>
+                    <span class="switch__track" aria-hidden="true"></span>
+                  </button>
 
-              <button class="switch" type="button" role="switch" aria-checked="false" id="opt-fullscreen">
-                <span class="switch__text">
-                  <span class="switch__title">Layar penuh</span>
-                  <span class="switch__hint">Sembunyikan bilah peramban selama bermain.</span>
-                </span>
-                <span class="switch__track" aria-hidden="true"></span>
-              </button>
-
-              <div class="rule" style="margin-block: var(--s4)"></div>
-
-              <div>
-                <p class="eyebrow">Kontrol</p>
-                <div class="keys" id="keys-list">
-                  <div><span>Bergerak</span><kbd>W A S D</kbd></div>
-                  <div><span>Bidik</span><kbd>Klik kanan</kbd></div>
-                  <div><span>Tembak</span><kbd>Klik kiri</kbd></div>
-                  <div><span>Ganti senjata</span><kbd>E</kbd></div>
-                  <div><span>EMP</span><kbd>Q</kbd></div>
-                  <div><span>Mulai pertahanan</span><kbd>B</kbd></div>
-                  <div><span>Pause</span><kbd>Esc</kbd></div>
-                  <div><span>Ulangi</span><kbd>R</kbd></div>
+                  <button class="switch" type="button" role="switch" aria-checked="false" id="opt-fullscreen">
+                    <span class="switch__text">
+                      <span class="switch__title">Layar penuh</span>
+                      <span class="switch__hint">Sembunyikan bilah peramban selama bermain.</span>
+                    </span>
+                    <span class="switch__track" aria-hidden="true"></span>
+                  </button>
                 </div>
-              </div>
 
-              <div class="rule" style="margin-block: var(--s4)"></div>
-
-              <div class="statusgrid" id="about-grid">
-                <div><span class="metric__key">Build</span><span class="metric__val" id="about-build">—</span></div>
-                <div><span class="metric__key">Mesin</span><span class="metric__val" id="about-engine">—</span></div>
-                <div><span class="metric__key">Tampilan</span><span class="metric__val" id="about-view">—</span></div>
-                <div><span class="metric__key">Penyimpanan</span><span class="metric__val" id="about-storage">lokal</span></div>
+                <div class="sheet__col">
+                  <p class="eyebrow">Kontrol</p>
+                  <div class="keys" id="keys-list">
+                    <div><span>Bergerak</span><kbd>W A S D</kbd></div>
+                    <div><span>Bidik</span><kbd>Klik kanan</kbd></div>
+                    <div><span>Tembak</span><kbd>Klik kiri</kbd></div>
+                    <div><span>Ganti senjata</span><kbd>E</kbd></div>
+                    <div><span>EMP</span><kbd>Q</kbd></div>
+                    <div><span>Mulai pertahanan</span><kbd>B</kbd></div>
+                    <div><span>Pause</span><kbd>Esc</kbd></div>
+                  </div>
+                  <div class="statusgrid" id="about-grid">
+                    <div><span class="metric__key">Build</span><span class="metric__val" id="about-build">—</span></div>
+                    <div><span class="metric__key">Mesin</span><span class="metric__val" id="about-engine">—</span></div>
+                    <div><span class="metric__key">Tampilan</span><span class="metric__val" id="about-view">—</span></div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

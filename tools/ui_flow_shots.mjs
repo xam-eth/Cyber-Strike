@@ -43,7 +43,7 @@ const list = (name) => argv.reduce((acc, arg, i) => (arg === name ? [...acc, arg
 const tag = flag('--tag', 'flow');
 const outDir = path.resolve(ROOT, flag('--out', path.join('qa-evidence', 'ui', tag)));
 const port = Number(flag('--port', '8174'));
-const viewports = list('--viewport').length ? list('--viewport') : ['1280x720', '390x844'];
+const viewports = list('--viewport').length ? list('--viewport') : ['844x390', '1280x720'];
 const worldTimeout = Number(flag('--world-timeout', '180000'));
 
 if (!fs.existsSync(path.join(LIB_DIR, 'libnss3.so'))) {
@@ -95,10 +95,11 @@ for (const viewport of viewports) {
     consoleLines.push(`${message.type()}: ${text.slice(0, 240)}`);
     if (message.type() === 'error') consoleErrors.push(text.slice(0, 240));
   });
-  // A narrow viewport alone is not a phone: without touch emulation the engine
-  // correctly shows its desktop HUD, and a "portrait" frame would then be
-  // evidence for a layout no phone ever gets. Same rule as tools/web_qa.mjs.
-  const touchDevice = arg('--touch') || Math.min(width, height) < 600;
+  // Landscape is the only shape the shell serves, and a phone is the reference
+  // device for it: emulate touch from a 844x390 phone up until the viewport is
+  // big enough that it can only be a desktop (>= 1024 px wide), where the same
+  // layout runs with mouse and keyboard. Same rule as tools/web_qa.mjs.
+  const touchDevice = arg('--touch') || width < 1024;
   await page.setViewport({ width, height, deviceScaleFactor: 1, hasTouch: touchDevice, isMobile: touchDevice });
 
   const shoot = async (name, expectScreen) => {
@@ -141,7 +142,7 @@ for (const viewport of viewports) {
   await settled(page);
   await shoot('02-hub', 'hub');
 
-  await page.click('#hub-controls');
+  await page.click('#hub-card-controls');
   await page.waitForFunction(() => document.body.dataset.screen === 'settings', { timeout: 10000 });
   await settled(page);
   await shoot('03-settings', 'settings');
