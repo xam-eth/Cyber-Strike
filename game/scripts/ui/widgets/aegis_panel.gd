@@ -159,9 +159,7 @@ func _draw() -> void:
 		# Bottom-right
 		draw_line(Vector2(right - length, bottom), Vector2(right, bottom), bracket_color, width)
 		draw_line(Vector2(right, bottom - length), Vector2(right, bottom), bracket_color, width)
-	AegisBezel.draw_cut_marks(
-		self, Rect2(Vector2.ZERO, size), cuts(), Color(bracket_color, 0.9)
-	)
+	AegisBezel.draw_cut_marks(self, Rect2(Vector2.ZERO, size), cuts(), Color(bracket_color, 0.9))
 	_draw_accent()
 
 

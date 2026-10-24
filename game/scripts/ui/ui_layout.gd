@@ -320,4 +320,3 @@ static func _place_button(
 	else:
 		_place(button, 1, 1, 1, 1, Rect2(-right - width, -bottom - height, width, height))
 	button.custom_minimum_size = Vector2(width, height)
-

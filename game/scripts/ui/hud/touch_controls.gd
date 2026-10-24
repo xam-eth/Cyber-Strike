@@ -1108,10 +1108,7 @@ func _draw() -> void:
 		and is_instance_valid(_hostile_source)
 	):
 		var bearings := HudHostileBearings.collect(
-			_hostile_camera,
-			_hostile_source.call("get_active_enemies"),
-			size,
-			_to_layout(1.0)
+			_hostile_camera, _hostile_source.call("get_active_enemies"), size, _to_layout(1.0)
 		)
 		for bearing in bearings:
 			HudHostileBearings.draw_marker(self, bearing, _to_layout(1.0))

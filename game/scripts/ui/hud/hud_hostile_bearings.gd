@@ -10,10 +10,7 @@ extends RefCounted
 
 
 static func collect(
-	camera: Camera3D,
-	enemies: Array[Node3D],
-	viewport_size: Vector2,
-	unit: float = 1.0
+	camera: Camera3D, enemies: Array[Node3D], viewport_size: Vector2, unit: float = 1.0
 ) -> Array[Dictionary]:
 	var bearings: Array[Dictionary] = []
 	if not is_instance_valid(camera) or viewport_size.x < 1.0 or viewport_size.y < 1.0:

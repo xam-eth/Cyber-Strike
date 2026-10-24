@@ -477,10 +477,7 @@ func _apply_density() -> void:
 	var tight := narrow or compact
 
 	apply_safe_margins(
-		_margin,
-		20.0 if compact else 36.0,
-		8.0 if compact else 28.0,
-		8.0 if compact else 28.0
+		_margin, 20.0 if compact else 36.0, 8.0 if compact else 28.0, 8.0 if compact else 28.0
 	)
 
 	var pad := px(6.0 if compact else 12.0)

@@ -21,7 +21,6 @@ extends RefCounted
 ##     asserted by a smoke test), so the corner reads as cut without the fill
 ##     being moved out from under the stylebox.
 
-
 ## Cut lengths, in layout units. Small enough to read at a 56 px HUD chip, large
 ## enough to read as a chamfer rather than a nick.
 const CUT_XS := 5.0
@@ -65,12 +64,7 @@ static func points(rect: Rect2, cuts: Vector4) -> PackedVector2Array:
 ## Fills the plate and draws its hairline. `edge` is the machined edge; pass a
 ## second colour for the cut that points, if the card should point.
 static func draw_plate(
-	item: CanvasItem,
-	rect: Rect2,
-	cuts: Vector4,
-	fill: Color,
-	edge: Color,
-	edge_width: float = 1.0
+	item: CanvasItem, rect: Rect2, cuts: Vector4, fill: Color, edge: Color, edge_width: float = 1.0
 ) -> void:
 	if rect.size.x <= 0.0 or rect.size.y <= 0.0:
 		return
