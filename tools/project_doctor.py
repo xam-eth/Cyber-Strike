@@ -1066,6 +1066,10 @@ def check_web_preview(report: Report, root: Path, game_root: Path) -> None:
                 "config.executable",
                 "must set config.executable to ./web/index, otherwise index.wasm/index.pck are requested next to the page",
             ),
+            (
+                "./web/index.wasm",
+                "must remap fileSizes for the rewritten WASM path, otherwise Godot reports total=0 and loading stays indeterminate",
+            ),
             ("startGame", "must call Engine.startGame()"),
         ):
             if not any(needle in body for _, body in surfaces):

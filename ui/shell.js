@@ -32,9 +32,13 @@ const prefs = Object.assign(
   readPrefs(),
 );
 
+const BOOT_STALL_TIMEOUT_MS = 180000;
+
 let current = 'opening';
 let engineReady = false;
-let engineStarted = false;
+let bootState = 'idle';
+let bootWatchdog = 0;
+let assetsComplete = false;
 let hold = params.has('ui_hold');
 
 function readPrefs() {
@@ -98,10 +102,11 @@ function describeInput() {
 function paintReadouts() {
   el('strip-view').textContent = describeViewport();
   el('strip-input').textContent = describeInput();
+  const failed = bootState === 'failed';
   el('about-build').textContent = 'lokal';
-  el('about-engine').textContent = engineReady ? 'siap' : 'belum dimuat';
-  el('strip-engine').dataset.state = engineReady ? 'ok' : 'warn';
-  el('strip-engine-label').textContent = engineReady ? 'siap' : 'siaga';
+  el('about-engine').textContent = failed ? 'gagal' : engineReady ? 'siap' : 'belum dimuat';
+  el('strip-engine').dataset.state = failed ? 'bad' : engineReady ? 'ok' : 'warn';
+  el('strip-engine-label').textContent = failed ? 'gagal' : engineReady ? 'siap' : 'siaga';
 }
 
 /* -------------------------------------------------------------- opening */
@@ -206,11 +211,14 @@ function applyMotionPref() {
 function deploy() {
   lockLandscape();
   el('launch-title').textContent = 'Menyiapkan dunia';
+  el('launch-status').textContent = 'menghubungkan paket dunia';
+  el('launch-hint').textContent = 'Mesin dan paket dunia dimuat bersama. Tetap di layar ini sampai dunia siap.';
+  el('launch-retry').hidden = true;
   show('launch', { focus: false });
   el('canvas').dataset.hidden = 'true';
 
-  // The URL carries the hand-off, so a reload resumes it instead of dropping the
-  // player back at the opening.
+  // The URL carries the hand-off, so retry/reload resumes it instead of dropping
+  // the player back at the opening.
   const url = new URL(location.href);
   url.searchParams.set('qa_stage', 'WORLD');
   history.replaceState(null, '', url);
@@ -218,73 +226,149 @@ function deploy() {
   bootEngine();
 }
 
-async function bootEngine() {
-  if (engineStarted) return;
-  engineStarted = true;
+function armBootWatchdog() {
+  window.clearTimeout(bootWatchdog);
+  bootWatchdog = window.setTimeout(() => {
+    if (bootState !== 'loading') return;
+    const title = assetsComplete ? 'Dunia terlalu lama disiapkan' : 'Unduhan dunia berhenti';
+    const detail = assetsComplete
+      ? 'Mesin dan paket dunia sudah diterima, tetapi dunia belum siap setelah 3 menit. Muat ulang lalu coba lagi.'
+      : 'Tidak ada data baru selama 3 menit. Periksa koneksi, biarkan tab tetap aktif, lalu coba lagi.';
+    launchFailed(title, detail);
+  }, BOOT_STALL_TIMEOUT_MS);
+}
 
-  let html;
+function formatMegabytes(bytes) {
+  return (bytes / 1000000).toFixed(1).replace('.', ',');
+}
+
+function failLaunchFrom(error) {
+  const detail = String(error?.message || error || 'Kesalahan yang tidak dikenal.');
+  if (/failed to fetch|network\s*error|load failed|err_(?:failed|content_length_mismatch)/i.test(detail)) {
+    launchFailed(
+      'Koneksi dunia terputus',
+      `Unduhan mesin atau paket dunia tidak selesai. Periksa koneksi lalu coba lagi. Detail: ${detail}`,
+    );
+  } else {
+    launchFailed('Dunia gagal dimuat', detail);
+  }
+}
+
+async function bootEngine() {
+  if (bootState === 'loading' || bootState === 'ready') return;
+  bootState = 'loading';
+  assetsComplete = false;
+  el('launch-retry').hidden = true;
+  armBootWatchdog();
+
+  let config;
   try {
     const response = await fetch('./web/index.html', { cache: 'no-store' });
-    html = await response.text();
+    if (!response.ok) throw new Error(`./web/index.html returned HTTP ${response.status}`);
+    const html = await response.text();
+    const match = html.match(/const GODOT_CONFIG = (\{[^\n]*\});/);
+    if (!match) throw new Error('./web/index.html has no GODOT_CONFIG line.');
+    config = JSON.parse(match[1]);
   } catch (error) {
-    launchFailed('Payload tidak terbaca', String(error));
-    return;
-  }
-  const match = html.match(/const GODOT_CONFIG = (\{[^\n]*\});/);
-  if (!match) {
-    launchFailed('Konfigurasi ekspor tidak terbaca', './web/index.html has no GODOT_CONFIG line.');
+    launchFailed('Konfigurasi ekspor tidak terbaca', String(error));
     return;
   }
 
-  const config = JSON.parse(match[1]);
   // The page is the root landing page and the payload is /web/: the engine derives
   // its asset paths from the executable it is told about, so this is explicit.
+  // fileSizes is keyed by that same full path inside Engine.load/preloadFile.
+  // Keep the exported keys as well as the rewritten ones: without this remap the
+  // downloads work but every onProgress event has total=0 (an endless '-' bar).
+  const exportedFileSizes = config.fileSizes || {};
+  config.fileSizes = { ...exportedFileSizes };
+  if (Number(exportedFileSizes['index.wasm']) > 0) {
+    config.fileSizes['./web/index.wasm'] = exportedFileSizes['index.wasm'];
+  }
+  if (Number(exportedFileSizes['index.pck']) > 0) {
+    config.fileSizes['./web/index.pck'] = exportedFileSizes['index.pck'];
+  }
   config.executable = './web/index';
   const EngineClass = window.Engine || window.Godot;
+  if (typeof EngineClass !== 'function') {
+    launchFailed('Konsol tidak termuat', 'window.Engine/window.Godot is unavailable.');
+    return;
+  }
 
   const progress = el('launch-progress');
   const fill = el('launch-fill');
   const percent = el('launch-percent');
   const status = el('launch-status');
   const hint = el('launch-hint');
+  const fileSizes = config.fileSizes || {};
+  const wasmSize = Number(fileSizes['index.wasm']) || 0;
+  const packSize = Number(fileSizes['index.pck']) || 0;
+  const expectedBytes = wasmSize + packSize;
 
-  const engine = new EngineClass(config);
-  status.textContent = 'memuat aset dunia';
+  if (expectedBytes > 0) {
+    hint.textContent = `Unduhan awal ${formatMegabytes(expectedBytes)} MB (mesin + dunia). Jangan tutup atau muat ulang saat progres bergerak.`;
+  }
+
+  let engine;
+  try {
+    engine = new EngineClass(config);
+  } catch (error) {
+    failLaunchFrom(error);
+    return;
+  }
+  status.textContent = 'memuat mesin dan dunia';
 
   engine.startGame({
     onProgress: (loaded, total) => {
-      if (loaded > 0 && total > 0) {
-        const ratio = Math.min(1, loaded / total);
-        progress.dataset.indeterminate = 'false';
-        progress.setAttribute('aria-valuenow', String(Math.round(ratio * 100)));
-        fill.style.width = `${(ratio * 100).toFixed(1)}%`;
-        percent.textContent = `${Math.floor(ratio * 100)}%`;
-        status.textContent = ratio >= 1 ? 'aset lengkap, menyusun dunia' : 'memuat aset dunia';
-      }
+      if (bootState !== 'loading' || loaded <= 0 || total <= 0) return;
+      armBootWatchdog();
+
+      // Godot's Preloader already sums every active file: loaded/total are the
+      // combined WASM + PCK byte counts, not independent per-file percentages.
+      const totalBytes = total || expectedBytes;
+      const loadedBytes = Math.min(loaded, totalBytes);
+      const ratio = totalBytes > 0 ? Math.min(1, loadedBytes / totalBytes) : 0;
+      assetsComplete = totalBytes > 0 && loadedBytes >= totalBytes;
+
+      progress.dataset.indeterminate = 'false';
+      progress.setAttribute('aria-valuenow', String(Math.round(ratio * 100)));
+      fill.style.width = `${(ratio * 100).toFixed(1)}%`;
+      percent.textContent = `${Math.floor(ratio * 100)}%`;
+      status.textContent = assetsComplete
+        ? 'aset lengkap, menyusun dunia'
+        : `mengunduh mesin + dunia · ${formatMegabytes(loadedBytes)}/${formatMegabytes(totalBytes)} MB`;
+      if (assetsComplete) hint.textContent = 'Unduhan selesai. Menyiapkan WebGL dan dunia…';
     },
   }).then(
     () => {
+      if (bootState !== 'loading') return;
+      bootState = 'ready';
+      window.clearTimeout(bootWatchdog);
       engineReady = true;
       paintReadouts();
       progress.dataset.indeterminate = 'false';
+      progress.setAttribute('aria-valuenow', '100');
       fill.style.width = '100%';
       percent.textContent = '100%';
       status.textContent = 'dunia siap';
       hint.textContent = 'Masuk ke dunia…';
       revealCanvas();
     },
-    (error) => launchFailed('Dunia gagal dimuat', String(error)),
+    failLaunchFrom,
   );
 }
 
 function launchFailed(title, detail) {
+  if (bootState === 'failed' || bootState === 'ready') return;
+  bootState = 'failed';
+  engineReady = false;
+  window.clearTimeout(bootWatchdog);
   el('launch-title').textContent = title;
-  el('launch-status').textContent = 'berhenti';
+  el('launch-status').textContent = 'berhenti — muat ulang untuk mencoba lagi';
   el('launch-percent').textContent = '';
-  el('launch-hint').textContent = detail;
+  el('launch-hint').textContent = String(detail);
   el('launch-progress').dataset.indeterminate = 'false';
-  el('strip-engine').dataset.state = 'bad';
-  el('strip-engine-label').textContent = 'gagal';
+  el('launch-retry').hidden = false;
+  paintReadouts();
 }
 
 function revealCanvas() {
@@ -306,8 +390,19 @@ function revealCanvas() {
 
 /* ---------------------------------------------------------------- wiring */
 
+// Defensive fallback for failures inside Godot's response-stream callbacks.
+// The export patch handles normal Promise rejections; a truncated body can also
+// reject outside startGame()'s chain. Surface that detail and mark it handled
+// only while this shell is actually booting, never during active gameplay.
+window.addEventListener('unhandledrejection', (event) => {
+  if (bootState !== 'loading') return;
+  event.preventDefault();
+  failLaunchFrom(event.reason);
+});
+
 el('opening-enter').addEventListener('click', () => show('hub'));
 el('hub-deploy').addEventListener('click', () => deploy());
+el('launch-retry').addEventListener('click', () => window.location.reload());
 el('hub-card-controls').addEventListener('click', () => show('settings'));
 el('hub-card-display').addEventListener('click', () => show('settings'));
 el('settings-close').addEventListener('click', () => show('hub'));

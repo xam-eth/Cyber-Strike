@@ -724,9 +724,9 @@ const Engine = (function () {
 										Engine.unload();
 									}
 									resolve();
-								});
-							});
-						});
+								}, reject);
+							}, reject);
+						}, reject);
 					});
 				}
 				preloader.setProgressFunc(this.config.onProgress);

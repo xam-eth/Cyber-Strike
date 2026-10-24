@@ -243,6 +243,29 @@ jobs:
           PY
           exit "$qa_status"
 
+      - name: Browser interrupted-download recovery
+        run: |
+          # Reproduce the player-facing failure: the root shell used to leave an
+          # indeterminate bar forever when WASM initialization rejected. Also
+          # guard the rewritten fileSizes keys so byte progress cannot become 0.
+          qa_status=0
+          node tools/web_loading_qa.mjs --throughput-mbps 100 --timeout 150 \
+            --out exports/web-qa/loading --json > exports/web-qa/loading-report.json || qa_status=$?
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path("exports/web-qa/loading-report.json").read_text())
+          for case in report["cases"]:
+              print(f'{case["asset"]} recovery: {"PASS" if case["ok"] else "FAIL"}')
+              for failure in case["failures"]:
+                  print("::error title=Loading recovery QA::" + failure.replace("\n", " ")[:1800])
+          print("::notice title=Loading recovery::" + " | ".join(
+              f'{case["asset"]} {"PASS" if case["ok"] else "FAIL"}'
+              for case in report["cases"]))
+          raise SystemExit(0 if report["ok"] else 1)
+          PY
+          exit "$qa_status"
+
       - name: Browser world-selection contract
         run: |
           # The shell must not bypass HERO/WORLD and silently launch a default

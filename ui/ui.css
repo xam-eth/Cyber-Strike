@@ -989,7 +989,16 @@ body[data-mode='playing'] #canvas {
 /* The launch read-out is the same list component as the opening's checks, with
    one row: the engine's own byte count, never a synthetic percentage. */
 .launch__log {
-  max-width: 34rem;
+  max-width: 42rem;
+}
+
+.launch__retry {
+  margin-top: var(--s3);
+}
+
+/* Author display:inline-flex would otherwise override the browser's [hidden]. */
+.launch__retry[hidden] {
+  display: none;
 }
 
 /* The settings sheet: one column of switches, one of reference, side by side. */

@@ -139,7 +139,13 @@ fi
 # --------------------------------------------------------------------------- #
 # Verify
 # --------------------------------------------------------------------------- #
-printf '\n[5/5] Verifying the exported build...\n'
+printf '\n[5/5] Applying loader failure propagation and verifying the exported build...\n'
+# Godot 4.7.2 leaves doInit() pending when WASM/module/filesystem setup fails.
+# Patch the generated loader on every export so startGame() rejects instead.
+if ! "$PYTHON_BIN" "$ROOT_DIR/tools/web_loader_patch.py" "$OUTPUT_DIR/index.js"; then
+  printf 'ERROR: could not make Web initialization failures visible to the shell.\n' >&2
+  exit 1
+fi
 if ! "$PYTHON_BIN" "$ROOT_DIR/tools/verify_web_build.py" "$OUTPUT_DIR"; then
   printf 'ERROR: build verification failed; the output is not publishable as a preview.\n' >&2
   exit 1

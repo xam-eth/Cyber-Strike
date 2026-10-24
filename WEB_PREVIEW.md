@@ -23,7 +23,7 @@ Artefak CI `web-preview` (zip, isi `web/` + `README.txt`) ≈ **10 MB** karena w
 
 **Bukti browser (dijalankan di sandbox ini, Chromium headless + WebGL 2):** `node tools/web_qa.mjs` → **2/2 halaman PASS**, keduanya mem-boot Godot `4.7.2.stable.official.ed1daf0bf`, kanvas 1280×720, WebGL hidup, tanpa error halaman maupun permintaan gagal. Tangkapan layar: `exports/web-qa/root.png` dan `exports/web-qa/web-index-html.png`.
 
-> **Catatan bandwith:** kalau menyajikan dari `python -m http.server` di mesin sendiri, 38 MB wasm dimuat dari disk (instan). Kalau lewat GitHub Pages, Pages mengirim terkompresi (~10 MB saat muat pertama, lalu masuk cache browser). Hindari server statis lokal yang dipakai lewat jaringan Wi-Fi/HP — wasm besar tidak dikompresi oleh `http.server`.
+> **Catatan bandwidth:** muat pertama mengunduh WASM 39,514,754 bytes + PCK 95,586,752 bytes = **135.1 MB** (sekitar **128.8 MiB**), belum termasuk loader/HTML. `python -m http.server` tidak mengompresi keduanya; forwarded port atau Wi-Fi dapat membuat unduhan lama. Layar DEPLOY sekarang menampilkan byte gabungan yang nyata, error yang dapat diulang, dan watchdog bila tidak ada kemajuan. Jangan tutup/muat ulang saat byte masih bergerak; perilaku cache tetap bergantung pada server/proxy. Diagnosis dan bukti: [`docs/WEB_LOADING_RECOVERY.md`](docs/WEB_LOADING_RECOVERY.md).
 
 ---
 
@@ -66,6 +66,8 @@ unduh artefak manual; artefak `web-preview` tetap ada sebagai jalur cadangan.
 npm ci --prefix tools          # sekali; mengunduh Chromium headless (paket @sparticuz/chromium)
 node tools/web_qa.mjs          # menyajikan repo sendiri, membuka / dan /web/index.html
 node tools/web_qa.mjs --json   # laporan terstruktur untuk skrip/CI
+# putuskan WASM/PCK, wajibkan error + retry → WORLD, dan ukur progres pada 100 Mbps
+node tools/web_loading_qa.mjs --throughput-mbps 100 --json
 node tools/web_qa.mjs --play 80 --play-shot-every 25   # main sungguhan + foto berseri
 node tools/web_qa.mjs --encounter-prep --explore-wait 8000 --viewport 390x844
 # verifikasi Explore aman + B menuju countdown; TIDAK mengklaim Defense
@@ -125,7 +127,7 @@ python -m http.server 800 --bind 0.0.0.0
 2. `tools/web_preset.py check` — memvalidasi preset + custom HTML shell (placeholder lengkap, `<canvas>`, `<canvas>` bootstrap).
 3. Import headless (`godot --headless --editor --path game --quit`).
 4. `godot --headless --path game --export-release Web web/index.html`.
-5. `tools/verify_web_build.py web` — memastikan `index.html`, `index.js`, `index.wasm`, `index.pck` ada, magic bytes benar (`\0asm`, `GDPC`), placeholder sudah diganti, dan custom shell benar-benar terpakai.
+5. `tools/web_loader_patch.py web/index.js` meneruskan kegagalan WASM/module/filesystem ke rejection `startGame()`; lalu `tools/verify_web_build.py web` memastikan `index.html`, `index.js`, `index.wasm`, `index.pck` ada, magic bytes benar (`\0asm`, `GDPC`), placeholder sudah diganti, dan custom shell benar-benar terpakai.
 
 Opsi: `--debug` (build debug, error lebih jelas, ukuran lebih besar), `--output <dir>`, `--no-import`. Override `WEB_EXPORT_PRESET` atau `GODOT_BIN` bila perlu.
 
@@ -135,6 +137,8 @@ Opsi: `--debug` (build debug, error lebih jelas, ukuran lebih besar), `--output 
 |---|---|
 | `index.html` + `ui/` (root repo) | **Player shell**: opening → hub → launch, lalu menyerahkan perjalanan ke stage WORLD/loadout milik engine. Memuat `web/` tanpa CDN/build step, memakai font lokal, dan menampilkan kegagalan payload/WebGL yang dapat dibaca. Portrait mendapat layar instruksi rotasi; produk saat ini landscape-only. |
 | `tools/web_qa.mjs` | QA browser headless: menyajikan repo, membuka `/` dan `/web/index.html`, memeriksa banner engine, WebGL 2, ukuran kanvas, 4xx/5xx, kartu error; menulis tangkapan layar dan laporan `--json`. Mode `--journey --select-vanguard` mewajibkan WORLD dan log build dunia yang dipilih; `--play <detik>` menambah input/audio, bukan bukti satu run penuh. |
+| `tools/web_loading_qa.mjs` | Negative/recovery gate: memutus WASM dan PCK, mewajibkan error tanpa unhandled rejection, lalu retry ke WORLD. Dengan `--throughput-mbps 100` juga mewajibkan `fileSizes` nonzero, progres byte antara, dan persen yang tidak mundur. |
+| `tools/web_loader_patch.py` | Patch ekspor Godot 4.7.2 yang idempoten agar kegagalan response WASM, module initialization, dan filesystem menolak Promise `startGame()`; dipanggil otomatis oleh pipeline ekspor. |
 | `game/web_shell/index.html` | **Custom Godot HTML shell** (dipakai lewat `html/custom_html_shell`). Menambah boot overlay bertema (progress bar + persentase), HUD atas (chip build, Fullscreen, Hide UI), panel kontrol yang bisa dilipat, dan penanganan error yang menampilkan pesan gagal yang dapat dibaca. Placeholder `$GODOT_*` resmi dipertahankan. |
 | `tools/web_preset.py` | `ensure` / `check` / `show` untuk preset Web (thread support, custom shell, resize policy, PWA off). |
 | `scripts/export_web_preview.sh` | Pipeline ekspor web 5 langkah + verifikasi. |
@@ -148,7 +152,7 @@ Opsi: `--debug` (build debug, error lebih jelas, ukuran lebih besar), `--output 
 2. Tag **statis** `<script src="./web/index.js">` di `<head>`. Engine menurunkan direktori asetnya dari `document.currentScript.src`; skrip yang disuntik dinamis membuat `currentScript` bernilai `null` sehingga engine mengejar `index.wasm` di root dan mendapat 404.
 3. `config.executable = './web/index'` sebelum `new Engine(config)`. Tanpa ini engine tetap mencari `index.pck`/`index.wasm` relatif halaman (`/index.wasm`), bukan relatif `web/`. Keduanya dibuktikan dengan uji headless (`node tools/web_qa.mjs` lulus untuk `/` dan `/web/index.html`).
 
-`web/` adalah **output yang sengaja di-commit** (lihat §0): jangan mengeditnya dengan tangan, dan jangan menganggap diff-nya sebagai perubahan sumber. Isinya disegarkan oleh job CI `web-preview`; `exports/` tetap di-`.gitignore`.
+`web/` adalah **output yang sengaja di-commit** (lihat §0): jangan mengeditnya dengan tangan, dan jangan menganggap diff-nya sebagai perubahan sumber. Isinya disegarkan oleh job CI `web-preview`; satu-satunya transformasi pasca-ekspor adalah `tools/web_loader_patch.py`, yang juga dijalankan otomatis oleh pipeline. `exports/` tetap di-`.gitignore`.
 
 ## 4. Pengaturan renderer
 
@@ -192,6 +196,10 @@ Artinya build Android tetap memakai renderer `mobile` (sesuai `PROJECT_DECISIONS
 | Gejala | Sebab | Tindakan |
 |---|---|---|
 | Landing page: "build belum ada" | `web/` belum ada | Unduh artefak `web-preview` dari Actions, ekstrak ke root repo (harus jadi `web/index.html`), muat ulang |
+| Loading lama tetapi byte/persen bergerak | Muat pertama memang 135.1 MB dan `http.server` tidak mengompresi | Biarkan tab aktif sampai 100%; jangan reload. Lewat forwarded port/Wi-Fi waktunya bergantung pada koneksi nyata |
+| `Koneksi dunia terputus` atau server mencatat BrokenPipe | Browser/proxy menutup response sebelum aset selesai | Tekan **Coba lagi**, periksa koneksi, dan catat aset yang gagal di Network. Favicon 404 bukan penyebab boot |
+| `Unduhan dunia berhenti` / `Dunia terlalu lama disiapkan` | Tidak ada kemajuan selama 3 menit, atau aset lengkap tetapi engine belum mulai | Tekan **Coba lagi**; bila berulang simpan judul/detail layar serta Console/Network untuk membedakan delivery dari engine start |
+| Loading tanpa persen pada checkout lama | Path `./web/index` tidak memiliki entri `fileSizes`, sehingga callback ber-`total=0` | Pull perbaikan dan buka halaman `/` baru; regression gate membuktikan total 135,101,506 bytes |
 | Layar hitam, progres macet | WebGL 2 tidak tersedia/terblokir | Gunakan Chrome/Firefox/Edge terbaru; cek `chrome://gpu`; hindari mode hemat data |
 | Pesan "The following features ... are missing" | Browser tidak mendukung WebGL 2 atau canvas diblokir | Perbarui browser; pastikan bukan di iframe yang membatasi; jangan aktifkan thread support |
 | `404` pada `index.wasm` / `index.pck` | Server dijalankan dari folder yang salah | Jalankan `python -m http.server 800` **dari root repo** (atau `--directory <web>`) |

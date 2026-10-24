@@ -244,7 +244,11 @@
               <ul class="linklist launch__log">
                 <li><i class="tick"></i><span id="launch-status">memuat aset dunia</span><b id="launch-percent">—</b></li>
               </ul>
-              <p class="opening__hint" id="launch-hint">Tetap di layar ini sampai dunia siap.</p>
+              <p class="opening__hint" id="launch-hint" aria-live="polite">Tetap di layar ini sampai dunia siap.</p>
+              <button class="btn btn--ghost launch__retry" id="launch-retry" type="button" hidden>
+                <span>Coba lagi</span>
+                <span class="btn__meta">muat ulang</span>
+              </button>
             </div>
           </div>
         </section>
