@@ -15,7 +15,7 @@ func _run_smoke_test() -> void:
 	await process_frame
 	await physics_frame
 
-	var arena: Node3D = main_scene.get_node("NeonFrontier")
+	var arena: Node3D = main_scene.get_node("MissionWorld")
 	var player: Node3D = main_scene.get_node("Player")
 	var test_passed := true
 	# The blockout used to be procedural geometry. It is now the staged real world,
@@ -35,7 +35,7 @@ func _run_smoke_test() -> void:
 		)
 		and test_passed
 	)
-	for required_node in ["ArenaFloor", "ArenaEnvironment", "FrontierDaylightSun"]:
+	for required_node in ["ArenaFloor", "ArenaEnvironment", "MissionKeyLight"]:
 		test_passed = (
 			_expect(
 				arena.get_node_or_null(required_node) != null,

@@ -27,6 +27,8 @@ export function modelPath(id) {
   if (id === 'powerplant') return `${REAL_ROOT}/powerplant.glb`;
   if (id === 'tile_floor') return `${REAL_ROOT}/ground/tile_floor.glb`;
   if (SETPIECES.includes(id)) return `${REAL_ROOT}/setpieces/${id}.glb`;
+  // Nature Kit models carry an `nk_` prefix so one id space covers both CC0 kits.
+  if (id.startsWith('nk_')) return `${REAL_ROOT}/nature/${id.slice(3)}.glb`;
   return `${REAL_ROOT}/kenney/${id}.glb`;
 }
 
@@ -45,11 +47,91 @@ export const SETPIECES = [
  * share a light response. Textured materials (the real tile floor, every
  * Power Plant map) are left exactly as authored.
  */
-const STEEL = new THREE.Color('#5d6a74');
-const GUNMETAL = new THREE.Color('#333d44');
-const AMBER = new THREE.Color('#8f6b3c');
+const DEFAULT_KIT = {
+  steel: '#5d6a74',
+  warm: '#8f6b3c',
+  targetLight: 0.22,
+  targetSat: 0.12,
+  rough: 0.64,
+  metal: 0.34,
+};
+
+/**
+ * Organics are graded differently from hardware, on purpose.
+ *
+ * A tree has its own authored greens; running it through the metal ramp turned
+ * every canopy into a black silhouette. `nature` therefore only *shifts* toward
+ * the world's palette — a lerp, a roughness and a value multiplier — instead of
+ * replacing the hue. Both are still grades on existing colours, not new maps.
+ */
+const DEFAULT_NATURE = {
+  tint: '#7fae72',
+  tintLerp: 0.28,
+  valueMul: 1.0,
+  satMul: 1.0,
+  rough: 0.92,
+  metal: 0.0,
+};
+
+/**
+ * The grade in force. A world sets it once, before it builds, and the loader
+ * reads it when it parses a kit file. Module-level on purpose: one file's
+ * materials are shared by every instance cloned from it, so grading happens per
+ * file — running it per instance would compound the shift.
+ */
+let kitGrade = { ...DEFAULT_KIT };
+let natureGrade = { ...DEFAULT_NATURE };
+let groundTint = [2.4, 2.35, 2.2];
+let groundRough = 0.92;
+let groundMetal = 0;
+
+/** Called by a world module before `buildWorld`. */
+export function setWorldGrade({ kit, nature, ground } = {}) {
+  kitGrade = { ...DEFAULT_KIT, ...(kit ?? {}) };
+  natureGrade = { ...DEFAULT_NATURE, ...(nature ?? {}) };
+  if (ground) {
+    groundTint = ground.tint ?? groundTint;
+    groundRough = ground.rough ?? groundRough;
+    groundMetal = ground.metal ?? groundMetal;
+  }
+}
+
+/** What the loader is currently applying, for the build report. */
+export function currentGrade() {
+  return {
+    kit: { ...kitGrade },
+    nature: { ...natureGrade },
+    ground: { tint: [...groundTint], rough: groundRough, metal: groundMetal },
+  };
+}
+
+/** Organics: shift toward the world's plant colour, never replace the hue. */
+function gradeNature(root) {
+  const tint = new THREE.Color(natureGrade.tint);
+  root.traverse((node) => {
+    if (!node.isMesh) return;
+    const materials = Array.isArray(node.material) ? node.material : [node.material];
+    const graded = materials.map((m) => {
+      if (!m || m.map) return m;
+      const next = m.clone();
+      const hsl = { h: 0, s: 0, l: 0 };
+      next.color.getHSL(hsl, THREE.SRGBColorSpace);
+      next.color.lerp(tint, natureGrade.tintLerp * (0.5 + hsl.s));
+      next.color.multiplyScalar(natureGrade.valueMul);
+      next.color.offsetHSL(0, (natureGrade.satMul - 1) * hsl.s, 0);
+      next.roughness = natureGrade.rough;
+      next.metalness = natureGrade.metal;
+      next.envMapIntensity = 1.0;
+      next.needsUpdate = true;
+      return next;
+    });
+    node.material = Array.isArray(node.material) ? graded : graded[0];
+  });
+}
 
 function gradeKit(root) {
+  const steel = new THREE.Color(kitGrade.steel);
+  const warmColor = new THREE.Color(kitGrade.warm);
   root.traverse((node) => {
     if (!node.isMesh) return;
     const materials = Array.isArray(node.material) ? node.material : [node.material];
@@ -62,18 +144,24 @@ function gradeKit(root) {
       const next = m.clone();
       const warm = hsl.s > 0.42 && hsl.h > 0.075 && hsl.h < 0.145;
       if (warm) {
-        next.color.copy(AMBER).multiplyScalar(0.75 + hsl.l * 0.45);
-        next.roughness = 0.52;
-        next.metalness = 0.25;
+        next.color.copy(warmColor).multiplyScalar(0.75 + hsl.l * 0.45);
+        next.roughness = kitGrade.rough - 0.1;
+        next.metalness = kitGrade.metal;
       } else {
         // Pull every kit part onto one painted-steel ramp: keep a trace of the
         // original hue, take the value from the source lightness, and let the
         // ambient do the rest. A pastel hangar and a grey pylon then share a
         // light response instead of looking like they came from two games.
-        const target = new THREE.Color().setHSL(hsl.h, Math.min(hsl.s, 0.12), 0.16 + hsl.l * 0.17, THREE.SRGBColorSpace);
+        const target = new THREE.Color().setHSL(
+          hsl.h,
+          Math.min(hsl.s, kitGrade.targetSat),
+          kitGrade.targetLight * (0.55 + hsl.l * 1.1),
+          THREE.SRGBColorSpace,
+        );
         next.color.copy(m.color).lerp(target, 0.86);
-        next.roughness = 0.64;
-        next.metalness = 0.34;
+        next.color.lerp(steel, 0.25);
+        next.roughness = kitGrade.rough;
+        next.metalness = kitGrade.metal;
       }
       next.envMapIntensity = 1.15;
       next.needsUpdate = true;
@@ -93,6 +181,7 @@ export async function loadModel(id) {
     cache.set(path, loader.loadAsync(path).then((gltf) => {
       const scene = gltf.scene;
       const isKit = path.includes('/kenney/');
+      const isNature = path.includes('/nature/');
       scene.traverse((node) => {
         if (!node.isMesh) return;
         node.castShadow = true;
@@ -108,9 +197,12 @@ export async function loadModel(id) {
         node.userData.realSource = path;
       });
       if (isKit) gradeKit(scene);
+      if (isNature) gradeNature(scene);
       // The photographed ground plate is authored for bright daylight; at dusk it
       // needs its value lifted or the whole field reads as black asphalt.
-      if (path.includes('/ground/')) {
+      // The scanned stone plate and the Nature Kit's grass tiles are both *floor*:
+      // they get the theme's ground exposure, not the hardware or foliage grade.
+      if (path.includes('/ground/') || /\/nature\/ground-/.test(path)) {
         scene.traverse((node) => {
           if (!node.isMesh) return;
           const m = node.material;
@@ -118,9 +210,11 @@ export async function loadModel(id) {
           // The plate is photographed under noon sun; its albedo is far too dark
           // for a dusk field. Lift the tint above 1.0 (a legal multiplier on the
           // map) and kill the metalness, so it reads as worn concrete.
-          if (m.color) m.color.setRGB(3.1, 2.9, 2.5);
-          m.roughness = 0.92;
-          m.metalness = 0.0;
+          // Tint is authored in sRGB, like every other colour in the theme.
+          // Setting it as linear made a "dark moss" multiplier render pale green.
+          if (m.color) m.color.setRGB(groundTint[0], groundTint[1], groundTint[2], THREE.SRGBColorSpace);
+          m.roughness = groundRough;
+          m.metalness = groundMetal;
           m.envMapIntensity = 0.7;
           m.needsUpdate = true;
         });

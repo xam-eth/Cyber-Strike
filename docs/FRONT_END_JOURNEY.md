@@ -146,9 +146,14 @@ under the operative's card: choose who, and with what, in one place. See
 
 ## WORLD SELECTION — `stage_world_select.gd`
 
-**One theatre exists**: `scenes/worlds/neon_frontier.tscn`, the arena the game
-loads. Two slots are disabled placeholders. LAUNCH hands PRELOAD
-`{"scene": "res://scenes/main.tscn", ...}` plus the chosen weapon and world.
+**Four theatres exist**, one pin each: the three mission worlds
+(`frostline_relay`, `verdant_bloom`, `emberfall_foundry`) and
+`vanguard_station`. The three missions share `scenes/worlds/mission_world.tscn`
+and pick their staged GLB from `world_id`; the station has its own scene. One
+slot is a disabled placeholder. The pins live in a scroller, because five 64 px
+pins in a column are taller than an 844×390 screen, and the map keeps growing.
+LAUNCH hands PRELOAD `{"scene": "res://scenes/main.tscn", ...}` plus the chosen
+weapon and world.
 
 ## PRELOAD — `stage_preload.gd` (same script as LOADING)
 
@@ -166,7 +171,7 @@ the only stage allowed to change scene.
 | `intro_seen` | CHAPTER 01 card cleared once | `false` |
 | `selected_hero` | last chosen hero | `exo_operative` |
 | `selected_weapon` | last chosen weapon | `pulse_rifle` |
-| `selected_world` | last chosen world | `neon_frontier` |
+| `selected_world` | last chosen world | `frostline_relay` |
 
 Ids are checked against `HERO_IDS` / `WEAPON_IDS` / `WORLD_IDS`, which list
 only content that exists. A hand-edited save cannot make the front end offer a
@@ -230,7 +235,7 @@ Measured, in physical pixels, from the browser's own rect report
 > hero id; the card is now `ExoOperativeCard`, and the rects are unchanged.
 
 | HERO | `ExoOperativeCard=36,132,318x190`, `BACK=36,736,153x56` | `ExoOperativeCard=346,54,340x190`, `BACK=36,282,144x56` |
-| WORLD | `NeonFrontierCard=36,115,318x168`, `LAUNCH=201,736,153x56` | `NeonFrontierCard=346,54,340x168`, `LAUNCH` bottom right |
+| WORLD | `FrostlineRelayPin=36,115,318x168`, `LAUNCH=201,736,153x56` | `FrostlineRelayPin=346,54,340x168`, `LAUNCH` bottom right |
 
 Every action is 56–60 px tall, and in every measurement above the lowest pixel
 of the last action is at least 24 px clear of the safe area.

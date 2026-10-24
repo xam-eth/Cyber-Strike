@@ -19,10 +19,12 @@
 ##   * what happens next      -- LAUNCH, the amber tile, at the bottom edge on a
 ##     phone and under the copy on a desktop.
 ##
-## One world exists today: `scenes/worlds/neon_frontier.tscn`. The launch
-## payload names `FrontEnd.GAMEPLAY_SCENE` rather than a third copy of the path,
-## and `data_source_smoke.gd` walks the gameplay scene looking for the theatre
-## each pin advertises.
+## Four theatres exist: three mission worlds (Frostline Relay, Verdant Bloom,
+## Emberfall Foundry) and the Vanguard Station. The three missions share one
+## scene file and pick their GLB from `world_id`, so the launch payload names
+## `FrontEnd.GAMEPLAY_SCENE` rather than a fourth copy of a path, and
+## `data_source_smoke.gd` walks the gameplay scene looking for the theatre each
+## pin advertises.
 extends MenuStage
 
 ## The map's pins. A pin is a Button, because that is the control a player
@@ -47,6 +49,7 @@ var _info_text: VBoxContainer
 ## HBox on a wide screen, VBox on a phone: two container classes, because the
 ## direction is the class.
 var _pin_row: Container
+var _pin_scroll: ScrollContainer
 var _chrome: LobbyChrome
 var _selected := &""
 
@@ -170,14 +173,23 @@ func _build_map() -> void:
 	_map_name.autowrap_mode = TextServer.AUTOWRAP_OFF
 	map_caption.add_child(_map_name)
 
+	# The pins live in one scroller, always. There are four theatres in the
+	# registry now, not two, and five 64 px pins in a column are 340 px — taller
+	# than an 844x390 landscape screen. Scrolling is the honest way to hold a
+	# roadmap that will keep growing; the map, the plate and LAUNCH stay put.
+	_pin_scroll = ScrollContainer.new()
+	_pin_scroll.name = &"TheatrePinScroll"
+	_pin_scroll.follow_focus = true
 	_pin_row = VBoxContainer.new()
 	_pin_row.name = &"TheatrePins"
 	physical_separation(_pin_row, 8)
+	_pin_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_pin_scroll.add_child(_pin_row)
 	# In the stack, under the body, not floating inside the map: a pin laid out
 	# against the bottom of an expanding box inherits that box's geometry, and on
 	# an 844x390 landscape the body was taller than the screen, so both pins drew
 	# at y=465. Normal flow cannot do that.
-	_stack.add_child(_pin_row)
+	_stack.add_child(_pin_scroll)
 
 	for definition in WorldDefinition.load_all_definitions():
 		_pin_row.add_child(_build_pin(definition))
@@ -286,7 +298,7 @@ func reframe() -> void:
 		_reparent(_map, _side)
 		_reparent(_info, _side)
 		_reparent(_side, _body)
-		_reparent(_pin_row, _stack)
+		_reparent(_pin_scroll, _stack)
 		_info.size_flags_vertical = Control.SIZE_SHRINK_END
 		physical_min_size(_info, 320.0, 0.0)
 		_info.size_flags_horizontal = Control.SIZE_FILL
@@ -297,7 +309,7 @@ func reframe() -> void:
 	else:
 		_reparent(_map, _body)
 		_reparent(_info, _body)
-		_reparent(_pin_row, _stack)
+		_reparent(_pin_scroll, _stack)
 		_info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		_info.size_flags_vertical = Control.SIZE_SHRINK_END
 		physical_min_size(_info, 0.0, 0.0)
@@ -312,6 +324,9 @@ func reframe() -> void:
 	for child in _pin_row.get_children():
 		if child is Control:
 			physical_min_size(child as Control, 0.0, 64.0)
+	# Two pins visible at a time is what makes the row read as scrollable rather
+	# than as the whole list; the rest is one swipe away.
+	physical_min_size(_pin_scroll, 0.0, 136.0 if landscape else 160.0)
 	_orient_pins(landscape)
 	# 390 px of height is enough for the name and one line about the theatre, not
 	# for the chapter tag as well; the pin under the map already carries the name.
@@ -351,14 +366,21 @@ func _orient_pins(landscape: bool) -> void:
 		if pin.get_parent() != null:
 			pin.get_parent().remove_child(pin)
 		target.add_child(pin)
-	if _pin_row != null and _pin_row.get_parent() != null:
-		var parent := _pin_row.get_parent()
-		var index := _pin_row.get_index()
-		parent.remove_child(_pin_row)
-		parent.add_child(target)
-		parent.move_child(target, index)
-	else:
-		_stack.add_child(target)
+	# Swap the container inside the scroller rather than moving the scroller: the
+	# scroller is what the layout knows about.
+	var parent := _pin_row.get_parent()
+	var index := _pin_row.get_index()
+	parent.remove_child(_pin_row)
+	parent.add_child(target)
+	parent.move_child(target, index)
+	# A row scrolls sideways, a column scrolls down. A ScrollContainer with both
+	# bars on reserves 12 px of width for a bar nobody can use.
+	_pin_scroll.horizontal_scroll_mode = (
+		ScrollContainer.SCROLL_MODE_AUTO if wants_row else ScrollContainer.SCROLL_MODE_DISABLED
+	)
+	_pin_scroll.vertical_scroll_mode = (
+		ScrollContainer.SCROLL_MODE_DISABLED if wants_row else ScrollContainer.SCROLL_MODE_AUTO
+	)
 	_pin_row = target
 	physical_separation(_pin_row, 8)
 

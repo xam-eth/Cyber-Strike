@@ -5,8 +5,7 @@
 ## Start here
 
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — **read this first if you are new to the code**: where every subsystem lives, what a file may import, where a change of yours goes, and what has to pass before a merge. The module map in it is generated from the tree, so it cannot go stale.
-- [`game/scenes/worlds/neon_frontier.tscn`](game/scenes/worlds/neon_frontier.tscn) — complete playable frontier environment.
-- [`game/scenes/worlds/components/`](game/scenes/worlds/components/) — reusable 3D components for the reactor, outpost, laboratory, depot, extraction plant, gates, defenses, wrecks, rocks, crystals, and alien flora.
+- [`game/scenes/worlds/mission_world.tscn`](game/scenes/worlds/mission_world.tscn) — the one scene the three mission worlds run on; it loads `game/assets/forge/worlds/<id>.glb` and lights it. See [`docs/world/README.md`](docs/world/README.md).
 - [`game/assets/world/kenney_space_kit/ASSET_PROVENANCE.md`](game/assets/world/kenney_space_kit/ASSET_PROVENANCE.md) — downloaded Kenney GLB candidates, CC0/source provenance, hashes, and rig inspection; not yet instantiated by gameplay scenes.
 - [`WORLD_BLOCKOUT.md`](WORLD_BLOCKOUT.md) — world zones, route layout, modular asset inventory, and implementation notes.
 - [`DEVELOPMENT_ROADMAP.md`](DEVELOPMENT_ROADMAP.md) — project phases, scope gates, risks, and next steps.
@@ -46,11 +45,11 @@ Open `game/project.godot` in Godot 4.7.2 and run the main scene to explore the w
 ./scripts/run_smoke_tests.sh wave_director_smoke    # a single test
 ```
 
-`scripts/run_smoke_tests.sh` performs the headless Editor import and then every smoke test with `--headless --path game --script res://tests/<name>`, writing logs to the git-ignored `exports/test-logs/`. The seventeen tests are `exploration_flow_smoke.gd`, `pause_gesture_smoke.gd`, `neon_frontier_world_smoke.gd`, `arena_blockout_smoke.gd`, `hud_editor_smoke.gd`, `weapon_system_smoke.gd`, `arc_weapon_smoke.gd`, `combat_feedback_smoke.gd`, `wave_director_smoke.gd`, `reward_loop_smoke.gd`, `shooter_enemy_smoke.gd`, `playability_hud_smoke.gd`, `ui_settings_smoke.gd`, `enemy_visual_smoke.gd`, `audio_smoke.gd`, `effects_smoke.gd`, and `hero_rig_smoke.gd`. The equivalent manual commands are:
+`scripts/run_smoke_tests.sh` performs the headless Editor import and then every smoke test with `--headless --path game --script res://tests/<name>`, writing logs to the git-ignored `exports/test-logs/`. The seventeen tests are `exploration_flow_smoke.gd`, `pause_gesture_smoke.gd`, `mission_world_smoke.gd`, `arena_blockout_smoke.gd`, `hud_editor_smoke.gd`, `weapon_system_smoke.gd`, `arc_weapon_smoke.gd`, `combat_feedback_smoke.gd`, `wave_director_smoke.gd`, `reward_loop_smoke.gd`, `shooter_enemy_smoke.gd`, `playability_hud_smoke.gd`, `ui_settings_smoke.gd`, `enemy_visual_smoke.gd`, `audio_smoke.gd`, `effects_smoke.gd`, and `hero_rig_smoke.gd`. The equivalent manual commands are:
 
 ```bash
 godot --headless --editor --path game --quit
-godot --headless --path game --script res://tests/neon_frontier_world_smoke.gd
+godot --headless --path game --script res://tests/mission_world_smoke.gd
 godot --headless --path game --script res://tests/weapon_system_smoke.gd
 ```
 

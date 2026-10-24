@@ -17,7 +17,16 @@ extends SceneTree
 ## world is composed around.
 
 const KitLibrary = preload("res://scripts/worlds/scifi_kit_library.gd")
-const WorldScript = preload("res://scripts/worlds/neon_frontier_world.gd")
+
+## Per staged world: the material library it must still carry after import.
+## Each world ships its surfaces inside its own GLB, so what used to be one
+## GDScript palette is three sets of real materials — and a lost import shows up
+## as a flat grey world rather than as an error.
+const STAGED := {
+	"frostline": {"materials": 12, "textures": 8},
+	"verdant": {"materials": 8, "textures": 4},
+	"emberfall": {"materials": 40, "textures": 40},
+}
 
 var _failures: Array[String] = []
 
@@ -30,6 +39,8 @@ func _run_smoke_test() -> void:
 	_check_palette_is_derived_from_tokens()
 	_check_wall_policy_is_not_amber()
 	_check_material_variants_differ()
+	_check_every_world_carries_its_surfaces()
+	_check_worlds_are_not_one_palette()
 	_finish()
 
 
@@ -96,14 +107,14 @@ func _check_material_variants_differ() -> void:
 		"hazard trim is not the same value as the deck"
 	)
 
-	# The world ships its surfaces inside the staged GLB now. What used to be a
-	# GDScript palette is a set of real materials, so the check is that the world
-	# really carries them: many distinct materials, and photographic maps rather
-	# than flat albedo on the large surfaces.
-	var staged := ResourceLoader.exists("res://assets/forge/world/world.glb")
-	_expect(staged, "the staged real world GLB is importable")
-	if staged:
-		var scene: PackedScene = load("res://assets/forge/world/world.glb")
+
+func _check_every_world_carries_its_surfaces() -> void:
+	for world_id in STAGED:
+		var path := "res://assets/forge/worlds/%s.glb" % world_id
+		if not ResourceLoader.exists(path):
+			_expect(false, "the staged %s GLB is importable (%s)" % [world_id, path])
+			continue
+		var scene: PackedScene = load(path)
 		var instance := scene.instantiate() as Node3D
 		var textures := 0
 		var unique: Dictionary = {}
@@ -118,15 +129,56 @@ func _check_material_variants_differ() -> void:
 				unique[material.get_instance_id()] = true
 				if material.albedo_texture != null:
 					textures += 1
+		var floor: Dictionary = STAGED[world_id]
 		_expect(
-			unique.size() >= 40,
-			"the real world carries its own material library (%d surfaces)" % unique.size()
+			unique.size() >= int(floor["materials"]),
+			(
+				"%s carries its own material library (%d material(s), floor %d)"
+				% [world_id, unique.size(), int(floor["materials"])]
+			)
 		)
 		_expect(
-			textures >= 100,
-			"photographic albedo maps survive the import (%d textured surfaces)" % textures
+			textures >= int(floor["textures"]),
+			(
+				"%s keeps its photographic albedo maps (%d textured surface(s), floor %d)"
+				% [world_id, textures, int(floor["textures"])]
+			)
 		)
 		instance.free()
+
+
+## Three missions, three looks. If two worlds resolve to the same sky, fog and
+## key light, the game has three copies of one theatre and the launcher is lying
+## about what the player is choosing.
+func _check_worlds_are_not_one_palette() -> void:
+	var moods: Array[Dictionary] = []
+	for world_id in WorldMood.MOOD_ORDER:
+		_expect(WorldMood.has_mood(world_id), "a mood is declared for %s" % world_id)
+		var mood := WorldMood.mood(world_id)
+		_expect(mood["sky"] != mood["fog"], "%s's sky and fog are distinct values" % world_id)
+		moods.append(mood)
+	for i in moods.size():
+		for j in range(i + 1, moods.size()):
+			var a: Dictionary = moods[i]
+			var b: Dictionary = moods[j]
+			_expect(
+				not a["key"]["color"].is_equal_approx(b["key"]["color"]),
+				(
+					"%s and %s do not share a key light"
+					% [WorldMood.MOOD_ORDER[i], WorldMood.MOOD_ORDER[j]]
+				)
+			)
+			_expect(
+				not a["sky"].is_equal_approx(b["sky"]),
+				"%s and %s do not share a sky" % [WorldMood.MOOD_ORDER[i], WorldMood.MOOD_ORDER[j]]
+			)
+			_expect(
+				absf(float(a["fog_density"]) - float(b["fog_density"])) > 0.0005,
+				(
+					"%s and %s do not share an atmosphere"
+					% [WorldMood.MOOD_ORDER[i], WorldMood.MOOD_ORDER[j]]
+				)
+			)
 
 
 func _expect(condition: bool, message: String) -> void:

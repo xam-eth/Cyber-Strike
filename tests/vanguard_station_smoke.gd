@@ -45,7 +45,7 @@ func _run() -> void:
 	await physics_frame
 
 	var station: Node3D = main.get_node_or_null("VanguardStation")
-	var frontier: Node3D = main.get_node_or_null("NeonFrontier")
+	var frontier: Node3D = main.get_node_or_null("MissionWorld")
 	if not _expect(station != null, "the station world is instanced by the gameplay scene"):
 		_finish()
 		return
@@ -88,7 +88,7 @@ func _run() -> void:
 	# 2c. The objective card belongs to the theatre. It printed one world's copy in
 	#     every world until the strings moved into the definitions.
 	var station_definition := WorldDefinition.load_definition(&"vanguard_station")
-	var frontier_definition := WorldDefinition.load_definition(&"neon_frontier")
+	var frontier_definition := WorldDefinition.load_definition(&"frostline_relay")
 	_expect(
 		(
 			station_definition != null
@@ -103,10 +103,23 @@ func _run() -> void:
 	#     of the frontier's, which is a card advertising one theatre with a
 	#     photograph of another.
 	var plate := FileAccess.get_md5("res://assets/ui/world_vanguard_station.jpg")
-	var frontier_plate := FileAccess.get_md5("res://assets/ui/world_neon_frontier.jpg")
+	var mission_plates := [
+		FileAccess.get_md5("res://assets/ui/world_frostline_relay.jpg"),
+		FileAccess.get_md5("res://assets/ui/world_verdant_bloom.jpg"),
+		FileAccess.get_md5("res://assets/ui/world_emberfall_foundry.jpg"),
+	]
 	_expect(
-		not plate.is_empty() and plate != frontier_plate,
+		not plate.is_empty() and not mission_plates.has(plate),
 		"the station's card plate is its own image"
+	)
+	# And the three mission worlds do not share one photograph either.
+	var distinct_plates := 0
+	for candidate in mission_plates:
+		if not candidate.is_empty() and mission_plates.count(candidate) == 1:
+			distinct_plates += 1
+	_expect(
+		distinct_plates == 3,
+		"each mission world's card plate is its own render (%d distinct)" % distinct_plates
 	)
 
 	# 2e. A sign is only a sign if the artwork survives. The palette overrides

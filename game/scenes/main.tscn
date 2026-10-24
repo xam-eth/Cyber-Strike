@@ -1,7 +1,7 @@
 [gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
-[ext_resource type="PackedScene" path="res://scenes/worlds/neon_frontier.tscn" id="2_world"]
+[ext_resource type="PackedScene" path="res://scenes/worlds/mission_world.tscn" id="2_world"]
 [ext_resource type="PackedScene" path="res://scenes/worlds/vanguard_station.tscn" id="11_station"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="3_player"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/training_drone.tscn" id="4_drone"]
@@ -17,7 +17,7 @@ script = ExtResource("1_main")
 [node name="ProgressionService" type="Node" parent="."]
 script = ExtResource("10_progression")
 
-[node name="NeonFrontier" parent="." instance=ExtResource("2_world")]
+[node name="MissionWorld" parent="." instance=ExtResource("2_world")]
 
 [node name="VanguardStation" parent="." instance=ExtResource("11_station")]
 

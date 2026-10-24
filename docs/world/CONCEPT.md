@@ -49,13 +49,19 @@ accident. A surface is either structure (low saturation, matte) or energy (fully
 saturated, emissive); there is no third category, which is what keeps a night
 scene readable at mobile brightness.
 
-Three lighting rules, applied by `src/worlds/neon_frontier.js → worldLighting()`:
+Three lighting rules, applied per world by `src/worlds/themes.js` in the forge
+and by `game/scripts/worlds/world_mood.gd` in the engine — the same four lights,
+counted the same way, in each of the three missions:
 
-1. One warm key from the south-west, low enough to throw 20–30 m shadows.
-2. One cyan fill from the east, at half the key's intensity, marking the edges
-   that face away from the key.
-3. One violet rim from the north — the alien colour arrives from the direction of
-   the docked wreck, so the light itself tells you where the danger is.
+1. One key from the south-west, low enough to throw 20–30 m shadows. It is the
+   only shadow caster, and its colour is the world's signature: polar blue for
+   Frostline Relay, a hot green-white sun for Verdant Bloom, furnace orange for
+   Emberfall Foundry.
+2. One fill from the east, at roughly a third of the key's intensity, marking the
+   edges that face away from the key.
+3. One rim from the north — the accent colour arrives from the direction of the
+   mission's landmark (the uplink, the fallen drone, the plant), so the light
+   itself tells you where the objective is.
 
 The sky is a shader gradient with a single bright haze band just above the
 horizon. That band is deliberate: a night scene needs one soft edge to separate

@@ -125,7 +125,7 @@ Step by step:
    This is what turns a 1024×1024 wordmark into 1024×256, and it is why the
    weapon plates are not framed by generator padding.
    Images with no flat backdrop (`dashboard_bg`, `hero_portrait`,
-   `loading_keyart`, `world_neon_frontier`) are correctly left alone — the
+   `loading_keyart`, `world_frostline_relay`) are correctly left alone — the
    survey measured their content bbox at ~100% of area.
 2. **Luma key to alpha** — the wordmark arrives with the generator's backdrop
    painted on: a near-black navy plate, which every menu then drew as a black
@@ -175,7 +175,9 @@ Sizes are the real imported sizes, verified at runtime by
 | `loading_keyart` | `loading_keyart.jpg` | 1920×1080 | JPEG q90 | 0.0% | LOADING, PRELOAD |
 | `dashboard_bg` | `dashboard_bg.jpg` | 1920×1080 | JPEG q90 | 0.2% | DASHBOARD, HERO, WEAPON |
 | `hero_portrait` | `portrait_hero.png` | 768×1024 | PNG | 0.2% | HERO selection card |
-| `world_neon_frontier` | `world_neon_frontier.jpg` | 1600×900 | JPEG q90 | 0.0% | CHAPTER, WORLD selection |
+| `world_frostline_relay` | `world_frostline_relay.jpg` | 1600×900 | JPEG q90 | 0.0% | CHAPTER, WORLD selection |
+| `world_verdant_bloom` | `world_verdant_bloom.jpg` | 1600×900 | JPEG q90 | 5.3% | WORLD selection |
+| `world_emberfall_foundry` | `world_emberfall_foundry.jpg` | 1600×900 | JPEG q90 | 0.0% | WORLD selection |
 | `weapon_pulse_rifle` | `weapon_pulse_rifle.png` | 768×512 | PNG | 0.0% | WEAPON selection card |
 | `weapon_nova_launcher` | `weapon_nova_launcher.png` | 768×512 | PNG | 1.3% | WEAPON selection card |
 | `weapon_arc_shooter` | `weapon_arc_shooter.png` | 768×512 | PNG | 0.1% | WEAPON selection card |

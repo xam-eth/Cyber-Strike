@@ -1,27 +1,50 @@
 extends Node3D
 ##
-## neon_frontier_world.gd — the real world, loaded from one GLB.
+## mission_world.gd — one of the three mission worlds, loaded from one GLB.
 ##
 ## This file used to *build* the Frontier Outpost out of GDScript primitives: a
 ## procedural floor plane, procedurally generated component scenes, dressers and
 ## a bay builder. Every one of those surfaces was code, not art. It is gone.
 ##
-## What runs now is the world assembled by `tools/asset-forge`, in which every
-## visible mesh is a real licensed GLB:
+## What runs now are the three worlds assembled by `tools/asset-forge`, in which
+## every visible mesh is a real licensed GLB:
 ##
-##   game/assets/forge/world/world.glb   one scene, 530 meshes, 119 clips,
-##                                       84 embedded maps, 21.6 MB
+##   game/assets/forge/worlds/frostline.glb   113,086 tris · 61 clips ·  5.8 MB
+##   game/assets/forge/worlds/verdant.glb     128,182 tris · 156 clips · 3.0 MB
+##   game/assets/forge/worlds/emberfall.glb   227,811 tris · 31 clips · 20.5 MB
+##
+## Exactly one is loaded: the theatre the launcher selected, or Frostline Relay
+## when nothing has been selected yet. There is one scene file for all three
+## because the *scene* is the same node graph — what differs is the GLB, and
+## building three near-identical .tscn files would only give three places for
+## that graph to drift.
 ##
 ## This script only *places* that scene and lights it. It creates no geometry: the
 ## only nodes it adds to the tree itself are an invisible collision body, the
 ## lighting rig and two non-visual waypoint markers.
 ##
 ## Provenance: tools/asset-forge/real/real-manifest.json
-##   Kenney Space Kit (CC0-1.0, kenney.nl)
+##   Kenney Space Kit + Nature Kit (CC0-1.0, kenney.nl)
 ##   Cinder Yard Power Plant + ground plate (CC-BY-4.0, Kammertonus)
 ##
-
-const WORLD_SCENE: PackedScene = preload("res://assets/forge/world/world.glb")
+## Three mission worlds, each one GLB assembled from licensed real assets by
+## `tools/asset-forge`. Only the selected one is loaded: together they are 30 MB
+## of geometry and maps, and the player is in exactly one of them.
+const WORLD_SCENES := {
+	"frostline_relay": "res://assets/forge/worlds/frostline.glb",
+	"verdant_bloom": "res://assets/forge/worlds/verdant.glb",
+	"emberfall_foundry": "res://assets/forge/worlds/emberfall.glb",
+}
+## Mission order; the first is the default theatre.
+const WORLD_ORDER: Array[String] = ["frostline_relay", "verdant_bloom", "emberfall_foundry"]
+## Launcher ids (ProgressionService.selected_world_id) → world ids.
+const SELECTION_MAP := {
+	"frostline": "frostline_relay",
+	"verdant": "verdant_bloom",
+	"verdant_bloom": "verdant_bloom",
+	"emberfall": "emberfall_foundry",
+	"emberfall_foundry": "emberfall_foundry",
+}
 
 ## Collision for the real props. The GLB is a visual scene: it has no physics, so
 ## the player would walk through a hangar. One box per placed role, taken from the
@@ -30,6 +53,19 @@ const WORLD_SCENE: PackedScene = preload("res://assets/forge/world/world.glb")
 ## the wave gates, the boss gate) are skipped on purpose.
 const COLLIDER_SKIP := ["Reactor", "WaveEntry", "DockingGate", "Perimeter", "Gate"]
 
+## Walking surface per world, measured from each staged GLB. The fenced field is
+## not the same size in three worlds — an extraction site is wider than a relay
+## station — so the collision floor and the bound walls follow the world rather
+## than the script. Values are `Vector2(width, depth)` in metres, plus the
+## `(x, z)` the field is centred on. These are the fences the forge builds, not
+## the GLB's total bounds: the foundry's plant is a landmark beyond the east wall,
+## so the meshes reach further than the ground the player may walk on.
+const WORLD_FIELDS := {
+	"frostline_relay": {"size": Vector2(168.0, 156.0), "center": Vector2(0.0, -8.0)},
+	"verdant_bloom": {"size": Vector2(176.0, 164.0), "center": Vector2(0.0, -6.0)},
+	"emberfall_foundry": {"size": Vector2(200.0, 176.0), "center": Vector2(0.0, -10.0)},
+}
+## Fallback field, used if a world id ever arrives without an entry above.
 const WORLD_WIDTH: float = 192.0
 const WORLD_DEPTH: float = 180.0
 const WORLD_CENTER_Z: float = -10.0
@@ -39,6 +75,8 @@ const WORLD_CENTER_Z: float = -10.0
 @export var animate_components: bool = true
 ## Playback speed multiplier for the authored clips.
 @export var animation_speed: float = 1.0
+## Force a world (tests and captures). Empty = follow the launcher selection.
+@export var world_override: String = ""
 
 var _built: bool = false
 var _world: Node3D
@@ -60,16 +98,41 @@ func _ready() -> void:
 
 
 func _is_selected() -> bool:
-	var selected := WorldSelection.selected(self)
-	return selected == &"" or selected == &"neon_frontier"
+	# An explicit override (captures, tests) always builds: it names the world it
+	# wants and does not care what the launcher remembered.
+	if not world_override.is_empty():
+		return true
+	# Otherwise only the selected theatre builds. An empty selection means a
+	# fresh profile, which loads the first mission.
+	var selected := String(WorldSelection.selected(self))
+	return selected == "" or SELECTION_MAP.has(selected)
 
 
-## Place the one real asset. Everything the player sees inside this node came
-## out of that file.
+## Which mission world this node is. An explicit override wins; otherwise the
+## launcher's selection decides, and an empty selection means the default world.
+func _world_id() -> String:
+	if not world_override.is_empty():
+		return world_override
+	var selected := String(WorldSelection.selected(self))
+	if SELECTION_MAP.has(selected):
+		return SELECTION_MAP[selected]
+	return WORLD_ORDER[0]
+
+
+## Place the real asset. Everything the player sees inside this node came out of
+## that one file.
 func _instance_real_world() -> void:
-	_world = WORLD_SCENE.instantiate() as Node3D
+	var world_id := _world_id()
+	var scene_path: String = WORLD_SCENES.get(world_id, WORLD_SCENES[WORLD_ORDER[0]])
+	var packed := load(scene_path) as PackedScene
+	if packed == null:
+		push_error("MISSION WORLD: world '%s' did not import (%s)" % [world_id, scene_path])
+		return
+	_world = packed.instantiate() as Node3D
 	_world.name = "RealFrontierWorld"
+	_world.set_meta("world_id", world_id)
 	add_child(_world)
+	print("MISSION WORLD: %s (%s)" % [world_id, scene_path.get_file()])
 	for child in _world.find_children("*", "MeshInstance3D", true, false):
 		var mesh_instance := child as MeshInstance3D
 		mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
@@ -106,16 +169,31 @@ func _start_authored_motion() -> void:
 
 ## Walking surface and outer bound. Invisible: it exists so the player has ground,
 ## not so the world has geometry.
+func _field_size() -> Vector2:
+	return WORLD_FIELDS.get(_world_id(), {"size": Vector2(WORLD_WIDTH, WORLD_DEPTH)})["size"]
+
+
+func _field_center() -> Vector2:
+	return WORLD_FIELDS.get(_world_id(), {"center": Vector2(0.0, WORLD_CENTER_Z)})["center"]
+
+
+func _field_center_z() -> float:
+	return _field_center().y
+
+
 func _add_collision_floor() -> void:
+	var field := _field_size()
+	var center := _field_center()
+	var center_z := center.y
 	var floor_body := StaticBody3D.new()
 	floor_body.name = "ArenaFloor"
-	floor_body.position = Vector3(0.0, -0.4, WORLD_CENTER_Z)
+	floor_body.position = Vector3(center.x, -0.4, center_z)
 	floor_body.collision_layer = 1
 	floor_body.collision_mask = 0
 	var floor_shape := CollisionShape3D.new()
 	floor_shape.name = "ArenaFloorCollisionShape"
 	var shape := BoxShape3D.new()
-	shape.size = Vector3(WORLD_WIDTH, 0.8, WORLD_DEPTH)
+	shape.size = Vector3(field.x, 0.8, field.y)
 	floor_shape.shape = shape
 	floor_body.add_child(floor_shape)
 	add_child(floor_body)
@@ -126,21 +204,21 @@ func _add_collision_floor() -> void:
 	walls.collision_layer = 1
 	walls.collision_mask = 0
 	add_child(walls)
-	var half_w := WORLD_WIDTH * 0.5
-	var half_d := WORLD_DEPTH * 0.5
+	var half_w := field.x * 0.5
+	var half_d := field.y * 0.5
 	for side in [
-		{"name": "North", "pos": Vector3(0.0, 3.0, WORLD_CENTER_Z - half_d)},
-		{"name": "South", "pos": Vector3(0.0, 3.0, WORLD_CENTER_Z + half_d)},
-		{"name": "West", "pos": Vector3(-half_w, 3.0, WORLD_CENTER_Z)},
-		{"name": "East", "pos": Vector3(half_w, 3.0, WORLD_CENTER_Z)},
+		{"name": "North", "pos": Vector3(0.0, 3.0, center_z - half_d)},
+		{"name": "South", "pos": Vector3(0.0, 3.0, center_z + half_d)},
+		{"name": "West", "pos": Vector3(center.x - half_w, 3.0, center_z)},
+		{"name": "East", "pos": Vector3(center.x + half_w, 3.0, center_z)},
 	]:
 		var wall := CollisionShape3D.new()
 		wall.name = "%sWall" % side["name"]
 		var wall_shape := BoxShape3D.new()
 		wall_shape.size = (
-			Vector3(WORLD_WIDTH, 6.0, 1.0)
+			Vector3(field.x, 6.0, 1.0)
 			if side["name"] in ["North", "South"]
-			else Vector3(1.0, 6.0, WORLD_DEPTH)
+			else Vector3(1.0, 6.0, field.y)
 		)
 		wall.shape = wall_shape
 		wall.position = side["pos"]
@@ -182,7 +260,7 @@ func _add_prop_colliders() -> void:
 			body.add_child(collider)
 			made += 1
 	if made > 0:
-		print("NEON FRONTIER: %d prop colliders derived from the real world" % made)
+		print("MISSION WORLD: %d prop colliders derived from the real world" % made)
 
 
 ## World-space bounds of a placed role, from the meshes it is made of.
@@ -199,62 +277,67 @@ func _role_bounds(role: Node3D) -> AABB:
 	return merged
 
 
-## Lighting rig. Light is not an asset; it is how the scanned surfaces are read.
+## Lighting rig, built from the world's own mood. Light is not an asset; it is
+## how the licensed surfaces are read, and it is the single strongest signal that
+## the player has changed theatre: frostline is a cool key over a cyan ambient,
+## verdant a hot green-white sun under a warm canopy, emberfall an orange key
+## against a violet rim with molten fill from below.
 func _build_lighting_and_atmosphere() -> void:
-	var sun := DirectionalLight3D.new()
-	sun.name = "FrontierDaylightSun"
-	sun.rotation_degrees = Vector3(-39.0, -31.0, 0.0)
-	# Warm key, cool ambient: the split the key art uses. Energy stays under the
-	# 1.1 ceiling the smoke test guards, with real shadowing because the world is
-	# lit by the scanned maps rather than by bright flat albedo.
-	sun.light_color = Color(0.98, 0.9, 0.8)
-	sun.light_energy = 1.05
-	sun.shadow_enabled = true
-	sun.shadow_opacity = 0.58
-	sun.directional_shadow_max_distance = 220.0
-	add_child(sun)
+	var mood := WorldMood.mood(_world_id())
 
-	var fill := DirectionalLight3D.new()
-	fill.name = "FrontierCoolFill"
-	fill.rotation_degrees = Vector3(-24.0, 148.0, 0.0)
-	fill.light_color = Color(0.55, 0.72, 0.95)
-	fill.light_energy = 0.35
-	fill.shadow_enabled = false
-	add_child(fill)
+	# Three directional lights: key (casts), fill and rim (do not). Each is aimed
+	# at the field centre from the position the theme gives it.
+	for role in ["key", "fill", "rim"]:
+		var spec: Dictionary = mood[role]
+		var light := DirectionalLight3D.new()
+		light.name = String(spec["name"])
+		light.light_color = spec["color"]
+		light.light_energy = spec["energy"]
+		light.shadow_enabled = role == "key"
+		if light.shadow_enabled:
+			light.shadow_opacity = 0.58
+			light.directional_shadow_max_distance = 220.0
+		add_child(light)
+		light.look_at_from_position(
+			spec["position"], Vector3(0.0, 0.0, _field_center_z()), Vector3.UP
+		)
+		light.rotation.z = 0.0
 
-	var reactor_fill := OmniLight3D.new()
-	reactor_fill.name = "ReactorCyanBounce"
-	reactor_fill.position = Vector3(0.0, 5.4, 0.0)
-	reactor_fill.light_color = Color(0.33, 0.78, 1.0)
-	reactor_fill.light_energy = 0.7
-	reactor_fill.omni_range = 12.5
-	reactor_fill.shadow_enabled = false
-	add_child(reactor_fill)
+	# The landmark's own light: an emissive accent that blooms in the haze.
+	var accent := OmniLight3D.new()
+	accent.name = "MissionAccentLight"
+	accent.position = Vector3(0.0, 5.4, 0.0)
+	accent.light_color = mood["accent"]
+	accent.light_energy = mood["accent_energy"]
+	accent.omni_range = mood["accent_range"]
+	accent.shadow_enabled = false
+	add_child(accent)
 
 	var environment := Environment.new()
 	environment.background_mode = Environment.BG_COLOR
-	environment.background_color = Color(0.035, 0.06, 0.09)
+	environment.background_color = mood["sky"]
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	environment.ambient_light_color = Color(0.30, 0.42, 0.52)
-	environment.ambient_light_energy = 0.9
+	environment.ambient_light_color = mood["ambient"]
+	environment.ambient_light_energy = mood["ambient_energy"]
 	environment.tonemap_mode = Environment.TONE_MAPPER_ACES
 	environment.tonemap_white = 6.0
 	environment.ssao_enabled = true
 	environment.ssao_radius = 2.4
 	environment.glow_enabled = true
-	environment.glow_intensity = 0.55
+	environment.glow_intensity = mood["glow"]
 	environment.glow_bloom = 0.12
 	environment.fog_enabled = true
-	environment.fog_light_color = Color(0.09, 0.14, 0.19)
-	environment.fog_density = 0.006
+	environment.fog_light_color = mood["fog"]
+	environment.fog_density = mood["fog_density"]
 	environment.adjustment_enabled = true
-	environment.adjustment_saturation = 0.92
-	environment.adjustment_contrast = 1.06
+	environment.adjustment_saturation = mood["saturation"]
+	environment.adjustment_contrast = mood["contrast"]
 
 	var world_environment := WorldEnvironment.new()
 	world_environment.name = "ArenaEnvironment"
 	world_environment.environment = environment
 	add_child(world_environment)
+	print("MISSION WORLD: lit as %s" % WorldMood.label(_world_id()))
 
 
 ## Non-visual waypoints the HUD and the route hint read. Marker3D draws nothing.

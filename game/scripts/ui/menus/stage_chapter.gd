@@ -18,7 +18,7 @@ var _material := 0.0
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
-	add_child(make_backdrop("res://assets/ui/world_neon_frontier.jpg"))
+	add_child(make_backdrop("res://assets/ui/world_frostline_relay.jpg"))
 
 	var scrim := ColorRect.new()
 	scrim.color = Color(AegisTokens.VOID, 0.5)

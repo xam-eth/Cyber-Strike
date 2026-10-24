@@ -233,8 +233,16 @@ JOBS = [
     ("loading_keyart", "loading_keyart_16x9.png", "cover", (1920, 1080), "loading_keyart.jpg", "JPEG"),
     ("dashboard_bg", "dashboard_bg.png", "cover", (1920, 1080), "dashboard_bg.jpg", "JPEG"),
     ("hero_portrait", "hero_portrait.png", "cover", (768, 1024), "portrait_hero.png", "PNG"),
-    ("world_neon_frontier", "world_neon_frontier.png", "cover", (1600, 900),
-     "world_neon_frontier.jpg", "JPEG"),
+    # The three world plates are capture renders, not painted concept art: the
+    # forge photographs each mission world at 2048x1152, and that frame is what
+    # the WORLD screen sells. Cropping it here keeps the plates honest — they
+    # show the world the LAUNCH button will load.
+    ("world_frostline_relay", "world_frostline_relay.png", "cover", (1600, 900),
+     "world_frostline_relay.jpg", "JPEG"),
+    ("world_verdant_bloom", "world_verdant_bloom.png", "cover", (1600, 900),
+     "world_verdant_bloom.jpg", "JPEG"),
+    ("world_emberfall_foundry", "world_emberfall_foundry.png", "cover", (1600, 900),
+     "world_emberfall_foundry.jpg", "JPEG"),
     ("weapon_pulse_rifle", "weapon_pulse_rifle.png", "content_cover", (768, 512),
      "weapon_pulse_rifle.png", "PNG"),
     ("weapon_nova_launcher", "weapon_nova_launcher.png", "content_cover", (768, 512),

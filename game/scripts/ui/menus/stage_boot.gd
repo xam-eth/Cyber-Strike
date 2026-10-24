@@ -18,7 +18,7 @@ const FRONT_END_ART := [
 	"res://assets/ui/dashboard_bg.jpg",
 	"res://assets/ui/logo_wordmark.png",
 	"res://assets/ui/portrait_hero.png",
-	"res://assets/ui/world_neon_frontier.jpg",
+	"res://assets/ui/world_frostline_relay.jpg",
 	"res://assets/ui/weapon_pulse_rifle.png",
 	"res://assets/ui/weapon_nova_launcher.png",
 	"res://assets/ui/weapon_arc_shooter.png",

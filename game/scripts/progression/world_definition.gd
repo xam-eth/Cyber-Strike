@@ -14,26 +14,34 @@ extends Resource
 ## the two together. `world_scene` declares which world the card is selling, and
 ## the test instantiates the gameplay scene and looks for a node whose
 ## `scene_file_path` is that file, so a card advertising a world the launcher
-## does not contain fails the suite. There is only one world today, so this is
-## cheap -- it is here so the second one cannot silently lie.
+## does not contain fails the suite.
 ##
-## No wave count, enemy mix or difficulty rating: `neon_frontier_world.gd` owns
-## that at runtime, and a copy of it here would go stale the moment it is tuned.
+## The three mission worlds share one scene file. They are the same node graph --
+## a world node, a collision floor, a lighting rig -- and what differs is the GLB
+## that node loads, chosen from `world_id`. Three .tscn files for one script would
+## be three places for that graph to drift apart.
+##
+## No wave count, enemy mix or difficulty rating: `mission_world.gd` owns that at
+## runtime, and a copy of it here would go stale the moment it is tuned.
 const DEFINITION_PATHS := {
-	&"neon_frontier": "res://resources/worlds/neon_frontier.tres",
+	&"frostline_relay": "res://resources/worlds/frostline_relay.tres",
+	&"verdant_bloom": "res://resources/worlds/verdant_bloom.tres",
+	&"emberfall_foundry": "res://resources/worlds/emberfall_foundry.tres",
 	&"vanguard_station": "res://resources/worlds/vanguard_station.tres",
 }
 
 ## Stable iteration order for the registry (GDScript dictionaries keep
 ## insertion order, but a named list is what a screen should read).
 const DEFINITION_IDS: Array[StringName] = [
-	&"neon_frontier",
+	&"frostline_relay",
+	&"verdant_bloom",
+	&"emberfall_foundry",
 	&"vanguard_station",
 ]
 
 ## The theatre the profile falls back to when a save names one that no longer
 ## exists, and the one selected on a fresh install.
-const DEFAULT_WORLD_ID := &"neon_frontier"
+const DEFAULT_WORLD_ID := &"frostline_relay"
 
 @export var world_id: StringName = &""
 @export var display_name: String = ""

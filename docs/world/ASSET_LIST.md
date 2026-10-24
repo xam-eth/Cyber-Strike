@@ -1,65 +1,80 @@
-# Asset list — the real files the world is made of
+# Asset list — 130 real files, three worlds
 
-Every visible asset here is a licensed, pre-modelled GLB. None of them is produced
-by code in this repository. The complete inventory, with a SHA-256 per file, is
-`tools/asset-forge/real/real-manifest.json` (verified by
-`node tools/asset-forge/real/fetch_real_assets.mjs --verify`).
+Every visible asset in the game is a licensed, pre-modelled GLB. Nothing is
+extruded, lathed, lofted or box-built by code, and no texture is generated. The
+full inventory with a SHA-256 per file is
+`tools/asset-forge/real/real-manifest.json`
+(`node tools/asset-forge/real/fetch_real_assets.mjs --verify`).
 
 ## 1. Libraries
 
-| Library | Files | Size | Licence | Author | Role in the world |
-| --- | --- | --- | --- | --- | --- |
-| Kenney **Space Kit** | 87 | 5.4 MB | CC0-1.0 | Kenney — <https://kenney.nl/assets/space-kit> | the modular hardware: hulls, gates, dishes, turrets, pipes, rocks, wrecks |
-| **Cinder Yard Power Plant** | 1 | 40.5 MB | CC-BY-4.0 | Kammertonus — <https://twitter.com/Kammertonus> | the landmark, and the source of the set pieces |
-| **Power Plant set pieces** | 8 | 8.5 MB | CC-BY-4.0 | Kammertonus | cooling tower, tank ring, tank pad, arch ribs, column, drone, crane carriage |
-| Photographed **ground plate** | 1 | 0.7 MB | CC-BY-4.0 | Kammertonus | the 1920 px stone-tile floor |
-| **Total** | **97** | **52.5 MB** | | | 47 distinct files are referenced by the current world build |
+| Library | Files | Licence | Author | Used for |
+| --- | --- | --- | --- | --- |
+| Kenney **Space Kit** | 87 | CC0-1.0 | Kenney | modular hardware: hulls, gates, dishes, turrets, pipes, platforms |
+| Kenney **Nature Kit** | 33 | CC0-1.0 | Kenney | real trees, bushes, grass, moss, flowers, mushrooms, logs, boulders, grass/path floor tiles |
+| **Cinder Yard Power Plant** | 1 | CC-BY-4.0 | Kammertonus | the Emberfall landmark (285 meshes, 65 baked 1024² maps) |
+| **Power Plant set pieces** | 8 | CC-BY-4.0 | Kammertonus | tank ring, tank pad, cooling tower, arch ribs, column, crane, drone |
+| **Scanned ground plate** | 1 | CC-BY-4.0 | Kammertonus | 1920² stone-tile floor (Frostline, Emberfall) |
 
-The Power Plant is a 285-mesh industrial scene with 79 PBR materials and 65 baked
-1024 px maps. It is used twice over: whole, as the off-field landmark, and sliced
-into the structures the playfield needs. `real/slice_setpieces.mjs` copies the
-author's nodes, materials and maps into smaller GLBs — it models nothing.
+The set pieces are **cut**, not authored: `real/slice_setpieces.mjs` copies the
+plant's own nodes, materials and maps into smaller GLBs and models nothing.
 
-## 2. The 16 roles
+## 2. Roles (30)
 
-Each role is a small assembly of real files, placed by `src/worlds/layout.js` and
-described in `src/worlds/roleSpecs.js`. "Real parts" counts distinct source GLBs;
-motion counts authored clips on those meshes.
+A role is an assembly of real parts placed by a world's layout. `roles.js`
+declares the parts, their metric size, and their motion; `WORLD_ROLES` says which
+world may use which.
 
-| Role | Real parts it is built from | Motion | Instances |
+| Role | Parts (real files) | Motion | Worlds |
 | --- | --- | --- | --- |
-| Reactor Core | `cooling_tower`, `tank_ring` ×2, `tank_pad`, `rock-crystalslargea`, `satellitedish-large` | 4 clips (two counter-rotating rings, core pulse, crown spin) | 1 |
-| Command Centre | `hangar-largea`, `column`, `satellitedish-large`, `corridor-detailed` | dish spin | 1 |
-| Research Laboratory | `hangar-roundb`, `machine-wirelesscable`, `pipe-ringhigh`, `tank_ring`, `satellitedish-detailed` | vessel spin, dome turn, dish spin | 1 |
-| Equipment Depot | `hangar-smallb`, `barrels`, `barrels-rail`, `platform-low` | crate bob | 2 |
-| Generator Bank | `tank_pad`, `cooling_tower` ×2, `tank_ring`, `pipe-ringhigh` ×2, `pipe-straight` | 4 clips (generator pulse, stack spin) | 1 |
-| Landing Pad | `tank_pad`, `platform-corner` ×4, `chimney` ×4, `satellitedish`, `crane` | gantry bob, beacon spin, four post pulses | 1 |
-| Boss Gate | `tank_pad`, `tall_arch`, `column` ×2, `satellitedish-large`, `gate-simple` | gate pulse, lock frame pulse, sentry spin | 1 |
-| Defence Turret | `platform-low`, `pipe-supportlow`, `turret-double`, `satellitedish` | turret sweep, sensor spin | 7 |
-| Sensor Tower | `platform-low`, `column`, `pipe-ring` ×2, `satellitedish-detailed`, `satellitedish-large` | dish spin, dish sweep, ring spins | 5 |
-| Wave / Enemy Gate | `platform-low`, `gate-simple`, `structure` ×2, `satellitedish` | beacon spin, gate pulse | 8 |
-| Wrecked Transport | `drone`, `craft-cargob`, `meteor-half`, `rocks-smalla`, `column` | hull sway | 1 |
-| Alien Drone Wreck | `crater`, `drone`, `bones`, `meteor-detailed` | chassis sway | 1 |
-| Crystal Cluster | `rock-crystalslargea`, `rock-crystalslargeb`, `rock-crystals`, `rocks-smallb` | two pulses | 4 |
-| Alien Flora | `bones`, `rocks-smallb`, `rock-crystals` | sway, bloom pulse | 18 |
-| Rock Cluster | `rock-largea`, `rock-largeb`, `rocks-smalla` | — | 8 |
-| Cover Module | `tank_ring`, `barrels-rail`, `barrel` ×2 | — | 4 |
+| `comms_array` | `tank_pad`, `column`, `satellitedish-large`, `satellitedish-detailed`, `pipe-ring` | dish spin, dish sweep, ring spin | Frostline |
+| `relay_mast` | `supports-low`, `pipe-supporthigh`, `pipe-ringhigh` ×2, `satellitedish` | whip spin, band bob | Frostline |
+| `cryo_condenser` | `tank_pad`, `cooling_tower`, `tank_ring`, `pipe-straight` | collar spin, vent bob | Frostline |
+| `ice_crystal` | `rock-crystalslargea/b`, `rock-crystals`, `rocks-smallb` | two pulses | Frostline |
+| `frozen_hauler` | `tank_pad`, `craft-cargob`, `drone`, `rock-crystals` | tender sway | Frostline |
+| `sensor_tower` | `platform-low`, `column`, `pipe-ring` ×2, two dishes | dish spin/sweep, ring spins | Frostline, Verdant |
+| `bio_dome` | `tank_pad`, `hangar-roundb`, `tank_ring`, `bones`, `pipe-ring` | crown spin, overgrowth sway, vent spin | Verdant |
+| `giant_flora` | `bones`, `rock-crystalslargea`, `rock-crystals`, `rocks-smallb` | trunk sway, canopy pulse, shoot sway | Verdant |
+| `spore_vent` | `crater`, `pipe-ringhigh`, `rock-crystals`, `bones` | spore pulse, frond sway | Verdant |
+| `overgrown_arch` | `tank_pad`, `tall_arch`, `bones` ×2, `rock-crystalslargeb` | vine sway, bloom pulse | Verdant |
+| `crashed_lab` | `craterlarge`, `hangar-smallb`, `drone`, `bones` | scout sweep | Verdant |
+| `grove_tree` | `nk_tree-pinerounda`, 2 bushes, `nk_mushroom-tangroup` | canopy sway | Verdant |
+| `undergrowth` | `nk_plant-bushdetailed`, `nk_grass-large`, `nk_flower-purplea`, `nk_hanging-moss` | bush sway, bloom pulse | Verdant |
+| `moss_rock` | `nk_rock-tallb`, `nk_plant-bushsmall`, `nk_hanging-moss` | drape sway | Verdant |
+| `mushroom_ring` | `nk_mushroom-redtall`, `nk_mushroom-red` ×2, `nk_mushroom-tangroup` | stalk pulse | Verdant |
+| `fallen_log` | `nk_log-large`, `nk_stump-oldtall`, `nk_plant-bushsmall` | — | Verdant |
+| `smelter_tower` | `tank_pad`, `cooling_tower`, `tank_ring`, `column`, `pipe-straight` | glow band spin, flue bob | Emberfall |
+| `ore_silo` | `tank_pad`, `tank_ring` ×2, `column` | drum-top spin | Emberfall |
+| `drill_rig` | `tank_pad`, `columns`, `pipe-straight`, `crane` | crown spin, arm sweep | Emberfall |
+| `crane_gantry` | `column` ×3, `crane` | beam bob | Emberfall |
+| `slag_pool` | `craterlarge`, `platform-small`, `rocks-smallb` | melt pulse | Emberfall |
+| `ash_statue` | `columns`, `meteor-detailed` | — | Emberfall |
+| `defense_turret` | `platform-low`, `pipe-supportlow`, `turret-double`, `satellitedish` | turret sweep, sensor spin | all three |
+| `cover_module` | `tank_ring`, `barrels-rail`, `barrel` | — | all three |
+| `enemy_spawn_gate` | `platform-low`, `gate-simple`, `structure` ×2, `satellitedish` | beacon spin, gate pulse | Frostline, Emberfall |
+| `crystal_cluster` | `rock-crystalslargea/b`, `rock-crystals`, `rocks-smallb` | two pulses | Verdant |
+| `alien_flora` | `bones`, `rocks-smallb`, `rock-crystals` | sway, bloom pulse | Verdant |
+| `rock_cluster` | `rock-largea/b`, `rocks-smalla` | — | Frostline, Verdant, Emberfall |
+| `wrecked_transport` | `drone`, `craft-cargob`, `meteor-half`, `rocks-smalla`, `column` | hull sway | Frostline, Emberfall |
 
-## 3. Landmark and ground
+## 3. What each world contains
 
-| Asset | File | Placement | Measured |
+| | Frostline Relay | Verdant Bloom | Emberfall Foundry |
 | --- | --- | --- | --- |
-| Cinder Yard Power Station | `powerplant.glb` | `[152, 0, -14]`, yaw 96° | 24.0 m tall, standing outside the east wall |
-| Ground plate | `ground/tile_floor.glb` | 12 m grid, 16 × 15 = 240 tiles | 1920 px albedo + normal + roughness |
-| Arena deck | `platform-center` | 6.4 m plates, 38 × 38 m | — |
-| Routes | `terrain-roadstraight` | 5 legs from the reactor | — |
-| Perimeter | `structure` + `supports-high` | 3.4 m fence, three gate gaps | 3.4 m |
-| Wilds dressing | `craterlarge`, `rocks-smallb` | 22 pieces around the crash site | — |
+| Mission | defence | recovery | extraction |
+| Field | 168 × 156 m | 176 × 164 m | 200 × 176 m |
+| Floor | scanned stone plate | real grass tiles + dirt paths | scanned stone plate |
+| Roles / instances | 10 / 36 | 12 / 92 | 10 / 31 |
+| Animation clips | 61 | 156 | 31 |
+| Landmark | polar arch gate | fallen scout drone | Cinder Yard power station |
+| Real GLBs referenced | 35 | 44 | 29 |
 
-## 4. What is *not* in here, on purpose
+## 4. What is deliberately not here
 
-* No procedurally generated geometry — the gate rejects any mesh without
-  `userData.realSource`.
-* No generated textures — no `CanvasTexture`, no code-drawn noise, no faked
-  normal maps. The kit's flat colours are graded, not re-painted.
-* No hero, weapon, enemy or VFX assets: this branch is world-only.
+* No image-to-3D output in this build: the sandbox this branch was produced in has
+  no GPU and no access to model weights (Hugging Face / PyTorch hubs are blocked),
+  so every asset is a **pre-authored** licensed model instead of a hallucinated
+  one. See `docs/world/PBR_AND_VERIFICATION.md` §6 for the pipeline that is ready
+  to receive generative assets.
+* No procedural geometry, no generated textures, no hero/weapon/enemy assets —
+  this branch is world scope.
