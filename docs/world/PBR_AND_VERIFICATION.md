@@ -50,12 +50,20 @@ numbers are reproducible in CI:
   posed transform was baked in as the rest pose. See section 4.
 - animation: every clip track targets a node that exists, and `views-differ`
   (a radial symmetry guard — three rendered views must not be identical);
-- conformance: Khronos `gltf-validator`, 0 errors / 0 warnings;
+- conformance: Khronos `gltf-validator`, 0 errors / 0 warnings. Two real defects
+  had to be fixed to earn this: a normal map without a TANGENT attribute makes
+  the file non-portable (so tangents are computed at finalize time), and
+  `computeTangents()` writes zero-length tangents on uv-degenerate seams (so they
+  are repaired against the vertex normal);
+- framing: `render-coverage` and `render-luma` per view, with a per-entry coverage
+  floor for props that are legitimately flat (the landing pad is 32 × 24 × 1.2 m,
+  so it cannot fill a portrait frame the way a building does);
 - determinism: the module is rebuilt from a cache-busted URL and the geometry
   hash must match;
 - images: front / three-quarter / side renders exist and differ.
 
-Results land in `tools/asset-forge/results.json`; review sheets in
+**Current result: 16 / 16 assets pass, 25 / 25 checks each, 0 failures.** Full
+report in `tools/asset-forge/results.json`; review sheets in
 `tools/asset-forge/review/`.
 
 ### 2.2 World renders — `node tools/asset-forge/gate/world_shot.mjs`
@@ -76,6 +84,11 @@ the whole world as one GLB.
 | `wilds` | −16, 12, 74 | wreckage, crystals, flora, cracked pavement |
 | `skyline` | 150, 26, −12 | horizon and wall silhouette against the sky |
 
+**Current result:** 8 shots at 2048 × 1152, plus one `world.glb` of **29.44 MB**
+carrying 64 instances / 173,028 triangles / 70 clips and exactly four embedded
+images. Khronos validator on that file: **0 errors, 0 warnings**. Measurements in
+`tools/asset-forge/build/world/world-report.json`.
+
 The stills are then **looked at**, side by side with
 `tools/asset-forge/references/world/*.png`. The rule for this branch is explicit:
 a render that has not been viewed does not count as verified. Shape, texture
@@ -86,8 +99,10 @@ below record what changed as a result.
 
 `.github/workflows/godot-ci.yml` installs Godot 4.7.2, imports every staged GLB
 and writes `qa-evidence/forge/import-report.json` (per-asset height, clip names,
-socket names, pass/fail). Last full run before the world rescope: **checked 36 ·
-passed 36 · failed 0**.
+socket names, pass/fail). The staging step (`stage_into_game.mjs`) copies the 16
+world GLBs into `game/assets/forge/world/` and writes
+`game/assets/forge/forge_manifest.json` — the contract the Godot verifier checks
+the import against.
 
 ## 3. What viewing the renders changed
 

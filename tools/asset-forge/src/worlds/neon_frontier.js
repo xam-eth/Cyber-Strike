@@ -19,7 +19,7 @@ import * as THREE from 'three';
 import { registry } from '../registry.js';
 import { rng } from '../runtime/kit.js';
 import { PALETTE } from '../runtime/palette.js';
-import { pulseClip, spinClip } from '../runtime/rig.js';
+import { pulseClip, ensureTangents } from '../runtime/rig.js';
 import { WORLD, PLACEMENTS, SCATTER, PLAYER_SPAWNS } from './layout.js';
 import { buildTerrain } from './terrain.js';
 import { assembleProps, placeProp } from './assembly.js';
@@ -116,6 +116,11 @@ export async function buildWorld() {
     spawns.add(marker);
   }
   root.add(spawns);
+
+  // Terrain is built here rather than by a model module, so it does not pass
+  // through `finalize()`. Run the same tangent pass over the finished graph:
+  // normal-mapped ground and deck need explicit TANGENT to be portable.
+  ensureTangents(root);
 
   const clips = [...props.clips, ...scatter.clips, ...worldMotion(terrain.root)];
 

@@ -23,6 +23,12 @@ because there are no districts in the technical sense: it is one continuous
 surface with a navmesh-friendly 0.2 m deck at the centre and a 2.6 m perimeter
 wall that exists to frame the playfield, not to stop the player.
 
+![The world from the air](images/overview.png)
+
+*`overview` — the whole world from 96, 72, 118. Arena deck at the centre, outpost
+to the west, extraction bank to the east, docking gate north, crashed sector
+south. Rendered from the live scene graph at 2048 × 1152.*
+
 ## 2. The five beats
 
 | Beat | Where | What it is for |
@@ -78,6 +84,19 @@ In the browser build this is 70 clips driven by one `AnimationMixer`. In Godot i
 is `game/scripts/worlds/neon_frontier_motion.gd` — a data-driven node that rides
 inside each component and animates the meshes that should move (see
 [`ASSET_LIST.md`](ASSET_LIST.md#3-runtime-motion-in-godot)).
+
+### The captures
+
+| | |
+| --- | --- |
+| ![Arena](images/arena.png) | ![Boss gate](images/boss.png) |
+| `arena` — reactor, hazard ring, wave gates, cover | `boss` — the 11 m docking gate on its causeway |
+| ![Outpost](images/outpost.png) | ![Wilds](images/wilds.png) |
+| `outpost` — command centre, depot, sensor tower | `wilds` — wrecks, crystals, flora, cracked pavement |
+
+All sixteen components side by side: [`images/asset-sheet.png`](images/asset-sheet.png).
+Reference photo next to forge render for each: [`images/reference-compare.png`](images/reference-compare.png)
+(discussed in [`REFERENCE_COMPARISON.md`](REFERENCE_COMPARISON.md)).
 
 ## 5. How you verify it
 

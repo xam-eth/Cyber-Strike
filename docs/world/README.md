@@ -8,6 +8,7 @@ entirely from procedural code in this repository.
 | [`CONCEPT.md`](CONCEPT.md) | the place, its five districts, the art-direction rules, what moves and why |
 | [`ASSET_LIST.md`](ASSET_LIST.md) | all 16 component models, their heights, clips, sockets and 64 placed instances; terrain layers; the runtime motion table |
 | [`PBR_AND_VERIFICATION.md`](PBR_AND_VERIFICATION.md) | the 2K/4K texture pipeline, the three verification gates, and what looking at the renders actually changed |
+| [`REFERENCE_COMPARISON.md`](REFERENCE_COMPARISON.md) | reference photo vs forge render, asset by asset, with an honest verdict on every difference |
 
 ## Where the code lives
 

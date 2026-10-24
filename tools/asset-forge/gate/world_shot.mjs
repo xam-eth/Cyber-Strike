@@ -125,6 +125,13 @@ if (wantGlb) {
   console.log(`  world.glb   ${glb.megabytes} MB`);
 }
 
+// `--append` merges into the existing report: re-rendering one camera should not
+// throw away the evidence for the other seven.
+const reportPath = path.join(OUT, 'world-report.json');
+const previous = has('append') && fs.existsSync(reportPath)
+  ? JSON.parse(fs.readFileSync(reportPath, 'utf8'))
+  : null;
+
 const out = {
   generated: new Date().toISOString(),
   textureSize: Number(tex),
@@ -135,7 +142,15 @@ const out = {
   renders: rendered,
   glb,
 };
-fs.writeFileSync(path.join(OUT, 'world-report.json'), `${JSON.stringify(out, null, 2)}\n`);
+if (previous) {
+  const byShot = new Map((previous.renders ?? []).map((r) => [r.shot, r]));
+  for (const r of rendered) byShot.set(r.shot, r);
+  out.renders = [...byShot.values()];
+  out.glb = glb ?? previous.glb;
+  out.buildMs = previous.buildMs;
+  out.textureSize = Number(tex);
+}
+fs.writeFileSync(reportPath, `${JSON.stringify(out, null, 2)}\n`);
 console.log(`report → ${path.relative(ROOT, path.join(OUT, 'world-report.json'))}`);
 
 await browser.close();

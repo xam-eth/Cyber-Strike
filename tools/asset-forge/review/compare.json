@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-24T05:08:18.321Z",
+  "generated": "2026-10-24T07:05:20.032Z",
   "pairs": [
     {
       "id": "reactor_core",
@@ -112,53 +112,8 @@
       "category": "world",
       "reference": "references/world/cover_module.png",
       "render": "build/renders/cover_module/view-034-16.png"
-    },
-    {
-      "id": "pulse_rifle",
-      "row": 0,
-      "category": "weapon",
-      "reference": "references/weapons/pulse_rifle.png",
-      "render": "build/renders/pulse_rifle/view-035-18.png"
-    },
-    {
-      "id": "runner",
-      "row": 0,
-      "category": "enemy",
-      "reference": "references/enemies/runner.png",
-      "render": "build/renders/runner/view-034-16.png"
-    },
-    {
-      "id": "shooter",
-      "row": 1,
-      "category": "enemy",
-      "reference": "references/enemies/shooter.png",
-      "render": "build/renders/shooter/view-034-16.png"
-    },
-    {
-      "id": "training_drone",
-      "row": 2,
-      "category": "enemy",
-      "reference": "references/enemies/training_drone.png",
-      "render": "build/renders/training_drone/view-000-6.png"
     }
   ],
-  "no_reference": [
-    "exo_operative",
-    "exo_combat_tech",
-    "exo_void_runner",
-    "exo_neon_phantom",
-    "exo_rogue_engineer",
-    "exo_alien_hunter",
-    "nova_launcher",
-    "arc_shooter",
-    "scatter_blaster",
-    "rail_cannon",
-    "gravity_gun",
-    "arc_shooter_void_edition",
-    "pulse_bolt",
-    "nova_shockwave",
-    "arc_chain",
-    "impact_burst"
-  ],
+  "no_reference": [],
   "no_render": []
 }
