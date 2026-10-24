@@ -8,7 +8,7 @@
     {
       "screen": "opening",
       "viewport": "844x390",
-      "file": "qa-evidence/ui/r3/opening-844x390.png",
+      "file": "qa-evidence/ui/round-02/opening-844x390.png",
       "blank": false,
       "overflow": [],
       "errors": [],
@@ -22,7 +22,7 @@
     {
       "screen": "hub",
       "viewport": "844x390",
-      "file": "qa-evidence/ui/r3/hub-844x390.png",
+      "file": "qa-evidence/ui/round-02/hub-844x390.png",
       "blank": false,
       "overflow": [],
       "errors": [],
@@ -36,7 +36,7 @@
     {
       "screen": "settings",
       "viewport": "844x390",
-      "file": "qa-evidence/ui/r3/settings-844x390.png",
+      "file": "qa-evidence/ui/round-02/settings-844x390.png",
       "blank": false,
       "overflow": [],
       "errors": [],
@@ -50,7 +50,7 @@
     {
       "screen": "opening",
       "viewport": "667x375",
-      "file": "qa-evidence/ui/r3/opening-667x375.png",
+      "file": "qa-evidence/ui/round-02/opening-667x375.png",
       "blank": false,
       "overflow": [],
       "errors": [],
@@ -64,7 +64,7 @@
     {
       "screen": "hub",
       "viewport": "667x375",
-      "file": "qa-evidence/ui/r3/hub-667x375.png",
+      "file": "qa-evidence/ui/round-02/hub-667x375.png",
       "blank": false,
       "overflow": [],
       "errors": [],
@@ -78,7 +78,7 @@
     {
       "screen": "settings",
       "viewport": "667x375",
-      "file": "qa-evidence/ui/r3/settings-667x375.png",
+      "file": "qa-evidence/ui/round-02/settings-667x375.png",
       "blank": false,
       "overflow": [],
       "errors": [],
@@ -91,5 +91,5 @@
     }
   ],
   "failures": 0,
-  "generatedAt": "2026-10-24T12:44:08.036Z"
+  "generatedAt": "2026-10-24T16:02:36.480Z"
 }
