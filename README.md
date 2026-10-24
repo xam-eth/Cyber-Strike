@@ -84,7 +84,9 @@ same run presses F10 in the engine, walks the eight review vantages and saves on
 `qa-evidence/world-kit/` was captured, from the shipped `web/` payload rather than from a separate scene.
 
 The web export is single-threaded (`variant/thread_support=false`) so it runs on a plain static server without
-COOP/COEP headers, and it uses a custom shell at `game/web_shell/index.html`. The web platform always uses the
+COOP/COEP headers. The player meets the game through the front end at the repository root (`index.html` + `ui/`), which
+covers opening, hub, mission select and launch, then hands the screen to the engine. Export builds use the equivalent
+shell at `game/web_shell/index.html`. The web platform always uses the
 Compatibility (WebGL 2) renderer, while Android keeps the `mobile` renderer — see [`WEB_PREVIEW.md`](WEB_PREVIEW.md)
 for the differences that must not be mistaken for Android behaviour.
 

@@ -1,0 +1,1226 @@
+/* ==========================================================================
+   AEGIS player shell
+   --------------------------------------------------------------------------
+   One stylesheet for the web front end: the opening, the hub, mission cards,
+   settings, and the hand-off to gameplay. Components are named for what they
+   are in the game, not for where they sit, so the in-engine theme can adopt
+   them one at a time without a second visual language appearing.
+
+   Reading order: base -> frame -> type -> controls -> cards -> screens -> motion
+   ========================================================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--void);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: var(--text-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  margin: 0;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   The field: the surface every screen sits on
+   ========================================================================== */
+
+#canvas {
+  position: fixed;
+  inset: 0;
+  /* The world sits under the shell while the opening plays, and takes the whole
+     screen once the player commits. The decorative field is only for the menus;
+     leaving it above the canvas is what made the first hand-off frame black. */
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: var(--void);
+  outline: none;
+}
+
+/* The canvas is mounted but covered: the opening owns the screen until the
+   player commits, and the engine boots behind it so the commit is instant. */
+#canvas[data-hidden='true'] {
+  visibility: hidden;
+}
+
+.field {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 50% at 18% 0%, rgba(84, 200, 255, 0.1), transparent 62%),
+    radial-gradient(ellipse 60% 55% at 88% 100%, rgba(255, 176, 32, 0.09), transparent 60%),
+    linear-gradient(180deg, var(--void-2), var(--void) 58%);
+}
+
+.field::before {
+  /* Engineering grid, tuned to be felt rather than read. */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(78, 106, 126, 0.14) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(78, 106, 126, 0.14) 1px, transparent 1px);
+  background-size: 88px 88px;
+  mask-image: radial-gradient(ellipse 78% 66% at 50% 42%, #000 30%, transparent 78%);
+}
+
+.field::after {
+  /* Vignette + a hairline horizon, which is what stops the field reading flat. */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, transparent 46%, rgba(84, 200, 255, 0.16) 46.2%, transparent 46.6%),
+    radial-gradient(ellipse 90% 80% at 50% 50%, transparent 42%, rgba(3, 5, 8, 0.86) 100%);
+}
+
+#app {
+  position: relative;
+  height: 100%;
+  z-index: 2;
+}
+
+/* Hand-off: the shell is gone, the field goes with it, and the canvas owns the
+   screen. Kept as one rule so "the world is visible" cannot half-apply. */
+body[data-mode='playing'] .field {
+  opacity: 0;
+  transition: opacity var(--motion-slow) var(--ease);
+}
+
+body[data-mode='playing'] #canvas {
+  visibility: visible;
+}
+
+/* ==========================================================================
+   Type roles
+   ========================================================================== */
+
+.eyebrow {
+  font-family: var(--font-ui);
+  font-size: var(--text-micro);
+  font-weight: 600;
+  letter-spacing: var(--track-micro);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-display);
+  line-height: 0.92;
+  letter-spacing: var(--track-display);
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-title);
+  line-height: 1.04;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.heading {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-heading);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.body {
+  color: var(--ink-2);
+  font-size: var(--text-body);
+  max-width: 62ch;
+}
+
+.muted {
+  color: var(--ink-3);
+}
+
+.num {
+  font-family: var(--font-ui);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* ==========================================================================
+   Frame: status strip + viewport gutters
+   ========================================================================== */
+
+.strip {
+  position: absolute;
+  inset: 0 0 auto 0;
+  display: flex;
+  align-items: center;
+  gap: var(--s4);
+  padding: calc(var(--s3) + var(--safe-t)) calc(var(--gutter) + var(--safe-r)) var(--s3)
+    calc(var(--gutter) + var(--safe-l));
+  border-bottom: 1px solid var(--hair);
+  font-size: var(--text-micro);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--ink-3);
+  background: linear-gradient(180deg, rgba(5, 8, 12, 0.86), transparent);
+}
+
+.strip__mark {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  color: var(--ink-2);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.strip__mark::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border: 1px solid var(--accent);
+  border-radius: 1px;
+  box-shadow: inset 0 0 0 2px rgba(255, 176, 32, 0.28);
+}
+
+.strip__spacer {
+  flex: 1;
+}
+
+.strip__item {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  white-space: nowrap;
+}
+
+.strip__item[data-state='ok'] {
+  color: var(--ok);
+}
+.strip__item[data-state='warn'] {
+  color: var(--accent);
+}
+.strip__item[data-state='bad'] {
+  color: var(--danger);
+}
+
+.dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 8px currentColor;
+}
+
+.viewport {
+  position: relative;
+  height: 100%;
+  padding: calc(56px + var(--s5) + var(--safe-t)) calc(var(--gutter) + var(--safe-r))
+    calc(var(--s5) + var(--safe-b)) calc(var(--gutter) + var(--safe-l));
+  overflow: hidden;
+}
+
+.shell {
+  height: 100%;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* ==========================================================================
+   Screens
+   ========================================================================== */
+
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: inherit;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+  transition:
+    opacity var(--motion-base) var(--ease),
+    transform var(--motion-base) var(--ease);
+}
+
+.screen[data-active='true'] {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+.screen__inner {
+  width: 100%;
+  max-width: var(--maxw);
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s5);
+  padding-block: var(--s2);
+}
+
+.screen__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.screen__head .body {
+  max-width: 58ch;
+}
+
+.rule {
+  height: 1px;
+  background: linear-gradient(90deg, var(--accent), rgba(255, 176, 32, 0.05) 42%, transparent);
+}
+
+/* ==========================================================================
+   Panel: the base surface, cut corners with brackets instead of a heavy border
+   ========================================================================== */
+
+.panel {
+  position: relative;
+  background: var(--panel-a78);
+  border: 1px solid var(--hair);
+  border-radius: var(--radius);
+  padding: var(--s4);
+  backdrop-filter: blur(10px);
+}
+
+.panel--solid {
+  background: var(--panel-a92);
+}
+
+/* Four corner brackets, drawn with two gradients each: cheap, crisp, and it
+   reads as instrumentation rather than as a web card. */
+.panel--bracketed::before,
+.panel--bracketed::after {
+  content: '';
+  position: absolute;
+  width: var(--bracket);
+  height: var(--bracket);
+  pointer-events: none;
+}
+
+.panel--bracketed::before {
+  top: -1px;
+  left: -1px;
+  border-top: var(--bracket-w) solid var(--line-hi);
+  border-left: var(--bracket-w) solid var(--line-hi);
+}
+
+.panel--bracketed::after {
+  right: -1px;
+  bottom: -1px;
+  border-right: var(--bracket-w) solid var(--line-hi);
+  border-bottom: var(--bracket-w) solid var(--line-hi);
+}
+
+/* ==========================================================================
+   Controls
+   ========================================================================== */
+
+.btn {
+  --btn-bg: transparent;
+  --btn-fg: var(--ink);
+  --btn-line: var(--line-hi);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s2);
+  min-height: var(--tap);
+  padding: 0 var(--s5);
+  border: 1px solid var(--btn-line);
+  border-radius: var(--radius);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background var(--motion-fast) var(--ease),
+    border-color var(--motion-fast) var(--ease),
+    color var(--motion-fast) var(--ease),
+    transform var(--motion-fast) var(--ease);
+}
+
+.btn:hover {
+  border-color: var(--ink-2);
+  background: rgba(78, 106, 126, 0.14);
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn[disabled],
+.btn[aria-disabled='true'] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn--primary {
+  --btn-bg: var(--accent);
+  --btn-fg: var(--accent-ink);
+  --btn-line: var(--accent);
+  min-height: var(--tap-lg);
+  padding-inline: var(--s6);
+  font-size: 1.05rem;
+  letter-spacing: 0.18em;
+  box-shadow: 0 0 0 1px rgba(255, 176, 32, 0.24), 0 12px 40px -18px rgba(255, 176, 32, 0.9);
+}
+
+.btn--primary:hover {
+  background: #ffc04d;
+  border-color: #ffc04d;
+}
+
+/* Corner bracket on every primary action: the same L the panels use, so the
+   bracket is a system, not a decoration on one button. */
+.btn--primary::after {
+  content: '';
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  width: 9px;
+  height: 9px;
+  border-top: 1px solid var(--accent-ink);
+  border-right: 1px solid var(--accent-ink);
+  opacity: 0.4;
+}
+
+.btn--ghost {
+  --btn-bg: rgba(11, 19, 27, 0.6);
+  --btn-line: var(--hair);
+  color: var(--ink-2);
+  font-size: 0.86rem;
+  letter-spacing: 0.16em;
+}
+
+.btn--ghost:hover {
+  color: var(--ink);
+}
+
+.btn--wide {
+  width: 100%;
+}
+
+.btn__meta {
+  font-family: var(--font-ui);
+  font-size: var(--text-micro);
+  font-weight: 500;
+  letter-spacing: var(--track-micro);
+  opacity: 0.72;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: 3px var(--s3);
+  border: 1px solid var(--hair);
+  border-radius: 999px;
+  background: rgba(22, 35, 46, 0.6);
+  color: var(--ink-2);
+  font-size: var(--text-micro);
+  font-weight: 600;
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.chip--ok {
+  border-color: rgba(55, 224, 140, 0.4);
+  color: var(--ok);
+}
+.chip--accent {
+  border-color: rgba(255, 176, 32, 0.45);
+  color: var(--accent);
+}
+.chip--info {
+  border-color: rgba(84, 200, 255, 0.4);
+  color: var(--info);
+}
+
+.switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s4);
+  width: 100%;
+  min-height: var(--tap-lg);
+  padding: var(--s3) 0;
+  border: 0;
+  border-bottom: 1px solid var(--hair);
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.switch:last-of-type {
+  border-bottom: 0;
+}
+
+.switch__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.switch__title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.switch__hint {
+  color: var(--ink-3);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  max-width: 46ch;
+}
+
+.switch__track {
+  position: relative;
+  flex: 0 0 auto;
+  width: 52px;
+  height: 28px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(5, 8, 12, 0.8);
+  transition: border-color var(--motion-fast) var(--ease);
+}
+
+.switch__track::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--ink-3);
+  transition:
+    transform var(--motion-fast) var(--ease),
+    background var(--motion-fast) var(--ease);
+}
+
+.switch[aria-checked='true'] .switch__track {
+  border-color: var(--accent);
+  background: rgba(255, 176, 32, 0.16);
+}
+
+.switch[aria-checked='true'] .switch__track::after {
+  transform: translateX(24px);
+  background: var(--accent);
+}
+
+/* ==========================================================================
+   Cards
+   ========================================================================== */
+
+.cards {
+  display: grid;
+  gap: var(--s4);
+  grid-template-columns: 1fr;
+  align-items: stretch;
+}
+
+.card {
+  --card-accent: var(--line-hi);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  padding: var(--s4) var(--s4) var(--s3);
+  background: linear-gradient(180deg, rgba(17, 28, 38, 0.92), rgba(11, 19, 27, 0.86));
+  border: 1px solid var(--hair);
+  border-radius: var(--radius);
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  overflow: hidden;
+  cursor: pointer;
+  transition:
+    border-color var(--motion-fast) var(--ease),
+    transform var(--motion-fast) var(--ease),
+    background var(--motion-fast) var(--ease);
+}
+
+/* The left rail: the card's state, readable at a glance and never colour-only
+   (the text row beside it says the same thing). */
+.card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: var(--edge);
+  background: var(--card-accent);
+  opacity: 0.55;
+  transition: opacity var(--motion-fast) var(--ease);
+}
+
+.card:hover,
+.card:focus-visible {
+  border-color: rgba(78, 106, 126, 0.7);
+  background: linear-gradient(180deg, rgba(22, 35, 46, 0.96), rgba(11, 19, 27, 0.92));
+}
+
+.card:hover::before,
+.card:focus-visible::before {
+  opacity: 1;
+}
+
+.card[data-mode='safe'] {
+  --card-accent: var(--info);
+}
+.card[data-mode='defense'] {
+  --card-accent: var(--accent);
+}
+.card[data-state='locked'] {
+  --card-accent: var(--line);
+  cursor: not-allowed;
+}
+.card[data-state='locked'] .card__title,
+.card[data-state='locked'] .card__desc {
+  color: var(--ink-3);
+}
+
+.card__top {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+}
+
+.card__index {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: var(--text-micro);
+  letter-spacing: var(--track-micro);
+  color: var(--ink-3);
+}
+
+.card__title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.32rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  line-height: 1.02;
+}
+
+.card__desc {
+  color: var(--ink-2);
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2) var(--s4);
+  padding-top: var(--s3);
+  border-top: 1px solid var(--hair);
+  margin-top: auto;
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 64px;
+}
+
+.metric__key {
+  font-size: var(--text-micro);
+  letter-spacing: var(--track-micro);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.metric__val {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.metric__val[data-tone='ok'] {
+  color: var(--ok);
+}
+.metric__val[data-tone='accent'] {
+  color: var(--accent);
+}
+
+/* Card as a list row on the hub: same anatomy, denser. */
+.card--row {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--s4);
+  padding: var(--s3) var(--s4);
+  min-height: var(--tap-lg);
+}
+
+.card--row::before {
+  width: 3px;
+}
+
+.card--row .card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.card--row .card__title {
+  font-size: 1rem;
+}
+
+.card--row .card__desc {
+  font-size: 0.78rem;
+}
+
+.card--row .card__go {
+  margin-left: auto;
+  color: var(--ink-3);
+  font-size: var(--text-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Opening
+   --------------------------------------------------------------------------
+   Two pieces: the wordmark and the commit button on the left, and a telemetry
+   panel that states the three things the shell actually verified. The panel is
+   the opening's only chrome, which is the point — the first screen of a game
+   should be a promise, not a download dialog.
+   ========================================================================== */
+
+.screen--opening {
+  justify-content: center;
+}
+
+.opening {
+  display: grid;
+  gap: var(--s5);
+  grid-template-columns: 1fr;
+  align-items: end;
+}
+
+.opening__lead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+  max-width: 40rem;
+}
+
+.opening__word {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(2.6rem, 8vw, 5.4rem);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink);
+  line-height: 0.92;
+}
+
+.opening__word em {
+  font-style: normal;
+  color: var(--accent);
+  text-shadow: 0 0 42px rgba(255, 176, 32, 0.32);
+}
+
+.opening__body {
+  max-width: 44ch;
+}
+
+.opening__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s4);
+  margin-top: var(--s2);
+}
+
+.opening__hint {
+  color: var(--ink-3);
+  font-size: var(--text-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+}
+
+.opening__panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  padding: var(--s4);
+  min-width: 0;
+}
+
+/* The launch read-out is the same list component as the opening's checks, with
+   one row: the engine's own byte count, never a synthetic percentage. */
+.launch__log {
+  max-width: 34rem;
+}
+
+.panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+}
+
+/* The link list: a terminal read-out, not a paragraph. Each row is a check the
+   shell ran, so the column is honest about what "siap" means. */
+.linklist {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.linklist li {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  min-height: 30px;
+  padding: 0 var(--s2);
+  border-left: 2px solid var(--line);
+  color: var(--ink-3);
+  font-family: var(--font-ui);
+  font-size: var(--text-label);
+  font-weight: 500;
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  transition:
+    color var(--motion-base) var(--ease),
+    border-color var(--motion-base) var(--ease),
+    background var(--motion-base) var(--ease);
+}
+
+.linklist li .tick {
+  width: 18px;
+  height: 1px;
+  background: var(--line);
+  flex: 0 0 auto;
+  transition: background var(--motion-base) var(--ease);
+}
+
+.linklist li b {
+  margin-left: auto;
+  font-weight: 600;
+  color: var(--ink-3);
+}
+
+.linklist li[data-shown='true'] {
+  color: var(--ink-2);
+  border-left-color: var(--line-hi);
+  background: rgba(22, 35, 46, 0.5);
+}
+
+.linklist li[data-shown='true'] b {
+  color: var(--ink);
+}
+
+.linklist li[data-tone='ok'] {
+  border-left-color: var(--ok);
+}
+.linklist li[data-tone='ok'] .tick {
+  background: var(--ok);
+}
+.linklist li[data-tone='ok'] b {
+  color: var(--ok);
+}
+
+.linklist li[data-tone='bad'] {
+  border-left-color: var(--danger);
+  color: var(--danger);
+}
+.linklist li[data-tone='bad'] .tick {
+  background: var(--danger);
+}
+.linklist li[data-tone='bad'] b {
+  color: var(--danger);
+}
+
+.statusgrid--tight > div {
+  padding: var(--s2) var(--s3);
+}
+
+/* ==========================================================================
+   Hub
+   ========================================================================== */
+
+.hub {
+  display: grid;
+  gap: var(--s5);
+  grid-template-columns: 1fr;
+  align-items: start;
+}
+
+.hub__lead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+  padding: var(--s5);
+}
+
+.hub__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s3);
+}
+
+.hub__side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+.statusgrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--hair);
+  border: 1px solid var(--hair);
+}
+
+.statusgrid > div {
+  background: var(--panel-a92);
+  padding: var(--s3);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* ==========================================================================
+   Settings sheet
+   ========================================================================== */
+
+.sheet {
+  width: 100%;
+  max-width: 60rem;
+  margin: auto;
+}
+
+.sheet__head {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  padding-bottom: var(--s3);
+  border-bottom: 1px solid var(--hair);
+  margin-bottom: var(--s3);
+}
+
+.sheet__head .title {
+  font-size: 1.3rem;
+}
+
+.keys {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--s2) var(--s4);
+  margin-top: var(--s3);
+}
+
+.keys div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s2);
+  padding: 6px 0;
+  border-bottom: 1px dashed rgba(39, 56, 74, 0.7);
+  color: var(--ink-2);
+  font-size: 0.82rem;
+}
+
+.keys kbd {
+  font-family: var(--font-ui);
+  font-size: var(--text-micro);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  padding: 2px 6px;
+  border: 1px solid var(--hair);
+  border-radius: 2px;
+  color: var(--ink);
+  background: rgba(22, 35, 46, 0.8);
+}
+
+/* ==========================================================================
+   Loading hand-off
+   ========================================================================== */
+
+.progress {
+  position: relative;
+  height: 3px;
+  background: rgba(78, 106, 126, 0.28);
+  overflow: hidden;
+}
+
+.progress__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  background: linear-gradient(90deg, var(--accent-dim), var(--accent));
+  box-shadow: 0 0 18px rgba(255, 176, 32, 0.55);
+  transition: width 220ms linear;
+}
+
+.progress[data-indeterminate='true'] .progress__fill {
+  width: 34%;
+  animation: sweep 1.4s var(--ease) infinite;
+}
+
+@keyframes sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(320%);
+  }
+}
+
+/* ==========================================================================
+   Portrait: one column, tighter rhythm, bigger primary action
+   ========================================================================== */
+
+@media (max-width: 719px), (orientation: portrait) and (max-width: 1024px) {
+  :root {
+    --gutter: 18px;
+    --bracket: 10px;
+  }
+
+  .strip {
+    gap: var(--s2);
+    font-size: 0.58rem;
+  }
+
+  .strip__item--wide {
+    display: none;
+  }
+
+  /* The brand is the one item allowed to shrink: the readouts beside it are
+     measured facts and stay at full size. */
+  .strip__mark {
+    letter-spacing: 0.1em;
+    flex: 0 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .viewport {
+    padding-top: calc(50px + var(--s4) + var(--safe-t));
+  }
+
+  .hub {
+    gap: var(--s4);
+  }
+
+  .hub__lead {
+    padding: var(--s4);
+  }
+
+  .card {
+    padding: var(--s3) var(--s3) var(--s2);
+  }
+
+  .card__title {
+    font-size: 1.18rem;
+  }
+
+  .card__desc {
+    font-size: 0.8rem;
+  }
+
+  .btn {
+    width: 100%;
+    padding-inline: var(--s4);
+  }
+
+  .btn__meta {
+    margin-left: auto;
+  }
+
+  .opening__word {
+    letter-spacing: 0.2em;
+  }
+
+  .statusgrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Landscape with room: the hub becomes two columns and cards sit side by side.
+   720px is the honest threshold — a phone on its side is 844x390 and needs the
+   two-column hub just as much as a laptop does. */
+@media (min-width: 720px) and (orientation: landscape) {
+  .opening {
+    grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.85fr);
+  }
+
+  .cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cards--three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .hub {
+    grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.9fr);
+  }
+}
+
+/* Short landscape (phones on their side): screens start at the top and scroll,
+   and the type steps down so the whole choice fits without one. */
+@media (orientation: landscape) and (max-height: 560px) {
+  .screen {
+    align-items: flex-start;
+  }
+
+  .screen__inner {
+    margin-block: 0;
+    gap: var(--s4);
+  }
+
+  .viewport {
+    padding-top: calc(46px + var(--s3) + var(--safe-t));
+  }
+
+  .display {
+    font-size: clamp(1.6rem, 4.4vw, 2.2rem);
+  }
+
+  .opening__word {
+    font-size: clamp(1.8rem, 5.4vw, 2.8rem);
+  }
+
+  .body {
+    font-size: 0.82rem;
+  }
+
+  .card__desc {
+    font-size: 0.78rem;
+  }
+
+  .statusgrid > div {
+    padding: var(--s2) var(--s3);
+  }
+
+  .hub__lead {
+    padding: var(--s4);
+    gap: var(--s2);
+  }
+
+  .hub__lead .rule {
+    margin-block: 0;
+  }
+
+  /* On a phone on its side there is no vertical room for a two-line wordmark,
+     so the break becomes a space instead of being cut off. */
+  .hub__lead .display br {
+    display: none;
+  }
+
+  .hub__lead .body {
+    font-size: 0.78rem;
+    line-height: 1.45;
+  }
+
+  .btn--primary {
+    min-height: 46px;
+  }
+
+  .statusgrid {
+    gap: 1px;
+  }
+
+  .card--row {
+    min-height: 0;
+    padding: var(--s2) var(--s3);
+  }
+
+  .card--row .card__desc {
+    display: none;
+  }
+
+  .screen__head {
+    gap: var(--s2);
+  }
+
+  .title {
+    font-size: clamp(1.3rem, 3.4vw, 1.6rem);
+  }
+
+  .card {
+    gap: var(--s2);
+  }
+}
