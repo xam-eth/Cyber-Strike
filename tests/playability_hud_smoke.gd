@@ -897,7 +897,30 @@ func _run_smoke_test() -> void:
 	)
 	# The escape hatch must clear every wave enemy and return to safe Explore,
 	# never quietly start another Defense run after the pause closes.
+	#
+	# Containers recompute their rects on the next frame, and RETRY rebuilds the
+	# whole HUD: tapping Pause with the previous frame's rect puts the finger
+	# where the plate used to be, which reads as "the pause button is dead".
+	await process_frame
+	await process_frame
 	_tap_screen_button(controls, pause_button, 91)
+	_expect(
+		paused and pause_panel.visible,
+		(
+			(
+				"PAUSE reopens the pause card once the retried HUD is laid out "
+				+ "(tap=%s paused=%s panel=%s btn_vis=%s btn_rect=%s top=%s)"
+			)
+			% [
+				controls.get("_last_touch_debug"),
+				paused,
+				pause_panel.visible,
+				pause_button.is_visible_in_tree(),
+				pause_button.get_global_rect(),
+				(controls.get("_top_bar") as Control).visible,
+			]
+		),
+	)
 	_tap_screen_button(controls, restart_button, 92)
 	_expect(
 		(
