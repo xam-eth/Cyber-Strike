@@ -88,6 +88,17 @@ func _ready() -> void:
 	# Both theatres are instanced by `main.tscn` so the launcher can name either
 	# one; only the selected one builds.
 	if not _is_selected():
+		# Say why, with the id: the launcher and this script disagreeing is the
+		# one failure here that leaves no trace in the scene.
+		print(
+			(
+				"MISSION WORLD: not building %s (launcher selected '%s')"
+				% [
+					world_override if not world_override.is_empty() else WORLD_ORDER[0],
+					String(WorldSelection.selected(self)),
+				]
+			)
+		)
 		return
 	_built = true
 	_instance_real_world()

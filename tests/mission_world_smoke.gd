@@ -274,6 +274,13 @@ func _check_gameplay_scene() -> void:
 	var player: Node3D = main_scene.get_node("Player")
 
 	var real_world := world.get_node_or_null("RealFrontierWorld") as Node3D
+	if real_world == null:
+		print(
+			(
+				"gameplay scene: launcher selected '%s', world children: %s"
+				% [String(WorldSelection.selected(world)), world.get_children()]
+			)
+		)
 	_passed = _expect(real_world != null, "the gameplay scene builds a world") and _passed
 	if real_world == null:
 		main_scene.queue_free()

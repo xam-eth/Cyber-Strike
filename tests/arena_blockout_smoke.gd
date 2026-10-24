@@ -25,9 +25,9 @@ func _run_smoke_test() -> void:
 	test_passed = (
 		_expect(real_world != null, "the arena is the staged real GLB world") and test_passed
 	)
-	var arena_meshes: Array[Node] = (
-		real_world.find_children("*", "MeshInstance3D", true, false) if real_world != null else []
-	)
+	var arena_meshes: Array[Node] = []
+	if real_world != null:
+		arena_meshes = real_world.find_children("*", "MeshInstance3D", true, false)
 	test_passed = (
 		_expect(
 			arena_meshes.size() >= 400,
