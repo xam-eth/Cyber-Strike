@@ -7,7 +7,7 @@ class_name NeonFrontierArena
 extends RefCounted
 
 
-func build_central_arena(world) -> void:
+static func build_central_arena(world) -> void:
 	world._add_box(
 		"CentralArenaSubstructure",
 		Vector3(0.0, -0.25, 0.0),
@@ -226,7 +226,7 @@ func build_central_arena(world) -> void:
 	)
 
 
-func add_arena_hazard_markings(world) -> void:
+static func add_arena_hazard_markings(world) -> void:
 	for stripe in range(18):
 		var x := -18.0 + float(stripe) * 2.12
 		var material: Material = (
@@ -267,7 +267,7 @@ func add_arena_hazard_markings(world) -> void:
 			)
 
 
-func add_arena_spawn_gates(world) -> void:
+static func add_arena_spawn_gates(world) -> void:
 	var gates := [
 		{"name": "North", "position": Vector3(0.0, 0.0, -18.2), "rotation": Vector3.ZERO},
 		{

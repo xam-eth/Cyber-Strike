@@ -115,23 +115,17 @@ func unlock_weapon(weapon_id: StringName) -> bool:
 	return true
 
 
-## Called once when the opening cinematic finishes (or is skipped). Persisted
-## immediately so a crash on the first run does not replay it forever.
+## Called once when the CHAPTER 01 card is cleared. Persisted immediately so a
+## crash on the first run does not show it again forever.
+##
+## The name predates the correction: the studio ident moved to the front of the
+## journey and is not gated on anything, so what this flag actually records is
+## the first-launch chapter card. Renaming the persisted key would silently
+## replay that card once for every existing profile, so the key stays.
 func mark_intro_seen() -> void:
 	if intro_seen:
 		return
 	intro_seen = true
-	_save_profile()
-	profile_changed.emit()
-
-
-## Clears the "intro seen" flag so the cinematic plays again. Used by the
-## dashboard's REPLAY INTRO; it touches nothing else in the profile, so no BP,
-## unlock or best score is lost.
-func reset_intro() -> void:
-	if not intro_seen:
-		return
-	intro_seen = false
 	_save_profile()
 	profile_changed.emit()
 

@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
-# One-shot static development check for Project Overdrive.
+# One-shot static development check for Exocomplict.
 #
 # Runs every verification step that does *not* need the Godot engine binary:
 #   1. GDScript syntax parse + style lint + format check (gdtoolkit)
 #   2. Static project doctor (references, contracts, docs, assets)
-#   3. Smoke-test inventory and documentation cross-check
-#   4. Module and layer boundaries (tools/check_architecture.py)
+#   3. Tooling self-tests, including the static-call regression fixtures
+#   4. Static calls (tools/check_static_calls.py) — the class of error that made
+#      commit 0884658 unloadable while every other static check stayed green
+#   5. Module and layer boundaries (tools/check_architecture.py)
+#   6. Smoke-test inventory
+#   7. Handover map (docs/ARCHITECTURE.md vs the tree)
 #
 # The engine itself is still required for gameplay verification; use
 # scripts/run_smoke_tests.sh once Godot is installed (scripts/install_godot.sh).
@@ -21,7 +25,7 @@ step_passed() { printf '  [PASS] %s\n' "$1"; }
 step_failed() { printf '  [FAIL] %s\n' "$1"; FAILED_STEPS=$((FAILED_STEPS + 1)); }
 step_skipped() { printf '  [SKIP] %s\n' "$1"; SKIPPED_STEPS=$((SKIPPED_STEPS + 1)); }
 
-printf 'Project Overdrive — static development check\n'
+printf 'Exocomplict — static development check\n'
 printf 'Repository: %s\n\n' "$ROOT_DIR"
 
 if [[ ! -d "$GAME_DIR" ]]; then
@@ -32,7 +36,7 @@ fi
 # --------------------------------------------------------------------------- #
 # 1. GDScript static analysis (gdtoolkit)
 # --------------------------------------------------------------------------- #
-printf '[1/6] GDScript static analysis\n'
+printf '[1/7] GDScript static analysis\n'
 
 PYTHON_BIN=""
 if [[ -x "$ROOT_DIR/.venv/bin/python" ]]; then
@@ -100,7 +104,7 @@ printf '\n'
 # --------------------------------------------------------------------------- #
 # 2. Static project doctor
 # --------------------------------------------------------------------------- #
-printf '[2/6] Static project doctor (references, contracts, assets, docs)\n'
+printf '[2/7] Static project doctor (references, contracts, assets, docs)\n'
 DOCTOR="$ROOT_DIR/tools/project_doctor.py"
 if [[ ! -f "$DOCTOR" ]]; then
   step_failed 'tools/project_doctor.py is missing'
@@ -119,9 +123,9 @@ fi
 printf '\n'
 
 # --------------------------------------------------------------------------- #
-# 3. Smoke-test inventory
+# 3. Tooling self-tests
 # --------------------------------------------------------------------------- #
-printf '[3/6] Tooling self-tests\n'
+printf '[3/7] Tooling self-tests\n'
 TOOLS_DIR="$ROOT_DIR/tools"
 if [[ ! -d "$TOOLS_DIR/tests" ]]; then
   step_skipped 'no tools/tests directory'
@@ -167,13 +171,35 @@ fi
 printf '\n'
 
 # --------------------------------------------------------------------------- #
-# 4. Module and layer boundaries
+# 4. Static calls: a class name may not call an instance method
+# --------------------------------------------------------------------------- #
+# gdlint, gdformat and the project doctor all pass on
+# `NeonFrontierArena.build_central_arena(self)` even when the method is not
+# static; Godot answers with a parse error and drops the whole script. The
+# call is in one file and the declaration in another, so this is the only place
+# the two are compared (tools/check_static_calls.py).
+printf '[4/7] Static calls (class name vs instance method)\n'
+CALL_CHECK="$ROOT_DIR/tools/check_static_calls.py"
+if [[ -z "$PYTHON_BIN" ]]; then
+  step_skipped 'no python3 interpreter available for the static-call check'
+elif [[ ! -f "$CALL_CHECK" ]]; then
+  step_failed 'tools/check_static_calls.py is missing'
+elif call_output="$("$PYTHON_BIN" "$CALL_CHECK" --root "$GAME_DIR" --quiet 2>&1)"; then
+  step_passed "$(printf '%s\n' "$call_output" | tail -n 1 | sed 's/^PASS: //')"
+else
+  step_failed 'a class calls an instance method; Godot will fail to load that script'
+  "$PYTHON_BIN" "$CALL_CHECK" --root "$GAME_DIR" 2>&1 | sed 's/^/         /' | head -25
+fi
+printf '\n'
+
+# --------------------------------------------------------------------------- #
+# 5. Module and layer boundaries
 # --------------------------------------------------------------------------- #
 # A folder tree is a suggestion; this is the part that holds. The known
 # violations from the phase-0 audit are recorded in the baseline so the check
 # enforces "no new ones" from today, and the baseline shrinks phase by phase
-# until it is empty (docs/STRUCTURE_PLAN.md §5).
-printf '[4/6] Module and layer boundaries\n'
+# until it is empty (docs/ARCHITECTURE.md §5).
+printf '[5/7] Module and layer boundaries\n'
 ARCH_CHECK="$ROOT_DIR/tools/check_architecture.py"
 ARCH_BASELINE="$ROOT_DIR/tools/architecture_baseline.json"
 if [[ ! -f "$ARCH_CHECK" ]]; then
@@ -192,7 +218,10 @@ else
 fi
 printf '\n'
 
-printf '[5/6] Smoke-test inventory\n'
+# --------------------------------------------------------------------------- #
+# 6. Smoke-test inventory
+# --------------------------------------------------------------------------- #
+printf '[6/7] Smoke-test inventory\n'
 shopt -s nullglob
 # Outside game/ on purpose: a test file inside the project is an export
 # candidate and ships to players (see scripts/run_smoke_tests.sh header).
@@ -211,7 +240,23 @@ else
 fi
 printf '\n'
 
-printf '[6/6] Handover map\n'
+# --------------------------------------------------------------------------- #
+# 7. Handover map
+# --------------------------------------------------------------------------- #
+printf '[7/7] Handover map\n'
+# The kit measurements are generated from the committed GLBs by a script. If the
+# pack is re-converted and the JSON is not regenerated, every module is placed by
+# a stale footprint -- which is invisible in a screenshot until something floats.
+KIT_MEASURE="$ROOT_DIR/tools/kit_measure.py"
+if [[ -f "$KIT_MEASURE" ]]; then
+  if kit_output="$(python3 "$KIT_MEASURE" --check 2>&1)"; then
+    step_passed 'kit measurements match the committed GLBs'
+  else
+    step_failed 'tools/kit_measure.py --check: run python3 tools/kit_measure.py'
+    printf '%s\n' "$kit_output" | sed 's/^/         /' | head -10
+  fi
+fi
+
 MAP_CHECK="$ROOT_DIR/tools/module_map.py"
 if [[ -z "$PYTHON_BIN" ]]; then
   step_skipped 'no python3 interpreter available for the handover map check'

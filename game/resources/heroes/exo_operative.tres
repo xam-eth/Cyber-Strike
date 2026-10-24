@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="HeroDefinition" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="HeroDefinition" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/progression/hero_definition.gd" id="1_definition"]
+[ext_resource type="PackedScene" path="res://assets/characters/hero/hero.glb" id="2_model"]
 
 [resource]
 script = ExtResource("1_definition")
@@ -10,3 +11,5 @@ role_description = "The operative fielded by the AEGIS training programme. Conce
 portrait_path = "res://assets/ui/portrait_hero.png"
 status_line = "FIELD READY"
 field_ready = true
+model_scene = ExtResource("2_model")
+showcase_clips = Array[String](["idle", "aim", "fire"])

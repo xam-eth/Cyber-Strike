@@ -4,21 +4,18 @@ extends RefCounted
 ## Compact directional cues only while Defense is active. The marker belongs
 ## to a live WaveDirector enemy, not the Explore training dummy. Nothing is
 ## drawn in the line of sight when that enemy is already in the playable area.
-## This geometry deliberately reserves the upper objective and lower thumb
-## cluster in both phone orientations; unlike a full radar it needs no text.
+## This geometry deliberately reserves the upper objective strip and the lower
+## thumb cluster of the one (landscape) HUD; unlike a full radar it needs no
+## text.
 
 
 static func collect(
-	camera: Camera3D,
-	enemies: Array[Node3D],
-	viewport_size: Vector2,
-	portrait: bool,
-	unit: float = 1.0
+	camera: Camera3D, enemies: Array[Node3D], viewport_size: Vector2, unit: float = 1.0
 ) -> Array[Dictionary]:
 	var bearings: Array[Dictionary] = []
 	if not is_instance_valid(camera) or viewport_size.x < 1.0 or viewport_size.y < 1.0:
 		return bearings
-	var safe_area := _safe_aperture(viewport_size, portrait, unit)
+	var safe_area := _safe_aperture(viewport_size, unit)
 	if safe_area.size.x < 2.0 or safe_area.size.y < 2.0:
 		return bearings
 	var forward := -camera.global_basis.z
@@ -85,17 +82,9 @@ static func draw_marker(host: CanvasItem, bearing: Dictionary, unit: float) -> v
 		host.draw_arc(position, radius + 3.0 * unit, 0.0, TAU, 24, Color(color, 0.36), unit)
 
 
-static func _safe_aperture(viewport_size: Vector2, portrait: bool, unit: float) -> Rect2:
-	var top := (
-		maxf(224.0 * unit, viewport_size.y * 0.265)
-		if portrait
-		else maxf(150.0 * unit, viewport_size.y * 0.45)
-	)
-	var bottom := (
-		minf(viewport_size.y - 314.0 * unit, viewport_size.y * 0.62)
-		if portrait
-		else minf(viewport_size.y - 92.0 * unit, viewport_size.y * 0.72)
-	)
-	var left := 40.0 * unit if portrait else viewport_size.x * 0.34
-	var right := viewport_size.x - 40.0 * unit if portrait else viewport_size.x * 0.70
+static func _safe_aperture(viewport_size: Vector2, unit: float) -> Rect2:
+	var top := maxf(150.0 * unit, viewport_size.y * 0.45)
+	var bottom := minf(viewport_size.y - 92.0 * unit, viewport_size.y * 0.72)
+	var left := viewport_size.x * 0.34
+	var right := viewport_size.x * 0.70
 	return Rect2(Vector2(left, top), Vector2(maxf(right - left, 0.0), maxf(bottom - top, 0.0)))

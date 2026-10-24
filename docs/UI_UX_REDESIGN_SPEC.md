@@ -3,8 +3,7 @@
 **Tanggal spesifikasi:** 17 Oktober 2026
 **Status (koreksi 18 Oktober 2026):** persetujuan AEGIS adalah **historis**; pengguna menolak hasil visual, animasi, pacing, dan keterbacaan UI build sekarang. Arah redesign **belum disepakati ulang**.
 **Branch:** `arena/5257bce8-cyber-strike` · **PR:** #1 (open, jangan di-merge)
-**Papan visual:** [`docs/ui-redesign/board/`](ui-redesign/board) — 7 board, PNG + SVG
-**Audit ulang dan rujukan game rilis:** [`REBASE_VISUAL_GAMEPLAY_2026-10-18.md`](REBASE_VISUAL_GAMEPLAY_2026-10-18.md)
+**Audit ulang dan rujukan game rilis:** [`DECISIONS.md`](DECISIONS.md)
 
 Dokumen ini mencatat arah token/layout AEGIS yang **pernah** disetujui, bukan
 spesifikasi kualitas visual final. Angka pada board adalah target desain waktu
@@ -34,7 +33,7 @@ sudah ada di dunia, tetapi merapikannya menjadi sistem:
 * panel gelap **92%** dengan hairline 1px dan **corner bracket**, bukan kotak penuh;
 * **satu aksen amber** untuk aksi/fokus, mint untuk health, cyan untuk armor,
   merah untuk damage, violet untuk EMP;
-* **Chakra Petch** untuk display, **Barlow** untuk UI, **JetBrains Mono** untuk
+* **Chakra Petch** untuk display, **Rajdhani** untuk UI, **JetBrains Mono** untuk
   semua angka (tabular);
 * **Phosphor Icons** (MIT) regular + fill;
 * target sentuh **44px adalah lantai**, FIRE 92px;
@@ -46,9 +45,13 @@ sudah ada di dunia, tetapi merapikannya menjadi sistem:
 ## 1. Keputusan visual (historis; validasi ulang diperlukan)
 
 1. **Arah visual A — Aegis Industrial**, aksen amber `#FFB020`.
-2. **Tipografi:** Chakra Petch / Barlow / JetBrains Mono (OFL, ikut di repo).
+2. **Tipografi:** Chakra Petch / Rajdhani / JetBrains Mono (OFL, ikut di repo).
+   Rajdhani menggantikan Barlow: keduanya condensed dan bersudut, dan baris
+   uppercase ala lobby terbaca lebih baik di Rajdhani pada ukuran yang sama.
 3. **Ikon:** Phosphor (MIT), regular untuk default, fill untuk state aktif.
-4. **Mobile:** landscape sebagai mode utama, portrait tetap didukung.
+4. **Mobile:** landscape adalah satu-satunya layout. Portrait dan desktop tidak
+   punya tata letak sendiri; layar portrait ditolak oleh pemberitahuan rotasi di
+   shell web.
 5. **HUD editor** dikerjakan pada milestone M4, bukan ditunda ke v2.
 
 Kelima keputusan **pernah** disetujui untuk fase AEGIS. Masukan terbaru
@@ -143,7 +146,7 @@ tombol danger selalu *outlined*, tidak pernah filled.
 | Tabler | ~5.000 | MIT | Strokenya lebih ringan |
 
 Semua komersial-aman tanpa atribusi wajib; lisensi tetap disertakan di
-`docs/ui-redesign/assets/icons/LICENSE-Phosphor.txt`.
+`game/assets/ui/icons/LICENSE-Phosphor.txt`.
 
 ---
 
@@ -205,10 +208,10 @@ dipakai untuk health.
 | Display XL | Chakra Petch 600 | 40 / 44 | +2% | judul hasil |
 | Display L | Chakra Petch 600 | 28 / 32 | +2% | judul menu |
 | Heading | Chakra Petch 600 | 18 / 22 | +1% | judul kartu |
-| Title | Barlow 600 | 15 / 20 | +1% | nama senjata |
-| Body | Barlow 400 | 14 / 20 | 0 | deskripsi |
-| Label | Barlow 500 | 11 / 14 | **+12%** | label uppercase |
-| Caption | Barlow 400 | 11 / 14 | +2% | catatan |
+| Title | Rajdhani 600 | 15 / 20 | +1% | nama senjata |
+| Body | Rajdhani 400 | 14 / 20 | 0 | deskripsi |
+| Label | Rajdhani 500 | 11 / 14 | **+12%** | label uppercase |
+| Caption | Rajdhani 400 | 11 / 14 | +2% | catatan |
 | Mono XL | JetBrains Mono 500 | 34 / 34 | 0 | ammo |
 | Mono L | JetBrains Mono 500 | 20 / 22 | 0 | timer besar |
 | Mono M | JetBrains Mono 500 | 13 / 16 | 0 | skor, KOs |
@@ -220,7 +223,7 @@ Lantai fisik: **11px** setelah skala kanvas (sudah ada di
 
 * Spacing: kelipatan **4** — `2, 4, 8, 12, 16, 24, 32, 48`.
 * Padding panel **12**; gap antar elemen **8**; jarak antar target sentuh **12**;
-  inset layar **20** (desktop) / **12** (HP).
+  inset layar **12** untuk HP landscape.
 * Radius **0–2px**. Bracket sudut **10px**, stroke **1px**. Accent edge **2px**.
 * Elevasi bukan shadow: `scrim` (0.62–0.74) + panel 92–96%. Tidak ada drop shadow.
 
@@ -266,7 +269,6 @@ Semua durasi berhenti kalau `reduce_motion` aktif.
 | ADS | 1004, 580 | 76×36 | crosshair + label; accent edge saat aktif |
 | EMP | 1088, 580 | 172×36 | ikon, label, `READY`, progres 2px |
 | Weapon | 992, 624 | 268×76 | nama, tipe, ammo mono 30, `3` slot |
-| Legend | 20, 672 | keycaps 22px | WASD/Shift/Space/RMB, hanya desktop |
 | Reticle | 640, 360 | tick 6 · gap 12 | stroke 1.5, titik 2px |
 
 Inset layar 20px; panel tidak boleh menyentuh tepi. Total area atas yang
@@ -345,7 +347,6 @@ bawah 250px (zona jempol).
 | Toast | hint, konfirmasi | enter/exit | 342×30 | ikon info + teks 10.2 |
 | Hit marker | hit/kill | flash 160ms | 24px | kill = 8 tick merah |
 | Menu row | pause/settings | default/selected/danger | 400×64 | bar 2px accent saat selected |
-| Sheet | menu HP | open/closed | 390×440 | handle 48×4, swipe down |
 | Editor handle | HUD editor | idle/drag | 8×8 | snap 8px |
 
 Semua tombol memakai **focus ring 2px offset 2** — terlihat di keyboard dan
@@ -408,18 +409,16 @@ ini kompromi aksesibilitas yang disengaja, bukan hasil uji kontras di perangkat.
 
 ### 7.6 Menu di HP
 
-Board menargetkan **bottom sheet** 440px dengan handle dan baris 74px.
-Implementasi pause di 390×844 memakai tinggi 340px agar ruang kosong di bawah
-aksi berkurang setelah QA visual; results tetap punya tombol 302×56 dan
-safe area footer 34px. Handle 48×4px dan swipe-down 80px untuk resume sudah
-diimplementasikan; perlu validasi touch asli di perangkat.
+Pause dan results adalah kartu di tengah layar landscape (lebar
+`min(400, w*0.88)` dan `min(600, w*0.92)`), bukan bottom sheet: bottom sheet dan
+gerbang geser 48×4 px hanya masuk akal pada layar portrait, dan layout portrait
+sudah tidak ada. Hasil dan pause memakai baris tombol setinggi 52 px.
 
 ---
 
 ## 8. Ikon
 
 41 glyph regular + 16 fill, semuanya Phosphor (MIT). Lihat
-[`board/07-icons.png`](ui-redesign/board/07-icons.png).
 
 | Aksi | Ikon | State |
 |---|---|---|
@@ -502,7 +501,7 @@ nama signal di tengah refactor.
 * Bracket sudut digambar oleh `BracketPanel._draw()` (8 garis) — jauh lebih
   murah daripada nine-patch dan tetap tajam di semua skala.
 * Font: impor 6 TTF; buat `FontVariation` untuk weight, atau pakai family
-  terpisah (Chakra Petch 600 / Barlow 400·500·600 / JetBrains Mono 500).
+  terpisah (Chakra Petch 600 / Rajdhani 400·500·600 / JetBrains Mono 500).
 * Ikon: impor SVG pada 1× dan 2×; `TextureRect` + `modulate` untuk warna state.
 * Jangan memakai `theme_override` ad-hoc di 20 tempat; semua lewat `AegisTheme`.
 
@@ -574,17 +573,18 @@ Kriteria visual kolom “Selesai bila” harus divalidasi ulang dengan rujukan b
 | # | Isi | File utama | Selesai bila | Status |
 |---|---|---|---|---|
 | M0 | Token + theme + font + ikon | `aegis_tokens.gd`, `aegis_theme.gd`, `assets/ui/` | HUD lama tampil dengan token baru | ✅ token/tema terpasang; arah palet perlu validasi ulang |
-| M1 | HUD desktop baru | `touch_controls.gd`, `hud_layout.gd`, `hud_renderer.gd` | Board 02 cocok di 1280×720; smoke hijau | ✅ kode terpasang; smoke 13/13 (2026-10-17); **bukan** tanda board disetujui |
-| M2 | HUD sentuh + portrait/landscape | `hud_layout.gd` (`touch_portrait`, `touch_landscape`) | Board 03 cocok di 390×844 & 844×390 | ✅ layout mobile tersedia; QA WASM 3 viewport lulus untuk interaksi yang diuji, **bukan** persetujuan keterbacaan |
+| M1 | HUD sentuh landscape | `touch_controls.gd`, `ui/hud/`, `ui_layout.gd` | Board 02 cocok di 844×390; smoke hijau | ✅ satu layout; smoke hijau; **bukan** tanda board disetujui |
+| M2 | HUD landscape-only | `ui_layout.gd` (`landscape()`) | Board 03 cocok di 844×390 & 667×375 | ✅ portrait dan desktop dihapus dari kode; QA frame 844×390 lulus untuk interaksi yang diuji, **bukan** persetujuan keterbacaan |
 | M3 | Pause + results | `_build_pause_menu`, `_build_results_panel` | Board 05; ESC/focus benar | ⏳ Pause diuji pada WASM; **hasil/results belum berhasil dijangkau** pada probe idle, sehingga visual results belum terverifikasi |
 | M4 | Settings + HUD editor | `aegis_settings_menu.gd`, `hud_editor.gd` | Board 06; setting persist | ✅ Interaksi/settings/editor yang diuji lulus smoke dan QA WASM; **bukan persetujuan visual** |
 | M5 | Polish + a11y | theme, motion | `reduce_motion`, kontras, 44px | ⏳ Sebagian preferensi tersedia dan diuji; kontras, animasi, keterbacaan kontrol di tangan pemain/perangkat nyata **belum** divalidasi |
 | M6 | QA + evidence | smoke, `web_qa` | Semua frame + smoke 16/16 | ⏳ CI run `39088836330`: **16/16 smoke PASS**; QA payload `95f39f6`: **3/3 viewport PASS** untuk interaksi yang diuji. Frame results, perbandingan visual game rilis dan QA perangkat nyata **belum selesai** |
 
 Catatan implementasi: HUD tinggal di satu facade (`touch_controls.gd`) dengan
-geometri di `hud_layout.gd` dan gambar reticle/joystick/vignette di
-`hud_renderer.gd`. Nama file lama (`hud_desktop.gd`, `pause_menu.gd`, …) tidak
-dipakai supaya smoke test lama yang membaca field privat HUD tetap valid.
+geometri di `ui/ui_layout.gd` dan modul di `ui/hud/`. Gerbang gestur pause
+(`hud_pause_gesture.gd`) sudah dihapus bersama layout portrait/desktop. Nama file
+lama (`hud_desktop.gd`, `pause_menu.gd`, …) tidak dipakai supaya smoke test lama
+yang membaca field privat HUD tetap valid.
 
 Estimasi kasar: M0–M2 = 2 hari, M3–M4 = 2 hari, M5–M6 = 1 hari.
 
@@ -607,7 +607,7 @@ Estimasi kasar: M0–M2 = 2 hari, M3–M4 = 2 hari, M5–M6 = 1 hari.
 
 Pertanyaan di bawah berasal dari fase AEGIS. **Jangan** menganggap keputusan
 historisnya masih berlaku; keputusan yang memblokir redesign tercantum dalam
-[`REBASE_VISUAL_GAMEPLAY_2026-10-18.md` §4](REBASE_VISUAL_GAMEPLAY_2026-10-18.md#4-keputusan-pengguna-yang-masih-dibutuhkan).
+[`DECISIONS.md` §4](DECISIONS.md#4-keputusan-pengguna-yang-masih-dibutuhkan).
 
 1. Apakah aksen amber disetujui, atau tetap mint/cyan seperti reticle sekarang?
 2. Portrait: dipertahankan sebagai mode setara, atau hanya fallback?

@@ -3,9 +3,9 @@
 	<head>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
-		<title>Project Overdrive - Combat Prototype — Web Preview</title>
+		<title>Exocomplict</title>
 		<!--
-			Project Overdrive custom Godot 4 Web shell.
+			Exocomplict custom Godot 4 Web shell.
 
 			This file is exported by Godot through the "html/custom_html_shell"
 			export option (see tools/web_preset.py). Godot substitutes the
@@ -20,9 +20,10 @@
 			  GODOT_HEAD_INCLUDE      extra markup from the export preset
 			  GODOT_SPLASH / GODOT_SPLASH_CLASSES   boot splash image and classes
 
-			The shell adds a HUD layer (build label, controls legend, fullscreen)
-			on top of the engine canvas. Web exports run on the Compatibility
-			renderer, so WebGL 2 is required.
+			The shell adds a HUD layer (controls legend, fullscreen) on top of the
+			engine canvas. Web exports run on the Compatibility renderer, so WebGL 2
+			is required -- but the browser chrome does not say so: a player reads
+			the game's name and nothing about how it was built (DECISIONS 17).
 		-->
 		<style>
 			html, body, #canvas {
@@ -278,7 +279,7 @@
 <link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
 
 	</head>
-	<body id="overdrive-shell">
+	<body id="exocomplict-shell">
 		<canvas id="canvas">
 			Your browser does not support the canvas tag.
 		</canvas>
@@ -290,8 +291,7 @@
 		<div id="shell-ui" class="hidden">
 			<div class="shell-bar" id="shell-bar" data-collapsed="true">
 				<button id="shell-bar-toggle" class="shell-button" type="button" title="Show or hide the browser chrome">UI</button>
-				<span class="shell-chip">Project Overdrive · <b>Web Preview</b></span>
-				<span class="shell-chip build">Single-thread WebGL 2 build</span>
+				<span class="shell-chip">Exocomplict</span>
 				<button id="shell-fullscreen" class="shell-button" type="button">Fullscreen</button>
 				<button id="shell-toggle-ui" class="shell-button" type="button">Hide UI</button>
 			</div>
@@ -310,20 +310,33 @@
 			</div>
 		</div>
 
+		<!--
+			The boot overlay is a dark frame, and nothing else.
+
+			It used to hold a product wordmark, a progress bar and a sentence about
+			the engine build. That is a developer's view of a download, and it was
+			the first thing a player ever saw of this game: a page explaining
+			itself, on the screen where the film should be. The ident runs in the
+			engine a couple of seconds after this frame, so this frame's only job
+			is not to be in the way. It fades the moment the engine reports ready.
+
+			The progress elements stay in the DOM because the engine's loader
+			writes to them; they are hidden, not removed, and an error notice is
+			still shown if the load fails.
+		-->
 		<div id="status">
-			<img id="status-splash" class="show-image--true fullsize--true use-filter--true" src="index.png" alt="">
-			<div class="boot-title">Project Overdrive - Combat Prototype · Booting WebAssembly build</div>
-			<progress id="status-progress"></progress>
-			<div id="status-progress-label">loading engine…</div>
-			<div class="boot-note">
-				First load downloads the WebAssembly engine and the project pack; later loads are cached by the browser.
-			</div>
+			<!-- Kept for the export contract and hidden: the engine's boot splash
+			     is a placeholder image, and this project's opening is its own
+			     boot stage, not a splash screen. -->
+			<img id="status-splash" class="show-image--true fullsize--true use-filter--true" src="index.png" alt="" hidden>
+			<progress id="status-progress" hidden></progress>
+			<div id="status-progress-label" hidden></div>
 			<div id="status-notice"></div>
 		</div>
 
 		<script src="index.js"></script>
 		<script>
-const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":false,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":35440476,"index.wasm":39514754},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":false,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":30066772,"index.wasm":39514754},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 const GODOT_THREADS_ENABLED = false;
 const engine = new Engine(GODOT_CONFIG);
 

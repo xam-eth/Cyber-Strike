@@ -1,0 +1,1624 @@
+/* ==========================================================================
+   AEGIS player shell
+   --------------------------------------------------------------------------
+   One stylesheet for the web front end: the opening, the hub, cards,
+   settings, and the hand-off to gameplay. Components are named for what they
+   are in the game, not for where they sit, so the in-engine theme can adopt
+   them one at a time without a second visual language appearing.
+
+   Reading order: base -> frame -> type -> controls -> cards -> screens -> motion
+   ========================================================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--void);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: var(--text-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  margin: 0;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   The field: the surface every screen sits on
+   ========================================================================== */
+
+#canvas {
+  position: fixed;
+  inset: 0;
+  /* The world sits under the shell while the opening plays, and takes the whole
+     screen once the player commits. The decorative field is only for the menus;
+     leaving it above the canvas is what made the first hand-off frame black. */
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: var(--void);
+  outline: none;
+}
+
+/* The canvas is mounted but covered: the opening owns the screen until the
+   player commits, and the engine boots behind it so the commit is instant. */
+#canvas[data-hidden='true'] {
+  visibility: hidden;
+}
+
+.field {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 50% at 18% 0%, rgba(84, 200, 255, 0.1), transparent 62%),
+    radial-gradient(ellipse 60% 55% at 88% 100%, rgba(255, 176, 32, 0.09), transparent 60%),
+    linear-gradient(180deg, var(--void-2), var(--void) 58%);
+}
+
+.field::before {
+  /* Engineering grid, tuned to be felt rather than read. */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(78, 106, 126, 0.14) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(78, 106, 126, 0.14) 1px, transparent 1px);
+  background-size: 88px 88px;
+  mask-image: radial-gradient(ellipse 78% 66% at 50% 42%, #000 30%, transparent 78%);
+}
+
+.field::after {
+  /* Vignette + a hairline horizon, which is what stops the field reading flat. */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, transparent 46%, rgba(84, 200, 255, 0.16) 46.2%, transparent 46.6%),
+    radial-gradient(ellipse 90% 80% at 50% 50%, transparent 42%, rgba(3, 5, 8, 0.86) 100%);
+}
+
+#app {
+  position: relative;
+  height: 100%;
+  z-index: 2;
+}
+
+/* Hand-off: the shell is gone, the field goes with it, and the canvas owns the
+   screen. Kept as one rule so "the world is visible" cannot half-apply. */
+body[data-mode='playing'] .field {
+  opacity: 0;
+  transition: opacity var(--motion-slow) var(--ease);
+}
+
+body[data-mode='playing'] #canvas {
+  visibility: visible;
+}
+
+/* ==========================================================================
+   Type roles
+   ========================================================================== */
+
+.eyebrow {
+  font-family: var(--font-ui);
+  font-size: var(--text-micro);
+  font-weight: 600;
+  letter-spacing: var(--track-micro);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-display);
+  line-height: 0.92;
+  letter-spacing: var(--track-display);
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-title);
+  line-height: 1.04;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.heading {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-heading);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.body {
+  color: var(--ink-2);
+  font-size: var(--text-body);
+  max-width: 62ch;
+}
+
+.muted {
+  color: var(--ink-3);
+}
+
+.num {
+  font-family: var(--font-ui);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* ==========================================================================
+   Frame: status strip + viewport gutters
+   ========================================================================== */
+
+.strip {
+  position: absolute;
+  inset: 0 0 auto 0;
+  display: flex;
+  align-items: center;
+  gap: var(--s4);
+  padding: calc(var(--s3) + var(--safe-t)) calc(var(--gutter) + var(--safe-r)) var(--s3)
+    calc(var(--gutter) + var(--safe-l));
+  border-bottom: 1px solid var(--hair);
+  font-size: var(--text-micro);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--ink-3);
+  background: linear-gradient(180deg, rgba(5, 8, 12, 0.86), transparent);
+}
+
+.strip__mark {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  color: var(--ink-2);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* The strip mark is the smallest plate in the product: the same chamfer as the
+   buttons, 3 px at 10 px, with the amber core showing through it. */
+.strip__mark::before {
+  content: '';
+  width: 11px;
+  height: 11px;
+  background: rgba(255, 176, 32, 0.18);
+  clip-path: polygon(0 0, calc(100% - 3px) 0, 100% 3px, 100% 100%, 3px 100%, 0 calc(100% - 3px));
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.strip__spacer {
+  flex: 1;
+}
+
+.strip__item {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  white-space: nowrap;
+}
+
+.strip__item[data-state='ok'] {
+  color: var(--ok);
+}
+.strip__item[data-state='warn'] {
+  color: var(--accent);
+}
+.strip__item[data-state='bad'] {
+  color: var(--danger);
+}
+
+.dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 8px currentColor;
+}
+
+.viewport {
+  position: relative;
+  height: 100%;
+  padding: calc(56px + var(--s5) + var(--safe-t)) calc(var(--gutter) + var(--safe-r))
+    calc(var(--s5) + var(--safe-b)) calc(var(--gutter) + var(--safe-l));
+  overflow: hidden;
+}
+
+.shell {
+  height: 100%;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* ==========================================================================
+   Screens
+   ========================================================================== */
+
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: inherit;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+  transition:
+    opacity var(--motion-base) var(--ease),
+    transform var(--motion-base) var(--ease);
+}
+
+.screen[data-active='true'] {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+.screen__inner {
+  width: 100%;
+  max-width: var(--maxw);
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s5);
+  padding-block: var(--s2);
+}
+
+.screen__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.screen__head .body {
+  max-width: 58ch;
+}
+
+.rule {
+  height: 1px;
+  background: linear-gradient(90deg, var(--accent), rgba(255, 176, 32, 0.05) 42%, transparent);
+}
+
+/* ==========================================================================
+   Shape: the AEGIS bezel
+
+   One angle, 45 degrees, and one rule: a plate cuts the corners that carry its
+   direction. Nothing here is a rounded rectangle, because a rounded rectangle
+   is what every app on the phone already looks like. These surfaces are
+   machined: the cut is where the bit entered, and the hairline along it is the
+   edge the machine left.
+
+   A shape is four lengths -- --tl / --tr / --br / --bl -- so a card's silhouette
+   is one line of CSS and cannot drift from the panel it sits in. The hairline is
+   drawn as one gradient tile per cut corner, because a border disappears the
+   moment the corner it would have wrapped is gone.
+   ========================================================================== */
+
+.panel,
+.card,
+.btn,
+.chip,
+.switch__track,
+.tab {
+  --tl: 0px;
+  --tr: 0px;
+  --br: 0px;
+  --bl: 0px;
+  /* The colour of the cut edge, split top and bottom: a plate can point its
+     leading cut at the action (amber) and leave the trailing one machined grey.
+     Hover and focus raise both, so the one accent in the palette still means
+     "this is the thing you are acting on". */
+  --cut-ink-t: var(--line-hi);
+  --cut-ink-b: var(--line-hi);
+  position: relative;
+  border: 0;
+  border-radius: 0;
+  background-clip: padding-box;
+  clip-path: polygon(
+    var(--tl) 0,
+    calc(100% - var(--tr)) 0,
+    100% var(--tr),
+    100% calc(100% - var(--br)),
+    calc(100% - var(--br)) 100%,
+    var(--bl) 100%,
+    0 calc(100% - var(--bl)),
+    0 var(--tl)
+  );
+}
+
+/* The four cut hairlines. A zero cut produces a zero-size tile, which paints
+   nothing: that is how a plate with two cut corners stays two lines of CSS. */
+.panel::after,
+.card::after,
+.btn::after,
+.chip::after,
+.switch__track::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(
+        to bottom right,
+        transparent calc(50% - 0.75px),
+        var(--cut-ink-t) calc(50% - 0.75px),
+        var(--cut-ink-t) calc(50% + 0.75px),
+        transparent calc(50% + 0.75px)
+      )
+      left top / var(--tl) var(--tl) no-repeat,
+    linear-gradient(
+        to top right,
+        transparent calc(50% - 0.75px),
+        var(--cut-ink-t) calc(50% - 0.75px),
+        var(--cut-ink-t) calc(50% + 0.75px),
+        transparent calc(50% + 0.75px)
+      )
+      right top / var(--tr) var(--tr) no-repeat,
+    linear-gradient(
+        to bottom right,
+        transparent calc(50% - 0.75px),
+        var(--cut-ink-b) calc(50% - 0.75px),
+        var(--cut-ink-b) calc(50% + 0.75px),
+        transparent calc(50% + 0.75px)
+      )
+      right bottom / var(--br) var(--br) no-repeat,
+    linear-gradient(
+        to top right,
+        transparent calc(50% - 0.75px),
+        var(--cut-ink-b) calc(50% - 0.75px),
+        var(--cut-ink-b) calc(50% + 0.75px),
+        transparent calc(50% + 0.75px)
+      )
+      left bottom / var(--bl) var(--bl) no-repeat;
+}
+
+/* ==========================================================================
+   Panel: the base surface. A default bezel, cut top-left and bottom-right, so
+   a panel with no modifier still reads as part of the same machine.
+   ========================================================================== */
+
+.panel {
+  --tl: var(--cut-sm);
+  --br: var(--cut-sm);
+  padding: var(--s4);
+  background: var(--panel-a78);
+  box-shadow: inset 0 0 0 1px var(--hair);
+  backdrop-filter: blur(10px);
+}
+
+.panel--solid {
+  background: var(--panel-a92);
+}
+
+/* A panel that carries a reading, not an action: its cut is larger and the
+   same corner is cut on both ends of the diagonal, so the shape points. */
+.opening__panel {
+  --tl: var(--cut-lg);
+  --br: var(--cut-lg);
+}
+
+/* ==========================================================================
+   Controls
+   ========================================================================== */
+
+/* A button is an order, so its cut sits on the axis of the verb: the primary
+   cuts its leading corner away from the thumb, the ghost cuts its trailing one.
+   That difference is legible before the colour is. */
+.btn {
+  --btn-bg: transparent;
+  --btn-fg: var(--ink);
+  --btn-line: var(--line-hi);
+  --tr: var(--cut-sm);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s2);
+  min-height: var(--tap);
+  padding: 0 var(--s5);
+  box-shadow: inset 0 0 0 1px var(--btn-line);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background var(--motion-fast) var(--ease),
+    border-color var(--motion-fast) var(--ease),
+    color var(--motion-fast) var(--ease),
+    transform var(--motion-fast) var(--ease);
+}
+
+.btn:hover {
+  box-shadow: inset 0 0 0 1px var(--ink-2);
+  background: rgba(78, 106, 126, 0.14);
+  --cut-ink-t: var(--accent);
+  --cut-ink-b: var(--accent);
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn[disabled],
+.btn[aria-disabled='true'] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn--primary {
+  --btn-bg: var(--accent);
+  --btn-fg: var(--accent-ink);
+  --btn-line: var(--accent);
+  --tr: var(--cut-lg);
+  --bl: var(--cut-xs);
+  --cut-ink-t: var(--accent-ink);
+  --cut-ink-b: var(--accent-ink);
+  min-height: var(--tap-lg);
+  padding-inline: var(--s6);
+  font-size: 1.05rem;
+  letter-spacing: 0.18em;
+  box-shadow: 0 12px 40px -18px rgba(255, 176, 32, 0.9);
+}
+
+.btn--primary:hover {
+  background: #ffc04d;
+  --cut-ink-t: var(--accent-ink);
+  --cut-ink-b: var(--accent-ink);
+}
+
+.btn--ghost {
+  --btn-bg: rgba(11, 19, 27, 0.6);
+  --btn-line: var(--hair);
+  --tr: 0px;
+  --bl: var(--cut-sm);
+  color: var(--ink-2);
+  font-size: 0.86rem;
+  letter-spacing: 0.16em;
+}
+
+.btn--ghost:hover {
+  color: var(--ink);
+  --cut-ink-b: var(--ink-2);
+}
+
+.btn--wide {
+  width: 100%;
+}
+
+.btn__meta {
+  font-family: var(--font-ui);
+  font-size: var(--text-micro);
+  font-weight: 500;
+  letter-spacing: var(--track-micro);
+  opacity: 0.72;
+}
+
+/* A chip is a tag on a crate, not a status pill from a mobile app: one cut
+   corner on the right, and a square pip that carries the state. */
+.chip {
+  --tr: var(--cut-xs);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: 3px var(--s3);
+  box-shadow: inset 0 0 0 1px var(--hair);
+  background: rgba(22, 35, 46, 0.6);
+  color: var(--ink-2);
+  font-size: var(--text-micro);
+  font-weight: 600;
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.chip--ok {
+  box-shadow: inset 0 0 0 1px rgba(55, 224, 140, 0.42);
+  color: var(--ok);
+}
+.chip--accent {
+  box-shadow: inset 0 0 0 1px rgba(255, 176, 32, 0.45);
+  color: var(--accent);
+}
+.chip--info {
+  box-shadow: inset 0 0 0 1px rgba(84, 200, 255, 0.4);
+  color: var(--info);
+}
+
+.chip--accent {
+  --cut-ink-t: rgba(255, 176, 32, 0.75);
+}
+
+.chip::before {
+  content: '';
+  width: 4px;
+  height: 4px;
+  background: currentColor;
+  flex: 0 0 auto;
+}
+
+/* A switch row is a plate on the drawer, not a settings list item: no fill of
+   its own, a hairline between rows, and the rocker parked at the trailing edge
+   where a thumb reaches it. */
+.switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s4);
+  width: 100%;
+  min-height: 52px;
+  padding: 6px 0;
+  border: 0;
+  border-bottom: 1px solid var(--hair);
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.switch:last-of-type {
+  border-bottom: 0;
+}
+
+.switch__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.switch__title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.switch__hint {
+  color: var(--ink-3);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  max-width: 46ch;
+  /* One line, ellipsised: a settings row that grows to two lines is what makes
+     a 390 px drawer scroll and lose its last switch. */
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* The toggle is a mechanical rocker, not an iOS pill. A pill is the single most
+   app-like object a game console can carry: this one is a two-position switch
+   with a chamfered carriage, a seam down the middle, and an amber detent when
+   it is thrown. */
+.switch__track {
+  position: relative;
+  flex: 0 0 auto;
+  width: 60px;
+  height: 28px;
+  --tr: var(--cut-xs);
+  --bl: var(--cut-xs);
+  background: rgba(5, 8, 12, 0.86);
+  box-shadow: inset 0 0 0 1px var(--line);
+  transition: background var(--motion-fast) var(--ease);
+}
+
+/* The carriage is a machined block, not a white pill: dark plate with a lit top
+   bevel when the circuit is open, amber when the circuit is closed. A light
+   block in the "off" position reads as "on" from a metre away. */
+.switch__track::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 24px;
+  height: 20px;
+  clip-path: polygon(0 0, calc(100% - 4px) 0, 100% 4px, 100% 100%, 4px 100%, 0 calc(100% - 4px));
+  background: linear-gradient(180deg, #33465a, #1b2833);
+  box-shadow: inset 0 0 0 1px rgba(122, 148, 168, 0.5);
+  transition:
+    transform var(--motion-fast) var(--ease),
+    background var(--motion-fast) var(--ease);
+}
+
+/* The seam: which half of the carriage is live. */
+.switch__track::after {
+  content: '';
+  position: absolute;
+  inset: 4px 30px 4px auto;
+  width: 1px;
+  background: var(--line);
+  pointer-events: none;
+}
+
+.switch:hover .switch__track {
+  box-shadow: inset 0 0 0 1px var(--line-hi);
+  --cut-ink-t: var(--ink-3);
+  --cut-ink-b: var(--ink-3);
+}
+
+.switch[aria-checked='true'] .switch__track {
+  background: rgba(255, 176, 32, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(255, 176, 32, 0.55);
+  --cut-ink-t: var(--accent);
+  --cut-ink-b: var(--accent);
+}
+
+.switch[aria-checked='true'] .switch__track::before {
+  transform: translateX(28px);
+  background: linear-gradient(180deg, var(--accent), #d98f0c);
+  box-shadow: inset 0 0 0 1px rgba(255, 214, 143, 0.75);
+}
+
+/* ==========================================================================
+   Cards
+   ========================================================================== */
+
+/* The key strip: what the console links to.
+   -------------------------------------------------------------------------
+   A hub row is a router key, so it is drawn as one: a cut leading corner (the
+   side the thumb comes from), a recessed index tab on the left, and the verb
+   sitting in its own channel on the right, separated by a hairline. The two
+   rows alternate which end is cut, which is what stops a list of two reading
+   as a repeated box. */
+.card {
+  --tr: var(--cut-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  width: 100%;
+  padding: var(--s3) var(--s4);
+  text-align: left;
+  color: inherit;
+  background: linear-gradient(180deg, rgba(17, 28, 38, 0.86), rgba(11, 19, 27, 0.92));
+  box-shadow: inset 0 0 0 1px var(--hair);
+  cursor: pointer;
+  transition:
+    background var(--motion-fast) var(--ease),
+    box-shadow var(--motion-fast) var(--ease);
+}
+
+/* The leading rail: 2 px of plate, amber when the row is live. Drawn as a
+   background layer so it follows the cut instead of being clipped by it. */
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, var(--line-hi), rgba(78, 106, 126, 0.35));
+  width: 2px;
+  transition: background var(--motion-fast) var(--ease);
+}
+
+.card:hover,
+.card:focus-visible {
+  background: linear-gradient(180deg, rgba(24, 38, 50, 0.94), rgba(11, 19, 27, 0.96));
+  --cut-ink-t: var(--accent);
+  --cut-ink-b: var(--accent);
+}
+
+.card:hover::before,
+.card:focus-visible::before {
+  background: linear-gradient(180deg, var(--accent), rgba(255, 176, 32, 0.25));
+}
+
+.card__top {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+}
+
+/* The index is a punched tab, not a number floating in the corner. */
+.card__index {
+  display: inline-grid;
+  place-items: center;
+  min-width: 26px;
+  height: 20px;
+  padding: 0 5px;
+  font-family: var(--font-ui);
+  font-size: var(--text-micro);
+  font-weight: 600;
+  letter-spacing: var(--track-micro);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+  background: rgba(5, 8, 12, 0.7);
+  clip-path: polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 0 100%);
+  box-shadow: inset 0 0 0 1px var(--hair);
+}
+
+.card:hover .card__index,
+.card:focus-visible .card__index {
+  color: var(--accent);
+}
+
+.card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.card__title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.card__desc {
+  color: var(--ink-3);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.card__go {
+  margin-left: auto;
+  font-family: var(--font-ui);
+  font-size: var(--text-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--ink-3);
+  align-self: center;
+  transition:
+    color var(--motion-fast) var(--ease),
+    transform var(--motion-fast) var(--ease);
+}
+
+.card:hover .card__go,
+.card:focus-visible .card__go {
+  color: var(--accent);
+  transform: translateX(3px);
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 64px;
+}
+
+.metric__key {
+  font-size: var(--text-micro);
+  letter-spacing: var(--track-micro);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.metric__val {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.metric__val[data-tone='ok'] {
+  color: var(--ok);
+}
+.metric__val[data-tone='accent'] {
+  color: var(--accent);
+}
+
+/* Card as a list row on the hub: same anatomy, denser. */
+.card--row {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--s3);
+  min-height: var(--tap-lg);
+  padding: var(--s2) var(--s4) var(--s2) var(--s3);
+}
+
+.card--row .card__top {
+  flex: 0 0 auto;
+}
+
+.card--row .card__body {
+  flex: 1 1 auto;
+  flex-direction: row;
+  align-items: baseline;
+  gap: var(--s3);
+}
+
+.card--row .card__title {
+  font-size: 1.12rem;
+}
+
+.card--row .card__desc {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The channel the verb sits in: a hairline between the reading and the action,
+   so the row is a two-part instrument instead of a menu item. */
+.card--row .card__go {
+  padding-left: var(--s3);
+  border-left: 1px solid var(--hair);
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+}
+
+/* Second row of the pair: the cut moves to the other end, so the two read as a
+   matched set rather than one box printed twice. */
+.card--row-alt {
+  --tr: 0px;
+  --br: var(--cut-lg);
+}
+
+.card--row-alt .card::before,
+.card--row-alt::before {
+  background: linear-gradient(0deg, var(--line-hi), rgba(78, 106, 126, 0.35));
+}
+
+.card--row-alt:hover::before,
+.card--row-alt:focus-visible::before {
+  background: linear-gradient(0deg, var(--accent), rgba(255, 176, 32, 0.25));
+}
+
+/* ==========================================================================
+   Opening
+   --------------------------------------------------------------------------
+   Two pieces: the wordmark and the commit button on the left, and a telemetry
+   panel that states the three things the shell actually verified. The panel is
+   the opening's only chrome, which is the point — the first screen of a game
+   should be a promise, not a download dialog.
+   ========================================================================== */
+
+.screen--opening {
+  justify-content: center;
+}
+
+.opening {
+  display: grid;
+  gap: var(--s5);
+  grid-template-columns: 1fr;
+  align-items: end;
+}
+
+.opening__lead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+  max-width: 40rem;
+}
+
+.opening__word {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(2.6rem, 8vw, 5.4rem);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink);
+  line-height: 0.92;
+}
+
+.opening__word em {
+  font-style: normal;
+  color: var(--accent);
+  text-shadow: 0 0 42px rgba(255, 176, 32, 0.32);
+}
+
+.opening__body {
+  max-width: 44ch;
+}
+
+.opening__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s4);
+  margin-top: var(--s2);
+}
+
+.opening__hint {
+  color: var(--ink-3);
+  font-size: var(--text-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+}
+
+.opening__panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  padding: var(--s4);
+  min-width: 0;
+}
+
+/* The launch read-out is the same list component as the opening's checks, with
+   one row: the engine's own byte count, never a synthetic percentage. */
+.launch__log {
+  max-width: 34rem;
+}
+
+/* The settings sheet: one column of switches, one of reference, side by side. */
+.sheet__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: var(--s4);
+  align-items: start;
+  margin-top: var(--s2);
+}
+
+.sheet__col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  min-width: 0;
+}
+
+.sheet__col .statusgrid {
+  margin-top: var(--s2);
+}
+
+/* --- the command plate ----------------------------------------------------
+
+   HOME's lead card is the one surface a player commits from, so it is the one
+   that points: a small cut at the top-left, and a deep 32 px cut at the
+   bottom-right that finishes under DEPLOY. The deep cut is amber, the shallow
+   one machined grey, so the shape says which way the screen goes. */
+
+.hub__lead {
+  --tl: var(--cut);
+  --br: var(--cut-xl);
+  --cut-ink-b: var(--accent-dim);
+}
+
+/* The measured rule under the wordmark: ticks every 8 px with an amber witness
+   at the origin. It is the cheapest way to say "instrument" without drawing an
+   icon, and it fills the dead line the wordmark used to leave. */
+.ruler {
+  height: 7px;
+  background:
+    repeating-linear-gradient(90deg, var(--line) 0 1px, transparent 1px 8px) left bottom / 100%
+      4px no-repeat,
+    linear-gradient(90deg, var(--accent) 0 var(--s6), rgba(255, 176, 32, 0.12) var(--s6)) left
+      bottom / 100% 1px no-repeat;
+}
+
+/* --- the mission slate ----------------------------------------------------
+
+   The brief is read, not tapped, so its shape is the opposite of the plate's:
+   the cut corners sit on the other diagonal and there is no amber in it at all.
+   Its rows are flight-strip lines: a square witness, the label, a dotted leader
+   and the value hard right. */
+
+.hub__brief {
+  --tr: var(--cut);
+  --bl: var(--cut);
+  --tl: 0px;
+  --br: 0px;
+}
+
+.hub__brief .linklist li {
+  border-left: 0;
+  border-bottom: 1px solid rgba(39, 56, 74, 0.55);
+  padding-left: 0;
+  background: none;
+}
+
+.hub__brief .linklist li:last-child {
+  border-bottom: 0;
+}
+
+.hub__brief .linklist li .tick {
+  width: 5px;
+  height: 5px;
+  background: var(--line-hi);
+  clip-path: polygon(0 0, 100% 0, 100% 60%, 60% 100%, 0 100%);
+}
+
+.hub__brief .linklist li[data-tone='ok'] .tick {
+  background: var(--ok);
+}
+
+.hub__brief .linklist li b {
+  font-variant-numeric: tabular-nums;
+}
+
+/* The product wordmark, used the way the engine uses it: the logo is the name. */
+
+.panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+}
+
+/* The link list: a terminal read-out, not a paragraph. Each row is a check the
+   shell ran, so the column is honest about what "siap" means. */
+.linklist {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.linklist li {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  min-height: 30px;
+  padding: 0 var(--s2);
+  border-left: 2px solid var(--line);
+  color: var(--ink-3);
+  font-family: var(--font-ui);
+  font-size: var(--text-label);
+  font-weight: 500;
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  transition:
+    color var(--motion-base) var(--ease),
+    border-color var(--motion-base) var(--ease),
+    background var(--motion-base) var(--ease);
+}
+
+.linklist li .tick {
+  width: 18px;
+  height: 1px;
+  background: var(--line);
+  flex: 0 0 auto;
+  transition: background var(--motion-base) var(--ease);
+}
+
+.linklist li b {
+  margin-left: auto;
+  font-weight: 600;
+  color: var(--ink-3);
+}
+
+.linklist li[data-shown='true'] {
+  color: var(--ink-2);
+  border-left-color: var(--line-hi);
+  background: rgba(22, 35, 46, 0.5);
+}
+
+.linklist li[data-shown='true'] b {
+  color: var(--ink);
+}
+
+.linklist li[data-tone='ok'] {
+  border-left-color: var(--ok);
+}
+.linklist li[data-tone='ok'] .tick {
+  background: var(--ok);
+}
+.linklist li[data-tone='ok'] b {
+  color: var(--ok);
+}
+
+.linklist li[data-tone='bad'] {
+  border-left-color: var(--danger);
+  color: var(--danger);
+}
+.linklist li[data-tone='bad'] .tick {
+  background: var(--danger);
+}
+.linklist li[data-tone='bad'] b {
+  color: var(--danger);
+}
+
+.statusgrid--tight > div {
+  padding: var(--s2) var(--s3);
+}
+
+/* ==========================================================================
+   Hub
+   ========================================================================== */
+
+.hub {
+  display: grid;
+  gap: var(--s5);
+  grid-template-columns: 1fr;
+  align-items: start;
+}
+
+.hub__lead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+  padding: var(--s5);
+}
+
+.hub__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s3);
+}
+
+.hub__side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+.statusgrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--hair);
+  border: 1px solid var(--hair);
+}
+
+.statusgrid > div {
+  background: var(--panel-a92);
+  padding: var(--s3);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* ==========================================================================
+   Settings sheet
+   ========================================================================== */
+
+/* Settings is a console drawer, not a sheet of paper: both top corners cut the
+   same, a flat bottom, and a 2 px amber lip across the base where the drawer
+   meets the console. The lip is the only amber on the screen. */
+.sheet {
+  --tl: var(--cut-lg);
+  --tr: var(--cut-lg);
+  --br: 0px;
+  --bl: 0px;
+  width: 100%;
+  max-width: 60rem;
+  margin: auto;
+  padding-top: var(--s5);
+}
+
+.sheet::before {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent) 0 18%, rgba(255, 176, 32, 0.18) 42%, rgba(255, 176, 32, 0) 78%);
+}
+
+/* The drawer grip: a short bar centred on the leading edge, the way a physical
+   pull is. It reads as hardware, and it costs two elements. */
+.drawer__grip {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  width: 64px;
+  height: 3px;
+  transform: translateX(-50%);
+  background: repeating-linear-gradient(90deg, var(--line-hi) 0 6px, transparent 6px 10px);
+  opacity: 0.7;
+}
+
+.sheet__head {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  padding-bottom: var(--s2);
+  border-bottom: 1px solid var(--hair);
+  margin-bottom: var(--s2);
+}
+
+/* The close button rides the head rule rather than the 44 px touch row: it is
+   the one control here a thumb finds by position, so it can be 36 px and the
+   sheet keeps the 8 px the drawer needs. */
+.sheet__head .btn {
+  min-height: 36px;
+  padding-inline: var(--s3);
+}
+
+.sheet__head .title {
+  font-size: 1.2rem;
+}
+
+/* Two narrow columns, not one wide one: seven bindings in a single column are
+   273 px of a 390 px drawer, which is how the last two rows fell off the bottom
+   edge and a settings screen started to scroll. */
+.keys {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--s1) var(--s3);
+  margin-top: var(--s2);
+}
+
+.keys div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s2);
+  padding: clamp(2px, 0.7vh, 4px) 0;
+  border-bottom: 1px dashed rgba(39, 56, 74, 0.7);
+  color: var(--ink-2);
+  font-size: 0.82rem;
+}
+
+/* A keycap is a physical key: a bevel at the top right, a lit face, and a
+   shadow line under it. */
+.keys kbd {
+  font-family: var(--font-ui);
+  font-size: var(--text-micro);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  padding: 3px 7px;
+  color: var(--ink);
+  background: linear-gradient(180deg, rgba(31, 47, 60, 0.95), rgba(15, 24, 32, 0.95));
+  clip-path: polygon(0 0, calc(100% - 4px) 0, 100% 4px, 100% 100%, 0 100%);
+  box-shadow:
+    inset 0 0 0 1px var(--hair),
+    inset 0 -2px 0 rgba(5, 8, 12, 0.8);
+}
+
+.keys div {
+  border-bottom: 1px solid rgba(39, 56, 74, 0.45);
+}
+
+/* ==========================================================================
+   Loading hand-off
+   ========================================================================== */
+
+.progress {
+  position: relative;
+  height: 3px;
+  background: rgba(78, 106, 126, 0.28);
+  overflow: hidden;
+}
+
+.progress__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  background: linear-gradient(90deg, var(--accent-dim), var(--accent));
+  box-shadow: 0 0 18px rgba(255, 176, 32, 0.55);
+  transition: width 220ms linear;
+}
+
+.progress[data-indeterminate='true'] .progress__fill {
+  width: 34%;
+  animation: sweep 1.4s var(--ease) infinite;
+}
+
+@keyframes sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(320%);
+  }
+}
+
+/* ==========================================================================
+   Landscape: the only layout
+
+   There is one design and it is the phone held sideways. Everything below is a
+   base rule, not a breakpoint: the numbers were measured at 844x390 and every
+   type step is clamped against both width and height, so a 1280x720 laptop or a
+   1920x1080 monitor gets the same composition, larger — never a second layout.
+   A portrait window is not re-arranged; it is told to rotate (see `.rotate`).
+   ========================================================================== */
+
+.opening {
+  grid-template-columns: minmax(0, 1.5fr) minmax(260px, 0.9fr);
+}
+
+.hub {
+  grid-template-columns: minmax(0, 1.45fr) minmax(260px, 0.95fr);
+}
+
+/* `safe center` is the whole trick of the short landscape screen: the content
+   is optically centred when it fits, and the top stays reachable (instead of
+   being clipped by the centring) the moment it does not. */
+.screen {
+  justify-content: safe center;
+}
+
+.screen__inner {
+  margin-block: auto;
+  gap: clamp(var(--s3), 2.4vh, var(--s5));
+}
+
+.viewport {
+  padding-top: calc(46px + var(--s3) + var(--safe-t));
+}
+
+/* Type scales with the height of a landscape window, which is the dimension a
+   phone actually has to spend: at 390 px tall the display line is 28 px, at
+   720 px tall it is 46 px. */
+.display {
+  font-size: clamp(1.6rem, min(4.2vw, 7vh), 2.9rem);
+  line-height: 1.02;
+}
+
+.opening__word {
+  font-size: clamp(1.7rem, min(5vw, 8.4vh), 3.4rem);
+  letter-spacing: 0.12em;
+}
+
+.title {
+  font-size: clamp(1.25rem, min(3.2vw, 4.6vh), 1.9rem);
+}
+
+.body {
+  font-size: clamp(0.78rem, 1.9vh, 0.95rem);
+  line-height: 1.5;
+}
+
+.eyebrow {
+  font-size: clamp(0.56rem, 1.35vh, 0.66rem);
+}
+
+.strip {
+  gap: var(--s3);
+  font-size: clamp(0.56rem, 1.5vh, 0.66rem);
+}
+
+.hub__lead {
+  padding: clamp(var(--s3), 2.6vh, var(--s4));
+  gap: clamp(var(--s2), 1.6vh, var(--s3));
+}
+
+.hub__lead .rule {
+  margin-block: 0;
+}
+
+.hub__mark {
+  width: clamp(150px, 30vh, 300px);
+}
+
+.hub__lead .body {
+  font-size: clamp(0.76rem, 1.85vh, 0.9rem);
+  line-height: 1.45;
+}
+
+.hub__brief {
+  padding: var(--s2) var(--s3);
+}
+
+.hub__brief .linklist li {
+  min-height: 24px;
+}
+
+.ruler {
+  height: 6px;
+}
+
+/* Height-aware, because 375 px of landscape is the tight one: every value here
+   is the largest that still lets the third switch and the build stamps sit
+   above the fold at 667x375. */
+.sheet {
+  padding-top: clamp(7px, 1.8vh, 12px);
+}
+
+.sheet__head .title {
+  font-size: clamp(1.05rem, 3vh, 1.2rem);
+}
+
+.sheet__head .btn {
+  min-height: clamp(30px, 9vh, 36px);
+}
+
+.sheet__head {
+  padding-bottom: clamp(6px, 1.4vh, 10px);
+  margin-bottom: clamp(6px, 1.4vh, 10px);
+}
+
+.switch {
+  min-height: clamp(44px, 12.5vh, 54px);
+  padding: clamp(3px, 0.9vh, 7px) 0;
+}
+
+.switch__title {
+  font-size: clamp(0.9rem, 2.4vh, 1rem);
+}
+
+.switch__hint {
+  font-size: clamp(0.7rem, 1.8vh, 0.78rem);
+}
+
+.sheet__col .statusgrid {
+  margin-top: clamp(4px, 1.4vh, 10px);
+}
+
+.drawer__grip {
+  top: 4px;
+  width: 52px;
+}
+
+.card {
+  gap: var(--s2);
+}
+
+.card__title {
+  font-size: clamp(1rem, 2.8vh, 1.2rem);
+}
+
+.card__desc {
+  font-size: clamp(0.74rem, 1.9vh, 0.86rem);
+}
+
+/* Both rows point at their trailing corner, and on the mirrored row that corner
+   is the bottom one; either way the verb has to clear 22 px of chamfer, or the
+   chevron gets its head cut off. */
+.card--row {
+  min-height: 0;
+  padding: clamp(var(--s2), 1.9vh, var(--s3)) calc(var(--cut-lg) + 6px)
+    clamp(var(--s2), 1.9vh, var(--s3)) var(--s3);
+}
+
+.card--row .card__desc {
+  display: none;
+}
+
+.card--row .card__title {
+  font-size: clamp(0.95rem, 2.6vh, 1.12rem);
+}
+
+.screen__head {
+  gap: var(--s2);
+}
+
+.btn--primary {
+  min-height: clamp(44px, 11vh, 56px);
+}
+
+.statusgrid {
+  gap: 1px;
+}
+
+.statusgrid > div {
+  padding: var(--s2) var(--s3);
+}
+
+.statusgrid .metric__val {
+  font-size: clamp(0.8rem, 2vh, 0.95rem);
+}
+
+/* ---- landscape enforcement ------------------------------------------------
+   The product has one orientation. A portrait window gets a single instruction
+   instead of a squeezed copy of the layout, and the shell is not painted at
+   all, so nothing can be photographed or reviewed in an unsupported shape. */
+
+.rotate {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s4);
+  padding: var(--s6) var(--s5);
+  text-align: center;
+  background: var(--void);
+}
+
+.rotate__icon {
+  width: 54px;
+  height: 54px;
+  --tl: var(--cut-sm);
+  --br: var(--cut-sm);
+  background: rgba(22, 35, 46, 0.7);
+  clip-path: polygon(
+    var(--tl) 0,
+    100% 0,
+    100% calc(100% - var(--br)),
+    calc(100% - var(--br)) 100%,
+    0 100%,
+    0 var(--tl)
+  );
+  box-shadow: inset 0 0 0 1px var(--line-hi);
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+  animation: turn 2.6s var(--ease) infinite;
+}
+
+.rotate__icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.rotate__title {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.rotate__hint {
+  max-width: 30ch;
+  color: var(--ink-3);
+  font-size: var(--text-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+}
+
+@keyframes turn {
+  0%,
+  40% {
+    transform: rotate(0deg);
+  }
+  70%,
+  100% {
+    transform: rotate(90deg);
+  }
+}
+
+@media (orientation: portrait) {
+  #app,
+  .field {
+    display: none;
+  }
+
+  .rotate {
+    display: flex;
+  }
+}
+
+html[data-motion='reduced'] .rotate__icon {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rotate__icon {
+    animation: none;
+  }
+}

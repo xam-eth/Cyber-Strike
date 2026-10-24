@@ -6,7 +6,7 @@
 > models (`scifi_bay_builder.gd`, `scifi_frontier_dresser.gd`). Procedural ground,
 > ramps, structures, and collision still exist, so this is **not** a claim of
 > all-FBX final art. Lighting/HUD/Explore are being reworked under
-> [`docs/REBASE_VISUAL_GAMEPLAY_2026-10-18.md`](docs/REBASE_VISUAL_GAMEPLAY_2026-10-18.md).
+> [`docs/DECISIONS.md`](docs/DECISIONS.md).
 >
 > The KayKit discussion below describes the earlier build and is **not** a
 > current asset manifest or runtime guarantee.

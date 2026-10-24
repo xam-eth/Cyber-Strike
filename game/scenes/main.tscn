@@ -1,7 +1,8 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/worlds/neon_frontier.tscn" id="2_world"]
+[ext_resource type="PackedScene" path="res://scenes/worlds/vanguard_station.tscn" id="11_station"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="3_player"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/training_drone.tscn" id="4_drone"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="5_hud"]
@@ -13,7 +14,12 @@
 [node name="Main" type="Node3D"]
 script = ExtResource("1_main")
 
+[node name="ProgressionService" type="Node" parent="."]
+script = ExtResource("10_progression")
+
 [node name="NeonFrontier" parent="." instance=ExtResource("2_world")]
+
+[node name="VanguardStation" parent="." instance=ExtResource("11_station")]
 
 [node name="Player" parent="." instance=ExtResource("3_player")]
 position = Vector3(0, 0, 8)
@@ -57,8 +63,5 @@ script = ExtResource("7_run_stats")
 
 [node name="RewardService" type="Node" parent="."]
 script = ExtResource("8_reward_service")
-
-[node name="ProgressionService" type="Node" parent="."]
-script = ExtResource("10_progression")
 
 [node name="HUD" parent="." instance=ExtResource("5_hud")]

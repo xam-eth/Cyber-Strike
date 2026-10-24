@@ -35,9 +35,9 @@ class AndroidPresetTests(unittest.TestCase):
             self.run_tool(
                 "scaffold",
                 "--package-id",
-                "com.studio.overdrive",
+                "com.studio.exocomplict",
                 "--app-name",
-                "Project Overdrive",
+                "Exocomplict",
                 "--version-code",
                 "3",
                 "--version-name",
@@ -50,7 +50,7 @@ class AndroidPresetTests(unittest.TestCase):
         preset = presets[0]
         self.assertEqual(preset.name, "Android")
         self.assertEqual(preset.platform, "Android")
-        self.assertEqual(preset.option("package/unique_name"), "com.studio.overdrive")
+        self.assertEqual(preset.option("package/unique_name"), "com.studio.exocomplict")
         self.assertEqual(preset.option("version/code"), "3")
         self.assertEqual(preset.option("architectures/arm64-v8a"), "true")
         self.assertEqual(preset.option("architectures/armeabi-v7a"), "false")
@@ -63,12 +63,12 @@ class AndroidPresetTests(unittest.TestCase):
         self.assertEqual(self.read(), original)
 
     def test_patch_updates_only_requested_fields_and_backs_up(self) -> None:
-        self.run_tool("scaffold", "--package-id", "com.studio.overdrive")
+        self.run_tool("scaffold", "--package-id", "com.studio.exocomplict")
         self.assertEqual(
             self.run_tool(
                 "patch",
                 "--package-id",
-                "com.studio.overdrive",
+                "com.studio.exocomplict",
                 "--app-name",
                 "Renamed",
                 "--version-code",
@@ -87,26 +87,26 @@ class AndroidPresetTests(unittest.TestCase):
         self.assertEqual(len(backups), 1, "patch must keep a timestamped backup")
 
     def test_patch_is_idempotent(self) -> None:
-        self.run_tool("scaffold", "--package-id", "com.studio.overdrive")
-        args = ("patch", "--package-id", "com.studio.overdrive", "--version-code", "2")
+        self.run_tool("scaffold", "--package-id", "com.studio.exocomplict")
+        args = ("patch", "--package-id", "com.studio.exocomplict", "--version-code", "2")
         self.assertEqual(self.run_tool(*args), 0)
         after_first = self.read()
         self.assertEqual(self.run_tool(*args), 0)
         self.assertEqual(self.read(), after_first, "second identical patch must not rewrite the file")
 
     def test_check_rejects_example_package_id(self) -> None:
-        self.run_tool("scaffold", "--package-id", "com.example.overdrive")
+        self.run_tool("scaffold", "--package-id", "com.example.exocomplict")
         self.assertEqual(self.run_tool("check", "--preset-name", "Android"), 1)
-        self.run_tool("patch", "--package-id", "com.studio.overdrive")
+        self.run_tool("patch", "--package-id", "com.studio.exocomplict")
         self.assertEqual(self.run_tool("check", "--preset-name", "Android"), 0)
 
     def test_check_requires_at_least_one_architecture(self) -> None:
-        self.run_tool("scaffold", "--package-id", "com.studio.overdrive")
+        self.run_tool("scaffold", "--package-id", "com.studio.exocomplict")
         self.assertEqual(self.run_tool("patch", "--arch", ""), 0)
         self.assertEqual(self.run_tool("check", "--preset-name", "Android"), 1)
 
     def test_emulator_only_build_passes_with_note(self) -> None:
-        self.run_tool("scaffold", "--package-id", "com.studio.overdrive", "--arch", "x86_64")
+        self.run_tool("scaffold", "--package-id", "com.studio.exocomplict", "--arch", "x86_64")
         self.assertEqual(self.run_tool("check", "--preset-name", "Android"), 0)
 
     def test_check_reports_missing_preset_file(self) -> None:

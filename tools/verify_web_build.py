@@ -4,7 +4,7 @@
 Checks (no browser needed):
   * required files exist and are non-empty (html/js/wasm/pck)
   * file magic: WebAssembly ``\\0asm`` and Godot pack ``GDPC``
-  * the custom Project Overdrive shell was applied (marker present)
+  * the custom Exocomplict shell was applied (marker present)
   * every ``$GODOT_*`` placeholder was substituted by the exporter
   * the shell references the exported JS library and engine config
   * the shell's ``fileSizes`` map matches the files on disk
@@ -25,7 +25,7 @@ from pathlib import Path
 
 REQUIRED_FILES = ("index.html", "index.js", "index.wasm", "index.pck")
 OPTIONAL_FILES = ("index.audio.worklet.js", "index.icon.png", "index.apple-touch-icon.png", "index.manifest.json")
-SHELL_MARKER = "overdrive-shell"
+SHELL_MARKER = "exocomplict-shell"
 WASM_MAGIC = b"\x00asm"
 PCK_MAGIC = b"GDPC"
 MIN_WASM_BYTES = 5 * 1024 * 1024

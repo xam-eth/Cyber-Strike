@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Prepare and verify the JDK + Android SDK toolchain for a Project Overdrive
+# Prepare and verify the JDK + Android SDK toolchain for a Exocomplict
 # Android build. The script never writes inside this repository: environment
-# files go to ~/.local/share/project-overdrive/ and SDK packages are installed
+# files go to ~/.local/share/exocomplict/ and SDK packages are installed
 # by the SDK's own sdkmanager into your Android SDK directory.
 #
 # Usage:
@@ -19,7 +19,7 @@
 set -uo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-TOOLS_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/project-overdrive"
+TOOLS_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/exocomplict"
 ENV_FILE="${ANDROID_ENV_FILE:-$TOOLS_DIR/android-env.sh}"
 SDK_PLATFORM="${ANDROID_SDK_PLATFORM:-android-36}"
 BUILD_TOOLS="${ANDROID_BUILD_TOOLS:-36.0.0}"
@@ -53,7 +53,7 @@ done
 
 print_guide() {
   cat <<'GUIDE'
-Manual Android toolchain setup for Project Overdrive
+Manual Android toolchain setup for Exocomplict
 =====================================================
 
 1. Godot editor + export templates (pinned 4.7.2)
@@ -87,13 +87,13 @@ Manual Android toolchain setup for Project Overdrive
      The debug keystore is created automatically by Godot on first export.
 
 5. Create/verify the local Android export preset (git-ignored)
-     python3 tools/android_preset.py scaffold --package-id com.yourstudio.projectoverdrive
+     python3 tools/android_preset.py scaffold --package-id com.yourstudio.exocomplict
      python3 tools/android_preset.py check
 
 6. Build, install, and profile
      ./scripts/export_android_debug.sh
-     adb install -r exports/project-overdrive-debug.apk
-     adb shell monkey -p com.yourstudio.projectoverdrive -c android.intent.category.LAUNCHER 1
+     adb install -r exports/exocomplict-debug.apk
+     adb shell monkey -p com.yourstudio.exocomplict -c android.intent.category.LAUNCHER 1
      adb logcat -s godot:V
 
 See ANDROID_BASELINE.md for the full gate-E runbook, device test procedure, and
@@ -106,7 +106,7 @@ if (( GUIDE == 1 )); then
   exit 0
 fi
 
-printf 'Project Overdrive — Android toolchain setup\n\n'
+printf 'Exocomplict — Android toolchain setup\n\n'
 FAILURES=0
 
 # --------------------------------------------------------------------------- #
@@ -229,12 +229,12 @@ fi
 printf '\nSetup summary: %d failure(s).\n' "$FAILURES"
 if (( FAILURES > 0 )); then
   printf 'Resolve the failures above, then create the preset:\n'
-  printf '  python3 tools/android_preset.py scaffold --package-id com.yourstudio.projectoverdrive\n'
+  printf '  python3 tools/android_preset.py scaffold --package-id com.yourstudio.exocomplict\n'
   printf '  ./scripts/export_android_debug.sh\n'
   exit 1
 fi
 printf 'Toolchain looks ready. Next:\n'
-printf '  python3 tools/android_preset.py scaffold --package-id com.yourstudio.projectoverdrive\n'
+printf '  python3 tools/android_preset.py scaffold --package-id com.yourstudio.exocomplict\n'
 printf '  python3 tools/android_preset.py check\n'
 printf '  ./scripts/export_android_debug.sh\n'
 printf 'Full device test and profiling procedure: ANDROID_BASELINE.md\n'

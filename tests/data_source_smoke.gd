@@ -29,7 +29,6 @@ extends SceneTree
 
 const FrontEndScene = preload("res://scenes/ui/front_end.tscn")
 const PlayerScene = preload("res://scenes/player/player.tscn")
-const CinematicStage = preload("res://scripts/ui/menus/stage_cinematic.gd")
 
 ## Distinct from the real `user://progression.cfg` so the suite never spends or
 ## unlocks anything in a profile a developer might care about.
@@ -127,9 +126,11 @@ func _check_registry_matches_gameplay() -> void:
 	player.free()
 
 
-## The numbers on the WEAPON cards, parsed back out of the rendered text. This
-## is the whole "no decorative stats" rule in one loop, and it is why the
-## expected values are read from the resource instead of written here.
+## The numbers on the weapon rail, parsed back out of the rendered text. The
+## rail lives on HERO since the WEAPON page was retired -- the loadout is one
+## screen -- so this walks HERO's chips. It is the whole "no decorative stats"
+## rule in one loop, and it is why the expected values are read from the
+## resource instead of written here.
 func _check_cards_match_the_definitions() -> void:
 	_front_end = FrontEndScene.instantiate()
 	_front_end.get_node("ProgressionService").set("profile_path", PROFILE_PATH)
@@ -137,12 +138,12 @@ func _check_cards_match_the_definitions() -> void:
 	await process_frame
 	await process_frame
 	_profile = _front_end.get_node("ProgressionService")
-	_front_end.go_to(&"WEAPON", {})
+	_front_end.go_to(&"HERO", {})
 	await process_frame
 	await process_frame
 
-	var stage: Control = _front_end.get_node_or_null("StageHost/WEAPON")
-	if not _expect(stage != null, "the WEAPON stage is instantiated"):
+	var stage: Control = _front_end.get_node_or_null("StageHost/HERO")
+	if not _expect(stage != null, "the HERO stage is instantiated"):
 		return
 	var cards := 0
 	for child in stage.find_children("*", "Button", true, false):
@@ -156,29 +157,47 @@ func _check_cards_match_the_definitions() -> void:
 			definition != null, "%s: the card reads a definition from the registry" % weapon_id
 		):
 			continue
+		# A chip in the rail carries its own name and price on a label inside it,
+		# because the row has no room for a caption under every slot.
+		var item_text := text_of(button)
 		_expect(
-			text_of(button).contains(definition.display_name.to_upper()),
+			item_text.contains(definition.display_name.to_upper()),
 			(
-				"%s: the card names the weapon the definition names (%s)"
+				"%s: the rail chip names the weapon the definition names (%s)"
 				% [weapon_id, definition.display_name]
 			)
 		)
-		var stat_line := _meta_label(button, "stat_line")
-		if not _expect(stat_line != null, "%s: the card prints a stat line" % weapon_id):
+		# The screen is a showcase now: the numbers belong to the weapon that is
+		# *selected*, in one panel beside the model. So a locked chip has no stat
+		# line to read -- it is disabled and the player cannot select it -- and
+		# what it owes the player instead is its price.
+		if button.disabled:
+			_expect(
+				item_text.contains("BP"),
+				"%s: the locked carousel item states its unlock price" % weapon_id
+			)
 			continue
-		_check_stat("DMG", stat_line.text, definition.damage, weapon_id)
-		_check_stat("RATE", stat_line.text, definition.fire_rate, weapon_id)
-		_check_stat("MAG", stat_line.text, float(definition.magazine_size), weapon_id)
-		_check_stat("RELOAD", stat_line.text, definition.reload_seconds, weapon_id)
-		_check_stat("RNG", stat_line.text, definition.max_range, weapon_id)
+		button.pressed.emit()
+		await process_frame
+		await process_frame
+		# Every line marked `stat_line`, read together: checking only the first
+		# would pass while RELOAD and RNG were missing from the screen.
+		var stat_text := _meta_labels(stage, "stat_line")
+		if not _expect(not stat_text.is_empty(), "%s: the panel prints a stat line" % weapon_id):
+			continue
+		_check_stat("DMG", stat_text, definition.damage, weapon_id)
+		_check_stat("RATE", stat_text, definition.fire_rate, weapon_id)
+		_check_stat("MAG", stat_text, float(definition.magazine_size), weapon_id)
+		_check_stat("RELOAD", stat_text, definition.reload_seconds, weapon_id)
+		_check_stat("RNG", stat_text, definition.max_range, weapon_id)
 		if definition.splash_damage > 0.0:
-			_check_stat("SPLASH", stat_line.text, definition.splash_damage, weapon_id)
+			_check_stat("SPLASH", stat_text, definition.splash_damage, weapon_id)
 		if definition.chain_count > 0:
-			_check_stat("CHAIN", stat_line.text, float(definition.chain_count), weapon_id)
+			_check_stat("CHAIN", stat_text, float(definition.chain_count), weapon_id)
 	_expect(
 		cards == WeaponDefinition.DEFINITION_IDS.size(),
 		(
-			"every weapon in the registry gets a card (%d of %d)"
+			"every weapon in the registry gets a carousel item (%d of %d)"
 			% [cards, WeaponDefinition.DEFINITION_IDS.size()]
 		)
 	)
@@ -214,6 +233,7 @@ func _check_stat(key: String, line: String, expected: float, weapon_id: StringNa
 func _check_selection_ids_are_known() -> void:
 	for entry in [
 		{"stage": &"HERO", "meta": "hero_id", "known": ProgressionService.HERO_IDS},
+		{"stage": &"HERO", "meta": "weapon_id", "known": ProgressionService.WEAPON_IDS},
 		{"stage": &"WORLD", "meta": "world_id", "known": ProgressionService.WORLD_IDS},
 	]:
 		var name: StringName = entry["stage"]
@@ -321,11 +341,9 @@ func _check_referenced_art_exists() -> void:
 	for name in [
 		&"BOOT",
 		&"LOADING",
-		&"CINEMATIC",
 		&"CHAPTER",
 		&"DASHBOARD",
 		&"HERO",
-		&"WEAPON",
 		&"WORLD",
 	]:
 		_front_end.go_to(name, {})
@@ -459,10 +477,10 @@ func _check_unlock_economics() -> void:
 	# has to quote the same number the service will take.
 	_reset_unlocks()
 	_profile.set("balance", 0)
-	_front_end.go_to(&"WEAPON", {})
+	_front_end.go_to(&"HERO", {})
 	await process_frame
 	await process_frame
-	var stage: Control = _front_end.get_node_or_null("StageHost/WEAPON")
+	var stage: Control = _front_end.get_node_or_null("StageHost/HERO")
 	if stage == null:
 		return
 	for child in stage.find_children("*", "Button", true, false):
@@ -473,11 +491,12 @@ func _check_unlock_economics() -> void:
 		if bool(_profile.is_unlocked(weapon_id)):
 			continue
 		var cost := int(_profile.unlock_cost(weapon_id))
-		var state := _meta_label(button, "state_line")
-		if state == null:
+		# The chip's own text is the state line: this rail has no caption row.
+		var state := text_of(button)
+		if not state.contains("BP"):
 			continue
 		_expect(
-			state.text.contains("%d BP" % cost),
+			state.contains("%d BP" % cost),
 			"%s: the locked card quotes the price the service charges (%d BP)" % [weapon_id, cost]
 		)
 
@@ -536,18 +555,22 @@ func _check_hero_roster_is_one_list() -> void:
 		var definition := HeroDefinition.load_definition(hero_id)
 		if not _expect(definition != null, "%s: the card reads a hero from the registry" % hero_id):
 			continue
+		# The chip is a portrait, not a text card: the HERO screen moved the name
+		# and blurb into one detail panel beside the 3D showcase, so the copy is
+		# read off the stage instead of off the chip. The intent is unchanged --
+		# the screen must print the registry's words, not its own -- and the chip
+		# still has to carry the registry's id, which the loop above checks.
+		var stage_text := text_of(stage).to_upper()
 		_expect(
-			text_of(button).contains(definition.display_name.to_upper()),
+			stage_text.contains(definition.display_name.to_upper()),
 			(
-				"%s: the card names the hero the definition names (%s)"
+				"%s: the screen names the hero the definition names (%s)"
 				% [hero_id, definition.display_name]
 			)
 		)
 		_expect(
-			text_of(button).to_upper().contains(
-				definition.role_description.substr(0, 24).to_upper()
-			),
-			"%s: the card's blurb is the definition's, not the screen's own" % hero_id
+			stage_text.contains(definition.role_description.substr(0, 24).to_upper()),
+			"%s: the screen's blurb is the definition's, not its own" % hero_id
 		)
 	_expect(
 		cards == HeroDefinition.DEFINITION_IDS.size(),
@@ -665,20 +688,11 @@ func _check_world_roster_is_one_list() -> void:
 				"the dashboard calls %s '%s', the name in its own definition" % [world_id, shown]
 			)
 
-	# The cinematic names the theatre in its second caption. This is a wiring
-	# check, not a drift check: renaming the definition moves both sides
-	# together, so what it proves is that the line is still *derived*. Drift is
-	# what `_check_no_roster_literals_in_screens` catches -- a name typed into
-	# the cinematic instead of read from the registry fails there.
-	var caption := String(CinematicStage._beat_caption(1))
-	for world_id in WorldDefinition.DEFINITION_IDS:
-		var definition := WorldDefinition.load_definition(world_id)
-		if definition == null:
-			continue
-		_expect(
-			caption.contains(definition.display_name.to_upper()),
-			"the opening names the theatre it drops into ('%s')" % caption
-		)
+	# The studio ident used to be checked here: it named the theatre in a
+	# caption it drew over the film. It has no captions now -- drawing this
+	# game's copy on a studio's mark was the mistake -- so there is no line to
+	# derive, and the screen-literal check below still covers the screens that
+	# do name worlds.
 
 
 ## The other half of the same rule, and the half that can actually fail.
@@ -693,7 +707,6 @@ func _check_no_roster_literals_in_screens() -> void:
 		"HERO": "res://scripts/ui/menus/stage_hero_select.gd",
 		"WORLD": "res://scripts/ui/menus/stage_world_select.gd",
 		"DASHBOARD": "res://scripts/ui/menus/stage_dashboard.gd",
-		"CINEMATIC": "res://scripts/ui/menus/stage_cinematic.gd",
 	}
 	var owned: Array[String] = []
 	for definition in HeroDefinition.load_all_definitions():
@@ -768,6 +781,12 @@ func _same_path(a: Resource, b: Resource) -> bool:
 ## Every visible label under `root`, joined: the test reads what a player reads.
 func text_of(root: Node) -> String:
 	var parts: Array[String] = []
+	# A Button renders its own text; a card rendered as one has no Label inside
+	# it, and reading only Labels reported "the card does not name the world" for
+	# a card whose visible text was the world's name.
+	var control := root as BaseButton
+	if control != null and not control.text.is_empty():
+		parts.append(control.text)
 	for child in root.find_children("*", "Label", true, false):
 		var label := child as Label
 		if label != null and label.visible:
@@ -775,11 +794,16 @@ func text_of(root: Node) -> String:
 	return " | ".join(parts)
 
 
-func _meta_label(root: Node, key: String) -> Label:
+## Every visible line under `root` carrying `key`, joined in tree order: a card
+## may print its numbers on more than one line, and the check is against what
+## the screen says, not against one label.
+func _meta_labels(root: Node, key: String) -> String:
+	var lines: Array[String] = []
 	for child in root.find_children("*", "Label", true, false):
-		if child.has_meta(key):
-			return child as Label
-	return null
+		var label := child as Label
+		if label != null and label.has_meta(key) and not label.text.is_empty():
+			lines.append(label.text)
+	return "  ·  ".join(lines)
 
 
 func _expect(condition: bool, description: String) -> bool:

@@ -191,7 +191,7 @@ jobs:
           mkdir -p exports/web-preview
           cp -R web exports/web-preview/web
           python3 -c 'import pathlib; pathlib.Path("exports/web-preview/README.txt").write_text(
-            "Project Overdrive — WebAssembly preview build\n"
+            "Exocomplict — WebAssembly preview build\n"
             "=============================================\n\n"
             "How to run:\n"
             "  1. Extract this archive into the repository root so that the folder 'web/' appears.\n"
@@ -370,8 +370,12 @@ jobs:
           mkdir -p site
           cp -R artifacts/web site/web
           cp index.html site/index.html
+          # The player front end (ui/) is part of the landing page: its tokens,
+          # styles, self-hosted fonts and shell script must ship beside it.
+          cp -R ui site/ui
           # The landing page loads ./web/index.html, which is valid on Pages too.
           grep -q "web/index.html" site/index.html
+          grep -q "ui/shell.js" site/index.html
           touch site/.nojekyll   # serve files verbatim, skip Jekyll
           echo "site contents:"
           find site -maxdepth 2 -type f -printf '%P %s bytes\n' | sort
@@ -430,7 +434,7 @@ jobs:
       - name: Write the manifest
         run: |
           mkdir -p docs
-          out=docs/LFS_ASSET_MANIFEST.md
+          out=docs/ARCHITECTURE.md
           {
             echo "# Manifest of \`3DScifiStarterKitFree.zip\`"
             echo
@@ -490,7 +494,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/LFS_ASSET_MANIFEST.md
+          git add docs/ARCHITECTURE.md
           if git diff --cached --quiet; then
             echo "Manifest unchanged."
             exit 0

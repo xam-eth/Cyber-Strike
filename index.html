@@ -1,465 +1,256 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-		<meta name="theme-color" content="#05070d">
-		<title>Project Overdrive — WebAssembly Preview</title>
-		<!--
-			Halaman pemain untuk preview WebAssembly Project Overdrive.
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#05080c" />
+    <title>Exocomplict</title>
+    <link rel="stylesheet" href="./ui/tokens.css" />
+    <link rel="stylesheet" href="./ui/ui.css" />
+    <!--
+      A static tag, not a dynamic import: the engine derives its asset paths from
+      document.currentScript.src, so an injected script would make it look for
+      index.wasm next to the page instead of next to itself. 280 KB of loader,
+      parsed once, and it is what the opening's first check is verifying.
+    -->
+    <script src="./web/index.js" defer></script>
+    <!--
+      The player-facing front end for the web build (repo root, served as /).
 
-			Jalankan dari root repo:
+      Everything the player meets before the world lives here: opening, hub,
+      mission select, launch. The engine boots behind it only once a mission is
+      chosen, so no boot bar, module list or engine splash is ever visible at
+      launch — the first frame of the product is the first frame of the game.
 
-			    python -m http.server 800 --bind 0.0.0.0
-			    http://localhost:800/
+      It owns the journey up to the world: opening -> hub -> deploy -> the
+      hand-off into gameplay. The canvas behind it is the real game, booted
+      silently while the opening plays, so the player never sees an engine
+      splash, a module list, or a percentage that is not a real byte count.
 
-			Halaman ini TIDAK memakai iframe: ia meng-import build Godot dari ./web/
-			(fetch konfigurasi ekspor dari ./web/index.html, lalu memuat ./web/index.js
-			dan memanggil Engine.startGame) sehingga game tampil langsung di halaman ini.
-			Struktur ini mengikuti pola repo xam-eth/Scary-Night: halaman di root yang
-			meng-import game, dengan payload di dalam repo.
+      Stage deep links used here (`?qa_stage=PRELOAD`) are the engine's own QA
+      hook in game/scripts/ui/menus/front_end.gd, not a mock: it loads
+      res://scenes/main.tscn exactly as the in-engine journey's PRELOAD does.
+    -->
+  </head>
+  <body>
+    <canvas id="canvas" data-hidden="true" aria-label="Dunia permainan"></canvas>
+    <div class="field" aria-hidden="true"></div>
 
-			Isi ./web/ adalah output ekspor (di-commit oleh job CI "web-preview"),
-			bukan sumber. Jangan mengeditnya dengan tangan.
-		-->
-		<style>
-			:root {
-				--bg: #05070d;
-				--panel: rgba(7, 16, 26, 0.86);
-				--line: rgba(127, 216, 255, 0.22);
-				--cyan: #24d3ff;
-				--emerald: #7cffcb;
-				--text: #e6f1ff;
-				--muted: #93a8bd;
-				--warn: #ffcc66;
-			}
+    <!-- The only portrait view: rotate. The product is landscape-only, so this
+         is an instruction, not a second layout. -->
+    <div class="rotate" role="status">
+      <span class="rotate__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+          <rect x="7" y="2.5" width="10" height="19" rx="2" />
+          <path d="M10.5 19h3" />
+        </svg>
+      </span>
+      <p class="rotate__title">Putar perangkat</p>
+      <p class="rotate__hint">Konsol ini hanya berjalan dalam mode mendatar</p>
+    </div>
 
-			* { box-sizing: border-box; }
+    <div id="app">
+      <header class="strip">
+        <span class="strip__mark" id="strip-mark">Exocomplict</span>
+        <span class="strip__item strip__item--wide">SEKTOR 07 · PERIMETER LUAR</span>
+        <span class="strip__spacer"></span>
+        <span class="strip__item" id="strip-engine" data-state="warn">
+          <i class="dot"></i><span id="strip-engine-label">menyiapkan</span>
+        </span>
+        <span class="strip__item" id="strip-view">—</span>
+        <span class="strip__item" id="strip-input">—</span>
+      </header>
 
-			html, body {
-				margin: 0;
-				padding: 0;
-				height: 100%;
-				overflow: hidden;
-				background: var(--bg);
-				color: var(--text);
-				font-family: 'Segoe UI', 'Noto Sans', Arial, sans-serif;
-			}
+      <main class="viewport">
+        <!-- ============================================================
+             OPENING — no title card, no engine chrome. Three facts the
+             player can act on: the link is up, the sector is loaded, and
+             the console is ready.
+             ============================================================ -->
+        <section class="screen screen--opening" id="screen-opening" data-active="true" aria-labelledby="opening-word">
+          <div class="screen__inner">
+            <div class="opening">
+              <div class="opening__lead">
+                <p class="eyebrow">Uplink · sektor 07</p>
+                <h1 class="opening__word" id="opening-word">Sinyal <em>masuk</em></h1>
+                <p class="body opening__body">
+                  Perimeter luar dunia Neon Frontier. Jalur ke arena pusat bersih, menara reaktor
+                  menyala, dan tiga pos luar masih memancarkan sinyal.
+                </p>
+                <div class="opening__actions">
+                  <button class="btn btn--primary" id="opening-enter" type="button" disabled>
+                    <span>Masuk</span>
+                    <span class="btn__meta" id="opening-enter-meta">menyiapkan</span>
+                  </button>
+                  <span class="opening__hint">Tanpa unduhan tambahan</span>
+                </div>
+                <p class="opening__hint" id="opening-note" hidden style="color: var(--danger)"></p>
+              </div>
 
-			#canvas {
-				display: block;
-				width: 100vw;
-				height: 100vh;
-				outline: none;
-				background: #05070d;
-			}
+              <aside class="panel opening__panel" aria-label="Status tautan">
+                <div class="panel__head">
+                  <span class="eyebrow">Tautan</span>
+                  <span class="chip" id="opening-channel">menyiapkan</span>
+                </div>
+                <ul class="linklist" id="opening-log" aria-live="polite">
+                  <li data-key="engine"><i class="tick"></i><span>Konsol</span><b>menunggu</b></li>
+                  <li data-key="payload"><i class="tick"></i><span>Paket dunia</span><b>menunggu</b></li>
+                  <li data-key="display"><i class="tick"></i><span>Tampilan</span><b>menunggu</b></li>
+                </ul>
+                <div class="rule"></div>
+                <div class="statusgrid statusgrid--tight">
+                  <div><span class="metric__key">Sektor</span><span class="metric__val">07 · luar</span></div>
+                  <div><span class="metric__key">Status</span><span class="metric__val" data-tone="accent">siaga</span></div>
+                </div>
+              </aside>
+            </div>
+          </div>
+        </section>
 
-			.overlay {
-				position: fixed;
-				inset: 0;
-				pointer-events: none;
-				z-index: 10;
-			}
+        <!-- ============================================================ HUB -->
+        <section class="screen" id="screen-hub" aria-labelledby="hub-title">
+          <div class="screen__inner">
+            <div class="hub">
+              <div class="panel panel--solid hub__lead">
+                <p class="eyebrow">Konsol lapangan · sektor 07</p>
+                <h1 class="hub__mark-wrap">
+                  <img
+                    class="hub__mark"
+                    src="./game/assets/ui/logo_wordmark.png"
+                    alt="Exocomplict — Stellar Horizon"
+                  />
+                </h1>
+                <div class="ruler" aria-hidden="true"></div>
+                <p class="body">
+                  Sektor 07, dunia Neon Frontier. Jalur menuju arena pusat bersih, menara reaktor
+                  menyala, dan tiga pos luar masih memancarkan sinyal. Teater ini sudah terbuka:
+                  satu tombol membawa Anda masuk.
+                </p>
+                <div class="hub__actions">
+                  <button class="btn btn--primary" id="hub-deploy" type="button">
+                    <span>Deploy</span>
+                    <span class="btn__meta" id="hub-deploy-meta">siap</span>
+                  </button>
+                </div>
+              </div>
 
-			/* ---------- chips ---------- */
-			.chips {
-				position: absolute;
-				top: 0.6rem;
-				right: 0.6rem;
-				display: flex;
-				flex-wrap: wrap;
-				gap: 0.4rem;
-				justify-content: flex-end;
-				pointer-events: auto;
-			}
+              <div class="hub__side">
+                <div class="panel hub__brief">
+                  <p class="eyebrow">Misi hari ini</p>
+                  <ul class="linklist">
+                    <li data-shown="true" data-tone="ok"><i class="tick"></i><span>Teater</span><b>Neon Frontier</b></li>
+                    <li data-shown="true"><i class="tick"></i><span>Mulai</span><b>Jelajah bebas</b></li>
+                    <li data-shown="true"><i class="tick"></i><span>Gelombang</span><b>Tekan B</b></li>
+                    <li data-shown="true"><i class="tick"></i><span>Keluar</span><b>Esc</b></li>
+                  </ul>
+                </div>
+                <button class="card card--row" id="hub-card-controls" type="button">
+                  <span class="card__top"><span class="card__index">01</span></span>
+                  <span class="card__body">
+                    <span class="card__title">Kontrol</span>
+                    <span class="card__desc">Keyboard, tetikus, dan sentuh.</span>
+                  </span>
+                  <span class="card__go">Lihat ›</span>
+                </button>
+                <button class="card card--row card--row-alt" id="hub-card-display" type="button">
+                  <span class="card__top"><span class="card__index">02</span></span>
+                  <span class="card__body">
+                    <span class="card__title">Tampilan</span>
+                    <span class="card__desc">HUD sentuh, gerak, layar penuh.</span>
+                  </span>
+                  <span class="card__go">Atur ›</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
 
-			.chip {
-				display: inline-flex;
-				align-items: center;
-				gap: 0.4rem;
-				padding: 0.34rem 0.66rem;
-				border: 1px solid var(--line);
-				border-radius: 999px;
-				background: var(--panel);
-				color: var(--text);
-				font: 600 0.68rem/1 'Segoe UI', 'Noto Sans', Arial, sans-serif;
-				letter-spacing: 0.08em;
-				text-transform: uppercase;
-				text-decoration: none;
-				cursor: pointer;
-				backdrop-filter: blur(6px);
-			}
+        <!-- ======================================================= SETTINGS -->
+        <section class="screen" id="screen-settings" aria-labelledby="settings-title">
+          <div class="screen__inner">
+            <div class="panel panel--solid sheet">
+              <span class="drawer__grip" aria-hidden="true"></span>
+              <div class="sheet__head">
+                <h1 class="title" id="settings-title">Tampilan &amp; kontrol</h1>
+                <span class="strip__spacer"></span>
+                <button class="btn btn--ghost" id="settings-close" type="button">Tutup</button>
+              </div>
 
-			.chip:hover { border-color: rgba(36, 211, 255, 0.55); color: #fff; }
-			/* Once the run starts the game's own HUD owns the top of the screen, so
-			   the browser chips fold down to one toggle and come back on hover,
-			   focus or tap. */
-			/* On a desktop, keep the mobile-preview switch visible even when the
-			   browser chrome collapses: otherwise the player sees NO FIRE icon. */
-			.chips[data-collapsed='true'] .chip:not(#chips-toggle):not(#mobile-hud-toggle) { display: none; }
-			.chip[hidden] { display: none !important; }
-			#chips-toggle { opacity: 0.75; }
-			.chips:not([data-collapsed='true']) #chips-toggle { opacity: 1; }
-			.chip[data-state='ok'] { border-color: rgba(124, 255, 203, 0.45); color: var(--emerald); }
-			.chip[data-state='warn'] { border-color: rgba(255, 204, 102, 0.45); color: var(--warn); }
-			.chip[data-state='bad'] { border-color: rgba(255, 120, 120, 0.5); color: #ff9c9c; }
-			.chip .dot { width: 0.42rem; height: 0.42rem; border-radius: 50%; background: currentColor; }
+              <!-- Two columns in landscape: the switches on the left, what they
+                   do and what the keys are on the right. One column would be
+                   700 px tall on a 390 px screen and need a scroll to reach the
+                   last switch, which is how a settings sheet loses a row. -->
+              <div class="sheet__body">
+                <div class="sheet__col">
+                  <button class="switch" type="button" role="switch" aria-checked="false" id="opt-touch">
+                    <span class="switch__text">
+                      <span class="switch__title">HUD sentuh</span>
+                      <span class="switch__hint">Joystick dan tombol tembak selalu ada.</span>
+                    </span>
+                    <span class="switch__track" aria-hidden="true"></span>
+                  </button>
 
-			/* ---------- controls panel ---------- */
-			.panel {
-				position: absolute;
-				left: 0.6rem;
-				bottom: 0.6rem;
-				max-width: min(30rem, calc(100vw - 1.2rem));
-				padding: 0.7rem 0.85rem;
-				border: 1px solid var(--line);
-				border-radius: 0.7rem;
-				background: var(--panel);
-				pointer-events: auto;
-				font-size: 0.76rem;
-				line-height: 1.5;
-				color: var(--muted);
-				backdrop-filter: blur(6px);
-			}
+                  <button class="switch" type="button" role="switch" aria-checked="false" id="opt-motion">
+                    <span class="switch__text">
+                      <span class="switch__title">Kurangi gerak</span>
+                      <span class="switch__hint">Transisi layar dimatikan.</span>
+                    </span>
+                    <span class="switch__track" aria-hidden="true"></span>
+                  </button>
 
-			.panel[hidden] { display: none; }
-			.panel b { color: var(--text); font-weight: 600; }
-			.panel .warn { color: var(--warn); }
-			body.hide-ui .chips, body.hide-ui .panel { display: none; }
+                  <button class="switch" type="button" role="switch" aria-checked="false" id="opt-fullscreen">
+                    <span class="switch__text">
+                      <span class="switch__title">Layar penuh</span>
+                      <span class="switch__hint">Bilah peramban hilang saat bermain.</span>
+                    </span>
+                    <span class="switch__track" aria-hidden="true"></span>
+                  </button>
 
-			/* ---------- boot ---------- */
-			#boot {
-				position: fixed;
-				inset: 0;
-				z-index: 20;
-				display: grid;
-				place-content: center;
-				gap: 1rem;
-				padding: 2rem;
-				text-align: center;
-				background:
-					radial-gradient(circle at 20% 10%, rgba(36, 211, 255, 0.16), transparent 55%),
-					radial-gradient(circle at 80% 90%, rgba(124, 255, 203, 0.12), transparent 52%),
-					var(--bg);
-			}
+                  <!-- Build stamps sit under the switches, where this column had
+                       90 px of nothing. They are a receipt, not a control, so
+                       they get the smallest type on the sheet. -->
+                  <div class="statusgrid" id="about-grid">
+                    <div><span class="metric__key">Build</span><span class="metric__val" id="about-build">—</span></div>
+                    <div><span class="metric__key">Mesin</span><span class="metric__val" id="about-engine">—</span></div>
+                  </div>
+                </div>
 
-			#boot[hidden] { display: none; }
-			#boot h1 {
-				margin: 0;
-				font-size: clamp(1.4rem, 4vw, 2.4rem);
-				font-weight: 700;
-				letter-spacing: 0.32em;
-				text-transform: uppercase;
-			}
+                <div class="sheet__col">
+                  <p class="eyebrow">Kontrol</p>
+                  <div class="keys" id="keys-list">
+                    <div><span>Bergerak</span><kbd>W A S D</kbd></div>
+                    <div><span>Bidik</span><kbd>Klik kanan</kbd></div>
+                    <div><span>Tembak</span><kbd>Klik kiri</kbd></div>
+                    <div><span>Ganti senjata</span><kbd>E</kbd></div>
+                    <div><span>EMP</span><kbd>Q</kbd></div>
+                    <div><span>Pertahanan</span><kbd>B</kbd></div>
+                    <div><span>Pause</span><kbd>Esc</kbd></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
 
-			#boot h1 span { color: var(--cyan); }
-			#boot .sub { color: var(--muted); font-size: 0.8rem; letter-spacing: 0.22em; text-transform: uppercase; }
-			#bar {
-				width: min(30rem, 70vw);
-				height: 0.4rem;
-				margin: 0 auto;
-				border: 1px solid var(--line);
-				border-radius: 999px;
-				overflow: hidden;
-				background: rgba(255, 255, 255, 0.04);
-			}
+        <!-- ========================================================= LAUNCH -->
+        <section class="screen" id="screen-launch" aria-labelledby="launch-title">
+          <div class="screen__inner">
+            <div class="opening">
+              <p class="eyebrow" id="launch-eyebrow">Deploy · sektor 07</p>
+              <h1 class="title" id="launch-title">Menyiapkan dunia</h1>
+              <div class="progress" id="launch-progress" data-indeterminate="true" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+                <span class="progress__fill" id="launch-fill"></span>
+              </div>
+              <ul class="linklist launch__log">
+                <li><i class="tick"></i><span id="launch-status">memuat aset dunia</span><b id="launch-percent">—</b></li>
+              </ul>
+              <p class="opening__hint" id="launch-hint">Tetap di layar ini sampai dunia siap.</p>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
 
-			#bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--cyan), var(--emerald)); transition: width 0.2s linear; }
-			#boot-status { color: var(--muted); font-size: 0.78rem; letter-spacing: 0.1em; }
-
-			/* ---------- failure card ---------- */
-			#failure {
-				position: fixed;
-				inset: 0;
-				z-index: 30;
-				display: grid;
-				place-content: center;
-				padding: 2rem;
-				background: rgba(3, 6, 12, 0.94);
-			}
-
-			#failure[hidden] { display: none; }
-			#failure .card {
-				max-width: 46rem;
-				padding: 1.4rem 1.5rem;
-				border: 1px solid var(--line);
-				border-radius: 0.9rem;
-				background: var(--panel);
-			}
-
-			#failure h2 { margin: 0 0 0.6rem; font-size: 1.05rem; letter-spacing: 0.12em; text-transform: uppercase; }
-			#failure p, #failure li { color: var(--muted); font-size: 0.85rem; line-height: 1.6; }
-			#failure pre {
-				max-height: 12rem;
-				overflow: auto;
-				padding: 0.7rem;
-				border: 1px solid var(--line);
-				border-radius: 0.5rem;
-				background: rgba(0, 0, 0, 0.35);
-				color: var(--warn);
-				font-size: 0.76rem;
-				white-space: pre-wrap;
-			}
-
-			#failure code { color: var(--emerald); }
-		</style>
-		<!--
-			Skrip engine dimuat sebagai tag statis dengan sengaja: engine menurunkan
-			direktori asetnya (index.wasm, index.pck, worklet audio) dari
-			document.currentScript.src. Tag statis menunjuk ./web/index.js sehingga
-			berkas-berkas itu dicari di ./web/, bukan di root. Skrip yang disuntik
-			dinamis akan membuat currentScript null dan engine mengejar index.wasm 404.
-		-->
-		<script src="./web/index.js" onerror="window.__engineScriptFailed = true;"></script>
-	</head>
-	<body>
-		<!-- Kanvas milik halaman ini; engine Godot mengambil elemen ini. -->
-		<canvas id="canvas" tabindex="-1" aria-label="Project Overdrive. Jelajahi dengan aman, tekan B untuk memulai Defense. WASD bergerak, klik kanan membidik, klik kiri menembak, E ganti senjata, Esc pause, R retry."></canvas>
-
-		<div class="overlay" id="shell-ui">
-			<div class="chips" id="chips" data-collapsed="true">
-				<span class="chip" id="build-chip" data-state="warn"><i class="dot"></i><span id="build-label">memuat…</span></span>
-				<button class="chip" id="controls-chip" type="button">Kontrol</button>
-				<button class="chip" id="hide-ui" type="button">Hide UI</button>
-				<button class="chip" id="fullscreen" type="button">Fullscreen</button>
-				<button class="chip" id="reload" type="button">Reload</button>
-				<a class="chip" id="raw" href="./web/index.html" target="_blank" rel="noopener">Build mentah</a>
-				<button class="chip" id="mobile-hud-toggle" type="button" title="Tampilkan HUD sentuh sebenarnya pada browser desktop">HUD Mobile</button>
-				<button class="chip" id="chips-toggle" type="button" title="Tampilkan/sembunyikan tombol browser">UI</button>
-			</div>
-
-			<div class="panel" id="controls-panel" hidden>
-				<p><b>Explore aman:</b> tidak ada wave otomatis. Tekan <b>B</b> / START DEFENSE bila sudah siap; countdown mendahului musuh.</p>
-				<p><b>Keyboard:</b> WASD bergerak · klik kanan membidik · klik kiri menembak · <b>E</b> ganti senjata · <b>Esc</b> pause · <b>R</b> retry.</p>
-				<p><b>Sentuh:</b> joystick kiri · drag kanan untuk aim · FIRE · WEAPON / EMP · PAUSE. Hasil run menyediakan RETRY DEFENSE atau EXPLORE.</p>
-				<p class="warn">Build ini memakai renderer Compatibility (WebGL 2) dan mode single-thread. Angka FPS di browser bukan ukuran performa Android — lihat ANDROID_BASELINE.md.</p>
-			</div>
-		</div>
-
-		<div id="boot">
-			<h1>Project <span>Overdrive</span></h1>
-			<div class="sub">WebAssembly preview · Godot 4.7.2</div>
-			<div id="bar"><i></i></div>
-			<div id="boot-status">menyiapkan…</div>
-		</div>
-
-		<div id="failure" hidden>
-			<div class="card">
-				<h2 id="failure-title">Build belum bisa dimuat</h2>
-				<p id="failure-lead"></p>
-				<ul id="failure-steps"></ul>
-				<pre id="failure-detail" hidden></pre>
-			</div>
-		</div>
-
-		<script>
-			'use strict';
-
-			const BUILD_URL = './web/index.html';
-			const ENGINE_URL = './web/index.js';
-			const boot = document.getElementById('boot');
-			const bootBar = document.querySelector('#bar i');
-			const bootStatus = document.getElementById('boot-status');
-			const failure = document.getElementById('failure');
-			const failureTitle = document.getElementById('failure-title');
-			const failureLead = document.getElementById('failure-lead');
-			const failureSteps = document.getElementById('failure-steps');
-			const failureDetail = document.getElementById('failure-detail');
-			const buildChip = document.getElementById('build-chip');
-			const buildLabel = document.getElementById('build-label');
-
-			function setBuildChip(state, label) {
-				buildChip.dataset.state = state;
-				buildLabel.textContent = label;
-			}
-
-			function showFailure(title, lead, steps, detail) {
-				boot.hidden = true;
-				failureTitle.textContent = title;
-				failureLead.textContent = lead;
-				failureSteps.replaceChildren(
-					...(steps || []).map((text) => {
-						const li = document.createElement('li');
-						li.textContent = text;
-						return li;
-					}),
-				);
-				if (detail) {
-					failureDetail.hidden = false;
-					failureDetail.textContent = detail;
-				} else {
-					failureDetail.hidden = true;
-				}
-				failure.hidden = false;
-				setBuildChip('bad', 'gagal');
-			}
-
-			const MISSING_STEPS = [
-				'Jalankan halaman dari root repo: python -m http.server 800 --bind 0.0.0.0',
-				'Pastikan folder web/ ada: ia ikut di-commit, jadi git pull biasanya cukup.',
-				'Kalau web/ hilang: ekspor ulang dengan ./scripts/export_web_preview.sh, atau unduh artefak "web-preview" dari GitHub Actions.',
-			];
-
-			async function bootGame() {
-				// 1. Konfigurasi ekspor dibaca dari halaman build Godot (satu baris JSON),
-				//    supaya halaman ini tidak perlu tahu isi preset ekspor.
-				let response;
-				try {
-					response = await fetch(BUILD_URL, { cache: 'no-store' });
-				} catch (error) {
-					showFailure(
-						'Build belum bisa dimuat',
-						'Permintaan ke ' + BUILD_URL + ' gagal. Kalau Anda membuka file ini langsung (file://), JavaScript tidak boleh mengambil berkas — gunakan server statis.',
-						MISSING_STEPS,
-						String(error),
-					);
-					return;
-				}
-
-				if (!response.ok) {
-					showFailure(
-						'Build web belum ada di repo ini',
-						`Halaman mencari ${BUILD_URL} dan mendapat HTTP ${response.status}.`,
-						MISSING_STEPS,
-					);
-					return;
-				}
-
-				const html = await response.text();
-				const match = html.match(/const GODOT_CONFIG = (\{[^\n]*\});/);
-				if (!match) {
-					showFailure(
-						'Konfigurasi ekspor tidak terbaca',
-						`${BUILD_URL} tidak memuat baris GODOT_CONFIG yang diharapkan.`,
-						['Ekspor ulang build: ./scripts/export_web_preview.sh', 'Pastikan game/web_shell/index.html dipakai sebagai custom HTML shell.'],
-					);
-					return;
-				}
-
-				const config = JSON.parse(match[1]);
-				// Engine menurunkan lokasi index.wasm/index.pck dari halaman tempat ia
-				// dijalankan. Karena payload tinggal di ./web/ sedangkan halaman ini di
-				// root, jalur executable-nya diberi tahu langsung (terbukti lewat uji
-				// headless: tanpa ini engine meminta /index.wasm dan mendapat 404).
-				config.executable = './web/index';
-				const threadsEnabled = /GODOT_THREADS_ENABLED = true/.test(html);
-				setBuildChip('warn', 'memuat engine…');
-
-				const EngineClass = window.Engine || window.Godot;
-				if (typeof EngineClass !== 'function') {
-					showFailure(
-						'Engine tidak tersedia',
-						window.__engineScriptFailed
-							? `Tag skrip untuk ${ENGINE_URL} gagal dimuat (berkasnya tidak ada).`
-							: `${ENGINE_URL} dimuat tetapi tidak menyediakan kelas Engine.`,
-						MISSING_STEPS,
-					);
-					return;
-				}
-
-				const missing = EngineClass.getMissingFeatures ? EngineClass.getMissingFeatures({ threads: threadsEnabled }) : [];
-				if (missing.length) {
-					showFailure(
-						'Browser tidak mendukung fitur yang dibutuhkan',
-						'Build ini memerlukan WebGL 2.',
-						['Pakai Chrome, Edge, atau Firefox terbaru.', 'Pastikan akselerasi perangkat keras/WebGL 2 tidak diblokir.'],
-						missing.join('\n'),
-					);
-					return;
-				}
-
-				const engine = new EngineClass(config);
-				bootStatus.textContent = 'memuat berkas game…';
-
-				engine.startGame({
-					onProgress: (current, total) => {
-						if (current > 0 && total > 0) {
-							bootBar.style.width = `${Math.floor((current / total) * 100)}%`;
-							bootStatus.textContent = `${Math.floor((current / total) * 100)}% dimuat`;
-						} else {
-							bootStatus.textContent = 'memuat berkas game…';
-						}
-					},
-				}).then(() => {
-					boot.hidden = true;
-					setBuildChip('ok', `siap · ${threadsEnabled ? 'threaded' : 'single-thread'}`);
-					const canvas = document.getElementById('canvas');
-					if (config.focusCanvas !== false && canvas) canvas.focus();
-					// The game owns the sightline immediately after boot. Browser
-					// diagnostics remain one tap away via the small UI toggle.
-					chips.dataset.collapsed = 'true';
-				}, (error) => {
-					showFailure(
-						'Engine berhenti saat start',
-						'Build termuat tetapi startGame gagal.',
-						['Coba Reload.', 'Jalankan ./scripts/export_web_preview.sh --debug untuk build dengan detail error lebih lengkap.'],
-						String(error),
-					);
-				});
-			}
-
-			// ---------- kontrol shell ----------
-			document.getElementById('controls-chip').addEventListener('click', () => {
-				const panel = document.getElementById('controls-panel');
-				panel.hidden = !panel.hidden;
-			});
-
-				document.getElementById('hide-ui').addEventListener('click', () => {
-					document.body.classList.toggle('hide-ui');
-				});
-
-				// Desktop defaults to mouse/LMB (no FIRE button), which previously
-				// made mobile-UI review impossible from the normal WebAssembly preview.
-				// Opt in visibly; never make a desktop player guess a query parameter.
-				const mobileHudToggle = document.getElementById('mobile-hud-toggle');
-				const touchPreview = new URLSearchParams(window.location.search).has('touch_preview');
-				mobileHudToggle.textContent = touchPreview ? 'HUD Desktop' : 'HUD Mobile';
-				mobileHudToggle.hidden = matchMedia('(pointer: coarse)').matches && !touchPreview;
-				mobileHudToggle.addEventListener('click', () => {
-					const url = new URL(window.location.href);
-					if (touchPreview) url.searchParams.delete('touch_preview');
-					else url.searchParams.set('touch_preview', '1');
-					window.location.assign(url.toString());
-				});
-
-				/* ---------- browser chips ---------- */
-			const chips = document.getElementById('chips');
-			let chipTimer = 0;
-
-			function scheduleChipsCollapse(delay = 6000) {
-				if (chips.dataset.collapsed === 'true') return;
-				window.clearTimeout(chipTimer);
-				chipTimer = window.setTimeout(() => {
-					chips.dataset.collapsed = 'true';
-				}, delay);
-			}
-
-			document.getElementById('chips-toggle').addEventListener('click', () => {
-				const collapsed = chips.dataset.collapsed === 'true';
-				chips.dataset.collapsed = collapsed ? 'false' : 'true';
-				if (collapsed) scheduleChipsCollapse(8000);
-			});
-			chips.addEventListener('pointerenter', () => {
-				chips.dataset.collapsed = 'false';
-				window.clearTimeout(chipTimer);
-			});
-			chips.addEventListener('pointerleave', () => scheduleChipsCollapse(3000));
-			chips.addEventListener('focusin', () => {
-				chips.dataset.collapsed = 'false';
-				window.clearTimeout(chipTimer);
-			});
-
-			document.getElementById('fullscreen').addEventListener('click', () => {
-				if (document.fullscreenElement) {
-					document.exitFullscreen();
-				} else {
-					document.documentElement.requestFullscreen().catch(() => {});
-				}
-			});
-
-			document.getElementById('reload').addEventListener('click', () => window.location.reload());
-
-			bootGame();
-		</script>
-	</body>
+    <script type="module" src="./ui/shell.js"></script>
+  </body>
 </html>

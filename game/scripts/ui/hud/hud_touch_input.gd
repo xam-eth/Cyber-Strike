@@ -190,7 +190,7 @@ func activate(button: Button) -> void:
 		hud._on_return_to_explore_pressed()
 	elif button == hud._weapon_button:
 		hud._on_weapon_switch_pressed()
-	elif button == hud._skill_button or button == hud._emp_chip:
+	elif button == hud._skill_button:
 		hud._on_skill_pressed()
 	elif button == hud._pause_button:
 		hud._on_pause_pressed()

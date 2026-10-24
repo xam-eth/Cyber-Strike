@@ -11,12 +11,15 @@ dashboard, no selection screens — so every stage here is new code rather than 
 re-skin.
 
 ```
-BOOT ──> LOADING ──> CINEMATIC ──> CHAPTER ──> DASHBOARD ──> HERO ──> WEAPON
-                         │                         ▲
-                         └── (skipped once seen) ───┘
+BOOT ──> LOADING ──> CHAPTER ──> DASHBOARD ──> HERO
+                │                    ▲             │
+                └── (skipped once seen) ───────────┘
                                                    │
                        GAMEPLAY <── PRELOAD <── WORLD <──┘
 ```
+
+There is no STUDIO stage. The delivered ident film was pulled on 2026-10-24
+(docs/DECISIONS.md 28), so a launch opens on the engine's own load.
 
 `scenes/ui/front_end.tscn` is the project's main scene and the only object that
 knows the order. A stage finishes by emitting `completed(next_stage, payload)`;
@@ -47,73 +50,81 @@ beat for the wordmark, not a loading claim, and the caption reads
 | Advances | when the queue drains |
 
 One implementation serves both stages; the payload decides. `LOADING` fetches
-the nine front-end textures and goes to `CINEMATIC`. `PRELOAD` fetches
+the eight front-end textures and goes to `CHAPTER`. `PRELOAD` fetches
 `res://scenes/main.tscn` and changes scene.
 
-If the queue is empty the stage does not animate a number: it swaps the bar for
-the sweep and the caption reads `PREPARING`. A resource that fails to load
-raises `push_error` and is recorded, so the failure is visible in the log rather
-than hidden behind a completed bar.
+**The composition is a poster** (docs/DECISIONS.md 30). `loading_keyart.jpg`
+fills the frame edge to edge (`STRETCH_KEEP_ASPECT_COVERED`, no letterbox), two
+`GradientTexture2D` bands take the top 16 % and the bottom 52 % to near-black,
+and the wordmark sits in that bottom band at 330 px on a phone / 620 px on a
+desktop. Under it: one caption row (`LOADING` left, the percentage right), the
+`n / total` count, and a 3 px amber hairline. That is the whole screen — no
+heading block, no panel, no second column of status.
 
-The robot walk cycle is `loading_robot.ogv` (512×512, four frames, 8 fps,
-looping) — Asset C as a real video, encoded by `tools/art/build_ui_video.py`
-from the same four generated frames, with the same union crop and scale as the
-sprite sheet. The sheet (`loading_robot_sheet.png`, 2048×512, four 512 px cells)
-is still shipped and is the fallback: a device that cannot decode Theora gets
-the same animation by moving an `AtlasTexture` region instead. `reduce_motion`
-holds the first frame of whichever one is in use.
+The reference is the opening of *Doomsday: Last Survivors*: full-bleed key art,
+a heavy ramp to black across the lower half, and a large mark read across a
+room with one small credit line under it. It is a title treatment, not a
+progress dialog, and the progress it does show is one hairline.
 
-## CINEMATIC — `stage_cinematic.gd`
+The bar is driven by `ResourceLoader.load_threaded_get_status`, so the figure
+is the engine's own count of resources fetched, not a timer. If the queue is
+empty the stage does not animate a number: it swaps the bar for the
+`MenuIndeterminateBar` sweep and the caption reads `PREPARING`. A resource that
+fails to load raises `push_error` and is recorded, so the failure is visible in
+the log rather than hidden behind a completed bar.
 
-| | |
-| --- | --- |
-| Real work | a scripted 9.6 s sequence over the loading key art |
-| Progress shown | **real playback position** (elapsed / duration) |
-| Advances | on completion or on SKIP |
+BOOT is deliberately *not* this composition: BOOT is the wordmark on void with
+a sweep, because there is nothing to look at yet and nothing measurable to
+report. Two stages that look like one screen are one screen printed twice.
 
-This plays `cinematic_opening.ogv` (1280×720, 24 fps, 9.58 s) when the video
-loads — Asset F, encoded by `tools/art/build_ui_video.py` — and falls back to
-the same beat composed in-engine: a slow push-in on `loading_keyart.jpg` under
-four captions, 4 × 2.4 s. The key art stays behind the video as its poster
-frame, so a device that cannot decode Theora sees the composed opening rather
-than a hole. Either way it is skippable from the first frame, and the progress
-bar is driven by whichever clock is running (`stream_position`, or elapsed
-time). The video carries no captions: the stage overlays them as UI text.
-
-The captions state the premise the game implements and nothing else: a training
-facility, the Neon Frontier, inbound waves, Battle Points. `GAME_CONCEPT.md` is
-explicit that this game is not story-driven, so a lore-dump intro would be a
-misrepresentation of the product.
-
-Finishing **or skipping** marks `intro_seen` on the profile. Skipping has to
-count as seeing it: being dropped straight into the dashboard *is* what the
-skip button is offering.
+The walk cycle is gone. The screen carried a 160 px robot sprite (a four-cell
+sheet, plus a video made from the same frames) until 2026-10-23, when it was cut:
+it competed with the wordmark for the only focal point a load screen has and it
+said nothing about the game (docs/DECISIONS.md 3). `reduce_motion` still governs
+the indeterminate sweep.
 
 ## CHAPTER — `stage_chapter.gd`
 
 A title card: `CHAPTER 01 / FIRST LIGHT`, the objective the run measures, and a
 CONTINUE action. It also advances on any tap.
 
-## DASHBOARD — `stage_dashboard.gd`
+Clearing it marks `intro_seen` on the profile (`ProgressionService`), which is
+what makes a second launch go from LOADING straight to the dashboard. The
+persisted key keeps its old name.
+
+## HOME — `stage_dashboard.gd`
+
+HOME is a **deployment board**, not a second showcase. It used to carry a
+full-height 3D operative, an edge-docked portrait card and a bottom dock — the
+same composition as OPERATIVE — and a player moving between the two tabs saw one
+screen twice (docs/DECISIONS.md 29). What it is now:
+
+* a heading and the profile line (`PROFILE · FIELD READY`, or the run count);
+* three numbered rows — `01 OPERATIVE`, `02 DEPLOYMENT THEATRE`, `03 ARSENAL` —
+  each with its own plate, the name read from the definition, and one line of
+  state;
+* the record ribbon: `BEST SCORE  n`, `RUNS COMPLETED  n`, `LOADOUT …`;
+* ARMORY and DEPLOY, in the thumb arc, DEPLOY amber and last.
+
+The rows are a manifest, not buttons: what they report is a choice already made,
+and the two ways to change it are the OPERATIVE and THEATRE tabs in the shared
+dock. No 3D is presented on this page — that is OPERATIVE's job.
 
 Every number is read from `ProgressionService`, the single owner of the
-persistent profile:
-
-* Battle Points
-* Best score
-* Runs completed
-* The loadout the next launch will use
-
-There is no profile level, no streak, no daily reward and no second currency.
-The save file holds five things and the dashboard shows those five things; a
-sixth row would be decoration disagreeing with gameplay.
+persistent profile: Battle Points (in the dock), best score, runs completed, and
+the loadout the next launch will use. There is no profile level, no streak, no
+daily reward and no second currency.
 
 | Button | Action |
 | --- | --- |
-| DEPLOY | starts HERO → WEAPON → WORLD → PRELOAD |
+| DEPLOY | starts HERO → WORLD → PRELOAD |
 | ARMORY | `ArmoryUi`, the in-game shop widget, spending real BP for real unlocks |
-| SETTINGS | `AegisSettingsMenu`, writing `user://aegis.cfg` |
-| REPLAY INTRO | clears `intro_seen` so the cinematic can be seen again without wiping anything |
+| SETTINGS | `AegisSettingsMenu`, writing `user://aegis.cfg` (the gear in the dock) |
+
+Portrait is one column: heading, rows, record ribbon, actions -- DEPLOY last,
+nearest the thumb. Landscape puts the rows
+in the height they need and moves the ribbon and the actions into a 300–340 px
+rail beside them, because 390 px of height cannot hold four bands.
 
 ## HERO SELECTION — `stage_hero_select.gd`
 
@@ -126,21 +137,12 @@ no per-hero health, speed or damage — so any number printed here would be
 decoration. The portrait is concept art, not the playable model
 (`docs/ART_DIRECTION.md` §4).
 
-## WEAPON SELECTION — `stage_weapon_select.gd`
+## THE LOADOUT LIVES ON HERO
 
-All three weapons are real: the stats are read off the `WeaponDefinition`
-resource at runtime, so the screen cannot drift from the weapon the player
-fires.
-
-| | Damage | Rate | Mag | Reload | Range | Notes |
-| --- | --- | --- | --- | --- | --- | --- |
-| Pulse Rifle | 18 | 5.0/s | 24 | 1.35 s | 45 m | starter |
-| Nova Launcher | 34 | 0.8/s | 6 | 2.2 s | 32 m | splash 24 / 4 m |
-| Arc Shooter | 20 | 2.0/s | 12 | 1.7 s | 30 m | chain 2 |
-
-Locked weapons are **disabled** and priced from `ProgressionService.COSTS`
-(pulse 0, nova 120, arc 250). Unlocking happens in the Armory, which is the one
-place that spends Battle Points, so there is exactly one purchase path.
+There is no WEAPON page. Its screen was three chips around a 3D rifle -- a
+section of a loadout, not a page in a journey -- so the rail moved onto HERO,
+under the operative's card: choose who, and with what, in one place. See
+`docs/DECISIONS.md` 2 for the reasoning and `stage_hero_select.gd` for the rail.
 
 ## WORLD SELECTION — `stage_world_select.gd`
 
@@ -161,7 +163,7 @@ the only stage allowed to change scene.
 
 | Key | Meaning | Fallback if edited to garbage |
 | --- | --- | --- |
-| `intro_seen` | cinematic played (or skipped) | `false` |
+| `intro_seen` | CHAPTER 01 card cleared once | `false` |
 | `selected_hero` | last chosen hero | `exo_operative` |
 | `selected_weapon` | last chosen weapon | `pulse_rifle` |
 | `selected_world` | last chosen world | `neon_frontier` |
@@ -186,12 +188,17 @@ screen for devices with no Escape key.
 
 ## Layout at phone sizes
 
-The project stretches a 1280x720 canvas with `aspect=expand`, so on a 390x844
-phone the canvas is 1280x2770 at 0.305 scale: a button authored as 60 canvas
-units reaches the screen 18 px tall and a 24 px gap lands at 7. Authoring in
+The project stretches a 1280x720 canvas with `aspect=expand`, so on the shipped
+844x390 phone the canvas is 1558x720 at 0.542 scale: a button authored as 60
+canvas units reaches the screen 32 px tall and a 24 px gap lands at 13. Authoring in
 canvas units is why the first pass read as broken rather than small. Every menu
 size is therefore written in **physical pixels** and converted once, through
 `MenuStage.px()`.
+
+There is one layout: a phone held sideways. A portrait window is refused by the
+web shell's rotation notice, and every stage keeps the landscape composition at
+any window size, so there is no second arrangement to drift from the one that is
+tested.
 
 | `MenuStage` helper | What it is for |
 | --- | --- |
@@ -199,37 +206,36 @@ size is therefore written in **physical pixels** and converted once, through
 | `physical_min_size()` / `physical_separation()` | author a size once, re-convert it on resize or rotation |
 | `card_line()` | card text that wraps to the card instead of widening the screen it lives in |
 | `enforce_font_floor()` | nothing renders below `AegisTokens.MIN_PHYSICAL_FONT_PX` |
-| `is_landscape()` | wider than 1.2x taller |
-| `_size_both()` / `_orient_nodes()` | a portrait size and a landscape size for one control |
-| `_make_card_list()` / `_orient_card_list()` | a card column in portrait, a card row in landscape |
-| `_make_selection_split()` / `_orient_selection()` | the landscape layout: text beside the list |
+| `is_landscape()` | always true; kept for callers that asked |
+| `_size()` / `_orient_nodes()` | one authored size for a control, re-measured on resize |
+| `_make_card_list()` / `_orient_card_list()` | the card row that scrolls sideways |
+| `_make_selection_split()` / `_orient_selection()` | text beside the list |
 
-Orientation is handled on `resized`, so rotating a device re-lays out the screen
-without rebuilding it:
+Every stage re-lays itself out on `resized`, so a window that changes size
+re-flows without being rebuilt:
 
-* **DASHBOARD** stacks wordmark → stats → actions in portrait (DEPLOY last,
-  bottom-anchored, closest to the thumb). In landscape it splits: stats left,
-  actions right. The stack is ~500 px tall and a landscape phone is 390 px,
-  which is what put DEPLOY at y=444, 114 px past the bottom edge.
-* **HERO / WEAPON / WORLD** scroll one card per row in portrait. In landscape the
-  heading, the summary and the footer move into a fixed-width info column and the
-  card list becomes a row that scrolls sideways beside it: a stacked header
-  leaves the list ~130 px of a 390 px screen, and a 216 px card in a 130 px
-  window is unusable. Locked placeholder slots travel with the real cards and
-  stay disabled.
+* **DASHBOARD** splits the rows left and the record and actions right. The
+  stacked version is ~500 px tall and a landscape phone is 390 px, which is what
+  put DEPLOY at y=444, 114 px past the bottom edge.
+* **HERO / WORLD** put the heading, the summary and the footer in a fixed-width
+  info column and make the card list a row that scrolls sideways beside it: a
+  stacked header leaves the list ~130 px of a 390 px screen, and a 216 px card in
+  a 130 px window is unusable. Locked placeholder slots travel with the real
+  cards and stay disabled.
 
 Measured, in physical pixels, from the browser's own rect report
-(`?qa_menu=1`, touch insets `SAFE=8,8,28`) and from `menu_layout_smoke.gd`:
+(`?qa_menu=1`, touch insets `SAFE=8,8,28`) and from `menu_layout_smoke.gd`, on
+the one viewport the front end ships for:
 
-| Screen | 390x844 | 844x390 |
-| --- | --- | --- |
-| DASHBOARD | `DEPLOY=36,732,320x60` | `DEPLOY=427,278,381x60` (was `36,444` — off screen) |
-> Node names in this table were recorded before the HERO card was named from the
-> hero id; the card is now `ExoOperativeCard`, and the rects are unchanged.
+| Screen | 844x390 |
+| --- | --- |
+| DASHBOARD | `DEPLOY=427,278,381x60` (was `36,444` — off screen when the screen stacked) |
+| HERO | `ExoOperativeCard=346,54,340x190`, `BACK=36,282,144x56` |
+| WORLD | `NeonFrontierCard=346,54,340x168`, `LAUNCH` bottom right |
 
-| HERO | `ExoOperativeCard=36,132,318x190`, `BACK=36,736,153x56` | `ExoOperativeCard=346,54,340x190`, `BACK=36,282,144x56` |
-| WEAPON | `PulseRifleCard=36,115,316x216`, `CONTINUE=201,736,153x56` | `PulseRifleCard=346,54,340x216`, `CONTINUE=191,282,144x56` |
-| WORLD | `NeonFrontierCard=36,115,318x168`, `LAUNCH=201,736,153x56` | `NeonFrontierCard=346,54,340x168`, `LAUNCH` bottom right |
+> Node names were recorded before the HERO card was named from the hero id; the
+> card is now `ExoOperativeCard`. The icons in the dock are glyphs at this
+> height, so the tab labels are not part of the measurement.
 
 Every action is 56–60 px tall, and in every measurement above the lowest pixel
 of the last action is at least 24 px clear of the safe area.
@@ -242,27 +248,17 @@ journey asked for, that no enabled button is inert, that no control crosses the
 reserved edge, that absent content is disabled, and that `intro_seen` round-trips
 through a real `ConfigFile`.
 
-`tests/video_asset_smoke.gd` loads both videos the way the stages do and
-compares the size and length the engine reports against
-`game/assets/ui/video_manifest.json`, then checks that CINEMATIC and LOADING
-really did select the video over their composed fallbacks.
-
-In a browser build the same thing is measured from outside the engine:
-`?qa_stage=CINEMATIC&qa_menu=1` logs which path ran and the stream position
-(`stream at 2.02 s of 9.58 s`), and three frames taken 2 s apart differ across
-89.8 % of the screen — the decoded video, on screen and moving, not a poster.
-The same `?qa_menu=1` report prints each `VideoStreamPlayer` rect, which is how
-the two aspect defects were caught (a 16:9 opening at `0,0,390x844` and a square
-robot at `36,590,318x160`); both are cover rects now. A loading stage can only
+The project ships no video any more, so there is no video asset test and no
+`video_manifest.json` to compare against. A loading stage can only
 be photographed via `?qa_stage=LOADING|PRELOAD` because with no targets it leaves
 on the next frame.
 
-`tests/menu_layout_smoke.gd` mounts the same scene once and then rotates
-the live viewport through 390x844, 844x390, 360x640 and 1280x720 (sixteen
-stage/size combinations, twelve of them reached by rotation) and asserts, in
-physical pixels, that nothing outside a scroll container is drawn outside the
-viewport, that no button is under the 56 px touch floor, and that every card list
-can be scrolled to the end with the cards moving with it. It prints the same rect
+`tests/menu_layout_smoke.gd` mounts the same scene once and then resizes
+the live viewport from 844x390 to 667x375 (six stage/size combinations, three of
+them reached by resizing) and asserts, in physical pixels, that nothing outside a
+scroll container is drawn outside the viewport, that no button is under the 56 px
+touch floor, and that every card list can be scrolled to the end with the cards
+moving with it. It prints the same rect
 report as `?qa_menu=1`, so the headless numbers and the browser numbers can be
 read against each other.
 
@@ -292,9 +288,10 @@ build, so it fails for the right reason.
 
 ## The roster is one list
 
-The HERO, WEAPON and WORLD screens, the dashboard's loadout line, the
-cinematic's theatre caption and `ProgressionService` used to each keep their own
-copy of the same names -- the world's name in four places, the hero's in three.
+The HERO and WORLD screens, the dashboard's loadout line and
+`ProgressionService` used to each keep their own copy of the same names -- the
+world's name in four places, the hero's in three. (A fifth, an opening caption,
+is gone with the ident film that carried it.)
 They now read `HeroDefinition`, `WeaponDefinition` and `WorldDefinition`, and
 the progression service's id lists and defaults are read *out of* those
 registries rather than typed again beside them. The screens are built by
@@ -315,4 +312,4 @@ health, speed or ability in this project and no per-world wave count in data, so
 a number in the resource would be decoration -- readable by the player, used by
 nothing.
 
-Results are recorded in `docs/asset-inspections/` once the suite has been run.
+Frames are written to `exports/flow/` by `tools/qa_flow_shots.mjs`.

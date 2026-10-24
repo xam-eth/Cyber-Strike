@@ -1,11 +1,23 @@
-## Owns the front-end journey: BOOT -> LOADING -> CINEMATIC -> CHAPTER ->
-## DASHBOARD -> HERO -> WEAPON -> WORLD -> PRELOAD -> gameplay.
+## Owns the front-end journey: BOOT -> LOADING -> CHAPTER -> DASHBOARD ->
+## HERO -> WORLD -> PRELOAD -> gameplay.
 ##
 ## This is the only place that knows the order. A stage asks for the next one by
 ## name and FrontEnd decides whether that is legal, which is what keeps the
-## onboarding honest: the cinematic is skipped on a second launch because
+## onboarding honest: the CHAPTER 01 card is skipped on a second launch because
 ## *this* object reads `intro_seen` off the profile, not because each screen
 ## remembers whether it played.
+##
+## There is no WEAPON stage any more. Its screen was three weapon chips around a
+## 3D rifle -- a section of a loadout, not a page in a journey -- so the rail
+## moved into HERO, next to the operative who carries it. The journey is shorter
+## and the loadout is still two choices: who, and with what.
+##
+## There is no studio ident and no opening film. The delivered clip was pulled
+## on 2026-10-24 because it was not good enough to be the first thing a player
+## saw, and a placeholder standing in for the mark would be worse than nothing
+## (docs/DECISIONS.md 17). BOOT is therefore first and unguarded: it is the
+## engine's own load, and the boot overlay in the web shell is deliberately a
+## dark frame with no words on it.
 ##
 ## Nothing here fakes progress. BOOT shows an indeterminate bar because a
 ## ConfigFile read reports no progress; LOADING and PRELOAD show a percentage
@@ -18,11 +30,9 @@ const GAMEPLAY_SCENE := "res://scenes/main.tscn"
 const STAGE_SCENES := {
 	&"BOOT": preload("res://scenes/ui/menus/stage_boot.tscn"),
 	&"LOADING": preload("res://scenes/ui/menus/stage_loading.tscn"),
-	&"CINEMATIC": preload("res://scenes/ui/menus/stage_cinematic.tscn"),
 	&"CHAPTER": preload("res://scenes/ui/menus/stage_chapter.tscn"),
 	&"DASHBOARD": preload("res://scenes/ui/menus/stage_dashboard.tscn"),
 	&"HERO": preload("res://scenes/ui/menus/stage_hero_select.tscn"),
-	&"WEAPON": preload("res://scenes/ui/menus/stage_weapon_select.tscn"),
 	&"WORLD": preload("res://scenes/ui/menus/stage_world_select.tscn"),
 	&"PRELOAD": preload("res://scenes/ui/menus/stage_preload.tscn"),
 }
@@ -31,8 +41,7 @@ const STAGE_SCENES := {
 ## and ignore the key.
 const BACK_TARGET := {
 	&"HERO": &"DASHBOARD",
-	&"WEAPON": &"HERO",
-	&"WORLD": &"WEAPON",
+	&"WORLD": &"HERO",
 	&"PRELOAD": &"WORLD",
 }
 
@@ -62,31 +71,65 @@ func _ready() -> void:
 		# `_process`, even though nothing called set_process(true) -- measured in
 		# this build: a bare Control reports is_processing() false after new(),
 		# true immediately after add_child(). Left alone every stage ticks from
-		# the moment the front end boots, and the cinematic runs to completion
+		# the moment the front end boots, and a loading stage drains its queue
 		# before it is ever shown. So the opt-out has to come *after* add_child,
 		# and stages opt back in from enter().
 		stage.set_process(false)
 		stage.set_physics_process(false)
 		_stages[key] = stage
 	progression_service.profile_changed.connect(_on_profile_changed)
+	# The web shell has already played the opening, so the GAMEPLAY hand-off
+	# enters the world without entering BOOT first. Entering a stage and then
+	# changing the scene out from under it leaves that stage's awaited frames
+	# resuming on a freed node -- a real "data.tree is null" error in the log.
+	if _qa_stage_name() == &"GAMEPLAY":
+		call_deferred("start_gameplay")
+		return
 	_enter(&"BOOT", {})
 	_enter_qa_stage()
 
 
+## The stage name in `?qa_stage=`, or an empty name outside a browser / without
+## the flag. `GAMEPLAY` is not a stage: it is the scene PRELOAD changes to, and
+## the player-facing web shell uses it to hand the screen over after its own hub.
+func _qa_stage_name() -> StringName:
+	if not OS.has_feature("web"):
+		return &""
+	var requested: Variant = JavaScriptBridge.eval(
+		"new URLSearchParams(location.search).get('qa_stage') || ''"
+	)
+	return StringName(str(requested))
+
+
 ## QA hook, web only: `?qa_stage=DASHBOARD` lands straight on a stage so a
-## build can be photographed without playing through to it. Same mechanism as
+## build can be photographed without playing through to it, and
+## `?qa_stage=GAMEPLAY` enters the world with the profile's current loadout --
+## the hand-off the player-facing web shell uses. Same mechanism as
 ## the existing `?qa_camera` / `?qa_touch` flags in camera_rig.gd and
 ## hud_encounter_ui.gd, and equally inert outside a browser.
 func _enter_qa_stage() -> void:
 	if not OS.has_feature("web"):
 		return
-	var requested: Variant = JavaScriptBridge.eval(
-		"new URLSearchParams(location.search).get('qa_stage') || ''"
-	)
-	var stage_name := StringName(str(requested))
+	_enter_qa_world()
+	var stage_name := _qa_stage_name()
 	if stage_name == &"" or not STAGE_SCENES.has(stage_name):
 		return
 	call_deferred("_enter", stage_name, _qa_payload(stage_name))
+
+
+## QA hook, web only: `?qa_world=vanguard_station` selects a theatre before the
+## launch, the same way pressing its card on the WORLD screen would. Without it a
+## second world can only be photographed by clicking through the front end, which
+## is exactly the kind of "it works, trust me" claim this project keeps paying for.
+func _enter_qa_world() -> void:
+	var requested: Variant = JavaScriptBridge.eval(
+		"new URLSearchParams(location.search).get('qa_world') || ''"
+	)
+	var world_id := StringName(str(requested))
+	if world_id == &"" or not ProgressionService.WORLD_IDS.has(world_id):
+		return
+	progression_service.select_world(world_id)
+	print("FrontEnd: qa_world selected %s" % world_id)
 
 
 ## What the real journey would have passed to this stage. It matters for the
@@ -94,6 +137,21 @@ func _enter_qa_stage() -> void:
 ## link landed on a screen that existed for one frame and could not be
 ## photographed (or QA'd) at all.
 func _qa_payload(stage_name: StringName) -> Dictionary:
+	# `?qa_hold=1` keeps a stage that would otherwise finish in one frame on
+	# screen -- the loading screens have no duration in a web build, so without
+	# this they cannot be photographed. Nothing outside the QA deep link sets it.
+	if OS.has_feature("web"):
+		var hold: Variant = JavaScriptBridge.eval(
+			"new URLSearchParams(location.search).has('qa_hold')"
+		)
+		if bool(hold):
+			var held := _qa_stage_payload(stage_name)
+			held["hold"] = true
+			return held
+	return _qa_stage_payload(stage_name)
+
+
+func _qa_stage_payload(stage_name: StringName) -> Dictionary:
 	match stage_name:
 		&"LOADING":
 			return {"targets": _stages[&"BOOT"].FRONT_END_ART}
@@ -116,11 +174,14 @@ func go_to(stage_name: StringName, stage_payload: Dictionary = {}) -> void:
 	_enter(stage_name, stage_payload)
 
 
-## Where the front-end art load leads: the cinematic on a first launch, the
-## dashboard once it has been seen. Resolved here rather than in BOOT so the
-## "play the intro once" rule lives in exactly one place.
+## Where the front-end art load leads: the CHAPTER 01 card on a first launch,
+## the dashboard once it has been seen. Resolved here rather than in BOOT so the
+## "play the chapter card once" rule lives in exactly one place.
+##
+## The studio ident is deliberately not part of this: it played before BOOT and
+## it plays again on the next launch, whatever the profile says.
 func stage_after_loading() -> StringName:
-	return &"DASHBOARD" if progression_service.intro_seen else &"CINEMATIC"
+	return &"DASHBOARD" if progression_service.intro_seen else &"CHAPTER"
 
 
 func start_gameplay() -> void:
@@ -235,9 +296,9 @@ func _report_menu_rects() -> void:
 func _on_stage_completed(
 	next_stage: StringName, stage_payload: Dictionary, from_stage: StringName
 ) -> void:
-	# The cinematic plays once. Skipping it counts as seeing it: being dropped
-	# straight into the dashboard is the reward the skip button is offering.
-	if from_stage == &"CINEMATIC":
+	# The CHAPTER 01 card plays once. Clearing it counts as seeing it: being
+	# dropped straight into the dashboard is the reward for clearing it.
+	if from_stage == &"CHAPTER":
 		progression_service.mark_intro_seen()
 	if not STAGE_SCENES.has(next_stage):
 		push_error("FrontEnd: stage '%s' asked for unknown stage '%s'." % [from_stage, next_stage])

@@ -4,6 +4,26 @@
 class_name HudEncounterUi
 extends RefCounted
 
+## Explore-mode copy per theatre, resolved once. The card used to print one
+## world's words in every world.
+static var _zone_copy: Array = []
+static var _zone_copy_id: StringName = &""
+
+
+static func zone_copy(hud) -> Array:
+	var world_id := WorldSelection.selected(hud)
+	# `_zone_copy_id` starts empty and so can a real selection: the HUD also runs
+	# outside the gameplay tree, where no service answers. The emptiness check is
+	# what keeps that first call from returning an array that was never filled.
+	if _zone_copy.is_empty() or _zone_copy_id != world_id:
+		_zone_copy_id = world_id
+		var definition := WorldDefinition.load_definition(world_id)
+		if definition != null:
+			_zone_copy = [definition.zone_title, definition.zone_subtitle]
+		else:
+			_zone_copy = ["EXPLORE THE FRONTIER", "SAFE ZONE · MOVE FREELY"]
+	return _zone_copy
+
 
 static func update_objective(
 	hud, wave_number: int, _active_enemies: int, remaining_enemies: int, state_text: String
@@ -11,13 +31,14 @@ static func update_objective(
 	if not is_instance_valid(hud._wave_title_label):
 		return
 	if hud._state.play_phase == "explore":
-		hud._wave_title_label.text = "EXPLORE THE FRONTIER"
-		hud._wave_enemy_label.text = "SAFE ZONE · MOVE FREELY"
+		var copy: Array = zone_copy(hud)
+		hud._wave_title_label.text = copy[0]
+		hud._wave_enemy_label.text = copy[1]
 		hud._wave_state_label.text = "NO HOSTILES"
 		hud._wave_chip_label.text = "EXPLORE\nSAFE"
 	elif hud._state.play_phase == "preparing":
 		hud._wave_title_label.text = "DEFENSE IN %d" % hud._state.preparation_seconds
-		# Keep the promise readable in a 390 px portrait objective card.
+		# Keep the promise readable in a 294 px objective card.
 		hud._wave_enemy_label.text = "GET READY · SPAWNS MARKED"
 		hud._wave_state_label.text = "PREPARE"
 		hud._wave_chip_label.text = "DEFENSE\nIN %d" % hud._state.preparation_seconds
@@ -66,9 +87,6 @@ static func apply_context(hud) -> void:
 	hud._run_card.visible = false
 	hud._score_chip.visible = false
 	hud._compact_card.visible = false
-	hud._desktop_hint.visible = (
-		active and not hud._touch_mode and (exploring or preparing) and hud._hud_preset != "MINIMAL"
-	)
 	if is_instance_valid(hud._pause_restart_button):
 		hud._pause_restart_button.text = (
 			"RESET EXPLORATION"
@@ -86,9 +104,7 @@ static func apply_context(hud) -> void:
 
 
 static func weapon_acts_as_armory(hud) -> bool:
-	return (
-		hud._touch_mode and hud._narrow and not hud._portrait and hud._state.play_phase == "explore"
-	)
+	return hud._touch_mode and hud._narrow and hud._state.play_phase == "explore"
 
 
 static func refresh_weapon_action(hud) -> void:

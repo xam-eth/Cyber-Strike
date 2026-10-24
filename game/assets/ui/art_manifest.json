@@ -10,19 +10,23 @@
         1024,
         256
       ],
-      "mode": "content",
+      "mode": "content_key",
       "palette": {
-        "shadow": 0.4442,
-        "navy": 0.3643,
-        "steel": 0.1063,
-        "cyan": 0.033,
-        "red": 0.0265,
-        "amber": 0.0135,
-        "off-palette": 0.012,
-        "green": 0.0002
+        "shadow": 0.4501,
+        "navy": 0.3509,
+        "steel": 0.1096,
+        "cyan": 0.0393,
+        "red": 0.0262,
+        "amber": 0.0163,
+        "off-palette": 0.0076
       },
-      "off_palette_share": 0.012,
-      "within_palette": true
+      "off_palette_share": 0.0076,
+      "within_palette": true,
+      "alpha": "luma key of the painted backdrop, baked into the PNG",
+      "key_threshold": {
+        "low": 2.0,
+        "span": 16.0
+      }
     },
     {
       "key": "loading_keyart",
@@ -179,45 +183,6 @@
         "off-palette": 0.0005
       },
       "off_palette_share": 0.0005,
-      "within_palette": true
-    },
-    {
-      "key": "loading_robot",
-      "file": "res://assets/ui/loading_robot_sheet.png",
-      "format": "PNG",
-      "source": [
-        "res://assets/ui/generated/robot_walk_02.png",
-        "res://assets/ui/generated/robot_walk_03.png",
-        "res://assets/ui/generated/robot_walk_04.png",
-        "res://assets/ui/generated/robot_walk_alt1.png"
-      ],
-      "size": [
-        2048,
-        512
-      ],
-      "cell": [
-        512,
-        512
-      ],
-      "frames": 4,
-      "fps": 8,
-      "union_crop": [
-        532,
-        118,
-        884,
-        653
-      ],
-      "palette": {
-        "shadow": 0.3782,
-        "navy": 0.2773,
-        "steel": 0.2046,
-        "cyan": 0.106,
-        "amber": 0.0289,
-        "green": 0.0042,
-        "red": 0.0005,
-        "off-palette": 0.0003
-      },
-      "off_palette_share": 0.0003,
       "within_palette": true
     }
   ]

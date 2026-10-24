@@ -24,6 +24,15 @@ extends Node3D
 ## rotation for the aim and carry poses, and the weapon scale in model units.
 
 const ModelFitterScript = preload("res://scripts/visual/model_fitter.gd")
+
+## PBR values for the imported hero. The GLB omits `pbrMetallicRoughness`, which
+## glTF defines as metallic 1.0 / roughness 1.0 -- no diffuse response. These are
+## the values the world's own imported kit uses for painted metal.
+## The silhouette rim. A narrow navy edge separates the operative from the deck
+## without drawing attention to itself; see the note where it is built for the
+## measurement behind that.
+const OUTLINE_COLOR := Color(0.045, 0.075, 0.12, 1.0)
+const OUTLINE_GROW := 0.006
 const DEFAULT_RIG_PATH := "res://assets/characters/hero/hero_rig.json"
 const FIRE_CLIP_SECONDS := 0.45
 const RUN_THRESHOLD := 0.55
@@ -50,6 +59,7 @@ const WALK_THRESHOLD := 0.06
 @export_range(-60.0, 60.0, 0.5) var reload_weapon_yaw_degrees: float = -38.0
 
 var _model: Node3D
+var _character_fill: OmniLight3D = null
 var _model_bounds: AABB
 var _model_height: float = 0.0
 var _facing_yaw: float = 0.0
@@ -330,6 +340,30 @@ func _apply_pose() -> void:
 		_weapon_socket.rotation.x = _weapon_socket_base_rotation.x - kick * 0.36
 
 
+## One small light that travels with the operative.
+##
+## The arena's key is a hard sun from one side and its fill is ambient, so the
+## side of the avatar facing away from the sun came out at luma ~0: on a phone
+## that is a silhouette with no panel detail at all. This fills only the couple
+## of metres around the character, so it costs one unshadowed omni and does not
+## touch the arena's exposure -- which is what a scene-wide lift would do.
+func _add_character_fill() -> void:
+	if is_instance_valid(_character_fill):
+		return
+	var light := OmniLight3D.new()
+	light.name = "CharacterFill"
+	light.position = Vector3(0.0, 1.35, 0.55)
+	light.light_color = Color(0.78, 0.88, 1.0)
+	light.light_energy = 0.85
+	light.omni_range = 2.6
+	# No shadow: it exists to reveal form, not to cast it, and a shadow-casting
+	# omni on the player is the one light in this game that must stay cheap.
+	light.shadow_enabled = false
+	light.light_specular = 0.35
+	add_child(light)
+	_character_fill = light
+
+
 # --- rig -------------------------------------------------------------------
 
 
@@ -353,7 +387,13 @@ func _spawn_model() -> void:
 	# root also caught `WeaponSocket/MuzzleFlash/*`: those meshes are additive
 	# VFX, and an opaque near-black grown shell around a muzzle flash paints a
 	# dark blob over the shot instead of a rim around the avatar.
-	var outline := ModelFitterScript.outline_material(Color(0.02, 0.05, 0.09, 1.0), 0.012)
+	# The rim is the only thing drawn on top of the surface. `hero.glb` ships a
+	# real metallicRoughness map (metallic ~0.25, roughness ~0.26 measured out of
+	# the file), so it needs no material fix-up here -- an earlier pass added one
+	# on the assumption that the GLB had no PBR block, and an A/B capture showed
+	# it changed the avatar's median luma by two points, i.e. nothing.
+	_add_character_fill()
+	var outline := ModelFitterScript.outline_material(OUTLINE_COLOR, OUTLINE_GROW)
 	ModelFitterScript.apply_overlay_material(_model, outline)
 	if is_instance_valid(_fallback_body):
 		_fallback_body.material_overlay = outline

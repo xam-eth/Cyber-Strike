@@ -37,6 +37,11 @@ var _built: bool = false
 func _ready() -> void:
 	if _built or get_node_or_null("ArenaFloor") != null:
 		return
+	# Both theatres are instanced by `main.tscn` so the launcher can name either
+	# one; only the selected one builds. Building the other would put 192 x 180 m
+	# of terrain and props on the deck underneath whichever world was chosen.
+	if not _is_selected():
+		return
 	_built = true
 	_create_materials()
 	_build_terrain_and_floor()
@@ -54,27 +59,52 @@ func _ready() -> void:
 	ScifiFrontierDresser.dress_districts(self)
 
 
+func _is_selected() -> bool:
+	var selected := WorldSelection.selected(self)
+	return selected == &"" or selected == &"neon_frontier"
+
+
 func _create_materials() -> void:
+	# The same palette the FBX kit and the whole UI use (docs/DECISIONS.md
+	# 5.1). These were bright slate and pearl -- the 38 m arena deck alone was
+	# Color(0.58, 0.65, 0.70), the lightest value in the game and the largest
+	# surface on screen -- which is why the world read as pastel next to the
+	# near-black key art. Structure is now dark, and *light* is the only bright
+	# thing, so the eye goes to the reactor and the lane markers instead of to
+	# the walls.
+	#
+	# Accents stay: cyan (INFO) for energy and navigation, amber (ACCENT) for
+	# hazard and hostile routes, red for danger. Nothing invents a hue the UI
+	# does not own.
 	_materials = {
-		# Slate metal should read as material under the cool key, not a single
-		# saturated cornflower-blue expanse. Warm signals stay sparse on the lane.
-		"ground": NeonFrontierMaterialKit.make_material(Color(0.26, 0.3, 0.34), 0.04, 0.9),
-		"ground_light": NeonFrontierMaterialKit.make_material(Color(0.32, 0.37, 0.41), 0.06, 0.84),
-		"ground_rose": NeonFrontierMaterialKit.make_material(Color(0.29, 0.3, 0.35), 0.05, 0.88),
-		"silver": NeonFrontierMaterialKit.make_material(Color(0.36, 0.43, 0.48), 0.56, 0.43),
-		"pearl": NeonFrontierMaterialKit.make_material(Color(0.58, 0.65, 0.7), 0.15, 0.5),
-		"ceramic": NeonFrontierMaterialKit.make_material(Color(0.43, 0.52, 0.58), 0.23, 0.5),
-		"blue": NeonFrontierMaterialKit.make_material(Color(0.06, 0.18, 0.36), 0.46, 0.4),
-		"deep_blue": NeonFrontierMaterialKit.make_material(Color(0.025, 0.09, 0.21), 0.5, 0.44),
-		"cyan": NeonFrontierMaterialKit.make_emissive(Color(0.02, 0.56, 0.73), 0.82),
-		"turquoise": NeonFrontierMaterialKit.make_emissive(Color(0.015, 0.62, 0.55), 0.72),
-		"green": NeonFrontierMaterialKit.make_emissive(Color(0.13, 0.64, 0.4), 0.75),
-		"yellow": NeonFrontierMaterialKit.make_emissive(Color(0.9, 0.54, 0.065), 0.43),
-		"orange": NeonFrontierMaterialKit.make_emissive(Color(1.0, 0.27, 0.04), 0.9),
-		"red": NeonFrontierMaterialKit.make_emissive(Color(0.98, 0.05, 0.06), 1.0),
-		"dark_trim": NeonFrontierMaterialKit.make_material(Color(0.11, 0.18, 0.2), 0.66, 0.38),
-		"copper": NeonFrontierMaterialKit.make_material(Color(0.76, 0.32, 0.13), 0.65, 0.34),
-		"rock": NeonFrontierMaterialKit.make_material(Color(0.59, 0.43, 0.34), 0.02, 0.93),
+		# The walkable surfaces are the one place the darkening went too far:
+		# the first capture of the relit world (exports/flow/after-world) had the
+		# deck at luma 0.105 and the interior tour frames read as black-on-black.
+		# They sit at 0.42/0.34/0.40 of LINE instead of 0.5/0.4/0.46 -- still
+		# under the 0.25 luma floor the palette test holds (0.123 for the deck),
+		# but enough for cover and edges to read without the reactor.
+		"ground": NeonFrontierMaterialKit.make_material(AegisTokens.LINE.darkened(0.42), 0.05, 0.9),
+		"ground_light":
+		NeonFrontierMaterialKit.make_material(AegisTokens.LINE.darkened(0.34), 0.07, 0.84),
+		"ground_rose":
+		NeonFrontierMaterialKit.make_material(AegisTokens.LINE.darkened(0.4), 0.06, 0.88),
+		"silver": NeonFrontierMaterialKit.make_material(AegisTokens.LINE.darkened(0.2), 0.62, 0.4),
+		"pearl": NeonFrontierMaterialKit.make_material(AegisTokens.LINE.darkened(0.28), 0.28, 0.5),
+		"ceramic":
+		NeonFrontierMaterialKit.make_material(AegisTokens.LINE.darkened(0.36), 0.3, 0.48),
+		"blue": NeonFrontierMaterialKit.make_material(AegisTokens.LINE.darkened(0.62), 0.5, 0.38),
+		"deep_blue":
+		NeonFrontierMaterialKit.make_material(AegisTokens.VOID.lightened(0.04), 0.55, 0.42),
+		"cyan": NeonFrontierMaterialKit.make_emissive(AegisTokens.INFO.darkened(0.1), 1.15),
+		"turquoise": NeonFrontierMaterialKit.make_emissive(AegisTokens.OK.darkened(0.3), 0.8),
+		"green": NeonFrontierMaterialKit.make_emissive(AegisTokens.OK.darkened(0.1), 0.85),
+		"yellow": NeonFrontierMaterialKit.make_emissive(AegisTokens.ACCENT.darkened(0.05), 0.6),
+		"orange": NeonFrontierMaterialKit.make_emissive(AegisTokens.ACCENT.darkened(0.18), 1.0),
+		"red": NeonFrontierMaterialKit.make_emissive(AegisTokens.DANGER.darkened(0.05), 1.2),
+		"dark_trim":
+		NeonFrontierMaterialKit.make_material(AegisTokens.VOID.lightened(0.06), 0.7, 0.34),
+		"copper": NeonFrontierMaterialKit.make_material(Color(0.52, 0.24, 0.1), 0.68, 0.32),
+		"rock": NeonFrontierMaterialKit.make_material(Color(0.26, 0.22, 0.2), 0.03, 0.94),
 	}
 
 
@@ -165,8 +195,19 @@ func _build_lighting_and_atmosphere() -> void:
 	var sun := DirectionalLight3D.new()
 	sun.name = "FrontierDaylightSun"
 	sun.rotation_degrees = Vector3(-39.0, -31.0, 0.0)
-	sun.light_color = Color(0.96, 0.88, 0.76)
-	sun.light_energy = 0.68
+	# The key stays a warm frontier daylight (`neon_frontier_world_smoke` asserts
+	# red above blue on this node, and the node is named for it). What changed is
+	# where the cool tone lives: it is in the ambient colour and the fog below,
+	# so the image is a warm key against cool fill -- the split the key art uses
+	# -- rather than a warm key on warm albedo, which is what made the old build
+	# read as flat daylight. Energy is up because the albedo is much darker now:
+	# this is the same exposure, not a brighter world.
+	sun.light_color = Color(0.98, 0.9, 0.8)
+	# Key energy was capped below 1.0 because the old albedo was pale and blew
+	# out. With the palette now dark, the cap left the sun doing almost nothing
+	# and the whole frame resting on a dim ambient fill -- the "segala sesuatu
+	# terlalu gelap" read. Just under the 1.1 ceiling the smoke test guards.
+	sun.light_energy = 1.05
 	sun.shadow_enabled = true
 	# Dense FBX ribs used to project solid-black, razor-edged patches across
 	# the playable floor in Compatibility. Keep depth cues, but let neutral
@@ -184,10 +225,15 @@ func _build_lighting_and_atmosphere() -> void:
 	# broad key light give the armor a silhouette; small amber/cyan fixtures
 	# mark traversable paths and interactable structures. Web Compatibility has
 	# no dependable real-time GI or volumetric fog, so keep the base legible.
-	sky_material.sky_top_color = Color(0.04, 0.1, 0.18)
-	sky_material.sky_horizon_color = Color(0.17, 0.29, 0.39)
-	sky_material.ground_bottom_color = Color(0.11, 0.18, 0.26)
-	sky_material.ground_horizon_color = Color(0.18, 0.27, 0.35)
+	# Sampled from the shipped key art rather than chosen: loading_keyart.jpg
+	# measures navy 51 %, amber 24 %, steel 14 %, cyan 8 % against a near-black
+	# base. The previous sky was 4x brighter than the art it was supposed to be
+	# the same world as, which is most of why gameplay and menus looked like two
+	# products (docs/DECISIONS.md 5.1).
+	sky_material.sky_top_color = Color(0.012, 0.03, 0.06)
+	sky_material.sky_horizon_color = Color(0.055, 0.11, 0.16)
+	sky_material.ground_bottom_color = Color(0.02, 0.045, 0.07)
+	sky_material.ground_horizon_color = Color(0.05, 0.09, 0.13)
 	sky_material.sun_angle_max = 10.0
 	sky_material.sun_curve = 0.14
 	sky.sky_material = sky_material
@@ -199,21 +245,38 @@ func _build_lighting_and_atmosphere() -> void:
 	# flat daylight despite the FBX geometry and warm route lights. Verify
 	# actual armor, floor, and interactable contrast before retaining it.
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	environment.ambient_light_color = Color(0.4, 0.46, 0.52)
-	environment.ambient_light_energy = 0.49
+	# Cool fill, low enough that albedo still reads as dark metal. The old 0.49
+	# on top of a bright palette was double-bright: the fix is not to make the
+	# world dark for its own sake, it is to stop lighting a pale surface brightly
+	# and put the contrast back where the art direction puts it -- emissive
+	# cyan and amber against structure that stays in shadow.
+	environment.ambient_light_color = Color(0.24, 0.31, 0.4)
+	# Enough fill to read an interior wall: with the sun blocked, ambient is the
+	# only light in the bays, and at 0.55 the tour frames lost their geometry.
+	# 0.75 of a 0.22-blue fill is about 0.16 effective -- on the dark deck the
+	# only light reaching an unlit surface. Bays and the operative's shadowed
+	# side were lit by that number alone.
+	environment.ambient_light_energy = 1.05
 	environment.reflected_light_source = Environment.REFLECTION_SOURCE_BG
 	environment.tonemap_mode = Environment.TONE_MAPPER_ACES
-	environment.tonemap_exposure = 1.01
+	environment.tonemap_exposure = 1.18
 	environment.adjustment_enabled = true
-	environment.adjustment_brightness = 0.97
-	environment.adjustment_contrast = 1.09
+	environment.adjustment_brightness = 1.02
+	# Contrast above 1 on an already dark frame is what crushed the shadow side
+	# of every plate to pure black.
+	environment.adjustment_contrast = 1.04
 	environment.adjustment_saturation = 0.9
 	environment.glow_enabled = true
 	environment.glow_intensity = 0.06
 	environment.fog_enabled = true
-	environment.fog_light_color = Color(0.10, 0.19, 0.27)
-	environment.fog_density = 0.007
-	environment.fog_aerial_perspective = 0.18
+	# Depth. At 0.007 over a 192 m world the fog did nothing, so the arena, the
+	# skyline and the cliffs all sat at the same apparent distance. Aerial
+	# perspective is what separates foreground structure from the ridge line in
+	# the key art, so density goes up and the colour comes from the sky.
+	environment.fog_light_color = Color(0.05, 0.1, 0.15)
+	environment.fog_density = 0.014
+	environment.fog_aerial_perspective = 0.55
+	environment.fog_sky_affect = 0.35
 	var world_environment := WorldEnvironment.new()
 	world_environment.name = "ArenaEnvironment"
 	world_environment.environment = environment

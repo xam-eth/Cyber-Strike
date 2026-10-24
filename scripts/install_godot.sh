@@ -11,7 +11,7 @@
 # Environment:
 #   GODOT_VERSION        version to install           (default: .godot-version)
 #   GODOT_RELEASE_BASE   release download base URL    (default: GitHub releases)
-#   GODOT_INSTALL_DIR    install root                 (default: ~/.local/share/project-overdrive/godot)
+#   GODOT_INSTALL_DIR    install root                 (default: ~/.local/share/exocomplict/godot)
 #   GODOT_BIN_DIR        directory for the `godot` symlink (default: ~/.local/bin)
 #   GODOT_SKIP_CHECKSUM  1 = do not fail when SHA512-SUMS.txt cannot be fetched
 #
@@ -29,7 +29,7 @@ fi
 
 VERSION="${GODOT_VERSION:-$DEFAULT_VERSION}"
 RELEASE_BASE="${GODOT_RELEASE_BASE:-https://github.com/godotengine/godot/releases/download}"
-INSTALL_ROOT="${GODOT_INSTALL_DIR:-$HOME/.local/share/project-overdrive/godot}"
+INSTALL_ROOT="${GODOT_INSTALL_DIR:-$HOME/.local/share/exocomplict/godot}"
 BIN_DIR="${GODOT_BIN_DIR:-$HOME/.local/bin}"
 WITH_TEMPLATES=0
 DRY_RUN=0
@@ -173,7 +173,7 @@ extract_zip() {
 # --------------------------------------------------------------------------- #
 # Plan
 # --------------------------------------------------------------------------- #
-printf 'Project Overdrive — Godot installer\n'
+printf 'Exocomplict — Godot installer\n'
 printf 'Version:     %s-stable\n' "$VERSION"
 printf 'Platform:    %s/%s → %s\n' "$OS" "$ARCH" "$EDITOR_ZIP"
 printf 'Editor URL:  %s\n' "$EDITOR_URL"

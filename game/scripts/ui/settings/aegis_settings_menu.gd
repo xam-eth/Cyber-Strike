@@ -1,4 +1,4 @@
-## One settings screen shared by desktop and touch pause menus. Every change
+## One settings screen, used by the pause menu. Every change
 ## is applied and saved immediately; Done returns to the paused run, not a
 ## separate scene. The hosting HUD keeps it alive while SceneTree is paused.
 class_name AegisSettingsMenu
@@ -23,6 +23,11 @@ var _font_scale: float = 1.0
 
 func _ready() -> void:
 	interactive = true
+	# Both top corners cut, flat foot: the drawer the web shell and the in-engine
+	# pause menu both use, so the two settings screens are the same object.
+	bezel = true
+	cut_top_left = AegisBezel.CUT_LG
+	cut_top_right = AegisBezel.CUT_LG
 	super._ready()
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	values = AegisPreferences.read(preference_path)

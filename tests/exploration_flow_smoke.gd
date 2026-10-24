@@ -121,29 +121,20 @@ func _run() -> void:
 	main.add_child(threat)
 	threat.global_position = player.global_position + Vector3(0.0, 0.0, 8.0)
 	var enemies: Array[Node3D] = [threat]
-	var portrait_bearings := HudHostileBearings.collect(
-		camera, enemies, Vector2(390.0, 844.0), true
-	)
 	var landscape_bearings := HudHostileBearings.collect(
-		camera, enemies, Vector2(844.0, 390.0), false
-	)
-	var portrait_marker: Vector2 = (
-		portrait_bearings[0]["position"] if not portrait_bearings.is_empty() else Vector2.ZERO
+		camera, enemies, Vector2(844.0, 390.0), 1.0
 	)
 	var landscape_marker: Vector2 = (
 		landscape_bearings[0]["position"] if not landscape_bearings.is_empty() else Vector2.ZERO
 	)
 	_expect(
 		(
-			portrait_bearings.size() == 1
-			and landscape_bearings.size() == 1
-			and portrait_marker.y > 480.0
-			and portrait_marker.y < 540.0
+			landscape_bearings.size() == 1
 			and landscape_marker.x > 280.0
 			and landscape_marker.x < 600.0
 			and landscape_marker.y < 285.0
 		),
-		"offscreen hostiles cue direction above thumb controls in both orientations",
+		"offscreen hostiles cue direction above thumb controls",
 	)
 	var lower_threat_direction := HudHostileBearings._projected_direction(
 		Vector2(240.0, 770.0), Rect2(Vector2(40.0, 224.0), Vector2(310.0, 299.0)), Vector2.UP, false

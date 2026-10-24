@@ -1,0 +1,49 @@
+{
+  "tag": "L5",
+  "viewports": [
+    "844x390"
+  ],
+  "screens": [
+    {
+      "screen": "opening",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/L5/opening-844x390.png",
+      "blank": false,
+      "errors": [],
+      "width": 844,
+      "height": 390,
+      "bytes": 112214,
+      "lumaMean": 20.085647860591504,
+      "lumaStdDev": 33.40496754701059,
+      "uniqueColors": 902
+    },
+    {
+      "screen": "hub",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/L5/hub-844x390.png",
+      "blank": false,
+      "errors": [],
+      "width": 844,
+      "height": 390,
+      "bytes": 107639,
+      "lumaMean": 22.56790388015554,
+      "lumaStdDev": 33.00873661269867,
+      "uniqueColors": 1481
+    },
+    {
+      "screen": "settings",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/L5/settings-844x390.png",
+      "blank": false,
+      "errors": [],
+      "width": 844,
+      "height": 390,
+      "bytes": 74467,
+      "lumaMean": 20.612385241329232,
+      "lumaStdDev": 23.31934641079622,
+      "uniqueColors": 482
+    }
+  ],
+  "failures": 0,
+  "generatedAt": "2026-10-24T10:59:05.792Z"
+}
