@@ -22,6 +22,11 @@ game/assets/**/rifle_futuristic+gun+3d+model_*.jpg
 # Same for the uploaded SciFi kit: the GLB carry their textures, and the
 # importer writes an extracted copy next to each model.
 game/assets/world/scifi_starter_kit/models/*.jpg
+# The real-world forge has the same embedded-texture import behavior. These
+# extracted copies are reproducible; the GLBs and staged runtime world stay tracked.
+game/assets/forge/world/world_*.jpg
+game/assets/world/real/**/*.png
+game/assets/world/real/**/*.jpg
 # Godot 4.6+ writes one .uid next to every script. This project references
 # scripts by res:// path everywhere, so the files are regenerated on import and
 # never need to be tracked.

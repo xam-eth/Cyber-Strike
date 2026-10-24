@@ -83,12 +83,12 @@ SCAFFOLD_OPTIONS: list[tuple[str, str]] = [
     ("permissions/custom_permissions", "PackedStringArray()"),
 ]
 
-# Files that must never reach a player. `tests/*` is the whole smoke suite: 26
-# scripts, 8,141 lines, found packed into the shipped web payload as compiled
-# `.gdc` + `.remap` pairs because no preset carried an exclude filter
-# (docs/DECISIONS.md §5). `tools/check_payload.py` is the gate that
-# catches a regression here; it reads the exported .pck, not this file.
-EXCLUDE_FROM_EXPORT = "tests/*"
+# Files that must never reach a player. `tests/*` is the whole smoke suite.
+# `assets/world/real/*` is the asset-forge's 55 MB source library; gameplay
+# loads only the staged `assets/forge/world/world.glb`. Exporting both copies
+# pushed the Web PCK past GitHub's 100 MB file limit without adding runtime
+# content. `tools/check_payload.py` checks the exported pack, not just this list.
+EXCLUDE_FROM_EXPORT = "tests/*,assets/world/real/*"
 
 PRESET_HEADER_OPTIONS: list[tuple[str, str]] = [
     ("runnable", "true"),

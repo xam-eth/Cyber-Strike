@@ -113,7 +113,7 @@ func _run_smoke_test() -> void:
 
 	await _check_preload_contract()
 	await _check_intro_persists()
-	await _check_saved_weapon_reaches_gameplay()
+	await _check_saved_loadout_reaches_gameplay()
 	_finish()
 
 
@@ -401,13 +401,14 @@ func _check_intro_persists() -> void:
 ## The last hop: PRELOAD hands the gameplay scene a loadout, and the scene has
 ## to actually read it. Without this check the journey could end at a scene that
 ## silently ignores the choice the player made three screens earlier.
-func _check_saved_weapon_reaches_gameplay() -> void:
+func _check_saved_loadout_reaches_gameplay() -> void:
 	var profile := ProgressionService.new()
 	profile.profile_path = PROFILE_PATH
 	root.add_child(profile)
 	await process_frame
 	profile.unlocked_ids["arc_shooter"] = true
 	_expect(profile.select_weapon(&"arc_shooter"), "the profile accepts a weapon the player owns")
+	_expect(profile.select_world(&"vanguard_station"), "the profile accepts an open world")
 
 	var main: Node = GameplayScene.instantiate()
 	main.set("start_wave_session_on_ready", false)
@@ -424,6 +425,14 @@ func _check_saved_weapon_reaches_gameplay() -> void:
 	_expect(
 		equipped == &"arc_shooter",
 		"gameplay starts with the weapon the front end saved (equipped %s)" % equipped
+	)
+	_expect(
+		main.get_node("VanguardStation").get_node_or_null("Station") != null,
+		"the saved world selection builds Vanguard Station through ProgressionService"
+	)
+	_expect(
+		main.get_node("NeonFrontier").get_node_or_null("RealFrontierWorld") == null,
+		"the unselected Neon Frontier does not build over the chosen world"
 	)
 	main.free()
 	profile.free()

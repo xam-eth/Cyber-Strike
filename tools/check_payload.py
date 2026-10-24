@@ -46,6 +46,7 @@ DIR_OFFSET_POS = 32
 # §5 — it is currently instanced in main.tscn, so it is reported, not failed).
 FORBIDDEN = {
     "tests/": ("the smoke test suite", True),
+    "assets/world/real/": ("asset-forge source library; only the staged runtime world should ship", True),
     "scripts/qa/": ("QA-only code (keyboard review rig)", False),
 }
 # Extensions Godot should never pack: editor metadata.
