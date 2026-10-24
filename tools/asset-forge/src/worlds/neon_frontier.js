@@ -1,112 +1,123 @@
 /**
- * neon_frontier.js — the world, assembled.
+ * neon_frontier.js — the world, assembled from real assets.
  *
- * This is the single composition root for the 3D world deliverable. Nothing here
- * invents geometry: terrain comes from `terrain.js`, props come from
- * `src/world/*.js` via the catalog registry, and placement comes from
- * `layout.js`, which mirrors the shipped Godot zones.
+ * Composition root. Nothing in this file creates geometry, textures or
+ * materials; it places real GLB files and hands one animation clip list to the
+ * viewer. The layers:
  *
- *   import { buildWorld } from './worlds/neon_frontier.js';
- *   const world = buildWorld();          // { root, clips, stats, meta }
+ *   terrainReal.js  — ground tiles, road plates, arena deck, perimeter, craters
+ *   layout.js       — where each role stands (mirrors the shipped Godot zones)
+ *   roleSpecs.js    — which real models each role is made of, and what moves
+ *   assemblyReal.js — instance building, name prefixing, motion clips
+ *   roleSpecs.LANDMARKS — the Power Plant set piece
+ *
+ *   const world = await buildWorld();
  *   mixer = new THREE.AnimationMixer(world.root);
  *   world.clips.forEach((c) => mixer.clipAction(c).play());
- *
- * The result is renderable as-is: callers add lights, an environment and a
- * camera. Exporting it to glTF (see `gate/world_export.mjs`) gives one file the
- * whole world can be inspected in.
  */
 import * as THREE from 'three';
-import { registry } from '../registry.js';
-import { rng } from '../runtime/kit.js';
 import { PALETTE } from '../runtime/palette.js';
-import { pulseClip, ensureTangents } from '../runtime/rig.js';
+import { makePart } from './realModels.js';
+import { buildRole } from './assemblyReal.js';
+import { ROLE_SPECS, LANDMARKS } from './roleSpecs.js';
 import { WORLD, PLACEMENTS, SCATTER, PLAYER_SPAWNS } from './layout.js';
-import { buildTerrain } from './terrain.js';
-import { assembleProps, placeProp } from './assembly.js';
+import { buildTerrain } from './terrainReal.js';
 
 const DEG = Math.PI / 180;
 
-/**
- * Vegetation and geology are placed from the game's own coordinate lists, with a
- * deterministic per-instance tilt/scale so nineteen identical flora do not read
- * as nineteen identical flora. The seed is the index, so the world is stable
- * across reloads and across exports.
- */
-async function scatterProps() {
+/** Scatter props: the game's own coordinate lists, with a deterministic tilt. */
+async function scatter() {
   const root = new THREE.Group();
   root.name = 'Scatter';
   const clips = [];
   const counts = {};
+  const sources = [];
 
-  // eslint-disable-next-line no-await-in-loop
-  const push = async (id, name, pos, { yaw = 0, scale = 1, jitter = 0 } = {}) => {
-    const rand = rng(pos[0] * 31 + pos[1] * 17 + 7);
-    const wobble = 1 + (rand() - 0.5) * jitter;
-    const { holder, clips: placed } = await placeProp({
-      id,
+  const place = async (roleId, name, pos, { yaw = 0, scale = 1, jitter = 0 } = {}) => {
+    const seed = Math.abs(pos[0] * 31 + pos[1] * 17 + 7);
+    const rand = () => {
+      const x = Math.sin(seed + name.length * 13.7) * 43758.5453;
+      return x - Math.floor(x);
+    };
+    const built = await buildRole(roleId, {
       name,
       pos,
       yaw: yaw + (rand() - 0.5) * jitter * 90,
-      scale: [scale * wobble, scale * (1 + (rand() - 0.5) * jitter * 0.6), scale * wobble],
-      pitch: (rand() - 0.5) * jitter * 6,
-      roll: (rand() - 0.5) * jitter * 6,
+      scale: [scale, scale * (1 + (rand() - 0.5) * jitter * 0.5), scale],
       district: 'wilds',
     });
-    root.add(holder);
-    clips.push(...placed);
-    counts[id] = (counts[id] ?? 0) + 1;
+    root.add(built.root);
+    clips.push(...built.clips);
+    sources.push(...built.sources);
+    counts[roleId] = (counts[roleId] ?? 0) + 1;
   };
 
   for (const [i, [x, z]] of SCATTER.crystal.entries()) {
-    await push('crystal_cluster', `FrontierCrystalCluster_${String(i).padStart(2, '0')}`, [x, 0, z], { yaw: i * 41, jitter: 0.18 });
+    await place('crystal_cluster', `FrontierCrystalCluster_${String(i).padStart(2, '0')}`, [x, 0, z], { yaw: i * 41, jitter: 0.18 });
   }
   for (const [i, [x, z]] of SCATTER.flora.entries()) {
-    await push('alien_flora', `LuminousAlienFlora_${String(i).padStart(2, '0')}`, [x, 0, z], { yaw: i * 23, jitter: 0.3 });
+    await place('alien_flora', `LuminousAlienFlora_${String(i).padStart(2, '0')}`, [x, 0, z], { yaw: i * 23, jitter: 0.3 });
   }
   for (const [i, [x, z, s]] of SCATTER.rocks.entries()) {
-    await push('rock_cluster', `FrontierRockCluster_${String(i).padStart(2, '0')}`, [x, 0, z], { yaw: i * 57, scale: s, jitter: 0.22 });
+    await place('rock_cluster', `FrontierRockCluster_${String(i).padStart(2, '0')}`, [x, 0, z], { yaw: i * 57, scale: s, jitter: 0.22 });
   }
 
-  return { root, clips, counts };
-}
-
-/**
- * World-level motion. The props carry their own clips; these are the beats that
- * belong to the *place* rather than to one prop — the deck lights breathing out
- * of step, the arena warning ring pulsing on the reactor's rhythm, and the
- * skyline antennae idling.
- */
-function worldMotion(terrainRoot) {
-  const clips = [];
-  const lamps = [];
-  terrainRoot.traverse((node) => {
-    if (node.name.startsWith('ArenaDeckLamp_')) lamps.push(node.name);
-  });
-  // Out of phase, so the deck never blinks in unison (which reads as a bug).
-  lamps.forEach((name, i) => {
-    clips.push(pulseClip(`deck_lamp_${i}`, name, { from: 1, to: 1.35, duration: 2.4 + i * 0.55 }));
-  });
-  const hazard = terrainRoot.getObjectByName('ArenaHazardRing');
-  if (hazard) clips.push(pulseClip('hazard_breathe', 'ArenaHazardRing', { from: 1, to: 1.008, duration: 5.2 }));
-  return clips;
+  return { root, clips, counts, sources };
 }
 
 export async function buildWorld() {
   const root = new THREE.Group();
   root.name = 'NeonFrontier';
+  const sources = [];
 
-  const terrain = buildTerrain();
+  const terrain = await buildTerrain();
   root.add(terrain.root);
+  sources.push(...terrain.sources);
 
-  const props = await assembleProps(PLACEMENTS);
-  root.add(props.root);
+  /* ------------------------------------------------------------- roles -- */
+  const districts = new Map();
+  const clips = [];
+  const counts = {};
+  let triangles = 0;
 
-  const scatter = await scatterProps();
-  root.add(scatter.root);
+  for (const placement of PLACEMENTS) {
+    if (!districts.has(placement.district)) {
+      const g = new THREE.Group();
+      g.name = `District_${placement.district}`;
+      districts.set(placement.district, g);
+      root.add(g);
+    }
+    const built = await buildRole(placement.id, placement);
+    districts.get(placement.district).add(built.root);
+    clips.push(...built.clips);
+    sources.push(...built.sources);
+    counts[placement.id] = (counts[placement.id] ?? 0) + 1;
+  }
 
-  // Player spawn markers: empty nodes with a readable name, so the game can find
-  // them (`world.root.getObjectByName('spawn_outpost')`) and so the exported GLB
-  // documents where a match may start.
+  /* ---------------------------------------------------------- landmarks -- */
+  const landmarkGroup = new THREE.Group();
+  landmarkGroup.name = 'District_landmark';
+  for (const [id, spec] of Object.entries(LANDMARKS)) {
+    const part = await makePart({
+      model: spec.model,
+      height: spec.height,
+      pos: spec.pos,
+      yaw: spec.yaw,
+      name: `Landmark_${id}`,
+    });
+    landmarkGroup.add(part.group);
+    sources.push(part.source);
+  }
+  root.add(landmarkGroup);
+
+  /* ------------------------------------------------------------ scatter -- */
+  const scattered = await scatter();
+  root.add(scattered.root);
+  clips.push(...scattered.clips);
+  sources.push(...scattered.sources);
+  for (const [id, n] of Object.entries(scattered.counts)) counts[id] = (counts[id] ?? 0) + n;
+
+  /* ------------------------------------------------------------- spawns -- */
   const spawns = new THREE.Group();
   spawns.name = 'PlayerSpawns';
   for (const spawn of PLAYER_SPAWNS) {
@@ -117,23 +128,26 @@ export async function buildWorld() {
   }
   root.add(spawns);
 
-  // Terrain is built here rather than by a model module, so it does not pass
-  // through `finalize()`. Run the same tangent pass over the finished graph:
-  // normal-mapped ground and deck need explicit TANGENT to be portable.
-  ensureTangents(root);
-
-  const clips = [...props.clips, ...scatter.clips, ...worldMotion(terrain.root)];
-
-  const counts = { ...props.stats.counts };
-  for (const [id, n] of Object.entries(scatter.counts)) counts[id] = (counts[id] ?? 0) + n;
+  /* -------------------------------------------------------------- stats -- */
+  const seen = new Set();
+  root.traverse((node) => {
+    if (!node.isMesh) return;
+    if (node.userData.realSource) seen.add(node.userData.realSource);
+    const geometry = node.geometry;
+    const index = geometry?.getIndex();
+    const position = geometry?.getAttribute('position');
+    triangles += index ? index.count / 3 : (position ? position.count / 3 : 0);
+  });
 
   const stats = {
-    instances: props.stats.instances + Object.values(scatter.counts).reduce((a, b) => a + b, 0),
+    instances: PLACEMENTS.length + Object.values(scattered.counts).reduce((a, b) => a + b, 0),
     counts,
-    districts: [...props.stats.districts, 'wilds'],
-    triangles: props.stats.triangles,
+    districts: [...districts.keys(), 'landmark'],
+    triangles: Math.round(triangles),
     clips: clips.length,
-    assets: Object.keys(counts).length,
+    roles: Object.keys(ROLE_SPECS).length,
+    realFiles: [...seen].length,
+    realFileList: [...seen].sort(),
   };
 
   const meta = {
@@ -145,38 +159,46 @@ export async function buildWorld() {
     centreZ: WORLD.centreZ,
     spawns: PLAYER_SPAWNS.map((s) => s.name),
     palette: PALETTE,
+    assetPolicy: 'every mesh is a real licensed GLB from game/assets/world/real',
   };
 
   root.userData.forge = { id: meta.id, stats, meta };
   return { root, clips, stats, meta };
 }
 
-/** Lighting rig used by the viewer and by the render captures — one definition. */
+/** Lighting rig, shared by the viewer and the capture script. */
 export function worldLighting(scene) {
-  const key = new THREE.DirectionalLight(0xffe2b4, 4.6);
-  key.position.set(-58, 74, 46);
+  const key = new THREE.DirectionalLight(0xffe0bb, 2.9);
+  key.position.set(-62, 78, 52);
   key.castShadow = true;
   key.shadow.mapSize.set(2048, 2048);
   key.shadow.camera.near = 10;
-  key.shadow.camera.far = 320;
-  key.shadow.camera.left = -130;
-  key.shadow.camera.right = 130;
-  key.shadow.camera.top = 130;
-  key.shadow.camera.bottom = -130;
-  key.shadow.bias = -0.0006;
+  key.shadow.camera.far = 360;
+  key.shadow.camera.left = -150;
+  key.shadow.camera.right = 150;
+  key.shadow.camera.top = 150;
+  key.shadow.camera.bottom = -150;
+  key.shadow.bias = -0.0008;
   key.name = 'KeySun';
 
-  const fill = new THREE.DirectionalLight(0x54c8ff, 1.5);
-  fill.position.set(80, 40, -60);
-  fill.name = 'CyanFill';
+  const fill = new THREE.DirectionalLight(0x9fc6ff, 1.25);
+  fill.position.set(88, 44, -66);
+  fill.name = 'CoolFill';
 
-  const rim = new THREE.DirectionalLight(0xb79cff, 1.5);
-  rim.position.set(-40, 22, -90);
-  rim.name = 'VioletRim';
+  const rim = new THREE.DirectionalLight(0xc9b4ff, 0.7);
+  rim.position.set(-46, 24, -96);
+  rim.name = 'RimLight';
 
-  const sky = new THREE.HemisphereLight(0x3d5a75, 0x0d151d, 2.0);
+  const sky = new THREE.HemisphereLight(0x9db6cc, 0x2b2a26, 1.5);
   sky.name = 'SkyBounce';
 
-  scene.add(key, fill, rim, sky);
+  // Warm bounce off the concrete apron, so the field is not lit by sky alone.
+  const bounce = new THREE.DirectionalLight(0xffc98a, 0.35);
+  bounce.position.set(20, -30, -60);
+  bounce.name = 'GroundBounce';
+
+  scene.add(key, fill, rim, sky, bounce);
   return { key, fill, rim, sky };
 }
+
+export { DEG };

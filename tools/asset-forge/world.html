@@ -16,8 +16,8 @@
   canvas { display:block; }
 
   #panel {
-    position:fixed; top:14px; left:14px; width:268px; max-height:calc(100% - 28px); overflow:auto;
-    background:rgba(11,19,27,.86); border:1px solid var(--line); border-radius:6px;
+    position:fixed; top:14px; left:14px; width:272px; max-height:calc(100% - 28px); overflow:auto;
+    background:rgba(11,19,27,.88); border:1px solid var(--line); border-radius:6px;
     padding:12px; backdrop-filter:blur(8px);
   }
   #panel h1 { font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--ink2); margin:0 0 2px; }
@@ -33,9 +33,15 @@
   button.on { border-color:var(--info); color:var(--ink); background:var(--panel2); }
   button.dim { opacity:.45; }
   input[type=range] { width:100%; accent-color:var(--info); margin:6px 0 0; }
-  #stats { font-size:10px; line-height:1.6; color:var(--ink2); }
+  #stats { font-size:10px; line-height:1.65; color:var(--ink2); }
   #stats b { color:var(--ink); font-weight:600; }
+  #credits { font-size:9px; line-height:1.6; color:var(--lineHi); }
   #hint { position:fixed; right:14px; bottom:12px; font-size:10px; color:var(--lineHi); text-align:right; line-height:1.6; }
+  #loading {
+    position:fixed; inset:0; display:grid; place-items:center; background:var(--void);
+    color:var(--ink2); font-size:12px; letter-spacing:.1em; z-index:10;
+  }
+  #loading.done { display:none; }
   body.capture #panel, body.capture #hint { display:none; }
 </style>
 <script type="importmap">
@@ -49,6 +55,7 @@
 </head>
 <body>
 <div id="stage"></div>
+<div id="loading">building the world from real assets…</div>
 <aside id="panel">
   <h1>Neon Frontier</h1>
   <div class="sub">FRONTIER OUTPOST · 192 × 180 m</div>
@@ -70,17 +77,17 @@
       <button id="btn-slow">0.5×</button>
       <button id="btn-fast">2×</button>
     </div>
-    <input id="scrub" type="range" min="0" max="20" step="0.05" value="0" />
-  </div>
-
-  <div class="group">
-    <div class="label">Quality</div>
-    <div class="row" id="tex"></div>
+    <input id="scrub" type="range" min="0" max="24" step="0.05" value="0" />
   </div>
 
   <div class="group">
     <div class="label">World</div>
     <div id="stats">building…</div>
+  </div>
+
+  <div class="group">
+    <div class="label">Assets</div>
+    <div id="credits">every mesh is a real licensed GLB</div>
   </div>
 </aside>
 <div id="hint">drag to orbit · scroll to zoom · right-drag to pan</div>
@@ -88,7 +95,7 @@
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { setTextureSize, textureSize, textureReport } from '/tools/asset-forge/src/runtime/textures.js';
+import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 import { buildWorld, worldLighting } from '/tools/asset-forge/src/worlds/neon_frontier.js';
 import { PALETTE } from '/tools/asset-forge/src/runtime/palette.js';
 
@@ -96,45 +103,37 @@ const params = new URLSearchParams(location.search);
 const capture = params.has('capture');
 if (capture) document.body.classList.add('capture');
 
-/* Texture resolution is a documented knob, not a hidden constant:
-   world.html?tex=4096 renders the 4K set, ?tex=2048 the default. */
-const requestedTex = Number(params.get('tex') || 2048);
-setTextureSize(requestedTex);
-
 /* --------------------------------------------------------------- renderer -- */
 const stage = document.getElementById('stage');
 const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
 renderer.setPixelRatio(1);
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.22;
+renderer.toneMappingExposure = 1.08;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 stage.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
-// One horizon colour for background, fog and the sky dome's base, so the
-// distance dissolves instead of ending on a visible seam.
 const HORIZON = '#0b1622';
 scene.background = new THREE.Color(HORIZON);
-scene.fog = new THREE.FogExp2(HORIZON, 0.0026);
+scene.fog = new THREE.FogExp2(HORIZON, 0.0030);
 
 const camera = new THREE.PerspectiveCamera(38, window.innerWidth / window.innerHeight, 0.3, 900);
 
-/* Sky: a large gradient dome, procedural (no HDR download). */
 function skyDome() {
-  const geo = new THREE.SphereGeometry(440, 32, 16);
+  const geo = new THREE.SphereGeometry(430, 32, 16);
   const mat = new THREE.ShaderMaterial({
     side: THREE.BackSide,
     depthWrite: false,
     uniforms: {
       top: { value: new THREE.Color('#060c15') },
       mid: { value: new THREE.Color('#13283c') },
-      bottom: { value: new THREE.Color('#0b1622') },
+      bottom: { value: new THREE.Color(HORIZON) },
       glow: { value: new THREE.Color(PALETTE.info) },
     },
-    vertexShader: `varying vec3 vPos; void main(){ vPos = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
+    vertexShader: 'varying vec3 vPos; void main(){ vPos = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
     fragmentShader: `
       uniform vec3 top; uniform vec3 mid; uniform vec3 bottom; uniform vec3 glow;
       varying vec3 vPos;
@@ -142,20 +141,16 @@ function skyDome() {
         float h = normalize(vPos).y;
         vec3 c = mix(bottom, mid, smoothstep(-0.15, 0.28, h));
         c = mix(c, top, smoothstep(0.25, 0.95, h));
-        // A cool haze sitting just above the horizon: the only bright band in
-        // the sky, which is what separates the silhouette from the backdrop.
         float band = exp(-pow((h - 0.04) * 9.0, 2.0));
-        c += glow * band * 0.055;
+        c += glow * band * 0.05;
         gl_FragColor = vec4(c, 1.0);
       }`,
   });
   return new THREE.Mesh(geo, mat);
 }
 scene.add(skyDome());
-
 worldLighting(scene);
 
-/* Environment for metal reflections: palette gradient, pre-filtered. */
 function buildEnvironment() {
   const width = 64; const height = 32;
   const data = new Uint8Array(width * height * 4);
@@ -185,32 +180,34 @@ function buildEnvironment() {
   return env;
 }
 scene.environment = buildEnvironment();
-scene.environmentIntensity = 1.45;
+scene.environmentIntensity = 1.15;
 
 /* ----------------------------------------------------------------- world -- */
+const loading = document.getElementById('loading');
 const started = performance.now();
 const world = await buildWorld();
 scene.add(world.root);
 const buildMs = Math.round(performance.now() - started);
+loading.classList.add('done');
 
 const mixer = new THREE.AnimationMixer(world.root);
-const actions = world.clips.map((clip) => {
+world.clips.forEach((clip) => {
   const action = mixer.clipAction(clip);
   action.setLoop(THREE.LoopRepeat, Infinity);
   action.play();
-  return action;
 });
 
 /* --------------------------------------------------------------- controls -- */
 const SHOTS = {
-  overview:  { pos: [96, 72, 118], target: [0, 4, -10] },
+  overview:  { pos: [186, 108, 148], target: [48, 6, -22] },
   arena:     { pos: [24, 13, 26],   target: [0, 5, 0] },
   outpost:   { pos: [-18, 15, 12],  target: [-52, 5, -4] },
-  extraction:{ pos: [24, 13, -12],  target: [46, 5, -36] },
-  boss:      { pos: [19, 9.5, -64],  target: [0, 8.6, -84] },
-  perimeter: { pos: [96, 26, 54],   target: [38, 4, 12] },
-  wilds:     { pos: [-16, 12, 74],  target: [-40, 3, 50] },
-  skyline:   { pos: [150, 26, -12], target: [0, 8, -30] },
+  extraction:{ pos: [30, 16, -8],   target: [46, 6, -34] },
+  powerplant:{ pos: [86, 26, 30],   target: [136, 12, -8] },
+  boss:      { pos: [52, 30, -44], target: [0, 11, -83] },
+  perimeter: { pos: [104, 28, 62],  target: [34, 4, 6] },
+  wilds:     { pos: [-16, 16, 86],  target: [-44, 3, 52] },
+  skyline:   { pos: [176, 18, -58], target: [18, 12, -6] },
 };
 
 const controls = new OrbitControls(camera, renderer.domElement);
@@ -218,7 +215,7 @@ controls.enableDamping = true;
 controls.dampingFactor = 0.07;
 controls.maxPolarAngle = Math.PI * 0.495;
 controls.minDistance = 4;
-controls.maxDistance = 420;
+controls.maxDistance = 460;
 
 function setShot(name) {
   const shot = SHOTS[name] ?? SHOTS.overview;
@@ -239,7 +236,6 @@ for (const name of Object.keys(SHOTS)) {
 }
 setShot(params.get('shot') || 'overview');
 
-/* District visibility — the fastest way to inspect one place at a time. */
 const districtRow = document.getElementById('districts');
 const districtNodes = [];
 world.root.traverse((n) => { if (n.name.startsWith('District_')) districtNodes.push(n); });
@@ -259,43 +255,27 @@ for (const node of districtNodes) {
 let playing = !capture;
 const playBtn = document.getElementById('btn-play');
 const scrub = document.getElementById('scrub');
-const CYCLE = 20;
+const CYCLE = 24;
 playBtn.textContent = playing ? 'PAUSE' : 'PLAY';
 playBtn.onclick = () => {
   playing = !playing;
   playBtn.textContent = playing ? 'PAUSE' : 'PLAY';
   playBtn.classList.toggle('on', playing);
 };
-document.getElementById('btn-slow').onclick = () => mixer.timeScale = 0.5;
-document.getElementById('btn-fast').onclick = () => mixer.timeScale = 2;
+document.getElementById('btn-slow').onclick = () => { mixer.timeScale = 0.5; };
+document.getElementById('btn-fast').onclick = () => { mixer.timeScale = 2; };
 scrub.oninput = () => { playing = false; playBtn.textContent = 'PLAY'; mixer.setTime(Number(scrub.value)); };
 
-/* Seek to an exact time: `?t=6.4` in capture mode. */
 const startTime = Number(params.get('t') || 0);
 if (startTime > 0) { playing = false; mixer.setTime(startTime); }
 
-/* ------------------------------------------------------------ tex switch -- */
-const texRow = document.getElementById('tex');
-for (const size of [1024, 2048, 4096]) {
-  const b = document.createElement('button');
-  b.textContent = `${size}`;
-  b.classList.toggle('on', textureSize() === size);
-  b.onclick = () => {
-    const url = new URL(location.href);
-    url.searchParams.set('tex', String(size));
-    location.href = url.toString();
-  };
-  texRow.appendChild(b);
-}
-
 /* ------------------------------------------------------------------ stats -- */
-const report = textureReport();
 const stats = document.getElementById('stats');
 const rows = [
-  ['assets', `${world.stats.assets} unique · ${world.stats.instances} instances`],
+  ['roles', `${world.stats.roles} · ${world.stats.instances} instances`],
+  ['real files', String(world.stats.realFiles)],
   ['triangles', world.stats.triangles.toLocaleString('en-US')],
   ['clips', String(world.clips.length)],
-  ['textures', `${report.size}² · base/normal/orm/emissive`],
   ['build', `${buildMs} ms`],
 ];
 stats.innerHTML = rows.map(([k, v]) => `${k}: <b>${v}</b>`).join('<br>');
@@ -323,45 +303,74 @@ function frame() {
 
 /* ------------------------------------------------------------ capture API -- */
 window.__world = {
-  ready: true,
   stats: world.stats,
   clips: world.clips.map((c) => c.name),
-  textures: report,
   buildMs,
   setShot,
   seek: (t) => { playing = false; mixer.setTime(t); return mixer.time; },
   hideDistricts: (names = []) => {
     for (const node of districtNodes) node.visible = !names.includes(node.name.replace('District_', ''));
   },
-  /** Export the live world (all 40+ instances, 2K/4K maps) as a single GLB. */
-  async exportGLB({ texSize } = {}) {
-    if (texSize && texSize !== textureSize()) {
-      throw new Error('texture size is fixed at load time; reload with ?tex=' + texSize);
-    }
-    // A black emissive with intensity !== 1 makes the exporter emit
-    // KHR_materials_emissive_strength with a zero factor, which the Khronos
-    // validator warns about. Normalise it at the door.
-    world.root.traverse((node) => {
-      const materials = Array.isArray(node.material) ? node.material : [node.material];
-      for (const m of materials) {
-        if (m && m.emissive && m.emissive.getHex() === 0 && m.emissiveIntensity !== 1) {
-          m.emissiveIntensity = 1;
-        }
-      }
+  /** Meshes in the live scene that do not come from a real GLB — must be empty. */
+  proceduralMeshes: () => {
+    const offenders = [];
+    world.root.traverse((n) => {
+      if (n.isMesh && !n.userData.realSource) offenders.push(n.name || '(unnamed)');
     });
-    const { GLTFExporter } = await import('three/addons/exporters/GLTFExporter.js');
+    return offenders;
+  },
+  worldInfo: () => {
+    // World-space bounds of the assembled scene: what Godot's importer will
+    // measure on the other side, so the manifest target is comparable.
+    const box = new THREE.Box3().setFromObject(world.root);
+    const size = box.getSize(new THREE.Vector3());
+    const centre = box.getCenter(new THREE.Vector3());
+    return {
+      meta: world.meta,
+      stats: world.stats,
+      bounds: {
+        min: box.min.toArray().map((v) => +v.toFixed(3)),
+        max: box.max.toArray().map((v) => +v.toFixed(3)),
+        size: size.toArray().map((v) => +v.toFixed(3)),
+        centre: centre.toArray().map((v) => +v.toFixed(3)),
+      },
+    };
+  },
+
+  /**
+   * Export the assembled world as one GLB. Every texture in it is embedded from
+   * the source files, so the result is viewable on its own — no side-car maps.
+   */
+  exportGLB: async () => {
+    playing = false;
+    mixer.setTime(0);
     const exporter = new GLTFExporter();
+    // Ship the motion too: the clips ride along as glTF animations, so the file
+    // is a living world in any viewer, not a sculpture.
     const buffer = await exporter.parseAsync(world.root, {
       binary: true,
-      onlyVisible: false,
-      maxTextureSize: textureSize(),
+      onlyVisible: true,
+      maxTextureSize: 2048,
       animations: world.clips,
-      includeCustomExtensions: false,
     });
     return new Uint8Array(buffer);
   },
-  worldInfo: () => ({ meta: world.meta, stats: world.stats }),
 };
+
+if (params.has('debug')) {
+  const seen = new Map();
+  world.root.traverse((n) => {
+    if (!n.isMesh) return;
+    const m = n.material;
+    const key = `${m.name || '?'}|${m.color?.getHexString?.()}|map:${!!m.map}|metal:${m.metalness}`;
+    if (!seen.has(key)) seen.set(key, n.userData.realSource?.split('/').slice(-1)[0]);
+  });
+  console.log('MATERIALS', JSON.stringify([...seen].slice(0, 40)));
+  const lights = [];
+  scene.traverse((n) => { if (n.isLight) lights.push(`${n.name}:${n.intensity}`); });
+  console.log('LIGHTS', lights.join(' '));
+  console.log('EXPOSURE', renderer.toneMappingExposure);
+}
 
 window.__ready = true;
 resize();

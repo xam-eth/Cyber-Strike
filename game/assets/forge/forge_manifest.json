@@ -1,332 +1,156 @@
 {
-  "generated": "2026-10-24T07:05:13.359Z",
-  "note": "Written by tools/asset-forge/gate/stage_into_game.mjs — the forge → Godot contract. Verified by tools/asset-forge/godot/verify_import.gd.",
-  "entries": [
-    {
-      "id": "reactor_core",
-      "category": "world",
-      "name": "Reactor Core",
-      "resource": "res://assets/forge/world/reactor_core.glb",
-      "source": "game/scenes/worlds/components/reactor_core.tscn",
-      "targetHeight": 6,
-      "targetLength": null,
-      "normalisedBy": "height",
-      "measuredHeight": 6,
-      "measuredWidth": 5.518,
-      "triangles": 8728,
-      "clips": [
-        "core_pulse"
-      ],
-      "sockets": [
-        "charge_fx"
-      ],
-      "bytes": 3582580
-    },
-    {
-      "id": "command_center",
-      "category": "world",
-      "name": "Command Centre",
-      "resource": "res://assets/forge/world/command_center.glb",
-      "source": "game/scenes/worlds/components/command_center.tscn",
-      "targetHeight": 7.5,
-      "targetLength": null,
-      "normalisedBy": "height",
-      "measuredHeight": 7.5,
-      "measuredWidth": 7.12,
-      "triangles": 5484,
-      "clips": [
-        "beacon_pulse"
-      ],
-      "sockets": [
-        "dish_yaw",
-        "door"
-      ],
-      "bytes": 3136248
-    },
-    {
-      "id": "research_lab",
-      "category": "world",
-      "name": "Research Laboratory",
-      "resource": "res://assets/forge/world/research_lab.glb",
-      "source": "game/scenes/worlds/components/research_lab.tscn",
-      "targetHeight": 5.5,
-      "targetLength": null,
-      "normalisedBy": "height",
-      "measuredHeight": 5.5,
-      "measuredWidth": 8.631,
-      "triangles": 4688,
-      "clips": [
-        "sample"
-      ],
-      "sockets": [
-        "vessel"
-      ],
-      "bytes": 3079372
-    },
-    {
-      "id": "equipment_depot",
-      "category": "world",
-      "name": "Equipment Depot",
-      "resource": "res://assets/forge/world/equipment_depot.glb",
-      "source": "game/scenes/worlds/components/equipment_depot.tscn",
-      "targetHeight": 4.6,
-      "targetLength": null,
-      "normalisedBy": "height",
-      "measuredHeight": 4.6,
-      "measuredWidth": 6.799,
-      "triangles": 3920,
-      "clips": [
-        "lamp_pulse"
-      ],
-      "sockets": [
-        "cargo_slot",
-        "door"
-      ],
-      "bytes": 3050716
-    },
-    {
-      "id": "generator_bank",
-      "category": "world",
-      "name": "Generator Bank",
-      "resource": "res://assets/forge/world/generator_bank.glb",
-      "source": "game/scenes/worlds/components/generator_bank.tscn",
-      "targetHeight": 6.5,
-      "targetLength": null,
-      "normalisedBy": "height",
-      "measuredHeight": 6.5,
-      "measuredWidth": 8.643,
-      "triangles": 10368,
-      "clips": [
-        "energy_columns"
-      ],
-      "sockets": [
-        "feed_pipe"
-      ],
-      "bytes": 3336596
-    },
-    {
-      "id": "landing_pad",
-      "category": "world",
-      "name": "Landing Pad",
-      "resource": "res://assets/forge/world/landing_pad.glb",
-      "source": "game/scenes/worlds/components/landing_pad.tscn",
-      "targetHeight": 1.2,
-      "targetLength": null,
-      "normalisedBy": "height",
-      "measuredHeight": 1.2,
-      "measuredWidth": 9.848,
-      "triangles": 3672,
-      "clips": [
-        "beacon"
-      ],
-      "sockets": [
-        "pad_centre"
-      ],
-      "bytes": 2923536
-    },
-    {
-      "id": "boss_gate",
-      "category": "world",
-      "name": "Boss Gate",
-      "resource": "res://assets/forge/world/boss_gate.glb",
-      "source": "game/scenes/worlds/components/boss_gate.tscn",
-      "targetHeight": 11,
-      "targetLength": null,
-      "normalisedBy": "height",
-      "measuredHeight": 11,
-      "measuredWidth": 10.462,
-      "triangles": 6300,
-      "clips": [
-        "gate_open"
-      ],
-      "sockets": [
-        "shutter_l",
-        "shutter_r"
-      ],
-      "bytes": 3444984
-    },
-    {
-      "id": "defense_turret",
-      "category": "world",
-      "name": "Defence Turret",
-      "resource": "res://assets/forge/world/defense_turret.glb",
-      "source": "game/scenes/worlds/components/defense_turret.tscn",
-      "targetHeight": 2.8,
-      "targetLength": null,
-      "normalisedBy": "height",
-      "measuredHeight": 2.8,
-      "measuredWidth": 2.728,
-      "triangles": 2884,
-      "clips": [
-        "yaw_sweep",
-        "fire_recoil"
-      ],
-      "sockets": [
-        "muzzle_l",
-        "muzzle_r",
-        "sensor"
-      ],
-      "bytes": 2847308
-    },
-    {
-      "id": "sensor_tower",
-      "category": "world",
-      "name": "Sensor Tower",
-      "resource": "res://assets/forge/world/sensor_tower.glb",
-      "source": "game/scenes/worlds/components/sensor_tower.tscn",
-      "targetHeight": 11,
-      "targetLength": null,
-      "normalisedBy": "height",
-      "measuredHeight": 11,
-      "measuredWidth": 4.113,
-      "triangles": 3840,
-      "clips": [
-        "dish_scan"
-      ],
-      "sockets": [
-        "dish",
-        "beacon"
-      ],
-      "bytes": 3036900
-    },
-    {
-      "id": "wrecked_transport",
-      "category": "world",
-      "name": "Wrecked Transport",
-      "resource": "res://assets/forge/world/wrecked_transport.glb",
-      "source": "game/scenes/worlds/components/wrecked_transport.tscn",
-      "targetHeight": 3.4,
-      "targetLength": null,
-      "normalisedBy": "height",
-      "measuredHeight": 3.4,
-      "measuredWidth": 5.977,
-      "triangles": 1692,
-      "clips": [
-        "ember_flicker"
-      ],
-      "sockets": [
-        "hull_cut",
-        "wing_l"
-      ],
-      "bytes": 2765544
-    },
-    {
-      "id": "alien_drone_wreck",
-      "category": "world",
-      "name": "Alien Drone Wreck",
-      "resource": "res://assets/forge/world/alien_drone_wreck.glb",
-      "source": "game/scenes/worlds/components/alien_drone_wreck.tscn",
-      "targetHeight": 2.4,
-      "targetLength": null,
-      "normalisedBy": "height",
-      "measuredHeight": 2.4,
-      "measuredWidth": 3.154,
-      "triangles": 7300,
-      "clips": [
-        "sensor_fade"
-      ],
-      "sockets": [
-        "sensor_core",
-        "arm_l",
-        "arm_r"
-      ],
-      "bytes": 3420300
-    },
-    {
-      "id": "crystal_cluster",
-      "category": "world",
-      "name": "Crystal Cluster",
-      "resource": "res://assets/forge/world/crystal_cluster.glb",
-      "source": "game/scenes/worlds/components/crystal_cluster.tscn",
-      "targetHeight": 3.2,
-      "targetLength": null,
-      "normalisedBy": "height",
-      "measuredHeight": 3.2,
-      "measuredWidth": 3.214,
-      "triangles": 940,
-      "clips": [
-        "shimmer"
-      ],
-      "sockets": [
-        "harvest_point"
-      ],
-      "bytes": 2685484
-    },
-    {
-      "id": "alien_flora",
-      "category": "world",
-      "name": "Alien Flora",
-      "resource": "res://assets/forge/world/alien_flora.glb",
-      "source": "game/scenes/worlds/components/alien_flora.tscn",
-      "targetHeight": 1.8,
-      "targetLength": null,
-      "normalisedBy": "height",
-      "measuredHeight": 1.8,
-      "measuredWidth": 1.305,
-      "triangles": 2504,
-      "clips": [
-        "sway"
-      ],
-      "sockets": [
-        "root"
-      ],
-      "bytes": 2688044
-    },
-    {
-      "id": "rock_cluster",
-      "category": "world",
-      "name": "Rock Cluster",
-      "resource": "res://assets/forge/world/rock_cluster.glb",
-      "source": "game/scenes/worlds/components/rock_cluster.tscn",
-      "targetHeight": 3.6,
-      "targetLength": null,
-      "normalisedBy": "height",
-      "measuredHeight": 3.6,
-      "measuredWidth": 7.381,
-      "triangles": 1124,
-      "clips": [],
-      "sockets": [
-        "base"
-      ],
-      "bytes": 2638512
-    },
-    {
-      "id": "enemy_spawn_gate",
-      "category": "world",
-      "name": "Enemy Spawn Gate",
-      "resource": "res://assets/forge/world/enemy_spawn_gate.glb",
-      "source": "game/scenes/worlds/components/enemy_spawn_gate.tscn",
-      "targetHeight": 5.2,
-      "targetLength": null,
-      "normalisedBy": "height",
-      "measuredHeight": 5.2,
-      "measuredWidth": 6.163,
-      "triangles": 7616,
-      "clips": [
-        "strip_pulse"
-      ],
-      "sockets": [
-        "spawn_point"
-      ],
-      "bytes": 3521656
-    },
-    {
-      "id": "cover_module",
-      "category": "world",
-      "name": "Cover Module",
-      "resource": "res://assets/forge/world/cover_module.glb",
-      "source": "game/scenes/worlds/components/cover_module.tscn",
-      "targetHeight": 1.15,
-      "targetLength": null,
-      "normalisedBy": "height",
-      "measuredHeight": 1.15,
-      "measuredWidth": 2.2,
-      "triangles": 4160,
-      "clips": [],
-      "sockets": [
-        "top_mark"
-      ],
-      "bytes": 3147824
-    }
-  ]
+ "generated": "2026-10-24T09:08:07.420Z",
+ "note": "One assembled world, built from real licensed GLBs. Provenance: tools/asset-forge/real/real-manifest.json",
+ "attribution": {
+  "Kenney Space Kit": "CC0-1.0 — Kenney (www.kenney.nl)",
+  "Cinder Yard / Power Plant + ground plate": "CC-BY-4.0 — Kammertonus (https://twitter.com/Kammertonus)"
+ },
+ "entries": [
+  {
+   "id": "neon_frontier_world",
+   "category": "world",
+   "name": "NEON FRONTIER — Frontier Outpost",
+   "resource": "res://assets/forge/world/world.glb",
+   "source": "tools/asset-forge/src/worlds/neon_frontier.js",
+   "assetPolicy": "every visible mesh is a licensed GLB from game/assets/world/real",
+   "targetHeight": 24.584,
+   "targetLength": 285.032,
+   "normalisedBy": "height",
+   "measuredHeight": 24.584,
+   "measuredWidth": 285.032,
+   "measuredDepth": 188.986,
+   "triangles": 153885,
+   "meshes": 530,
+   "materials": 324,
+   "textures": 84,
+   "clips": [
+    "CentralReactor.RingLow_spin",
+    "CentralReactor.RingHigh_spin",
+    "CentralReactor.Core_pulse",
+    "CentralReactor.Crown_spin",
+    "WaveEntry_North.Beacon_spin",
+    "WaveEntry_North.Gate_pulse",
+    "WaveEntry_South.Beacon_spin",
+    "WaveEntry_South.Gate_pulse",
+    "WaveEntry_West.Beacon_spin",
+    "WaveEntry_West.Gate_pulse",
+    "WaveEntry_East.Beacon_spin",
+    "WaveEntry_East.Gate_pulse",
+    "OutpostCommandCenter.Dish_spin",
+    "WeaponResearchLaboratory.Vessel_spin",
+    "WeaponResearchLaboratory.Dome_spin",
+    "WeaponResearchLaboratory.Dish_spin",
+    "FieldEquipmentDepot.CratesB_bob",
+    "WestObservationTower.Dish_spin",
+    "WestObservationTower.DishB_sweep",
+    "WestObservationTower.RingA_spin",
+    "WestObservationTower.RingB_spin",
+    "SouthwestSignalTower.Dish_spin",
+    "SouthwestSignalTower.DishB_sweep",
+    "SouthwestSignalTower.RingA_spin",
+    "SouthwestSignalTower.RingB_spin",
+    "EastVehicleLandingPlatform.Gantry_bob",
+    "EastVehicleLandingPlatform.Beacon_spin",
+    "EastVehicleLandingPlatform.PostW_pulse",
+    "EastVehicleLandingPlatform.PostE_pulse",
+    "EastVehicleLandingPlatform.PostN_pulse",
+    "EastVehicleLandingPlatform.PostS_pulse",
+    "FrontierEnergyExtractionBank.GeneratorA_pulse",
+    "FrontierEnergyExtractionBank.GeneratorB_pulse",
+    "FrontierEnergyExtractionBank.StackA_spin",
+    "FrontierEnergyExtractionBank.StackB_spin",
+    "ExtractionSensorMast.Dish_spin",
+    "ExtractionSensorMast.DishB_sweep",
+    "ExtractionSensorMast.RingA_spin",
+    "ExtractionSensorMast.RingB_spin",
+    "ColossalDockingGate.Sentry_spin",
+    "ColossalDockingGate.Gate_pulse",
+    "ColossalDockingGate.LockFrame_pulse",
+    "PerimeterDefenseTurret_0.Turret_sweep",
+    "PerimeterDefenseTurret_0.Sensor_spin",
+    "PerimeterDefenseTurret_1.Turret_sweep",
+    "PerimeterDefenseTurret_1.Sensor_spin",
+    "PerimeterDefenseTurret_2.Turret_sweep",
+    "PerimeterDefenseTurret_2.Sensor_spin",
+    "PerimeterDefenseTurret_3.Turret_sweep",
+    "PerimeterDefenseTurret_3.Sensor_spin",
+    "PerimeterDefenseTurret_4.Turret_sweep",
+    "PerimeterDefenseTurret_4.Sensor_spin",
+    "PerimeterDefenseTurret_5.Turret_sweep",
+    "PerimeterDefenseTurret_5.Sensor_spin",
+    "WestPerimeter.Beacon_spin",
+    "WestPerimeter.Gate_pulse",
+    "EastPerimeter.Beacon_spin",
+    "EastPerimeter.Gate_pulse",
+    "SouthPerimeter.Beacon_spin",
+    "SouthPerimeter.Gate_pulse",
+    "NorthPerimeter.Beacon_spin",
+    "NorthPerimeter.Gate_pulse",
+    "EastPerimeterSensor.Dish_spin",
+    "EastPerimeterSensor.DishB_sweep",
+    "EastPerimeterSensor.RingA_spin",
+    "EastPerimeterSensor.RingB_spin",
+    "NorthPerimeterSensor.Dish_spin",
+    "NorthPerimeterSensor.DishB_sweep",
+    "NorthPerimeterSensor.RingA_spin",
+    "NorthPerimeterSensor.RingB_spin",
+    "CrashedFrontierTransport.Hull_sweep",
+    "AlienDroneWreck.Chassis_sweep",
+    "DisabledCheckpointTurret.Turret_sweep",
+    "DisabledCheckpointTurret.Sensor_spin",
+    "AbandonedLoadingModule.CratesB_bob",
+    "FrontierCrystalCluster_00.Main_pulse",
+    "FrontierCrystalCluster_00.Second_pulse",
+    "FrontierCrystalCluster_01.Main_pulse",
+    "FrontierCrystalCluster_01.Second_pulse",
+    "FrontierCrystalCluster_02.Main_pulse",
+    "FrontierCrystalCluster_02.Second_pulse",
+    "FrontierCrystalCluster_03.Main_pulse",
+    "FrontierCrystalCluster_03.Second_pulse",
+    "LuminousAlienFlora_00.Growth_sweep",
+    "LuminousAlienFlora_00.Bloom_pulse",
+    "LuminousAlienFlora_01.Growth_sweep",
+    "LuminousAlienFlora_01.Bloom_pulse",
+    "LuminousAlienFlora_02.Growth_sweep",
+    "LuminousAlienFlora_02.Bloom_pulse",
+    "LuminousAlienFlora_03.Growth_sweep",
+    "LuminousAlienFlora_03.Bloom_pulse",
+    "LuminousAlienFlora_04.Growth_sweep",
+    "LuminousAlienFlora_04.Bloom_pulse",
+    "LuminousAlienFlora_05.Growth_sweep",
+    "LuminousAlienFlora_05.Bloom_pulse",
+    "LuminousAlienFlora_06.Growth_sweep",
+    "LuminousAlienFlora_06.Bloom_pulse",
+    "LuminousAlienFlora_07.Growth_sweep",
+    "LuminousAlienFlora_07.Bloom_pulse",
+    "LuminousAlienFlora_08.Growth_sweep",
+    "LuminousAlienFlora_08.Bloom_pulse",
+    "LuminousAlienFlora_09.Growth_sweep",
+    "LuminousAlienFlora_09.Bloom_pulse",
+    "LuminousAlienFlora_10.Growth_sweep",
+    "LuminousAlienFlora_10.Bloom_pulse",
+    "LuminousAlienFlora_11.Growth_sweep",
+    "LuminousAlienFlora_11.Bloom_pulse",
+    "LuminousAlienFlora_12.Growth_sweep",
+    "LuminousAlienFlora_12.Bloom_pulse",
+    "LuminousAlienFlora_13.Growth_sweep",
+    "LuminousAlienFlora_13.Bloom_pulse",
+    "LuminousAlienFlora_14.Growth_sweep",
+    "LuminousAlienFlora_14.Bloom_pulse",
+    "LuminousAlienFlora_15.Growth_sweep",
+    "LuminousAlienFlora_15.Bloom_pulse",
+    "LuminousAlienFlora_16.Growth_sweep",
+    "LuminousAlienFlora_16.Bloom_pulse",
+    "LuminousAlienFlora_17.Growth_sweep",
+    "LuminousAlienFlora_17.Bloom_pulse"
+   ],
+   "sockets": [
+    "spawn_arena_north",
+    "spawn_arena_south",
+    "spawn_outpost",
+    "spawn_extraction"
+   ],
+   "bytes": 22675608
+  }
+ ]
 }

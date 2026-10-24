@@ -7,8 +7,7 @@
  * captures a review photograph from each authored camera and writes a single
  * GLB the whole thing can be inspected in.
  *
- *   node tools/asset-forge/gate/world_shot.mjs                 # 2048², all shots
- *   node tools/asset-forge/gate/world_shot.mjs --tex 4096
+ *   node tools/asset-forge/gate/world_shot.mjs                 # all shots
  *   node tools/asset-forge/gate/world_shot.mjs --shot arena,boss
  *   node tools/asset-forge/gate/world_shot.mjs --no-glb
  *
@@ -37,7 +36,7 @@ const flag = (name, fallback) => {
 };
 const has = (name) => argv.includes(`--${name}`);
 
-const tex = String(flag('tex', '2048'));
+
 const width = Number(flag('width', '2048'));
 const height = Number(flag('height', '1152'));
 const time = String(flag('t', '6'));
@@ -45,7 +44,7 @@ const wantGlb = !has('no-glb');
 const shotsArg = flag('shot', null);
 const SHOTS = shotsArg
   ? String(shotsArg).split(',').map((s) => s.trim()).filter(Boolean)
-  : ['overview', 'arena', 'outpost', 'extraction', 'boss', 'perimeter', 'wilds', 'skyline'];
+  : ['overview', 'arena', 'outpost', 'extraction', 'powerplant', 'boss', 'perimeter', 'wilds', 'skyline'];
 
 fs.mkdirSync(OUT, { recursive: true });
 
@@ -76,12 +75,17 @@ const browser = await puppeteer.launch({
 });
 
 const page = await browser.newPage();
+if (has('debug')) {
+  page.on('console', (m) => console.log(`[console:${m.type()}]`, m.text().slice(0, 400)));
+  page.on('pageerror', (e) => console.log('[pageerror]', String(e).slice(0, 800)));
+  page.on('requestfailed', (r) => console.log('[reqfail]', r.url().slice(-80)));
+}
 await page.setViewport({ width, height, deviceScaleFactor: 1 });
 page.on('pageerror', (e) => console.error('  pageerror:', e.message));
 page.on('console', (m) => { if (m.type() === 'error') console.error('  console:', m.text()); });
 
 const t0 = Date.now();
-await page.goto(`http://127.0.0.1:${port}/tools/asset-forge/world.html?capture=1&tex=${tex}&t=${time}&shot=overview`, {
+await page.goto(`http://127.0.0.1:${port}/tools/asset-forge/world.html?capture=1&t=${time}&shot=overview${has('debug') ? '&debug=1' : ''}`, {
   waitUntil: 'domcontentloaded',
   timeout: 180000,
 });
@@ -89,7 +93,14 @@ await page.waitForFunction(() => window.__ready === true, { timeout: 240000 });
 const loadMs = Date.now() - t0;
 
 const report = await page.evaluate(() => window.__world.worldInfo());
-console.log(`world: ${report.stats.instances} instances · ${report.stats.triangles.toLocaleString('en-US')} tris · ${report.stats.clips} clips · ${tex}² textures · built in ${loadMs} ms`);
+// The asset-policy check: a single mesh without a real GLB behind it fails here,
+// before any picture is taken.
+const procedural = await page.evaluate(() => window.__world.proceduralMeshes());
+if (procedural.length) {
+  console.error(`FAIL asset policy — ${procedural.length} mesh(es) are not from a real GLB: ${procedural.slice(0, 5).join(', ')}`);
+  process.exitCode = 1;
+}
+console.log(`world: ${report.stats.instances} instances · ${report.stats.triangles.toLocaleString('en-US')} tris · ${report.stats.clips} clips · ${report.stats.realFiles} real GLB files · built in ${loadMs} ms`);
 
 /* -------------------------------------------------------------- photographs -- */
 
@@ -134,7 +145,6 @@ const previous = has('append') && fs.existsSync(reportPath)
 
 const out = {
   generated: new Date().toISOString(),
-  textureSize: Number(tex),
   viewport: [width, height],
   seekSeconds: Number(time),
   buildMs: loadMs,
@@ -148,7 +158,6 @@ if (previous) {
   out.renders = [...byShot.values()];
   out.glb = glb ?? previous.glb;
   out.buildMs = previous.buildMs;
-  out.textureSize = Number(tex);
 }
 fs.writeFileSync(reportPath, `${JSON.stringify(out, null, 2)}\n`);
 console.log(`report → ${path.relative(ROOT, path.join(OUT, 'world-report.json'))}`);

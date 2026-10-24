@@ -724,7 +724,7 @@ jobs:
           count=$(find game/assets/forge -name '*.glb' | wc -l | tr -d ' ')
           echo "staged GLBs: $count"
           if [[ "$count" -lt 1 ]]; then
-            echo "::error title=No staged assets::run node tools/asset-forge/gate/stage_into_game.mjs"
+            echo "::error title=No staged assets::run node tools/asset-forge/gate/stage_world_into_game.mjs"
             exit 1
           fi
           test -f game/assets/forge/forge_manifest.json

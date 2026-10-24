@@ -1,7 +1,0 @@
-[gd_scene load_steps=2 format=3]
-
-[ext_resource type="Script" path="res://scripts/worlds/neon_frontier_asset.gd" id="1_asset"]
-
-[node name="AlienFloraCluster" type="Node3D"]
-script = ExtResource("1_asset")
-asset_kind = "alien_flora"
