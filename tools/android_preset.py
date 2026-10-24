@@ -34,7 +34,7 @@ from pathlib import Path
 
 DEFAULT_PRESET_FILE = "game/export_presets.cfg"
 DEFAULT_PRESET_NAME = "Android"
-DEFAULT_PACKAGE_ID = "com.example.projectoverdrive"
+DEFAULT_PACKAGE_ID = "com.example.exocomplict"
 PACKAGE_ID_RE = re.compile(r"^[a-zA-Z][a-zA-Z0-9_]*(\.[a-zA-Z][a-zA-Z0-9_]*)+$")
 ARCHITECTURES = ("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
 
@@ -57,7 +57,7 @@ SCAFFOLD_OPTIONS: list[tuple[str, str]] = [
     ("version/code", "1"),
     ("version/name", '"1.0"'),
     ("package/unique_name", f'"{DEFAULT_PACKAGE_ID}"'),
-    ("package/name", '"Project Overdrive"'),
+    ("package/name", '"Exocomplict"'),
     ("package/signed", "true"),
     ("package/app_category", "2"),
     ("package/retain_data_on_uninstall", "false"),
@@ -86,7 +86,7 @@ SCAFFOLD_OPTIONS: list[tuple[str, str]] = [
 # Files that must never reach a player. `tests/*` is the whole smoke suite: 26
 # scripts, 8,141 lines, found packed into the shipped web payload as compiled
 # `.gdc` + `.remap` pairs because no preset carried an exclude filter
-# (docs/AUDIT_2026-10-21.md §5). `tools/check_payload.py` is the gate that
+# (docs/DECISIONS.md §5). `tools/check_payload.py` is the gate that
 # catches a regression here; it reads the exported .pck, not this file.
 EXCLUDE_FROM_EXPORT = "tests/*"
 
@@ -310,7 +310,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--preset-file", default=DEFAULT_PRESET_FILE)
     parser.add_argument("--preset-name", default=DEFAULT_PRESET_NAME)
     parser.add_argument("--package-id", default=DEFAULT_PACKAGE_ID)
-    parser.add_argument("--app-name", default="Project Overdrive")
+    parser.add_argument("--app-name", default="Exocomplict")
     parser.add_argument("--version-code", default="1")
     parser.add_argument("--version-name", default="1.0")
     parser.add_argument(

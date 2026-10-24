@@ -33,12 +33,12 @@ const SIZES := {
 	"small portrait": Vector2i(360, 640),
 	"desktop": Vector2i(1280, 720),
 }
-## The four menu screens that carry the layout: the hub and the three
-## selection lists. BOOT/LOADING/CINEMATIC/CHAPTER/PRELOAD are single-purpose
-## panels with no edge-hugging actions.
-const STAGES := [&"DASHBOARD", &"HERO", &"WEAPON", &"WORLD"]
+## The screens that carry the layout: the hub and the selection lists.
+## BOOT/LOADING/CHAPTER/PRELOAD are single-purpose panels with no
+## edge-hugging actions.
+const STAGES := [&"DASHBOARD", &"HERO", &"WORLD"]
 ## AegisTokens.MIN_TOUCH_PX, less a pixel of rounding.
-const MIN_TOUCH := 55.0
+const MIN_TOUCH := 63.0
 
 var _failures: Array[String] = []
 var _viewport: SubViewport = null
@@ -129,6 +129,10 @@ func _probe(stage_name: StringName, size_name: String, physical: Vector2) -> voi
 		return
 	var stretch: float = UiLayout.compute_stretch(stage, physical)
 	var viewport := Rect2(Vector2.ZERO, physical)
+	# First, because the first ten failure lines are the ones a CI annotation
+	# keeps: if the page itself is too wide, say so before naming every label it
+	# pushed aside.
+	_check_page_fits(stage, viewport, stretch, "%s %s" % [stage_name, size_name])
 	var lines := PackedStringArray()
 	lines.append("STAGE=%s %s" % [stage_name, size_name])
 	lines.append(
@@ -149,23 +153,175 @@ func _probe(stage_name: StringName, size_name: String, physical: Vector2) -> voi
 			continue
 		if not (control is Button or control is Label or control is ProgressBar):
 			continue
-		var name := str(control.name)
+		var label := str(control.name)
 		if control is Button and not (control as Button).text.is_empty():
-			name = (control as Button).text
+			label = (control as Button).text
 		elif control is Label and not (control as Label).text.is_empty():
-			name = (control as Label).text.substr(0, mini((control as Label).text.length(), 18))
+			label = (control as Label).text.substr(0, mini((control as Label).text.length(), 18))
 		var global := control.get_global_rect()
 		var rect := Rect2(global.position * stretch, global.size * stretch)
 		lines.append(
 			(
 				"%s=%.0f,%.0f,%.0fx%.0f"
-				% [name, rect.position.x, rect.position.y, rect.size.x, rect.size.y]
+				% [label, rect.position.x, rect.position.y, rect.size.x, rect.size.y]
 			)
 		)
 		_check(control, rect, viewport, "%s %s" % [stage_name, size_name])
+	if stage_name == &"DASHBOARD":
+		_check_dashboard_hierarchy(stage, stretch, "%s %s" % [stage_name, size_name])
+	_check_page_fits(stage, viewport, stretch, "%s %s" % [stage_name, size_name])
+	_check_text_stays_in_its_card(stage, stretch, "%s %s" % [stage_name, size_name])
 	print("Menu layout: " + " | ".join(lines))
 	await _check_row_scroll(stage, "%s %s" % [stage_name, size_name])
 	await _check_thumb_drag(stage, "%s %s" % [stage_name, size_name])
+
+
+## A card is an `AegisButton` with its contents laid over it, and a Button is not
+## a Container: a child that grows does not grow the card, it draws past the
+## card's rounded edge and over whatever is underneath. The weapon list did
+## exactly that at 390x844 -- the ARC SHOOTER's stat line was printed below its
+## own card, on top of the Battle Points legend.
+##
+## So every piece of card copy has to sit inside the card that owns it, in
+## physical pixels, at every size in the suite.
+func _check_text_stays_in_its_card(stage: Control, stretch: float, where: String) -> void:
+	for child in stage.find_children("*", "Label", true, false):
+		var label := child as Label
+		if label == null or not label.is_visible_in_tree():
+			continue
+		var card := _card_ancestor(label)
+		if card == null:
+			continue
+		var text_rect := _physical(label.get_global_rect(), stretch)
+		var card_rect := _physical(card.get_global_rect(), stretch)
+		if card_rect.size.y <= 0.0:
+			continue
+		_expect(
+			card_rect.grow(1.0).encloses(text_rect),
+			(
+				"%s: '%s' stays inside its card (text %d,%d %dx%d in card %d,%d %dx%d)"
+				% [
+					where,
+					label.text.substr(0, 18),
+					text_rect.position.x,
+					text_rect.position.y,
+					text_rect.size.x,
+					text_rect.size.y,
+					card_rect.position.x,
+					card_rect.position.y,
+					card_rect.size.x,
+					card_rect.size.y
+				]
+			)
+		)
+
+
+func _card_ancestor(node: Node) -> Control:
+	var parent := node.get_parent()
+	while parent != null:
+		if parent is Button:
+			return parent as Control
+		parent = parent.get_parent()
+	return null
+
+
+## The board's *order* is the fix, not its contents.
+##
+## HOME is a manifest now, not a showcase (docs/DECISIONS.md 29): three numbered
+## rows, then the record ribbon, then ARMORY and DEPLOY. What this asserts is
+## that stacking in physical pixels -- 01 above 02 above ARMORY above DEPLOY --
+## and that DEPLOY is the bottom row, nearest the thumb, the way Apex's READY bar
+## and Free Fire's start tile are. On a landscape screen the rows keep the left
+## column, so "above" is only required within the rail.
+func _check_dashboard_hierarchy(stage: Control, stretch: float, where: String) -> void:
+	var deploy: Button = _find_button(stage, "DEPLOY")
+	if not _expect(deploy != null, "%s: DEPLOY exists" % where):
+		return
+	var armory: Button = _find_button(stage, "ARMORY")
+	if not _expect(armory != null, "%s: ARMORY exists" % where):
+		return
+	var hero := stage.get("_hero_row") as Control
+	var mission := stage.get("_mission_row") as Control
+	if not _expect(hero != null and mission != null, "%s: both rows exist" % where):
+		return
+	var deploy_rect := _physical(deploy.get_global_rect(), stretch)
+	var armory_rect := _physical(armory.get_global_rect(), stretch)
+	_expect(
+		deploy_rect.position.y >= armory_rect.end.y - 1.0,
+		(
+			"%s: DEPLOY (top %.0f) sits under ARMORY (bottom %.0f), nearest the thumb"
+			% [where, deploy_rect.position.y, armory_rect.end.y]
+		)
+	)
+	_expect(
+		deploy.is_visible_in_tree() and not deploy.disabled,
+		"%s: DEPLOY is enabled and on screen" % where,
+	)
+	# Portrait stacks the rows above the actions; landscape puts them in the
+	# left column, where their order to each other is still the manifest's.
+	var hero_rect := _physical(hero.get_global_rect(), stretch)
+	var mission_rect := _physical(mission.get_global_rect(), stretch)
+	_expect(
+		hero_rect.end.y <= mission_rect.position.y + 1.0,
+		"%s: row 01 (operative) sits above row 02 (theatre)" % where,
+	)
+	if not is_landscape(stage):
+		_expect(
+			mission_rect.end.y <= armory_rect.position.y + 1.0,
+			"%s: the rows sit above ARMORY" % where,
+		)
+
+
+## The whole page must fit, not only its controls.
+##
+## Every "a label is outside the viewport" failure this project has had came
+## from one descendant whose *minimum* width was larger than the screen: the page
+## then draws wider than the phone and every sibling is reported as the
+## offender. Measuring the combined minimum size and naming the widest child
+## points at the cause instead of at the symptoms.
+func _check_page_fits(stage: Control, viewport: Rect2, stretch: float, where: String) -> void:
+	# Walk down the widest branch, so the failure names the leaf that actually
+	# claims the width instead of the container that inherits it.
+	var widest := 0.0
+	var path: Array[String] = []
+	var node: Control = stage
+	while true:
+		var best: Control = null
+		for child in node.get_children():
+			var control := child as Control
+			if control == null or not control.is_visible_in_tree():
+				continue
+			if _inside_scroll_container(control):
+				continue
+			var width := control.get_combined_minimum_size().x * stretch
+			if best == null or width > best.get_combined_minimum_size().x * stretch:
+				best = control
+		if best != null:
+			widest = maxf(widest, best.get_combined_minimum_size().x * stretch)
+		if best == null:
+			break
+		path.append("%s(%.0f)" % [best.name, best.get_combined_minimum_size().x * stretch])
+		node = best
+	var root_width := stage.get_combined_minimum_size().x * stretch
+	_expect(
+		widest <= viewport.size.x + 1.0,
+		(
+			"%s: the widest minimum width on the page (%s, %.0f px; page %.0f) fits the %.0f px viewport"
+			% [where, "/".join(path), widest, root_width, viewport.size.x]
+		)
+	)
+
+
+func _physical(rect: Rect2, stretch: float) -> Rect2:
+	return Rect2(rect.position * stretch, rect.size * stretch)
+
+
+func _find_button(root: Control, text: String) -> Button:
+	for child in root.find_children("*", "Button", true, false):
+		var button := child as Button
+		if button != null and button.text == text and button.is_visible_in_tree():
+			return button
+	return null
 
 
 ## The two rules. A control inside a ScrollContainer is allowed to sit outside

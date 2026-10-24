@@ -6,7 +6,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GAME_DIR="$ROOT_DIR/game"
 PRESET_NAME="${ANDROID_EXPORT_PRESET:-Android}"
-OUTPUT_PATH="${ANDROID_APK_PATH:-$ROOT_DIR/exports/project-overdrive-debug.apk}"
+OUTPUT_PATH="${ANDROID_APK_PATH:-$ROOT_DIR/exports/exocomplict-debug.apk}"
 EXPECTED_VERSION="$(tr -d '[:space:]' < "$ROOT_DIR/.godot-version")"
 
 fail() {

@@ -1,4 +1,4 @@
-# Project Overdrive — Development Roadmap
+# Exocomplict — Development Roadmap
 
 > **Status:** Prototype NEON FRONTIER 3D kini mencakup world modular, KayKit GLTF, Runner/Shooter waves, Pulse/Nova/Arc, EMP, dan UI touch/HUD. Sepuluh GLB Kenney Space Kit CC0 telah dicari, diunduh, dan dikurasi sebagai kandidat; belum ditempatkan ke scene. Android import/export workflow sudah disiapkan, tetapi Godot/JDK/Android SDK tidak tersedia di sesi ini; smoke test terbaru, import, APK, render, dan perangkat belum diverifikasi. Permanent progression dan balancing interaktif juga belum selesai.
 >
@@ -18,7 +18,7 @@ Project Godot di `game/` menyusun dunia NEON FRONTIER sebagai satu level 3D kont
 
 ## 1. Ringkasan produk yang dibangun
 
-**Project Overdrive** adalah third-person sci-fi arena survival shooter untuk sesi singkat. Pemain bergerak dengan kontrol sentuh, membidik dari kamera over-the-shoulder, melawan wave musuh, mendapat Battle Points (BP), membuka senjata, lalu masuk arena lagi.
+**Exocomplict** adalah third-person sci-fi arena survival shooter untuk sesi singkat. Pemain bergerak dengan kontrol sentuh, membidik dari kamera over-the-shoulder, melawan wave musuh, mendapat Battle Points (BP), membuka senjata, lalu masuk arena lagi.
 
 Urutan prioritas produknya:
 

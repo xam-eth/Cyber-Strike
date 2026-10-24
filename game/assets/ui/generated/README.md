@@ -32,33 +32,29 @@ Real on-disk sizes as measured. These are **not** the sizes the game uses; see
 | `dashboard_bg.png` | 1376×768 | 2165 kB |
 | `hero_portrait.png` | 896×1200 | 2559 kB |
 | `loading_keyart_16x9.png` | 2048×1152 | 3805 kB |
-| `robot_walk_01.png` | 1408×768 | 977 kB |
-| `robot_walk_02.png` | 1408×768 | 1021 kB |
-| `robot_walk_03.png` | 1408×768 | 1004 kB |
-| `robot_walk_04.png` | 1408×768 | 999 kB |
-| `robot_walk_alt1.png` | 1408×768 | 901 kB |
-| `robot_walk_alt2.png` | 1408×768 | 976 kB |
 | `weapon_arc_shooter.png` | 1408×768 | 1546 kB |
 | `weapon_nova_launcher.png` | 1200×896 | 1799 kB |
 | `weapon_pulse_rifle.png` | 1200×896 | 1526 kB |
 | `wordmark.png` | 1024×1024 | 508 kB |
-| `world_neon_frontier.png` | 1584×672 | 2214 kB |
+| `world_frostline_relay.png` | 2048×1152 | 779 kB |
+| `world_verdant_bloom.png` | 2048×1152 | 406 kB |
+| `world_emberfall_foundry.png` | 2048×1152 | 659 kB |
 
-## Which frames are used
+## The robot frames are gone
 
-`robot_walk_01..04` are the four walk frames that ship in
-`loading_robot_sheet.png`. `robot_walk_alt1` and `robot_walk_alt2` are
-alternate poses generated alongside them; they are kept for continuity at 8 fps
-and were not selected. The build reads all six because the **union** crop that
-keeps the robot from jittering is computed across every frame available.
+`robot_walk_01`-`04`, `robot_walk_alt1` and `robot_walk_alt2` were deleted with
+the LOADING walk cycle on 2026-10-23 (docs/DECISIONS.md 3). The
+robot was cut from the loading screen for competing with the product mark; the
+sources went with it, because a build step that reads six inputs to produce no
+output is a pipeline that lies about what it ships.
 
 ## Honest limits
 
-* No one in this session has *looked* at these images — there is no image
-  display available. Every statement about them in the docs comes from measured
-  pixel statistics (palette histograms, content bounding boxes, inter-frame
-  motion).
-* "The robot walks" is not something this repository can prove. What it can
-  prove is that four frames exist, differ from one another inside a shared
-  subject region, and are on-palette. Whether the loop reads as a walk is a
-  human judgement that has not been made yet.
+* The images in this directory have been inspected visually as of 2026-10-23
+  (the wordmark above all: it is the asset that shipped with its backdrop
+  baked in for weeks). Statements elsewhere in the docs that describe art
+  without a frame reference predate that pass and are measurements, not
+  impressions.
+* "It reads as ZYVRO Labs" is a human judgement. What the build can prove is
+  that the pixels arrived, that their palette is what the manifest says, and
+  that the key removed exactly the plate it measured.

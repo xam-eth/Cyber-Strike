@@ -40,7 +40,12 @@ func _run_smoke_test() -> void:
 	var camera_forward := -player_camera.global_basis.z
 	camera_forward.y = 0.0
 	camera_forward = camera_forward.normalized()
-	var cover_position := Vector3(4.0, 0.0, -3.0)
+	# The east cover module is the arena's cover in the Frostline layout, and a
+	# spawn point has to be rejected inside it. The old point (4, -3) was where
+	# the previous world's prop stood; the arena centrepiece is deliberately
+	# collider-free (see `ARENA_MONUMENT_RADIUS` in `mission_world.gd`), so cover
+	# is what flanks the lane.
+	var cover_position := Vector3(8.0, 0.0, 4.0)
 	var target_position := Vector3(0.0, 0.0, -8.0)
 	var test_passed := true
 	test_passed = (

@@ -71,3 +71,10 @@ Thumbs.db
 *.swo
 *~
 *.log
+
+# 3D asset forge: rendered evidence and exported GLBs are build products. The
+# committed record is tools/asset-forge/results.json plus review/ contact sheets.
+tools/asset-forge/build/
+
+# Agent/sandbox configuration, never part of the branch
+.claude/

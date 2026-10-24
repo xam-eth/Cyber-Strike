@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Read-only preflight for Project Overdrive development tools.
+# Read-only preflight for Exocomplict development tools.
 # Does not install tools, write project files, or change tool versions.
 set -uo pipefail
 
@@ -22,7 +22,7 @@ find_command() {
   return 1
 }
 
-printf 'Project Overdrive toolchain preflight\n'
+printf 'Exocomplict toolchain preflight\n'
 printf 'Repository: %s\n\n' "$ROOT_DIR"
 
 # Version control is required for every phase.

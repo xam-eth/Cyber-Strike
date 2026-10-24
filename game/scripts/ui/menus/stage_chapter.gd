@@ -1,4 +1,4 @@
-## CHAPTER 01 title card between the cinematic and the dashboard.
+## CHAPTER 01 title card between LOADING and the dashboard.
 ##
 ## Deliberately small: it names the chapter and the objective the run actually
 ## measures, then gets out of the way. It advances on CONTINUE or on any tap
@@ -18,7 +18,7 @@ var _material := 0.0
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
-	add_child(make_backdrop("res://assets/ui/world_neon_frontier.jpg"))
+	add_child(make_backdrop("res://assets/ui/world_frostline_relay.jpg"))
 
 	var scrim := ColorRect.new()
 	scrim.color = Color(AegisTokens.VOID, 0.5)
@@ -43,7 +43,7 @@ func _ready() -> void:
 	centre.add_child(_card)
 
 	_column = VBoxContainer.new()
-	physical_separation(_column, 12)
+	physical_separation(_column, 16)
 	_card.add_child(_column)
 
 	_column.add_child(_line(CHAPTER, "label", AegisTokens.ACCENT))
@@ -55,7 +55,7 @@ func _ready() -> void:
 	_column.add_child(detail)
 
 	var button := make_button("CONTINUE", "primary", "Continue to the dashboard")
-	physical_min_size(button, 220.0, 56.0)
+	physical_min_size(button, 280.0, AegisTokens.MIN_TOUCH_PX)
 	button.pressed.connect(_on_continue_pressed)
 	_column.add_child(button)
 	_connect_resized(_on_resized)

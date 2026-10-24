@@ -9,7 +9,9 @@ extends Node3D
 ## drive from the keyboard, and that the browser QA script drives with real key
 ## events so the screenshots are of the shipped build.
 ##
-##   F10        toggle the review camera (simulation pauses while touring)
+##   F10 / P    toggle the review camera (simulation pauses while touring).
+##              F10 is reserved by browsers and never reaches the page, so the
+##              browser QA drives P; both are bound to the same action.
 ##   1 – 8      jump to a vantage point
 ##   F9         hide/show only imported FBX visuals during tour; in the normal
 ##              player camera too, but ONLY with ?qa_fbx=1 on the Web preview
@@ -22,12 +24,16 @@ extends Node3D
 ## It is deliberately not part of the HUD: no touch player will ever press F10,
 ## and nothing in the combat code reads it.
 
-const VANTAGES := [
+const FRONTIER_VANTAGES := [
 	{
+		# Raised and pulled back off the 42 m deck: at (-27, 14, 27) the pale
+		# perimeter structure crossed the bottom third of the frame and the
+		# hazard disc filled the centre, so the vantage meant to review the
+		# arena was framed through it (docs/DECISIONS.md §5).
 		"name": "arena",
-		"from": Vector3(-27.0, 14.0, 27.0),
-		"at": Vector3(0.0, 1.0, -2.0),
-		"fov": 60.0,
+		"from": Vector3(-44.0, 30.0, 44.0),
+		"at": Vector3(0.0, 0.5, 0.0),
+		"fov": 55.0,
 	},
 	{
 		"name": "outpost",
@@ -70,6 +76,57 @@ const VANTAGES := [
 		"from": Vector3(40.0, 10.0, 30.0),
 		"at": Vector3(86.0, 4.0, 18.0),
 		"fov": 58.0,
+	},
+]
+
+## Each theatre is reviewed from its own set. The frontier's vantages are outdoor
+## distances measured in tens of metres; the station is a roofed interior where
+## the same coordinates would be inside a wall.
+const STATION_VANTAGES := [
+	{
+		"name": "dock",
+		"from": Vector3(0.0, 2.6, 15.5),
+		"at": Vector3(0.0, 2.2, 0.0),
+		"fov": 72.0,
+	},
+	{
+		"name": "hall",
+		"from": Vector3(-14.5, 3.2, 13.0),
+		"at": Vector3(8.0, 2.0, -9.0),
+		"fov": 68.0,
+	},
+	{
+		"name": "reactor",
+		"from": Vector3(0.0, 2.8, -21.5),
+		"at": Vector3(0.0, 2.6, -36.0),
+		"fov": 70.0,
+	},
+	{
+		# Standing a metre inside the doorway put the room's own wall across half
+		# the frame; the cargo bay reads from its middle.
+		"name": "cargo",
+		"from": Vector3(-22.0, 2.7, 1.0),
+		"at": Vector3(-34.0, 1.0, 1.5),
+		"fov": 72.0,
+	},
+	{
+		# A door's width into the corridor is 8 m of wall either side of the lens,
+		# so the old vantage photographed two wall faces and a slit of corridor.
+		# From 6 m in, the corridor is a corridor.
+		"name": "corridor",
+		"from": Vector3(26.0, 2.4, 0.0),
+		"at": Vector3(43.0, 2.0, 0.0),
+		"fov": 66.0,
+	},
+	{
+		# From the deck under the open roof, looking up at the east catwalk. A lens
+		# near roof height sits inside the run of ceiling lamps and photographs the
+		# light fittings rather than the walk; from head height it reads as a
+		# structure over the room.
+		"name": "catwalk",
+		"from": Vector3(-2.0, 2.0, 11.0),
+		"at": Vector3(15.5, 3.6, -4.0),
+		"fov": 76.0,
 	},
 ]
 
@@ -117,8 +174,15 @@ func is_active() -> bool:
 	return _active
 
 
+func _vantages() -> Array:
+	return (
+		STATION_VANTAGES if WorldSelection.selected() == &"vanguard_station" else FRONTIER_VANTAGES
+	)
+
+
 func vantage_name() -> String:
-	return VANTAGES[_vantage]["name"]
+	var list := _vantages()
+	return list[clampi(_vantage, 0, list.size() - 1)]["name"]
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -149,7 +213,14 @@ func _unhandled_input(event: InputEvent) -> void:
 			print("Shot QA: %s next real shot" % ("armed" if _freeze_next_shot else "disarmed"))
 		get_viewport().set_input_as_handled()
 		return
-	if key == KEY_F10:
+	# P is an alias for F10 on purpose. In a browser, F10 is a reserved key:
+	# Chromium swallows it before the page sees it, so the review camera could
+	# not be engaged from tools/web_qa.mjs at all — the eight "tour" frames were
+	# the live game, and the check that compared them reported a pass because
+	# they differed, not because the camera moved (docs/DECISIONS.md
+	# §12.3, the same defect one layer deeper). P is also the key to use on a
+	# laptop where F10 is a system volume/mute key.
+	if key == KEY_F10 or key == KEY_P:
 		if _shot_frozen or _reload_frozen:
 			_shot_frozen = false
 			_reload_frozen = false
@@ -171,7 +242,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not _active:
 		return
 	if key >= KEY_1 and key <= KEY_8:
-		_vantage = key - KEY_1
+		_vantage = mini(key - KEY_1, _vantages().size() - 1)
 		_apply()
 		get_viewport().set_input_as_handled()
 	elif key == KEY_ESCAPE or key == KEY_0:
@@ -238,6 +309,23 @@ func _set_active(value: bool) -> void:
 		_set_uploaded_fbx_visible(true)
 	_active = value
 	_camera.current = value
+	# Printed so a browser run can prove the rig was left, not only entered: a
+	# tour that is never released keeps the simulation paused, and the play pass
+	# that follows then fails to fire for a reason that looks like a combat bug
+	# (tools/web_qa.mjs asserts on this line).
+	print(
+		(
+			"World tour: %s · %s"
+			% [
+				(
+					"review camera engaged, simulation paused"
+					if value
+					else "review camera released, gameplay resumed"
+				),
+				vantage_name() if value else "player camera",
+			]
+		)
+	)
 	# Freeze the simulation while reviewing. Without this the enemies keep
 	# shooting the idle player and the run-results panel lands on top of the
 	# district you are trying to look at.
@@ -274,7 +362,8 @@ func _all_cameras(node: Node) -> Array[Camera3D]:
 
 
 func _apply() -> void:
-	var vantage: Dictionary = VANTAGES[_vantage]
+	var list := _vantages()
+	var vantage: Dictionary = list[clampi(_vantage, 0, list.size() - 1)]
 	_camera.fov = float(vantage["fov"])
 	_camera.global_position = vantage["from"]
 	_camera.look_at(vantage["at"], Vector3.UP)

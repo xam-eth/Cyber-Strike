@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Static structural validation for the Project Overdrive Godot project.
+"""Static structural validation for the Exocomplict Godot project.
 
 This tool inspects the project *without* running Godot. It is not a replacement
 for the headless import and the smoke tests; it catches broken references,
@@ -106,7 +106,7 @@ class Report:
         by_check: dict[str, list[Issue]] = {}
         for issue in self.issues:
             by_check.setdefault(issue.check, []).append(issue)
-        lines.append("Project Overdrive — static project doctor")
+        lines.append("Exocomplict — static project doctor")
         lines.append("")
         for check_name, issues in by_check.items():
             flagged = [i for i in issues if i.level != PASS]
@@ -993,6 +993,31 @@ def check_web_preview(report: Report, root: Path, game_root: Path) -> None:
         if "new Engine(" not in text:
             report.fail(check, "web shell does not construct the Godot Engine object", str(shell.relative_to(root)))
             problems += 1
+        # The first thing a player sees must not name the runtime or the build.
+        # Measured twice: the shell's title bar read "Exocomplict - Web Preview"
+        # and its chrome carried a "Single-thread WebGL 2 build" chip (DECISIONS
+        # 17). The title is the only string the browser draws before any of our
+        # pixels exist, so it is checked by value rather than by keyword.
+        title = re.search(r"<title>(.*?)</title>", text, re.S)
+        if title is None:
+            report.fail(check, "web shell has no <title> element", str(shell.relative_to(root)))
+            problems += 1
+        elif title.group(1).strip() != "$GODOT_PROJECT_NAME":
+            report.fail(
+                check,
+                'web shell title must be exactly "$GODOT_PROJECT_NAME"; it reads '
+                f'"{title.group(1).strip()}" (no "Web Preview", no engine name)',
+                str(shell.relative_to(root)),
+            )
+            problems += 1
+        for word in ("Web Preview", "WebAssembly", "WebGL 2 build"):
+            if word in text:
+                report.fail(
+                    check,
+                    f'web shell still carries the words "{word}"; the launch frame names nothing but the product',
+                    str(shell.relative_to(root)),
+                )
+                problems += 1
 
     project_file = game_root / "project.godot"
     if project_file.exists() and 'rendering_method.web="gl_compatibility"' not in project_file.read_text(encoding="utf-8"):
@@ -1013,6 +1038,11 @@ def check_web_preview(report: Report, root: Path, game_root: Path) -> None:
         # Each of these encodes a failure that was observed for real in a browser.
         for needle, why in (
             ("./web/index.html", "must read the export config from ./web/index.html"),
+            (
+                "<title>Exocomplict</title>",
+                "must title the page with the product and nothing else; a title naming the "
+                "runtime or the preview is the first thing a player reads (DECISIONS 17)",
+            ),
             (
                 '<script src="./web/index.js"',
                 "must load the engine through a static script tag; the engine derives its asset directory "

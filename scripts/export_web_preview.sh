@@ -72,7 +72,7 @@ fi
 # --------------------------------------------------------------------------- #
 # Preset
 # --------------------------------------------------------------------------- #
-printf 'Project Overdrive — Web preview export\n\n'
+printf 'Exocomplict — Web preview export\n\n'
 printf '[1/5] Writing the local Web export preset (git-ignored export_presets.cfg)...\n'
 if ! "$PYTHON_BIN" "$ROOT_DIR/tools/web_preset.py" ensure --repo-root "$ROOT_DIR" \
   --preset-file "$GAME_DIR/export_presets.cfg" --preset-name "$PRESET_NAME" --export-path "$OUTPUT_DIR/index.html"; then

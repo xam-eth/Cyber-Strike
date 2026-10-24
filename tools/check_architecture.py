@@ -5,7 +5,7 @@ A folder tree is a suggestion; this is the part that actually holds. Every
 source on modular game architecture says the same thing: the layout only pays
 off when something *enforces* it, because otherwise the first deadline adds a
 `content/weapon -> ui/hud` import and the boundary is gone
-(docs/STRUCTURE_PLAN.md §1).
+(docs/ARCHITECTURE.md §1).
 
 The project is currently in phase 0: the tree is still the old type-based one,
 so paths are mapped onto the target layers here (see PATH_LAYERS). The mapping
@@ -31,7 +31,7 @@ Two extra rules that matter here specifically:
 Comments and string literals are stripped before scanning. That is not
 cosmetic: a naive scan of this repository reports 11 dependency cycles that do
 not exist, all of them class names mentioned inside `##` doc comments
-(docs/AUDIT_2026-10-21.md §6).
+(docs/DECISIONS.md §6).
 
 Usage:
     check_architecture.py                 # report (exit 0)

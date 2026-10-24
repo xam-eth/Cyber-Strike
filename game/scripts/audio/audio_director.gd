@@ -20,6 +20,9 @@ const ProceduralSfxScript = preload("res://scripts/audio/procedural_sfx.gd")
 const PREFERENCE_PATH := "user://audio.cfg"
 const PREFERENCE_SECTION := "audio"
 const PREFERENCE_KEY := "muted"
+## Every synthesised weapon sound starts with this: shot_pulse_rifle,
+## shot_nova_launcher, shot_arc_shooter (game/scripts/audio/procedural_sfx.gd).
+const SHOT_PREFIX := "shot_"
 
 const POOL_3D_SIZE := 12
 const POOL_UI_SIZE := 4
@@ -40,6 +43,7 @@ var _pool_ui: Array[AudioStreamPlayer] = []
 var _next_3d: int = 0
 var _next_ui: int = 0
 var _muted: bool = false
+var _first_shot_reported: bool = false
 var _played: int = 0
 var _boot_ms: int = 0
 var _last_played_ms: Dictionary = {}
@@ -190,6 +194,12 @@ func _ensure_streams() -> void:
 
 ## Counts a voice and logs the first one: "audio works" must be visible in a
 ## log, not only audible, because the browser QA run has no ears.
+##
+## The first *weapon* voice is logged separately on purpose. The first voice of
+## a session is usually a menu or session sound, so a browser check asking "did
+## the gun make a noise" against the first-voice line could never pass — it was
+## reporting a failure while the magazine was visibly down one round. This line
+## says what actually happened, once, and stays quiet afterwards.
 func _note_played(sound_id: StringName) -> void:
 	_played += 1
 	if _played == 1:
@@ -199,6 +209,9 @@ func _note_played(sound_id: StringName) -> void:
 				% [sound_id, Time.get_ticks_msec() - _boot_ms]
 			)
 		)
+	if not _first_shot_reported and String(sound_id).begins_with(SHOT_PREFIX):
+		_first_shot_reported = true
+		print("Audio: first weapon voice played (%s)" % sound_id)
 
 
 ## True when the sound may play now; records the play otherwise.

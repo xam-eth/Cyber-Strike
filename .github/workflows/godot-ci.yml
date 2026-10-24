@@ -191,7 +191,7 @@ jobs:
           mkdir -p exports/web-preview
           cp -R web exports/web-preview/web
           python3 -c 'import pathlib; pathlib.Path("exports/web-preview/README.txt").write_text(
-            "Project Overdrive — WebAssembly preview build\n"
+            "Exocomplict — WebAssembly preview build\n"
             "=============================================\n\n"
             "How to run:\n"
             "  1. Extract this archive into the repository root so that the folder 'web/' appears.\n"
@@ -430,7 +430,7 @@ jobs:
       - name: Write the manifest
         run: |
           mkdir -p docs
-          out=docs/LFS_ASSET_MANIFEST.md
+          out=docs/ARCHITECTURE.md
           {
             echo "# Manifest of \`3DScifiStarterKitFree.zip\`"
             echo
@@ -490,7 +490,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/LFS_ASSET_MANIFEST.md
+          git add docs/ARCHITECTURE.md
           if git diff --cached --quiet; then
             echo "Manifest unchanged."
             exit 0
@@ -675,6 +675,113 @@ jobs:
             -m 'Includes the .blend source and exported clips. Headless Godot smoke checks ran; human motion review remains open.'
           for attempt in 1 2 3; do
             if git pull --rebase --autostash origin "$GITHUB_REF_NAME" && git push origin "HEAD:$GITHUB_REF_NAME"; then
+              exit 0
+            fi
+            sleep 5
+          done
+          exit 1
+
+  # The asset forge exports 36 GLBs and proves them spec-valid with the Khronos
+  # validator, but only an engine can say whether Godot imports them. This job
+  # runs the real importer and the forge's own verifier, then commits the
+  # machine-readable report back to the branch — the same way the lfs-convert and
+  # hero-blender jobs return their results, because the artifact/log hosts are not
+  # reachable from the development sandbox.
+  #
+  # Trigger: commit-message marker `[forge-verify]` (workflow_dispatch does not
+  # fire for workflows that only exist on a side branch).
+  forge-verify:
+    name: Verify forged GLBs import in Godot
+    if: >-
+      github.event_name == 'push' &&
+      contains(github.event.head_commit.message, '[forge-verify]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install runtime libraries for Godot
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libgl1 libxi6 libxcursor1 libxinerama1 libxrandr2 libxkbcommon0 || \
+            echo "Some optional libraries were unavailable; continuing."
+
+      - name: Install pinned Godot editor
+        run: |
+          ./scripts/install_godot.sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Report engine version
+        run: godot --version
+
+      - name: Confirm the staged assets are present
+        run: |
+          count=$(find game/assets/forge -name '*.glb' | wc -l | tr -d ' ')
+          echo "staged GLBs: $count"
+          if [[ "$count" -lt 1 ]]; then
+            echo "::error title=No staged assets::run node tools/asset-forge/gate/stage_worlds_into_game.mjs"
+            exit 1
+          fi
+          test -f game/assets/forge/forge_manifest.json
+
+      - name: Import the project (headless)
+        run: |
+          mkdir -p exports
+          godot --headless --path game --import 2>&1 | tee exports/forge-import.log | tail -30 || true
+          # A GLB that fails to import leaves no .import file behind.
+          missing=0
+          while IFS= read -r glb; do
+            if [[ ! -f "${glb}.import" ]]; then
+              echo "::error title=GLB did not import::$glb has no .import file"
+              missing=$((missing + 1))
+            fi
+          done < <(find game/assets/forge -name '*.glb')
+          echo "GLBs without .import: $missing"
+
+      - name: Verify every forged asset in the engine
+        run: |
+          cp tools/asset-forge/godot/verify_import.gd game/verify_import.gd
+          mkdir -p qa-evidence/forge
+          set +e
+          FORGE_REPORT="$PWD/qa-evidence/forge/import-report.json" \
+            godot --headless --path game --script res://verify_import.gd 2>&1 | tee exports/forge-verify.log
+          status=${PIPESTATUS[0]}
+          set -e
+          if [[ -f qa-evidence/forge/import-report.json ]]; then
+            python3 - <<'PY'
+          import json, pathlib
+          report = json.loads(pathlib.Path("qa-evidence/forge/import-report.json").read_text())
+          print(f"checked {report['checked']} · passed {report['passed']} · failed {report['failed']}")
+          for row in report["rows"]:
+              mark = "PASS" if row["ok"] else "FAIL"
+              print(f'{mark} {row["id"]:<26} {row.get("height_m", 0):6.3f} m  '
+                    f'clips {len(row.get("clips", []))}  sockets {len(row.get("sockets", []))}')
+          for problem in report["failures"][:12]:
+              print(f'::error title=Forge verify::{problem[:400]}')
+          print('::notice title=Forge verify (' + report['godot'] + ')::'
+                + f'{report["passed"]}/{report["checked"]} assets imported and matched the manifest')
+          PY
+          fi
+          exit "$status"
+
+      - name: Commit the report
+        if: always()
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add qa-evidence/forge exports/forge-verify.log 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "Nothing to commit."
+            exit 0
+          fi
+          git commit -m "Record the in-engine forge import report [skip ci]"
+          for attempt in 1 2 3; do
+            if git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}"; then
               exit 0
             fi
             sleep 5

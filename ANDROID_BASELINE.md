@@ -1,4 +1,4 @@
-# Project Overdrive — Android Baseline Runbook (Gate E)
+# Exocomplict — Android Baseline Runbook (Gate E)
 
 > **Tujuan:** membuat build Android debug yang benar-benar terpasang dan berjalan di perangkat, lalu mengukur performa serta kontrol sentuh sesuai `DEVELOPMENT_ROADMAP.md` (Phase 0 dan Phase 6, gate E).
 >
@@ -14,7 +14,7 @@ Gate E dianggap lulus jika **semua** poin ini ada buktinya:
 
 1. `./scripts/check_toolchain.sh` melaporkan **0 FAIL** (Godot Editor, Java/JDK, Android SDK).
 2. `python3 tools/android_preset.py check` melaporkan **0 FAIL** pada preset `Android`.
-3. `./scripts/export_android_debug.sh` menghasilkan `exports/project-overdrive-debug.apk` dan seluruh 9 smoke test lulus pada langkah itu.
+3. `./scripts/export_android_debug.sh` menghasilkan `exports/exocomplict-debug.apk` dan seluruh 9 smoke test lulus pada langkah itu.
 4. APK terpasang dan dapat dijalankan di minimal satu perangkat Android nyata (`adb install` sukses, aplikasi masuk ke arena).
 5. Kontrol sentuh terverifikasi manual: joystick kiri menggerakkan, drag kanan mengubah kamera, FIRE/WEAPON/EMP/PAUSE merespons, orientasi landscape, tidak ada tombol yang tertutup area sistem.
 6. Pause/resume, kehilangan fokus (home), dan kembali ke aplikasi tidak merusak sesi; RETRY setelah defeat bekerja.
@@ -51,7 +51,7 @@ godot --version                            # harus 4.7.2.stable.*
 ./scripts/setup_android_sdk.sh --guide              # instruksi manual per OS
 ./scripts/setup_android_sdk.sh                      # deteksi + tulis android-env.sh
 ./scripts/setup_android_sdk.sh --install-packages    # pasang paket SDK via sdkmanager
-source "$HOME/.local/share/project-overdrive/android-env.sh"
+source "$HOME/.local/share/exocomplict/android-env.sh"
 ./scripts/check_toolchain.sh                        # target: 0 FAIL
 ```
 
@@ -67,13 +67,13 @@ Setelah SDK siap, arahkan Godot ke toolchain **satu kali** melalui GUI:
 ```bash
 # 1) Preset dari nol (CLI-only). Ganti package id — Google Play menolak com.example.*
 python3 tools/android_preset.py scaffold \
-  --package-id com.studioanda.projectoverdrive \
-  --app-name "Project Overdrive" \
+  --package-id com.studioanda.exocomplict \
+  --app-name "Exocomplict" \
   --version-code 1 --version-name 0.1.0 \
   --arch arm64-v8a
 
 # 2) Atau, jika preset sudah dibuat lewat Editor: sinkronkan nilainya (aman, ada backup)
-python3 tools/android_preset.py patch --package-id com.studioanda.projectoverdrive
+python3 tools/android_preset.py patch --package-id com.studioanda.exocomplict
 
 # 3) Validasi
 python3 tools/android_preset.py check
@@ -88,13 +88,13 @@ Catatan penting tentang `scaffold`: berkas yang dihasilkan memakai set option ya
 ./scripts/export_android_debug.sh
 ```
 
-Skrip ini: menjalankan `check_toolchain.sh` → import Editor headless → menjalankan seluruh `tests/*_smoke.gd` → `--export-debug "Android" exports/project-overdrive-debug.apk` → memeriksa arsip APK. Override dengan `ANDROID_EXPORT_PRESET`, `ANDROID_APK_PATH`, `GODOT_BIN`.
+Skrip ini: menjalankan `check_toolchain.sh` → import Editor headless → menjalankan seluruh `tests/*_smoke.gd` → `--export-debug "Android" exports/exocomplict-debug.apk` → memeriksa arsip APK. Override dengan `ANDROID_EXPORT_PRESET`, `ANDROID_APK_PATH`, `GODOT_BIN`.
 
 ## 6. Langkah E — Pasang dan uji di perangkat
 
 ```bash
 adb devices                       # pastikan perangkat terdeteksi sebagai "device", bukan "unauthorized"
-adb install -r exports/project-overdrive-debug.apk
+adb install -r exports/exocomplict-debug.apk
 PACKAGE_ID="$(python3 tools/android_preset.py show | sed -n 's/.*package\/unique_name: //p' | head -n1)"
 adb shell monkey -p "$PACKAGE_ID" -c android.intent.category.LAUNCHER 1
 adb logcat -s godot:V            # jalankan di terminal kedua

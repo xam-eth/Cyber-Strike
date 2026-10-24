@@ -100,7 +100,7 @@ and a loading-animation sprite sheet.
 
 **They are not the game's 3D representation.** The playable hero is the skinned
 `hero_rig`/`character_visual` model measured in
-`docs/asset-inspections/HERO_VISIBILITY_QA_2026-10-20.md`; the playable weapons
+`docs/DECISIONS.md`; the playable weapons
 are the ones attached in `weapon_controller.gd`. No portrait in this document
 shows the in-game model, and no model was changed to match a portrait. Where a
 portrait and the rig disagree, the rig is right and the portrait is decoration.
@@ -125,18 +125,19 @@ Step by step:
    This is what turns a 1024×1024 wordmark into 1024×256, and it is why the
    weapon plates are not framed by generator padding.
    Images with no flat backdrop (`dashboard_bg`, `hero_portrait`,
-   `loading_keyart`, `world_neon_frontier`) are correctly left alone — the
+   `loading_keyart`, `world_frostline_relay`) are correctly left alone — the
    survey measured their content bbox at ~100% of area.
-2. **Union crop across animation frames** — the robot walk frames carry their
-   subject in only 14–26% of the frame, and the subject bbox drifts across
-   x 483..938 between frames. Cropping each frame to its own content box would
-   make the robot jitter against the background, so one crop is computed from
-   the union of all frames and applied to all of them.
+2. **Luma key to alpha** — the wordmark arrives with the generator's backdrop
+   painted on: a near-black navy plate, which every menu then drew as a black
+   box around the logo. `key_to_alpha` measures that plate's luma from the
+   source's most common colour and gives each pixel an alpha equal to how far
+   it rises above that floor, ramped over 16 levels so the glow keeps a soft
+   edge. A hard threshold was tried first and ate the glyphs' shaded interiors;
+   the ramp does not.
 3. **Resize** — `cover` for full-bleed backdrops, `content_cover` for portrait
-   subjects (crop to the subject bbox first, then cover).
-4. **Sprite sheet** — the four selected walk frames are laid out horizontally
-   into `loading_robot_sheet.png`, 2048×512, 4 frames at 512 px, 8 fps.
-5. **Palette audit** — every output is downsampled and each pixel bucketed by
+   subjects (crop to the subject bbox first, then cover), `contain_alpha` for
+   the keyed wordmark (letterboxed onto transparency, not onto a colour).
+4. **Palette audit** — every output is downsampled and each pixel bucketed by
    HSV. Anything outside the families in §1 is counted. The build reports
    `ok`/`DRIFT` per asset and writes the numbers to
    `game/assets/ui/art_manifest.json`.
@@ -146,10 +147,11 @@ Step by step:
 * `DRIFT` above **8%** off-palette. Below that the build prints `ok`.
 * The audit is **HSV-only**. It cannot see composition, legibility, silhouette
   or quality. A texture that passes is on-palette, nothing more.
-* **No vision.** Nobody looked at these images in the ordinary sense; the
-  installer has no image display. Every statement about them comes from measured
-  pixel statistics. "The robot walks" is not a claim this pipeline can support —
-  it can only say four frames differ from each other in the union crop region.
+* **The audit is not a review.** It cannot see composition, legibility or
+  quality. As of 2026-10-23 the assets *have* been looked at — the keyed
+  wordmark was composited over three backgrounds and inspected pixel by pixel
+  before it shipped (docs/DECISIONS.md 4) — but the audit itself
+  is still HSV-only, and passing it means "on-palette", nothing more.
 
 ### Output formats
 
@@ -169,78 +171,41 @@ Sizes are the real imported sizes, verified at runtime by
 
 | Key | File | Res | Format | Off-palette | Integration |
 | --- | --- | --- | --- | --- | --- |
-| `wordmark` | `logo_wordmark.png` | 1024×256 | PNG | 1.2% | BOOT, CINEMATIC, CHAPTER, DASHBOARD |
-| `loading_keyart` | `loading_keyart.jpg` | 1920×1080 | JPEG q90 | 0.0% | LOADING, PRELOAD, CINEMATIC |
+| `wordmark` | `logo_wordmark.png` | 1024×256 | PNG **RGBA** | 0.8% | BOOT, CHAPTER, DASHBOARD, LOADING — alpha keyed, no plate |
+| `loading_keyart` | `loading_keyart.jpg` | 1920×1080 | JPEG q90 | 0.0% | LOADING, PRELOAD |
 | `dashboard_bg` | `dashboard_bg.jpg` | 1920×1080 | JPEG q90 | 0.2% | DASHBOARD, HERO, WEAPON |
 | `hero_portrait` | `portrait_hero.png` | 768×1024 | PNG | 0.2% | HERO selection card |
-| `world_neon_frontier` | `world_neon_frontier.jpg` | 1600×900 | JPEG q90 | 0.0% | CHAPTER, WORLD selection |
+| `world_frostline_relay` | `world_frostline_relay.jpg` | 1600×900 | JPEG q90 | 0.0% | CHAPTER, WORLD selection |
+| `world_verdant_bloom` | `world_verdant_bloom.jpg` | 1600×900 | JPEG q90 | 5.3% | WORLD selection |
+| `world_emberfall_foundry` | `world_emberfall_foundry.jpg` | 1600×900 | JPEG q90 | 0.0% | WORLD selection |
 | `weapon_pulse_rifle` | `weapon_pulse_rifle.png` | 768×512 | PNG | 0.0% | WEAPON selection card |
 | `weapon_nova_launcher` | `weapon_nova_launcher.png` | 768×512 | PNG | 1.3% | WEAPON selection card |
 | `weapon_arc_shooter` | `weapon_arc_shooter.png` | 768×512 | PNG | 0.1% | WEAPON selection card |
-| `loading_robot` | `loading_robot_sheet.png` | 2048×512 | PNG | 0.0% | LOADING, PRELOAD (4-frame sheet, 8 fps) |
 
 Every texture is loaded through `MenuStage.try_texture()`, which returns null
 for a missing file instead of crashing, so a lost plate is a visual regression
-rather than a boot failure. `tests/ui_art_smoke.gd` loads all nine at
-runtime and compares the size the engine reports against this table.
+rather than a boot failure. `tests/ui_art_smoke.gd` loads all eight at
+runtime, compares the size the engine reports against this table, and — for the
+wordmark — asserts the alpha channel exists and its corners are transparent, so
+a future build that lost the key fails the suite instead of quietly shipping a
+black box again.
 
-Total on disk: **5.3 MB**. Sources in `generated/` are kept (22 MB) so the build
+Total on disk: **4.5 MB**. Sources in `generated/` are kept (16 MB) so the build
 is reproducible; without them `build_ui_art.py` cannot run.
 
 ## 6b. Video
 
-`tools/art/build_ui_video.py` renders and encodes the two video assets. It needs
-an ffmpeg with `libtheora`; it looks at `$FFMPEG`, then `PATH`, then the
-`imageio-ffmpeg` wheel, and **fails loudly** if none of them can encode Theora.
-It renders deterministic frames with Pillow and hands them to ffmpeg, so the
-same sources produce the same video.
+**The project ships no video.** The studio ident (`branding_studio_present.mp4`
+and its Theora transcode `studio_ident.ogv`) was removed on 2026-10-24 on the
+owner's instruction, together with `stage_studio_ident.gd`,
+`tools/art/build_ui_video.py`, `video_manifest.json` and
+`tests/video_asset_smoke.gd` (docs/DECISIONS.md 28). There is nothing to encode,
+nothing to audit and no aspect rule left to keep.
 
-| Key | File | Res | FPS | Length | Size | Off-palette | Integration |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| Asset C — loading robot | `loading_robot.ogv` | 512×512 | 8 | 0.5 s (loops) | 63 kB | 0.1 % | LOADING, PRELOAD — the sprite sheet is the fallback |
-| Asset F — cinematic opening | `cinematic_opening.ogv` | 1280×720 | 24 | 9.58 s | 1.6 MB | 0.0 % | CINEMATIC — the composed in-engine opening is the fallback |
-
-Container is **OGV (Theora + Vorbis)**, which is what Godot 4.7.2 can play:
-`modules/theora` ships `ResourceFormatLoaderTheora`, which claims `.ogv` on every
-platform it builds for, web included. Both videos carry a silent Vorbis track
-because the playback implementation seeks by audio granule position when a
-stream has one.
-
-Two rules the encoder keeps:
-
-* **Asset C is the sprite sheet's animation, not a second one.** Same four
-  generated frames, same union crop, same scale, same 8 fps, same 512 px cell —
-  the sheet and the video are one walk cycle in two containers.
-* **Asset F carries no baked-in text.** 9.58 s, the same beat the in-engine
-  cinematic runs (4 × 2.4 s), a push-in from 1.00 to 1.18 with a vignette and a
-  fade at each end — and no captions, because the stage overlays them as UI text
-  and text in pixels cannot be localised (§2).
-
-Sampled frames of both are audited with the same `audit()` the textures use. The
-palette audit is HSV-only and says nothing about motion, timing or quality, and
-nobody has *watched* these videos in this environment.
-
-### Previously not delivered — now delivered
-
-| Asset | Was | Now |
-| --- | --- | --- |
-| Asset C — loading robot video | **NOT DELIVERED** — no encoder (`ffmpeg`/`ffprobe` absent, Debian mirrors unreachable); a 4-frame sprite sheet shipped instead | **DELIVERED** as `loading_robot.ogv`, integrated, with the sheet kept as the fallback |
-| Asset F — cinematic opening video | **BLOCKED** — same, and the opening cinematic needed a real encode before it could be integrated | **DELIVERED** as `cinematic_opening.ogv`, integrated, with the composed in-engine opening kept as the fallback |
-
-### The aspect rule for `VideoStreamPlayer`
-
-`expand = true` stretches the decoded frame to whatever rect the control has, so
-the rect has to carry the video's own aspect. Both players are sized to *cover*
-their parent and centred, with the parent clipping the overflow
-(`stage_cinematic.gd::_layout_video`, `stage_loading.gd` via
-`SIZE_SHRINK_CENTER`). What happens without it, measured in a browser build: a
-16:9 opening stretched into 390×844, and a square 512×512 robot drawn 318×160.
-
-Note that `VideoStream` exposes **no** size or length: `get_size()` and
-`get_length()` do not exist on it (`has_method` is false on `VideoStreamTheora`),
-and `VideoStreamPlayer.stream_length` reads 0.00 until the decoder opens the
-file. Sizes come from `get_video_texture().get_size()` after the first decoded
-frame; lengths are adopted from `get_stream_length()` once it is non-zero.
+If a film is ever added back, the rule it has to satisfy is unchanged:
+`expand = true` on a `VideoStreamPlayer` stretches the decoded frame to whatever
+rect the control has, so the rect must carry the video's own aspect and the fit
+is `contain` (`min(size/frame)`, centred), never `cover`.
 
 ---
 
@@ -251,10 +216,6 @@ frame; lengths are adopted from `get_stream_length()` once it is non-zero.
 | Palette audit | `python3 tools/art/build_ui_art.py --check` | 9/9 within palette |
 | Textures load in-engine at documented size | `godot --headless --path game --script res://tests/ui_art_smoke.gd` | see §7 note |
 | Not flat rectangles | same | luma spread > 40/255 required |
-| Videos load in-engine at documented size and length | `godot --headless --path game --script res://tests/video_asset_smoke.gd` | 2/2, sizes and lengths match `video_manifest.json` |
-| Video audit only | `python3 tools/art/build_ui_video.py --check` | 2/2 within palette |
-| Video plays in a browser build | `node tools/qa_avatar_shot.mjs --serve <exported web build> --page "/index.html?qa_stage=CINEMATIC&qa_menu=1"` | log `stream at 2.02 s of 9.58 s`; 89.8 % of pixels change across 3 frames 2 s apart |
-| Video is not stretched on screen | same, with `?qa_menu=1` | `OpeningVideo=-555,0,1500x844` at 390×844, `0,-42,844x475` at 844×390, `RobotVideo=115,590,160x160` — cover rects at the video's own aspect |
 
 §7 note: the runtime test is the one that matters. A file can be on disk, listed
 in this document, and still 404 in an export because it was never imported.

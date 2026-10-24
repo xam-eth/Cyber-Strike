@@ -3,10 +3,10 @@ extends SceneTree
 ## Proof that the front-end journey actually runs, in order, end to end.
 ##
 ## A menu tree can be authored, committed and still be unreachable: a stage that
-## is never instantiated, a `completed` signal nobody wired, a cinematic that
+## is never instantiated, a `completed` signal nobody wired, a chapter card that
 ## replays forever because the flag is never written. This test instantiates the
-## real `front_end.tscn`, walks BOOT -> LOADING -> CINEMATIC -> CHAPTER ->
-## DASHBOARD -> HERO -> WEAPON -> WORLD and asserts, at each stop:
+## real `front_end.tscn`, walks BOOT -> LOADING -> CHAPTER ->
+## DASHBOARD -> HERO -> WORLD and asserts, at each stop:
 ##
 ##   * the stage exists, is visible, and is the one the journey asked for;
 ##   * no enabled button is inert -- every one has a `pressed` connection;
@@ -17,8 +17,10 @@ extends SceneTree
 ##     definition or scene backs;
 ##   * the loading screens report progress that comes from ResourceLoader, not
 ##     from a timer;
-##   * the cinematic is marked seen once, persisted to a real ConfigFile, and
-##     skipped on a second launch.
+##   * the journey opens on the engine's own load, with no film and no boot
+##     screen carrying engine words in front of it;
+##   * the CHAPTER 01 card is marked seen once, persisted to a real ConfigFile,
+##     and skipped on a second launch.
 ##
 ## It does not judge whether the journey is *pleasant*. It proves the wiring.
 
@@ -38,11 +40,9 @@ const MAX_WAIT_FRAMES := 6000
 ## there is nothing to press while resources are in flight -- so the
 ## "at least one action" half of the rule is skipped for them.
 const INTERACTIVE_STAGES: Array[StringName] = [
-	&"CINEMATIC",
 	&"CHAPTER",
 	&"DASHBOARD",
 	&"HERO",
-	&"WEAPON",
 	&"WORLD",
 ]
 
@@ -67,42 +67,43 @@ func _run_smoke_test() -> void:
 	await process_frame
 	_profile = _front_end.get_node("ProgressionService")
 
+	# The opening is the engine's own load. There is no ident film in front of
+	# it any more (docs/DECISIONS.md 17), so the first frame this test sees has
+	# to be BOOT.
 	_expect(_front_end.get("current_stage_name") == &"BOOT", "the journey starts at BOOT")
+	_check_stage(&"BOOT")
+
 	if not await _walk_to(&"LOADING", "BOOT"):
 		_finish()
 		return
 
 	# LOADING drains its own queue. Waiting on it is the point: it proves the
 	# stage advances because the resources arrived, not because a timer fired.
-	if not await _walk_to(&"CINEMATIC", "LOADING"):
+	if not await _walk_to(&"CHAPTER", "LOADING"):
 		_finish()
 		return
 
 	_expect(
 		not bool(_profile.get("intro_seen")),
-		"the cinematic is not marked seen while it is still playing"
+		"the chapter card is not marked seen while it is still on screen"
 	)
-	_check_stage(&"CINEMATIC")
-
-	_skip_cinematic()
-	await process_frame
 	_check_stage(&"CHAPTER")
 
-	_front_end.go_to(&"DASHBOARD", {})
+	# Clearing the card is what marks the first launch done; FrontEnd owns that
+	# rule, so the test drives the card's own action rather than go_to().
+	_press_continue(&"CHAPTER")
 	await process_frame
 	_check_stage(&"DASHBOARD")
 	_check_dashboard_numbers()
 
+	# The weapon rail lives on HERO now: one page, one loadout -- who you are and
+	# what you carry. `_check_weapon_stats_are_real` walks the registry through
+	# the rail rather than a page of its own.
 	_front_end.go_to(&"HERO", {})
 	await process_frame
 	_check_stage(&"HERO")
+	await _check_weapon_stats_are_real()
 	_check_locked_content_disabled(&"HERO")
-
-	_front_end.go_to(&"WEAPON", {})
-	await process_frame
-	_check_stage(&"WEAPON")
-	_check_weapon_stats_are_real()
-	_check_locked_content_disabled(&"WEAPON")
 
 	_front_end.go_to(&"WORLD", {})
 	await process_frame
@@ -142,19 +143,18 @@ func _walk_to(expected: StringName, from_label: String) -> bool:
 	return false
 
 
-## Presses SKIP, which is both the player's way out and the path that has to
-## mark the intro as seen. Driving this through go_to() would bypass the rule
-## the test exists to check.
-func _skip_cinematic() -> void:
-	var stage := _stage(&"CINEMATIC")
+## Presses a stage's primary action, whatever its copy is.
+func _press_continue(stage_name: StringName) -> void:
+	var stage := _stage(stage_name)
 	if not is_instance_valid(stage):
 		return
 	for child in stage.find_children("*", "Button", true, false):
 		var button := child as Button
-		if button != null and button.text == "SKIP":
-			button.pressed.emit()
-			return
-	_expect(false, "the cinematic exposes a SKIP control")
+		if button == null or button.disabled or button.text.is_empty():
+			continue
+		button.pressed.emit()
+		return
+	_expect(false, "%s exposes a primary action" % stage_name)
 
 
 func _stage(name: StringName) -> Control:
@@ -231,16 +231,73 @@ func _check_dashboard_numbers() -> void:
 	_expect(text.contains("LOADOUT"), "the dashboard shows the loadout it will launch with")
 
 
+## Every weapon prints its own numbers, and prints them *when it is selected*.
+##
+## This used to read one static page of three cards. The screen is a 3D showcase
+## now, so it shows the selected weapon's statistics in one panel; the way to keep
+## the original promise -- no number on screen that the resource does not contain
+## -- is to walk the registry, select each weapon and read the panel back. That is
+## a stronger check than the old one: it fails if the panel stops following the
+## selection, which the card version could not.
 func _check_weapon_stats_are_real() -> void:
-	var stage := _stage(&"WEAPON")
-	var text := _all_label_text(stage)
-	# Straight off the WeaponDefinition resources: 18/34/20 damage at 5.0/0.8/2.0
-	# shots per second. If these drift, the screen is lying about the weapon.
-	for expected in ["DMG 18", "DMG 34", "DMG 20", "RATE 5/s", "MAG 24", "MAG 12", "CHAIN 2"]:
-		_expect(
-			text.contains(expected),
-			"the weapon screen prints the real stat '%s' from the definition" % expected
-		)
+	var stage := _stage(&"HERO")
+	for definition in WeaponDefinition.load_all_definitions():
+		var chip := _weapon_chip(stage, definition.weapon_id)
+		if not _expect(chip != null, "%s: the carousel offers a chip" % definition.weapon_id):
+			continue
+		if chip.disabled:
+			# A weapon the profile has not unlocked cannot be selected, so what
+			# the screen owes the player is its name and its price -- both of
+			# which are the chip's own text now, not a caption under it.
+			var chip_text := _all_label_text(chip)
+			_expect(
+				chip_text.contains(definition.display_name.to_upper()),
+				"%s: the locked chip is still named" % definition.weapon_id
+			)
+			_expect(
+				chip_text.contains("BP"),
+				"%s: the locked chip states its price" % definition.weapon_id
+			)
+			continue
+		chip.pressed.emit()
+		await process_frame
+		await process_frame
+		var shown := _all_label_text(_stage(&"HERO"))
+		# Straight off the WeaponDefinition: 18/34/20 damage at 5.0/0.8/2.0 shots
+		# per second, 24/6/12 rounds. If these drift, the screen is lying.
+		for expected in [
+			"DMG %d" % roundi(definition.damage),
+			"RATE %s/s" % _trim_number(definition.fire_rate),
+			"MAG %d" % definition.magazine_size,
+		]:
+			_expect(
+				shown.contains(expected),
+				(
+					"%s: the selected weapon prints '%s' from the definition"
+					% [definition.weapon_id, expected]
+				)
+			)
+		if definition.chain_count > 0:
+			_expect(
+				shown.contains("CHAIN %d" % definition.chain_count),
+				"%s: the chain property is printed" % definition.weapon_id
+			)
+
+
+func _weapon_chip(stage: Control, weapon_id: StringName) -> Button:
+	for child in stage.find_children("*", "Button", true, false):
+		var button := child as Button
+		if button != null and StringName(str(button.get_meta("weapon_id", ""))) == weapon_id:
+			return button
+	return null
+
+
+## The screen trims trailing zeros; the test has to read the same way.
+func _trim_number(value: float) -> String:
+	var text := "%.2f" % value
+	while text.ends_with("0") and text.contains("."):
+		text = text.substr(0, text.length() - 1)
+	return text.substr(0, text.length() - 1) if text.ends_with(".") else text
 
 
 ## Content the project does not have must be disabled, not merely labelled.
@@ -252,11 +309,10 @@ func _check_locked_content_disabled(name: StringName) -> void:
 		if button != null and button.disabled:
 			disabled += 1
 	_expect(disabled > 0, "%s marks content the project does not ship as disabled" % name)
-	if name != &"WEAPON":
-		_expect(
-			_all_label_text(stage).contains("IN DEVELOPMENT"),
-			"%s labels its placeholder slots IN DEVELOPMENT" % name
-		)
+	_expect(
+		_all_label_text(stage).contains("IN DEVELOPMENT"),
+		"%s labels its placeholder slots IN DEVELOPMENT" % name
+	)
 
 
 ## Pressing LAUNCH must hand PRELOAD a payload naming a scene that exists. The
@@ -320,12 +376,13 @@ func _check_preload_contract() -> void:
 	stage.free()
 
 
-## Second-launch behaviour: the flag written when the cinematic completed has
-## to survive a reload of the profile, and a fresh FrontEnd must skip it.
+## Second-launch behaviour: the flag written when the chapter card was cleared
+## has to survive a reload of the profile, and a fresh FrontEnd must skip the
+## card.
 func _check_intro_persists() -> void:
 	_expect(
 		bool(_profile.get("intro_seen")),
-		"completing the cinematic marks intro_seen on the live profile"
+		"clearing the chapter card marks intro_seen on the live profile"
 	)
 	_expect(
 		FileAccess.file_exists(PROFILE_PATH),
@@ -377,6 +434,12 @@ func _check_saved_weapon_reaches_gameplay() -> void:
 
 func _all_label_text(root_node: Node) -> String:
 	var parts: Array[String] = []
+	# Buttons render their own text. A placeholder drawn as a disabled button
+	# says IN DEVELOPMENT in exactly the place a player reads it.
+	for child in root_node.find_children("*", "BaseButton", true, false):
+		var button := child as BaseButton
+		if button != null and not button.text.is_empty():
+			parts.append(button.text)
 	for child in root_node.find_children("*", "Label", true, false):
 		parts.append((child as Label).text)
 	return "\n".join(parts)

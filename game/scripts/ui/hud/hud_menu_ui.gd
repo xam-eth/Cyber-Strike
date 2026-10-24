@@ -1,7 +1,7 @@
 ## Construction and behaviour of the modal pause, results, settings and help
 ## cards. The TouchControls facade owns their signals and run state; this helper
 ## creates the nodes and drives their visibility, which is what kept ~150 lines
-## of panel bookkeeping inside the facade (docs/STRUCTURE_PLAN.md, phase 1).
+## of panel bookkeeping inside the facade (docs/ARCHITECTURE.md, phase 1).
 class_name HudMenuUi
 extends RefCounted
 

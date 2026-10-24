@@ -1,6 +1,6 @@
 name: Android debug APK
 
-# The device half of the two-path rule in docs/STRUCTURE_PLAN.md §4: the web
+# The device half of the two-path rule in docs/ARCHITECTURE.md §4: the web
 # preview proves a change builds and runs, the APK is what goes on a phone for
 # real visual and frame-rate testing. The web pipeline already exists in
 # godot-ci.yml; this job is the one that was missing.
@@ -83,8 +83,8 @@ jobs:
 
       - name: Check what actually shipped inside the APK
         run: |
-          ls -lh exports/project-overdrive-debug.apk
-          python3 tools/check_payload.py exports/project-overdrive-debug.apk
+          ls -lh exports/exocomplict-debug.apk
+          python3 tools/check_payload.py exports/exocomplict-debug.apk
 
       - name: Report the build
         run: |
@@ -92,7 +92,7 @@ jobs:
             echo "### Android debug APK"
             echo ""
             echo "- preset: Android (arm64-v8a, no Gradle build)"
-            echo "- size: $(du -h exports/project-overdrive-debug.apk | cut -f1)"
+            echo "- size: $(du -h exports/exocomplict-debug.apk | cut -f1)"
             echo "- payload checked: no test or QA code packed (tools/check_payload.py)"
             echo ""
             echo "Packaging only. Install it and measure before making any"
@@ -103,6 +103,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: android-debug-apk
-          path: exports/project-overdrive-debug.apk
+          path: exports/exocomplict-debug.apk
           if-no-files-found: error
           retention-days: 14

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="WorldDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/world_definition.gd" id="1_definition"]
+[ext_resource type="PackedScene" path="res://scenes/worlds/mission_world.tscn" id="2_world"]
+
+[resource]
+script = ExtResource("1_definition")
+world_id = &"emberfall_foundry"
+display_name = "Emberfall Foundry"
+role_description = "An extraction site that never shut down: smelter towers venting over black basalt, ore silos, a magma drill rig, gantry cranes over the yard, slag pools glowing through the ash, and the Cinder Yard plant standing beyond the east wall. Extraction mission — keep the line running and take the ore out."
+world_scene = ExtResource("2_world")
+plate_path = "res://assets/ui/world_emberfall_foundry.jpg"
+status_line = "OPEN"
+zone_title = "EXPLORE THE FOUNDRY"
+zone_subtitle = "SAFE ZONE · LINE RUNNING"
+field_ready = true

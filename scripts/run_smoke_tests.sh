@@ -117,7 +117,7 @@ fi
 
 mkdir -p "$LOG_DIR"
 
-printf 'Project Overdrive — headless smoke test run\n'
+printf 'Exocomplict — headless smoke test run\n'
 printf 'Godot:   %s (%s)\n' "$GODOT_VERSION" "$GODOT"
 printf 'Project: %s\n' "$GAME_DIR"
 printf 'Tests:   %s (outside res://, cannot be exported)\n' "$ROOT_DIR/tests"

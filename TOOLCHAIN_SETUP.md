@@ -1,4 +1,4 @@
-# Project Overdrive — Toolchain & Setup
+# Exocomplict — Toolchain & Setup
 
 > Dokumen pendamping [`DEVELOPMENT_ROADMAP.md`](DEVELOPMENT_ROADMAP.md). Engine baseline sementara dipin ke **Godot 4.7.2-stable** (`.godot-version`); pasang versi tersebut beserta export templates yang cocok sebelum membuka project.
 
@@ -155,7 +155,7 @@ godot --headless --path game --script res://tests/hero_rig_smoke.gd
    ./scripts/export_android_debug.sh
    ```
 
-   Script ekspor melakukan import Editor headless, menjalankan seluruh `*_smoke.gd`, mengekspor preset lokal ke `exports/project-overdrive-debug.apk`, dan memeriksa arsip APK jika `unzip` tersedia. Untuk override: `GODOT_BIN=/path/to/godot ANDROID_EXPORT_PRESET="Android" ANDROID_APK_PATH=exports/test.apk ./scripts/export_android_debug.sh`. Script ini tidak memasang/memperbarui SDK, membuat signing key, men-deploy ke perangkat, atau menyiapkan rilis. Jika editor/template/SDK tidak ada, proses berhenti dengan error.
+   Script ekspor melakukan import Editor headless, menjalankan seluruh `*_smoke.gd`, mengekspor preset lokal ke `exports/exocomplict-debug.apk`, dan memeriksa arsip APK jika `unzip` tersedia. Untuk override: `GODOT_BIN=/path/to/godot ANDROID_EXPORT_PRESET="Android" ANDROID_APK_PATH=exports/test.apk ./scripts/export_android_debug.sh`. Script ini tidak memasang/memperbarui SDK, membuat signing key, men-deploy ke perangkat, atau menyiapkan rilis. Jika editor/template/SDK tidak ada, proses berhenti dengan error.
 
 ### Environment variable (contoh, bukan path universal)
 

@@ -25,7 +25,7 @@ class WebPresetTests(unittest.TestCase):
         shell_dir = self.root / "game" / "web_shell"
         shell_dir.mkdir(parents=True)
         (shell_dir / "index.html").write_text(
-            "<html><body id=\"overdrive-shell\"><canvas id=\"canvas\"></canvas>\n"
+            "<html><body id=\"exocomplict-shell\"><canvas id=\"canvas\"></canvas>\n"
             "$GODOT_PROJECT_NAME $GODOT_URL $GODOT_CONFIG $GODOT_THREADS_ENABLED "
             "$GODOT_HEAD_INCLUDE $GODOT_SPLASH\n</body></html>\n",
             encoding="utf-8",
@@ -108,7 +108,7 @@ def write_build(directory: Path, wasm_size: int = 6 * 1024 * 1024, declared_pck_
     pck_size = (directory / "index.pck").stat().st_size
     real_wasm_size = (directory / "index.wasm").stat().st_size
     (directory / "index.html").write_text(
-        '<html><body id="overdrive-shell"><canvas id="canvas"></canvas>\n'
+        '<html><body id="exocomplict-shell"><canvas id="canvas"></canvas>\n'
         '<script src="index.js"></script>\n'
         "const GODOT_CONFIG = {"
         '"fileSizes":{"index.pck":'
@@ -168,7 +168,7 @@ class VerifyWebBuildTests(unittest.TestCase):
     def test_default_shell_detected(self) -> None:
         write_build(self.build)
         html = (self.build / "index.html").read_text(encoding="utf-8")
-        (self.build / "index.html").write_text(html.replace("overdrive-shell", "godot-default"), encoding="utf-8")
+        (self.build / "index.html").write_text(html.replace("exocomplict-shell", "godot-default"), encoding="utf-8")
         problems, _, _ = verify_web_build.verify(self.build)
         self.assertTrue(any("custom shell was not applied" in problem for problem in problems))
 

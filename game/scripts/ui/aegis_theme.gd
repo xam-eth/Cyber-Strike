@@ -116,6 +116,14 @@ static func icon(icon_name: String, filled: bool = false) -> Texture2D:
 	# source at 256 px instead of rasterizing tiny SVG weapon details at runtime.
 	var extension := "png" if icon_name == "shot-burst" else "svg"
 	var path := "%s/%s/%s.%s" % [ICON_ROOT, folder, icon_name, extension]
+	# Not every glyph ships in both weights: `shield`, `target` and `chart-bar`
+	# are regular-only, and a tab whose icon resolved to null drew as an empty
+	# button -- which is exactly how the lobby's dock looked on a phone.
+	if not ResourceLoader.exists(path):
+		var other := "regular" if filled else "fill"
+		var alternate := "%s/%s/%s.%s" % [ICON_ROOT, other, icon_name, extension]
+		if ResourceLoader.exists(alternate):
+			path = alternate
 	var texture: Texture2D = null
 	if ResourceLoader.exists(path):
 		texture = load(path) as Texture2D
@@ -274,6 +282,17 @@ static func set_button_variant(button: Button, variant: String) -> void:
 			radius = 999.0
 			pad_h = 4.0
 			pad_v = 4.0
+		"card":
+			# For anything tall enough to be a card rather than a chip. `round`
+			# is radius 999, which Godot clamps to half the short side: on a
+			# 400x208 theatre card that is a lozenge with 104 px semicircular
+			# ends, and the plate inside it ended up floating outside the shape
+			# the eye reads as "the card". A card keeps a small radius.
+			fill = Color(AegisTokens.PANEL, 0.86)
+			border = Color(AegisTokens.LINE, 0.95)
+			radius = AegisTokens.RADIUS * 3.0
+			pad_h = 12.0
+			pad_v = 10.0
 		"fire":
 			fill = Color(AegisTokens.ACCENT, 0.94)
 			border = Color(AegisTokens.ACCENT, 1.0)
