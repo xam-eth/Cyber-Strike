@@ -144,12 +144,16 @@ async function runOpeningChecks() {
   // that this page boots through; missing means a 404 the player must be told about.
   markCheck('engine', typeof (window.Engine || window.Godot) === 'function');
 
-  // Line 2: the payload. A HEAD for the pack file is the cheapest honest proof
-  // that this checkout can actually run, and it fails loudly on a fresh clone
-  // before the player commits to a deployment.
+  // Line 2: the payload. The export's own config is a small file that lists the
+  // engine and pack it will load, so reading it is proof this checkout can run —
+  // and it fails loudly on a fresh clone before the player commits to a
+  // deployment. (A HEAD for the pack itself was tempting, but a HEAD against a
+  // static server ends the connection without a body, which browsers report as
+  // an aborted request; the gate would then flag a request that actually worked.)
   try {
-    const response = await fetch('./web/index.pck', { method: 'HEAD', cache: 'no-store' });
-    markCheck('payload', response.ok);
+    const response = await fetch('./web/index.html', { cache: 'no-cache' });
+    const html = response.ok ? await response.text() : '';
+    markCheck('payload', html.includes('"index.pck"') && html.includes('"index.wasm"'));
   } catch {
     markCheck('payload', false);
   }

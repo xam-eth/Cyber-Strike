@@ -184,6 +184,24 @@ async function checkPage(target, viewport) {
   const started = Date.now();
   await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
 
+  // The player front end does not boot the engine on load: it opens on the
+  // opening screen and starts the world when the player deploys. Walk it the way
+  // a player does, so this gate keeps testing the real path instead of an
+  // auto-boot that only exists for tests. Pages without the shell (the raw
+  // /web/ build) skip this.
+  const isFrontEnd = await page.evaluate(() => !!document.getElementById('hub-deploy'));
+  if (isFrontEnd) {
+    await page
+      .waitForFunction(() => {
+        const enter = document.getElementById('opening-enter');
+        return enter && !enter.disabled;
+      }, { timeout: 30000 })
+      .catch(() => {});
+    await page.evaluate(() => document.getElementById('opening-enter')?.click());
+    await page.waitForFunction(() => document.body.dataset.screen === 'hub', { timeout: 15000 }).catch(() => {});
+    await page.evaluate(() => document.getElementById('hub-deploy')?.click());
+  }
+
   let booted = false;
   let version = null;
   while (Date.now() - started < bootTimeoutMs) {
