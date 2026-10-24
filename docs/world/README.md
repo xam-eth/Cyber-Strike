@@ -88,6 +88,12 @@ python3 -m http.server 8080
 # /tools/asset-forge/world.html?world=emberfall
 ```
 
+## The design record
+
+[`CONCEPT.md`](CONCEPT.md) is the world design document: the beats of each world,
+why the light is what it is, and what moves. It is illustrated with the capture
+renders in `docs/world/images/`, so the pictures are of the shipped build.
+
 ## Credits
 
 | Library | Licence | Author |
