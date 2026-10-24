@@ -1,5 +1,7 @@
 # Gameplay Loop Specification
 
+> Pre-integration loop record. World selection and the second playable world are reconciled separately; they do not add a new mode or invent the missing upgrade systems described below.
+
 Date: 2026-10-24  
 Status: implemented-loop record plus explicitly separated proposals  
 Authoritative implementation: `game/scripts/main.gd`, `game/scripts/waves/wave_director.gd`, and the services identified below.

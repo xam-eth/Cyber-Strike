@@ -1,5 +1,7 @@
 # Gameplay Validation Report
 
+> Historical report for checkpoint `ad6a221`, before the World merge and cross-domain reconciliation. Do not use its 24/27 result or old World blocker as the final integration status; use the integration validation report for the final commit and CI run.
+
 Date: 2026-10-24  
 Branch: `arena/0b0dc2fd-cyber-strike`  
 Base: `2bd09b05cd665aa5ac8d877461aa1208d2115aae`  

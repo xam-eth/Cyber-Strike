@@ -20,6 +20,8 @@
  *       # safe Explore + deliberate B + preparation; Defense is NOT claimed
  *   node tools/web_qa.mjs --encounter --explore-wait 8000 --encounter-timeout 600
  *       # strict: await a real Defense transition (software WebGL can be slow)
+ *   node tools/web_qa.mjs --page / --encounter --select-vanguard
+ *       # choose the second theatre, then verify its real gameplay build
  *
  * `--hold` exists because the touch HUD lives inside the WebGL canvas: the AIM
  * button cannot be found with a DOM selector, so its canvas coordinates (read
@@ -84,6 +86,7 @@ const requireDefense = has('--encounter');
 const encounterMode = requireDefense || has('--encounter-prep');
 const encounterTimeoutMs = Math.max(0, Number(flag('--encounter-timeout', '600')) || 0) * 1000;
 const exploreWaitMs = Number(flag('--explore-wait', '8000'));
+const selectVanguard = has('--select-vanguard');
 const port = Number(flag('--port', '8126'));
 
 let chromium;
@@ -350,8 +353,26 @@ async function checkPage(target, viewport) {
       await new Promise((r) => setTimeout(r, 1000));
     }
     if (!reached()) console.log(`  journey: front-end at ${stageLine().trim() || '(no stage yet)'}`);
+    let vanguardSelectionHandled = false;
     for (let press = 0; press < 16 && !reached(); press += 1) {
       const before = stageLine();
+      if (selectVanguard && /stage WORLD/.test(before) && !vanguardSelectionHandled) {
+        // The browser can consume Tab outside the Godot canvas, so keyboard
+        // focus is not a reliable selector here. These canvas-relative points
+        // hit the second theatre pin and LAUNCH in the landscape layout. The
+        // runtime VanguardStation log below, not the click itself, is the pass
+        // condition; a changed layout therefore fails instead of faking a pass.
+        const worldFrame = path.join(outDir, `${slug}-${viewport.spec}-world-select.png`);
+        await page.screenshot({ path: worldFrame });
+        await page.mouse.click(viewport.width * 0.74, viewport.height * 0.915);
+        await new Promise((r) => setTimeout(r, 700));
+        const selectedFrame = path.join(outDir, `${slug}-${viewport.spec}-world-selected.png`);
+        await page.screenshot({ path: selectedFrame });
+        await page.mouse.click(viewport.width * 0.847, viewport.height * 0.795);
+        await new Promise((r) => setTimeout(r, 1000));
+        vanguardSelectionHandled = true;
+        continue;
+      }
       // Enter first: a stage built while the window already had focus owns it.
       await page.keyboard.press('Enter');
       await new Promise((r) => setTimeout(r, 1000));
@@ -374,10 +395,17 @@ async function checkPage(target, viewport) {
     return reached();
   };
 
+  // Reach gameplay before any encounter input or screenshots. Running this
+  // after the encounter block photographed menus and sent B to the front end.
+  let inGameplay = false;
+  if (booted && (tourMode || encounterMode || playSeconds > 0)) {
+    inGameplay = await advanceToGameplay();
+  }
+
   /* ---------- explicit Explore → Preparing → Defense check ---------- */
   const encounterFrames = [];
   let safeBeforeActivation = false;
-  if (booted && encounterMode) {
+  if (booted && encounterMode && inGameplay) {
     await new Promise((r) => setTimeout(r, exploreWaitMs));
     const transitions = consoleLines.filter((line) => line.includes('Encounter:'));
     safeBeforeActivation = transitions.some((line) => line.includes('Explore safe'))
@@ -420,14 +448,9 @@ async function checkPage(target, viewport) {
   // check could never pass, which is worse than no check
   // (docs/DECISIONS.md §12.3, the same defect as the tour
   // photographing the menu).
-  let inGameplay = false;
-  if (booted && (tourMode || encounterMode || playSeconds > 0)) {
-    inGameplay = await advanceToGameplay();
-  }
-
   /* ---------- optional play pass ---------- */
   const frames = [];
-  if (booted && playSeconds > 0 && state.canvasHittable) {
+  if (booted && playSeconds > 0 && inGameplay && state.canvasHittable) {
     const centre = await page.evaluate(() => {
       const canvas = document.querySelector('canvas');
       if (!canvas) return null;
@@ -594,7 +617,14 @@ async function checkPage(target, viewport) {
       consoleLines.some((line) => line.includes('World tour: review camera engaged')),
     ]);
   }
+  if (selectVanguard) {
+    checks.push([
+      'front-end selection built Vanguard Station gameplay',
+      inGameplay && consoleLines.some((line) => line.includes('VanguardStation:')),
+    ]);
+  }
   if (encounterMode) {
+    checks.push(['front-end journey reached gameplay before encounter input', inGameplay]);
     const encounterLines = consoleLines.filter((line) => line.includes('Encounter:'));
     const preparationAt = encounterLines.findIndex((line) => line.includes('Preparing Defense'));
     const defenseAt = encounterLines.findIndex((line) => line.includes('Defense started'));

@@ -1,5 +1,7 @@
 # Gameplay Mechanics Audit
 
+> Historical pre-integration audit. For the later World/Character/UI reconciliation and current evidence, read [`INTEGRATION_BASELINE.md`](INTEGRATION_BASELINE.md) and the integration validation report. Statements here about one world or an unverified vertical slice describe checkpoint `ad6a221`, not the final integrated branch.
+
 Date: 2026-10-24  
 Branch: `arena/0b0dc2fd-cyber-strike`  
 Code checkpoint audited: `ad6a221` (base: `2bd09b0`)  

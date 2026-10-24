@@ -1,5 +1,7 @@
 # Gameplay Content Contracts
 
+> Core-contract record from before cross-domain integration. The integrated branch additionally contains the World registry/build gates and preserves the ten-clip optimized hero; see [`INTEGRATION_BASELINE.md`](INTEGRATION_BASELINE.md) for current ownership and source dispositions.
+
 Date: 2026-10-24  
 Purpose: record the real interfaces between content, combat execution, encounters, feedback, UI, and Integration/Core.
 

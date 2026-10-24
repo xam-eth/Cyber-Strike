@@ -19,10 +19,11 @@
 ##   * what happens next      -- LAUNCH, the amber tile, at the bottom edge on a
 ##     phone and under the copy on a desktop.
 ##
-## One world exists today: `scenes/worlds/neon_frontier.tscn`. The launch
-## payload names `FrontEnd.GAMEPLAY_SCENE` rather than a third copy of the path,
-## and `data_source_smoke.gd` walks the gameplay scene looking for the theatre
-## each pin advertises.
+## Every field-ready registry entry is offered here. The launch payload names
+## `FrontEnd.GAMEPLAY_SCENE` rather than a third copy of the path, and carries
+## the saved world id so `WorldSelection` builds only the chosen theatre.
+## `data_source_smoke.gd` walks the gameplay scene looking for each advertised
+## theatre.
 extends MenuStage
 
 ## The map's pins. A pin is a Button, because that is the control a player
