@@ -135,7 +135,10 @@ const SPACE_6 := 24.0
 const SPACE_7 := 32.0
 const SPACE_8 := 48.0
 
-const RADIUS := 2.0
+## Square. This product has no rounded corner anywhere: a plate is cut at 45
+## degrees (see AegisBezel), and a 2 px round would read as a leftover web
+## component rather than machined hardware.
+const RADIUS := 0.0
 const BRACKET_LENGTH := 10.0
 const BRACKET_INSET := 3.0
 const BRACKET_WIDTH := 1.0

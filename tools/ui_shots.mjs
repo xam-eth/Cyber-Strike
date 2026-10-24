@@ -8,7 +8,7 @@
  *
  * Why: the player front end (ui/) is judged on pixels, not on intent. This walks
  * the real screens in the real Chromium the repo pins, at the two shapes the
- * product must survive — 1280x720 landscape and 390x844 portrait — and writes a
+ * product must survive — 844x390 and 667x375, both held sideways — and writes a
  * manifest with per-frame statistics, so a screen that renders empty is a failed
  * run rather than a file that exists.
  *
@@ -38,7 +38,7 @@ const tag = flag('--tag', 'ui');
 const outDir = path.resolve(ROOT, flag('--out', path.join('qa-evidence', 'ui', tag)));
 const port = Number(flag('--port', '8172'));
 const only = list('--only');
-const viewports = list('--viewport').length ? list('--viewport') : ['844x390', '1280x720'];
+const viewports = list('--viewport').length ? list('--viewport') : ['844x390', '667x375'];
 
 const SCREENS = [
   { id: 'opening', query: '?ui=opening' },
@@ -114,24 +114,58 @@ for (const viewport of viewports) {
 
     const file = path.join(outDir, `${screen.id}-${viewport}.png`);
     await page.screenshot({ path: file });
+    // A frame can look fine in the middle and still be broken at an edge: the
+    // settings drawer used to push its last row 20 px under the bottom of a
+    // 390 px screen, and every statistic above still said "ok". So the tool also
+    // asks the layout, not the pixels, whether anything left the viewport.
+    const overflow = await page.evaluate(() => {
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const active = document.querySelector('.screen[data-active="true"]');
+      const out = [];
+      if (!active) return { out, count: 0 };
+      for (const element of active.querySelectorAll('*')) {
+        const box = element.getBoundingClientRect();
+        if (box.width === 0 && box.height === 0) continue;
+        if (box.bottom > vh + 0.5 || box.right > vw + 0.5 || box.top < -0.5 || box.left < -0.5) {
+          out.push({
+            tag: element.tagName.toLowerCase(),
+            cls: String(element.className || '').slice(0, 48),
+            bottom: Math.round(box.bottom),
+            right: Math.round(box.right),
+            hidden: getComputedStyle(element).visibility !== 'visible',
+          });
+        }
+      }
+      return { out: out.slice(0, 6), count: out.length };
+    });
     const stats = readPng(file);
     // Text-bearing screens are "blank" when nothing was painted: a correctly
     // empty screen would still have its type and hairlines inside this floor.
     const blank = stats.lumaStdDev < 4;
-    if (blank) failures += 1;
+    const spill = overflow.count > 0;
+    if (blank || spill) failures += 1;
     frames.push({
       screen: screen.id,
       viewport,
       file: path.relative(ROOT, file),
       blank,
+      overflow: overflow.out,
       errors: [...errors],
       ...stats,
     });
     console.log(
       `${screen.id.padEnd(9)} ${viewport.padEnd(9)} mean ${stats.lumaMean.toFixed(1).padStart(5)}  sd ${stats.lumaStdDev
         .toFixed(1)
-        .padStart(5)}  colors ${String(stats.uniqueColors).padStart(5)}  ${blank ? 'BLANK' : 'ok'}`,
+        .padStart(5)}  colors ${String(stats.uniqueColors).padStart(5)}  ${
+        blank ? 'BLANK' : spill ? `SPILL ${overflow.count}` : 'ok'
+      }`,
     );
+    if (spill) {
+      for (const item of overflow.out) {
+        console.log(`          ${item.tag}.${item.cls} bottom ${item.bottom} right ${item.right}`);
+      }
+    }
   }
   await page.close();
 }

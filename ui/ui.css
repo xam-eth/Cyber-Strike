@@ -226,13 +226,15 @@ body[data-mode='playing'] #canvas {
   white-space: nowrap;
 }
 
+/* The strip mark is the smallest plate in the product: the same chamfer as the
+   buttons, 3 px at 10 px, with the amber core showing through it. */
 .strip__mark::before {
   content: '';
-  width: 10px;
-  height: 10px;
-  border: 1px solid var(--accent);
-  border-radius: 1px;
-  box-shadow: inset 0 0 0 2px rgba(255, 176, 32, 0.28);
+  width: 11px;
+  height: 11px;
+  background: rgba(255, 176, 32, 0.18);
+  clip-path: polygon(0 0, calc(100% - 3px) 0, 100% 3px, 100% 100%, 3px 100%, 0 calc(100% - 3px));
+  box-shadow: inset 0 0 0 1px var(--accent);
 }
 
 .strip__spacer {
@@ -333,15 +335,109 @@ body[data-mode='playing'] #canvas {
 }
 
 /* ==========================================================================
-   Panel: the base surface, cut corners with brackets instead of a heavy border
+   Shape: the AEGIS bezel
+
+   One angle, 45 degrees, and one rule: a plate cuts the corners that carry its
+   direction. Nothing here is a rounded rectangle, because a rounded rectangle
+   is what every app on the phone already looks like. These surfaces are
+   machined: the cut is where the bit entered, and the hairline along it is the
+   edge the machine left.
+
+   A shape is four lengths -- --tl / --tr / --br / --bl -- so a card's silhouette
+   is one line of CSS and cannot drift from the panel it sits in. The hairline is
+   drawn as one gradient tile per cut corner, because a border disappears the
+   moment the corner it would have wrapped is gone.
+   ========================================================================== */
+
+.panel,
+.card,
+.btn,
+.chip,
+.switch__track,
+.tab {
+  --tl: 0px;
+  --tr: 0px;
+  --br: 0px;
+  --bl: 0px;
+  /* The colour of the cut edge, split top and bottom: a plate can point its
+     leading cut at the action (amber) and leave the trailing one machined grey.
+     Hover and focus raise both, so the one accent in the palette still means
+     "this is the thing you are acting on". */
+  --cut-ink-t: var(--line-hi);
+  --cut-ink-b: var(--line-hi);
+  position: relative;
+  border: 0;
+  border-radius: 0;
+  background-clip: padding-box;
+  clip-path: polygon(
+    var(--tl) 0,
+    calc(100% - var(--tr)) 0,
+    100% var(--tr),
+    100% calc(100% - var(--br)),
+    calc(100% - var(--br)) 100%,
+    var(--bl) 100%,
+    0 calc(100% - var(--bl)),
+    0 var(--tl)
+  );
+}
+
+/* The four cut hairlines. A zero cut produces a zero-size tile, which paints
+   nothing: that is how a plate with two cut corners stays two lines of CSS. */
+.panel::after,
+.card::after,
+.btn::after,
+.chip::after,
+.switch__track::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(
+        to bottom right,
+        transparent calc(50% - 0.75px),
+        var(--cut-ink-t) calc(50% - 0.75px),
+        var(--cut-ink-t) calc(50% + 0.75px),
+        transparent calc(50% + 0.75px)
+      )
+      left top / var(--tl) var(--tl) no-repeat,
+    linear-gradient(
+        to top right,
+        transparent calc(50% - 0.75px),
+        var(--cut-ink-t) calc(50% - 0.75px),
+        var(--cut-ink-t) calc(50% + 0.75px),
+        transparent calc(50% + 0.75px)
+      )
+      right top / var(--tr) var(--tr) no-repeat,
+    linear-gradient(
+        to bottom right,
+        transparent calc(50% - 0.75px),
+        var(--cut-ink-b) calc(50% - 0.75px),
+        var(--cut-ink-b) calc(50% + 0.75px),
+        transparent calc(50% + 0.75px)
+      )
+      right bottom / var(--br) var(--br) no-repeat,
+    linear-gradient(
+        to top right,
+        transparent calc(50% - 0.75px),
+        var(--cut-ink-b) calc(50% - 0.75px),
+        var(--cut-ink-b) calc(50% + 0.75px),
+        transparent calc(50% + 0.75px)
+      )
+      left bottom / var(--bl) var(--bl) no-repeat;
+}
+
+/* ==========================================================================
+   Panel: the base surface. A default bezel, cut top-left and bottom-right, so
+   a panel with no modifier still reads as part of the same machine.
    ========================================================================== */
 
 .panel {
-  position: relative;
-  background: var(--panel-a78);
-  border: 1px solid var(--hair);
-  border-radius: var(--radius);
+  --tl: var(--cut-sm);
+  --br: var(--cut-sm);
   padding: var(--s4);
+  background: var(--panel-a78);
+  box-shadow: inset 0 0 0 1px var(--hair);
   backdrop-filter: blur(10px);
 }
 
@@ -349,39 +445,25 @@ body[data-mode='playing'] #canvas {
   background: var(--panel-a92);
 }
 
-/* Four corner brackets, drawn with two gradients each: cheap, crisp, and it
-   reads as instrumentation rather than as a web card. */
-.panel--bracketed::before,
-.panel--bracketed::after {
-  content: '';
-  position: absolute;
-  width: var(--bracket);
-  height: var(--bracket);
-  pointer-events: none;
-}
-
-.panel--bracketed::before {
-  top: -1px;
-  left: -1px;
-  border-top: var(--bracket-w) solid var(--line-hi);
-  border-left: var(--bracket-w) solid var(--line-hi);
-}
-
-.panel--bracketed::after {
-  right: -1px;
-  bottom: -1px;
-  border-right: var(--bracket-w) solid var(--line-hi);
-  border-bottom: var(--bracket-w) solid var(--line-hi);
+/* A panel that carries a reading, not an action: its cut is larger and the
+   same corner is cut on both ends of the diagonal, so the shape points. */
+.opening__panel {
+  --tl: var(--cut-lg);
+  --br: var(--cut-lg);
 }
 
 /* ==========================================================================
    Controls
    ========================================================================== */
 
+/* A button is an order, so its cut sits on the axis of the verb: the primary
+   cuts its leading corner away from the thumb, the ghost cuts its trailing one.
+   That difference is legible before the colour is. */
 .btn {
   --btn-bg: transparent;
   --btn-fg: var(--ink);
   --btn-line: var(--line-hi);
+  --tr: var(--cut-sm);
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -389,8 +471,7 @@ body[data-mode='playing'] #canvas {
   gap: var(--s2);
   min-height: var(--tap);
   padding: 0 var(--s5);
-  border: 1px solid var(--btn-line);
-  border-radius: var(--radius);
+  box-shadow: inset 0 0 0 1px var(--btn-line);
   background: var(--btn-bg);
   color: var(--btn-fg);
   font-family: var(--font-display);
@@ -408,8 +489,10 @@ body[data-mode='playing'] #canvas {
 }
 
 .btn:hover {
-  border-color: var(--ink-2);
+  box-shadow: inset 0 0 0 1px var(--ink-2);
   background: rgba(78, 106, 126, 0.14);
+  --cut-ink-t: var(--accent);
+  --cut-ink-b: var(--accent);
 }
 
 .btn:active {
@@ -426,35 +509,28 @@ body[data-mode='playing'] #canvas {
   --btn-bg: var(--accent);
   --btn-fg: var(--accent-ink);
   --btn-line: var(--accent);
+  --tr: var(--cut-lg);
+  --bl: var(--cut-xs);
+  --cut-ink-t: var(--accent-ink);
+  --cut-ink-b: var(--accent-ink);
   min-height: var(--tap-lg);
   padding-inline: var(--s6);
   font-size: 1.05rem;
   letter-spacing: 0.18em;
-  box-shadow: 0 0 0 1px rgba(255, 176, 32, 0.24), 0 12px 40px -18px rgba(255, 176, 32, 0.9);
+  box-shadow: 0 12px 40px -18px rgba(255, 176, 32, 0.9);
 }
 
 .btn--primary:hover {
   background: #ffc04d;
-  border-color: #ffc04d;
-}
-
-/* Corner bracket on every primary action: the same L the panels use, so the
-   bracket is a system, not a decoration on one button. */
-.btn--primary::after {
-  content: '';
-  position: absolute;
-  right: 8px;
-  top: 8px;
-  width: 9px;
-  height: 9px;
-  border-top: 1px solid var(--accent-ink);
-  border-right: 1px solid var(--accent-ink);
-  opacity: 0.4;
+  --cut-ink-t: var(--accent-ink);
+  --cut-ink-b: var(--accent-ink);
 }
 
 .btn--ghost {
   --btn-bg: rgba(11, 19, 27, 0.6);
   --btn-line: var(--hair);
+  --tr: 0px;
+  --bl: var(--cut-sm);
   color: var(--ink-2);
   font-size: 0.86rem;
   letter-spacing: 0.16em;
@@ -462,6 +538,7 @@ body[data-mode='playing'] #canvas {
 
 .btn--ghost:hover {
   color: var(--ink);
+  --cut-ink-b: var(--ink-2);
 }
 
 .btn--wide {
@@ -476,13 +553,15 @@ body[data-mode='playing'] #canvas {
   opacity: 0.72;
 }
 
+/* A chip is a tag on a crate, not a status pill from a mobile app: one cut
+   corner on the right, and a square pip that carries the state. */
 .chip {
+  --tr: var(--cut-xs);
   display: inline-flex;
   align-items: center;
   gap: var(--s2);
   padding: 3px var(--s3);
-  border: 1px solid var(--hair);
-  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px var(--hair);
   background: rgba(22, 35, 46, 0.6);
   color: var(--ink-2);
   font-size: var(--text-micro);
@@ -493,26 +572,41 @@ body[data-mode='playing'] #canvas {
 }
 
 .chip--ok {
-  border-color: rgba(55, 224, 140, 0.4);
+  box-shadow: inset 0 0 0 1px rgba(55, 224, 140, 0.42);
   color: var(--ok);
 }
 .chip--accent {
-  border-color: rgba(255, 176, 32, 0.45);
+  box-shadow: inset 0 0 0 1px rgba(255, 176, 32, 0.45);
   color: var(--accent);
 }
 .chip--info {
-  border-color: rgba(84, 200, 255, 0.4);
+  box-shadow: inset 0 0 0 1px rgba(84, 200, 255, 0.4);
   color: var(--info);
 }
 
+.chip--accent {
+  --cut-ink-t: rgba(255, 176, 32, 0.75);
+}
+
+.chip::before {
+  content: '';
+  width: 4px;
+  height: 4px;
+  background: currentColor;
+  flex: 0 0 auto;
+}
+
+/* A switch row is a plate on the drawer, not a settings list item: no fill of
+   its own, a hairline between rows, and the rocker parked at the trailing edge
+   where a thumb reaches it. */
 .switch {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--s4);
   width: 100%;
-  min-height: var(--tap-lg);
-  padding: var(--s3) 0;
+  min-height: 52px;
+  padding: 6px 0;
   border: 0;
   border-bottom: 1px solid var(--hair);
   background: none;
@@ -543,74 +637,127 @@ body[data-mode='playing'] #canvas {
   font-size: 0.78rem;
   line-height: 1.45;
   max-width: 46ch;
+  /* One line, ellipsised: a settings row that grows to two lines is what makes
+     a 390 px drawer scroll and lose its last switch. */
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
+/* The toggle is a mechanical rocker, not an iOS pill. A pill is the single most
+   app-like object a game console can carry: this one is a two-position switch
+   with a chamfered carriage, a seam down the middle, and an amber detent when
+   it is thrown. */
 .switch__track {
   position: relative;
   flex: 0 0 auto;
-  width: 52px;
+  width: 60px;
   height: 28px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: rgba(5, 8, 12, 0.8);
-  transition: border-color var(--motion-fast) var(--ease);
+  --tr: var(--cut-xs);
+  --bl: var(--cut-xs);
+  background: rgba(5, 8, 12, 0.86);
+  box-shadow: inset 0 0 0 1px var(--line);
+  transition: background var(--motion-fast) var(--ease);
 }
 
-.switch__track::after {
+/* The carriage is a machined block, not a white pill: dark plate with a lit top
+   bevel when the circuit is open, amber when the circuit is closed. A light
+   block in the "off" position reads as "on" from a metre away. */
+.switch__track::before {
   content: '';
   position: absolute;
   top: 3px;
   left: 3px;
-  width: 20px;
+  width: 24px;
   height: 20px;
-  border-radius: 50%;
-  background: var(--ink-3);
+  clip-path: polygon(0 0, calc(100% - 4px) 0, 100% 4px, 100% 100%, 4px 100%, 0 calc(100% - 4px));
+  background: linear-gradient(180deg, #33465a, #1b2833);
+  box-shadow: inset 0 0 0 1px rgba(122, 148, 168, 0.5);
   transition:
     transform var(--motion-fast) var(--ease),
     background var(--motion-fast) var(--ease);
 }
 
-.switch[aria-checked='true'] .switch__track {
-  border-color: var(--accent);
-  background: rgba(255, 176, 32, 0.16);
+/* The seam: which half of the carriage is live. */
+.switch__track::after {
+  content: '';
+  position: absolute;
+  inset: 4px 30px 4px auto;
+  width: 1px;
+  background: var(--line);
+  pointer-events: none;
 }
 
-.switch[aria-checked='true'] .switch__track::after {
-  transform: translateX(24px);
-  background: var(--accent);
+.switch:hover .switch__track {
+  box-shadow: inset 0 0 0 1px var(--line-hi);
+  --cut-ink-t: var(--ink-3);
+  --cut-ink-b: var(--ink-3);
+}
+
+.switch[aria-checked='true'] .switch__track {
+  background: rgba(255, 176, 32, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(255, 176, 32, 0.55);
+  --cut-ink-t: var(--accent);
+  --cut-ink-b: var(--accent);
+}
+
+.switch[aria-checked='true'] .switch__track::before {
+  transform: translateX(28px);
+  background: linear-gradient(180deg, var(--accent), #d98f0c);
+  box-shadow: inset 0 0 0 1px rgba(255, 214, 143, 0.75);
 }
 
 /* ==========================================================================
    Cards
    ========================================================================== */
 
-/* The row card: an index, a title with one line of what is behind it, and a
-   verb. Used for everything the hub links to, so the list reads as a manifest
-   of the console rather than a stack of buttons. */
+/* The key strip: what the console links to.
+   -------------------------------------------------------------------------
+   A hub row is a router key, so it is drawn as one: a cut leading corner (the
+   side the thumb comes from), a recessed index tab on the left, and the verb
+   sitting in its own channel on the right, separated by a hairline. The two
+   rows alternate which end is cut, which is what stops a list of two reading
+   as a repeated box. */
 .card {
-  position: relative;
+  --tr: var(--cut-lg);
   display: flex;
   flex-direction: column;
   gap: var(--s3);
   width: 100%;
-  padding: var(--s3) var(--s4) var(--s3) var(--s4);
+  padding: var(--s3) var(--s4);
   text-align: left;
   color: inherit;
-  background: linear-gradient(180deg, rgba(17, 28, 38, 0.82), rgba(11, 19, 27, 0.9));
-  border: 1px solid var(--hair);
-  border-left: 2px solid var(--line-hi);
-  border-radius: var(--radius);
+  background: linear-gradient(180deg, rgba(17, 28, 38, 0.86), rgba(11, 19, 27, 0.92));
+  box-shadow: inset 0 0 0 1px var(--hair);
   cursor: pointer;
   transition:
-    border-color var(--motion-fast) var(--ease),
     background var(--motion-fast) var(--ease),
-    transform var(--motion-fast) var(--ease);
+    box-shadow var(--motion-fast) var(--ease);
+}
+
+/* The leading rail: 2 px of plate, amber when the row is live. Drawn as a
+   background layer so it follows the cut instead of being clipped by it. */
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, var(--line-hi), rgba(78, 106, 126, 0.35));
+  width: 2px;
+  transition: background var(--motion-fast) var(--ease);
 }
 
 .card:hover,
 .card:focus-visible {
-  background: linear-gradient(180deg, rgba(22, 35, 46, 0.9), rgba(11, 19, 27, 0.94));
-  border-left-color: var(--accent);
+  background: linear-gradient(180deg, rgba(24, 38, 50, 0.94), rgba(11, 19, 27, 0.96));
+  --cut-ink-t: var(--accent);
+  --cut-ink-b: var(--accent);
+}
+
+.card:hover::before,
+.card:focus-visible::before {
+  background: linear-gradient(180deg, var(--accent), rgba(255, 176, 32, 0.25));
 }
 
 .card__top {
@@ -619,12 +766,27 @@ body[data-mode='playing'] #canvas {
   gap: var(--s3);
 }
 
+/* The index is a punched tab, not a number floating in the corner. */
 .card__index {
+  display: inline-grid;
+  place-items: center;
+  min-width: 26px;
+  height: 20px;
+  padding: 0 5px;
   font-family: var(--font-ui);
   font-size: var(--text-micro);
+  font-weight: 600;
   letter-spacing: var(--track-micro);
-  color: var(--ink-3);
   font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+  background: rgba(5, 8, 12, 0.7);
+  clip-path: polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 0 100%);
+  box-shadow: inset 0 0 0 1px var(--hair);
+}
+
+.card:hover .card__index,
+.card:focus-visible .card__index {
+  color: var(--accent);
 }
 
 .card__body {
@@ -657,6 +819,15 @@ body[data-mode='playing'] #canvas {
   text-transform: uppercase;
   color: var(--ink-3);
   align-self: center;
+  transition:
+    color var(--motion-fast) var(--ease),
+    transform var(--motion-fast) var(--ease);
+}
+
+.card:hover .card__go,
+.card:focus-visible .card__go {
+  color: var(--accent);
+  transform: translateX(3px);
 }
 
 .metric {
@@ -694,22 +865,55 @@ body[data-mode='playing'] #canvas {
   align-items: center;
   gap: var(--s3);
   min-height: var(--tap-lg);
-  padding: var(--s3) var(--s4);
-  border-left-width: 1px;
-  border-left-color: var(--hair);
-}
-
-.card--row:hover,
-.card--row:focus-visible {
-  border-left-color: var(--accent);
+  padding: var(--s2) var(--s4) var(--s2) var(--s3);
 }
 
 .card--row .card__top {
   flex: 0 0 auto;
 }
 
+.card--row .card__body {
+  flex: 1 1 auto;
+  flex-direction: row;
+  align-items: baseline;
+  gap: var(--s3);
+}
+
 .card--row .card__title {
   font-size: 1.12rem;
+}
+
+.card--row .card__desc {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The channel the verb sits in: a hairline between the reading and the action,
+   so the row is a two-part instrument instead of a menu item. */
+.card--row .card__go {
+  padding-left: var(--s3);
+  border-left: 1px solid var(--hair);
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+}
+
+/* Second row of the pair: the cut moves to the other end, so the two read as a
+   matched set rather than one box printed twice. */
+.card--row-alt {
+  --tr: 0px;
+  --br: var(--cut-lg);
+}
+
+.card--row-alt .card::before,
+.card--row-alt::before {
+  background: linear-gradient(0deg, var(--line-hi), rgba(78, 106, 126, 0.35));
+}
+
+.card--row-alt:hover::before,
+.card--row-alt:focus-visible::before {
+  background: linear-gradient(0deg, var(--accent), rgba(255, 176, 32, 0.25));
 }
 
 /* ==========================================================================
@@ -794,7 +998,7 @@ body[data-mode='playing'] #canvas {
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
   gap: var(--s4);
   align-items: start;
-  margin-top: var(--s3);
+  margin-top: var(--s2);
 }
 
 .sheet__col {
@@ -805,28 +1009,75 @@ body[data-mode='playing'] #canvas {
 }
 
 .sheet__col .statusgrid {
-  margin-top: var(--s3);
+  margin-top: var(--s2);
+}
+
+/* --- the command plate ----------------------------------------------------
+
+   HOME's lead card is the one surface a player commits from, so it is the one
+   that points: a small cut at the top-left, and a deep 32 px cut at the
+   bottom-right that finishes under DEPLOY. The deep cut is amber, the shallow
+   one machined grey, so the shape says which way the screen goes. */
+
+.hub__lead {
+  --tl: var(--cut);
+  --br: var(--cut-xl);
+  --cut-ink-b: var(--accent-dim);
+}
+
+/* The measured rule under the wordmark: ticks every 8 px with an amber witness
+   at the origin. It is the cheapest way to say "instrument" without drawing an
+   icon, and it fills the dead line the wordmark used to leave. */
+.ruler {
+  height: 7px;
+  background:
+    repeating-linear-gradient(90deg, var(--line) 0 1px, transparent 1px 8px) left bottom / 100%
+      4px no-repeat,
+    linear-gradient(90deg, var(--accent) 0 var(--s6), rgba(255, 176, 32, 0.12) var(--s6)) left
+      bottom / 100% 1px no-repeat;
+}
+
+/* --- the mission slate ----------------------------------------------------
+
+   The brief is read, not tapped, so its shape is the opposite of the plate's:
+   the cut corners sit on the other diagonal and there is no amber in it at all.
+   Its rows are flight-strip lines: a square witness, the label, a dotted leader
+   and the value hard right. */
+
+.hub__brief {
+  --tr: var(--cut);
+  --bl: var(--cut);
+  --tl: 0px;
+  --br: 0px;
+}
+
+.hub__brief .linklist li {
+  border-left: 0;
+  border-bottom: 1px solid rgba(39, 56, 74, 0.55);
+  padding-left: 0;
+  background: none;
+}
+
+.hub__brief .linklist li:last-child {
+  border-bottom: 0;
+}
+
+.hub__brief .linklist li .tick {
+  width: 5px;
+  height: 5px;
+  background: var(--line-hi);
+  clip-path: polygon(0 0, 100% 0, 100% 60%, 60% 100%, 0 100%);
+}
+
+.hub__brief .linklist li[data-tone='ok'] .tick {
+  background: var(--ok);
+}
+
+.hub__brief .linklist li b {
+  font-variant-numeric: tabular-nums;
 }
 
 /* The product wordmark, used the way the engine uses it: the logo is the name. */
-
-.hub__brief {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s2);
-  padding: var(--s3) var(--s4);
-}
-
-.hub__mark-wrap {
-  margin: 0;
-}
-
-.hub__mark {
-  display: block;
-  width: min(430px, 100%);
-  height: auto;
-  filter: drop-shadow(0 20px 44px rgba(0, 0, 0, 0.65));
-}
 
 .panel__head {
   display: flex;
@@ -961,30 +1212,70 @@ body[data-mode='playing'] #canvas {
    Settings sheet
    ========================================================================== */
 
+/* Settings is a console drawer, not a sheet of paper: both top corners cut the
+   same, a flat bottom, and a 2 px amber lip across the base where the drawer
+   meets the console. The lip is the only amber on the screen. */
 .sheet {
+  --tl: var(--cut-lg);
+  --tr: var(--cut-lg);
+  --br: 0px;
+  --bl: 0px;
   width: 100%;
   max-width: 60rem;
   margin: auto;
+  padding-top: var(--s5);
+}
+
+.sheet::before {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent) 0 18%, rgba(255, 176, 32, 0.18) 42%, rgba(255, 176, 32, 0) 78%);
+}
+
+/* The drawer grip: a short bar centred on the leading edge, the way a physical
+   pull is. It reads as hardware, and it costs two elements. */
+.drawer__grip {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  width: 64px;
+  height: 3px;
+  transform: translateX(-50%);
+  background: repeating-linear-gradient(90deg, var(--line-hi) 0 6px, transparent 6px 10px);
+  opacity: 0.7;
 }
 
 .sheet__head {
   display: flex;
   align-items: center;
   gap: var(--s3);
-  padding-bottom: var(--s3);
+  padding-bottom: var(--s2);
   border-bottom: 1px solid var(--hair);
-  margin-bottom: var(--s3);
+  margin-bottom: var(--s2);
+}
+
+/* The close button rides the head rule rather than the 44 px touch row: it is
+   the one control here a thumb finds by position, so it can be 36 px and the
+   sheet keeps the 8 px the drawer needs. */
+.sheet__head .btn {
+  min-height: 36px;
+  padding-inline: var(--s3);
 }
 
 .sheet__head .title {
-  font-size: 1.3rem;
+  font-size: 1.2rem;
 }
 
+/* Two narrow columns, not one wide one: seven bindings in a single column are
+   273 px of a 390 px drawer, which is how the last two rows fell off the bottom
+   edge and a settings screen started to scroll. */
 .keys {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: var(--s2) var(--s4);
-  margin-top: var(--s3);
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--s1) var(--s3);
+  margin-top: var(--s2);
 }
 
 .keys div {
@@ -992,22 +1283,30 @@ body[data-mode='playing'] #canvas {
   align-items: baseline;
   justify-content: space-between;
   gap: var(--s2);
-  padding: 6px 0;
+  padding: clamp(2px, 0.7vh, 4px) 0;
   border-bottom: 1px dashed rgba(39, 56, 74, 0.7);
   color: var(--ink-2);
   font-size: 0.82rem;
 }
 
+/* A keycap is a physical key: a bevel at the top right, a lit face, and a
+   shadow line under it. */
 .keys kbd {
   font-family: var(--font-ui);
   font-size: var(--text-micro);
   font-weight: 600;
   letter-spacing: 0.1em;
-  padding: 2px 6px;
-  border: 1px solid var(--hair);
-  border-radius: 2px;
+  padding: 3px 7px;
   color: var(--ink);
-  background: rgba(22, 35, 46, 0.8);
+  background: linear-gradient(180deg, rgba(31, 47, 60, 0.95), rgba(15, 24, 32, 0.95));
+  clip-path: polygon(0 0, calc(100% - 4px) 0, 100% 4px, 100% 100%, 0 100%);
+  box-shadow:
+    inset 0 0 0 1px var(--hair),
+    inset 0 -2px 0 rgba(5, 8, 12, 0.8);
+}
+
+.keys div {
+  border-bottom: 1px solid rgba(39, 56, 74, 0.45);
 }
 
 /* ==========================================================================
@@ -1131,6 +1430,56 @@ body[data-mode='playing'] #canvas {
   padding: var(--s2) var(--s3);
 }
 
+.hub__brief .linklist li {
+  min-height: 24px;
+}
+
+.ruler {
+  height: 6px;
+}
+
+/* Height-aware, because 375 px of landscape is the tight one: every value here
+   is the largest that still lets the third switch and the build stamps sit
+   above the fold at 667x375. */
+.sheet {
+  padding-top: clamp(7px, 1.8vh, 12px);
+}
+
+.sheet__head .title {
+  font-size: clamp(1.05rem, 3vh, 1.2rem);
+}
+
+.sheet__head .btn {
+  min-height: clamp(30px, 9vh, 36px);
+}
+
+.sheet__head {
+  padding-bottom: clamp(6px, 1.4vh, 10px);
+  margin-bottom: clamp(6px, 1.4vh, 10px);
+}
+
+.switch {
+  min-height: clamp(44px, 12.5vh, 54px);
+  padding: clamp(3px, 0.9vh, 7px) 0;
+}
+
+.switch__title {
+  font-size: clamp(0.9rem, 2.4vh, 1rem);
+}
+
+.switch__hint {
+  font-size: clamp(0.7rem, 1.8vh, 0.78rem);
+}
+
+.sheet__col .statusgrid {
+  margin-top: clamp(4px, 1.4vh, 10px);
+}
+
+.drawer__grip {
+  top: 4px;
+  width: 52px;
+}
+
 .card {
   gap: var(--s2);
 }
@@ -1143,9 +1492,13 @@ body[data-mode='playing'] #canvas {
   font-size: clamp(0.74rem, 1.9vh, 0.86rem);
 }
 
+/* Both rows point at their trailing corner, and on the mirrored row that corner
+   is the bottom one; either way the verb has to clear 22 px of chamfer, or the
+   chevron gets its head cut off. */
 .card--row {
   min-height: 0;
-  padding: clamp(var(--s2), 1.9vh, var(--s3)) var(--s3);
+  padding: clamp(var(--s2), 1.9vh, var(--s3)) calc(var(--cut-lg) + 6px)
+    clamp(var(--s2), 1.9vh, var(--s3)) var(--s3);
 }
 
 .card--row .card__desc {
@@ -1198,8 +1551,18 @@ body[data-mode='playing'] #canvas {
 .rotate__icon {
   width: 54px;
   height: 54px;
-  border: 1px solid var(--line-hi);
-  border-radius: var(--radius);
+  --tl: var(--cut-sm);
+  --br: var(--cut-sm);
+  background: rgba(22, 35, 46, 0.7);
+  clip-path: polygon(
+    var(--tl) 0,
+    100% 0,
+    100% calc(100% - var(--br)),
+    calc(100% - var(--br)) 100%,
+    0 100%,
+    0 var(--tl)
+  );
+  box-shadow: inset 0 0 0 1px var(--line-hi);
   display: grid;
   place-items: center;
   color: var(--accent);

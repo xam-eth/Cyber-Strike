@@ -19,6 +19,10 @@ var _column: VBoxContainer
 
 func _ready() -> void:
 	interactive = true
+	# A sheet, not a dialog: cut deep on both ends of its leading edge.
+	bezel = true
+	cut_top_left = AegisBezel.CUT_LG
+	cut_bottom_right = AegisBezel.CUT_LG
 	accent_side = "top"
 	accent_color = AegisTokens.ACCENT
 	super._ready()

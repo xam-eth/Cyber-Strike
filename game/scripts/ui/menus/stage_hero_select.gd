@@ -422,6 +422,10 @@ func _build_showcase() -> void:
 func _build_panel() -> void:
 	_panel = AegisPanel.new()
 	_panel.interactive = false
+	# The operative's read-out is cut deep on the corner that meets the model, so
+	# the card leans into the showcase instead of sitting beside it.
+	_panel.bezel = true
+	_panel.cut_bottom_left = AegisBezel.CUT_LG
 	_panel.accent_side = "top"
 	_panel.accent_color = AegisTokens.INFO
 	_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE

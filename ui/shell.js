@@ -97,7 +97,6 @@ function describeInput() {
 function paintReadouts() {
   el('strip-view').textContent = describeViewport();
   el('strip-input').textContent = describeInput();
-  el('about-view').textContent = describeViewport();
   el('about-build').textContent = 'lokal';
   el('about-engine').textContent = engineReady ? 'siap' : 'belum dimuat';
   el('strip-engine').dataset.state = engineReady ? 'ok' : 'warn';

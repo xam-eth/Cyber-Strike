@@ -1,0 +1,95 @@
+{
+  "tag": "round-02",
+  "viewports": [
+    "844x390",
+    "667x375"
+  ],
+  "screens": [
+    {
+      "screen": "opening",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/r3/opening-844x390.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [],
+      "width": 844,
+      "height": 390,
+      "bytes": 108621,
+      "lumaMean": 19.618872263307765,
+      "lumaStdDev": 32.89180837362207,
+      "uniqueColors": 886
+    },
+    {
+      "screen": "hub",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/r3/hub-844x390.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [],
+      "width": 844,
+      "height": 390,
+      "bytes": 106179,
+      "lumaMean": 22.371094151786323,
+      "lumaStdDev": 32.50738816262171,
+      "uniqueColors": 1459
+    },
+    {
+      "screen": "settings",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/r3/settings-844x390.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [],
+      "width": 844,
+      "height": 390,
+      "bytes": 77913,
+      "lumaMean": 20.124019431991957,
+      "lumaStdDev": 22.841050063842896,
+      "uniqueColors": 664
+    },
+    {
+      "screen": "opening",
+      "viewport": "667x375",
+      "file": "qa-evidence/ui/r3/opening-667x375.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [],
+      "width": 667,
+      "height": 375,
+      "bytes": 93912,
+      "lumaMean": 22.26367485455327,
+      "lumaStdDev": 36.97974716080571,
+      "uniqueColors": 849
+    },
+    {
+      "screen": "hub",
+      "viewport": "667x375",
+      "file": "qa-evidence/ui/r3/hub-667x375.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [],
+      "width": 667,
+      "height": 375,
+      "bytes": 92457,
+      "lumaMean": 25.07963373594745,
+      "lumaStdDev": 36.72316930161392,
+      "uniqueColors": 1485
+    },
+    {
+      "screen": "settings",
+      "viewport": "667x375",
+      "file": "qa-evidence/ui/r3/settings-667x375.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [],
+      "width": 667,
+      "height": 375,
+      "bytes": 67805,
+      "lumaMean": 21.4260254569594,
+      "lumaStdDev": 25.650271177637517,
+      "uniqueColors": 653
+    }
+  ],
+  "failures": 0,
+  "generatedAt": "2026-10-24T12:44:08.036Z"
+}

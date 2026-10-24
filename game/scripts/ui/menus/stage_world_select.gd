@@ -251,6 +251,9 @@ func _build_placeholder_pin(index: int) -> AegisButton:
 func _build_info() -> void:
 	_info = AegisPanel.new()
 	_info.name = &"TheatreInfo"
+	_info.bezel = true
+	_info.cut_top_left = AegisBezel.CUT
+	_info.cut_top_right = AegisBezel.CUT_SM
 	_info.accent_side = "left"
 	_info.show_brackets = false
 	_info.surface_alpha = 0.9

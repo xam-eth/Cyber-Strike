@@ -99,10 +99,16 @@
   --s7: 48px;
   --s8: 64px;
 
-  /* shape */
-  --radius: 2px;
-  --bracket: 14px;
-  --bracket-w: 1px;
+  /* shape
+     The bezel is cut, not rounded: five chamfer steps, one 45 degree angle.
+     A plate names how much it cuts each corner (--tl/--tr/--br/--bl) and the
+     hairline along every cut is drawn by the shape layer, never by a border. */
+  --cut-xs: 5px;
+  --cut-sm: 8px;
+  --cut: 12px;
+  --cut-lg: 22px;
+  --cut-xl: 32px;
+  --radius: 0px;
   --edge: 2px;
 
   /* motion */

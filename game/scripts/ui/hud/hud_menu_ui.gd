@@ -10,6 +10,12 @@ static func build_pause(hud) -> void:
 	hud._pause_panel = AegisPanel.new()
 	hud._pause_panel.name = "PausePanel"
 	hud._pause_panel.interactive = true
+	# A modal is the largest plate in the HUD, so it carries the deepest cut --
+	# the same 22 px the menu cards use, which is what makes the overlay read as
+	# part of the same machine as the screen behind it.
+	hud._pause_panel.bezel = true
+	hud._pause_panel.cut_top_left = AegisBezel.CUT_LG
+	hud._pause_panel.cut_bottom_right = AegisBezel.CUT_LG
 	hud._pause_panel.visible = false
 	hud.add_child(hud._pause_panel)
 
@@ -72,6 +78,9 @@ static func build_results(hud) -> void:
 	hud._results_panel = AegisPanel.new()
 	hud._results_panel.name = "ResultsPanel"
 	hud._results_panel.interactive = true
+	hud._results_panel.bezel = true
+	hud._results_panel.cut_top_left = AegisBezel.CUT_LG
+	hud._results_panel.cut_bottom_right = AegisBezel.CUT_LG
 	hud._results_panel.visible = false
 	hud.add_child(hud._results_panel)
 

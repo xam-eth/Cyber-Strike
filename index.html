@@ -87,7 +87,7 @@
                 <p class="opening__hint" id="opening-note" hidden style="color: var(--danger)"></p>
               </div>
 
-              <aside class="panel panel--bracketed opening__panel" aria-label="Status tautan">
+              <aside class="panel opening__panel" aria-label="Status tautan">
                 <div class="panel__head">
                   <span class="eyebrow">Tautan</span>
                   <span class="chip" id="opening-channel">menyiapkan</span>
@@ -111,7 +111,7 @@
         <section class="screen" id="screen-hub" aria-labelledby="hub-title">
           <div class="screen__inner">
             <div class="hub">
-              <div class="panel panel--bracketed panel--solid hub__lead">
+              <div class="panel panel--solid hub__lead">
                 <p class="eyebrow">Konsol lapangan · sektor 07</p>
                 <h1 class="hub__mark-wrap">
                   <img
@@ -120,6 +120,7 @@
                     alt="Exocomplict — Stellar Horizon"
                   />
                 </h1>
+                <div class="ruler" aria-hidden="true"></div>
                 <p class="body">
                   Sektor 07, dunia Neon Frontier. Jalur menuju arena pusat bersih, menara reaktor
                   menyala, dan tiga pos luar masih memancarkan sinyal. Teater ini sudah terbuka:
@@ -134,7 +135,7 @@
               </div>
 
               <div class="hub__side">
-                <div class="panel panel--bracketed hub__brief">
+                <div class="panel hub__brief">
                   <p class="eyebrow">Misi hari ini</p>
                   <ul class="linklist">
                     <li data-shown="true" data-tone="ok"><i class="tick"></i><span>Teater</span><b>Neon Frontier</b></li>
@@ -151,7 +152,7 @@
                   </span>
                   <span class="card__go">Lihat ›</span>
                 </button>
-                <button class="card card--row" id="hub-card-display" type="button">
+                <button class="card card--row card--row-alt" id="hub-card-display" type="button">
                   <span class="card__top"><span class="card__index">02</span></span>
                   <span class="card__body">
                     <span class="card__title">Tampilan</span>
@@ -167,7 +168,8 @@
         <!-- ======================================================= SETTINGS -->
         <section class="screen" id="screen-settings" aria-labelledby="settings-title">
           <div class="screen__inner">
-            <div class="panel panel--solid panel--bracketed sheet">
+            <div class="panel panel--solid sheet">
+              <span class="drawer__grip" aria-hidden="true"></span>
               <div class="sheet__head">
                 <h1 class="title" id="settings-title">Tampilan &amp; kontrol</h1>
                 <span class="strip__spacer"></span>
@@ -183,7 +185,7 @@
                   <button class="switch" type="button" role="switch" aria-checked="false" id="opt-touch">
                     <span class="switch__text">
                       <span class="switch__title">HUD sentuh</span>
-                      <span class="switch__hint">Tampilkan joystick dan tombol tembak meski memakai tetikus.</span>
+                      <span class="switch__hint">Joystick dan tombol tembak selalu ada.</span>
                     </span>
                     <span class="switch__track" aria-hidden="true"></span>
                   </button>
@@ -191,7 +193,7 @@
                   <button class="switch" type="button" role="switch" aria-checked="false" id="opt-motion">
                     <span class="switch__text">
                       <span class="switch__title">Kurangi gerak</span>
-                      <span class="switch__hint">Matikan transisi layar dan animasi latar.</span>
+                      <span class="switch__hint">Transisi layar dimatikan.</span>
                     </span>
                     <span class="switch__track" aria-hidden="true"></span>
                   </button>
@@ -199,10 +201,18 @@
                   <button class="switch" type="button" role="switch" aria-checked="false" id="opt-fullscreen">
                     <span class="switch__text">
                       <span class="switch__title">Layar penuh</span>
-                      <span class="switch__hint">Sembunyikan bilah peramban selama bermain.</span>
+                      <span class="switch__hint">Bilah peramban hilang saat bermain.</span>
                     </span>
                     <span class="switch__track" aria-hidden="true"></span>
                   </button>
+
+                  <!-- Build stamps sit under the switches, where this column had
+                       90 px of nothing. They are a receipt, not a control, so
+                       they get the smallest type on the sheet. -->
+                  <div class="statusgrid" id="about-grid">
+                    <div><span class="metric__key">Build</span><span class="metric__val" id="about-build">—</span></div>
+                    <div><span class="metric__key">Mesin</span><span class="metric__val" id="about-engine">—</span></div>
+                  </div>
                 </div>
 
                 <div class="sheet__col">
@@ -213,13 +223,8 @@
                     <div><span>Tembak</span><kbd>Klik kiri</kbd></div>
                     <div><span>Ganti senjata</span><kbd>E</kbd></div>
                     <div><span>EMP</span><kbd>Q</kbd></div>
-                    <div><span>Mulai pertahanan</span><kbd>B</kbd></div>
+                    <div><span>Pertahanan</span><kbd>B</kbd></div>
                     <div><span>Pause</span><kbd>Esc</kbd></div>
-                  </div>
-                  <div class="statusgrid" id="about-grid">
-                    <div><span class="metric__key">Build</span><span class="metric__val" id="about-build">—</span></div>
-                    <div><span class="metric__key">Mesin</span><span class="metric__val" id="about-engine">—</span></div>
-                    <div><span class="metric__key">Tampilan</span><span class="metric__val" id="about-view">—</span></div>
                   </div>
                 </div>
               </div>

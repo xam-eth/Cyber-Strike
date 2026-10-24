@@ -228,6 +228,10 @@ func _make_row(number: String, caption: String, accent: Color) -> Dictionary:
 	var panel := AegisPanel.new()
 	panel.name = &"Step" + number
 	panel.interactive = false
+	# Each row is a plate cut on its trailing corner, so the three rows read as
+	# one machined stack rather than three rounded cards.
+	panel.bezel = true
+	panel.cut_top_right = AegisBezel.CUT
 	panel.accent_side = "left"
 	panel.accent_color = accent
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -284,6 +288,11 @@ func _build_ribbon() -> void:
 	_ribbon = AegisPanel.new()
 	_ribbon.name = &"RecordRibbon"
 	_ribbon.interactive = false
+	# The ribbon points the other way from the rows: it is the reading at the
+	# foot of the board, not a step in it.
+	_ribbon.bezel = true
+	_ribbon.cut_top_left = AegisBezel.CUT_SM
+	_ribbon.cut_bottom_right = AegisBezel.CUT_LG
 	_ribbon.accent_side = "top"
 	_ribbon.accent_color = AegisTokens.INFO
 	_ribbon.mouse_filter = Control.MOUSE_FILTER_IGNORE
