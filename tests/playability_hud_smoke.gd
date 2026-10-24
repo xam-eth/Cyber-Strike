@@ -669,11 +669,7 @@ func _run_smoke_test() -> void:
 		player.global_position.z < initial_position.z - 0.35,
 		"touch movement moves the player through the 3D world",
 	)
-	# A full-tilt stick walks the player a long way, and a smoke test that leaves
-	# it there makes every later check depend on how far it happened to travel.
-	# Put it back on its mark: the assertion above is the one that cares.
-	player.global_position = initial_position
-	player.set("velocity", Vector3.ZERO)
+
 	var joystick_release := InputEventScreenTouch.new()
 	joystick_release.index = 71
 	joystick_release.position = joystick_drag.position
@@ -736,9 +732,24 @@ func _run_smoke_test() -> void:
 	var yaw_before := yaw_pivot.rotation.y
 	var look_touch := InputEventScreenTouch.new()
 	look_touch.index = 72
-	# A right-edge swipe now correctly hits the larger FIRE plate. Exercise
-	# camera look in the open aiming lane just to its left instead.
-	look_touch.position = Vector2(controls.size.x * 0.58, controls.size.y * 0.66)
+	# Any fixed fraction of the screen eventually lands on a plate: at 667x375
+	# (0.58, 0.66) is the EMP face. Ask the HUD where the open aiming lane is,
+	# rather than re-tuning a magic number every time an action moves.
+	var look_point := Vector2.ZERO
+	for candidate in [
+		Vector2(0.55, 0.42),
+		Vector2(0.52, 0.38),
+		Vector2(0.60, 0.34),
+		Vector2(0.58, 0.66),
+	]:
+		var point := Vector2(controls.size.x * candidate.x, controls.size.y * candidate.y)
+		if (
+			not controls.call("_is_over_hud", point)
+			and not is_instance_valid(controls.call("_find_touch_button", point))
+		):
+			look_point = point
+			break
+	look_touch.position = look_point
 	look_touch.pressed = true
 	controls.call("_input", look_touch)
 	var look_drag := InputEventScreenDrag.new()
@@ -951,7 +962,6 @@ func _test_joystick_vector(
 	)
 	_send_screen_touch(controls, touch_id, origin + drag_delta, false)
 	player.set("velocity", Vector3.ZERO)
-	player.global_position = start_position
 
 
 func _touch_button_debug(controls: Control) -> String:
