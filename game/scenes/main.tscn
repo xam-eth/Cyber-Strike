@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/worlds/neon_frontier.tscn" id="2_world"]
@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://scripts/waves/wave_director.gd" id="6_wave_director"]
 [ext_resource type="Script" path="res://scripts/progression/run_stats.gd" id="7_run_stats"]
 [ext_resource type="Script" path="res://scripts/progression/reward_service.gd" id="8_reward_service"]
+[ext_resource type="Script" path="res://scripts/progression/progression_service.gd" id="10_progression"]
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_main")
@@ -56,5 +57,8 @@ script = ExtResource("7_run_stats")
 
 [node name="RewardService" type="Node" parent="."]
 script = ExtResource("8_reward_service")
+
+[node name="ProgressionService" type="Node" parent="."]
+script = ExtResource("10_progression")
 
 [node name="HUD" parent="." instance=ExtResource("5_hud")]

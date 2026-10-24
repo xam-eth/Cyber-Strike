@@ -1,6 +1,8 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/enemies/shooter.gd" id="1_shooter"]
+[ext_resource type="Script" path="res://scripts/enemies/enemy_visual.gd" id="2_enemy_visual"]
+[ext_resource type="PackedScene" path="res://assets/world/kenney_space_kit/astronauta.glb" id="3_astronaut"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape_shooter"]
 radius = 0.36
@@ -48,6 +50,13 @@ position = Vector3(0, 0.825, 0)
 shape = SubResource("CapsuleShape_shooter")
 
 [node name="Visuals" type="Node3D" parent="."]
+script = ExtResource("2_enemy_visual")
+model_scene = ExtResource("3_astronaut")
+target_size = 1.62
+outline_color = Color(0.72, 0.27, 0.94, 1)
+outline_grow = 0.032
+bob_amplitude = 0.04
+bob_frequency = 7.0
 
 [node name="BodyMesh" type="MeshInstance3D" parent="Visuals"]
 position = Vector3(0, 0.825, 0)
@@ -55,7 +64,7 @@ mesh = SubResource("CapsuleMesh_shooter")
 material_override = SubResource("Material_shooter")
 
 [node name="CoreMesh" type="MeshInstance3D" parent="Visuals"]
-position = Vector3(0, 1.52, 0)
+position = Vector3(0, 1.35, -0.14)
 mesh = SubResource("SphereMesh_core")
 material_override = SubResource("Material_core")
 

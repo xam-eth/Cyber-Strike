@@ -5,8 +5,14 @@ config_version=5
 [application]
 config/name="Project Overdrive - Combat Prototype"
 config/description="Mobile-first third-person sci-fi shooter with a connected 3D NEON FRONTIER world."
-run/main_scene="res://scenes/main.tscn"
+run/main_scene="res://scenes/ui/front_end.tscn"
+config/icon="res://icon.svg"
 config/features=PackedStringArray("4.7")
+
+[autoload]
+; Procedural audio: every sound is synthesised at runtime, so no audio assets
+; need to ship with the build. Gameplay calls the Audio singleton only.
+Audio="*res://scripts/audio/audio_director.gd"
 
 [display]
 window/size/viewport_width=1280
@@ -14,9 +20,21 @@ window/size/viewport_height=720
 window/size/window_width_override=1280
 window/size/window_height_override=720
 window/stretch/mode="canvas_items"
+; "expand" keeps the game at the right scale in any window shape: a phone in
+; portrait fills the screen instead of letterboxing into a 16:9 strip, and the
+; extra axis simply shows more world. The HUD is anchored, so it follows.
+window/stretch/aspect="expand"
 window/handheld/orientation=0
 
 [input]
+start_defense={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":66)]
+}
+open_armory={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":85)]
+}
 move_left={
 "deadzone": 0.2,
 "events": [Object(InputEventKey,"physical_keycode":65)]
@@ -41,9 +59,45 @@ weapon_next={
 "deadzone": 0.2,
 "events": [Object(InputEventKey,"physical_keycode":69)]
 }
+weapon_prev={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":81)]
+}
+weapon_1={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":49)]
+}
+weapon_2={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":50)]
+}
+weapon_3={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":51)]
+}
+jump={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":32)]
+}
+sprint={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":4194325)]
+}
 reset_session={
 "deadzone": 0.2,
 "events": [Object(InputEventKey,"physical_keycode":82)]
+}
+toggle_sound={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":77)]
+}
+emp_pulse={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":70)]
+}
+reload={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":71)]
 }
 
 [input_devices]
@@ -55,4 +109,6 @@ pointing/emulate_mouse_from_touch=false
 [rendering]
 renderer/rendering_method="mobile"
 renderer/rendering_method.mobile="mobile"
+; Web (WASM) preview build: Godot only supports the Compatibility renderer on the web platform.
+renderer/rendering_method.web="gl_compatibility"
 environment/defaults/default_clear_color=Color(0.48,0.76,0.89,1)

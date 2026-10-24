@@ -16,11 +16,15 @@ else
   exit 127
 fi
 
+# game/ AND tests/: the tests moved out of the project in phase 1 so they cannot
+# be exported, but they are still 8,141 lines of GDScript that must parse, lint
+# and stay formatted. A test the linter does not see is a test nobody reads.
 mapfile -d '' gd_files < <(
-  find "$ROOT_DIR/game" -type f -name '*.gd' -not -path '*/.godot/*' -print0 | sort -z
+  find "$ROOT_DIR/game" "$ROOT_DIR/tests" -type f -name '*.gd' \
+    -not -path '*/.godot/*' -print0 2>/dev/null | sort -z
 )
 if (( ${#gd_files[@]} == 0 )); then
-  printf 'No GDScript files found under game/.\n'
+  printf 'No GDScript files found under game/ or tests/.\n'
   exit 0
 fi
 

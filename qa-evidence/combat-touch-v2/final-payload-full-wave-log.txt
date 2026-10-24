@@ -1,0 +1,38 @@
+Payload b499bb5 (source d2b4992). Portrait 390×844 WebAssembly.
+Command: node tools/qa_wave_clear.mjs --url=http://127.0.0.1:800/
+No game state injection. Output below is the original captured console/probe log.
+
+Encounter: Explore safe; activate Start Defense when ready
+Progression: wallet 0 BP · 1 weapon(s) owned
+FRAME 00-explore
+Encounter: Preparing Defense (5 s)
+Encounter: Defense started
+FRAME 01-first-contact
+FRAME 02-after-fire
+Encounter: RUNNER KO · +10 BP
+FRAME 03-after-first-fire-emp
+KO now: 1
+TURN 0 KO 1
+FRAME turn-1
+TURN 1 KO 1
+TURN 2 KO 1
+FRAME turn-3
+TURN 3 KO 1
+TURN 4 KO 1
+FRAME turn-5
+Encounter: RUNNER KO · +10 BP
+FRAME second-emp-5
+TURN 5 KO 2
+Progression: banked +120 BP · wallet 120 · best 200
+Encounter: Results after wave 1
+FRAME 02-results
+BANK: Progression: banked +120 BP · wallet 120 · best 200
+Encounter: Returned to Explore
+FRAME 03-armory-ready
+Armory: unlocked nova_launcher
+FRAME 04-armory-nova-equipped
+Encounter: Preparing Defense (5 s)
+Encounter: Defense started
+FRAME 05-nova-replay
+FRAME 06-nova-fired
+PASS: 2 Runner KOs + 100 clear -> 120 banked -> Nova unlocked/equipped -> replay FIRE

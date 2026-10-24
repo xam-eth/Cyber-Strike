@@ -1,0 +1,224 @@
+{
+  "generated": "game/assets/ui/generated",
+  "assets": [
+    {
+      "key": "wordmark",
+      "file": "res://assets/ui/logo_wordmark.png",
+      "format": "PNG",
+      "source": "res://assets/ui/generated/wordmark.png",
+      "size": [
+        1024,
+        256
+      ],
+      "mode": "content",
+      "palette": {
+        "shadow": 0.4442,
+        "navy": 0.3643,
+        "steel": 0.1063,
+        "cyan": 0.033,
+        "red": 0.0265,
+        "amber": 0.0135,
+        "off-palette": 0.012,
+        "green": 0.0002
+      },
+      "off_palette_share": 0.012,
+      "within_palette": true
+    },
+    {
+      "key": "loading_keyart",
+      "file": "res://assets/ui/loading_keyart.jpg",
+      "format": "JPEG",
+      "source": "res://assets/ui/generated/loading_keyart_16x9.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "mode": "cover",
+      "palette": {
+        "navy": 0.5139,
+        "amber": 0.2387,
+        "steel": 0.1435,
+        "cyan": 0.0804,
+        "shadow": 0.0215,
+        "red": 0.0017,
+        "green": 0.0001,
+        "off-palette": 0.0
+      },
+      "off_palette_share": 0.0,
+      "within_palette": true
+    },
+    {
+      "key": "dashboard_bg",
+      "file": "res://assets/ui/dashboard_bg.jpg",
+      "format": "JPEG",
+      "source": "res://assets/ui/generated/dashboard_bg.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "mode": "cover",
+      "palette": {
+        "shadow": 0.424,
+        "cyan": 0.3904,
+        "navy": 0.1402,
+        "amber": 0.0266,
+        "steel": 0.0136,
+        "green": 0.0031,
+        "off-palette": 0.0021
+      },
+      "off_palette_share": 0.0021,
+      "within_palette": true
+    },
+    {
+      "key": "hero_portrait",
+      "file": "res://assets/ui/portrait_hero.png",
+      "format": "PNG",
+      "source": "res://assets/ui/generated/hero_portrait.png",
+      "size": [
+        768,
+        1024
+      ],
+      "mode": "cover",
+      "palette": {
+        "cyan": 0.4389,
+        "shadow": 0.2213,
+        "steel": 0.1183,
+        "amber": 0.1164,
+        "navy": 0.0947,
+        "green": 0.0057,
+        "off-palette": 0.0023,
+        "red": 0.0023
+      },
+      "off_palette_share": 0.0023,
+      "within_palette": true
+    },
+    {
+      "key": "world_neon_frontier",
+      "file": "res://assets/ui/world_neon_frontier.jpg",
+      "format": "JPEG",
+      "source": "res://assets/ui/generated/world_neon_frontier.png",
+      "size": [
+        1600,
+        900
+      ],
+      "mode": "cover",
+      "palette": {
+        "navy": 0.6783,
+        "cyan": 0.1072,
+        "shadow": 0.107,
+        "steel": 0.073,
+        "amber": 0.02,
+        "green": 0.012,
+        "red": 0.0024,
+        "off-palette": 0.0001
+      },
+      "off_palette_share": 0.0001,
+      "within_palette": true
+    },
+    {
+      "key": "weapon_pulse_rifle",
+      "file": "res://assets/ui/weapon_pulse_rifle.png",
+      "format": "PNG",
+      "source": "res://assets/ui/generated/weapon_pulse_rifle.png",
+      "size": [
+        768,
+        512
+      ],
+      "mode": "content_cover",
+      "palette": {
+        "navy": 0.6388,
+        "shadow": 0.1389,
+        "steel": 0.138,
+        "cyan": 0.0833,
+        "amber": 0.0011
+      },
+      "off_palette_share": 0.0,
+      "within_palette": true
+    },
+    {
+      "key": "weapon_nova_launcher",
+      "file": "res://assets/ui/weapon_nova_launcher.png",
+      "format": "PNG",
+      "source": "res://assets/ui/generated/weapon_nova_launcher.png",
+      "size": [
+        768,
+        512
+      ],
+      "mode": "content_cover",
+      "palette": {
+        "navy": 0.5233,
+        "steel": 0.2599,
+        "shadow": 0.1236,
+        "amber": 0.0536,
+        "red": 0.014,
+        "off-palette": 0.0131,
+        "cyan": 0.0089,
+        "green": 0.0037
+      },
+      "off_palette_share": 0.0131,
+      "within_palette": true
+    },
+    {
+      "key": "weapon_arc_shooter",
+      "file": "res://assets/ui/weapon_arc_shooter.png",
+      "format": "PNG",
+      "source": "res://assets/ui/generated/weapon_arc_shooter.png",
+      "size": [
+        768,
+        512
+      ],
+      "mode": "content_cover",
+      "palette": {
+        "navy": 0.4476,
+        "steel": 0.2561,
+        "cyan": 0.1985,
+        "shadow": 0.0521,
+        "amber": 0.0421,
+        "red": 0.0023,
+        "green": 0.0009,
+        "off-palette": 0.0005
+      },
+      "off_palette_share": 0.0005,
+      "within_palette": true
+    },
+    {
+      "key": "loading_robot",
+      "file": "res://assets/ui/loading_robot_sheet.png",
+      "format": "PNG",
+      "source": [
+        "res://assets/ui/generated/robot_walk_02.png",
+        "res://assets/ui/generated/robot_walk_03.png",
+        "res://assets/ui/generated/robot_walk_04.png",
+        "res://assets/ui/generated/robot_walk_alt1.png"
+      ],
+      "size": [
+        2048,
+        512
+      ],
+      "cell": [
+        512,
+        512
+      ],
+      "frames": 4,
+      "fps": 8,
+      "union_crop": [
+        532,
+        118,
+        884,
+        653
+      ],
+      "palette": {
+        "shadow": 0.3782,
+        "navy": 0.2773,
+        "steel": 0.2046,
+        "cyan": 0.106,
+        "amber": 0.0289,
+        "green": 0.0042,
+        "red": 0.0005,
+        "off-palette": 0.0003
+      },
+      "off_palette_share": 0.0003,
+      "within_palette": true
+    }
+  ]
+}

@@ -17,6 +17,9 @@ signal attack_resolved(hit_target: bool)
 @export_range(0.5, 40.0, 0.5) var attack_damage: float = 8.0
 @export_range(0.1, 3.0, 0.05) var attack_windup: float = 0.7
 @export_range(0.5, 6.0, 0.1) var attack_interval: float = 2.2
+## Give a player behind cover a readable pause before the shooter repositions.
+@export_range(0.2, 2.0, 0.1) var cover_search_delay: float = 0.8
+@export_range(1.0, 8.0, 0.1) var flank_turn_interval: float = 4.0
 @export_flags_3d_physics var sight_collision_mask: int = 1
 @export_flags_3d_physics var attack_collision_mask: int = 5
 
@@ -27,17 +30,22 @@ var _attack_cooldown: float = 0.0
 var _windup_remaining: float = 0.0
 var _locked_attack_point: Vector3 = Vector3.ZERO
 var _spawn_transform: Transform3D
+var _cover_blocked_seconds: float = 0.0
+var _flank_elapsed: float = 0.0
+var _flank_sign: float = 1.0
 
 @onready var collision_shape: CollisionShape3D = $CollisionShape3D
-@onready var visuals: Node3D = $Visuals
+@onready var visuals: EnemyVisual = $Visuals
 @onready var muzzle: Marker3D = $Visuals/Muzzle
 @onready var aim_marker: MeshInstance3D = $AimMarker
+@onready var core: MeshInstance3D = get_node_or_null("Visuals/CoreMesh") as MeshInstance3D
 
 
 func _ready() -> void:
 	add_to_group("enemies")
 	add_to_group("shooter_enemies")
 	_spawn_transform = global_transform
+	_flank_sign = 1.0 if get_instance_id() % 2 == 0 else -1.0
 	_target = get_node_or_null(target_path) as Node3D
 	current_health = max_health
 	health_changed.emit(current_health, max_health)
@@ -60,24 +68,32 @@ func _physics_process(delta: float) -> void:
 			rotation.y = atan2(-direction.x, -direction.z)
 			if distance > detection_range:
 				_cancel_attack()
-			elif distance > preferred_range + 1.5:
-				desired_velocity = direction * move_speed
+				_reset_cover_search()
+			elif not _has_line_of_sight():
+				# A shooter pinned behind a wall used to stand still forever at its
+				# preferred range. Search sideways after a short, fair telegraph gap.
 				_cancel_attack()
-			elif distance < minimum_standoff:
-				desired_velocity = -direction * move_speed
-				_cancel_attack()
-			elif _windup_remaining > 0.0:
-				if distance > max_attack_range or not _has_line_of_sight():
+				desired_velocity = _search_around_cover(direction, distance, delta)
+			else:
+				_reset_cover_search()
+				if distance > preferred_range + 1.5:
+					desired_velocity = direction * move_speed
 					_cancel_attack()
-				else:
-					_windup_remaining = maxf(_windup_remaining - delta, 0.0)
-					if _windup_remaining <= 0.0:
-						_resolve_attack()
-			elif distance <= max_attack_range and _attack_cooldown <= 0.0:
-				if _has_line_of_sight():
+				elif distance < minimum_standoff:
+					desired_velocity = -direction * move_speed
+					_cancel_attack()
+				elif _windup_remaining > 0.0:
+					if distance > max_attack_range:
+						_cancel_attack()
+					else:
+						_windup_remaining = maxf(_windup_remaining - delta, 0.0)
+						if _windup_remaining <= 0.0:
+							_resolve_attack()
+				elif distance <= max_attack_range and _attack_cooldown <= 0.0:
 					_begin_attack_windup()
 	else:
 		_cancel_attack()
+		_reset_cover_search()
 
 	if _windup_remaining > 0.0:
 		desired_velocity = Vector3.ZERO
@@ -92,6 +108,46 @@ func _physics_process(delta: float) -> void:
 	else:
 		velocity.y = 0.0
 	move_and_slide()
+	visuals.update_motion(velocity, delta)
+	_update_core_telegraph(delta)
+
+
+func _search_around_cover(direction: Vector3, distance: float, delta: float) -> Vector3:
+	_cover_blocked_seconds += delta
+	if _cover_blocked_seconds < cover_search_delay:
+		if distance > preferred_range + 1.5:
+			return direction * move_speed
+		if distance < minimum_standoff:
+			return -direction * move_speed
+		return Vector3.ZERO
+	_flank_elapsed += delta
+	if _flank_elapsed >= flank_turn_interval:
+		_flank_elapsed = 0.0
+		_flank_sign *= -1.0
+	var sideways := Vector3(-direction.z, 0.0, direction.x) * _flank_sign
+	var approach := 0.0
+	if distance > preferred_range:
+		approach = 0.35
+	elif distance < minimum_standoff:
+		approach = -0.35
+	return (sideways + direction * approach).normalized() * move_speed
+
+
+func _reset_cover_search() -> void:
+	_cover_blocked_seconds = 0.0
+	_flank_elapsed = 0.0
+
+
+## The core in the chest pulses while the ranged attack charges, so the telegraph
+## reads from the model itself and not only from the floating aim marker.
+func _update_core_telegraph(delta: float) -> void:
+	if not is_instance_valid(core):
+		return
+	var target_scale := Vector3.ONE
+	if _windup_remaining > 0.0:
+		var charge := 1.0 - clampf(_windup_remaining / maxf(attack_windup, 0.001), 0.0, 1.0)
+		target_scale = Vector3.ONE * (1.0 + 0.55 * charge)
+	core.scale = core.scale.lerp(target_scale, minf(delta * 14.0, 1.0))
 
 
 func apply_damage(amount: float, _source: Node = null) -> void:
@@ -107,9 +163,12 @@ func apply_damage(amount: float, _source: Node = null) -> void:
 		velocity = Vector3.ZERO
 		_cancel_attack()
 		eliminated.emit()
-		visuals.visible = false
+		Sfx.play_3d(&"enemy_down", global_position)
+		visuals.play_death()
 		collision_shape.set_deferred("disabled", true)
 		set_deferred("collision_layer", 0)
+	else:
+		visuals.play_hit_flash()
 
 
 func is_defeated() -> bool:
@@ -124,10 +183,11 @@ func reset_shooter() -> void:
 	_is_downed = false
 	_attack_cooldown = 0.0
 	_windup_remaining = 0.0
+	_reset_cover_search()
 	current_health = max_health
 	velocity = Vector3.ZERO
 	global_transform = _spawn_transform
-	visuals.visible = true
+	visuals.reset_visual()
 	aim_marker.visible = false
 	collision_shape.set_deferred("disabled", false)
 	set_deferred("collision_layer", 2)

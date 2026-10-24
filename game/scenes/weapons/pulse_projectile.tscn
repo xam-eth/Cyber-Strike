@@ -1,16 +1,40 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/weapons/pulse_projectile.gd" id="1_projectile"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_pulse"]
-radius = 0.1
-height = 0.2
+radius = 0.105
+height = 0.21
 
 [sub_resource type="StandardMaterial3D" id="Material_pulse"]
 shading_mode = 0
-albedo_color = Color(0.25, 0.93, 1, 1)
+albedo_color = Color(0.5, 0.93, 1, 1)
 emission_enabled = true
-emission = Color(0.12, 0.72, 1, 1)
+emission = Color(0.19, 0.8, 1, 1)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_tracer"]
+radius = 0.07
+height = 1.1
+
+[sub_resource type="StandardMaterial3D" id="Material_tracer"]
+shading_mode = 0
+albedo_color = Color(0.38, 0.91, 1, 1)
+emission_enabled = true
+emission = Color(0.08, 0.64, 1, 1)
+emission_energy_multiplier = 1.65
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_glow"]
+radius = 0.145
+height = 1.2
+
+[sub_resource type="StandardMaterial3D" id="Material_glow"]
+transparency = 1
+shading_mode = 0
+blend_mode = 1
+albedo_color = Color(0.09, 0.57, 1, 0.28)
+emission_enabled = true
+emission = Color(0.06, 0.61, 1, 1)
+emission_energy_multiplier = 1.25
 
 [node name="PulseProjectile" type="Node3D"]
 script = ExtResource("1_projectile")
@@ -18,3 +42,13 @@ script = ExtResource("1_projectile")
 [node name="Bolt" type="MeshInstance3D" parent="."]
 mesh = SubResource("SphereMesh_pulse")
 material_override = SubResource("Material_pulse")
+
+[node name="Tracer" type="MeshInstance3D" parent="."]
+cast_shadow = 0
+mesh = SubResource("CapsuleMesh_tracer")
+material_override = SubResource("Material_tracer")
+
+[node name="TracerGlow" type="MeshInstance3D" parent="."]
+cast_shadow = 0
+mesh = SubResource("CapsuleMesh_glow")
+material_override = SubResource("Material_glow")

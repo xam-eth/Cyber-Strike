@@ -1,0 +1,40 @@
+{
+  "encoder": "libtheora",
+  "container": "ogv",
+  "videos": [
+    {
+      "key": "loading_robot",
+      "file": "res://assets/ui/loading_robot.ogv",
+      "format": "OGV (Theora + Vorbis)",
+      "size": [
+        512,
+        512
+      ],
+      "fps": 8,
+      "frames": 4,
+      "duration_s": 0.5,
+      "bytes": 64578,
+      "has_audio": true,
+      "off_palette_share": 0.0011,
+      "within_palette": true,
+      "sampled_frames": 4
+    },
+    {
+      "key": "cinematic_opening",
+      "file": "res://assets/ui/cinematic_opening.ogv",
+      "format": "OGV (Theora + Vorbis)",
+      "size": [
+        1280,
+        720
+      ],
+      "fps": 24,
+      "frames": 230,
+      "duration_s": 9.58,
+      "bytes": 1646238,
+      "has_audio": true,
+      "off_palette_share": 0.0001,
+      "within_palette": true,
+      "sampled_frames": 9
+    }
+  ]
+}

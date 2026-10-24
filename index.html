@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="id">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+		<meta name="theme-color" content="#05070d">
+		<title>Project Overdrive — WebAssembly Preview</title>
+		<!--
+			Halaman pemain untuk preview WebAssembly Project Overdrive.
+
+			Jalankan dari root repo:
+
+			    python -m http.server 800 --bind 0.0.0.0
+			    http://localhost:800/
+
+			Halaman ini TIDAK memakai iframe: ia meng-import build Godot dari ./web/
+			(fetch konfigurasi ekspor dari ./web/index.html, lalu memuat ./web/index.js
+			dan memanggil Engine.startGame) sehingga game tampil langsung di halaman ini.
+			Struktur ini mengikuti pola repo xam-eth/Scary-Night: halaman di root yang
+			meng-import game, dengan payload di dalam repo.
+
+			Isi ./web/ adalah output ekspor (di-commit oleh job CI "web-preview"),
+			bukan sumber. Jangan mengeditnya dengan tangan.
+		-->
+		<style>
+			:root {
+				--bg: #05070d;
+				--panel: rgba(7, 16, 26, 0.86);
+				--line: rgba(127, 216, 255, 0.22);
+				--cyan: #24d3ff;
+				--emerald: #7cffcb;
+				--text: #e6f1ff;
+				--muted: #93a8bd;
+				--warn: #ffcc66;
+			}
+
+			* { box-sizing: border-box; }
+
+			html, body {
+				margin: 0;
+				padding: 0;
+				height: 100%;
+				overflow: hidden;
+				background: var(--bg);
+				color: var(--text);
+				font-family: 'Segoe UI', 'Noto Sans', Arial, sans-serif;
+			}
+
+			#canvas {
+				display: block;
+				width: 100vw;
+				height: 100vh;
+				outline: none;
+				background: #05070d;
+			}
+
+			.overlay {
+				position: fixed;
+				inset: 0;
+				pointer-events: none;
+				z-index: 10;
+			}
+
+			/* ---------- chips ---------- */
+			.chips {
+				position: absolute;
+				top: 0.6rem;
+				right: 0.6rem;
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.4rem;
+				justify-content: flex-end;
+				pointer-events: auto;
+			}
+
+			.chip {
+				display: inline-flex;
+				align-items: center;
+				gap: 0.4rem;
+				padding: 0.34rem 0.66rem;
+				border: 1px solid var(--line);
+				border-radius: 999px;
+				background: var(--panel);
+				color: var(--text);
+				font: 600 0.68rem/1 'Segoe UI', 'Noto Sans', Arial, sans-serif;
+				letter-spacing: 0.08em;
+				text-transform: uppercase;
+				text-decoration: none;
+				cursor: pointer;
+				backdrop-filter: blur(6px);
+			}
+
+			.chip:hover { border-color: rgba(36, 211, 255, 0.55); color: #fff; }
+			/* Once the run starts the game's own HUD owns the top of the screen, so
+			   the browser chips fold down to one toggle and come back on hover,
+			   focus or tap. */
+			/* On a desktop, keep the mobile-preview switch visible even when the
+			   browser chrome collapses: otherwise the player sees NO FIRE icon. */
+			.chips[data-collapsed='true'] .chip:not(#chips-toggle):not(#mobile-hud-toggle) { display: none; }
+			.chip[hidden] { display: none !important; }
+			#chips-toggle { opacity: 0.75; }
+			.chips:not([data-collapsed='true']) #chips-toggle { opacity: 1; }
+			.chip[data-state='ok'] { border-color: rgba(124, 255, 203, 0.45); color: var(--emerald); }
+			.chip[data-state='warn'] { border-color: rgba(255, 204, 102, 0.45); color: var(--warn); }
+			.chip[data-state='bad'] { border-color: rgba(255, 120, 120, 0.5); color: #ff9c9c; }
+			.chip .dot { width: 0.42rem; height: 0.42rem; border-radius: 50%; background: currentColor; }
+
+			/* ---------- controls panel ---------- */
+			.panel {
+				position: absolute;
+				left: 0.6rem;
+				bottom: 0.6rem;
+				max-width: min(30rem, calc(100vw - 1.2rem));
+				padding: 0.7rem 0.85rem;
+				border: 1px solid var(--line);
+				border-radius: 0.7rem;
+				background: var(--panel);
+				pointer-events: auto;
+				font-size: 0.76rem;
+				line-height: 1.5;
+				color: var(--muted);
+				backdrop-filter: blur(6px);
+			}
+
+			.panel[hidden] { display: none; }
+			.panel b { color: var(--text); font-weight: 600; }
+			.panel .warn { color: var(--warn); }
+			body.hide-ui .chips, body.hide-ui .panel { display: none; }
+
+			/* ---------- boot ---------- */
+			#boot {
+				position: fixed;
+				inset: 0;
+				z-index: 20;
+				display: grid;
+				place-content: center;
+				gap: 1rem;
+				padding: 2rem;
+				text-align: center;
+				background:
+					radial-gradient(circle at 20% 10%, rgba(36, 211, 255, 0.16), transparent 55%),
+					radial-gradient(circle at 80% 90%, rgba(124, 255, 203, 0.12), transparent 52%),
+					var(--bg);
+			}
+
+			#boot[hidden] { display: none; }
+			#boot h1 {
+				margin: 0;
+				font-size: clamp(1.4rem, 4vw, 2.4rem);
+				font-weight: 700;
+				letter-spacing: 0.32em;
+				text-transform: uppercase;
+			}
+
+			#boot h1 span { color: var(--cyan); }
+			#boot .sub { color: var(--muted); font-size: 0.8rem; letter-spacing: 0.22em; text-transform: uppercase; }
+			#bar {
+				width: min(30rem, 70vw);
+				height: 0.4rem;
+				margin: 0 auto;
+				border: 1px solid var(--line);
+				border-radius: 999px;
+				overflow: hidden;
+				background: rgba(255, 255, 255, 0.04);
+			}
+
+			#bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--cyan), var(--emerald)); transition: width 0.2s linear; }
+			#boot-status { color: var(--muted); font-size: 0.78rem; letter-spacing: 0.1em; }
+
+			/* ---------- failure card ---------- */
+			#failure {
+				position: fixed;
+				inset: 0;
+				z-index: 30;
+				display: grid;
+				place-content: center;
+				padding: 2rem;
+				background: rgba(3, 6, 12, 0.94);
+			}
+
+			#failure[hidden] { display: none; }
+			#failure .card {
+				max-width: 46rem;
+				padding: 1.4rem 1.5rem;
+				border: 1px solid var(--line);
+				border-radius: 0.9rem;
+				background: var(--panel);
+			}
+
+			#failure h2 { margin: 0 0 0.6rem; font-size: 1.05rem; letter-spacing: 0.12em; text-transform: uppercase; }
+			#failure p, #failure li { color: var(--muted); font-size: 0.85rem; line-height: 1.6; }
+			#failure pre {
+				max-height: 12rem;
+				overflow: auto;
+				padding: 0.7rem;
+				border: 1px solid var(--line);
+				border-radius: 0.5rem;
+				background: rgba(0, 0, 0, 0.35);
+				color: var(--warn);
+				font-size: 0.76rem;
+				white-space: pre-wrap;
+			}
+
+			#failure code { color: var(--emerald); }
+		</style>
+		<!--
+			Skrip engine dimuat sebagai tag statis dengan sengaja: engine menurunkan
+			direktori asetnya (index.wasm, index.pck, worklet audio) dari
+			document.currentScript.src. Tag statis menunjuk ./web/index.js sehingga
+			berkas-berkas itu dicari di ./web/, bukan di root. Skrip yang disuntik
+			dinamis akan membuat currentScript null dan engine mengejar index.wasm 404.
+		-->
+		<script src="./web/index.js" onerror="window.__engineScriptFailed = true;"></script>
+	</head>
+	<body>
+		<!-- Kanvas milik halaman ini; engine Godot mengambil elemen ini. -->
+		<canvas id="canvas" tabindex="-1" aria-label="Project Overdrive. Jelajahi dengan aman, tekan B untuk memulai Defense. WASD bergerak, klik kanan membidik, klik kiri menembak, E ganti senjata, Esc pause, R retry."></canvas>
+
+		<div class="overlay" id="shell-ui">
+			<div class="chips" id="chips" data-collapsed="true">
+				<span class="chip" id="build-chip" data-state="warn"><i class="dot"></i><span id="build-label">memuat…</span></span>
+				<button class="chip" id="controls-chip" type="button">Kontrol</button>
+				<button class="chip" id="hide-ui" type="button">Hide UI</button>
+				<button class="chip" id="fullscreen" type="button">Fullscreen</button>
+				<button class="chip" id="reload" type="button">Reload</button>
+				<a class="chip" id="raw" href="./web/index.html" target="_blank" rel="noopener">Build mentah</a>
+				<button class="chip" id="mobile-hud-toggle" type="button" title="Tampilkan HUD sentuh sebenarnya pada browser desktop">HUD Mobile</button>
+				<button class="chip" id="chips-toggle" type="button" title="Tampilkan/sembunyikan tombol browser">UI</button>
+			</div>
+
+			<div class="panel" id="controls-panel" hidden>
+				<p><b>Explore aman:</b> tidak ada wave otomatis. Tekan <b>B</b> / START DEFENSE bila sudah siap; countdown mendahului musuh.</p>
+				<p><b>Keyboard:</b> WASD bergerak · klik kanan membidik · klik kiri menembak · <b>E</b> ganti senjata · <b>Esc</b> pause · <b>R</b> retry.</p>
+				<p><b>Sentuh:</b> joystick kiri · drag kanan untuk aim · FIRE · WEAPON / EMP · PAUSE. Hasil run menyediakan RETRY DEFENSE atau EXPLORE.</p>
+				<p class="warn">Build ini memakai renderer Compatibility (WebGL 2) dan mode single-thread. Angka FPS di browser bukan ukuran performa Android — lihat ANDROID_BASELINE.md.</p>
+			</div>
+		</div>
+
+		<div id="boot">
+			<h1>Project <span>Overdrive</span></h1>
+			<div class="sub">WebAssembly preview · Godot 4.7.2</div>
+			<div id="bar"><i></i></div>
+			<div id="boot-status">menyiapkan…</div>
+		</div>
+
+		<div id="failure" hidden>
+			<div class="card">
+				<h2 id="failure-title">Build belum bisa dimuat</h2>
+				<p id="failure-lead"></p>
+				<ul id="failure-steps"></ul>
+				<pre id="failure-detail" hidden></pre>
+			</div>
+		</div>
+
+		<script>
+			'use strict';
+
+			const BUILD_URL = './web/index.html';
+			const ENGINE_URL = './web/index.js';
+			const boot = document.getElementById('boot');
+			const bootBar = document.querySelector('#bar i');
+			const bootStatus = document.getElementById('boot-status');
+			const failure = document.getElementById('failure');
+			const failureTitle = document.getElementById('failure-title');
+			const failureLead = document.getElementById('failure-lead');
+			const failureSteps = document.getElementById('failure-steps');
+			const failureDetail = document.getElementById('failure-detail');
+			const buildChip = document.getElementById('build-chip');
+			const buildLabel = document.getElementById('build-label');
+
+			function setBuildChip(state, label) {
+				buildChip.dataset.state = state;
+				buildLabel.textContent = label;
+			}
+
+			function showFailure(title, lead, steps, detail) {
+				boot.hidden = true;
+				failureTitle.textContent = title;
+				failureLead.textContent = lead;
+				failureSteps.replaceChildren(
+					...(steps || []).map((text) => {
+						const li = document.createElement('li');
+						li.textContent = text;
+						return li;
+					}),
+				);
+				if (detail) {
+					failureDetail.hidden = false;
+					failureDetail.textContent = detail;
+				} else {
+					failureDetail.hidden = true;
+				}
+				failure.hidden = false;
+				setBuildChip('bad', 'gagal');
+			}
+
+			const MISSING_STEPS = [
+				'Jalankan halaman dari root repo: python -m http.server 800 --bind 0.0.0.0',
+				'Pastikan folder web/ ada: ia ikut di-commit, jadi git pull biasanya cukup.',
+				'Kalau web/ hilang: ekspor ulang dengan ./scripts/export_web_preview.sh, atau unduh artefak "web-preview" dari GitHub Actions.',
+			];
+
+			async function bootGame() {
+				// 1. Konfigurasi ekspor dibaca dari halaman build Godot (satu baris JSON),
+				//    supaya halaman ini tidak perlu tahu isi preset ekspor.
+				let response;
+				try {
+					response = await fetch(BUILD_URL, { cache: 'no-store' });
+				} catch (error) {
+					showFailure(
+						'Build belum bisa dimuat',
+						'Permintaan ke ' + BUILD_URL + ' gagal. Kalau Anda membuka file ini langsung (file://), JavaScript tidak boleh mengambil berkas — gunakan server statis.',
+						MISSING_STEPS,
+						String(error),
+					);
+					return;
+				}
+
+				if (!response.ok) {
+					showFailure(
+						'Build web belum ada di repo ini',
+						`Halaman mencari ${BUILD_URL} dan mendapat HTTP ${response.status}.`,
+						MISSING_STEPS,
+					);
+					return;
+				}
+
+				const html = await response.text();
+				const match = html.match(/const GODOT_CONFIG = (\{[^\n]*\});/);
+				if (!match) {
+					showFailure(
+						'Konfigurasi ekspor tidak terbaca',
+						`${BUILD_URL} tidak memuat baris GODOT_CONFIG yang diharapkan.`,
+						['Ekspor ulang build: ./scripts/export_web_preview.sh', 'Pastikan game/web_shell/index.html dipakai sebagai custom HTML shell.'],
+					);
+					return;
+				}
+
+				const config = JSON.parse(match[1]);
+				// Engine menurunkan lokasi index.wasm/index.pck dari halaman tempat ia
+				// dijalankan. Karena payload tinggal di ./web/ sedangkan halaman ini di
+				// root, jalur executable-nya diberi tahu langsung (terbukti lewat uji
+				// headless: tanpa ini engine meminta /index.wasm dan mendapat 404).
+				config.executable = './web/index';
+				const threadsEnabled = /GODOT_THREADS_ENABLED = true/.test(html);
+				setBuildChip('warn', 'memuat engine…');
+
+				const EngineClass = window.Engine || window.Godot;
+				if (typeof EngineClass !== 'function') {
+					showFailure(
+						'Engine tidak tersedia',
+						window.__engineScriptFailed
+							? `Tag skrip untuk ${ENGINE_URL} gagal dimuat (berkasnya tidak ada).`
+							: `${ENGINE_URL} dimuat tetapi tidak menyediakan kelas Engine.`,
+						MISSING_STEPS,
+					);
+					return;
+				}
+
+				const missing = EngineClass.getMissingFeatures ? EngineClass.getMissingFeatures({ threads: threadsEnabled }) : [];
+				if (missing.length) {
+					showFailure(
+						'Browser tidak mendukung fitur yang dibutuhkan',
+						'Build ini memerlukan WebGL 2.',
+						['Pakai Chrome, Edge, atau Firefox terbaru.', 'Pastikan akselerasi perangkat keras/WebGL 2 tidak diblokir.'],
+						missing.join('\n'),
+					);
+					return;
+				}
+
+				const engine = new EngineClass(config);
+				bootStatus.textContent = 'memuat berkas game…';
+
+				engine.startGame({
+					onProgress: (current, total) => {
+						if (current > 0 && total > 0) {
+							bootBar.style.width = `${Math.floor((current / total) * 100)}%`;
+							bootStatus.textContent = `${Math.floor((current / total) * 100)}% dimuat`;
+						} else {
+							bootStatus.textContent = 'memuat berkas game…';
+						}
+					},
+				}).then(() => {
+					boot.hidden = true;
+					setBuildChip('ok', `siap · ${threadsEnabled ? 'threaded' : 'single-thread'}`);
+					const canvas = document.getElementById('canvas');
+					if (config.focusCanvas !== false && canvas) canvas.focus();
+					// The game owns the sightline immediately after boot. Browser
+					// diagnostics remain one tap away via the small UI toggle.
+					chips.dataset.collapsed = 'true';
+				}, (error) => {
+					showFailure(
+						'Engine berhenti saat start',
+						'Build termuat tetapi startGame gagal.',
+						['Coba Reload.', 'Jalankan ./scripts/export_web_preview.sh --debug untuk build dengan detail error lebih lengkap.'],
+						String(error),
+					);
+				});
+			}
+
+			// ---------- kontrol shell ----------
+			document.getElementById('controls-chip').addEventListener('click', () => {
+				const panel = document.getElementById('controls-panel');
+				panel.hidden = !panel.hidden;
+			});
+
+				document.getElementById('hide-ui').addEventListener('click', () => {
+					document.body.classList.toggle('hide-ui');
+				});
+
+				// Desktop defaults to mouse/LMB (no FIRE button), which previously
+				// made mobile-UI review impossible from the normal WebAssembly preview.
+				// Opt in visibly; never make a desktop player guess a query parameter.
+				const mobileHudToggle = document.getElementById('mobile-hud-toggle');
+				const touchPreview = new URLSearchParams(window.location.search).has('touch_preview');
+				mobileHudToggle.textContent = touchPreview ? 'HUD Desktop' : 'HUD Mobile';
+				mobileHudToggle.hidden = matchMedia('(pointer: coarse)').matches && !touchPreview;
+				mobileHudToggle.addEventListener('click', () => {
+					const url = new URL(window.location.href);
+					if (touchPreview) url.searchParams.delete('touch_preview');
+					else url.searchParams.set('touch_preview', '1');
+					window.location.assign(url.toString());
+				});
+
+				/* ---------- browser chips ---------- */
+			const chips = document.getElementById('chips');
+			let chipTimer = 0;
+
+			function scheduleChipsCollapse(delay = 6000) {
+				if (chips.dataset.collapsed === 'true') return;
+				window.clearTimeout(chipTimer);
+				chipTimer = window.setTimeout(() => {
+					chips.dataset.collapsed = 'true';
+				}, delay);
+			}
+
+			document.getElementById('chips-toggle').addEventListener('click', () => {
+				const collapsed = chips.dataset.collapsed === 'true';
+				chips.dataset.collapsed = collapsed ? 'false' : 'true';
+				if (collapsed) scheduleChipsCollapse(8000);
+			});
+			chips.addEventListener('pointerenter', () => {
+				chips.dataset.collapsed = 'false';
+				window.clearTimeout(chipTimer);
+			});
+			chips.addEventListener('pointerleave', () => scheduleChipsCollapse(3000));
+			chips.addEventListener('focusin', () => {
+				chips.dataset.collapsed = 'false';
+				window.clearTimeout(chipTimer);
+			});
+
+			document.getElementById('fullscreen').addEventListener('click', () => {
+				if (document.fullscreenElement) {
+					document.exitFullscreen();
+				} else {
+					document.documentElement.requestFullscreen().catch(() => {});
+				}
+			});
+
+			document.getElementById('reload').addEventListener('click', () => window.location.reload());
+
+			bootGame();
+		</script>
+	</body>
+</html>

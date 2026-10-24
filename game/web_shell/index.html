@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
+		<title>$GODOT_PROJECT_NAME — Web Preview</title>
+		<!--
+			Project Overdrive custom Godot 4 Web shell.
+
+			This file is exported by Godot through the "html/custom_html_shell"
+			export option (see tools/web_preset.py). Godot substitutes the
+			dollar-prefixed GODOT_* placeholders at export time; the marker names
+			are documented here without their prefix so that this comment is never
+			mistaken for an unsubstituted placeholder:
+
+			  GODOT_PROJECT_NAME      project name from project.godot
+			  GODOT_URL               path of the exported JS library (index.js)
+			  GODOT_CONFIG            engine configuration object
+			  GODOT_THREADS_ENABLED   "true"/"false" for the chosen variant
+			  GODOT_HEAD_INCLUDE      extra markup from the export preset
+			  GODOT_SPLASH / GODOT_SPLASH_CLASSES   boot splash image and classes
+
+			The shell adds a HUD layer (build label, controls legend, fullscreen)
+			on top of the engine canvas. Web exports run on the Compatibility
+			renderer, so WebGL 2 is required.
+		-->
+		<style>
+			html, body, #canvas {
+				margin: 0;
+				padding: 0;
+				border: 0;
+			}
+
+			html, body {
+				width: 100%;
+				height: 100%;
+				overflow: hidden;
+				background-color: #05070d;
+			}
+
+			body {
+				color: #e6f1ff;
+				font-family: 'Segoe UI', 'Noto Sans', Arial, sans-serif;
+				touch-action: none;
+				-webkit-tap-highlight-color: transparent;
+			}
+
+			#canvas {
+				display: block;
+				width: 100%;
+				height: 100%;
+				outline: none;
+				background-color: #05070d;
+			}
+
+			/* ---------- boot overlay ---------- */
+			#status {
+				position: fixed;
+				inset: 0;
+				display: flex;
+				flex-direction: column;
+				justify-content: center;
+				align-items: center;
+				gap: 1.1rem;
+				background:
+					radial-gradient(circle at 50% 30%, rgba(24, 68, 110, 0.55), rgba(5, 7, 13, 0.98) 70%),
+					#05070d;
+				z-index: 20;
+			}
+
+			#status-splash {
+				max-height: 34vh;
+				max-width: 60vw;
+				image-rendering: pixelated;
+			}
+
+			#status-splash.fullsize--true {
+				height: 100%;
+				width: 100%;
+				object-fit: contain;
+			}
+
+			#status.loaded {
+				opacity: 0;
+				visibility: hidden;
+				pointer-events: none;
+				transition: opacity 260ms ease-out;
+			}
+
+			.boot-title {
+				letter-spacing: 0.42em;
+				text-transform: uppercase;
+				font-size: 0.82rem;
+				color: #7fd8ff;
+				text-shadow: 0 0 12px rgba(48, 178, 255, 0.55);
+			}
+
+			.boot-note {
+				font-size: 0.78rem;
+				color: #8ea3b8;
+				max-width: 34rem;
+				text-align: center;
+				line-height: 1.5;
+				padding: 0 1rem;
+			}
+
+			#status-progress {
+				width: min(52vw, 420px);
+				height: 8px;
+				appearance: none;
+				border-radius: 999px;
+				overflow: hidden;
+				background: rgba(127, 216, 255, 0.14);
+				border: 1px solid rgba(127, 216, 255, 0.28);
+			}
+
+			#status-progress::-webkit-progress-bar {
+				background: transparent;
+			}
+
+			#status-progress::-webkit-progress-value {
+				background: linear-gradient(90deg, #24d3ff, #7cffcb);
+			}
+
+			#status-progress::-moz-progress-bar {
+				background: linear-gradient(90deg, #24d3ff, #7cffcb);
+			}
+
+			#status-progress-label {
+				font-variant-numeric: tabular-nums;
+				font-size: 0.76rem;
+				color: #7fd8ff;
+			}
+
+			#status-notice {
+				display: none;
+				max-width: min(46rem, 88vw);
+				margin: 0 1rem;
+				padding: 0.9rem 1.1rem;
+				border-radius: 0.6rem;
+				border: 1px solid #9b3943;
+				background-color: #5b3943;
+				color: #ffe9e9;
+				font-size: 0.82rem;
+				line-height: 1.45;
+				text-align: center;
+				white-space: pre-wrap;
+				z-index: 21;
+			}
+
+			/* ---------- in-game HUD layer ---------- */
+			#shell-ui {
+				position: fixed;
+				inset: 0;
+				pointer-events: none;
+				z-index: 10;
+				opacity: 1;
+				transition: opacity 200ms ease-out;
+			}
+
+			#shell-ui.hidden {
+				opacity: 0;
+			}
+
+			.shell-bar {
+				position: absolute;
+				top: 0;
+				left: 0;
+				display: flex;
+				align-items: center;
+				gap: 0.55rem;
+				padding: 0.5rem 0.6rem;
+				pointer-events: auto;
+			}
+
+			/* The game draws its own HUD at the top of the canvas. The browser
+			   chrome steps aside once the run starts: only the small toggle stays,
+			   and the full bar returns on hover, focus or click. */
+			.shell-bar[data-collapsed='true'] .shell-chip,
+			.shell-bar[data-collapsed='true'] .shell-button:not(#shell-bar-toggle) {
+				display: none;
+			}
+
+			#shell-bar-toggle {
+				opacity: 0.72;
+			}
+
+			.shell-bar:not([data-collapsed='true']) #shell-bar-toggle {
+				opacity: 1;
+			}
+
+			.shell-chip {
+				display: inline-flex;
+				align-items: center;
+				gap: 0.4rem;
+				padding: 0.32rem 0.6rem;
+				border-radius: 999px;
+				background: rgba(5, 12, 22, 0.72);
+				border: 1px solid rgba(127, 216, 255, 0.24);
+				color: #bfe6ff;
+				font-size: 0.7rem;
+				letter-spacing: 0.08em;
+				text-transform: uppercase;
+				backdrop-filter: blur(6px);
+			}
+
+			.shell-chip b {
+				color: #7cffcb;
+				font-weight: 600;
+			}
+
+			.shell-button {
+				pointer-events: auto;
+				cursor: pointer;
+				padding: 0.34rem 0.7rem;
+				border-radius: 999px;
+				background: rgba(5, 12, 22, 0.72);
+				border: 1px solid rgba(127, 216, 255, 0.28);
+				color: #dff3ff;
+				font: inherit;
+				font-size: 0.7rem;
+				letter-spacing: 0.1em;
+				text-transform: uppercase;
+				backdrop-filter: blur(6px);
+			}
+
+			.shell-button:hover,
+			.shell-button:focus-visible {
+				border-color: #7cffcb;
+				color: #ffffff;
+				outline: none;
+			}
+
+			.shell-help[data-collapsed='true'] .shell-help-body {
+				display: none;
+			}
+
+			.shell-help {
+				position: absolute;
+				left: 0.6rem;
+				bottom: 0.6rem;
+				max-width: min(28rem, 72vw);
+				padding: 0.55rem 0.7rem;
+				border-radius: 0.55rem;
+				background: rgba(5, 12, 22, 0.68);
+				border: 1px solid rgba(127, 216, 255, 0.18);
+				color: #a9c6dd;
+				font-size: 0.68rem;
+				line-height: 1.55;
+				pointer-events: auto;
+				backdrop-filter: blur(6px);
+			}
+
+			.shell-help strong {
+				color: #7fd8ff;
+				font-weight: 600;
+			}
+
+			.shell-help[data-collapsed="true"] .shell-help-body {
+				display: none;
+			}
+
+			@media (max-width: 720px) {
+				.shell-chip.build {
+					display: none;
+				}
+
+				.shell-help[data-collapsed='true'] .shell-help-body {
+				display: none;
+			}
+
+			.shell-help {
+					font-size: 0.62rem;
+				}
+			}
+		</style>
+		$GODOT_HEAD_INCLUDE
+	</head>
+	<body id="overdrive-shell">
+		<canvas id="canvas">
+			Your browser does not support the canvas tag.
+		</canvas>
+
+		<noscript>
+			Your browser does not support JavaScript.
+		</noscript>
+
+		<div id="shell-ui" class="hidden">
+			<div class="shell-bar" id="shell-bar" data-collapsed="true">
+				<button id="shell-bar-toggle" class="shell-button" type="button" title="Show or hide the browser chrome">UI</button>
+				<span class="shell-chip">Project Overdrive · <b>Web Preview</b></span>
+				<span class="shell-chip build">Single-thread WebGL 2 build</span>
+				<button id="shell-fullscreen" class="shell-button" type="button">Fullscreen</button>
+				<button id="shell-toggle-ui" class="shell-button" type="button">Hide UI</button>
+			</div>
+			<div class="shell-help" id="shell-help" data-collapsed="true">
+				<button id="shell-toggle-help" class="shell-button" type="button" style="margin-bottom:0.4rem">Controls</button>
+				<div class="shell-help-body">
+					<strong>Safe Explore:</strong> no automatic waves. Press B or START DEFENSE when ready; countdown before enemies.<br>
+					<strong>Keyboard:</strong> WASD move · right mouse aim · left mouse fire ·
+					E switch weapon · EMP · Esc pause · R retry<br>
+					<strong>Touch:</strong> left joystick · drag right to aim ·
+					FIRE · WEAPON / EMP / PAUSE · RETRY DEFENSE or EXPLORE after results<br>
+					<strong>Note:</strong> this build uses the Compatibility renderer (WebGL 2) and runs the
+					desktop/mobile gameplay code unmodified; statistics that depend on real device GPU
+					performance are not representative of an Android build.
+				</div>
+			</div>
+		</div>
+
+		<div id="status">
+			<img id="status-splash" class="$GODOT_SPLASH_CLASSES" src="$GODOT_SPLASH" alt="">
+			<div class="boot-title">$GODOT_PROJECT_NAME · Booting WebAssembly build</div>
+			<progress id="status-progress"></progress>
+			<div id="status-progress-label">loading engine…</div>
+			<div class="boot-note">
+				First load downloads the WebAssembly engine and the project pack; later loads are cached by the browser.
+			</div>
+			<div id="status-notice"></div>
+		</div>
+
+		<script src="$GODOT_URL"></script>
+		<script>
+const GODOT_CONFIG = $GODOT_CONFIG;
+const GODOT_THREADS_ENABLED = $GODOT_THREADS_ENABLED;
+const engine = new Engine(GODOT_CONFIG);
+
+(function () {
+	const statusOverlay = document.getElementById('status');
+	const statusProgress = document.getElementById('status-progress');
+	const statusProgressLabel = document.getElementById('status-progress-label');
+	const statusNotice = document.getElementById('status-notice');
+	const shellUi = document.getElementById('shell-ui');
+	const helpPanel = document.getElementById('shell-help');
+
+	let initializing = true;
+	let statusMode = '';
+
+	function setStatusMode(mode) {
+		if (statusMode === mode || !initializing) {
+			return;
+		}
+		if (mode === 'hidden') {
+			// Loading set an inline visibility:visible. Clear it before relying
+			// on #status.loaded, otherwise the transparent splash still captures
+			// every pointer click and leaves the Godot canvas unfocused.
+			statusOverlay.style.removeProperty('visibility');
+			statusOverlay.classList.add('loaded');
+			initializing = false;
+			return;
+		}
+		statusOverlay.style.visibility = 'visible';
+		statusProgress.style.display = mode === 'progress' ? 'block' : 'none';
+		statusNotice.style.display = mode === 'notice' ? 'block' : 'none';
+		statusMode = mode;
+	}
+
+	function setStatusNotice(text) {
+		while (statusNotice.lastChild) {
+			statusNotice.removeChild(statusNotice.lastChild);
+		}
+		const lines = text.split('\n');
+		lines.forEach((line) => {
+			statusNotice.appendChild(document.createTextNode(line));
+			statusNotice.appendChild(document.createElement('br'));
+		});
+	}
+
+	function displayFailureNotice(err) {
+		console.error(err);
+		if (err instanceof Error) {
+			setStatusNotice(err.message);
+		} else if (typeof err === 'string') {
+			setStatusNotice(err);
+		} else {
+			setStatusNotice('An unknown error occurred.');
+		}
+		setStatusMode('notice');
+		initializing = false;
+	}
+
+	let collapseTimer = 0;
+
+	/* The in-game HUD owns the top of the screen once play starts, so the browser
+	   chrome folds itself away and waits to be asked for. */
+	function scheduleChromeCollapse(delay = 6000) {
+		const bar = document.getElementById('shell-bar');
+		if (!bar || bar.dataset.collapsed === 'true') {
+			return;
+		}
+		window.clearTimeout(collapseTimer);
+		collapseTimer = window.setTimeout(() => {
+			bar.dataset.collapsed = 'true';
+		}, delay);
+	}
+
+	function wireShellControls() {
+		const fullscreenButton = document.getElementById('shell-fullscreen');
+		const toggleUiButton = document.getElementById('shell-toggle-ui');
+		const toggleHelpButton = document.getElementById('shell-toggle-help');
+		const canvas = document.getElementById('canvas');
+		const bar = document.getElementById('shell-bar');
+		const barToggle = document.getElementById('shell-bar-toggle');
+
+		barToggle.addEventListener('click', () => {
+			const collapsed = bar.dataset.collapsed === 'true';
+			bar.dataset.collapsed = collapsed ? 'false' : 'true';
+			if (collapsed) {
+				scheduleChromeCollapse(8000);
+			}
+			canvas.focus();
+		});
+		bar.addEventListener('pointerenter', () => {
+			bar.dataset.collapsed = 'false';
+			window.clearTimeout(collapseTimer);
+		});
+		bar.addEventListener('pointerleave', () => scheduleChromeCollapse(3500));
+		bar.addEventListener('focusin', () => {
+			bar.dataset.collapsed = 'false';
+			window.clearTimeout(collapseTimer);
+		});
+
+		fullscreenButton.addEventListener('click', () => {
+			if (document.fullscreenElement) {
+				document.exitFullscreen();
+			} else if (document.documentElement.requestFullscreen) {
+				document.documentElement.requestFullscreen().catch((err) => console.warn(err));
+			}
+			canvas.focus();
+		});
+
+		toggleUiButton.addEventListener('click', () => {
+			shellUi.classList.toggle('hidden');
+			canvas.focus();
+		});
+
+		toggleHelpButton.textContent = 'Show controls (web)';
+		toggleHelpButton.addEventListener('click', () => {
+			const collapsed = helpPanel.dataset.collapsed === 'true';
+			helpPanel.dataset.collapsed = collapsed ? 'false' : 'true';
+			toggleHelpButton.textContent = collapsed ? 'Hide controls (web)' : 'Show controls (web)';
+		});
+
+		document.addEventListener('fullscreenchange', () => {
+			fullscreenButton.textContent = document.fullscreenElement ? 'Exit fullscreen' : 'Fullscreen';
+		});
+	}
+
+	wireShellControls();
+
+	const missing = Engine.getMissingFeatures({
+		threads: GODOT_THREADS_ENABLED,
+	});
+
+	if (missing.length !== 0) {
+		if (GODOT_CONFIG['serviceWorker'] && GODOT_CONFIG['ensureCrossOriginIsolationHeaders'] && 'serviceWorker' in navigator) {
+			let serviceWorkerRegistrationPromise;
+			try {
+				serviceWorkerRegistrationPromise = navigator.serviceWorker.getRegistration();
+			} catch (err) {
+				serviceWorkerRegistrationPromise = Promise.reject(new Error('Service worker registration failed.'));
+			}
+			// There's a chance that installing the service worker would fix the issue
+			Promise.race([
+				serviceWorkerRegistrationPromise.then((registration) => {
+					if (registration != null) {
+						return Promise.reject(new Error('Service worker already exists.'));
+					}
+					return registration;
+				}).then(() => engine.installServiceWorker()),
+				// For some reason, `getRegistration()` can stall
+				new Promise((resolve) => {
+					setTimeout(() => resolve(), 2000);
+				}),
+			]).then(() => {
+				// Reload if there was no error.
+				window.location.reload();
+			}).catch((err) => {
+				console.error('Error while registering service worker:', err);
+			});
+		} else {
+			// Display the message as usual
+			const missingMsg = 'Error\nThe following features required to run Godot projects on the Web are missing:\n';
+			displayFailureNotice(missingMsg + missing.join('\n'));
+		}
+	} else {
+		setStatusMode('progress');
+		engine.startGame({
+			'onProgress': function (current, total) {
+				if (current > 0 && total > 0) {
+					statusProgress.value = current;
+					statusProgress.max = total;
+					statusProgressLabel.textContent = Math.floor((current / total) * 100) + '% loaded';
+				} else {
+					statusProgress.removeAttribute('value');
+					statusProgress.removeAttribute('max');
+					statusProgressLabel.textContent = 'loading…';
+				}
+			},
+		}).then(() => {
+			statusProgressLabel.textContent = 'starting…';
+			setStatusMode('hidden');
+			shellUi.classList.remove('hidden');
+			// Keep diagnostics behind one small toggle as soon as gameplay starts.
+			// The Godot HUD no longer reserves two rows of browser chrome.
+			document.getElementById('shell-bar').dataset.collapsed = 'true';
+			document.getElementById('canvas').focus();
+		}, displayFailureNotice);
+	}
+}());
+		</script>
+	</body>
+</html>

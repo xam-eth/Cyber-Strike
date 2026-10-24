@@ -1,0 +1,27 @@
+Payload 374cdd3 / source 97fc2c8. Portrait 390×844 WebAssembly.
+Command: node tools/qa_motion_touch.mjs --url=http://127.0.0.1:800/
+This is a trace/capture gate, not animation-quality approval. Original log:
+
+Encounter: Explore safe; activate Start Defense when ready
+Progression: wallet 0 BP · 1 weapon(s) owned
+FRAME 01-idle
+FRAME 02-ads-held
+FRAME 03-fire-held
+FRAME 04-move
+FRAME 05-move-fire-held
+CLIP TRACE Camera QA: aim=true blend=1.00 fov=57.0 arm=4.35 hit=4.35 cam=(0.5, 2.49018, 12.27674) player=(0.0, 0.0, 8.0) fire=false clip=aim
+Camera QA: aim=true blend=1.00 fov=57.0 arm=4.35 hit=4.35 cam=(0.5, 2.49018, 12.27674) player=(0.0, 0.0, 8.0) fire=false clip=aim
+Camera QA: aim=true blend=1.00 fov=57.0 arm=4.35 hit=4.35 cam=(0.5, 2.49018, 12.27674) player=(0.0, 0.0, 8.0) fire=false clip=aim
+Camera QA: aim=false blend=0.00 fov=73.0 arm=6.09 hit=6.09 cam=(0.55, 2.653768, 14.01088) player=(0.0, 0.0, 8.0) fire=true clip=fire
+Camera QA: aim=false blend=0.00 fov=73.0 arm=6.09 hit=6.09 cam=(0.55, 2.653768, 14.01088) player=(0.0, 0.0, 8.0) fire=true clip=fire
+Camera QA: aim=false blend=0.00 fov=73.0 arm=6.09 hit=6.09 cam=(0.55, 2.653768, 14.01088) player=(0.0, 0.0, 8.0) fire=true clip=fire
+Camera QA: aim=false blend=0.00 fov=73.0 arm=6.09 hit=6.09 cam=(0.55, 2.653768, 14.01088) player=(0.0, 0.0, 8.0) fire=true clip=fire
+Camera QA: aim=false blend=0.00 fov=73.0 arm=6.09 hit=6.09 cam=(0.55, 2.653768, 14.01088) player=(0.0, 0.0, 8.0) fire=false clip=fire
+Camera QA: aim=false blend=0.00 fov=73.0 arm=6.09 hit=6.09 cam=(0.55, 2.653768, 11.51088) player=(0.0, 0.0, 5.500002) fire=false clip=run
+Camera QA: aim=false blend=0.00 fov=73.0 arm=6.09 hit=6.09 cam=(0.55, 2.653768, 8.310884) player=(0.0, 0.0, 2.300005) fire=false clip=run
+Camera QA: aim=false blend=0.00 fov=73.0 arm=6.09 hit=6.09 cam=(0.55, 2.653768, 5.110885) player=(0.0, 0.0, -0.899995) fire=false clip=run
+Camera QA: aim=false blend=0.00 fov=73.0 arm=6.09 hit=6.09 cam=(0.55, 2.653768, 1.710886) player=(0.0, 0.0, -4.299993) fire=true clip=aim_run
+Camera QA: aim=false blend=0.00 fov=73.0 arm=6.09 hit=6.09 cam=(0.55, 2.653768, -1.48911) player=(0.0, 0.0, -7.49999) fire=true clip=aim_run
+Camera QA: aim=false blend=0.00 fov=73.0 arm=6.09 hit=6.09 cam=(0.55, 2.653768, -4.68912) player=(0.0, 0.0, -10.7) fire=true clip=aim_run
+Camera QA: aim=false blend=0.00 fov=73.0 arm=6.09 hit=6.09 cam=(0.55, 2.653768, -7.889132) player=(0.0, 0.0, -13.90001) fire=true clip=aim_run
+PASS: actual Explore inputs and camera/clip traces captured; human motion/VFX review remains OPEN

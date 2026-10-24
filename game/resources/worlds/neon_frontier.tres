@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="WorldDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/world_definition.gd" id="1_definition"]
+[ext_resource type="PackedScene" path="res://scenes/worlds/neon_frontier.tscn" id="2_world"]
+
+[resource]
+script = ExtResource("1_definition")
+world_id = &"neon_frontier"
+display_name = "Neon Frontier"
+role_description = "An open training theatre: reactor, command centre, research lab, depot and generator bank, with a boss gate that opens once the generators are down."
+world_scene = ExtResource("2_world")
+plate_path = "res://assets/ui/world_neon_frontier.jpg"
+status_line = "OPEN"
+field_ready = true
