@@ -22,6 +22,11 @@ func _ready() -> void:
 	_message_label.set_meta("aegis_role", "title")
 	_message_label.set_meta("aegis_scale", 1.0)
 	AegisTheme.style_label(_message_label, "title", AegisTokens.INK)
+	# The lane is a strip, not a card: the message wraps inside it instead of
+	# widening the panel over the thumb keys it must never cover.
+	_message_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_message_label.max_lines_visible = 2
+	_message_label.clip_text = true
 	add_child(_message_label)
 	visible = false
 
@@ -64,36 +69,16 @@ func layout_for(hud) -> void:
 			hud._to_layout(8.0)
 		)
 	)
-	# One lane: the gap between the movement pocket and the right-thumb cluster.
-	_refresh_message()
-	var width: float = minf(hud._to_layout(272.0), hud.size.x - hud._to_layout(24.0))
-	if hud._touch_mode:
-		var left: float = hud._to_layout(12.0)
-		var top: float = hud._top_inset + hud._to_layout(130.0)
-		var height: float = hud._to_layout(40.0)
-		# Lower centre clears the health rail, top-centre Pause, the movement
-		# pocket on the left and the action cluster on the right. On a narrow
-		# phone the lane is narrower and starts further in.
-		width = hud._to_layout(140.0 if hud._narrow else 214.0)
-		left = hud._to_layout(202.0) if hud._narrow else (hud.size.x - width) * 0.5
-		top = hud.size.y - hud._to_layout(58.0)
-		# A bar as wide as the old one reaches under EMP now that the gesture
-		# reserve lifts EMP off the bottom edge on a 667x375 phone. Slide the
-		# lane left, then narrow it: the toast must never sit on a control the
-		# player is trying to press.
-		var emp_limit: float = hud._skill_button.position.x - hud._to_layout(10.0)
-		if is_instance_valid(hud._skill_button) and left + width > emp_limit:
-			left = maxf(hud._to_layout(202.0), emp_limit - width)
-			if left + width > emp_limit:
-				width = maxf(hud._to_layout(96.0), emp_limit - left)
-		UiLayout.place(hud, self, 0.0, 0.0, 0.0, 0.0, Rect2(left, top, width, height))
-	else:
-		UiLayout.place(
-			hud,
-			self,
-			0.5,
-			0.5,
-			0.5,
-			0.5,
-			Rect2(-width * 0.5, hud._to_layout(64.0), width, hud._to_layout(40.0))
-		)
+	# One lane: the strip between the movement pocket and the EMP plate, lifted
+	# clear of the gesture reserve. Both edges come from the controls that own
+	# them, so the strip cannot drift onto a finger target when the layout
+	# changes.
+	var inset: float = hud._to_layout(10.0)
+	var left: float = hud._joystick_center.x + hud._joystick_radius + inset
+	var right: float = hud.size.x - inset
+	if is_instance_valid(hud._skill_button):
+		right = minf(right, hud._skill_button.position.x - inset)
+	var height: float = hud._to_layout(58.0)
+	var top: float = hud.size.y - hud._safe_bottom - hud._to_layout(10.0) - height
+	var width: float = maxf(right - left, hud._to_layout(96.0))
+	UiLayout.place(hud, self, 0.0, 0.0, 0.0, 0.0, Rect2(left, top, width, height))

@@ -419,7 +419,8 @@ func _run_smoke_test() -> void:
 	_expect(help_label.is_visible_in_tree(), "controls can be displayed explicitly")
 	controls.call("hide_help")
 	_expect(not help_label.is_visible_in_tree(), "controls can be dismissed")
-	controls.call("show_help")
+	# Left hidden: a hint plate over the thumb zones is what the next block
+	# measures movement against, and a visible plate is not part of that test.
 	var camera_rig := player.get_node("CameraRig")
 	# The rig pulls back on a narrow viewport, so the rest distance is a floor and
 	# the exported factor is the ceiling.
@@ -635,7 +636,20 @@ func _run_smoke_test() -> void:
 	controls.call("_input", joystick_drag)
 	_expect(
 		(Vector2(player.get("_touch_movement")) - Vector2(0.0, -1.0)).length() < 0.02,
-		"left-side touch drag maps to forward movement input",
+		(
+			"left-side touch drag maps to forward movement input (origin=%s move_id=%d "
+			+ "over_hud=%s paused=%s down=%s help=%s size=%s debug=%s)"
+		)
+		% [
+			joystick_origin,
+			int(controls.get("_move_touch_id")),
+			controls.call("_is_over_hud", joystick_origin),
+			paused,
+			controls.get("_player_down"),
+			(controls.get("_help_panel") as Control).get_global_rect(),
+			controls.size,
+			controls.get("_last_touch_debug"),
+		],
 	)
 	for _frame in 18:
 		await physics_frame
