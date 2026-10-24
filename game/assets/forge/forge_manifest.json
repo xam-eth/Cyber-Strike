@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-24T11:06:39.089Z",
+ "generated": "2026-10-24T11:41:22.022Z",
  "note": "Three mission worlds, each built from real licensed GLBs. Provenance: tools/asset-forge/real/real-manifest.json",
  "attribution": {
   "Kenney Space Kit": "CC0-1.0 — Kenney (www.kenney.nl)",
@@ -116,7 +116,7 @@
     "warnings": 0,
     "khronos": "2.0.0-dev.3.10"
    },
-   "bytes": 6095300
+   "bytes": 6095376
   },
   {
    "id": "verdant",

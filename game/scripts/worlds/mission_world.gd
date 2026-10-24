@@ -53,6 +53,13 @@ const SELECTION_ALIASES := {
 ## invisible. Props the player must be able to move through (the reactor housing,
 ## the wave gates, the boss gate) are skipped on purpose.
 const COLLIDER_SKIP := ["Reactor", "WaveEntry", "DockingGate", "Perimeter", "Gate"]
+## Anything this close to the middle of the field is the arena's centrepiece —
+## the monument each world is composed around — and keeps no collider. Not a
+## shortcut: the centrepiece is what the player circles while fighting, so a box
+## around it walls off the arena, puts the boss lane behind it, and stops shots
+## at the training target that sits across it. The meshes are still there; only
+## the derived box is skipped, exactly as the old reactor was.
+const ARENA_MONUMENT_RADIUS: float = 7.0
 
 ## Walking surface per world, measured from each staged GLB. The fenced field is
 ## not the same size in three worlds — an extraction site is wider than a relay
@@ -253,6 +260,7 @@ func _add_prop_colliders() -> void:
 	body.collision_layer = 1
 	body.collision_mask = 0
 	add_child(body)
+	var centre := _field_center()
 	var made := 0
 	for district in _world.find_children("District_*", "Node3D", true, false):
 		if str(district.name).ends_with("landmark"):
@@ -265,6 +273,15 @@ func _add_prop_colliders() -> void:
 					skip = true
 					break
 			if skip or not role is Node3D:
+				continue
+			var beside_centre := (
+				Vector2(
+					(role as Node3D).global_position.x - centre.x,
+					(role as Node3D).global_position.z - centre.y
+				)
+				. length()
+			)
+			if beside_centre < ARENA_MONUMENT_RADIUS:
 				continue
 			var box := _role_bounds(role as Node3D)
 			if box.size.y < 1.2 or box.size.x < 0.6:

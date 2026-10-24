@@ -63,10 +63,13 @@ export default {
     { role: 'frozen_hauler', name: 'FrozenHauler_A', pos: [-30, 0, 44], yaw: 62, district: 'station' },
 
     /* ------------------------------------------------------------- defene */
-    { role: 'defense_turret', name: 'Turret_North', pos: [0, 0, -40], yaw: 0, district: 'defence' },
+    // The turrets flank the north and south lanes rather than sit in them: the
+    // causeway from the arena to the boss gate is the one route the player has
+    // to be able to run, and a 3 m turret at x = 0 closed it.
+    { role: 'defense_turret', name: 'Turret_North', pos: [-24, 0, -40], yaw: 32, district: 'defence' },
     { role: 'defense_turret', name: 'Turret_West', pos: [-38, 0, -6], yaw: 90, district: 'defence' },
     { role: 'defense_turret', name: 'Turret_East', pos: [38, 0, -6], yaw: -90, district: 'defence' },
-    { role: 'defense_turret', name: 'Turret_South', pos: [0, 0, 34], yaw: 180, district: 'defence' },
+    { role: 'defense_turret', name: 'Turret_South', pos: [24, 0, 34], yaw: 148, district: 'defence' },
     { role: 'sensor_tower', name: 'NorthWatch', pos: [30, 0, -52], yaw: -18, district: 'defence' },
     { role: 'enemy_spawn_gate', name: 'BreachNorth', pos: [0, 0, -70], yaw: 0, scale: [1.35, 1.3, 1.2], district: 'defence' },
     { role: 'enemy_spawn_gate', name: 'BreachSouth', pos: [0, 0, 64], yaw: 180, scale: [1.35, 1.3, 1.2], district: 'defence' },
