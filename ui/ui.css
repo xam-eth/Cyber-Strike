@@ -832,6 +832,18 @@ body[data-mode='playing'] #canvas {
   max-width: 34rem;
 }
 
+/* The product wordmark, used the way the engine uses it: the logo is the name. */
+.hub__mark-wrap {
+  margin: 0;
+}
+
+.hub__mark {
+  display: block;
+  width: min(430px, 100%);
+  height: auto;
+  filter: drop-shadow(0 20px 44px rgba(0, 0, 0, 0.65));
+}
+
 .panel__head {
   display: flex;
   align-items: center;
@@ -1186,8 +1198,8 @@ body[data-mode='playing'] #canvas {
 
   /* On a phone on its side there is no vertical room for a two-line wordmark,
      so the break becomes a space instead of being cut off. */
-  .hub__lead .display br {
-    display: none;
+  .hub__mark {
+    width: min(300px, 100%);
   }
 
   .hub__lead .body {

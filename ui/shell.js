@@ -207,7 +207,10 @@ function deploy(kind) {
   // the same hand-off instead of dropping the player back at the opening.
   const url = new URL(location.href);
   url.searchParams.set('deploy', kind);
-  url.searchParams.set('qa_stage', 'PRELOAD');
+  // DASHBOARD, not BOOT: the shell has already opened the game, so the engine
+  // must not replay its own boot, chapter card or intro. The board is the first
+  // engine screen the player sees, and it is where the loadout lives.
+  url.searchParams.set('qa_stage', 'DASHBOARD');
   history.replaceState(null, '', url);
 
   bootEngine(kind);
@@ -265,7 +268,8 @@ async function bootEngine(kind) {
       fill.style.width = '100%';
       percent.textContent = '100%';
       status.textContent = kind === 'defense' ? 'menyiapkan pertahanan' : 'dunia siap';
-      hint.textContent = kind === 'defense' ? 'Hitung mundur dimulai di dalam dunia.' : 'Masuk ke dunia…';
+      hint.textContent =
+        kind === 'defense' ? 'Di dalam dunia, tekan B untuk memulai gelombang pertama.' : 'Masuk ke dunia…';
       revealCanvas(kind);
     },
     (error) => launchFailed('Dunia gagal dimuat', String(error)),
@@ -295,24 +299,8 @@ function revealCanvas(kind) {
       const canvas = el('canvas');
       canvas.tabIndex = -1;
       canvas.focus({ preventScroll: true });
-      if (kind === 'defense') requestDefense();
     }, 320);
   }, 700);
-}
-
-/*
- * "Pertahanan inti" needs the in-world key, because starting waves is a decision
- * the game makes inside the session (safe Explore is the default on purpose).
- * The shell presses B once, after the world is live, and says so on screen —
- * it never starts a wave from the outside behind the player's back.
- */
-function requestDefense() {
-  const canvas = el('canvas');
-  for (const target of [canvas, window]) {
-    target.dispatchEvent(
-      new KeyboardEvent('keydown', { key: 'b', code: 'KeyB', keyCode: 66, which: 66, bubbles: true }),
-    );
-  }
 }
 
 /* ---------------------------------------------------------------- wiring */
