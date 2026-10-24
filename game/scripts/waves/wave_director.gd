@@ -10,10 +10,10 @@ signal spawn_blocked(reason: String)
 
 enum WaveState { IDLE, SPAWNING, INTERMISSION, GAME_OVER, BLOCKED }
 
-const RUNNER_SCENE: PackedScene = preload("res://scenes/enemies/runner.tscn")
-const SHOOTER_SCENE: PackedScene = preload("res://scenes/enemies/shooter.tscn")
+const EnemyDefinitionScript = preload("res://scripts/enemies/enemy_definition.gd")
 
 @export var player_path: NodePath = ^"../Player"
+@export var enemy_definitions: Array[EnemyDefinition] = []
 @export var enemy_container_path: NodePath = ^"../WaveEnemies"
 @export var spawn_points_path: NodePath = ^"../SpawnPoints"
 @export var enemy_target_path: NodePath = ^"../../Player"
@@ -68,6 +68,8 @@ var _failed_spawn_attempts: int = 0
 
 
 func _ready() -> void:
+	if enemy_definitions.is_empty():
+		enemy_definitions = EnemyDefinitionScript.load_all_definitions()
 	_player = get_node_or_null(player_path) as Node3D
 	_enemy_container = get_node_or_null(enemy_container_path) as Node3D
 	_spawn_points_root = get_node_or_null(spawn_points_path) as Node3D
@@ -213,6 +215,13 @@ func _start_next_wave() -> void:
 	_emit_progress()
 
 
+func _get_enemy_definition(enemy_id: StringName) -> EnemyDefinition:
+	for definition in enemy_definitions:
+		if definition != null and definition.enemy_id == enemy_id:
+			return definition
+	return null
+
+
 func _attempt_spawn_enemy() -> void:
 	var spawn_marker := _choose_valid_spawn_marker()
 	if spawn_marker == null:
@@ -225,14 +234,19 @@ func _attempt_spawn_enemy() -> void:
 
 	var shooter_slot_start := current_wave_enemy_count - current_wave_shooter_count
 	var is_shooter := enemies_spawned_this_wave >= shooter_slot_start
-	var enemy_type_label := "Shooter" if is_shooter else "Runner"
-	var enemy_scene := SHOOTER_SCENE if is_shooter else RUNNER_SCENE
-	var enemy := enemy_scene.instantiate() as Node3D
+	var enemy_id: StringName = &"shooter" if is_shooter else &"runner"
+	var definition := _get_enemy_definition(enemy_id)
+	if definition == null or not definition.is_valid_definition():
+		_block_session("The configured %s enemy definition is missing or invalid." % enemy_id)
+		return
+	var enemy := definition.enemy_scene.instantiate() as Node3D
 	if enemy == null:
-		_block_session("The configured %s scene could not be instantiated." % enemy_type_label)
+		_block_session("The configured %s scene could not be instantiated." % enemy_id)
 		return
 
-	enemy.name = "%s_Wave%d_%02d" % [enemy_type_label, current_wave, enemies_spawned_this_wave + 1]
+	enemy.name = (
+		"%s_Wave%d_%02d" % [definition.display_name, current_wave, enemies_spawned_this_wave + 1]
+	)
 	enemy.set("target_path", enemy_target_path)
 	enemy.position = _enemy_container.to_local(spawn_marker.global_position)
 	_enemy_container.add_child(enemy)

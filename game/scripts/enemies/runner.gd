@@ -86,10 +86,10 @@ func apply_damage(amount: float, _source: Node = null) -> void:
 		eliminated.emit()
 		Sfx.play_3d(&"enemy_down", global_position)
 		visuals.play_death()
-	else:
-		visuals.play_hit_flash()
 		collision_shape.set_deferred("disabled", true)
 		set_deferred("collision_layer", 0)
+	else:
+		visuals.play_hit_flash()
 
 
 func is_defeated() -> bool:
