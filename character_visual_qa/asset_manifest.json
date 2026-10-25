@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "stage": "Human hero shared-rig, weapon animation, and robot enemy review",
+  "stage": "Character mesh, rig and animation review",
   "assets": [
     {
       "id": "human_hero_t1",
@@ -25,23 +25,13 @@
         "death",
         "lower_weapon"
       ],
-      "required_checks": [
-        "visual",
-        "materials",
-        "scale_pose",
-        "skin",
-        "animations",
-        "import"
-      ],
       "preview_height_m": 1.78,
       "preview_yaw_degrees": 0.0,
       "review_only": true,
       "upgrade_track_id": "human_operative",
       "upgrade_tier": 1,
-      "rigging_state": "shared_robot_common_79_joint_rig_with_per_mesh_weights",
       "original_source": "source-assets/characters/human_hero_tiers/Hero_Human_T1.glb",
-      "rig_profile": "game/assets/characters/human_hero_tiers/human_hero_t1_rig.json",
-      "runtime_triangle_budget": 50000
+      "rig_profile": "game/assets/characters/human_hero_tiers/human_hero_t1_rig.json"
     },
     {
       "id": "human_hero_t2",
@@ -66,23 +56,13 @@
         "death",
         "lower_weapon"
       ],
-      "required_checks": [
-        "visual",
-        "materials",
-        "scale_pose",
-        "skin",
-        "animations",
-        "import"
-      ],
       "preview_height_m": 1.78,
       "preview_yaw_degrees": 0.0,
       "review_only": true,
       "upgrade_track_id": "human_operative",
       "upgrade_tier": 2,
-      "rigging_state": "shared_robot_common_79_joint_rig_with_per_mesh_weights",
       "original_source": "source-assets/characters/human_hero_tiers/Hero_Human_T2.glb",
-      "rig_profile": "game/assets/characters/human_hero_tiers/human_hero_t2_rig.json",
-      "runtime_triangle_budget": 50000
+      "rig_profile": "game/assets/characters/human_hero_tiers/human_hero_t2_rig.json"
     },
     {
       "id": "human_hero_t3",
@@ -107,23 +87,13 @@
         "death",
         "lower_weapon"
       ],
-      "required_checks": [
-        "visual",
-        "materials",
-        "scale_pose",
-        "skin",
-        "animations",
-        "import"
-      ],
       "preview_height_m": 1.78,
       "preview_yaw_degrees": 0.0,
       "review_only": true,
       "upgrade_track_id": "human_operative",
       "upgrade_tier": 3,
-      "rigging_state": "shared_robot_common_79_joint_rig_with_per_mesh_weights",
       "original_source": "source-assets/characters/human_hero_tiers/Hero_Human_T3.glb",
-      "rig_profile": "game/assets/characters/human_hero_tiers/human_hero_t3_rig.json",
-      "runtime_triangle_budget": 50000
+      "rig_profile": "game/assets/characters/human_hero_tiers/human_hero_t3_rig.json"
     },
     {
       "id": "human_hero_t4",
@@ -148,23 +118,13 @@
         "death",
         "lower_weapon"
       ],
-      "required_checks": [
-        "visual",
-        "materials",
-        "scale_pose",
-        "skin",
-        "animations",
-        "import"
-      ],
       "preview_height_m": 1.78,
       "preview_yaw_degrees": 0.0,
       "review_only": true,
       "upgrade_track_id": "human_operative",
       "upgrade_tier": 4,
-      "rigging_state": "shared_robot_common_79_joint_rig_with_per_mesh_weights",
       "original_source": "source-assets/characters/human_hero_tiers/Hero_Human_T4.glb",
-      "rig_profile": "game/assets/characters/human_hero_tiers/human_hero_t4_rig.json",
-      "runtime_triangle_budget": 50000
+      "rig_profile": "game/assets/characters/human_hero_tiers/human_hero_t4_rig.json"
     },
     {
       "id": "human_hero_t5",
@@ -189,23 +149,13 @@
         "death",
         "lower_weapon"
       ],
-      "required_checks": [
-        "visual",
-        "materials",
-        "scale_pose",
-        "skin",
-        "animations",
-        "import"
-      ],
       "preview_height_m": 1.78,
       "preview_yaw_degrees": 0.0,
       "review_only": true,
       "upgrade_track_id": "human_operative",
       "upgrade_tier": 5,
-      "rigging_state": "shared_robot_common_79_joint_rig_with_per_mesh_weights",
       "original_source": "source-assets/characters/human_hero_tiers/Hero_Human_T5.glb",
-      "rig_profile": "game/assets/characters/human_hero_tiers/human_hero_t5_rig.json",
-      "runtime_triangle_budget": 50000
+      "rig_profile": "game/assets/characters/human_hero_tiers/human_hero_t5_rig.json"
     },
     {
       "id": "enemy_robot_common_runtime",
@@ -228,18 +178,9 @@
         "hit",
         "death"
       ],
-      "required_checks": [
-        "visual",
-        "materials",
-        "scale_pose",
-        "skin",
-        "animations",
-        "import"
-      ],
       "preview_height_m": 1.78,
       "preview_yaw_degrees": 180.0,
-      "review_only": true,
-      "shared_rig_template": true
+      "review_only": true
     },
     {
       "id": "enemy_robot_tier_2_rare_runtime",
@@ -261,14 +202,6 @@
         "reload",
         "hit",
         "death"
-      ],
-      "required_checks": [
-        "visual",
-        "materials",
-        "scale_pose",
-        "skin",
-        "animations",
-        "import"
       ],
       "preview_height_m": 1.78,
       "preview_yaw_degrees": 180.0,
@@ -295,14 +228,6 @@
         "hit",
         "death"
       ],
-      "required_checks": [
-        "visual",
-        "materials",
-        "scale_pose",
-        "skin",
-        "animations",
-        "import"
-      ],
       "preview_height_m": 1.78,
       "preview_yaw_degrees": 180.0,
       "review_only": true
@@ -317,13 +242,6 @@
       "expected_joint_count": 79,
       "requires_skin": true,
       "expected_animation_names": [],
-      "required_checks": [
-        "visual",
-        "materials",
-        "scale_pose",
-        "skin",
-        "import"
-      ],
       "preview_height_m": 1.72,
       "preview_yaw_degrees": 180.0,
       "review_only": true
@@ -338,13 +256,6 @@
       "expected_joint_count": 79,
       "requires_skin": true,
       "expected_animation_names": [],
-      "required_checks": [
-        "visual",
-        "materials",
-        "scale_pose",
-        "skin",
-        "import"
-      ],
       "preview_height_m": 1.62,
       "preview_yaw_degrees": 180.0,
       "review_only": true
@@ -363,14 +274,6 @@
         "run",
         "walk"
       ],
-      "required_checks": [
-        "visual",
-        "materials",
-        "scale_pose",
-        "skin",
-        "animations",
-        "import"
-      ],
       "preview_height_m": 1.78,
       "preview_yaw_degrees": 180.0,
       "review_only": true
@@ -386,14 +289,6 @@
       "requires_skin": true,
       "expected_animation_names": [
         "idle"
-      ],
-      "required_checks": [
-        "visual",
-        "materials",
-        "scale_pose",
-        "skin",
-        "animations",
-        "import"
       ],
       "preview_height_m": 1.78,
       "preview_yaw_degrees": 180.0,
@@ -411,14 +306,6 @@
       "expected_animation_names": [
         "idle"
       ],
-      "required_checks": [
-        "visual",
-        "materials",
-        "scale_pose",
-        "skin",
-        "animations",
-        "import"
-      ],
       "preview_height_m": 1.78,
       "preview_yaw_degrees": 180.0,
       "review_only": true
@@ -433,12 +320,6 @@
       "expected_joint_count": 0,
       "requires_skin": false,
       "expected_animation_names": [],
-      "required_checks": [
-        "visual",
-        "materials",
-        "scale_pose",
-        "import"
-      ],
       "preview_height_m": 1.72,
       "preview_yaw_degrees": 180.0,
       "review_only": true
@@ -453,12 +334,6 @@
       "expected_joint_count": 0,
       "requires_skin": false,
       "expected_animation_names": [],
-      "required_checks": [
-        "visual",
-        "materials",
-        "scale_pose",
-        "import"
-      ],
       "preview_height_m": 1.62,
       "preview_yaw_degrees": 180.0,
       "review_only": true

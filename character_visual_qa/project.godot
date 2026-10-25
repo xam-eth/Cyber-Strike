@@ -1,10 +1,10 @@
-; Standalone Godot project for rendered, per-GLB character review before promotion.
-; Open this folder in Godot 4.7.2; see README.md for asset sync and review flow.
+; Standalone Godot project for rendered character, rig and animation inspection.
+; Open this folder in Godot 4.7.2; see README.md for the short review workflow.
 config_version=5
 
 [application]
-config/name="Cyber-Strike Character Rig and Animation QA"
-config/description="Rendered, per-tier character rig, skin, and animation review desk before game integration."
+config/name="Cyber-Strike Character Visual QA"
+config/description="Rendered GLB viewer with rig and animation checks."
 run/main_scene="res://scenes/review_desk.tscn"
 config/features=PackedStringArray("4.7")
 
