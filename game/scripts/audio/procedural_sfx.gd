@@ -1,13 +1,13 @@
 class_name ProceduralSfx
 extends RefCounted
 
-## Every sound in the game is synthesised at runtime.
+## Weapon/world effects are synthesised at runtime; shared UI and DEPLOY signals
+## load original WAVs from the Frontier Signal palette used by the HTML shell.
 ##
-## Why: the repository ships no audio files at all, and the asset pipeline is
-## reviewed for provenance, so pulling in WAV files means ownership paperwork for
-## something a few dozen lines of maths can produce. Sound effects are the one
-## place where generated wave data is a legitimate shipped artifact: they are
-## short, they are not art assets, and they keep the web payload small.
+## Every source is deterministic and reviewed for provenance. Runtime noise is
+## seeded, while tools/generate_audio.py reproducibly authors the shared WAVs.
+## The same build therefore produces the same wave data without external samples.
+## Keeping short effects procedural also avoids duplicating them in the PCK.
 ##
 ## All generators are deterministic (the noise source is seeded), so the same
 ## build always sounds the same and tests can assert on stream properties.
@@ -157,7 +157,7 @@ static func _enemy_down() -> AudioStreamWAV:
 		0.42,
 		func(t: float, span: float, _rng: RandomNumberGenerator) -> float:
 			var second := t >= span * 0.5
-			var frequency := 320.0 if second else 520.0
+			var frequency := 220.0 if second else 293.66
 			var local := (t - span * 0.5) if second else t
 			var tone := _sine(_phase(frequency, local)) * _envelope(local, span * 0.5, 0.004, 11.0)
 			var thud := _sine(_phase(120.0, t)) * _envelope(t, span, 0.003, 9.0) * 0.5
@@ -193,12 +193,8 @@ static func _skill_pulse() -> AudioStreamWAV:
 
 
 static func _ui_click() -> AudioStreamWAV:
-	return _build(
-		44100,
-		0.05,
-		func(t: float, span: float, _rng: RandomNumberGenerator) -> float:
-			return _square(_phase(1450.0, t)) * _envelope(t, span, 0.001, 45.0) * 0.4
-	)
+	# The HTML shell uses this exact WAV, so navigation has one identity.
+	return load("res://assets/audio/ui_navigate.wav") as AudioStreamWAV
 
 
 static func _hit_confirm() -> AudioStreamWAV:
@@ -207,7 +203,7 @@ static func _hit_confirm() -> AudioStreamWAV:
 		44100,
 		0.06,
 		func(t: float, span: float, _rng: RandomNumberGenerator) -> float:
-			return _sine(_phase(1750.0, t)) * _envelope(t, span, 0.001, 30.0) * 0.35
+			return _sine(_phase(1760.0, t)) * _envelope(t, span, 0.001, 30.0) * 0.35
 	)
 
 
@@ -227,11 +223,12 @@ static func _arpeggio(notes: Array, span: float, decay: float) -> AudioStreamWAV
 
 
 static func _wave_start() -> AudioStreamWAV:
-	return _arpeggio([440.0, 660.0, 880.0], 0.72, 9.0)
+	# DEPLOY and Defense begin with the same short D-A-D signal.
+	return load("res://assets/audio/deploy_stinger.wav") as AudioStreamWAV
 
 
 static func _session_clear() -> AudioStreamWAV:
-	return _arpeggio([523.25, 659.25, 783.99, 1046.5], 0.9, 6.0)
+	return _arpeggio([293.66, 349.23, 440.0, 587.33], 0.9, 6.0)
 
 
 static func _defeat() -> AudioStreamWAV:
@@ -239,7 +236,7 @@ static func _defeat() -> AudioStreamWAV:
 		22050,
 		0.95,
 		func(t: float, span: float, _rng: RandomNumberGenerator) -> float:
-			var notes: Array = [392.0, 311.13, 233.08]
+			var notes: Array = [293.66, 261.63, 220.0]
 			var slot := clampi(int(t / (span / 3.0)), 0, notes.size() - 1)
 			var local := t - float(slot) * (span / 3.0)
 			var tone := _sine(_phase(notes[slot], local)) * _envelope(local, span / 3.0, 0.01, 4.5)

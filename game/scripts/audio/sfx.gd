@@ -38,6 +38,22 @@ static func stop_all() -> void:
 		director.stop_all()
 
 
+static func set_music_mode(mode: StringName) -> void:
+	var director := _director()
+	if director != null:
+		director.set_music_mode(mode)
+
+
+static func music_mode() -> StringName:
+	var director := _director()
+	return director.music_mode() if director != null else &"explore"
+
+
+static func music_is_playing() -> bool:
+	var director := _director()
+	return director.music_is_playing() if director != null else false
+
+
 static func set_muted(value: bool) -> void:
 	var director := _director()
 	if director != null:

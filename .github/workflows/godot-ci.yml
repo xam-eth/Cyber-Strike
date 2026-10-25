@@ -303,7 +303,7 @@ jobs:
           # runtime build. A default Frostline boot is not a passing substitute.
           qa_status=0
           node tools/web_qa.mjs --page / --viewport 844x390 --timeout 120 \
-            --journey --select-vanguard --out exports/web-qa/vanguard \
+            --journey --select-vanguard --audio-shell --out exports/web-qa/vanguard \
             --json > exports/web-qa-vanguard-report.json || qa_status=$?
           python3 - <<'PY'
           import json

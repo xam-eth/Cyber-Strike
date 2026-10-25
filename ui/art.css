@@ -238,6 +238,14 @@ body[data-screen='opening'] .plate--opening::after {
   outline: none;
 }
 
+.dockbtn[data-state='locked'] {
+  color: var(--accent);
+}
+
+.dockbtn[data-state='muted'] {
+  color: var(--ink-3);
+}
+
 /* ------------------------------------------------------------- laying out */
 
 /* Full bleed: the screens own the frame, so the viewport is not a padded box

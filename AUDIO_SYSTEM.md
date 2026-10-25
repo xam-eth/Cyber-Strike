@@ -1,77 +1,123 @@
-# Audio system (procedural)
+# Audio system — Frontier Signal
 
-The game ships **no audio files**. Every sound is synthesised from maths at
-startup by [`game/scripts/audio/procedural_sfx.gd`](game/scripts/audio/procedural_sfx.gd)
-and played through a pooled set of players owned by the `Audio` autoload
-([`game/scripts/audio/audio_director.gd`](game/scripts/audio/audio_director.gd)).
+Frontier Signal is one original sci-fi palette shared by the opening, dashboard,
+DEPLOY transition, and Godot gameplay: a restrained D-modal synth pad, a clean
+telemetry motif, and synchronized electronic percussion. It is not a separate
+music style for each screen. The same WAV files are loaded by the HTML shell and
+the exported game.
 
-## Why generated instead of authored
+## Ownership and flow
 
-- The asset pipeline in this repository is reviewed for provenance. A generated
-  waveform needs no licence paperwork and no binary in Git.
-- The web payload stays small: 14 sounds are about 0.5 MB of 16-bit PCM created
-  in memory, instead of 14 files in the export.
-- Tuning is a code review away: frequencies, envelopes and levels are readable
-  numbers, not opaque WAV bytes.
+- The `Audio` autoload
+  ([`game/scripts/audio/audio_director.gd`](game/scripts/audio/audio_director.gd))
+  remains the only owner of gameplay music, pooled one-shots, throttling, and
+  mute state. Gameplay calls the `Sfx` facade, never the autoload directly.
+- [`ui/audio.js`](ui/audio.js) is a presentation-layer adapter for the HTML
+  shell. It creates one Web Audio context only after a real pointer/keyboard
+  gesture; it does not start hidden gameplay or a second gameplay director.
+- DEPLOY plays `deploy_stinger.wav`, fades and disconnects the shell theme, and
+  checks that no shell music voice remains **before** `engine.start()`. Godot
+  then starts its own copy of the same theme. A failed launch can restore the
+  launch bed; music beds are not allowed to overlap.
+- `aegis.prefs.muted` is the shared Web preference. Godot also retains
+  `user://audio.cfg` for native/fallback persistence and mirrors subsequent HUD
+  mute changes back to the Web preference. Existing HUD and M-key controls stay
+  on the same `Sfx` path.
 
-The trade-off is honest: these are placeholder-grade effects, not design work.
-Replacing them with authored audio means dropping files in `game/assets/audio/`
-and pointing `build_all()` at them — nothing else in the game changes, because
-gameplay code only ever calls the `Sfx` facade.
+## Music states
 
-## Sounds
+The 24-second theme and 6-second pulse start together and realign every four
+pulse loops. State changes alter gain, not playback phase.
+
+| State | Theme | Defense pulse |
+| --- | --- | --- |
+| Explore / front-end menus | −12 dB | silent |
+| Preparing | −12 dB | −27 dB transition hint |
+| Defense | −11 dB | −18 dB synchronized layer |
+| Results | −14 dB | silent |
+
+These are implementation starting levels, not a claim of final loudness or mix
+acceptance. `Sfx.set_music_mode()` is called only by existing session transition
+adapters in `main.gd`; it does not change combat, waves, rewards, or run state.
+
+## Original generated assets
+
+[`tools/generate_audio.py`](tools/generate_audio.py) uses only the Python
+standard library. There are no external samples, borrowed tracks, runtime random
+choices, or encoder dependencies. The fixed seed, 80 BPM tempo, pitch palette,
+and synthesis code are reviewable source.
+
+| File | Duration | Use |
+| --- | ---: | --- |
+| `frontier_signal.wav` | 24.0 s | seamless opening/dashboard/gameplay theme |
+| `defense_pulse.wav` | 6.0 s | seamless gameplay-only percussion layer |
+| `ui_navigate.wav` | 0.12 s | the same navigation tick in shell and Godot |
+| `ui_confirm.wav` | 0.32 s | shell confirmation |
+| `deploy_stinger.wav` | 1.50 s | shell DEPLOY and Godot `wave_start` |
+
+All five are 22,050 Hz, stereo, 16-bit PCM WAV and total about 2.82 MB. The
+adjacent `manifest.json` records provenance, dimensions, hash, peak/RMS, and
+loop status. WAV is intentional: both Web Audio and Godot decode it without an
+additional codec tool. Regenerate and require byte-identical output with:
+
+```bash
+python3 tools/generate_audio.py
+python3 tools/generate_audio.py --check
+```
+
+## Sound effects
+
+The 14 existing sound IDs and the weapon mapping remain intact. Twelve effects
+are deterministic runtime synthesis; `ui_click` and `wave_start` load shared
+WAVs so shell and gameplay signals do not drift. Weapon/world effects retain
+their identities, while UI, wave, reward, hit, and defeat pitches follow the
+same D-modal palette.
 
 | Id | Trigger | Character |
 | --- | --- | --- |
-| `shot_pulse_rifle` | Pulse Rifle fire | falling saw + noise transient, ~0.11 s |
-| `shot_nova_launcher` | Nova Launcher fire | saturated sub sweep, ~0.38 s |
+| `shot_pulse_rifle` | Pulse Rifle fire | falling saw + noise transient |
+| `shot_nova_launcher` | Nova Launcher fire | saturated sub sweep |
 | `shot_arc_shooter` | Arc Shooter fire | jittering square + noise spit |
 | `impact` | Pulse projectile hit | short noise burst |
-| `explosion` | Nova detonation | rumble + roar, ~0.5 s |
+| `explosion` | Nova detonation | rumble + roar |
 | `chain_zap` | Arc lightning hit | descending square zap |
 | `enemy_down` | Runner / Shooter / drone destroyed | two descending tones |
 | `player_hurt` | player takes damage | low thud + grit |
 | `skill_pulse` | EMP skill fired | downward whoosh |
-| `ui_click` | HUD buttons (pause, cycle, skill, retry) | short blip |
-| `hit_confirm` | damage dealt to a target | bright tick |
-| `wave_start` | wave begins | three rising notes |
-| `session_clear` | wave session finished | four-note arpeggio |
-| `defeat` | player defeated | descending minor tones |
+| `ui_click` | HUD and shell navigation | shared `ui_navigate.wav` |
+| `hit_confirm` | damage dealt to a target | bright A6 tick |
+| `wave_start` | Defense begins | shared DEPLOY D-A-D signal |
+| `session_clear` | session/reward confirmation | D-minor four-note arpeggio |
+| `defeat` | player defeated | descending D-C-A tones |
 
-Levels are per-sound (`ProceduralSfx.VOLUME_DB`) and applied to whichever pooled
-player takes the voice; a small throttle table in the director stops several
-projectiles landing in one frame from stacking identical transients.
+Per-sound levels (`ProceduralSfx.VOLUME_DB`) and the director's throttle table
+still prevent identical same-frame transients from stacking without limit.
 
 ## Calling it from gameplay
 
 ```gdscript
-Sfx.play_shot(&"pulse_rifle", muzzle.global_position)  # positional
-Sfx.play_ui(&"ui_click")                               # non-positional
+Sfx.play_shot(&"pulse_rifle", muzzle.global_position)
+Sfx.play_ui(&"ui_click")
 Sfx.play_3d(&"enemy_down", enemy.global_position)
+Sfx.set_music_mode(&"defense")  # existing session adapter only
 ```
 
-**Never call the `Audio` autoload by name.** An autoload's name is only a global
-identifier in a real game session; headless `--script` runs (every smoke test in
-this repository) do not register it, so `Audio.play_ui(...)` fails to compile and
-takes the whole script — and the scene using it — down with it. `Sfx` looks the
-node up at runtime and stays silent when audio is absent.
+**Never call the `Audio` autoload by name from gameplay.** Headless `--script`
+runs do not register autoload globals. `Sfx` looks the node up at runtime and
+stays silent when audio is absent, keeping isolated smoke fixtures compilable.
 
-## Verification
+## Verification and evidence limits
 
-- `tests/audio_smoke.gd` checks the sound set, that no sound is silence,
-  the weapon→sound mapping, the mute path, the throttle, and that firing a
-  weapon in the real `main.tscn` actually reaches the singleton.
-- `Audio: first voice played (<id>) …` in any log proves the pipeline ran; the
-  browser QA gate (`tools/web_qa.mjs --play`) asserts on that line, which is how
-  the WebAssembly build is shown to reach audio after a user gesture.
-- What is **not** verified: that a human hears it, on a real device, at a sane
-  level. That needs a phone (see [`ANDROID_BASELINE.md`](ANDROID_BASELINE.md)).
-
-## Known limits
-
-- There is no settings screen and no volume slider; mute exists in the API
-  (`Sfx.set_muted`) but is not yet exposed as a HUD button.
-- Synthesis costs ~180–300 ms once, during load. It runs before the first frame,
-  so it is hidden behind the loading screen, but it is real startup work on a
-  low-end phone.
-- Music does not exist.
+- `python3 -m unittest tools/tests/test_audio_assets.py -v` verifies hashes,
+  deterministic regeneration, PCM format, non-silence, clipping/DC checks, clean
+  one-shot edges, and loop-boundary continuity.
+- `tests/audio_smoke.gd` additionally verifies the 14 IDs, stereo looping beds,
+  4:1 loop alignment, facade/music-state wiring, mute restoration, throttle,
+  weapon mapping, and a real shot through `main.tscn`.
+- `node tools/web_qa.mjs --page / --journey --audio-shell` uses real browser
+  gestures to check unlock, shell playback, mute persistence, DEPLOY retirement,
+  and Godot music ownership. `--play` retains the first-voice and HUD-mute gates.
+- Waveform metrics and browser state are **not** a human listening review. Final
+  mix quality, loudness on speakers/headphones, physical mobile behavior, and
+  Android remain unverified until separately tested. No autoplay claim applies
+  before a browser-valid user gesture.

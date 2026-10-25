@@ -40,6 +40,34 @@ func _run_smoke_test() -> void:
 		quit(1)
 		return
 
+	# --- shared music beds ----------------------------------------------------
+	var theme_player := audio.get_node_or_null("FrontierSignal") as AudioStreamPlayer
+	var pulse_player := audio.get_node_or_null("DefensePulse") as AudioStreamPlayer
+	test_passed = (
+		_expect(
+			theme_player != null and pulse_player != null, "theme and Defense pulse players exist"
+		)
+		and test_passed
+	)
+	if theme_player != null and pulse_player != null:
+		var theme := theme_player.stream as AudioStreamWAV
+		var pulse := pulse_player.stream as AudioStreamWAV
+		test_passed = (
+			_expect(
+				(
+					theme != null
+					and pulse != null
+					and theme.loop_mode == AudioStreamWAV.LOOP_FORWARD
+					and pulse.loop_mode == AudioStreamWAV.LOOP_FORWARD
+					and theme.stereo
+					and pulse.stereo
+					and theme.loop_end == pulse.loop_end * 4
+				),
+				"the 24 s theme and 6 s pulse are stereo, looping and phase-aligned",
+			)
+			and test_passed
+		)
+
 	# --- streams --------------------------------------------------------------
 	var sounds := ProceduralSfxScript.build_all()
 	var missing: Array[String] = []
@@ -121,20 +149,30 @@ func _run_smoke_test() -> void:
 	)
 
 	audio.call("set_muted", true)
+	var music_during_mute := Sfx.music_is_playing()
 	audio.call("play_ui", &"ui_click")
 	var muted_count := int(audio.call("played_count"))
 	audio.call("set_muted", false)
+	var music_after_unmute := Sfx.music_is_playing()
 	audio.call("play_ui", &"ui_click")
 	var unmuted_count := int(audio.call("played_count"))
 	test_passed = (
 		_expect(
 			(
 				audio.call("is_muted") == false
+				and not music_during_mute
+				and music_after_unmute
 				and muted_count == after_second_confirm
 				and unmuted_count == muted_count + 1
 			),
-			"muting silences playback and unmuting restores it",
+			"muting silences SFX/music and unmuting restores both",
 		)
+		and test_passed
+	)
+
+	Sfx.set_music_mode(&"defense")
+	test_passed = (
+		_expect(Sfx.music_mode() == &"defense", "the facade reaches music-mode ownership")
 		and test_passed
 	)
 
@@ -156,6 +194,16 @@ func _run_smoke_test() -> void:
 		)
 		and test_passed
 	)
+
+	test_passed = (
+		_expect(Sfx.music_mode() == &"explore", "Explore selects the calm bed") and test_passed
+	)
+	main_scene.call("_request_defense")
+	test_passed = (
+		_expect(Sfx.music_mode() == &"preparing", "Defense preparation selects the transition bed")
+		and test_passed
+	)
+	main_scene.call("_return_to_explore")
 
 	# The drone respawns itself and the wave session stayed off: nothing else in
 	# this scene should keep making noise after the shot.

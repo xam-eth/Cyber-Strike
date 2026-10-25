@@ -21,7 +21,9 @@
  *   node tools/web_qa.mjs --encounter --explore-wait 8000 --encounter-timeout 600
  *       # strict: await a real Defense transition (software WebGL can be slow)
  *   node tools/web_qa.mjs --page / --journey --select-vanguard
- *       # require WORLD, choose the second theatre, verify its real gameplay build
+ *       # choose Vanguard in the shell and verify its real gameplay build
+ *   node tools/web_qa.mjs --page / --journey --audio-shell
+ *       # real-gesture shell music, mute persistence and DEPLOY audio handoff
  *   node tools/web_qa.mjs --page / --encounter --select-vanguard
  *       # additionally request Defense in that selected theatre
  *
@@ -96,6 +98,9 @@ const selectVanguard = has('--select-vanguard');
 // the measured WORLD-stage route for raw engine journeys.
 // hand-off without adding combat, audio, or a timed play claim to that check.
 const journeyMode = has('--journey') || selectVanguard;
+// Optional real-gesture Web Audio checks on the root shell. This is separate
+// from Godot's first-voice/mute checks and never claims human mix acceptance.
+const audioShellMode = has('--audio-shell');
 const port = Number(flag('--port', '8126'));
 
 let chromium;
@@ -211,6 +216,13 @@ async function checkPage(target, viewport) {
   // the shell (the raw /web/ build) skip this.
   const isFrontEnd = await page.evaluate(() => !!document.getElementById('hub-deploy'));
   let shellVanguardSelected = null;
+  let shellAudioBefore = null;
+  let shellAudioMuted = null;
+  let shellAudioUnmuted = null;
+  let shellAudioHandoff = null;
+  let shellAudioAfter = null;
+  let shellMuteStored = null;
+  let shellUnmuteStored = null;
   if (isFrontEnd) {
     await page
       .waitForFunction(() => {
@@ -218,8 +230,32 @@ async function checkPage(target, viewport) {
         return enter && !enter.disabled;
       }, { timeout: 30000 })
       .catch(() => {});
-    await page.evaluate(() => document.getElementById('opening-enter')?.click());
+    if (audioShellMode) await page.click('#opening-enter');
+    else await page.evaluate(() => document.getElementById('opening-enter')?.click());
     await page.waitForFunction(() => document.body.dataset.screen === 'hub', { timeout: 15000 }).catch(() => {});
+    if (audioShellMode) {
+      await page.waitForFunction(() => {
+        const state = window.AegisAudio?.snapshot();
+        return state?.unlocked && state.musicPlaying && state.loaded.length === 4;
+      }, { timeout: 20000 }).catch(() => {});
+      shellAudioBefore = await page.evaluate(() => window.AegisAudio?.snapshot() || null);
+      if (shellAudioBefore?.musicPlaying) {
+        await page.click('#dock-audio');
+        await page.waitForFunction(() => {
+          const state = window.AegisAudio?.snapshot();
+          return state?.muted && !state.musicPlaying && state.musicVoices === 0;
+        }, { timeout: 10000 }).catch(() => {});
+        shellAudioMuted = await page.evaluate(() => window.AegisAudio?.snapshot() || null);
+        shellMuteStored = await page.evaluate(() => JSON.parse(localStorage.getItem('aegis.prefs') || '{}').muted);
+        await page.click('#dock-audio');
+        await page.waitForFunction(() => {
+          const state = window.AegisAudio?.snapshot();
+          return !state?.muted && state.musicPlaying;
+        }, { timeout: 10000 }).catch(() => {});
+        shellAudioUnmuted = await page.evaluate(() => window.AegisAudio?.snapshot() || null);
+        shellUnmuteStored = await page.evaluate(() => JSON.parse(localStorage.getItem('aegis.prefs') || '{}').muted);
+      }
+    }
     if (selectVanguard) {
       // Select the actual shell card before DEPLOY. The runtime assertions below
       // still require the engine to accept that ID and build Vanguard, so a DOM
@@ -231,7 +267,15 @@ async function checkPage(target, viewport) {
         return card.getAttribute('aria-selected') === 'true';
       });
     }
-    await page.evaluate(() => document.getElementById('hub-deploy')?.click());
+    if (audioShellMode) await page.click('#hub-deploy');
+    else await page.evaluate(() => document.getElementById('hub-deploy')?.click());
+    if (audioShellMode) {
+      await page.waitForFunction(() => {
+        const state = window.AegisAudio?.snapshot();
+        return state?.handedOff && state.musicVoices === 0;
+      }, { timeout: 15000 }).catch(() => {});
+      shellAudioHandoff = await page.evaluate(() => window.AegisAudio?.snapshot() || null);
+    }
   }
 
   let booted = false;
@@ -248,6 +292,9 @@ async function checkPage(target, viewport) {
   }
   // give the first frames a moment to render before inspecting the canvas
   if (booted) await new Promise((r) => setTimeout(r, 5000));
+  if (audioShellMode && isFrontEnd) {
+    shellAudioAfter = await page.evaluate(() => window.AegisAudio?.snapshot() || null);
+  }
 
   const state = await page.evaluate(() => {
     const canvas = document.querySelector('canvas');
@@ -688,6 +735,37 @@ async function checkPage(target, viewport) {
     ['WebGL context alive', state.glContext === true && state.glLost === false],
     ['no failure card shown', state.failureVisible === false],
   ];
+  if (audioShellMode && isFrontEnd) {
+    checks.push([
+      'a real gesture unlocked the shared shell theme and all four buffers',
+      shellAudioBefore?.unlocked === true
+        && shellAudioBefore?.musicPlaying === true
+        && shellAudioBefore?.loaded?.length === 4,
+    ]);
+    checks.push([
+      'shell mute stops music and persists aegis.prefs.muted=true',
+      shellAudioMuted?.muted === true
+        && shellAudioMuted?.musicVoices === 0
+        && shellMuteStored === true,
+    ]);
+    checks.push([
+      'shell unmute restarts one theme and persists muted=false',
+      shellAudioUnmuted?.muted === false
+        && shellAudioUnmuted?.musicPlaying === true
+        && shellAudioUnmuted?.musicVoices === 1
+        && shellUnmuteStored === false,
+    ]);
+    checks.push([
+      'DEPLOY retires every shell music voice before Godot starts',
+      shellAudioHandoff?.handedOff === true && shellAudioHandoff?.musicVoices === 0,
+    ]);
+    checks.push([
+      'Godot music owns gameplay without a shell music voice',
+      shellAudioAfter?.handedOff === true
+        && shellAudioAfter?.musicVoices === 0
+        && audioLines.some((line) => /Audio: .*music=on/.test(line)),
+    ]);
+  }
   if (tourMode) {
     checks.push(['front-end journey reached the gameplay scene', inGameplay]);
     checks.push(['world tour captured frames', tourFrames.length === 8]);
@@ -822,6 +900,15 @@ async function checkPage(target, viewport) {
     defenseObserved: consoleLines.some((line) => line.includes('Encounter: Defense started')),
     encounterTransitions: consoleLines.filter((line) => line.includes('Encounter:')),
     audio: audioLines,
+    shellAudio: {
+      before: shellAudioBefore,
+      muted: shellAudioMuted,
+      unmuted: shellAudioUnmuted,
+      handoff: shellAudioHandoff,
+      after: shellAudioAfter,
+      muteStored: shellMuteStored,
+      unmuteStored: shellUnmuteStored,
+    },
     menuTransitions: menuLines,
     scriptErrors,
     console: consoleLines,

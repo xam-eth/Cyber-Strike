@@ -111,6 +111,7 @@ func _ready() -> void:
 	wave_director.session_ended.connect(_on_wave_session_ended)
 	wave_director.spawn_blocked.connect(_on_wave_spawn_blocked)
 	touch_controls._set_play_phase("explore")
+	Sfx.set_music_mode(&"explore")
 	_update_status()
 	print("Encounter: Explore safe; activate Start Defense when ready")
 	print(
@@ -298,6 +299,7 @@ func _request_defense() -> void:
 	if session_mode != SessionMode.EXPLORE or player.is_defeated() or _is_paused:
 		return
 	session_mode = SessionMode.PREPARING
+	Sfx.set_music_mode(&"preparing")
 	_preparation_remaining = defense_preparation_seconds
 	touch_controls.hide_help()
 	touch_controls._set_play_phase("preparing", ceili(_preparation_remaining))
@@ -336,6 +338,7 @@ func _return_to_explore() -> void:
 	run_stats.reset_run()
 	reward_service.reset_run()
 	session_mode = SessionMode.EXPLORE
+	Sfx.set_music_mode(&"explore")
 	touch_controls.hide_results()
 	touch_controls.set_player_down(false)
 	touch_controls.set_paused(false)
@@ -395,6 +398,7 @@ func _on_wave_started(_wave_index: int, _enemy_count: int) -> void:
 	# real targets and stole EMP damage without ever awarding wave BP.
 	training_drone.set_active(false)
 	session_mode = SessionMode.DEFENSE
+	Sfx.set_music_mode(&"defense")
 	touch_controls._set_play_phase("defense")
 	Sfx.play_ui(&"wave_start")
 	run_stats.start_run()
@@ -435,6 +439,7 @@ func _on_wave_session_ended(wave_index: int, _total_defeated: int) -> void:
 		return
 	_retry_defense = was_defense
 	session_mode = SessionMode.RESULTS
+	Sfx.set_music_mode(&"results")
 	if not player.is_defeated():
 		Sfx.play_ui(&"session_clear")
 	run_stats.end_run()

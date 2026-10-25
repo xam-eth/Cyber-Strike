@@ -1,0 +1,96 @@
+{
+  "name": "Frontier Signal",
+  "version": 1,
+  "provenance": "Original deterministic synthesis by tools/generate_audio.py; no external samples or music.",
+  "seed": 669205,
+  "tempo_bpm": 80,
+  "key": "D minor / modal",
+  "assets": {
+    "frontier_signal.wav": {
+      "sample_rate": 22050,
+      "channels": 2,
+      "bits_per_sample": 16,
+      "frames": 529200,
+      "seconds": 24.0,
+      "peak": 0.779992,
+      "rms": 0.250974,
+      "dc_offset": [
+        0.00060976,
+        0.00041068
+      ],
+      "loop": true,
+      "sha256": "81d1544e9594c9606f99ccc02f3c8b3b66c2523b147c180252e72bbf9f75a6c6",
+      "bytes": 2116844,
+      "role": "Opening, dashboard and gameplay theme; eight bars of D-modal synth pad and telemetry motif."
+    },
+    "defense_pulse.wav": {
+      "sample_rate": 22050,
+      "channels": 2,
+      "bits_per_sample": 16,
+      "frames": 132300,
+      "seconds": 6.0,
+      "peak": 0.760002,
+      "rms": 0.170333,
+      "dc_offset": [
+        0.00065578,
+        0.00065578
+      ],
+      "loop": true,
+      "sha256": "8158fffa91541538b6662076a794dc6a1f56a69eaac03b19e9f5ad188fef0bd0",
+      "bytes": 529244,
+      "role": "Gameplay-only rhythmic layer; two bars, synchronized with the 24-second theme."
+    },
+    "ui_navigate.wav": {
+      "sample_rate": 22050,
+      "channels": 2,
+      "bits_per_sample": 16,
+      "frames": 2646,
+      "seconds": 0.12,
+      "peak": 0.680013,
+      "rms": 0.216288,
+      "dc_offset": [
+        6.1e-07,
+        7.1e-07
+      ],
+      "loop": false,
+      "sha256": "ec759c0def4395534fb4b45d587cf2ad45bff9285d931bc74889d3678ab0bdc0",
+      "bytes": 10628,
+      "role": "Shared shell and Godot UI navigation tick."
+    },
+    "ui_confirm.wav": {
+      "sample_rate": 22050,
+      "channels": 2,
+      "bits_per_sample": 16,
+      "frames": 7056,
+      "seconds": 0.32,
+      "peak": 0.719993,
+      "rms": 0.208333,
+      "dc_offset": [
+        1.53e-06,
+        1.59e-06
+      ],
+      "loop": false,
+      "sha256": "e23fda72291a106884164b920e675adb4ab9bcf4e9404b966729f8cac47c7d10",
+      "bytes": 28268,
+      "role": "Shell selection confirmation in the same D-modal palette."
+    },
+    "deploy_stinger.wav": {
+      "sample_rate": 22050,
+      "channels": 2,
+      "bits_per_sample": 16,
+      "frames": 33075,
+      "seconds": 1.5,
+      "peak": 0.800012,
+      "rms": 0.153557,
+      "dc_offset": [
+        7.084e-05,
+        7.101e-05
+      ],
+      "loop": false,
+      "sha256": "5f33cd6aae2f06e5ebd7aca3e6d57264098d069a0bdcf9bb040e322b0cfacf09",
+      "bytes": 132344,
+      "role": "DEPLOY and Defense-start D-A-D signal with a short sub impact."
+    }
+  },
+  "total_bytes": 2817328
+}

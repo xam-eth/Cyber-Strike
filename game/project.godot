@@ -11,8 +11,8 @@ config/icon="res://icon.svg"
 config/features=PackedStringArray("4.7")
 
 [autoload]
-; Procedural audio: every sound is synthesised at runtime, so no audio assets
-; need to ship with the build. Gameplay calls the Audio singleton only.
+; One audio owner: deterministic runtime SFX plus the original Frontier Signal
+; music/UI WAV palette. Gameplay calls the Sfx facade, not the autoload directly.
 Audio="*res://scripts/audio/audio_director.gd"
 
 [display]

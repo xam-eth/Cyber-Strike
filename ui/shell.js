@@ -25,6 +25,8 @@
  */
 'use strict';
 
+import { ShellAudio } from './audio.js';
+
 const SCREENS = ['opening', 'hub', 'arsenal', 'settings', 'launch'];
 const params = new URLSearchParams(location.search);
 
@@ -39,6 +41,7 @@ const prefs = Object.assign(
     fullscreen: false,
     weapon: 'pulse_rifle',
     world: 'frostline_relay',
+    muted: false,
   },
   readPrefs(),
 );
@@ -58,6 +61,22 @@ let mainPackPath = '';
 let expectedBytes = 0;
 let downloadedBytes = 0;
 let hold = params.has('ui_hold');
+
+const audio = new ShellAudio({
+  muted: prefs.muted === true,
+  onMutedChange: (value) => {
+    prefs.muted = value;
+    savePrefs();
+    paintAudioControl();
+  },
+});
+audio.onStateChange = () => paintAudioControl();
+// Read-only diagnostics let browser QA verify real Web Audio state without
+// exposing transport controls or a second gameplay audio owner.
+Object.defineProperty(window, 'AegisAudio', {
+  value: Object.freeze({ snapshot: () => audio.snapshot() }),
+  writable: false,
+});
 
 function readPrefs() {
   try {
@@ -88,6 +107,7 @@ function show(name, options = {}) {
   }
   current = name;
   document.body.dataset.screen = name;
+  audio.setScene(name);
   if (name === 'hub') paintWorld();
   if (options.focus !== false) {
     const target = screens[name].querySelector('.btn--primary, .wcard[aria-selected="true"], button, [tabindex]');
@@ -115,6 +135,24 @@ function paintDock(state, title) {
   node.dataset.state = state;
   node.title = title;
   node.setAttribute('aria-label', title);
+}
+
+function paintAudioControl() {
+  const node = el('dock-audio');
+  if (!node) return;
+  const label = !audio.supported
+    ? 'Audio tidak didukung peramban'
+    : audio.muted
+      ? 'Nyalakan audio'
+      : audio.unlocked
+        ? 'Bisukan audio'
+        : 'Aktifkan audio';
+  node.dataset.state = !audio.supported ? 'unavailable' : audio.muted ? 'muted' : audio.unlocked ? 'ready' : 'locked';
+  node.setAttribute('aria-label', label);
+  node.setAttribute('aria-pressed', String(audio.muted));
+  node.title = label;
+  node.disabled = !audio.supported;
+  el('dock-audio-icon')?.setAttribute('href', audio.muted ? '#i-sound-off' : '#i-sound-on');
 }
 
 /* -------------------------------------------------------------- opening */
@@ -307,7 +345,9 @@ function applyMotionPref() {
  */
 function deploy() {
   lockLandscape();
+  savePrefs();
   paintWorld();
+  void audio.play('deploy');
   el('launch-title').textContent = 'Menyiapkan dunia';
   el('launch-status').textContent = 'menghubungkan paket dunia';
   el('launch-hint').textContent = 'Paket dunia diunduh sekali saat opening. DEPLOY menyiapkan teater yang dipilih.';
@@ -462,6 +502,13 @@ async function bootEngine() {
     bootState = 'loading';
     engineReady = false;
     armBootWatchdog();
+    // Retire the HTML theme before Godot's autoload can start the same asset.
+    // The DEPLOY stinger may finish as a one-shot; music beds never overlap.
+    await audio.handoff();
+    if (bootState !== 'loading') return;
+    if (audio.snapshot().musicVoices !== 0) {
+      throw new Error('Audio opening belum selesai; DEPLOY dihentikan untuk mencegah musik ganda.');
+    }
     el('launch-status').textContent = 'aset lengkap, menyusun dunia';
     el('launch-hint').textContent = 'Paket sudah lengkap. Menyiapkan WebGL dan teater pilihan…';
 
@@ -493,6 +540,7 @@ function launchFailed(title, detail) {
   bootState = 'failed';
   engineReady = false;
   window.clearTimeout(bootWatchdog);
+  audio.setScene('launch');
   el('launch-title').textContent = title;
   el('launch-status').textContent = 'berhenti — muat ulang untuk mencoba lagi';
   el('launch-percent').textContent = '';
@@ -522,6 +570,22 @@ function revealCanvas() {
 }
 
 /* ---------------------------------------------------------------- wiring */
+
+// Only trusted input may unlock Web Audio. Programmatic QA clicks can still
+// navigate, but they never pretend to satisfy a browser's autoplay policy.
+document.addEventListener('pointerdown', () => {
+  if (!audio.handedOff) void audio.unlock();
+}, { capture: true, passive: true });
+document.addEventListener('keydown', () => {
+  if (!audio.handedOff) void audio.unlock();
+}, { capture: true });
+
+document.addEventListener('click', (event) => {
+  const button = event.target.closest('button');
+  if (!button || button.disabled || button.getAttribute('aria-disabled') === 'true') return;
+  if (button.matches('#hub-deploy, #arsenal-deploy, #dock-audio, #launch-retry')) return;
+  void audio.play(button.id === 'opening-enter' ? 'confirm' : 'navigate');
+});
 
 // Defensive fallback for failures inside Godot's response-stream callbacks.
 // The export patch handles normal init/preload rejections; a truncated body can
@@ -557,6 +621,15 @@ el('hub-card-controls').addEventListener('click', () => show('settings'));
 el('hub-card-display').addEventListener('click', () => show('settings'));
 el('settings-close').addEventListener('click', () => show('hub'));
 el('dock-settings').addEventListener('click', () => show('settings'));
+el('dock-audio').addEventListener('click', () => {
+  if (!audio.unlocked && !audio.muted) {
+    void audio.unlock();
+    return;
+  }
+  const muted = !audio.muted;
+  audio.setMuted(muted);
+  if (!muted) void audio.unlock();
+});
 el('dock-fullscreen').addEventListener('click', () => toggleFullscreen());
 
 setSwitch('opt-touch', prefs.touch, (value) => {
@@ -626,6 +699,7 @@ function lockLandscape() {
 
 applyMotionPref();
 applyPrefsToUrl();
+paintAudioControl();
 paintDock(engineReady ? 'ok' : 'warn', engineReady ? 'Konsol siap' : 'Konsol belum siap');
 paintLoadout();
 paintWorld();
