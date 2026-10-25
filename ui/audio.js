@@ -17,8 +17,8 @@ const BUFFER_URLS = Object.freeze({
 });
 const SCENE_LEVELS = Object.freeze({
   opening: 0.23,
+  hero: 0.24,
   hub: 0.28,
-  arsenal: 0.24,
   settings: 0.20,
   launch: 0.16,
   handoff: 0,

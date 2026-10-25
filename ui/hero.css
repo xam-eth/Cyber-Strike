@@ -1,0 +1,1049 @@
+/* ==========================================================================
+   HERO — the first screen after the opening
+
+   Reference, from the shipped screens this repository keeps coming back to:
+   CoD Mobile's Operator page and Free Fire's Character page. Both put the
+   character in the middle at the largest scale on screen, a roster strip under
+   them, one tab row for the verbs (Info / Upgrade / Skin / Weapon), and a
+   single lit action at the bottom. Everything else is behind a tab.
+
+   What that fixes here: the old OPERATIF page was a form -- a portrait
+   thumbnail, three paragraphs and a weapon list, all the same weight. A
+   character screen is a stage, and the tabs are how it stays a stage while
+   still answering four questions.
+
+   The celebration is deliberate and one-shot: a spotlight cone, an expanding
+   floor ring, sparks and a name banner, fired when the screen is entered. It
+   is the one moment in the lobby that should feel like an event, and reduced
+   motion turns all of it off.
+   ========================================================================== */
+
+.screen--hero {
+  padding: calc(46px + var(--safe-t)) calc(var(--gutter) + var(--safe-r)) calc(var(--s3) + var(--safe-b))
+    calc(var(--gutter) + var(--safe-l));
+  justify-content: stretch;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: clamp(158px, 23vw, 230px) minmax(0, 1fr) clamp(198px, 26vw, 286px);
+  gap: clamp(8px, 1.2vw, 14px);
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+/* ------------------------------------------------------------- left column */
+
+.hero__left {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(5px, 1.1vh, 9px);
+  min-width: 0;
+  min-height: 0;
+}
+
+.hero__id {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.hero__id .eyebrow {
+  color: var(--accent);
+  font-size: 8.5px;
+  letter-spacing: 0.2em;
+}
+
+/* The name is the biggest type on the screen after the opening's tagline. A
+   character screen that whispers the character's name is not one. */
+.hero__name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(18px, 3.6vh, 30px);
+  line-height: 0.98;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.9);
+}
+
+.hero__role {
+  margin: 2px 0 0;
+  max-width: 34ch;
+  font-family: var(--font-ui);
+  font-size: clamp(8.5px, 1.4vh, 10.5px);
+  line-height: 1.45;
+  color: var(--ink-3);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.hero__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.hero__tags .chip {
+  font-size: 8px;
+  padding: 2px 7px;
+}
+
+/* The kit strip: three answers, one line each, like a rack label. */
+.hero__kitted {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: auto;
+  padding: 6px 7px;
+  background: linear-gradient(180deg, rgba(16, 27, 38, 0.86), rgba(6, 11, 17, 0.9));
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 6px);
+  box-shadow: inset 0 0 0 1px var(--hair);
+}
+
+.kitted__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+  min-width: 0;
+}
+
+.kitted__row i {
+  font-style: normal;
+  font-family: var(--font-ui);
+  font-size: 7.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.kitted__row b {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* --- the hero list -------------------------------------------------------- */
+
+/* One card per operative: this is the roster the player scans, so it is a list
+   of faces, not a row of numbers. A portrait says "this is a person" faster
+   than any label, and the two empty slots say what they are. */
+.hcards {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  min-height: 0;
+}
+
+.hcards li {
+  min-height: 0;
+}
+
+.hcard {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  min-height: clamp(34px, 8.6vh, 46px);
+  padding: 3px 8px 3px 3px;
+  border: 0;
+  text-align: left;
+  background: linear-gradient(90deg, rgba(18, 30, 42, 0.88), rgba(6, 11, 17, 0.8));
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%);
+  box-shadow: inset 0 0 0 1px rgba(78, 106, 126, 0.34);
+  cursor: pointer;
+  transition:
+    box-shadow var(--motion-fast) var(--ease),
+    background var(--motion-fast) var(--ease);
+}
+
+.hcard[data-active='true'] {
+  background: linear-gradient(90deg, rgba(255, 176, 32, 0.16), rgba(6, 11, 17, 0.86) 68%);
+  box-shadow:
+    inset 2px 0 0 var(--accent),
+    inset 0 0 0 1px rgba(255, 176, 32, 0.4);
+}
+
+.hcard:hover,
+.hcard:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 1px rgba(78, 106, 126, 0.8);
+}
+
+.hcard[data-active='true']:hover,
+.hcard[data-active='true']:focus-visible {
+  box-shadow:
+    inset 2px 0 0 var(--accent),
+    inset 0 0 0 1px var(--accent);
+}
+
+.hcard--locked {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.hcard__thumb {
+  position: relative;
+  flex: 0 0 auto;
+  width: clamp(28px, 7vh, 38px);
+  height: clamp(28px, 7vh, 38px);
+  overflow: hidden;
+  background: rgba(4, 8, 12, 0.9);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%);
+}
+
+/* The card's face is a render of the same rig (tools/hero_portrait.mjs), framed
+   square at the head, so it needs no cropping trick -- just a slight lift. */
+.hcard__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 30%;
+}
+
+.hcard__thumb--empty {
+  background:
+    repeating-linear-gradient(135deg, rgba(78, 106, 126, 0.18) 0 2px, transparent 2px 9px),
+    rgba(4, 8, 12, 0.9);
+  box-shadow: inset 0 0 0 1px rgba(78, 106, 126, 0.3);
+}
+
+.hcard__body {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.hcard__name {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(9px, 1.75vh, 11px);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hcard__state {
+  font-family: var(--font-ui);
+  font-size: 7.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.hcard[data-active='true'] .hcard__state {
+  color: var(--accent);
+}
+
+.hcard__tick {
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  display: grid;
+  place-items: center;
+  width: 13px;
+  height: 13px;
+  font-size: 8px;
+  color: var(--accent-ink);
+  background: var(--accent);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 4px 100%, 0 calc(100% - 4px));
+}
+
+/* ------------------------------------------------------------------- stage */
+
+/* The hero stands in his own column. A radial mask melts the photograph's dark
+   hangar into the bay plate behind it, so the figure reads as lit on the deck
+   rather than pasted into a box. */
+.hero__mid {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(5px, 1vh, 8px);
+  min-width: 0;
+  min-height: 0;
+}
+
+.hero__stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* The tab rail sits under the stage, where every mobile shooter's character
+   page puts it: the verbs belong to the character standing above them. */
+.hero__tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  flex: 0 0 auto;
+}
+
+/* One plate per verb. The selected tab is a lit top edge rather than an amber
+   fill: the fill would compete with the single lit action at the bottom of the
+   screen, and on a character page the action is what has to win. */
+.htab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: clamp(26px, 6.4vh, 34px);
+  padding: 0 6px;
+  border: 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(9px, 1.7vh, 11.5px);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--ink-3);
+  background: linear-gradient(180deg, rgba(16, 26, 36, 0.9), rgba(6, 11, 17, 0.86));
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
+  box-shadow: inset 0 0 0 1px rgba(78, 106, 126, 0.34);
+  cursor: pointer;
+  transition:
+    color var(--motion-fast) var(--ease),
+    background var(--motion-fast) var(--ease),
+    box-shadow var(--motion-fast) var(--ease);
+}
+
+.htab .ico {
+  font-size: 12px;
+  color: currentColor;
+  opacity: 0.85;
+}
+
+.htab[aria-selected='true'] {
+  color: var(--ink);
+  background: linear-gradient(180deg, rgba(255, 176, 32, 0.22), rgba(8, 14, 20, 0.9) 82%);
+  box-shadow:
+    inset 0 2px 0 var(--accent),
+    inset 0 0 0 1px rgba(255, 176, 32, 0.4);
+}
+
+.htab[aria-selected='true'] .ico {
+  color: var(--accent);
+  opacity: 1;
+}
+
+.htab:hover,
+.htab:focus-visible {
+  color: var(--ink);
+  outline: none;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 176, 32, 0.7),
+    inset 0 0 0 1px rgba(78, 106, 126, 0.75);
+}
+
+/* The room is a photograph; the operative is not. `.stage__plate` is the empty
+   bay, and `.stage__view` is a WebGL canvas the size of the column the figure
+   occupies, framing game/assets/characters/hero/hero.glb by its own bounds
+   (ui/hero_stage.js). Nothing about the character is drawn here -- not the pose,
+   not the livery, not the silhouette -- so the screen cannot disagree with the
+   asset that goes into the match. */
+.stage__plate {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 56%;
+  z-index: 0;
+  /* The push-in is baked into the JPEG (tools/web_art.mjs --crop) rather than a
+     CSS scale: a transformed plate reports an oversized box to the layout QA,
+     and the honest fix is to ship the composition, not to hide it behind a
+     transform. */
+
+}
+
+.stage__view {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 13%;
+  margin-inline: auto;
+  width: 64%;
+  height: 85%;
+  z-index: 2;
+  display: block;
+  /* Centred with auto margins rather than translateX: the celebration animates
+     `transform`, and a transform on this box would drop the centring with it. */
+  transform-origin: 50% 100%;
+}
+
+/* If the rig cannot be reached the stage says so in the figure's own place.
+   An empty pad with no explanation reads as a rendering bug. */
+.stage__note {
+  position: absolute;
+  left: 50%;
+  bottom: calc(13% + 8px);
+  transform: translateX(-50%);
+  max-width: 84%;
+  padding: 4px 8px;
+  font-family: var(--font-ui);
+  font-size: 8.5px;
+  letter-spacing: 0.06em;
+  text-align: center;
+  color: var(--warn, #ffb020);
+  background: rgba(8, 12, 16, 0.82);
+  box-shadow: inset 0 0 0 1px rgba(255, 176, 32, 0.4);
+  z-index: 4;
+}
+
+.stage__note[hidden] {
+  display: none;
+}
+
+
+
+/* Deck ring around the operative's feet: the platform the art already draws,
+   made into a live light so the pose has a base. */
+.stage__ring {
+  position: absolute;
+  left: 50%;
+  bottom: 5%;
+  width: min(78%, 360px);
+  aspect-ratio: 3 / 1;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  /* White, not cyan: the pad's ring in the plate is neutral, and a coloured
+     burst would be this hero's palette leaking into a shared stage. */
+  background: radial-gradient(ellipse at 50% 50%, rgba(232, 240, 248, 0.3), transparent 62%);
+  box-shadow:
+    0 0 0 1.5px rgba(240, 246, 252, 0.6),
+    0 0 40px 6px rgba(220, 232, 244, 0.26);
+  z-index: 3;
+  opacity: 0;
+}
+
+/* The room's floor fade belongs under the figure: it exists to melt the
+   photograph's bottom edge into the panel, and at z-index 3 it used to paint a
+   black haze over the operative's boots. */
+.stage__floor {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 26%;
+  background: linear-gradient(180deg, transparent, rgba(4, 7, 10, 0.72) 76%, var(--void));
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* One white-hot frame on entry: the "pop" that makes a celebration read as a
+   celebration rather than as a slow fade. */
+.stage__flash {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+  background: radial-gradient(ellipse 60% 55% at 52% 46%, rgba(210, 240, 255, 0.85), transparent 70%);
+  opacity: 0;
+}
+
+.screen--hero[data-celebrate='true'] .stage__flash {
+  animation: flash-pop 0.7s var(--ease) both;
+}
+
+@keyframes flash-pop {
+  0% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.stage__sparks {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.stage__sparks i {
+  position: absolute;
+  left: var(--x, 50%);
+  bottom: var(--y, 22%);
+  width: var(--w, 3px);
+  height: var(--w, 3px);
+  border-radius: 50%;
+  background: var(--c, var(--accent));
+  box-shadow: 0 0 10px currentColor;
+  opacity: 0;
+}
+
+/* The banner: a machined strip that slams in, holds, and leaves. */
+.stage__banner {
+  position: absolute;
+  left: 50%;
+  bottom: 12%;
+  z-index: 5;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 5px 14px;
+  transform: translate(-50%, 8px);
+  opacity: 0;
+  background: linear-gradient(90deg, rgba(4, 7, 10, 0.9), rgba(12, 20, 28, 0.9));
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px));
+  box-shadow: inset 0 0 0 1px rgba(255, 176, 32, 0.5);
+  white-space: nowrap;
+}
+
+.stage__banner b {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(10px, 2vh, 13px);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.stage__banner i {
+  font-family: var(--font-ui);
+  font-style: normal;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+/* --------------------------------------------------------- the celebration */
+
+.screen--hero[data-celebrate='true'] .stage__banner {
+  animation: banner-in 2.6s var(--ease) both;
+}
+
+.screen--hero[data-celebrate='true'] .stage__view {
+  animation: hero-pose 2.2s var(--ease) both;
+}
+
+.screen--hero[data-celebrate='true'] .stage__ring {
+  animation: ring-pulse 1.6s var(--ease) 2 both;
+}
+
+.screen--hero[data-celebrate='true'] .stage__sparks i {
+  animation: spark-fly var(--d, 1.4s) var(--ease) var(--delay, 0.1s) both;
+}
+
+@keyframes hero-pose {
+  0% {
+    transform: scale(1.16) translateY(14px);
+    filter: brightness(1.5) saturate(0.7);
+  }
+  38% {
+    transform: scale(1.02) translateY(0);
+    filter: brightness(1.06) saturate(1);
+  }
+  100% {
+    transform: scale(1.03) translateY(0);
+    filter: none;
+  }
+}
+
+@keyframes ring-pulse {
+  0% {
+    transform: translateX(-50%) scale(0.5);
+    opacity: 0;
+    box-shadow: 0 0 0 1px rgba(255, 210, 140, 0.9), 0 0 70px 22px rgba(255, 176, 32, 0.5);
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-50%) scale(1.35);
+    opacity: 0.75;
+    box-shadow: 0 0 0 1.5px rgba(120, 220, 255, 0.55), 0 0 40px 6px rgba(84, 200, 255, 0.26);
+  }
+}
+
+@keyframes spark-fly {
+  0% {
+    transform: translate3d(0, 0, 0) scale(0.6);
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(var(--dx, 0px), var(--dy, -120px), 0) scale(0.2);
+    opacity: 0;
+  }
+}
+
+@keyframes banner-in {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 14px) scaleX(0.86);
+  }
+  14% {
+    opacity: 1;
+    transform: translate(-50%, 0) scaleX(1);
+  }
+  82% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -6px);
+  }
+}
+
+/* ------------------------------------------------------------ right column */
+
+.hero__right {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(5px, 1vh, 8px);
+  min-width: 0;
+  min-height: 0;
+}
+
+.hpanel {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(4px, 1vh, 8px);
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  /* The lower half of a character panel is depth, the way a rack in the world
+     has a back wall: a hatch of the same 45 degrees, dark enough to read as
+     empty and not as a broken layout. */
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgba(78, 106, 126, 0.07) 0 1px,
+    transparent 1px 12px
+  );
+  padding: clamp(7px, 1.4vh, 11px) clamp(8px, 1.1vw, 12px);
+  background: linear-gradient(180deg, rgba(16, 27, 38, 0.9), rgba(6, 11, 17, 0.94));
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%);
+  box-shadow: inset 0 0 0 1px var(--hair), inset 0 1px 0 rgba(160, 200, 225, 0.12);
+}
+
+.hpanel[hidden] {
+  display: none;
+}
+
+.hpanel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s2);
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(78, 106, 126, 0.3);
+}
+
+.hpanel__head .eyebrow {
+  color: var(--accent);
+}
+
+.hpanel__text {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: clamp(8.8px, 1.5vh, 10.5px);
+  line-height: 1.45;
+  color: var(--ink-2);
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.hpanel__grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+}
+
+.hpanel__grid > div {
+  padding: 4px 6px;
+}
+
+.hpanel__grid .metric__val {
+  font-size: clamp(9px, 1.7vh, 11px);
+}
+
+.hpanel__note {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: 8.5px;
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+  color: var(--ink-3);
+}
+
+.hlist {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hlist li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s2);
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(39, 56, 74, 0.5);
+  font-family: var(--font-ui);
+  font-size: 9px;
+}
+
+.hlist li:last-child {
+  border-bottom: 0;
+}
+
+.hlist b {
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.hlist span {
+  color: var(--ink-3);
+  text-transform: lowercase;
+}
+
+/* --- upgrade ladder ------------------------------------------------------- */
+
+.tiers {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tier {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  background: rgba(6, 11, 17, 0.7);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%);
+  box-shadow: inset 0 0 0 1px rgba(78, 106, 126, 0.3);
+}
+
+.tier--on {
+  background: linear-gradient(90deg, rgba(255, 176, 32, 0.14), rgba(6, 11, 17, 0.8) 60%);
+  box-shadow: inset 2px 0 0 var(--accent), inset 0 0 0 1px rgba(255, 176, 32, 0.34);
+}
+
+.tier__no {
+  font-family: var(--font-ui);
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--ink-3);
+}
+
+.tier--on .tier__no {
+  color: var(--accent);
+}
+
+.tier__body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.tier__body b {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(9px, 1.7vh, 11px);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tier__body i {
+  font-style: normal;
+  font-family: var(--font-ui);
+  font-size: 8px;
+  letter-spacing: 0.04em;
+  color: var(--ink-3);
+}
+
+.tier__state {
+  font-family: var(--font-ui);
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--info);
+  white-space: nowrap;
+}
+
+.tier--on .tier__state {
+  color: var(--ok);
+}
+
+.tier__meter {
+  display: flex;
+  gap: 3px;
+  height: 3px;
+}
+
+.tier__meter i {
+  flex: 1;
+  background: rgba(78, 106, 126, 0.5);
+  transform: skewX(-24deg);
+}
+
+.tier__meter i:first-child {
+  background: var(--accent);
+  box-shadow: 0 0 8px rgba(255, 176, 32, 0.6);
+}
+
+.btn--upgrade {
+  --tr: var(--cut);
+  --bl: var(--cut-xs);
+  width: 100%;
+  min-height: 28px;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+}
+
+.btn--upgrade .btn__meta {
+  white-space: nowrap;
+}
+
+/* --- skins ---------------------------------------------------------------- */
+
+.skins {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+}
+
+/* The equipped livery takes the full width and a tall swatch, because it is the
+   one thing on this tab that is true; the two unbuilt slots sit under it at half
+   the size, so the panel's weight matches what the panel can actually do. */
+.skin[aria-checked='true'] {
+  grid-column: span 2;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.skin[aria-checked='true'] .skin__swatch {
+  flex: 0 0 42%;
+  height: clamp(38px, 9vh, 58px);
+}
+
+.skin {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+  border: 0;
+  text-align: left;
+  background: rgba(6, 11, 17, 0.72);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
+  box-shadow: inset 0 0 0 1px rgba(78, 106, 126, 0.34);
+  cursor: pointer;
+}
+
+.skin[aria-checked='true'] {
+  box-shadow: inset 0 0 0 1.5px var(--accent);
+}
+
+.skin[aria-disabled='true'] {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.skin__swatch {
+  display: block;
+  height: clamp(22px, 5vh, 34px);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.5);
+}
+
+/* The equipped livery is the one the rig actually wears: gunmetal with the
+   cyan edge light and the amber shoulder patch. The other two are painted in
+   the palette they would use, over a hatch that says "no asset yet". */
+.skin__swatch--aegis {
+  background:
+    linear-gradient(135deg, rgba(120, 220, 255, 0.5), transparent 55%),
+    linear-gradient(180deg, #46576a, #1a252f 70%);
+}
+
+.skin__swatch--glacier {
+  background:
+    repeating-linear-gradient(135deg, rgba(4, 7, 10, 0.55) 0 3px, transparent 3px 7px),
+    linear-gradient(180deg, #9fd6e8, #3d6a86 70%);
+}
+
+.skin__swatch--ember {
+  background:
+    repeating-linear-gradient(135deg, rgba(4, 7, 10, 0.55) 0 3px, transparent 3px 7px),
+    linear-gradient(180deg, #f0a44a, #7a3a12 70%);
+}
+
+.skin__name {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 8.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.skin__state {
+  font-family: var(--font-ui);
+  font-size: 7.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.skin[aria-checked='true'] .skin__state {
+  color: var(--accent);
+}
+
+/* --- the rack, inside the tab -------------------------------------------- */
+
+.hpanel--rack .rack__list {
+  gap: 3px;
+}
+
+.hpanel--rack .weapon {
+  grid-template-columns: 58px minmax(0, 1fr);
+  grid-template-areas:
+    'art name'
+    'art spec';
+  align-content: center;
+  gap: 0 7px;
+  min-height: clamp(34px, 8vh, 44px);
+  padding: 3px 8px 3px 3px;
+}
+
+/* The state is a badge in the corner, not a third column: 200 px of panel
+   cannot hold art + name + three numbers + a price on one line without cutting
+   one of them, and a clipped spec is worse than a stacked one. */
+.hpanel--rack .weapon__state {
+  position: absolute;
+  top: 3px;
+  right: 6px;
+  min-width: 0;
+  width: auto;
+  font-size: 7.5px;
+}
+
+.hpanel--rack .weapon__art {
+  align-self: stretch;
+}
+
+.hpanel--rack .weapon__art img {
+  object-position: center 52%;
+}
+
+.hpanel--rack .weapon__name {
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  padding-right: 46px;
+}
+
+.hpanel--rack .weapon__spec {
+  font-size: 8.5px;
+  letter-spacing: 0;
+}
+
+
+/* --- actions -------------------------------------------------------------- */
+
+.hero__actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: auto;
+}
+
+.hero__actions .btn--deploy {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: clamp(30px, 7.6vh, 38px);
+  justify-content: space-between;
+  font-size: clamp(9px, 1.8vh, 11px);
+  letter-spacing: 0.12em;
+}
+
+.hero__actions .btn--ghost {
+  flex: 0 0 auto;
+  min-height: clamp(30px, 7.6vh, 38px);
+  padding-inline: 10px;
+  font-size: 9px;
+}
+
+.hero__actions .btn--ghost .btn__label {
+  display: none;
+}
+
+/* ------------------------------------------------------------ short screens */
+
+@media (max-height: 400px) and (max-width: 760px) {
+  .hero {
+    grid-template-columns: clamp(132px, 21vw, 168px) minmax(0, 1fr) clamp(182px, 27vw, 216px);
+  }
+
+  .hero__role {
+    -webkit-line-clamp: 2;
+  }
+
+  .htab {
+    min-height: 26px;
+  }
+
+  .hpanel__text {
+    -webkit-line-clamp: 3;
+  }
+
+  .hero__actions .btn--ghost .btn__label {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .screen--hero[data-celebrate='true'] .stage__view,
+  .screen--hero[data-celebrate='true'] .stage__ring,
+  .screen--hero[data-celebrate='true'] .stage__banner,
+  .screen--hero[data-celebrate='true'] .stage__sparks i {
+    animation: none;
+  }
+
+  .screen--hero[data-celebrate='true'] .stage__banner {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}

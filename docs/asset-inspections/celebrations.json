@@ -1,0 +1,35 @@
+{
+  "blender_version": "5.0.1",
+  "source_hero": "game/assets/characters/hero/hero.glb",
+  "frame_rate": 30,
+  "clip": "celebration",
+  "heroes": {
+    "exo_operative": {
+      "label": "Lockdown",
+      "file": "game/assets/characters/hero/celebrations/exo_operative.glb",
+      "clip": "celebration",
+      "frames": [
+        1.0,
+        72.0
+      ],
+      "seconds": 2.367,
+      "bones_animated": [
+        "Head",
+        "Hip",
+        "L_Thigh",
+        "L_Upperarm",
+        "R_Thigh",
+        "R_Upperarm",
+        "Spine01"
+      ],
+      "bytes": 89436,
+      "bones_exported": 79,
+      "notes": "Braced drop, then a fists-up guard with the chest open and the chin up; settles back to idle."
+    }
+  },
+  "limitations": [
+    "Authored keyframe motion, not hand-animated polish; human motion review is still required.",
+    "Celebration files hold the skeleton and one action only: no mesh, no materials, no textures.",
+    "hero.glb is never rewritten here; the locked hero art stays untouched."
+  ]
+}

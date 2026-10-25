@@ -211,3 +211,118 @@ only an opinion is not here.
     the leading cut, so a tile on the touch layer and a button in the shell are
     the same manufactured object. A borrowed icon family drawn at 120 px is what
     read as "generic standard" in the owner's review.
+
+38. **The journey is opening -> hero -> map -> deploy** (2026-10-25, owner). The
+    order was wrong: pressing Masuk after the load screen landed on the theatre
+    map, asking where the player was going before telling them who they were
+    going as. Screen 02 of the lobby is now HERO, and the map moved to 03. The
+    reference is the character page of a modern mobile shooter -- CoD Mobile's
+    Operator page and Free Fire's Character page -- reduced to what this game can
+    honestly fill: the hero at the largest scale on screen on his own lit stage,
+    a roster of face cards under the name, one horizontal rail of tabs, and a
+    single lit action. Each tab answers one question and states only what exists:
+      * INFO     -- the rig, the three showcase clips, the numbers from
+                    `HeroDefinition`;
+      * UPGRADE  -- the kit ladder (the three weapon tiers and their BP prices).
+                    There is no per-hero stat block to level, because
+                    `hero_definition.gd` has none on purpose; the button is
+                    therefore stated and disabled, with the reason under it;
+      * SKIN     -- the one livery the rig actually renders, plus two slots
+                    labelled "belum dibuat" rather than sold;
+      * SENJATA  -- the rack, which is the only choice on this page that changes
+                    the run, and it still travels to the arena in the URL.
+    The old OPERATIF page was folded into it: two lobby pages showing the same
+    character in two compositions was the duplication, not the styling. The kit
+    strip at the bottom of the identity column ("livery / senjata / teater") is
+    what the player is about to take into the world, read in one glance.
+39. **The hero page celebrates once.** Entering it fires a one-shot beat -- a
+    white flash, a spotlight cone, an expanding deck ring, eighteen sparks and a
+    name banner -- because the moment a player first sees their operative is the
+    one moment in a lobby that is supposed to feel like an event. It re-fires
+    when the hero card is pressed again (a confirmation with no response reads as
+    a missed input), and "kurangi gerak" turns every part of it off, banner
+    included. Sparks are generated in `ui/shell.js` rather than typed into the
+    markup: angle, distance, colour and duration vary per spark, and fifteen
+    hand-authored custom properties is a transcription, not a design.
+
+40. **The hero stage is a photograph of a room and a live render of the rig.**
+    The character on the hero screen comes from
+    `game/assets/characters/hero/hero.glb`, rendered in the page, not from a
+    painted figure. It used to be a generated illustration standing on a
+    generated hangar; the art direction was approved, but as an *answer* it was
+    wrong on every axis a lobby is asked about: it did not change when the
+    livery changed, it did not change when the rig was re-exported, and the INFO
+    tab listed clips (`idle`, `aim`, `fire`) the picture could not play. Worse,
+    it showed a different character than the one in the match.
+
+    What ships now:
+
+      * `ui/art/web/hero-stage.jpg` -- the bay with **nobody in it**. A room does
+        not animate and does not change when the player does, so it stays a
+        photograph: the empty deploy pad, two beams, crates, haze. This is
+        finished background, not a placeholder.
+      * `.stage__view` -- a WebGL canvas over that pad, driven by
+        `ui/hero_stage.js`, which loads `hero.glb` and frames it by the model's
+        own bounding box (boots on the bottom edge, helmet at 93 % of the
+        height), so a re-scaled export re-frames itself.
+      * the `aim` clip and the game's own rifle: `hero_rig.json`'s socket
+        (carry rotation, offset, `scale_model_units` 0.4) hangs
+        `weapons/futuristic_rifle/rifle.glb` off `R_Hand`, which means the
+        celebration is the real weapon coming up, not a CSS zoom over a still.
+      * the roster card's face is `ui/art/web/hero-portrait.png`, baked from the
+        same GLB by `tools/hero_portrait.mjs` with the stage's light rig. The
+        card and the stage cannot disagree about who the player is looking at.
+
+    The stage owns the GPU only while it is on screen: `play()` on entry,
+    `pause()` on exit, `dispose()` before the engine boots, because Deploy does
+    not need two live WebGL contexts on a phone. If the rig cannot be reached the
+    canvas stays empty and the reason is printed on the pad; a silently blank
+    stage is the one outcome that is not allowed.
+
+41. **three.js is vendored into the shell, pinned, with an import map.**
+    `ui/vendor/three/` holds `three.module.min.js`, `GLTFLoader`,
+    `BufferGeometryUtils` and `RoomEnvironment` -- 820 KB raw, and an import map
+    in `index.html` is the whole configuration. Vendored rather than fetched
+    from a CDN for three reasons: the lobby has to work offline; a CDN is a
+    third party that can change under a shipped build; and the pinned copy in
+    the repo is the version the engine's own GLB is tested against. The render
+    target is roughly 180 x 210 CSS pixels on an 844 x 390 phone and the rig is
+    36 k triangles, so this is cheaper than the JPEG behind it.
+
+42. **The stage is neutral and shared; the celebration is the hero's own.** Two
+    corrections, both from the same principle: the hero art is locked, so
+    everything around it adapts to the hero, never the reverse.
+    * The first plate was lit cyan and amber -- the AEGIS palette baked into the
+      room. That paints the character (a cool rim is a colour grade on locked
+      art) and it cannot host a second hero with a different palette. The plate
+      is now gunmetal and white light only, desaturated, mid-key, with a neutral
+      white pad ring; the stage's three lights are white as well, and the
+      celebration burst and sparks are white. Per-hero colour belongs to the
+      hero. The push-in that seats the pad under the boots is baked into the JPEG
+      (`tools/web_art.mjs --crop`) rather than applied as a CSS scale, because a
+      transformed plate is an oversized box to the layout QA and the honest fix
+      is the composition.
+    * Each hero gets its **own** celebration clip, authored in Blender by
+      `tools/blender/author_celebrations.py` and exported as an animation-only
+      GLB under `game/assets/characters/hero/celebrations/<hero>.glb`, with
+      `manifest.json` naming the file per hero. `hero.glb` is never rewritten by
+      that script -- the mesh, the materials and the shipped clips stay
+      byte-identical -- and the CI job that runs it refuses to publish if
+      `hero.glb` changed. A hero without an authored celebration falls back to
+      the rig's own `aim` pose; borrowing another hero's move is not an option.
+      The authoring pass is opt-in on CI (`[celebration]` in the commit message)
+      because Blender is not installed in every environment; the script is
+      plain `blender --background --python`, which is how `author_hero.py`
+      already works.
+      Timelines are written in **bone-local axes** -- the same numbers a Blender
+      pose rotation uses -- and every one of them is verified first against
+      `tools/pose_oracle.mjs`, which poses `hero.glb` in the pinned Chromium with
+      the same axis vocabulary and writes a PNG per variant. That tool replaced
+      a CI round trip per sign, and it also told the truth about this rig: the
+      forearm channels twist instead of bending, so the celebration has to be
+      carried by the shoulders and the spine. Two earlier attempts at a
+      two-arm overhead flare (world-axis, then negated world-axis) both folded
+      the arms across the chest in the bake; the guard beat that shipped is the
+      pose the rig can actually hold. A rig that cannot straighten an arm cannot
+      salute, and pretending otherwise is how a "celebration" ends up looking
+      like a shrug.

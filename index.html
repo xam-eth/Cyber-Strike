@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="./ui/tokens.css" />
     <link rel="stylesheet" href="./ui/ui.css" />
     <link rel="stylesheet" href="./ui/art.css" />
+    <link rel="stylesheet" href="./ui/hero.css" />
     <!--
       A static tag, not a dynamic import: the engine derives its asset paths from
       document.currentScript.src, so an injected script would make it look for
@@ -15,6 +16,23 @@
       parsed once, and it is what the opening's first check is verifying.
     -->
     <script src="./web/index.js" defer></script>
+    <!--
+      The hero stage renders the rig, so the page needs three.js. An import map
+      is the whole configuration: ui/hero_stage.js imports "three" and
+      "three/addons/...", and the browser resolves both to the vendored copy.
+      Vendored rather than fetched from a CDN: the lobby has to work offline,
+      and a pinned copy in the repo is a version the engine's own GLB is
+      actually tested against.
+    -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "./ui/vendor/three/three.module.min.js",
+          "three/addons/": "./ui/vendor/three/addons/"
+        }
+      }
+    </script>
+    <script type="module" src="./ui/hero_stage.js"></script>
     <!--
       The player-facing front end for the web build (repo root, served as /).
 
@@ -59,7 +77,7 @@
       <div class="plates" aria-hidden="true">
         <figure class="plate plate--opening" data-plate="opening"></figure>
         <figure class="plate plate--hub" data-plate="hub"></figure>
-        <figure class="plate plate--arsenal" data-plate="arsenal"></figure>
+        <figure class="plate plate--hero" data-plate="hero"></figure>
         <figure class="plate plate--settings" data-plate="settings"></figure>
         <figure class="plate plate--launch" data-plate="launch"></figure>
       </div>
@@ -218,124 +236,288 @@
           </div>
         </section>
 
-        <!-- ======================================================= OPERATIF -->
-        <section class="screen" id="screen-arsenal" aria-labelledby="arsenal-title">
-          <div class="screen__inner">
-            <div class="arsenal">
-              <!-- The operative is the subject, so the bay is the big plate and
-                   the portrait is cut into it at the same 45 degrees as every
-                   other card in the product. -->
-              <div class="panel panel--solid arsenal__bay">
-                <div class="bay__id">
-                  <div class="bay__portrait">
-                    <img src="./game/assets/ui/portrait_hero.png" alt="Operatif EXO dalam livery AEGIS" />
-                    <span class="bay__portrait-cut" aria-hidden="true"></span>
-                  </div>
-                  <div class="bay__copy">
-                    <p class="eyebrow">Operatif lapangan</p>
-                    <h1 class="bay__name" id="arsenal-title">EXO Operative</h1>
-                    <p class="bay__role" id="arsenal-role">
-                      Chassis E-07 · livery AEGIS. Satu rangka untuk semua operatif;
-                      yang berbeda corak lapangannya, bukan statistiknya.
-                    </p>
-                    <div class="bay__tags">
-                      <span class="chip chip--ok" id="arsenal-status">Field ready</span>
-                      <span class="chip chip--quiet">Chassis E-07</span>
-                    </div>
-                  </div>
-                </div>
+        <!-- ========================================================== HERO -->
+        <!-- The first screen after the opening is the roster, in the order a
+             player actually meets a game like this: who am I deploying as,
+             what can I do with them, and only then where am I going. The
+             reference is the character screen of a modern mobile shooter
+             (CoD Mobile's Operator page, Free Fire's Character page): the
+             hero is the largest object on screen, the roster is a strip under
+             him, and everything else is a tab on a side rail -- Info,
+             Upgrade, Skin, Weapon. Each tab answers one question and nothing
+             is a dead end.
 
-                <!-- The bay's lower half is instrument space, not a gap: the
-                     three numbers a player can actually verify about this
-                     operative, out of the same files the game loads. -->
-                <div class="statusgrid bay__data">
-                  <div><span class="metric__key">Chassis</span><span class="metric__val">E-07</span></div>
-                  <div><span class="metric__key">Tinggi rig</span><span class="metric__val">1.78 m</span></div>
-                  <div><span class="metric__key">Slot</span><span class="metric__val" data-tone="accent">01 / 03</span></div>
-                </div>
-
-                <div class="roster-wrap">
-                  <ul class="roster" id="arsenal-roster" aria-label="Daftar operatif">
-                    <li class="slot slot--ready" data-active="true" data-hero="exo_operative">
-                      <span class="slot__no">01</span>
-                      <span class="slot__state">siap</span>
-                    </li>
-                    <li class="slot slot--locked" aria-disabled="true">
-                      <span class="slot__no">02</span>
-                      <span class="slot__state">kosong</span>
-                    </li>
-                    <li class="slot slot--locked" aria-disabled="true">
-                      <span class="slot__no">03</span>
-                      <span class="slot__state">kosong</span>
-                    </li>
-                  </ul>
+             The hero poses on a lit deck with a celebration beat: a spotlight
+             cone, an expanding floor ring, sparks and a name banner. It runs
+             once when the screen is entered (and honours "kurangi gerak"),
+             because the moment a player first sees their operative is the one
+             moment in a lobby that should feel like an event. -->
+        <section class="screen screen--hero" id="screen-hero" aria-labelledby="hero-name" data-celebrate="false">
+          <div class="hero">
+            <div class="hero__left">
+              <div class="hero__id">
+                <p class="eyebrow">Operatif · 01 / 03</p>
+                <h1 class="hero__name" id="hero-name">EXO Operative</h1>
+                <div class="hero__tags">
+                  <span class="chip chip--ok" id="hero-status">Field ready</span>
+                  <span class="chip chip--quiet">E-07</span>
                 </div>
               </div>
 
-              <div class="arsenal__side">
-                <div class="panel panel--solid rack">
-                  <div class="rack__head">
-                    <p class="eyebrow">Rak senjata</p>
-                    <span class="rack__note">BP dibelanjakan di dalam arena</span>
-                  </div>
+              <p class="hero__role" id="hero-role">
+                Pasukan AEGIS dari program pelatihan lapangan. Satu rangka untuk semua
+                operatif; yang berbeda corak lapangannya.
+              </p>
 
-                  <!-- Every row is a spec card: the artwork is the weapon the
-                       game loads, the numbers are its own definition, and the
-                       pip meter shows the one comparison a player makes by
-                       eye -- damage per shot. -->
-                  <ul class="rack__list" id="arsenal-rack">
-                    <li>
-                      <button class="weapon" type="button" data-weapon="pulse_rifle" data-cost="0" aria-pressed="true">
-                        <span class="weapon__art"><img src="./game/assets/ui/weapon_pulse_rifle.png" alt="" /></span>
-                        <span class="weapon__body">
-                          <span class="weapon__name">Pulse Rifle</span>
-                          <span class="weapon__spec"><b>18</b> dmg · <b>5.0</b>/s · <b>24</b></span>
-                          <span class="weapon__pips" data-pips="2" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-                        </span>
-                        <span class="weapon__state">Terpasang</span>
-                      </button>
-                    </li>
-                    <li>
-                      <button class="weapon" type="button" data-weapon="nova_launcher" data-cost="120" aria-disabled="true">
-                        <span class="weapon__art"><img src="./game/assets/ui/weapon_nova_launcher.png" alt="" /></span>
-                        <span class="weapon__body">
-                          <span class="weapon__name">Nova Launcher</span>
-                          <span class="weapon__spec"><b>34</b> dmg · <b>0.8</b>/s · <b>6</b></span>
-                          <span class="weapon__pips" data-pips="3" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-                        </span>
-                        <span class="weapon__state">120 BP</span>
-                      </button>
-                    </li>
-                    <li>
-                      <button class="weapon" type="button" data-weapon="arc_shooter" data-cost="250" aria-disabled="true">
-                        <span class="weapon__art"><img src="./game/assets/ui/weapon_arc_shooter.png" alt="" /></span>
-                        <span class="weapon__body">
-                          <span class="weapon__name">Arc Shooter</span>
-                          <span class="weapon__spec"><b>20</b> dmg · <b>2.0</b>/s · <b>12</b></span>
-                          <span class="weapon__pips" data-pips="2" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-                        </span>
-                        <span class="weapon__state">250 BP</span>
-                      </button>
-                    </li>
-                  </ul>
-
-                  <p class="rack__hint">
-                    Dua senjata terakhir dibuka dengan Battle Points di arena. Pilihan di sini
-                    adalah yang terbawa saat Deploy.
-                  </p>
-                </div>
-
-                <div class="arsenal__actions">
-                  <button class="btn btn--primary" id="arsenal-deploy" type="button">
-                    <svg class="ico" aria-hidden="true"><use href="#i-deploy" /></svg>
-                    <span class="btn__label">Deploy</span>
-                    <span class="btn__meta" id="arsenal-deploy-meta">Pulse Rifle</span>
+              <!-- The hero list. A card per operative, the way the roster of a
+                   character page reads: portrait, name, state. Three slots, one
+                   filled -- and the two empty ones are drawn as slots, not as
+                   silhouettes of heroes that do not exist. -->
+              <ul class="hcards" id="hero-roster" aria-label="Daftar operatif">
+                <li>
+                  <button class="hcard" type="button" data-hero="exo_operative" data-active="true" aria-pressed="true">
+                    <span class="hcard__thumb">
+                      <img src="./ui/art/web/hero-portrait.png" alt="" />
+                    </span>
+                    <span class="hcard__body">
+                      <span class="hcard__name">EXO Operative</span>
+                      <span class="hcard__state">Siap deploy</span>
+                    </span>
+                    <span class="hcard__tick" aria-hidden="true"><svg class="ico"><use href="#i-check" /></svg></span>
                   </button>
-                  <button class="btn btn--ghost" id="arsenal-back" type="button">
-                    <svg class="ico" aria-hidden="true"><use href="#i-back" /></svg>
-                    <span class="btn__label">Kembali</span>
+                </li>
+                <li>
+                  <button class="hcard hcard--locked" type="button" disabled aria-disabled="true">
+                    <span class="hcard__thumb hcard__thumb--empty"></span>
+                    <span class="hcard__body">
+                      <span class="hcard__name">Slot 02</span>
+                      <span class="hcard__state">Kosong</span>
+                    </span>
+                  </button>
+                </li>
+                <li>
+                  <button class="hcard hcard--locked" type="button" disabled aria-disabled="true">
+                    <span class="hcard__thumb hcard__thumb--empty"></span>
+                    <span class="hcard__body">
+                      <span class="hcard__name">Slot 03</span>
+                      <span class="hcard__state">Kosong</span>
+                    </span>
+                  </button>
+                </li>
+              </ul>
+
+
+              <!-- What this operative deploys with. It is the left column's last
+                   row on purpose: the questions a character page answers run
+                   name -> who -> what do they carry, and the strip is the third
+                   answer, not decoration. -->
+              <div class="hero__kitted" aria-label="Bawaan saat deploy">
+                <span class="kitted__row"><i>Livery</i><b id="hero-kit-skin">AEGIS</b></span>
+                <span class="kitted__row"><i>Senjata</i><b id="hero-kit-weapon">Pulse Rifle</b></span>
+                <span class="kitted__row"><i>Teater</i><b id="hero-kit-world">Neon Frontier</b></span>
+              </div>
+            </div>
+
+            <!-- The stage. The art is the screen's subject, so it is an image
+                 in its own column rather than a plate behind the panels: a
+                 hero half-covered by a detail card is not a hero screen. -->
+            <div class="hero__mid">
+              <div class="hero__stage">
+                <img class="stage__plate" src="./ui/art/web/hero-stage.jpg" alt="" aria-hidden="true" />
+                <canvas
+                  class="stage__view"
+                  id="hero-canvas"
+                  role="img"
+                  aria-label="EXO Operative, render langsung dari hero.glb"
+                ></canvas>
+                <span class="stage__note" id="hero-stage-note" hidden></span>
+                <span class="stage__ring" aria-hidden="true"></span>
+                <span class="stage__floor" aria-hidden="true"></span>
+                <span class="stage__flash" aria-hidden="true"></span>
+                <span class="stage__sparks" id="hero-sparks" aria-hidden="true"></span>
+                <span class="stage__banner" id="hero-banner" aria-hidden="true">
+                  <b>Operatif 01</b><i>Siap deploy</i>
+                </span>
+              </div>
+
+              <div class="hero__tabs" role="tablist" aria-label="Detail operatif">
+                <button class="htab" type="button" role="tab" id="tab-info" data-tab="info" aria-selected="true" aria-controls="hero-panel-info">
+                  <svg class="ico" aria-hidden="true"><use href="#i-info" /></svg>
+                  <span>Info</span>
+                </button>
+                <button class="htab" type="button" role="tab" id="tab-upgrade" data-tab="upgrade" aria-selected="false" aria-controls="hero-panel-upgrade">
+                  <svg class="ico" aria-hidden="true"><use href="#i-upgrade" /></svg>
+                  <span>Upgrade</span>
+                </button>
+                <button class="htab" type="button" role="tab" id="tab-skin" data-tab="skin" aria-selected="false" aria-controls="hero-panel-skin">
+                  <svg class="ico" aria-hidden="true"><use href="#i-skin" /></svg>
+                  <span>Skin</span>
+                </button>
+                <button class="htab" type="button" role="tab" id="tab-weapon" data-tab="weapon" aria-selected="false" aria-controls="hero-panel-weapon">
+                  <svg class="ico" aria-hidden="true"><use href="#i-rifle" /></svg>
+                  <span>Senjata</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="hero__right">
+              <!-- INFO: who this is, and the numbers that come out of the files
+                   the game loads (rig height, the model, the slot). -->
+              <div class="hpanel" id="hero-panel-info" role="tabpanel" aria-labelledby="tab-info">
+                <div class="hpanel__head">
+                  <p class="eyebrow">Profil</p>
+                  <span class="chip chip--ok">Siap</span>
+                </div>
+                <p class="hpanel__text">
+                  Rangka E-07 dengan pelat dada, bahu dan lutut buatan. Satu rig, satu
+                  set animasi. Pilihan ada di corak dan senjata.
+                </p>
+                <div class="statusgrid hpanel__grid">
+                  <div><span class="metric__key">Chassis</span><span class="metric__val">E-07</span></div>
+                  <div><span class="metric__key">Tinggi</span><span class="metric__val">1.78 m</span></div>
+                  <div><span class="metric__key">Slot</span><span class="metric__val" data-tone="accent">01 / 03</span></div>
+                  <div><span class="metric__key">Rig</span><span class="metric__val">hero.glb</span></div>
+                </div>
+                <ul class="hlist">
+                  <li><b>Idle</b><span>sikap siaga</span></li>
+                  <li><b>Aim</b><span>angkat sungsang</span></li>
+                  <li><b>Fire</b><span>rekoil tembakan</span></li>
+                </ul>
+              </div>
+
+              <!-- UPGRADE: the ladder this game actually has. There is no
+                   per-hero stat block to level (HeroDefinition has none on
+                   purpose), so the thing a player upgrades here is the kit:
+                   the weapon tiers, priced in the currency the arena pays.
+                   Buying happens in the arena, never in this shell, so the
+                   action is stated and disabled instead of pretending. -->
+              <div class="hpanel" id="hero-panel-upgrade" role="tabpanel" aria-labelledby="tab-upgrade" hidden>
+                <div class="hpanel__head">
+                  <p class="eyebrow">Jalur kit</p>
+                  <span class="chip chip--quiet">BP</span>
+                </div>
+                <ol class="tiers" id="hero-tiers">
+                  <li class="tier tier--on">
+                    <span class="tier__no">01</span>
+                    <span class="tier__body">
+                      <b>Pulse Rifle</b>
+                      <i>18 dmg · 5.0/s · 24</i>
+                    </span>
+                    <span class="tier__state">terbuka</span>
+                  </li>
+                  <li class="tier">
+                    <span class="tier__no">02</span>
+                    <span class="tier__body">
+                      <b>Nova Launcher</b>
+                      <i>34 dmg · 0.8/s · 6</i>
+                    </span>
+                    <span class="tier__state">120 BP</span>
+                  </li>
+                  <li class="tier">
+                    <span class="tier__no">03</span>
+                    <span class="tier__body">
+                      <b>Arc Shooter</b>
+                      <i>20 dmg · 2.0/s · 12</i>
+                    </span>
+                    <span class="tier__state">250 BP</span>
+                  </li>
+                </ol>
+                <div class="tier__meter" aria-hidden="true"><i></i><i></i><i></i></div>
+                <button class="btn btn--upgrade" type="button" disabled aria-describedby="upgrade-note">
+                  <svg class="ico" aria-hidden="true"><use href="#i-upgrade" /></svg>
+                  <span class="btn__label">Tingkatkan</span>
+                  <span class="btn__meta">arena</span>
+                </button>
+                <p class="hpanel__note" id="upgrade-note">
+                  Battle Points didapat dan dibelanjakan di dalam arena, jadi tidak ada
+                  yang bisa dibeli sebelum Deploy.
+                </p>
+              </div>
+
+              <!-- SKIN: liveries. One is the livery the game actually renders;
+                   the other two are slots, labelled as not built. A skin shop
+                   with nothing behind it is the same lie as a playable card for
+                   a hero that does not exist. -->
+              <div class="hpanel" id="hero-panel-skin" role="tabpanel" aria-labelledby="tab-skin" hidden>
+                <div class="hpanel__head">
+                  <p class="eyebrow">Livery</p>
+                  <span class="chip chip--quiet">1 / 3</span>
+                </div>
+                <div class="skins" role="radiogroup" aria-label="Livery operatif">
+                  <button class="skin" type="button" role="radio" aria-checked="true" data-skin="aegis">
+                    <span class="skin__swatch skin__swatch--aegis" aria-hidden="true"></span>
+                    <span class="skin__name">AEGIS</span>
+                    <span class="skin__state">Terpasang</span>
+                  </button>
+                  <button class="skin" type="button" role="radio" aria-checked="false" aria-disabled="true" data-skin="glacier">
+                    <span class="skin__swatch skin__swatch--glacier" aria-hidden="true"></span>
+                    <span class="skin__name">Glacier</span>
+                    <span class="skin__state">Belum dibuat</span>
+                  </button>
+                  <button class="skin" type="button" role="radio" aria-checked="false" aria-disabled="true" data-skin="ember">
+                    <span class="skin__swatch skin__swatch--ember" aria-hidden="true"></span>
+                    <span class="skin__name">Ember</span>
+                    <span class="skin__state">Belum dibuat</span>
                   </button>
                 </div>
+                <p class="hpanel__note">
+                  Livery mengikuti rig: yang terpasang adalah yang dipakai di arena.
+                  Slot lain ditandai apa adanya, bukan dijual.
+                </p>
+              </div>
+
+              <!-- WEAPON: the rack, moved here from the old OPERATIF page. This
+                   is the one choice on this screen that changes the run, and it
+                   still travels to the arena in the URL. -->
+              <div class="hpanel hpanel--rack" id="hero-panel-weapon" role="tabpanel" aria-labelledby="tab-weapon" hidden>
+                <div class="hpanel__head">
+                  <p class="eyebrow">Rak senjata</p>
+                  <span class="chip chip--quiet" id="hero-weapon-chip">Pulse Rifle</span>
+                </div>
+                <ul class="rack__list" id="hero-rack">
+                  <li>
+                    <button class="weapon" type="button" data-weapon="pulse_rifle" data-cost="0" aria-pressed="true">
+                      <span class="weapon__art"><img src="./game/assets/ui/weapon_pulse_rifle.png" alt="" /></span>
+                      <span class="weapon__body">
+                        <span class="weapon__name">Pulse Rifle</span>
+                        <span class="weapon__spec"><b>18</b> dmg · <b>5.0</b>/s · <b>24</b></span>
+                      </span>
+                      <span class="weapon__state">Terpasang</span>
+                    </button>
+                  </li>
+                  <li>
+                    <button class="weapon" type="button" data-weapon="nova_launcher" data-cost="120" aria-disabled="true">
+                      <span class="weapon__art"><img src="./game/assets/ui/weapon_nova_launcher.png" alt="" /></span>
+                      <span class="weapon__body">
+                        <span class="weapon__name">Nova Launcher</span>
+                        <span class="weapon__spec"><b>34</b> dmg · <b>0.8</b>/s · <b>6</b></span>
+                      </span>
+                      <span class="weapon__state">120 BP</span>
+                    </button>
+                  </li>
+                  <li>
+                    <button class="weapon" type="button" data-weapon="arc_shooter" data-cost="250" aria-disabled="true">
+                      <span class="weapon__art"><img src="./game/assets/ui/weapon_arc_shooter.png" alt="" /></span>
+                      <span class="weapon__body">
+                        <span class="weapon__name">Arc Shooter</span>
+                        <span class="weapon__spec"><b>20</b> dmg · <b>2.0</b>/s · <b>12</b></span>
+                      </span>
+                      <span class="weapon__state">250 BP</span>
+                    </button>
+                  </li>
+                </ul>
+                <p class="hpanel__note">Senjata terpilih terbawa saat Deploy.</p>
+              </div>
+
+              <div class="hero__actions">
+                <button class="btn btn--primary btn--deploy" id="hero-next" type="button">
+                  <span class="btn__label">Lanjut ke peta</span>
+                  <svg class="ico" aria-hidden="true"><use href="#i-chev-right" /></svg>
+                </button>
+                <button class="btn btn--ghost" id="hero-back" type="button">
+                  <svg class="ico" aria-hidden="true"><use href="#i-back" /></svg>
+                  <span class="btn__label">Kembali</span>
+                </button>
               </div>
             </div>
           </div>
@@ -442,6 +624,20 @@
         <path d="M4 17.5 12 9l8 8.5" />
         <path d="M7.5 21h9" />
         <path d="M12 3v10" />
+      </symbol>
+      <symbol id="i-info" viewBox="0 0 24 24">
+        <path d="M12 2.6 21 7.4v9.2L12 21.4 3 16.6V7.4Z" />
+        <path d="M12 10.6v6M12 7.6v.6" />
+      </symbol>
+      <symbol id="i-upgrade" viewBox="0 0 24 24">
+        <path d="M12 3.5 20 11h-4.6v9.5H8.6V11H4Z" />
+      </symbol>
+      <symbol id="i-skin" viewBox="0 0 24 24">
+        <path d="M8.6 2.8 12 6l3.4-3.2 5.2 3.4-2.4 4.4-1.6-.8V21H7.4V9.8l-1.6.8L3.4 6.2Z" />
+      </symbol>
+      <symbol id="i-rifle" viewBox="0 0 24 24">
+        <path d="M2.5 9.5h13l3-2.4h3v4.2h-2.6L16 13.5H9.6v5.2H6.4v-5.2H2.5Z" />
+        <path d="M10.4 13.5h3.2v2.6h-3.2z" />
       </symbol>
       <symbol id="i-operative" viewBox="0 0 24 24">
         <path d="M12 2.5 19.5 6v6.2c0 4.4-3.1 7.6-7.5 9.3-4.4-1.7-7.5-4.9-7.5-9.3V6Z" />

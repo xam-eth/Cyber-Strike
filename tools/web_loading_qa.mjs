@@ -283,6 +283,15 @@ async function runOpeningContract() {
     await page.screenshot({ path: path.join(outDir, 'opening-preloaded.png') });
 
     await page.evaluate(() => document.getElementById('opening-enter').click());
+    result.expect(
+      await page.evaluate(() => document.body.dataset.screen === 'hero'),
+      'MASUK did not open the HERO screen',
+    );
+    await page.evaluate(() => document.getElementById('hero-next').click());
+    result.expect(
+      await page.evaluate(() => document.body.dataset.screen === 'hub'),
+      'HERO did not continue to the theatre map',
+    );
     const selectedCard = await page.evaluate((id) => {
       const card = document.getElementById(id);
       if (!card) return false;

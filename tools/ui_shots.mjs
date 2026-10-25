@@ -4,7 +4,7 @@
  *
  *   node tools/ui_shots.mjs                       # opening, hub, deploy, settings
  *   node tools/ui_shots.mjs --tag round2
- *   node tools/ui_shots.mjs --only deploy --viewport 390x844
+ *   node tools/ui_shots.mjs --only hero --viewport 667x375
  *
  * Why: the player front end (ui/) is judged on pixels, not on intent. This walks
  * the real screens in the real Chromium the repo pins, at the two shapes the
@@ -43,7 +43,11 @@ const viewports = list('--viewport').length ? list('--viewport') : ['844x390', '
 const SCREENS = [
   { id: 'opening', query: '?ui=opening' },
   { id: 'hub', query: '?ui=hub' },
-  { id: 'arsenal', query: '?ui=arsenal' },
+  // The hero stage renders game/assets/characters/hero/hero.glb in WebGL, so
+  // the frame is only worth taking once the rig is actually up -- and only
+  // after the entry beat has finished, or the evidence would always be the
+  // celebration frame instead of the screen.
+  { id: 'hero', query: '?ui=hero', waitFor: '#hero-canvas[data-state="ready"]', settle: 1500 },
   { id: 'settings', query: '?ui=settings' },
   // The hand-off screen is the one the player sees while the world loads, so it
   // is photographed like any other: a launch card that overflows or renders
@@ -114,8 +118,17 @@ for (const viewport of viewports) {
         screen.id,
       )
       .catch(() => {});
+    if (screen.waitFor) {
+      const found = await page
+        .waitForSelector(screen.waitFor, { timeout: 45000 })
+        .catch(() => null);
+      if (!found) {
+        failures += 1;
+        errors.push(`${screen.id}: ${screen.waitFor} never appeared`);
+      }
+    }
     await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-    await new Promise((resolve) => setTimeout(resolve, 260));
+    await new Promise((resolve) => setTimeout(resolve, (screen.settle || 0) + 260));
 
     const file = path.join(outDir, `${screen.id}-${viewport}.png`);
     await page.screenshot({ path: file });

@@ -9,6 +9,7 @@
  * What it does, in order, with real clicks on the real buttons:
  *
  *   opening  -> click Masuk
+ *   hero     -> inspect the operative, then continue to the map
  *   hub      -> click Kontrol (the settings sheet), close it
  *   launch   -> click Deploy, wait for the engine's own progress, photograph it
  *   world    -> wait for the canvas to be handed over, photograph the world
@@ -138,14 +139,20 @@ for (const viewport of viewports) {
   await shoot('01-opening', 'opening');
 
   await page.click('#opening-enter');
+  await page.waitForFunction(() => document.body.dataset.screen === 'hero', { timeout: 10000 });
+  await page.waitForFunction(() => window.AegisHeroStage?.ready === true, { timeout: 30000 });
+  await settled(page);
+  await shoot('02-hero', 'hero');
+
+  await page.click('#hero-next');
   await page.waitForFunction(() => document.body.dataset.screen === 'hub', { timeout: 10000 });
   await settled(page);
-  await shoot('02-hub', 'hub');
+  await shoot('03-hub', 'hub');
 
   await page.click('#hub-card-controls');
   await page.waitForFunction(() => document.body.dataset.screen === 'settings', { timeout: 10000 });
   await settled(page);
-  await shoot('03-settings', 'settings');
+  await shoot('04-settings', 'settings');
   await page.click('#settings-close');
   await page.waitForFunction(() => document.body.dataset.screen === 'hub', { timeout: 10000 });
 
@@ -156,12 +163,12 @@ for (const viewport of viewports) {
     .waitForFunction(() => document.getElementById('launch-percent').textContent !== '—', { timeout: 90000 })
     .catch(() => {});
   await settled(page);
-  await shoot('04-launch', 'launch');
+  await shoot('05-launch', 'launch');
 
   // The engine takes over: the shell hides itself and the canvas becomes visible.
   await page.waitForFunction(() => document.body.dataset.mode === 'playing', { timeout: worldTimeout });
   await new Promise((resolve) => setTimeout(resolve, 2500));
-  await shoot('05-world', null);
+  await shoot('06-world', null);
 
   const centre = { x: Math.round(width / 2), y: Math.round(height / 2) };
   await page.mouse.click(centre.x, centre.y);
@@ -169,7 +176,7 @@ for (const viewport of viewports) {
   await new Promise((resolve) => setTimeout(resolve, 1200));
   await page.keyboard.up('KeyW');
   await new Promise((resolve) => setTimeout(resolve, 800));
-  await shoot('06-gameplay', null);
+  await shoot('07-gameplay', null);
 
   steps[steps.length - 1].consoleErrors = consoleErrors.slice(0, 12);
   steps[steps.length - 1].console = consoleLines.slice(-25);

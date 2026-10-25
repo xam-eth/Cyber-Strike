@@ -216,6 +216,8 @@ async function checkPage(target, viewport) {
   // the shell (the raw /web/ build) skip this.
   const isFrontEnd = await page.evaluate(() => !!document.getElementById('hub-deploy'));
   let shellVanguardSelected = null;
+  let shellHeroStage = null;
+  let shellAudioHero = null;
   let shellAudioBefore = null;
   let shellAudioMuted = null;
   let shellAudioUnmuted = null;
@@ -234,6 +236,22 @@ async function checkPage(target, viewport) {
       .catch(() => {});
     if (audioShellMode) await page.click('#opening-enter');
     else await page.evaluate(() => document.getElementById('opening-enter')?.click());
+    await page.waitForFunction(() => document.body.dataset.screen === 'hero', { timeout: 15000 }).catch(() => {});
+    await page.waitForFunction(() => {
+      const stage = window.AegisHeroStage?.describe();
+      return stage?.ready && stage.celebration === 'celebration';
+    }, { timeout: 30000 }).catch(() => {});
+    shellHeroStage = await page.evaluate(() => window.AegisHeroStage?.describe() || null);
+    if (audioShellMode) {
+      await page.waitForFunction(() => {
+        const state = window.AegisAudio?.snapshot();
+        return state?.scene === 'hero' && state.unlocked && state.musicPlaying && state.loaded.length === 4;
+      }, { timeout: 20000 }).catch(() => {});
+      shellAudioHero = await page.evaluate(() => window.AegisAudio?.snapshot() || null);
+      await page.click('#hero-next');
+    } else {
+      await page.evaluate(() => document.getElementById('hero-next')?.click());
+    }
     await page.waitForFunction(() => document.body.dataset.screen === 'hub', { timeout: 15000 }).catch(() => {});
     if (audioShellMode) {
       await page.waitForFunction(() => {
@@ -743,7 +761,23 @@ async function checkPage(target, viewport) {
     ['WebGL context alive', state.glContext === true && state.glLost === false],
     ['no failure card shown', state.failureVisible === false],
   ];
+  if (isFrontEnd) {
+    checks.push([
+      'HERO shows the real rig and its authored celebration before the theatre map',
+      shellHeroStage?.ready === true
+        && shellHeroStage?.model === './game/assets/characters/hero/hero.glb'
+        && shellHeroStage?.clips?.includes('idle')
+        && shellHeroStage?.celebration === 'celebration',
+    ]);
+  }
   if (audioShellMode && isFrontEnd) {
+    checks.push([
+      'the HERO scene keeps one shared shell theme after a real gesture',
+      shellAudioHero?.scene === 'hero'
+        && shellAudioHero?.unlocked === true
+        && shellAudioHero?.musicPlaying === true
+        && shellAudioHero?.musicVoices === 1,
+    ]);
     checks.push([
       'a real gesture unlocked the shared shell theme and all four buffers',
       shellAudioBefore?.unlocked === true
@@ -914,7 +948,9 @@ async function checkPage(target, viewport) {
     defenseObserved: consoleLines.some((line) => line.includes('Encounter: Defense started')),
     encounterTransitions: consoleLines.filter((line) => line.includes('Encounter:')),
     audio: audioLines,
+    heroStage: shellHeroStage,
     shellAudio: {
+      hero: shellAudioHero,
       before: shellAudioBefore,
       muted: shellAudioMuted,
       unmuted: shellAudioUnmuted,

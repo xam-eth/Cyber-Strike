@@ -535,6 +535,20 @@ body[data-mode='playing'] #canvas {
   --cut-ink-t: rgba(255, 176, 32, 0.75);
 }
 
+/* A quiet chip is a reading, not a state: it is the default chip with the
+   coloured pip removed, for a value that is simply true (a chassis code, a
+   count). It used to be a class name with no rule behind it, which is why the
+   pip in "E-07" was the same amber as a warning. */
+.chip--quiet {
+  gap: 0;
+  color: var(--ink-2);
+  background: rgba(16, 27, 38, 0.66);
+}
+
+.chip--quiet::before {
+  display: none;
+}
+
 .chip::before {
   content: '';
   width: 4px;
