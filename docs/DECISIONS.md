@@ -244,3 +244,33 @@ only an opinion is not here.
     included. Sparks are generated in `ui/shell.js` rather than typed into the
     markup: angle, distance, colour and duration vary per spark, and fifteen
     hand-authored custom properties is a transcription, not a design.
+
+40. **The hero stage is two layers: an empty room, and a figure with a contract.**
+    The key art behind the hero was one picture with the operative painted into
+    it -- a good reference for the composition, and the wrong thing to ship. A
+    lobby that shows the player's own operative cannot have a second operative
+    baked into its backdrop: the breathe loop dragged the walls with the body,
+    the celebration could only zoom the whole room, and no rig could ever take
+    the painted woman's place without repainting the hangar. So the approved
+    reference is filed under `ui/art/reference/` and the screen is built from
+    two files:
+
+      * `ui/art/web/hero-stage.jpg` -- the bay with **nobody in it**: the empty
+        deploy pad, the two beams, the crates, the haze. Shipped as a JPEG,
+        cover-cropped to the panel. This is a finished background, not a
+        placeholder; the room does not change when the operative does.
+      * `ui/art/web/hero-figure.png` -- the operative alone, keyed out of a flat
+        black plate. This layer is a **stand-in** for the in-engine hero render,
+        and its contract is what makes the swap free: transparent PNG, trimmed to
+        the silhouette, feet on the bottom edge, centred, no shadow of its own,
+        ~1:2.7 portrait. `hero.glb` rendered against a transparent camera drops
+        into `.stage__hero` with no CSS change -- the layer is positioned by its
+        height (`--fig-h`, `--fig-y`) and its shadow is drawn separately by
+        `.stage__contact`, so nothing about the framing lives in the bitmap.
+
+    The keying is `tools/web_art.mjs figure`: a border flood fill of the black,
+    a morphological close to seal narrow leaks (a shadow between two limbs would
+    otherwise punch a hole in the silhouette), a feathered matte and a trim. A
+    plain luminance threshold was rejected -- it eats the rifle, the gloves and
+    every shadowed plate. `tools/web_art.mjs plate` crops and scales the
+    background. Both masters stay in `ui/art/src/`.

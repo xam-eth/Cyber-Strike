@@ -355,33 +355,53 @@
     inset 0 0 0 1px rgba(78, 106, 126, 0.75);
 }
 
-.stage__cone {
-  position: absolute;
-  inset: -6% 6% auto 22%;
-  height: 78%;
-  background: conic-gradient(
-    from 168deg at 52% 0%,
-    transparent 0deg,
-    rgba(150, 210, 240, 0.16) 12deg,
-    rgba(150, 210, 240, 0.05) 24deg,
-    transparent 34deg
-  );
-  filter: blur(6px);
-  opacity: 0.9;
-  z-index: 0;
-}
-
-.stage__hero {
+/* Two layers, not one picture. The plate is the room -- the bay, the beams, the
+   empty deploy pad -- and the operative is a transparent layer standing on it.
+   Baking the figure into the backdrop is what made the old art a reference
+   instead of a screen: nothing could move on its own, the breathe loop dragged
+   the walls with it, and a real rig could never take the painted woman's place.
+   The figure layer is a stand-in with a stated contract (docs/DECISIONS.md 40):
+   trimmed to the silhouette, feet on the bottom edge, centred, no shadow. */
+.stage__plate {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: 58% 42%;
-  z-index: 1;
-  -webkit-mask-image: radial-gradient(ellipse 62% 68% at 52% 46%, #000 44%, rgba(0, 0, 0, 0.72) 66%, transparent 88%);
-  mask-image: radial-gradient(ellipse 62% 68% at 52% 46%, #000 44%, rgba(0, 0, 0, 0.72) 66%, transparent 88%);
+  object-position: 50% 56%;
+  z-index: 0;
+}
+
+.stage__hero {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: var(--fig-y, 8%);
+  margin-inline: auto;
+  height: var(--fig-h, 95%);
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  object-position: bottom center;
+  z-index: 2;
+  filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.55));
+  transform-origin: 50% 100%;
   animation: hero-breathe 7s var(--ease) infinite;
+}
+
+/* The only shadow the figure gets: a soft contact patch under the boots. The
+   plate's own pad is lit, so the patch has to be a cool light-eating smudge
+   rather than a grey ellipse. */
+.stage__contact {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--fig-y, 8%) - 3px);
+  width: 26%;
+  height: 9%;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0.28) 58%, transparent 76%);
+  z-index: 1;
+  pointer-events: none;
 }
 
 @keyframes hero-breathe {
@@ -399,7 +419,7 @@
 .stage__ring {
   position: absolute;
   left: 50%;
-  bottom: 7%;
+  bottom: 5%;
   width: min(78%, 360px);
   aspect-ratio: 3 / 1;
   transform: translateX(-50%);
@@ -408,8 +428,8 @@
   box-shadow:
     0 0 0 1.5px rgba(120, 220, 255, 0.5),
     0 0 40px 6px rgba(84, 200, 255, 0.24);
-  z-index: 2;
-  opacity: 0.8;
+  z-index: 3;
+  opacity: 0;
 }
 
 .stage__floor {
