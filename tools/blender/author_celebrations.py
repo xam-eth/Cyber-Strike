@@ -20,9 +20,13 @@ authored here get one, and the page falls back to the plain `aim` beat for the
 rest. That is deliberate: a hero without a signature move should not borrow
 someone else's.
 
-Bone axes on this rig (measured, see the reload/death notes in author_hero.py):
-local X swings a limb forward/back in the sagittal plane, local Z abducts it
-sideways, and the sign of Z differs between the left and right side.
+The timeline below is written in **world axes** -- X is the character's left,
+Y is up, Z is the way the character faces -- and the script converts each one
+into the bone's own frame with the rest matrix before keying it. That is the
+difference between "raise the arm" and "guess which of three local axes on this
+particular rig raises the arm": Blender's glTF importer reorients bones (Y along
+the bone), so a local-axis number measured on the rig is meaningless to the next
+hero, while a world axis means the same thing for everybody.
 """
 
 from __future__ import annotations
@@ -72,44 +76,54 @@ HEROES = {
         "notes": "Braced drop, then a two-arm flare with the chin up; ends back at idle.",
         "timeline": [
             (1, {}),
-            (6, {"rotate": {"Spine01": ((1, 0, 0), 7), "Spine02": ((1, 0, 0), 4),
-                            "Neck": ((1, 0, 0), 5), "Head": ((1, 0, 0), 4),
-                            "L_Thigh": ((1, 0, 0), 6), "R_Thigh": ((1, 0, 0), 6)},
-                 "move": {"Hip": (0, -0.02, 0)}}),
-            (14, {"rotate": {"Spine01": ((1, 0, 0), -7), "Spine02": ((1, 0, 0), -4),
-                             "Neck": ((1, 0, 0), -5), "Head": ((1, 0, 0), -6),
-                             "R_Upperarm": ((0, 0, 1), 54), "L_Upperarm": ((0, 0, 1), -54),
-                             "R_Forearm": ((1, 0, 0), 16), "L_Forearm": ((1, 0, 0), 16),
-                             "L_Clavicle": ((0, 0, 1), -8), "R_Clavicle": ((0, 0, 1), 8)},
-                  "move": {"Hip": (0, 0.014, 0)}}),
-            (20, {"rotate": {"Spine01": ((1, 0, 0), -10), "Spine02": ((1, 0, 0), -5),
-                             "Neck": ((1, 0, 0), -6), "Head": ((1, 0, 0), -8),
-                             "R_Upperarm": ((0, 0, 1), 68), "L_Upperarm": ((0, 0, 1), -68),
-                             "R_Forearm": ((1, 0, 0), 22), "L_Forearm": ((1, 0, 0), 22),
-                             "L_Clavicle": ((0, 0, 1), -11), "R_Clavicle": ((0, 0, 1), 11)},
+            # Sink: knees load, chest folds forward, head drops -- the pad is
+            # "magnetising" the boots.
+            (7, {"rotate": {"Spine01": ("X", 8), "Spine02": ("X", 5), "Head": ("X", 6),
+                            "L_Thigh": ("X", 7), "R_Thigh": ("X", 7)},
+                 "move": {"Hip": (0, -0.022, 0)}}),
+            # Drive up and throw both arms out and overhead: abduction is a
+            # rotation about the forward axis, mirrored per side.
+            (16, {"rotate": {"Spine01": ("X", -8), "Spine02": ("X", -5), "Head": ("X", -8),
+                             "R_Upperarm": ("Z", -96), "L_Upperarm": ("Z", 96),
+                             "R_Forearm": ("X", -18), "L_Forearm": ("X", -18)},
+                  "move": {"Hip": (0, 0.02, 0)}}),
+            (22, {"rotate": {"Spine01": ("X", -11), "Spine02": ("X", -6), "Head": ("X", -10),
+                             "R_Upperarm": ("Z", -112), "L_Upperarm": ("Z", 112),
+                             "R_Forearm": ("X", -24), "L_Forearm": ("X", -24)},
+                  "move": {"Hip": (0, 0.026, 0)}}),
+            (34, {"rotate": {"Spine01": ("X", -7), "Spine02": ("X", -4), "Head": ("X", -7),
+                             "R_Upperarm": ("Z", -98), "L_Upperarm": ("Z", 98),
+                             "R_Forearm": ("X", -16), "L_Forearm": ("X", -16)},
                   "move": {"Hip": (0, 0.018, 0)}}),
-            (30, {"rotate": {"Spine01": ((1, 0, 0), -6), "Spine02": ((1, 0, 0), -3),
-                             "Neck": ((1, 0, 0), -4), "Head": ((1, 0, 0), -5),
-                             "R_Upperarm": ((0, 0, 1), 58), "L_Upperarm": ((0, 0, 1), -58),
-                             "R_Forearm": ((1, 0, 0), 14), "L_Forearm": ((1, 0, 0), 14),
-                             "L_Clavicle": ((0, 0, 1), -9), "R_Clavicle": ((0, 0, 1), 9)},
-                  "move": {"Hip": (0, 0.012, 0)}}),
-            (44, {"rotate": {"Spine01": ((1, 0, 0), -8), "Neck": ((1, 0, 0), -4),
-                             "Head": ((1, 0, 0), -5),
-                             "R_Upperarm": ((0, 0, 1), 55), "L_Upperarm": ((0, 0, 1), -55),
-                             "R_Forearm": ((1, 0, 0), 13), "L_Forearm": ((1, 0, 0), 13),
-                             "L_Clavicle": ((0, 0, 1), -9), "R_Clavicle": ((0, 0, 1), 9)},
-                  "move": {"Hip": (0, 0.012, 0)}}),
-            (56, {"rotate": {"Spine01": ((1, 0, 0), 2),
-                             "R_Upperarm": ((0, 0, 1), 16), "L_Upperarm": ((0, 0, 1), -16)}}),
-            (68, {}),
+            (50, {"rotate": {"Spine01": ("X", -9), "Head": ("X", -8),
+                             "R_Upperarm": ("Z", -94), "L_Upperarm": ("Z", 94),
+                             "R_Forearm": ("X", -15), "L_Forearm": ("X", -15)},
+                  "move": {"Hip": (0, 0.018, 0)}}),
+            (62, {"rotate": {"Spine01": ("X", 1),
+                             "R_Upperarm": ("Z", -22), "L_Upperarm": ("Z", 22)}}),
+            (72, {}),
         ],
     },
 }
 
 
+WORLD_AXES = {"X": Vector((1, 0, 0)), "Y": Vector((0, 1, 0)), "Z": Vector((0, 0, 1))}
+
+
 def radians_quat(axis, degrees):
     return Quaternion(Vector(axis).normalized(), math.radians(degrees))
+
+
+def local_axis(arm, pose_bone, axis):
+    """A world axis expressed in one bone's own frame, at rest.
+
+    The rig's own local axes are an artefact of how the glTF importer oriented
+    the bones, and every hero rig can orient them differently. A world axis is
+    the same instruction for everybody: "abduct" stays abduction.
+    """
+    world = WORLD_AXES[axis] if isinstance(axis, str) else Vector(axis)
+    rest = (arm.matrix_world @ pose_bone.bone.matrix_local).to_quaternion()
+    return rest.inverted() @ world
 
 
 def sample(arm, action, frame):
@@ -170,6 +184,12 @@ def main():
             bpy.data.actions.remove(action)
     idle.use_fake_user = True
 
+    # The celebration file carries the skeleton and one action. Keeping the
+    # imported `idle` around doubled the export for a clip hero.glb already
+    # ships, so it is removed once its first frame has been sampled into `base`.
+    bpy.data.actions.remove(idle)
+    arm.animation_data.action = None
+
     os_bones = set(arm.pose.bones.keys())
     missing = REQUIRED_BONES - os_bones
     if missing:
@@ -217,7 +237,9 @@ def main():
                 if target is None:
                     skipped.add(bone)
                     continue
-                rotations[target] = radians_quat(axis, degrees)
+                rotations[target] = radians_quat(
+                    local_axis(arm, arm.pose.bones[target], axis), degrees
+                )
             for bone, xyz in weights.get("move", {}).items():
                 target = resolve(bone)
                 if target is None:

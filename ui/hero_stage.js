@@ -442,6 +442,29 @@ if (stage && canvas) {
         }
       }, 950);
     },
+    /* QA only: freeze the celebration at a given second and draw one frame. The
+       screenshot tools cannot time a 2.2 s clip from a headless browser -- each
+       capture costs seconds on SwiftShader -- so review needs to ask for the
+       pose it wants to see. */
+    poseAt(seconds) {
+      if (!ready || !celebration) return null;
+      stop();
+      for (const action of Object.values(actions)) action.stop();
+      celebration.reset();
+      celebration.play();
+      celebration.paused = true;
+      celebration.time = Math.max(0, Math.min(seconds, celebration.getClip().duration));
+      mixer.update(0);
+      renderer.render(scene, camera);
+      return Number(celebration.time.toFixed(3));
+    },
+    resume() {
+      if (celebration) {
+        celebration.paused = false;
+        play(IDLE, 0.2);
+      }
+      start();
+    },
     dispose() {
       disposed = true;
       stop();
