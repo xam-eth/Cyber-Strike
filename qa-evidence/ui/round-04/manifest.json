@@ -153,5 +153,12 @@
     }
   ],
   "failures": 0,
-  "generatedAt": "2026-10-25T00:35:04.777Z"
+  "generatedAt": "2026-10-25T00:35:04.777Z",
+  "in_engine": {
+    "screen": "gameplay",
+    "viewport": "844x390",
+    "file": "qa-evidence/ui/round-04/gameplay-844x390.png",
+    "source": "node tools/qa_flow_shots.mjs --tag round-04-hud --stages GAMEPLAY --viewport 844x390",
+    "note": "the committed payload after CI rebuilt it: no browser chrome, the combat stencils inside their tiles"
+  }
 }
