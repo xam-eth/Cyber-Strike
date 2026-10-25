@@ -17,6 +17,23 @@
     -->
     <script src="./web/index.js" defer></script>
     <!--
+      The hero stage renders the rig, so the page needs three.js. An import map
+      is the whole configuration: ui/hero_stage.js imports "three" and
+      "three/addons/...", and the browser resolves both to the vendored copy.
+      Vendored rather than fetched from a CDN: the lobby has to work offline,
+      and a pinned copy in the repo is a version the engine's own GLB is
+      actually tested against.
+    -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "./ui/vendor/three/three.module.min.js",
+          "three/addons/": "./ui/vendor/three/addons/"
+        }
+      }
+    </script>
+    <script type="module" src="./ui/hero_stage.js"></script>
+    <!--
       The player-facing front end for the web build (repo root, served as /).
 
       Everything the player meets before the world lives here: opening, hub,
@@ -246,7 +263,7 @@
                 <li>
                   <button class="hcard" type="button" data-hero="exo_operative" data-active="true" aria-pressed="true">
                     <span class="hcard__thumb">
-                      <img src="./game/assets/ui/portrait_hero.png" alt="" />
+                      <img src="./ui/art/web/hero-portrait.png" alt="" />
                     </span>
                     <span class="hcard__body">
                       <span class="hcard__name">EXO Operative</span>
@@ -293,8 +310,13 @@
             <div class="hero__mid">
               <div class="hero__stage">
                 <img class="stage__plate" src="./ui/art/web/hero-stage.jpg" alt="" aria-hidden="true" />
-                <img class="stage__hero" src="./ui/art/web/hero-figure.png" alt="EXO Operative dalam livery AEGIS, berdiri di dek hanggar" />
-                <span class="stage__contact" aria-hidden="true"></span>
+                <canvas
+                  class="stage__view"
+                  id="hero-canvas"
+                  role="img"
+                  aria-label="EXO Operative, render langsung dari hero.glb"
+                ></canvas>
+                <span class="stage__note" id="hero-stage-note" hidden></span>
                 <span class="stage__ring" aria-hidden="true"></span>
                 <span class="stage__floor" aria-hidden="true"></span>
                 <span class="stage__flash" aria-hidden="true"></span>

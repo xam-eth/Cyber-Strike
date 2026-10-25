@@ -208,11 +208,13 @@
   clip-path: polygon(0 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%);
 }
 
+/* The card's face is a render of the same rig (tools/hero_portrait.mjs), framed
+   square at the head, so it needs no cropping trick -- just a slight lift. */
 .hcard__thumb img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: 50% 18%;
+  object-position: 50% 30%;
 }
 
 .hcard__thumb--empty {
@@ -355,13 +357,12 @@
     inset 0 0 0 1px rgba(78, 106, 126, 0.75);
 }
 
-/* Two layers, not one picture. The plate is the room -- the bay, the beams, the
-   empty deploy pad -- and the operative is a transparent layer standing on it.
-   Baking the figure into the backdrop is what made the old art a reference
-   instead of a screen: nothing could move on its own, the breathe loop dragged
-   the walls with it, and a real rig could never take the painted woman's place.
-   The figure layer is a stand-in with a stated contract (docs/DECISIONS.md 40):
-   trimmed to the silhouette, feet on the bottom edge, centred, no shadow. */
+/* The room is a photograph; the operative is not. `.stage__plate` is the empty
+   bay, and `.stage__view` is a WebGL canvas the size of the column the figure
+   occupies, framing game/assets/characters/hero/hero.glb by its own bounds
+   (ui/hero_stage.js). Nothing about the character is drawn here -- not the pose,
+   not the livery, not the silhouette -- so the screen cannot disagree with the
+   asset that goes into the match. */
 .stage__plate {
   position: absolute;
   inset: 0;
@@ -372,47 +373,45 @@
   z-index: 0;
 }
 
-.stage__hero {
+.stage__view {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: var(--fig-y, 8%);
+  bottom: 10%;
   margin-inline: auto;
-  height: var(--fig-h, 95%);
-  width: auto;
-  max-width: 100%;
-  object-fit: contain;
-  object-position: bottom center;
+  width: 66%;
+  height: 91%;
   z-index: 2;
-  filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.55));
+  display: block;
+  /* Centred with auto margins rather than translateX: the celebration animates
+     `transform`, and a transform on this box would drop the centring with it. */
   transform-origin: 50% 100%;
-  animation: hero-breathe 7s var(--ease) infinite;
 }
 
-/* The only shadow the figure gets: a soft contact patch under the boots. The
-   plate's own pad is lit, so the patch has to be a cool light-eating smudge
-   rather than a grey ellipse. */
-.stage__contact {
+/* If the rig cannot be reached the stage says so in the figure's own place.
+   An empty pad with no explanation reads as a rendering bug. */
+.stage__note {
   position: absolute;
   left: 50%;
-  bottom: calc(var(--fig-y, 8%) - 3px);
-  width: 26%;
-  height: 9%;
+  bottom: calc(10% + 8px);
   transform: translateX(-50%);
-  background: radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0.28) 58%, transparent 76%);
-  z-index: 1;
-  pointer-events: none;
+  max-width: 84%;
+  padding: 4px 8px;
+  font-family: var(--font-ui);
+  font-size: 8.5px;
+  letter-spacing: 0.06em;
+  text-align: center;
+  color: var(--warn, #ffb020);
+  background: rgba(8, 12, 16, 0.82);
+  box-shadow: inset 0 0 0 1px rgba(255, 176, 32, 0.4);
+  z-index: 4;
 }
 
-@keyframes hero-breathe {
-  0%,
-  100% {
-    transform: scale(1.02) translateY(0);
-  }
-  50% {
-    transform: scale(1.045) translateY(-4px);
-  }
+.stage__note[hidden] {
+  display: none;
 }
+
+
 
 /* Deck ring around the operative's feet: the platform the art already draws,
    made into a live light so the pose has a base. */
@@ -432,12 +431,16 @@
   opacity: 0;
 }
 
+/* The room's floor fade belongs under the figure: it exists to melt the
+   photograph's bottom edge into the panel, and at z-index 3 it used to paint a
+   black haze over the operative's boots. */
 .stage__floor {
   position: absolute;
   inset: auto 0 0 0;
-  height: 34%;
-  background: linear-gradient(180deg, transparent, rgba(4, 7, 10, 0.82) 72%, var(--void));
-  z-index: 3;
+  height: 26%;
+  background: linear-gradient(180deg, transparent, rgba(4, 7, 10, 0.72) 76%, var(--void));
+  z-index: 1;
+  pointer-events: none;
 }
 
 /* One white-hot frame on entry: the "pop" that makes a celebration read as a
@@ -525,10 +528,8 @@
   animation: banner-in 2.6s var(--ease) both;
 }
 
-.screen--hero[data-celebrate='true'] .stage__hero {
-  animation:
-    hero-pose 2.2s var(--ease) both,
-    hero-breathe 7s var(--ease) 2.2s infinite;
+.screen--hero[data-celebrate='true'] .stage__view {
+  animation: hero-pose 2.2s var(--ease) both;
 }
 
 .screen--hero[data-celebrate='true'] .stage__ring {
@@ -1027,8 +1028,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .stage__hero,
-  .screen--hero[data-celebrate='true'] .stage__hero,
+  .screen--hero[data-celebrate='true'] .stage__view,
   .screen--hero[data-celebrate='true'] .stage__ring,
   .screen--hero[data-celebrate='true'] .stage__banner,
   .screen--hero[data-celebrate='true'] .stage__sparks i {

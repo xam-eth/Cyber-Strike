@@ -95,6 +95,12 @@ function show(name, options = {}) {
   current = name;
   document.body.dataset.screen = name;
   if (name === 'hub') paintWorld();
+  // The stage renders the rig in WebGL; the loop only runs while the screen that
+  // owns it is up, and the context is released before the engine boots.
+  if (typeof window.AegisHeroStage !== 'undefined') {
+    if (name === 'hero') window.AegisHeroStage.play();
+    else window.AegisHeroStage.pause();
+  }
   if (name === 'hero') {
     if (options.from) fromHero = options.from;
     celebrate();
@@ -335,11 +341,21 @@ function celebrate() {
   screen.dataset.celebrate = 'false';
   void screen.offsetWidth; // restart the animations rather than resuming them
   screen.dataset.celebrate = 'true';
+  // The rig answers too: the beat is not only DOM effects over a still frame.
+  if (typeof window.AegisHeroStage !== 'undefined') window.AegisHeroStage.pulse();
   window.clearTimeout(celebrateTimer);
   celebrateTimer = window.setTimeout(() => {
     screen.dataset.celebrate = reduced ? 'true' : 'false';
   }, reduced ? 100000 : 2800);
 }
+
+/* A module script and a classic deferred script have no guaranteed order, so the
+   stage announces itself instead of assuming the shell got there first. */
+window.addEventListener('aegis:hero-stage-ready', () => {
+  if (current === 'hero' && typeof window.AegisHeroStage !== 'undefined') {
+    window.AegisHeroStage.play();
+  }
+});
 
 /* The roster: one hero card and two slots. Selecting a card re-plays the short
    beat, because a tap on a character card is a confirmation and a confirmation
@@ -437,6 +453,10 @@ function deploy() {
   el('launch-title').textContent = 'Menyiapkan dunia';
   show('launch', { focus: false });
   el('canvas').dataset.hidden = 'true';
+
+  // Hand the GPU over before the engine asks for its own context: two live
+  // WebGL contexts on a phone is a memory bill, and the lobby's stage is over.
+  if (typeof window.AegisHeroStage !== 'undefined') window.AegisHeroStage.dispose();
 
   // The URL carries the hand-off, so a reload resumes it instead of dropping the
   // player back at the opening.

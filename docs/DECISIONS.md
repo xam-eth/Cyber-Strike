@@ -245,32 +245,46 @@ only an opinion is not here.
     markup: angle, distance, colour and duration vary per spark, and fifteen
     hand-authored custom properties is a transcription, not a design.
 
-40. **The hero stage is two layers: an empty room, and a figure with a contract.**
-    The key art behind the hero was one picture with the operative painted into
-    it -- a good reference for the composition, and the wrong thing to ship. A
-    lobby that shows the player's own operative cannot have a second operative
-    baked into its backdrop: the breathe loop dragged the walls with the body,
-    the celebration could only zoom the whole room, and no rig could ever take
-    the painted woman's place without repainting the hangar. So the approved
-    reference is filed under `ui/art/reference/` and the screen is built from
-    two files:
+40. **The hero stage is a photograph of a room and a live render of the rig.**
+    The character on the hero screen comes from
+    `game/assets/characters/hero/hero.glb`, rendered in the page, not from a
+    painted figure. It used to be a generated illustration standing on a
+    generated hangar; the art direction was approved, but as an *answer* it was
+    wrong on every axis a lobby is asked about: it did not change when the
+    livery changed, it did not change when the rig was re-exported, and the INFO
+    tab listed clips (`idle`, `aim`, `fire`) the picture could not play. Worse,
+    it showed a different character than the one in the match.
 
-      * `ui/art/web/hero-stage.jpg` -- the bay with **nobody in it**: the empty
-        deploy pad, the two beams, the crates, the haze. Shipped as a JPEG,
-        cover-cropped to the panel. This is a finished background, not a
-        placeholder; the room does not change when the operative does.
-      * `ui/art/web/hero-figure.png` -- the operative alone, keyed out of a flat
-        black plate. This layer is a **stand-in** for the in-engine hero render,
-        and its contract is what makes the swap free: transparent PNG, trimmed to
-        the silhouette, feet on the bottom edge, centred, no shadow of its own,
-        ~1:2.7 portrait. `hero.glb` rendered against a transparent camera drops
-        into `.stage__hero` with no CSS change -- the layer is positioned by its
-        height (`--fig-h`, `--fig-y`) and its shadow is drawn separately by
-        `.stage__contact`, so nothing about the framing lives in the bitmap.
+    What ships now:
 
-    The keying is `tools/web_art.mjs figure`: a border flood fill of the black,
-    a morphological close to seal narrow leaks (a shadow between two limbs would
-    otherwise punch a hole in the silhouette), a feathered matte and a trim. A
-    plain luminance threshold was rejected -- it eats the rifle, the gloves and
-    every shadowed plate. `tools/web_art.mjs plate` crops and scales the
-    background. Both masters stay in `ui/art/src/`.
+      * `ui/art/web/hero-stage.jpg` -- the bay with **nobody in it**. A room does
+        not animate and does not change when the player does, so it stays a
+        photograph: the empty deploy pad, two beams, crates, haze. This is
+        finished background, not a placeholder.
+      * `.stage__view` -- a WebGL canvas over that pad, driven by
+        `ui/hero_stage.js`, which loads `hero.glb` and frames it by the model's
+        own bounding box (boots on the bottom edge, helmet at 93 % of the
+        height), so a re-scaled export re-frames itself.
+      * the `aim` clip and the game's own rifle: `hero_rig.json`'s socket
+        (carry rotation, offset, `scale_model_units` 0.4) hangs
+        `weapons/futuristic_rifle/rifle.glb` off `R_Hand`, which means the
+        celebration is the real weapon coming up, not a CSS zoom over a still.
+      * the roster card's face is `ui/art/web/hero-portrait.png`, baked from the
+        same GLB by `tools/hero_portrait.mjs` with the stage's light rig. The
+        card and the stage cannot disagree about who the player is looking at.
+
+    The stage owns the GPU only while it is on screen: `play()` on entry,
+    `pause()` on exit, `dispose()` before the engine boots, because Deploy does
+    not need two live WebGL contexts on a phone. If the rig cannot be reached the
+    canvas stays empty and the reason is printed on the pad; a silently blank
+    stage is the one outcome that is not allowed.
+
+41. **three.js is vendored into the shell, pinned, with an import map.**
+    `ui/vendor/three/` holds `three.module.min.js`, `GLTFLoader`,
+    `BufferGeometryUtils` and `RoomEnvironment` -- 820 KB raw, and an import map
+    in `index.html` is the whole configuration. Vendored rather than fetched
+    from a CDN for three reasons: the lobby has to work offline; a CDN is a
+    third party that can change under a shipped build; and the pinned copy in
+    the repo is the version the engine's own GLB is tested against. The render
+    target is roughly 180 x 210 CSS pixels on an 844 x 390 phone and the rig is
+    36 k triangles, so this is cheaper than the JPEG behind it.
