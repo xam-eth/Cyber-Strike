@@ -1,44 +1,43 @@
 /**
- * shots.js — the review cameras, one set per world.
+ * shots.js — STELLAR HORIZON review cameras. ONE WORLD — same layout for all 4 moods.
  *
- * These are not decoration: `gate/world_shot.mjs` fails if a named shot is
- * missing, so every world has to stay photographable from a wide view and from
- * each of its districts. Positions are world-space metres, matching `layout` in
- * the world modules.
+ * Foto ref: 01 MAIN VIEW (wide), 02 CANYON ROUTE, 02 FACILITY INSIDE, Key Areas 1-4.
+ * Semua 4 worlds pakai posisi sama — yang beda hanya atmosphere (day/sunset/night/storm).
  */
+
 export const SHOTS = {
   frostline: {
-    overview: { pos: [142, 84, 128], target: [0, 6, -10] },
-    core: { pos: [24, 12, 26], target: [0, 8, 0] },
-    station: { pos: [-20, 14, 22], target: [-50, 7, -4] },
-    defence: { pos: [34, 22, -26], target: [0, 5, -46] },
-    icefield: { pos: [-14, 13, 74], target: [-46, 3, 50] },
+    overview: { pos: [140, 82, 130], target: [0, 10, 0] }, // 01 MAIN VIEW
+    central: { pos: [28, 16, 28], target: [0, 12, 0] }, // 1 CENTRAL TOWER
+    canyon: { pos: [46, 14, 62], target: [0, 6, 58] }, // 3 CANYON PATH
+    interior: { pos: [14, 8, -32], target: [0, 4, -38] }, // 4 INTERIOR BASE
+    platform: { pos: [22, 18, 44], target: [0, 12, 36] }, // 2 UPPER PLATFORM
+    night: { pos: [140, 82, 130], target: [0, 10, 0] },
   },
   verdant: {
-    overview: { pos: [150, 82, 134], target: [0, 6, -6] },
-    shrine: { pos: [24, 9, 22], target: [0, 6, 0] },
-    station: { pos: [-18, 14, 12], target: [-48, 6, -26] },
-    grove: { pos: [20, 18, 84], target: [-24, 5, 24] },
-    wreck: { pos: [104, 15, -30], target: [66, 4, -58] },
+    overview: { pos: [140, 82, 130], target: [0, 10, 0] },
+    central: { pos: [28, 16, 28], target: [0, 12, 0] },
+    canyon: { pos: [46, 14, 62], target: [0, 6, 58] },
+    interior: { pos: [14, 8, -32], target: [0, 4, -38] },
+    platform: { pos: [22, 18, 44], target: [0, 12, 36] },
+    night: { pos: [140, 82, 130], target: [0, 10, 0] },
   },
   emberfall: {
-    overview: { pos: [176, 92, 146], target: [24, 8, -10] },
-    smelters: { pos: [-14, 16, 26], target: [-50, 8, -8] },
-    yard: { pos: [74, 22, 64], target: [32, 6, 12] },
-    drill: { pos: [-22, 15, 72], target: [4, 7, 44] },
-    // The plant is 24 m tall and 200 m long: this camera has to stand back far
-    // enough to photograph it rather than to stand inside it.
-    plant: { pos: [30, 58, 96], target: [166, 14, -18] },
+    overview: { pos: [140, 82, 130], target: [0, 10, 0] },
+    central: { pos: [28, 16, 28], target: [0, 12, 0] },
+    canyon: { pos: [46, 14, 62], target: [0, 6, 58] },
+    interior: { pos: [14, 8, -32], target: [0, 4, -38] },
+    platform: { pos: [22, 18, 44], target: [0, 12, 36] },
+    night: { pos: [140, 82, 130], target: [0, 10, 0] },
   },
   titans: {
-    // 3D station interior 64x64 — overview high, then each Kantong intimate
-    overview: { pos: [68, 42, 68], target: [0, 5, 0] },
-    hangar: { pos: [18, 12, -18], target: [0, 5, -20] },
-    lab: { pos: [18, 12, 6], target: [0, 5, 0] },
-    reactor: { pos: [18, 14, 22], target: [0, 6, 18] },
-    spine: { pos: [-14, 10, 2], target: [0, 4, 0] },
+    overview: { pos: [140, 82, 130], target: [0, 10, 0] },
+    central: { pos: [28, 16, 28], target: [0, 12, 0] },
+    canyon: { pos: [46, 14, 62], target: [0, 6, 58] },
+    interior: { pos: [14, 8, -32], target: [0, 4, -38] },
+    platform: { pos: [22, 18, 44], target: [0, 12, 36] },
+    night: { pos: [140, 82, 130], target: [0, 10, 0] },
   },
 };
 
-/** A stable order for the gate's report. */
-export const SHOT_ORDER = ['overview', 'core', 'station', 'defence', 'icefield', 'shrine', 'grove', 'wreck', 'smelters', 'yard', 'drill', 'plant', 'hangar', 'lab', 'reactor', 'spine'];
+export const SHOT_ORDER = ['overview', 'central', 'canyon', 'interior', 'platform'];
