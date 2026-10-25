@@ -171,11 +171,7 @@ static func landscape(hud) -> void:
 	# The magazine sits in the seam between the top-left rail and the raised
 	# EMP plate: the old (224, 136) corner ended up under the Armory row once
 	# the gesture reserve lifted it off the bottom edge.
-	# Measured off the 844x390 frame: at (340, 80) the chip landed under the
-	# reticle, which rests near the middle of the screen while aiming, so a
-	# crosshair was drawn through the ammo count. It keeps the seam and drops
-	# below the aim point instead.
-	_place_button(hud, hud._touch_ammo_chip, 348.0, 60.0, 112.0, 54.0)
+	_place_button(hud, hud._touch_ammo_chip, 340.0, 80.0, 112.0, 54.0)
 	_place_button(
 		hud, hud._skill_ring, skill_right - 4.0, fire_bottom - 4.0, action_px + 8.0, action_px + 8.0
 	)
