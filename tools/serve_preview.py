@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Serve the repository's web preview with caching turned off.
+"""Serve the repository's web preview with ETag revalidation (not no-store).
 
     python3 tools/serve_preview.py                 # 0.0.0.0:8000, repo root
     python3 tools/serve_preview.py --port 8080
@@ -12,9 +12,12 @@ looking at the preview, it is not: the payload is a 31 MB `index.pck` and a
 freshness, and the symptom is the one this project keeps paying for -- the code
 changed, the frames say otherwise, and the git log is correct.
 
-So every response here carries `Cache-Control: no-store`. A reload is always
-the build that is on disk, which is what "check the preview" is supposed to
-mean. It also stamps the served pack's size and mtime into `/__build`, so
+So every response here carries `Cache-Control: public, max-age=0, must-revalidate`
+with ETag/Last-Modified. The browser caches the bytes but revalidates each
+reload: if unchanged it gets 304 Not Modified (~0.5 KB) instead of 70 MB,
+so the second open is instant. If the build changed, the ETag differs and
+fresh bytes are fetched — a reload is still always the build on disk, just
+without re-downloading ratusan MB when nothing changed. It also stamps the served pack's size and mtime into `/__build`, so
 "which build am I looking at" is answerable with curl instead of a feeling.
 
 Binds 0.0.0.0 on purpose: the sandbox preview proxies to it from outside, and
@@ -43,15 +46,86 @@ EXTRA_TYPES = {
 
 
 class Handler(http.server.SimpleHTTPRequestHandler):
-    """Static files, no store, plus a build stamp at /__build."""
+    """Static files with ETag revalidation — cached but always fresh."""
 
     def end_headers(self) -> None:
-        self.send_header("Cache-Control", "no-store, must-revalidate")
-        self.send_header("Pragma", "no-cache")
-        self.send_header("Expires", "0")
+        # `no-store` forced a full 70 MB download on every reload.
+        # `max-age=0, must-revalidate` still checks freshness every time (so
+        # a new build is seen immediately) but lets the browser keep the
+        # previous bytes and get a 304 when nothing changed — preview opens
+        # in ~30 ms instead of re-downloading ratusan MB.
+        self.send_header("Cache-Control", "public, max-age=0, must-revalidate")
+        if hasattr(self, "_etag"):
+            self.send_header("ETag", self._etag)  # type: ignore
+            self.send_header("Last-Modified", self._last_mod)  # type: ignore
+            delattr(self, "_etag")
+            delattr(self, "_last_mod")
+        if hasattr(self, "_gzip"):
+            self.send_header("Content-Encoding", "gzip")
+            self.send_header("Vary", "Accept-Encoding")
+            delattr(self, "_gzip")
+        # Allow range requests for large assets
+        self.send_header("Accept-Ranges", "bytes")
         super().end_headers()
 
+    def send_head(self):  # noqa: N802
+        # Add ETag / Last-Modified and honour If-None-Match for 304.
+        # Also serve precompressed .gz when client accepts gzip and it saves bytes.
+        # Store etag BEFORE calling super().send_head so end_headers can emit it.
+        orig_path = self.translate_path(self.path.split("?")[0].split("#")[0])
+        # only for files, not directories or /__build
+        if self.path.split("?")[0] == "/__build" or os.path.isdir(orig_path) or not os.path.isfile(orig_path):
+            return super().send_head()
+        # gzip negotiation: if client accepts gzip and .gz exists and is smaller, serve it
+        path = orig_path
+        use_gzip = False
+        try:
+            accept_enc = self.headers.get("Accept-Encoding", "")
+            gz_path = orig_path + ".gz"
+            if "gzip" in accept_enc and os.path.isfile(gz_path):
+                try:
+                    orig_st = os.stat(orig_path)
+                    gz_st = os.stat(gz_path)
+                    # only use gzip if it actually saves >5%
+                    if gz_st.st_size < orig_st.st_size * 0.95:
+                        path = gz_path
+                        use_gzip = True
+                        # rewrite self.path so super().send_head serves the gz file
+                        self.path = self.path + ".gz"
+                except OSError:
+                    pass
+        except Exception:
+            pass
+        try:
+            st = os.stat(path)
+            etag = f'"{st.st_mtime_ns:x}-{st.st_size:x}"'
+            last_mod = self.date_time_string(st.st_mtime)
+            inm = self.headers.get("If-None-Match")
+            # If-None-Match takes precedence per RFC
+            if inm == etag:
+                self.send_response(304)
+                self.send_header("ETag", etag)
+                self.send_header("Last-Modified", last_mod)
+                self.send_header("Cache-Control", "public, max-age=0, must-revalidate")
+                if use_gzip:
+                    self.send_header("Content-Encoding", "gzip")
+                    self.send_header("Vary", "Accept-Encoding")
+                self.end_headers()
+                return None
+            # store for end_headers to emit on 200
+            self._etag = etag  # type: ignore
+            self._last_mod = last_mod  # type: ignore
+            if use_gzip:
+                self._gzip = True  # type: ignore
+        except OSError:
+            pass
+        # ensure guess_type sees original type when serving .gz
+        return super().send_head()
+
     def guess_type(self, path):  # noqa: ANN001 - stdlib signature
+        # strip .gz for type guessing so .wasm.gz is still application/wasm
+        if path.endswith(".gz"):
+            path = path[:-3]
         for suffix, content_type in EXTRA_TYPES.items():
             if str(path).endswith(suffix):
                 return content_type
@@ -111,7 +185,7 @@ def main() -> int:
 
     handler = functools.partial(Handler, directory=str(directory))
     with Server((args.host, args.port), handler) as httpd:
-        print(f"serving {directory} on http://{args.host}:{args.port} (no-store)")
+        print(f"serving {directory} on http://{args.host}:{args.port} (ETag revalidate: 304 when unchanged)")
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:
