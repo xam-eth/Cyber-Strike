@@ -10,25 +10,22 @@
       "clip": "celebration",
       "frames": [
         1.0,
-        68.0
+        72.0
       ],
-      "seconds": 2.233,
+      "seconds": 2.367,
       "bones_animated": [
         "Head",
         "Hip",
-        "L_Clavicle",
         "L_Forearm",
         "L_Thigh",
         "L_Upperarm",
-        "Neck",
-        "R_Clavicle",
         "R_Forearm",
         "R_Thigh",
         "R_Upperarm",
         "Spine01",
         "Spine02"
       ],
-      "bytes": 542784,
+      "bytes": 92840,
       "bones_exported": 79,
       "notes": "Braced drop, then a two-arm flare with the chin up; ends back at idle."
     }
