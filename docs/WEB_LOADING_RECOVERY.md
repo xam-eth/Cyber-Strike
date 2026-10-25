@@ -81,3 +81,31 @@ CI run [40103458382](https://github.com/xam-eth/Cyber-Strike/actions/runs/401034
 - No Android, physical touch-device, mobile-performance, full-run, or final visual acceptance claim is added.
 - Pull the corrected branch, serve the repository root as before, and use a fresh normal `/` page. If a previous failed download is reported, use **Coba lagi** and keep the tab active while the byte count advances.
 - If failure recurs, record the new on-screen title/detail plus the browser console and the exact asset in the Network panel. That evidence distinguishes delivery failure from engine initialization/start failure; suppressing BrokenPipe logs or hiding the loading overlay would not repair either one.
+
+## 2026-10-25 addendum: painted UI and direct selected-theatre recovery
+
+The `b055f0d` evidence above is historical and remains valid for that payload only. The latest UI merge changed the root handoff: theatre selection now happens on the shell carousel, then DEPLOY enters that theatre's gameplay directly. It no longer stops at engine WORLD.
+
+- Merge source: `b1528e6c3ea306659f06670310de50e9a14d7d22`; final generated payload: `ad586eb1ab78e1ad9da484b2680afe9c456b704e`.
+- The new painted launch screen retains the `fileSizes` path remap, real combined bytes, watchdog, network-error detail, boot-only rejection fallback, and **Coba lagi** control. The post-export loader patch remains in the CI pipeline.
+- Current payload sizes are **39,514,754-byte WASM + 98,188,988-byte PCK = 137,703,742 bytes**. The PCK contains 887 files and passed the payload audit.
+- CI [40155061418](https://github.com/xam-eth/Cyber-Strike/actions/runs/40155061418) passed export, four normal browser boots, both interrupted-asset recovery cases, and strict shell Vanguard selection after the change.
+
+The final local command was:
+
+```bash
+node tools/web_loading_qa.mjs \
+  --throughput-mbps 100 --timeout 150 \
+  --out exports/integration-audit/ui-final-loading-ad586eb1 --json
+```
+
+**VERIFIED PASS for both assets on payload `ad586eb1`:**
+
+- the requested asset was interrupted and produced **Koneksi dunia terputus**, a hidden canvas, and visible retry;
+- retry emitted one consistent nonzero total and monotonic intermediate progress ending at exactly `137703742 / 137703742`;
+- the fresh engine accepted `FrontEnd: qa_world selected neon_frontier` and reached `Encounter: Explore safe`;
+- no `FrontEnd: stage WORLD` or unhandled initialization rejection was observed.
+
+Strict final-payload Vanguard QA independently passed with the real shell card selection and `VanguardStation: 421 kit modules, 17 omnis, 4 rooms`; report `exports/integration-audit/ui-final-vanguard-ad586eb1.json`.
+
+These are automated headless results, not physical-device/network coverage. The exact original proxy failure, Android, physical touch performance, a complete human run, and final visual acceptance remain open.

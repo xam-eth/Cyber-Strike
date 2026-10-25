@@ -70,7 +70,7 @@ python -m http.server 800 --bind 0.0.0.0
 # http://localhost:800/web/    raw Godot build
 ```
 
-The Godot payload lives in `web/` and **is committed** (the integrated PCK is ≈96 MB, refreshed by the `web-preview` CI job), so a plain
+The Godot payload lives in `web/` and **is committed** (the integrated PCK is ≈98 MB, refreshed by the `web-preview` CI job), so a plain
 `git pull` is enough to play. The `web-preview` artifact from Actions is still there as a fallback, GitHub Pages
 (*Settings → Pages → Source: GitHub Actions*) removes the download entirely, and a local export needs only the web
 export templates that are already in the repository (`engine/web_templates/`):

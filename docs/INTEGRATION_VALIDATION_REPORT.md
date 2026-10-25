@@ -150,17 +150,46 @@ Earlier deep browser evidence from payload `26debc5` remains historical and was 
 
 ## 8. Handoff
 
-The branch now contains one connected game rather than parallel unused World, Character, and UI modules. Continue from the open issues above without replacing the optimized hero, bypassing WORLD selection, restoring undocumented parallel layouts, or treating CI as device/visual acceptance. The validated integration runtime source was `9e82c0b`; its generated payload was `cec0fdd`. The current Web follow-up below preserves those integrations and supersedes only the current preview source/payload checkpoint.
+The branch now contains one connected game rather than parallel unused World, Character, and UI modules. Continue from the open issues above without replacing the optimized hero, bypassing theatre selection, restoring undocumented parallel layouts, or treating CI as device/visual acceptance. The validated integration runtime source was `9e82c0b`; its generated payload was `cec0fdd`. The current Web follow-up below preserves those integrations and supersedes only the current preview source/payload checkpoint.
 
-## 9. Current Web loading follow-up
+## 9. Previous Web loading follow-up
 
 **Status remains INTEGRATED WITH OPEN ISSUES.** The player-reported stuck DEPLOY/loading handoff was investigated separately; no World, Character, combat, reward, or progression rules were changed.
 
 - Source repair: `eac21bfce04d230a3ecc3c44d9b3b6b24af03e5d` (`Repair web loading progress and recovery`).
-- Current generated payload: `b055f0dca4f35fcc0d67a7f4485ff8494c36548e`; PCK **95,586,768 bytes**, **873 files**, payload audit **PASS**.
+- Then-current generated payload: `b055f0dca4f35fcc0d67a7f4485ff8494c36548e`; PCK **95,586,768 bytes**, **873 files**, payload audit **PASS**.
 - CI [40103458382](https://github.com/xam-eth/Cyber-Strike/actions/runs/40103458382): **SUCCESS** — static checks, 28/28 import-OK Godot tests, export/delivery, four browser boots, interrupted WASM/PCK recovery, and WORLD → Vanguard.
 - **VERIFIED defects:** rewritten `./web/index` asset paths lacked matching `fileSizes` keys, producing real byte callbacks with `total=0`; Godot `doInit()` also accepted but did not use `reject` for three initialization stages.
 - **VERIFIED recovery:** final-payload local gates report `135101522 / 135101522`, monotonic 0→100 progress, and retry into WORLD for both interrupted WASM and PCK. Truncated-body diagnostics also produced an actionable error and successful retry rather than an endless overlay.
 - Exact diagnosis, commands, evidence boundaries, and player troubleshooting: [`WEB_LOADING_RECOVERY.md`](WEB_LOADING_RECOVERY.md).
 
 The precise external browser/proxy cause of the user's original BrokenPipe remains **UNKNOWN**. Android, physical-device performance/touch, complete human gameplay, and final visual acceptance remain unverified; the loading repair does not close those issues.
+
+## 10. Latest UI/UX direct-theatre addendum — 2026-10-25
+
+**Status: INTEGRATED WITH OPEN ISSUES.** The actual UI branch advanced after the loading handoff. Its new tip was integrated without replacing the existing World, Character, Gameplay Core, or loading-recovery implementations.
+
+### Traceable integration and conflict disposition
+
+- Source merge: `b1528e6c3ea306659f06670310de50e9a14d7d22`, with parents `e03fb6c0db16c1a909c7d36df90ac1159ecd1865` and actual UI tip `1a4d7969fae90513c22af2a0c445f236280f41b5`.
+- Generated payload: `ad586eb1ab78e1ad9da484b2680afe9c456b704e`, published by CI from that merge. The UI branch's older generated PCK was not accepted as the merged payload.
+- **Technical integration:** the painted-plate `index.html`/`ui/` design was retained, while byte-size remapping, aggregate progress, the three-minute watchdog, network-error classification, boot-only rejection handling, and visible retry were ported into its new launch layout. Conflicted generated `web/` files were left for a fresh CI export.
+- **Shared contract:** the user selected the latest UI flow. The root shell now selects a theatre and weapon, then DEPLOY writes `qa_stage=GAMEPLAY`, `qa_world`, and `weapon`; it does not stop at engine WORLD. `FrontEnd` still gates the world against `ProgressionService.WORLD_IDS`, and `ProgressionService` accepts only a known, unlocked URL weapon. Raw/native engine journeys retain WORLD.
+- **Test integration:** both sides' retry→pause timing/layout assertions were retained. Browser QA now clicks the real shell Vanguard card and requires the authoritative selection plus actual Vanguard construction; recovery requires safe Explore in the selected theatre rather than a WORLD log or visible canvas alone.
+- No combat rule, economy, default weapon, hero rig, world layout, or Endless Survival loop was invented or replaced.
+
+### VERIFIED results on the merged source and final payload
+
+- CI [40155061418](https://github.com/xam-eth/Cyber-Strike/actions/runs/40155061418): **SUCCESS** — gdtoolkit/static checks, **28/28 import-OK Godot 4.7.2 tests**, Web export/delivery, four Chromium boots at both supported viewports, interrupted WASM/PCK recovery, and the shell Vanguard contract.
+- Final PCK: **98,188,988 bytes / 887 files**; WASM: **39,514,754 bytes**. Combined first-download bytes: **137,703,742** (137.7 MB, about 131.3 MiB). `verify_web_build.py` and `check_payload.py` passed with no forbidden payload findings.
+- Payload identity was checked, not inferred from size: the forge world geometry, new world cards, HUD stencils, and web adapters are present; obsolete procedural Neon scripts are absent.
+- Final local strict Vanguard report: `exports/integration-audit/ui-final-vanguard-ad586eb1.json`. **PASS** — the shell card was selected, `FrontEnd: qa_world selected vanguard_station` was accepted, `VanguardStation: 421 kit modules, 17 omnis, 4 rooms` was built, safe Explore was reached, and no engine WORLD stage appeared.
+- Final local recovery report: `exports/integration-audit/ui-final-loading-ad586eb1/report.json`. **PASS for both WASM and PCK at 100 Mbps** — readable connection error, hidden failed canvas, usable retry, nonzero/monotonic progress ending exactly `137703742 / 137703742`, then `qa_world=neon_frontier` and real safe Explore without WORLD. No unhandled initialization rejection occurred.
+- The merged shell also passed the automated five-screen/two-viewport shot pass (**10/10**, no blank/overflow/console-error finding). This is a layout smoke result, not human art direction approval.
+
+### Evidence limits and follow-ups
+
+- **VERIFIED only in headless Chromium/WebGL and headless Godot:** the gates above. They do not establish physical-device frame rate, thermals, memory, touch latency, human-heard audio, retention, or a complete human gameplay loop.
+- **UNKNOWN:** Android packaging/runtime, physical touch-device behavior, full Prepare → Deploy → Fight → Adapt → Survive → Reward → Upgrade → Redeploy playthrough, and final visual/animation/effects acceptance.
+- The exact external proxy/browser cause of the original BrokenPipe remains **UNKNOWN**. Controlled interruption proves the repaired error/recovery path, not every possible network failure.
+- The larger 137.7 MB initial payload makes real-network loading and physical mobile performance a concrete follow-up. Do not claim optimization from the smaller, older UI-only candidate PCK; it did not contain the integrated world baseline.
