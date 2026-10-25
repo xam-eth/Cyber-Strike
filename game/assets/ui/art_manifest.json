@@ -97,26 +97,64 @@
       "within_palette": true
     },
     {
-      "key": "world_neon_frontier",
-      "file": "res://assets/ui/world_neon_frontier.jpg",
+      "key": "world_frostline_relay",
+      "file": "res://assets/ui/world_frostline_relay.jpg",
       "format": "JPEG",
-      "source": "res://assets/ui/generated/world_neon_frontier.png",
+      "source": "res://assets/ui/generated/world_frostline_relay.png",
       "size": [
         1600,
         900
       ],
       "mode": "cover",
       "palette": {
-        "navy": 0.6783,
-        "cyan": 0.1072,
-        "shadow": 0.107,
-        "steel": 0.073,
-        "amber": 0.02,
-        "green": 0.012,
-        "red": 0.0024,
-        "off-palette": 0.0001
+        "navy": 0.5036,
+        "cyan": 0.4842,
+        "steel": 0.0115,
+        "green": 0.0006,
+        "off-palette": 0.0,
+        "red": 0.0
       },
-      "off_palette_share": 0.0001,
+      "off_palette_share": 0.0,
+      "within_palette": true
+    },
+    {
+      "key": "world_verdant_bloom",
+      "file": "res://assets/ui/world_verdant_bloom.jpg",
+      "format": "JPEG",
+      "source": "res://assets/ui/generated/world_verdant_bloom.png",
+      "size": [
+        1600,
+        900
+      ],
+      "mode": "cover",
+      "palette": {
+        "green": 0.9628,
+        "off-palette": 0.0216,
+        "shadow": 0.0091,
+        "amber": 0.0047,
+        "navy": 0.0009,
+        "steel": 0.0005,
+        "cyan": 0.0004
+      },
+      "off_palette_share": 0.0216,
+      "within_palette": true
+    },
+    {
+      "key": "world_emberfall_foundry",
+      "file": "res://assets/ui/world_emberfall_foundry.jpg",
+      "format": "JPEG",
+      "source": "res://assets/ui/generated/world_emberfall_foundry.png",
+      "size": [
+        1600,
+        900
+      ],
+      "mode": "cover",
+      "palette": {
+        "red": 0.6274,
+        "amber": 0.3701,
+        "shadow": 0.0025
+      },
+      "off_palette_share": 0.0,
       "within_palette": true
     },
     {

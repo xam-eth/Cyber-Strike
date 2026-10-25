@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Propagate Godot Web initialization failures to ``Engine.startGame()``.
+"""Propagate Godot Web initialization failures to ``init()``/``startGame()``.
 
 Godot 4.7.2's generated loader accepts ``reject`` in ``doInit`` but never uses
 it. If the WASM response, Godot module initialization, or filesystem setup
 fails, the initialization Promise remains pending and a player sees an endless
-loading screen. Add the three rejection handlers after every Web export.
+loading screen. Add the three rejection handlers after every Web export. The
+root opening awaits ``init()`` directly; the raw export awaits ``startGame()``.
 
 The transform is deliberately exact and idempotent. A future exporter that
 changes this block must be reviewed rather than patched with a loose regex.
@@ -59,7 +60,7 @@ def main(argv: list[str] | None = None) -> int:
         parser.exit(1, f"ERROR: {error}\n")
     if changed:
         args.loader.write_text(patched, encoding="utf-8")
-    print(f"{args.loader}: {'patched' if changed else 'already patched'}; WASM init failures reject startGame()")
+    print(f"{args.loader}: {'patched' if changed else 'already patched'}; WASM init failures reject init()/startGame()")
     return 0
 
 

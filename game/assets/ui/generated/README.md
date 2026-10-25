@@ -36,7 +36,9 @@ Real on-disk sizes as measured. These are **not** the sizes the game uses; see
 | `weapon_nova_launcher.png` | 1200×896 | 1799 kB |
 | `weapon_pulse_rifle.png` | 1200×896 | 1526 kB |
 | `wordmark.png` | 1024×1024 | 508 kB |
-| `world_neon_frontier.png` | 1584×672 | 2214 kB |
+| `world_frostline_relay.png` | 2048×1152 | 779 kB |
+| `world_verdant_bloom.png` | 2048×1152 | 406 kB |
+| `world_emberfall_foundry.png` | 2048×1152 | 659 kB |
 
 ## The robot frames are gone
 

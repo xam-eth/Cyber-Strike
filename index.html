@@ -128,12 +128,34 @@
               </div>
 
               <div class="carousel" id="world-carousel" role="listbox" aria-label="Teater">
-                <button class="wcard" id="world-card-neon-frontier" data-world="neon_frontier" type="button" role="option" aria-selected="true">
-                  <span class="wcard__art wcard__art--frontier" aria-hidden="true"></span>
+                <button class="wcard" id="world-card-frostline-relay" data-world="frostline_relay" type="button" role="option" aria-selected="true">
+                  <span class="wcard__art wcard__art--frostline" aria-hidden="true"></span>
                   <span class="wcard__no" aria-hidden="true">01</span>
                   <span class="wcard__copy">
-                    <span class="wcard__name">Neon Frontier</span>
-                    <span class="wcard__role">Pos luar · menara reaktor</span>
+                    <span class="wcard__name">Frostline Relay</span>
+                    <span class="wcard__role">Relai kutub · uplink</span>
+                  </span>
+                  <span class="wcard__state">Terbuka</span>
+                  <span class="wcard__tick" aria-hidden="true"><svg class="ico"><use href="#i-check" /></svg></span>
+                </button>
+
+                <button class="wcard" id="world-card-verdant-bloom" data-world="verdant_bloom" type="button" role="option" aria-selected="false">
+                  <span class="wcard__art wcard__art--verdant" aria-hidden="true"></span>
+                  <span class="wcard__no" aria-hidden="true">02</span>
+                  <span class="wcard__copy">
+                    <span class="wcard__name">Verdant Bloom</span>
+                    <span class="wcard__role">Riset · kanopi hidup</span>
+                  </span>
+                  <span class="wcard__state">Terbuka</span>
+                  <span class="wcard__tick" aria-hidden="true"><svg class="ico"><use href="#i-check" /></svg></span>
+                </button>
+
+                <button class="wcard" id="world-card-emberfall-foundry" data-world="emberfall_foundry" type="button" role="option" aria-selected="false">
+                  <span class="wcard__art wcard__art--emberfall" aria-hidden="true"></span>
+                  <span class="wcard__no" aria-hidden="true">03</span>
+                  <span class="wcard__copy">
+                    <span class="wcard__name">Emberfall Foundry</span>
+                    <span class="wcard__role">Smelter · ekstraksi</span>
                   </span>
                   <span class="wcard__state">Terbuka</span>
                   <span class="wcard__tick" aria-hidden="true"><svg class="ico"><use href="#i-check" /></svg></span>
@@ -141,7 +163,7 @@
 
                 <button class="wcard" id="world-card-vanguard-station" data-world="vanguard_station" type="button" role="option" aria-selected="false">
                   <span class="wcard__art wcard__art--station" aria-hidden="true"></span>
-                  <span class="wcard__no" aria-hidden="true">02</span>
+                  <span class="wcard__no" aria-hidden="true">04</span>
                   <span class="wcard__copy">
                     <span class="wcard__name">Vanguard Station</span>
                     <span class="wcard__role">Hanggar · pintu ledak</span>
@@ -149,29 +171,17 @@
                   <span class="wcard__state">Terbuka</span>
                   <span class="wcard__tick" aria-hidden="true"><svg class="ico"><use href="#i-check" /></svg></span>
                 </button>
-
-                <!-- Roadmap slot, drawn as a slot rather than a card with a
-                     screenshot: a theatre that cannot be launched says so. -->
-                <button class="wcard wcard--locked" id="world-card-slot-03" type="button" aria-disabled="true" disabled>
-                  <span class="wcard__art wcard__art--empty" aria-hidden="true"></span>
-                  <span class="wcard__no" aria-hidden="true">03</span>
-                  <span class="wcard__copy">
-                    <span class="wcard__name">Sektor 08</span>
-                    <span class="wcard__role">Belum dibuka</span>
-                  </span>
-                  <span class="wcard__state"><svg class="ico" aria-hidden="true"><use href="#i-lock" /></svg>Segera</span>
-                </button>
               </div>
 
               <div class="carousel__foot">
                 <button class="cbtn" id="world-prev" type="button" aria-label="Teater sebelumnya">
                   <svg class="ico" aria-hidden="true"><use href="#i-chev-left" /></svg>
                 </button>
-                <span class="dots" id="world-dots" aria-hidden="true"><i data-active="true"></i><i></i></span>
+                <span class="dots" id="world-dots" aria-hidden="true"><i data-active="true"></i><i></i><i></i><i></i></span>
                 <button class="cbtn" id="world-next" type="button" aria-label="Teater berikutnya">
                   <svg class="ico" aria-hidden="true"><use href="#i-chev-right" /></svg>
                 </button>
-                <span class="carousel__line" id="hub-world-line">Neon Frontier · sektor 07</span>
+                <span class="carousel__line" id="hub-world-line">Frostline Relay · uplink</span>
               </div>
 
               <div class="hub__deploy">

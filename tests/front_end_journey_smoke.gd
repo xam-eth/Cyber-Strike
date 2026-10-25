@@ -431,8 +431,8 @@ func _check_saved_loadout_reaches_gameplay() -> void:
 		"the saved world selection builds Vanguard Station through ProgressionService"
 	)
 	_expect(
-		main.get_node("NeonFrontier").get_node_or_null("RealFrontierWorld") == null,
-		"the unselected Neon Frontier does not build over the chosen world"
+		main.get_node("MissionWorld").get_node_or_null("RealFrontierWorld") == null,
+		"the unselected mission world does not build over the chosen world"
 	)
 	main.free()
 	profile.free()

@@ -12,7 +12,7 @@
 import * as THREE from 'three';
 import { clip } from '../runtime/rig.js';
 import { makePart } from './realModels.js';
-import { ROLE_SPECS } from './roleSpecs.js';
+
 
 const DEG = Math.PI / 180;
 
@@ -95,13 +95,13 @@ function motionClip(name, nodeName, spec) {
 }
 
 /**
- * Build one role instance.
- * @param {string} roleId key of ROLE_SPECS
+ * Build one role instance from its spec.
+ * @param {object} spec  a role from `roles.js` (parts + motion)
  * @param {{ name: string, pos: number[], yaw?: number, scale?: number|number[], district: string }} placement
  */
-export async function buildRole(roleId, placement) {
-  const spec = ROLE_SPECS[roleId];
-  if (!spec) throw new Error(`unknown role "${roleId}"`);
+export async function buildRole(spec, placement) {
+  if (!spec) throw new Error(`role spec missing for "${placement.name}"`);
+  const roleId = spec.title ?? 'role';
 
   const root = new THREE.Group();
   root.name = placement.name;

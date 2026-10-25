@@ -15,7 +15,7 @@ func _run_smoke_test() -> void:
 	await process_frame
 	await physics_frame
 
-	var arena: Node3D = main_scene.get_node("NeonFrontier")
+	var arena: Node3D = main_scene.get_node("MissionWorld")
 	var player: Node3D = main_scene.get_node("Player")
 	var test_passed := true
 	# The blockout used to be procedural geometry. It is now the staged real world,
@@ -25,9 +25,9 @@ func _run_smoke_test() -> void:
 	test_passed = (
 		_expect(real_world != null, "the arena is the staged real GLB world") and test_passed
 	)
-	var arena_meshes: Array[Node] = (
-		real_world.find_children("*", "MeshInstance3D", true, false) if real_world != null else []
-	)
+	var arena_meshes: Array[Node] = []
+	if real_world != null:
+		arena_meshes = real_world.find_children("*", "MeshInstance3D", true, false)
 	test_passed = (
 		_expect(
 			arena_meshes.size() >= 400,
@@ -35,7 +35,7 @@ func _run_smoke_test() -> void:
 		)
 		and test_passed
 	)
-	for required_node in ["ArenaFloor", "ArenaEnvironment", "FrontierDaylightSun"]:
+	for required_node in ["ArenaFloor", "ArenaEnvironment", "MissionKeyLight"]:
 		test_passed = (
 			_expect(
 				arena.get_node_or_null(required_node) != null,

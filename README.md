@@ -1,13 +1,14 @@
 # Exocomplict — NEON FRONTIER World Prototype
 
-**Exocomplict** is a mobile-first, single-player third-person sci-fi action shooter prototype. **NEON FRONTIER** is its connected 3D world—not a static concept image. The current blockout uses reusable Godot components and some licensed KayKit GLTF props; provenance is in [`game/assets/world/kaykit_space_base_bits/`](game/assets/world/kaykit_space_base_bits/) and [`WORLD_BLOCKOUT.md`](WORLD_BLOCKOUT.md). Ten real Kenney Space Kit GLBs are in the repository; the player avatar and all three enemy types now render fitted models from that kit instead of placeholder capsules.
+**Exocomplict** is a mobile-first, single-player third-person sci-fi action shooter prototype. **NEON FRONTIER** now contains three real-asset mission theatres—Frostline Relay, Verdant Bloom, and Emberfall Foundry—plus Vanguard Station. The mission worlds are assembled from licensed GLBs with runtime collision, lighting, atmosphere, and authored motion; provenance and design records live in [`docs/world/`](docs/world/) and [`tools/asset-forge/real/real-manifest.json`](tools/asset-forge/real/real-manifest.json).
 
 ## Start here
 
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — **read this first if you are new to the code**: where every subsystem lives, what a file may import, where a change of yours goes, and what has to pass before a merge. The module map in it is generated from the tree, so it cannot go stale.
-- [`docs/INTEGRATION_VALIDATION_REPORT.md`](docs/INTEGRATION_VALIDATION_REPORT.md) — current cross-domain source dispositions, exact merge/payload commits, runtime/browser evidence, and open issues.
-- [`game/scenes/worlds/neon_frontier.tscn`](game/scenes/worlds/neon_frontier.tscn) — complete playable frontier environment.
-- [`game/scenes/worlds/components/`](game/scenes/worlds/components/) — reusable 3D components for the reactor, outpost, laboratory, depot, extraction plant, gates, defenses, wrecks, rocks, crystals, and alien flora.
+- [`docs/INTEGRATION_VALIDATION_REPORT.md`](docs/INTEGRATION_VALIDATION_REPORT.md) — previous validated cross-domain checkpoint and open issues.
+- [`docs/WORLD_OPENING_INTEGRATION.md`](docs/WORLD_OPENING_INTEGRATION.md) — active four-theatre World import and initial-opening download contract, with evidence boundaries.
+- [`game/scenes/worlds/mission_world.tscn`](game/scenes/worlds/mission_world.tscn) + [`game/scripts/worlds/mission_world.gd`](game/scripts/worlds/mission_world.gd) — shared runtime for the three selected mission GLBs.
+- [`game/assets/forge/worlds/`](game/assets/forge/worlds/) — staged Frostline, Verdant, and Emberfall geometry; [`game/resources/worlds/`](game/resources/worlds/) is the four-theatre registry.
 - [`game/assets/world/kenney_space_kit/ASSET_PROVENANCE.md`](game/assets/world/kenney_space_kit/ASSET_PROVENANCE.md) — downloaded Kenney GLB candidates, CC0/source provenance, hashes, and rig inspection; not yet instantiated by gameplay scenes.
 - [`WORLD_BLOCKOUT.md`](WORLD_BLOCKOUT.md) — world zones, route layout, modular asset inventory, and implementation notes.
 - [`DEVELOPMENT_ROADMAP.md`](DEVELOPMENT_ROADMAP.md) — project phases, scope gates, risks, and next steps.
@@ -24,7 +25,7 @@
 
 ## Playable 3D world
 
-The Godot project is in [`game/`](game/). Its world spans a connected frontier landscape with a central circular/hexagonal combat arena, a suspended cyan/emerald reactor, a military command center, research lab, equipment depot, generator bank, vehicle landing pad, perimeter gates and defenses, a destroyed sector, alien cliffs, crystal clusters, luminous vegetation, and a dedicated boss platform and docking gate. Broad ground-level routes connect the districts; modular cover and defense structures leave combat lanes readable. Reusable component scenes create distinct 3D meshes, PBR-style materials, colored emissive parts, and gameplay-relevant collision. A selective KayKit Space Base Bits subset is instantiated as real 3D GLTF models for the depot, cargo stacks, service truck, extraction drill, landing-pad surface, and four boundary rocks; the CC0 license travels with the assets. Most of the surrounding world remains editable procedural blockout geometry, not a single image or final authored art.
+The Godot project is in [`game/`](game/). Frostline Relay, Verdant Bloom, and Emberfall Foundry share one `MissionWorld` runtime but load distinct authored GLBs, field bounds, prop colliders, waypoint markers, lighting, atmosphere, and animation. Vanguard Station remains a separate imported-kit station. The shell and engine read the same four-entry `WorldDefinition` registry, and only the selected theatre builds in gameplay. These are real 3D scenes, not card images or disconnected backdrops; final visual acceptance and physical-device performance remain separate gates.
 
 The player now boots into **safe Explore**: no Wave Director starts until the player deliberately selects **START DEFENSE** (or presses `B`), after a visible preparation countdown. Defense runs the capped Runner/Shooter waves; Results offers both **RETRY DEFENSE** and **EXPLORE**. The contextual HUD keeps an objective and clear actions in Explore, introduces wave/ammo/health during Defense, and moves detailed Score/BP/KOs/time to results/pause. Keyboard and touch support movement, aim, fire, weapon cycling, EMP, pause, retry, and return to Explore. `tests/exploration_flow_smoke.gd` checks the mode changes headlessly; visual readability still requires actual WASM/device review.
 
@@ -47,11 +48,11 @@ Open `game/project.godot` in Godot 4.7.2 and run the main scene to explore the w
 ./scripts/run_smoke_tests.sh wave_director_smoke    # a single test
 ```
 
-`scripts/run_smoke_tests.sh` performs the headless Editor import and then every smoke test with `--headless --path game --script <absolute-test-path>`, writing logs to the git-ignored `exports/test-logs/`. The 28 tests cover the front end, both worlds, content showcases, combat, the Pulse Rifle vertical slice, waves, rewards, progression, landscape HUD/touch, audio, effects, and content data. Use `--list` for the authoritative inventory. The equivalent manual commands are:
+`scripts/run_smoke_tests.sh` performs the headless Editor import and then every smoke test with `--headless --path game --script <absolute-test-path>`, writing logs to the git-ignored `exports/test-logs/`. The 28 tests cover the front end, all four theatres, content showcases, combat, the Pulse Rifle vertical slice, waves, rewards, progression, landscape HUD/touch, audio, effects, and content data. Use `--list` for the authoritative inventory. The equivalent manual commands are:
 
 ```bash
 godot --headless --editor --path game --quit
-godot --headless --path game --script "$PWD/tests/neon_frontier_world_smoke.gd"
+godot --headless --path game --script "$PWD/tests/mission_world_smoke.gd"
 godot --headless --path game --script "$PWD/tests/weapon_system_smoke.gd"
 ```
 
@@ -90,9 +91,10 @@ root DEPLOY flow goes directly to that selected theatre; raw engine journeys ret
 
 The web export is single-threaded (`variant/thread_support=false`) so it runs on a plain static server without
 COOP/COEP headers. The player meets the game through the front end at the repository root (`index.html` + `ui/`), which
-covers opening, hub/theatre selection, arsenal and launch. DEPLOY hands the selected `qa_world` and `weapon` to the
-authoritative engine adapters and enters that theatre's gameplay directly. Raw export builds use the engine shell at
-`game/web_shell/index.html`. The web platform always uses the Compatibility (WebGL 2) renderer, while Android keeps the
+covers opening, hub/theatre selection, arsenal and launch. The opening calls `Engine.init()` and `preloadFile()` so the
+complete WASM + world PCK downloads before MASUK; no gameplay runs behind it. DEPLOY calls `start()` with that same
+main pack, hands the selected `qa_world` and `weapon` to the authoritative adapters, and enters that theatre directly
+without a second PCK download. Raw export builds use the engine shell at `game/web_shell/index.html`. The web platform always uses the Compatibility (WebGL 2) renderer, while Android keeps the
 `mobile` renderer — see [`WEB_PREVIEW.md`](WEB_PREVIEW.md) for the differences that must not be mistaken for Android behaviour.
 
 ## Android import/export workflow

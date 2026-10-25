@@ -245,9 +245,9 @@ jobs:
 
       - name: Browser interrupted-download recovery
         run: |
-          # Reproduce the player-facing failure: the root shell used to leave an
-          # indeterminate bar forever when WASM initialization rejected. Also
-          # guard the rewritten fileSizes keys so byte progress cannot become 0.
+          # Prove the opening downloads WASM+PCK once before MASUK and DEPLOY
+          # reuses those buffers. Then interrupt each asset on a direct selected-
+          # world DEPLOY and require a visible retry plus real gameplay recovery.
           qa_status=0
           node tools/web_loading_qa.mjs --throughput-mbps 100 --timeout 150 \
             --out exports/web-qa/loading --json > exports/web-qa/loading-report.json || qa_status=$?
@@ -255,13 +255,18 @@ jobs:
           import json
           from pathlib import Path
           report = json.loads(Path("exports/web-qa/loading-report.json").read_text())
+          opening = report.get("opening")
+          if opening is not None:
+              print(f'Opening single-download contract: {"PASS" if opening["ok"] else "FAIL"}')
+              for failure in opening["failures"]:
+                  print("::error title=Opening preload QA::" + failure.replace("\n", " ")[:1800])
           for case in report["cases"]:
               print(f'{case["asset"]} recovery: {"PASS" if case["ok"] else "FAIL"}')
               for failure in case["failures"]:
                   print("::error title=Loading recovery QA::" + failure.replace("\n", " ")[:1800])
-          print("::notice title=Loading recovery::" + " | ".join(
-              f'{case["asset"]} {"PASS" if case["ok"] else "FAIL"}'
-              for case in report["cases"]))
+          summary = ([] if opening is None else [f'opening {"PASS" if opening["ok"] else "FAIL"}'])
+          summary += [f'{case["asset"]} {"PASS" if case["ok"] else "FAIL"}' for case in report["cases"]]
+          print("::notice title=Opening and loading recovery::" + " | ".join(summary))
           raise SystemExit(0 if report["ok"] else 1)
           PY
           exit "$qa_status"
@@ -270,7 +275,7 @@ jobs:
         run: |
           # Drive the real shell: select Vanguard's theatre card, DEPLOY directly,
           # and require both the authoritative handoff and the selected world's
-          # runtime build. A default Neon boot is not a passing substitute.
+          # runtime build. A default Frostline boot is not a passing substitute.
           qa_status=0
           node tools/web_qa.mjs --page / --viewport 844x390 --timeout 120 \
             --journey --select-vanguard --out exports/web-qa/vanguard \

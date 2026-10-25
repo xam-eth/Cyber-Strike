@@ -35,7 +35,25 @@ const LIBRARIES = {
     license_url: 'https://creativecommons.org/publicdomain/zero/1.0/',
     source: 'https://github.com/Hidencod/tge-assets',
     source_pin: KENNEY_SHA,
-    notes: 'Authored low-poly sci-fi kit: hangars, gates, turrets, dishes, machines, platforms, rocks, crystals, corridors. Self-contained GLB conversions by the mirror maintainer, also CC0.',
+    notes: 'Authored low-poly sci-fi kit: hangars, gates, turrets, dishes, machines, platforms, rocks, crystals, corridors. Self-contained GLB conversions by the mirror maintainer, also CC0. Extended 2026-10-26 with 66 cinematic additions (monorail, rocket, rover, rail, extra platforms/pipes/terrain) from same source for dramatic sci-fi.',
+  },
+  'kenney-modular-space': {
+    title: 'Kenney Modular Space Kit',
+    author: 'Kenney (www.kenney.nl)',
+    license: 'CC0-1.0',
+    license_url: 'https://creativecommons.org/publicdomain/zero/1.0/',
+    source: 'https://github.com/shorepine/kenney',
+    source_pin: 'main',
+    notes: '40 modular sci-fi interior tiles: corridors, wide corridors, transitions, junctions, rooms, gates with lasers, stairs, templates. CC0. Fetched 2026-10-26 for cinematic Blade Runner / Destiny-like corridors and gate arches — dramatic volumetric interiors, not procedural geometry.',
+  },
+  'kenney-space-station': {
+    title: 'Kenney Space Station Kit',
+    author: 'Kenney (www.kenney.nl)',
+    license: 'CC0-1.0',
+    license_url: 'https://creativecommons.org/publicdomain/zero/1.0/',
+    source: 'https://github.com/shorepine/kenney',
+    source_pin: 'main',
+    notes: '97 sci-fi station interior props: containers, computers, displays, doors, balcony floors. CC0. Curated 18 pieces 2026-10-26 for lived-in dramatic set dressing and cinematic interior layers.',
   },
   'babylon-powerplant': {
     title: 'Power Plant',
@@ -53,6 +71,14 @@ const LIBRARIES = {
     source: 'derived from game/assets/world/real/powerplant.glb',
     notes: 'Individual structures cut out of the Power Plant file (tank ring, tank pad, cooling tower, arch ribs, a single column, the drone, the crane carriage). Node hierarchy, materials and baked 1024 px maps are copied unchanged by real/slice_setpieces.mjs; nothing is modelled or re-textured.',
   },
+  'kenney-nature': {
+    title: 'Kenney Nature Kit',
+    author: 'Kenney (www.kenney.nl)',
+    license: 'CC0-1.0',
+    license_url: 'https://creativecommons.org/publicdomain/zero/1.0/',
+    source: 'https://github.com/Hidencod/tge-assets/tree/2c8950b716e6765930b2b51409c59adf3d66fd5c/packs/nature-kit',
+    notes: 'Curated set of 33 models: pines and broadleaf trees, bushes, grass, moss, flowers, mushrooms, logs, boulders, and the grass/path ground tiles. The canopy layer of the Verdant Bloom world is built from these.',
+  },
   'babylon-ground': {
     title: 'Tiled ground plate',
     author: 'Kammertonus (https://twitter.com/Kammertonus)',
@@ -66,7 +92,10 @@ const LIBRARIES = {
 const sha256 = (file) => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 
 function libraryOf(rel) {
+  if (rel.startsWith('kenney/modular-')) return 'kenney-modular-space';
+  if (rel.startsWith('kenney/station-')) return 'kenney-space-station';
   if (rel.startsWith('kenney/')) return 'kenney-space-kit';
+  if (rel.startsWith('nature/')) return 'kenney-nature';
   if (rel.startsWith('ground/')) return 'babylon-ground';
   if (rel.startsWith('setpieces/')) return 'derived-setpieces';
   return 'babylon-powerplant';
@@ -75,8 +104,19 @@ function libraryOf(rel) {
 /** Source that a given relative path came from, for re-download. */
 function sourceOf(rel) {
   const base = path.basename(rel, '.glb');
+  if (rel.startsWith('kenney/modular-')) {
+    const fname = base.replace(/^modular-/, '') + '.glb';
+    return { kind: 'github-contents', repo: 'shorepine/kenney', ref: 'main', path: `3d/modular-space/${fname}` };
+  }
+  if (rel.startsWith('kenney/station-')) {
+    const fname = base.replace(/^station-/, '') + '.glb';
+    return { kind: 'github-contents', repo: 'shorepine/kenney', ref: 'main', path: `3d/space-station/${fname}` };
+  }
   if (rel.startsWith('kenney/')) {
     return { kind: 'github-contents', repo: 'Hidencod/tge-assets', ref: KENNEY_SHA, path: `packs/space-kit/${base}.glb` };
+  }
+  if (rel.startsWith('nature/')) {
+    return { kind: 'github-contents', repo: 'Hidencod/tge-assets', ref: KENNEY_SHA, path: `packs/nature-kit/${base}.glb` };
   }
   if (rel.startsWith('ground/')) {
     return { kind: 'github-raw', repo: 'BabylonJS/Assets', ref: 'master', path: 'meshes/Buildings/ceiling.glb' };

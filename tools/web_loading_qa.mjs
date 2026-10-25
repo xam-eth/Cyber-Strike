@@ -1,12 +1,15 @@
 #!/usr/bin/env node
 /*
- * Interrupt each large Web download, require a visible error (not an endless
- * loading screen), then allow the asset through and activate the real retry.
- * PASS requires a fresh engine boot into the selected theatre's gameplay, no
- * unhandled rejection, and monotonic combined WASM + PCK progress after recovery.
+ * Verify the real opening download contract and interrupted-download recovery.
+ *
+ * Opening contract: WASM + PCK finish before MASUK, no gameplay runs behind the
+ * opening, and DEPLOY consumes the same buffers instead of fetching the PCK
+ * again. Recovery: interrupt a large download on a direct selected-world DEPLOY,
+ * require a visible retry, then reload into that same world's real gameplay.
  *
  *   node tools/web_loading_qa.mjs --json
- *   node tools/web_loading_qa.mjs --asset wasm --out exports/web-loading-qa
+ *   node tools/web_loading_qa.mjs --asset opening --world vanguard_station
+ *   node tools/web_loading_qa.mjs --asset pck --out exports/web-loading-qa
  *   node tools/web_loading_qa.mjs --url http://127.0.0.1:8000
  */
 import fs from 'node:fs';
@@ -30,8 +33,13 @@ const outDir = path.resolve(ROOT, flag('--out', path.join('exports', 'web-loadin
 const timeoutMs = Math.max(20, Number(flag('--timeout', '120')) || 120) * 1000;
 const throughputMbps = Math.max(0, Number(flag('--throughput-mbps', '0')) || 0);
 const selected = flag('--asset', 'both');
-if (!['both', 'wasm', 'pck'].includes(selected)) {
-  console.error('ERROR: --asset must be both, wasm, or pck');
+const world = flag('--world', 'frostline_relay');
+if (!['both', 'opening', 'wasm', 'pck'].includes(selected)) {
+  console.error('ERROR: --asset must be both, opening, wasm, or pck');
+  process.exit(2);
+}
+if (!/^[a-z][a-z0-9_]*$/.test(world)) {
+  console.error('ERROR: --world must be a snake_case world id');
   process.exit(2);
 }
 
@@ -80,8 +88,11 @@ const browser = await puppeteer.launch({
   throw error;
 });
 
-const report = { base: baseUrl, throughputMbps: throughputMbps || null, cases: [] };
-const assets = selected === 'both' ? ['wasm', 'pck'] : [selected];
+const report = { base: baseUrl, throughputMbps: throughputMbps || null, world, opening: null, cases: [] };
+const assets = selected === 'both' ? ['wasm', 'pck'] : selected === 'opening' ? [] : [selected];
+const cardId = `world-card-${world.replaceAll('_', '-')}`;
+const selectionLog = `FrontEnd: qa_world selected ${world}`;
+const worldBuildLog = world === 'vanguard_station' ? 'VanguardStation:' : `MISSION WORLD: ${world} (`;
 
 function summarizeEvents(events) {
   return {
@@ -96,13 +107,11 @@ function compactConsecutive(values) {
   return values.filter((value, index) => index === 0 || value !== values[index - 1]);
 }
 
-async function runCase(asset) {
-  const filename = `index.${asset}`;
-  const result = { asset: filename, failures: [] };
-  const consoleLines = [];
-  const pageErrors = [];
-  const failedRequests = [];
-  let failAssets = true;
+function requestCount(requests, filename) {
+  return requests.filter((url) => url.endsWith(`/web/${filename}`)).length;
+}
+
+async function makePage() {
   const page = await browser.newPage();
   await page.setViewport({ width: 844, height: 390, deviceScaleFactor: 1 });
   await page.setCacheEnabled(false);
@@ -116,19 +125,25 @@ async function runCase(asset) {
       uploadThroughput: Math.min(throughputMbps, 20) * 1000000 / 8,
     });
   }
+
+  const consoleLines = [];
+  const pageErrors = [];
+  const failedRequests = [];
+  const assetRequests = [];
   page.on('console', (message) => consoleLines.push(`${message.type()}: ${message.text().slice(0, 500)}`));
   page.on('pageerror', (error) => pageErrors.push(String(error).slice(0, 500)));
   page.on('requestfailed', (request) => failedRequests.push(`${request.url().replace(baseUrl, '')} ${request.failure()?.errorText}`));
-  await page.setRequestInterception(true);
   page.on('request', (request) => {
-    if (failAssets && request.url().endsWith(`/web/${filename}`)) request.abort('failed');
-    else request.continue();
+    if (/\/web\/index\.(?:wasm|pck)$/.test(request.url())) assetRequests.push(request.url());
   });
+
   await page.evaluateOnNewDocument(() => {
     window.__loadingTrace = { percent: [], status: [] };
     window.__progressEvents = [];
-    // Observe the real loader callback without replacing its behavior. This
-    // distinguishes missing engine progress from a DOM observer that ran late.
+    window.__engineCalls = [];
+    // Observe the actual Engine instance without replacing loading behavior.
+    // The opening uses init/preloadFile/start; a startGame call is a regression
+    // because it would fetch the already-preloaded PCK a second time.
     let engineClass;
     Object.defineProperty(window, 'Engine', {
       configurable: true,
@@ -136,25 +151,30 @@ async function runCase(asset) {
       set: (value) => {
         engineClass = new Proxy(value, {
           construct(target, args) {
-            const instance = Reflect.construct(target, args);
-            const startGame = instance.startGame;
-            instance.startGame = function (options) {
-              const onProgress = options?.onProgress;
-              return startGame.call(this, {
-                ...options,
-                onProgress: (loaded, total) => {
-                  window.__progressEvents.push([loaded, total]);
-                  if (onProgress) onProgress(loaded, total);
-                },
-              });
+            const config = { ...(args[0] || {}) };
+            const onProgress = config.onProgress;
+            config.onProgress = (loaded, total) => {
+              window.__progressEvents.push([loaded, total, performance.now()]);
+              if (onProgress) onProgress(loaded, total);
             };
+            const instance = Reflect.construct(target, [config]);
+            for (const method of ['init', 'preloadFile', 'start', 'startGame']) {
+              const original = instance[method];
+              if (typeof original !== 'function') continue;
+              instance[method] = function (...callArgs) {
+                window.__engineCalls.push({ method, at: performance.now(), args: callArgs.map((arg) => {
+                  if (method === 'start' || method === 'startGame') return arg?.args || [];
+                  return typeof arg === 'string' ? arg : '<buffer>';
+                }) });
+                return original.apply(this, callArgs);
+              };
+            }
             return instance;
           },
         });
       },
     });
-    // Install before DOMContentLoaded: qa_stage boots from the module at the end
-    // of the body, so a fast localhost download can finish before a DCL listener.
+
     const install = () => {
       const percent = document.getElementById('launch-percent');
       const status = document.getElementById('launch-status');
@@ -177,51 +197,181 @@ async function runCase(asset) {
     if (install()) observer.disconnect();
   });
 
-  const expect = (condition, message) => {
-    if (!condition) result.failures.push(message);
-  };
-  const state = () => page.evaluate(() => ({
+  return { page, consoleLines, pageErrors, failedRequests, assetRequests };
+}
+
+async function readState(page) {
+  return page.evaluate(() => ({
+    screen: document.body.dataset.screen || '',
+    mode: document.body.dataset.mode || '',
+    openingStatus: document.getElementById('opening-status')?.textContent || '',
+    openingLabel: document.getElementById('opening-enter')?.querySelector('.btn__label')?.textContent || '',
+    openingNote: document.getElementById('opening-note')?.hidden === false
+      ? document.getElementById('opening-note').textContent
+      : '',
     title: document.getElementById('launch-title')?.textContent || '',
     status: document.getElementById('launch-status')?.textContent || '',
     hint: document.getElementById('launch-hint')?.textContent || '',
     retryVisible: !!document.getElementById('launch-retry') && !document.getElementById('launch-retry').hidden,
     canvasHidden: document.getElementById('canvas')?.dataset.hidden,
     appDisplay: getComputedStyle(document.getElementById('app')).display,
-    mode: document.body.dataset.mode || '',
     trace: window.__loadingTrace || { percent: [], status: [] },
     progressEvents: window.__progressEvents || [],
+    engineCalls: window.__engineCalls || [],
   }));
+}
+
+function expectByteProgress(result, state, requireIntermediate) {
+  const events = state.progressEvents;
+  const percentages = state.trace.percent;
+  const loaded = events.map((event) => event[0]);
+  result.expect(events.length > 0, 'the loader emitted no aggregate byte-progress events');
+  result.expect(events.every((event) => event[1] > 0), 'loader regressed to total=0; check rewritten fileSizes keys');
+  result.expect(loaded.every((value, index) => index === 0 || value >= loaded[index - 1]), 'aggregate byte count moved backwards');
+  result.expect(events.at(-1)?.[0] === events.at(-1)?.[1], 'the final loader event was incomplete');
+  result.expect(percentages.at(-1) === 100, `combined progress did not finish at 100: ${percentages.join(',')}`);
+  result.expect(percentages.every((value, index) => index === 0 || value >= percentages[index - 1]), 'displayed progress moved backwards');
+  if (requireIntermediate) {
+    result.expect(percentages.some((value) => value < 100), 'throttled download exposed no intermediate byte progress');
+    result.expect(
+      state.trace.status.some((line) => line.includes('mengunduh mesin + dunia')),
+      'combined byte/phase status was not rendered',
+    );
+  }
+}
+
+function expectSingleDownloadStart(result, state, requests, requireNotStarted) {
+  const calls = state.engineCalls;
+  const preloads = calls.filter((call) => call.method === 'preloadFile');
+  const starts = calls.filter((call) => call.method === 'start');
+  result.expect(requestCount(requests, 'index.wasm') === 1, `WASM request count was ${requestCount(requests, 'index.wasm')}, expected 1`);
+  result.expect(requestCount(requests, 'index.pck') === 1, `PCK request count was ${requestCount(requests, 'index.pck')}, expected 1`);
+  result.expect(preloads.length === 1 && String(preloads[0].args[0]).endsWith('/web/index.pck'), 'opening did not preload the main PCK exactly once');
+  result.expect(!calls.some((call) => call.method === 'startGame'), 'startGame caused a second main-pack preload path');
+  if (requireNotStarted) {
+    result.expect(starts.length === 0, 'gameplay engine.start ran behind the opening');
+  } else {
+    result.expect(starts.length === 1, `engine.start count was ${starts.length}, expected 1`);
+    result.expect(
+      starts[0]?.args[0]?.includes('--main-pack') && starts[0]?.args[0]?.some((arg) => String(arg).endsWith('/web/index.pck')),
+      'engine.start did not receive the already-preloaded main pack',
+    );
+    const finalDownloadAt = state.progressEvents.at(-1)?.[2] || 0;
+    result.expect(finalDownloadAt <= (starts[0]?.at || 0), 'engine.start ran before the opening download completed');
+  }
+}
+
+async function runOpeningContract() {
+  const result = { failures: [] };
+  const { page, consoleLines, pageErrors, failedRequests, assetRequests } = await makePage();
+  result.expect = (condition, message) => { if (!condition) result.failures.push(message); };
 
   try {
     await page.goto(`${baseUrl}/`, { waitUntil: 'domcontentloaded', timeout: 60000 });
-    await page.waitForFunction(() => {
-      const button = document.getElementById('opening-enter');
-      return button && !button.disabled;
-    }, { timeout: 30000 });
+    await page.waitForFunction(() => (
+      document.getElementById('opening-enter')?.querySelector('.btn__label')?.textContent === 'Masuk'
+      && !document.getElementById('opening-enter')?.disabled
+    ), { timeout: timeoutMs });
+
+    result.opening = await readState(page);
+    result.openingRequests = [...assetRequests];
+    expectSingleDownloadStart(result, result.opening, assetRequests, true);
+    expectByteProgress(result, result.opening, throughputMbps > 0);
+    result.expect(result.opening.screen === 'opening', `opening advanced too early to ${result.opening.screen}`);
+    result.expect(result.opening.canvasHidden === 'true' && result.opening.mode !== 'playing', 'canvas/gameplay was revealed during opening preload');
+    result.expect(!consoleLines.some((line) => line.includes('Encounter:')), 'gameplay ran behind the opening');
+    await page.screenshot({ path: path.join(outDir, 'opening-preloaded.png') });
+
     await page.evaluate(() => document.getElementById('opening-enter').click());
-    await page.evaluate(() => document.getElementById('world-card-neon-frontier').click());
+    const selectedCard = await page.evaluate((id) => {
+      const card = document.getElementById(id);
+      if (!card) return false;
+      card.click();
+      return card.getAttribute('aria-selected') === 'true';
+    }, cardId);
+    result.expect(selectedCard, `shell card ${cardId} did not select ${world}`);
     await page.evaluate(() => document.getElementById('hub-deploy').click());
+    await page.waitForFunction(() => (
+      document.body.dataset.mode === 'playing'
+      && document.getElementById('canvas')?.dataset.hidden === 'false'
+      && getComputedStyle(document.getElementById('app')).display === 'none'
+    ), { timeout: timeoutMs });
+    for (let attempt = 0; attempt < 240 && !consoleLines.some((line) => line.includes('Encounter: Explore safe')); attempt += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    }
+
+    result.deployed = await readState(page);
+    result.deployedRequests = [...assetRequests];
+    result.console = [...consoleLines];
+    result.pageErrors = [...pageErrors];
+    result.failedRequests = [...failedRequests];
+    expectSingleDownloadStart(result, result.deployed, assetRequests, false);
+    result.expect(consoleLines.some((line) => line.includes(selectionLog)), 'DEPLOY lost the selected-world handoff');
+    result.expect(consoleLines.some((line) => line.includes(worldBuildLog)), `selected world did not build: ${worldBuildLog}`);
+    result.expect(consoleLines.some((line) => line.includes('Encounter: Explore safe')), 'DEPLOY did not reach safe Explore gameplay');
+    result.expect(!consoleLines.some((line) => line.includes('FrontEnd: stage WORLD')), 'shell DEPLOY stopped at engine WORLD');
+    result.expect(pageErrors.length === 0, `page errors: ${pageErrors.join(' | ')}`);
+    result.expect(failedRequests.length === 0, `failed requests: ${failedRequests.join(' | ')}`);
+    result.expect(!consoleLines.some((line) => /SCRIPT ERROR:|Parse Error:/.test(line)), 'Godot reported a script/parse error');
+    result.progressEvidence = summarizeEvents(result.deployed.progressEvents);
+    result.deployed.trace = {
+      percent: compactConsecutive(result.deployed.trace.percent),
+      status: compactConsecutive(result.deployed.trace.status),
+    };
+    delete result.deployed.progressEvents;
+    delete result.opening.progressEvents;
+    await page.screenshot({ path: path.join(outDir, 'opening-deployed.png') });
+  } catch (error) {
+    result.failures.push(String(error.stack || error));
+    try {
+      result.lastState = await readState(page);
+      await page.screenshot({ path: path.join(outDir, 'opening-failed.png') });
+    } catch { /* browser may already have closed */ }
+  } finally {
+    result.ok = result.failures.length === 0;
+    await page.close();
+  }
+  return result;
+}
+
+async function runRecoveryCase(asset) {
+  const filename = `index.${asset}`;
+  const result = { asset: filename, failures: [] };
+  const { page, consoleLines, pageErrors, failedRequests, assetRequests } = await makePage();
+  let failAssets = true;
+  await page.setRequestInterception(true);
+  page.on('request', (request) => {
+    if (failAssets && request.url().endsWith(`/web/${filename}`)) request.abort('failed');
+    else request.continue();
+  });
+  result.expect = (condition, message) => { if (!condition) result.failures.push(message); };
+
+  try {
+    // A direct DEPLOY deep link preserves the previous recovery contract: retry
+    // returns to selected gameplay, while the download still happens up front.
+    await page.goto(`${baseUrl}/?qa_stage=GAMEPLAY&qa_world=${world}&weapon=pulse_rifle`, { waitUntil: 'domcontentloaded', timeout: 60000 });
     await page.waitForFunction(() => {
       const button = document.getElementById('launch-retry');
       return button && !button.hidden;
-    }, { timeout: 30000 });
+    }, { timeout: timeoutMs });
 
-    result.interrupted = await state();
+    result.interrupted = await readState(page);
     result.interruptedProgress = summarizeEvents(result.interrupted.progressEvents);
     delete result.interrupted.progressEvents;
     result.expectedRequestFailures = [...failedRequests];
     result.interruptedPageErrors = [...pageErrors];
-    expect(result.interrupted.retryVisible, 'interrupted download did not expose retry');
-    expect(result.interrupted.title === 'Koneksi dunia terputus', `unexpected failure title: ${result.interrupted.title}`);
-    expect(result.interrupted.canvasHidden === 'true', 'canvas was revealed after a failed boot');
-    expect(result.interruptedPageErrors.length === 0, `unhandled initialization rejection: ${result.interruptedPageErrors.join(' | ')}`);
-    expect(result.expectedRequestFailures.some((line) => line.includes(filename)), 'the requested asset was not actually interrupted');
+    result.expect(result.interrupted.retryVisible, 'interrupted download did not expose retry');
+    result.expect(result.interrupted.title === 'Koneksi dunia terputus', `unexpected failure title: ${result.interrupted.title}`);
+    result.expect(result.interrupted.canvasHidden === 'true', 'canvas was revealed after a failed boot');
+    result.expect(result.interruptedPageErrors.length === 0, `unhandled initialization rejection: ${result.interruptedPageErrors.join(' | ')}`);
+    result.expect(result.expectedRequestFailures.some((line) => line.includes(filename)), 'the requested asset was not actually interrupted');
     await page.screenshot({ path: path.join(outDir, `${asset}-interrupted.png`) });
 
     failAssets = false;
     consoleLines.length = 0;
     pageErrors.length = 0;
     failedRequests.length = 0;
+    assetRequests.length = 0;
     await Promise.all([
       page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 60000 }),
       page.click('#launch-retry'),
@@ -232,53 +382,29 @@ async function runCase(asset) {
       && getComputedStyle(document.getElementById('app')).display === 'none'
     ), { timeout: timeoutMs });
     await page.waitForFunction(() => document.getElementById('launch-status')?.textContent === 'dunia siap', { timeout: 15000 });
-    // Canvas reveal proves presentation only. Require the selected world handoff
-    // and the real gameplay scene's safe-Explore marker before calling recovery.
-    for (let attempt = 0; attempt < 120; attempt += 1) {
-      if (consoleLines.some((line) => line.includes('Encounter: Explore safe'))) break;
+    for (let attempt = 0; attempt < 240 && !consoleLines.some((line) => line.includes('Encounter: Explore safe')); attempt += 1) {
       await new Promise((resolve) => setTimeout(resolve, 250));
     }
-    result.recovered = await state();
+
+    result.recovered = await readState(page);
     result.recoveredConsole = [...consoleLines];
     result.recoveredPageErrors = [...pageErrors];
     result.recoveredRequestFailures = [...failedRequests];
-    const percentages = result.recovered.trace.percent;
-    const statuses = result.recovered.trace.status;
-    const events = result.recovered.progressEvents;
-    expect(result.recovered.mode === 'playing' && result.recovered.canvasHidden === 'false', 'retry did not reveal the game canvas');
-    expect(consoleLines.some((line) => /Godot Engine v/i.test(line)), 'retry produced no Godot engine banner');
-    expect(
-      consoleLines.some((line) => line.includes('FrontEnd: qa_world selected neon_frontier')),
-      'retry lost the selected Neon Frontier handoff',
-    );
-    expect(consoleLines.some((line) => line.includes('Encounter: Explore safe')), 'retry did not reach real gameplay');
-    expect(!consoleLines.some((line) => line.includes('FrontEnd: stage WORLD')), 'retry stopped at the engine WORLD stage');
-    expect(result.recoveredPageErrors.length === 0, `retry page errors: ${result.recoveredPageErrors.join(' | ')}`);
-    expect(events.length > 0, 'the loader emitted no byte-progress events');
-    expect(events.every((event) => event[1] > 0), 'loader regressed to total=0; remap the rewritten fileSizes paths');
-    expect(events.at(-1)?.[0] === events.at(-1)?.[1], 'the final loader event was incomplete');
-    // Reload intentionally aborts any still-active request from the failed
-    // document. Keep those diagnostics, but prove recovery by the fresh engine
-    // banner/gameplay/canvas instead of misattributing that old ERR_ABORTED.
-    expect(percentages.at(-1) === 100, `combined progress did not finish at 100: ${percentages.join(',')}`);
-    expect(percentages.every((value, index) => index === 0 || value >= percentages[index - 1]), `combined progress moved backwards: ${percentages.join(',')}`);
-    if (throughputMbps > 0) {
-      expect(percentages.some((value) => value < 100), `throttled download exposed no intermediate byte progress: ${percentages.join(',')}`);
-      expect(
-        statuses.some((line) => line.includes('mengunduh mesin + dunia')),
-        'combined byte/phase status was not rendered',
-      );
-    }
-    const downloadStatuses = statuses.filter((line) => line.includes('mengunduh mesin + dunia'));
-    result.progressEvidence = {
-      ...summarizeEvents(events),
-      firstDownloadStatus: downloadStatuses[0] || null,
-      lastDownloadStatus: downloadStatuses.at(-1) || null,
-    };
+    result.recoveredRequests = [...assetRequests];
+    result.expect(result.recovered.mode === 'playing' && result.recovered.canvasHidden === 'false', 'retry did not reveal the game canvas');
+    result.expect(consoleLines.some((line) => /Godot Engine v/i.test(line)), 'retry produced no Godot engine banner');
+    result.expect(consoleLines.some((line) => line.includes(selectionLog)), 'retry lost the selected-world handoff');
+    result.expect(consoleLines.some((line) => line.includes(worldBuildLog)), `retry did not build ${world}`);
+    result.expect(consoleLines.some((line) => line.includes('Encounter: Explore safe')), 'retry did not reach real gameplay');
+    result.expect(!consoleLines.some((line) => line.includes('FrontEnd: stage WORLD')), 'retry stopped at engine WORLD');
+    result.expect(result.recoveredPageErrors.length === 0, `retry page errors: ${result.recoveredPageErrors.join(' | ')}`);
+    expectSingleDownloadStart(result, result.recovered, assetRequests, false);
+    expectByteProgress(result, result.recovered, throughputMbps > 0);
+    result.progressEvidence = summarizeEvents(result.recovered.progressEvents);
     result.recovered.trace = {
-      percent: compactConsecutive(percentages),
-      status: compactConsecutive(statuses.map((line) => (
-        line.includes('mengunduh mesin + dunia') ? 'mengunduh mesin + dunia (byte counts above)' : line
+      percent: compactConsecutive(result.recovered.trace.percent),
+      status: compactConsecutive(result.recovered.trace.status.map((line) => (
+        line.includes('mengunduh mesin + dunia') ? 'mengunduh mesin + dunia (aggregate bytes)' : line
       ))),
     };
     delete result.recovered.progressEvents;
@@ -286,7 +412,7 @@ async function runCase(asset) {
   } catch (error) {
     result.failures.push(String(error.stack || error));
     try {
-      result.lastState = await state();
+      result.lastState = await readState(page);
       await page.screenshot({ path: path.join(outDir, `${asset}-failed.png`) });
     } catch { /* browser may already have closed */ }
   } finally {
@@ -297,20 +423,27 @@ async function runCase(asset) {
 }
 
 try {
+  if (selected === 'both' || selected === 'opening') {
+    progress(`Opening contract: preload once, then DEPLOY ${world} without another PCK request`);
+    report.opening = await runOpeningContract();
+    progress(`  ${report.opening.ok ? 'PASS' : 'FAIL'} opening${report.opening.ok ? '' : ` — ${report.opening.failures.join(' | ')}`}`);
+  }
   for (const asset of assets) {
-    progress(`Loading recovery: interrupt index.${asset}, then retry`);
-    const result = await runCase(asset);
+    progress(`Loading recovery: interrupt index.${asset}, then retry directly into ${world}`);
+    const result = await runRecoveryCase(asset);
     report.cases.push(result);
-    progress(`  ${result.ok ? 'PASS' : 'FAIL'} index.${asset}${result.failures.length ? ` — ${result.failures.join(' | ')}` : ''}`);
+    progress(`  ${result.ok ? 'PASS' : 'FAIL'} index.${asset}${result.ok ? '' : ` — ${result.failures.join(' | ')}`}`);
   }
 } finally {
   await browser.close();
   if (server) server.kill();
 }
 
-report.ok = report.cases.length === assets.length && report.cases.every((result) => result.ok);
+report.ok = (report.opening === null || report.opening.ok)
+  && report.cases.length === assets.length
+  && report.cases.every((result) => result.ok);
 const serialized = `${JSON.stringify(report, null, 2)}\n`;
 fs.writeFileSync(path.join(outDir, 'report.json'), serialized);
 if (asJson) console.log(serialized.trimEnd());
-else console.log(`Loading recovery: ${report.ok ? 'PASS' : 'FAIL'} (${report.cases.filter((result) => result.ok).length}/${assets.length})`);
+else console.log(`Opening/loading QA: ${report.ok ? 'PASS' : 'FAIL'}`);
 process.exitCode = report.ok ? 0 : 1;

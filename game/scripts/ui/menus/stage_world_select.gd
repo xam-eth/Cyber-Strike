@@ -171,8 +171,12 @@ func _build_map() -> void:
 	_map_name.autowrap_mode = TextServer.AUTOWRAP_OFF
 	map_caption.add_child(_map_name)
 
-	_pin_row = HBoxContainer.new()
+	# Four theatres plus the roadmap slot share one row in the landscape-only
+	# front end. A grid keeps every registry entry visible instead of squeezing
+	# the old two-theatre HBox or introducing a second scrolling interaction.
+	_pin_row = GridContainer.new()
 	_pin_row.name = &"TheatrePins"
+	_pin_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	physical_separation(_pin_row, 8)
 	# In the stack, under the body, not floating inside the map: a pin laid out
 	# against the bottom of an expanding box inherits that box's geometry, and on
@@ -297,6 +301,7 @@ func reframe() -> void:
 	# 64 px is the touch floor (`AegisTokens.MIN_TOUCH_PX`); 56 failed it. Every
 	# child of the row, not just `_pins`: the roadmap slot was built after the
 	# list and kept its 41 px text height.
+	(_pin_row as GridContainer).columns = maxi(_pin_row.get_child_count(), 1)
 	for child in _pin_row.get_children():
 		if child is Control:
 			physical_min_size(child as Control, 0.0, 64.0)

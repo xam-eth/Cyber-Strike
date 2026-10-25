@@ -109,3 +109,31 @@ node tools/web_loading_qa.mjs \
 Strict final-payload Vanguard QA independently passed with the real shell card selection and `VanguardStation: 421 kit modules, 17 omnis, 4 rooms`; report `exports/integration-audit/ui-final-vanguard-ad586eb1.json`.
 
 These are automated headless results, not physical-device/network coverage. The exact original proxy failure, Android, physical touch performance, a complete human run, and final visual acceptance remain open.
+
+## 2026-10-25 addendum: world pack moves into the initial opening
+
+The `ad586eb1` results above are historical. The active World integration
+changes **where** the same verified bytes are fetched, not the loader's error
+contract. The root opening now awaits `Engine.init()` and
+`Engine.preloadFile(mainPack)` before enabling **Masuk**. DEPLOY uses
+`Engine.start({args: ['--main-pack', mainPack]})`; it does not call
+`startGame()` and therefore does not preload the PCK a second time. No gameplay
+scene runs behind the opening.
+
+`tools/web_loading_qa.mjs` now checks that positive contract as well as the two
+negative cases: one WASM request, one PCK request, aggregate nonzero/monotonic
+bytes, no start before MASUK, no second PCK on DEPLOY, then actual selected-world
+safe Explore. Its direct-DEPLOY recovery cases still require retry/reload to
+return to the selected gameplay with a hidden canvas on failure.
+
+Before the new World payload exists, the lifecycle was isolated against the old
+payload using Vanguard (present in both registries):
+
+- `exports/integration-audit/opening-contract-baseline-vanguard/report.json`:
+  opening single-download contract **PASS**.
+- `exports/integration-audit/opening-recovery-baseline-vanguard/report.json`:
+  opening + interrupted WASM + interrupted PCK **PASS**.
+
+These baseline results are not evidence for Frostline, Verdant, Emberfall, or a
+new final byte total. See [`WORLD_OPENING_INTEGRATION.md`](WORLD_OPENING_INTEGRATION.md)
+for the active source merge and required new-payload gates.

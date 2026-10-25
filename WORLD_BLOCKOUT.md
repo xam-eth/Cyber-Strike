@@ -16,11 +16,11 @@
 ## Godot entry points
 
 - Main game: `game/project.godot` → `res://scenes/main.tscn`.
-- Standalone environment: `game/scenes/worlds/neon_frontier.tscn`.
-- World assembly: `game/scripts/worlds/neon_frontier_world.gd`.
+- Standalone environment: `game/scenes/worlds/mission_world.tscn` (three mission worlds share it).
+- World assembly: `game/scripts/worlds/mission_world.gd` + `world_mood.gd`.
 - Reusable component builder: `game/scripts/worlds/neon_frontier_asset.gd`.
 - Packed 3D component scenes: `game/scenes/worlds/components/*.tscn`.
-- Automated environment checks: `tests/neon_frontier_world_smoke.gd` and `tests/arena_blockout_smoke.gd`.
+- Automated environment checks: `tests/mission_world_smoke.gd` and `tests/arena_blockout_smoke.gd`.
 
 Each packed component scene has a `Node3D` root and creates named `MeshInstance3D` parts, material instances, and gameplay-relevant `StaticBody3D`/`CollisionShape3D` components. The world script instances those packed scenes into one connected level. Most of the current level is still procedural blockout geometry, but selected high-visibility props now use actual licensed KayKit GLTF models instantiated at runtime: depot, cargo stacks, truck, drill, landing pad, and boundary rocks. No static image or plane stands in for the explorable world; the player, enemies, world, lights, meshes, and collision remain in the same Godot scene.
 

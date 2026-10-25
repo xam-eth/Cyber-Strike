@@ -23,7 +23,7 @@ Artefak CI `web-preview` (zip, isi `web/` + `README.txt`) ≈ **10 MB** karena w
 
 **Bukti browser (dijalankan di sandbox ini, Chromium headless + WebGL 2):** `node tools/web_qa.mjs` → **2/2 halaman PASS**, keduanya mem-boot Godot `4.7.2.stable.official.ed1daf0bf`, kanvas 1280×720, WebGL hidup, tanpa error halaman maupun permintaan gagal. Tangkapan layar: `exports/web-qa/root.png` dan `exports/web-qa/web-index-html.png`.
 
-> **Catatan bandwidth:** muat pertama mengunduh WASM 39,514,754 bytes + PCK 98,188,988 bytes = **137.7 MB** (sekitar **131.3 MiB**), belum termasuk loader/HTML. `python -m http.server` tidak mengompresi keduanya; forwarded port atau Wi-Fi dapat membuat unduhan lama. Layar DEPLOY sekarang menampilkan byte gabungan yang nyata, error yang dapat diulang, dan watchdog bila tidak ada kemajuan. Jangan tutup/muat ulang saat byte masih bergerak; perilaku cache tetap bergantung pada server/proxy. Diagnosis dan bukti: [`docs/WEB_LOADING_RECOVERY.md`](docs/WEB_LOADING_RECOVERY.md).
+> **Catatan bandwidth:** muat pertama mengunduh WASM 39,514,754 bytes + PCK 98,188,988 bytes = **137.7 MB** (sekitar **131.3 MiB**), belum termasuk loader/HTML. `python -m http.server` tidak mengompresi keduanya; forwarded port atau Wi-Fi dapat membuat unduhan lama. Opening sekarang mengunduh WASM + seluruh PCK dunia sebelum **Masuk**, dengan byte gabungan yang nyata; DEPLOY memakai buffer yang sama tanpa mengunduh PCK lagi. Error dapat diulang dan watchdog tetap aktif bila tidak ada kemajuan. Jangan tutup/muat ulang saat byte masih bergerak; perilaku cache tetap bergantung pada server/proxy. Diagnosis dan bukti: [`docs/WEB_LOADING_RECOVERY.md`](docs/WEB_LOADING_RECOVERY.md).
 
 ---
 
@@ -33,7 +33,7 @@ Repo ini disusun seperti `xam-eth/Scary-Night` (game lain yang juga dipakai lewa
 
 | Peran | Scary-Night | Cyber-Strike (repo ini) |
 |---|---|---|
-| Halaman yang dibuka pemain | `index.html` di root, meng-import game (`<script type="module" src="./src/main.js">`) | `index.html` di root, **meng-import build Godot langsung** (bukan iframe): konfigurasi ekspor dibaca dari `./web/index.html`, engine dari tag statis `./web/index.js`, lalu `Engine.startGame()` |
+| Halaman yang dibuka pemain | `index.html` di root, meng-import game (`<script type="module" src="./src/main.js">`) | `index.html` di root, **meng-import build Godot langsung** (bukan iframe): konfigurasi dibaca dari `./web/index.html`; opening memakai `Engine.init()` + `preloadFile()`, lalu DEPLOY memakai `Engine.start()` dengan pack yang sama |
 | Payload game | `src/` (JS/Three.js, di-commit) | `web/` (`index.js`, `index.wasm`, `index.pck`, di-commit oleh job CI `web-preview`) |
 | Engine | `Godot_v4.6.2-stable_linux.x86_64.zip` di root | `scripts/install_godot.sh` mengunduh 4.7.2 sesuai OS |
 | Template ekspor web | `web_nothreads_release.zip`, `web_nothreads_debug.zip` di root | `engine/web_templates/*.zip` (di-commit; lihat `engine/README.md`) |
@@ -137,8 +137,8 @@ Opsi: `--debug` (build debug, error lebih jelas, ukuran lebih besar), `--output 
 |---|---|
 | `index.html` + `ui/` (root repo) | **Player shell**: opening → hub/theatre → arsenal → launch → gameplay theatre terpilih. Pilihan `qa_world`/`weapon` divalidasi adapter engine; root tidak berhenti di stage WORLD. Memuat `web/` tanpa CDN/build step, memakai font/art lokal, dan menampilkan kegagalan payload/WebGL yang dapat dibaca beserta retry. Portrait mendapat layar instruksi rotasi; produk saat ini landscape-only. |
 | `tools/web_qa.mjs` | QA browser headless: menyajikan repo, membuka `/` dan `/web/index.html`, memeriksa banner engine, WebGL 2, ukuran kanvas, 4xx/5xx, kartu error; menulis tangkapan layar dan laporan `--json`. Mode root `--journey --select-vanguard` mengklik kartu Vanguard dan mewajibkan hand-off serta log build dunia yang dipilih; raw engine mempertahankan jalur WORLD terukur. `--play <detik>` menambah input/audio, bukan bukti satu run penuh. |
-| `tools/web_loading_qa.mjs` | Negative/recovery gate: memutus WASM dan PCK, mewajibkan error tanpa unhandled rejection, lalu retry ke gameplay theatre terpilih (bukan hanya canvas/WORLD). Dengan `--throughput-mbps 100` juga mewajibkan `fileSizes` nonzero, progres byte antara, dan persen yang tidak mundur. |
-| `tools/web_loader_patch.py` | Patch ekspor Godot 4.7.2 yang idempoten agar kegagalan response WASM, module initialization, dan filesystem menolak Promise `startGame()`; dipanggil otomatis oleh pipeline ekspor. |
+| `tools/web_loading_qa.mjs` | Opening + negative/recovery gate: membuktikan satu request WASM dan satu PCK sebelum **Masuk**, tidak ada gameplay di belakang opening, dan DEPLOY tanpa PCK kedua. Kemudian memutus tiap aset pada direct DEPLOY, mewajibkan error/retry, dan kembali ke gameplay theatre terpilih. Dengan `--throughput-mbps 100` juga mewajibkan `fileSizes` nonzero, progres byte antara, dan persen yang tidak mundur. |
+| `tools/web_loader_patch.py` | Patch ekspor Godot 4.7.2 yang idempoten agar kegagalan response WASM, module initialization, dan filesystem menolak Promise `init()`/`startGame()`; dipanggil otomatis oleh pipeline ekspor. |
 | `game/web_shell/index.html` | **Custom Godot HTML shell** (dipakai lewat `html/custom_html_shell`). Menyediakan boot overlay bertema (progress bar + persentase) dan error yang dapat dibaca, lalu menghilang tanpa browser chrome di atas HUD gameplay. Placeholder `$GODOT_*` resmi dipertahankan. |
 | `tools/web_preset.py` | `ensure` / `check` / `show` untuk preset Web (thread support, custom shell, resize policy, PWA off). |
 | `scripts/export_web_preview.sh` | Pipeline ekspor web 5 langkah + verifikasi. |
@@ -151,6 +151,8 @@ Opsi: `--debug` (build debug, error lebih jelas, ukuran lebih besar), `--output 
 1. `fetch('./web/index.html')` → ambil satu baris `const GODOT_CONFIG = {...};` dari build. Halaman ini tidak perlu tahu isi preset ekspor.
 2. Tag **statis** `<script src="./web/index.js">` di `<head>`. Engine menurunkan direktori asetnya dari `document.currentScript.src`; skrip yang disuntik dinamis membuat `currentScript` bernilai `null` sehingga engine mengejar `index.wasm` di root dan mendapat 404.
 3. `config.executable = './web/index'` sebelum `new Engine(config)`. Tanpa ini engine tetap mencari `index.pck`/`index.wasm` relatif halaman (`/index.wasm`), bukan relatif `web/`. Keduanya dibuktikan dengan uji headless (`node tools/web_qa.mjs` lulus untuk `/` dan `/web/index.html`).
+4. Saat opening, `Engine.init(executable)` dan `Engine.preloadFile(pack, pack)` menyiapkan runtime + seluruh world pack tanpa memulai scene gameplay. **Masuk** menunggu keduanya.
+5. Saat DEPLOY, `Engine.start({args: ['--main-pack', pack]})` memakai buffer tersebut. `startGame()` sengaja tidak dipanggil lagi karena akan mengulangi `preloadFile(pack)`.
 
 `web/` adalah **output yang sengaja di-commit** (lihat §0): jangan mengeditnya dengan tangan, dan jangan menganggap diff-nya sebagai perubahan sumber. Isinya disegarkan oleh job CI `web-preview`; satu-satunya transformasi pasca-ekspor adalah `tools/web_loader_patch.py`, yang juga dijalankan otomatis oleh pipeline. `exports/` tetap di-`.gitignore`.
 
