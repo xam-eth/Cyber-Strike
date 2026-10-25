@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Retarget the Common combat set onto the Rare and Epic hero rigs.
+"""Retarget Robot Common combat clips onto the Rare and Epic robot enemy rigs.
 
-The source GLBs have different rest transforms, so copying Common animation
+The source GLBs have different rest transforms, so copying Robot Common animation
 channels is not retargeting. This baker transfers each bone's *global motion
 relative to its reference pose* onto the target rig's own idle/aim pose, derives
 new target-local rotations through the target hierarchy, and preserves each
@@ -19,8 +19,8 @@ human visual review. Run the Godot smoke suite and inspect the exported models
 in an editor/browser before calling the deformation visually verified.
 
 Usage:
-  .venv/bin/python tools/gltf/retarget_hero_variants.py
-  .venv/bin/python tools/gltf/retarget_hero_variants.py --check
+  .venv/bin/python tools/gltf/retarget_robot_enemy_variants.py
+  .venv/bin/python tools/gltf/retarget_robot_enemy_variants.py --check
 """
 from __future__ import annotations
 
@@ -36,7 +36,7 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 sys.path.insert(0, str(HERE))
 
-import build_clips  # noqa: E402
+import build_robot_enemy_clips as build_clips  # noqa: E402
 from rigmath import (  # noqa: E402
     BinWriter,
     Skeleton,
@@ -49,32 +49,32 @@ from rigmath import (  # noqa: E402
     write_glb,
 )
 
-SOURCE_HERO = ROOT / "game/assets/characters/hero/hero.glb"
+SOURCE_ROBOT = ROOT / "game/assets/enemies/robot_common.glb"
 REQUIRED_CLIPS = ("idle", "walk", "run", "aim", "aim_walk", "aim_run", "fire", "reload", "hit", "death")
 OPTIONAL_MISSING_JOINTS = {"neutral_bone"}
 TRANSLATION_JOINTS = {"BoneRoot", "Hip"}
 
 VARIANTS = (
     {
-        "hero_id": "hero_tier_2_rare",
-        "display_name": "Rare Exo Operative",
-        "source": ROOT / "source-assets/characters/hero_variants/hero_tier_2_rare.glb",
-        "model": ROOT / "game/assets/characters/hero_variants/hero_tier_2_rare.glb",
-        "rig": ROOT / "game/assets/characters/hero_variants/hero_tier_2_rare_rig.json",
+        "enemy_id": "robot_tier_2_rare",
+        "display_name": "Rare Robot Enemy",
+        "source": ROOT / "source-assets/enemies/robot_tier_2_rare_source.glb",
+        "model": ROOT / "game/assets/enemies/robot_tier_2_rare.glb",
+        "rig": ROOT / "game/assets/enemies/robot_tier_2_rare_rig.json",
     },
     {
-        "hero_id": "hero_tier_3_epic",
-        "display_name": "Epic Exo Operative",
-        "source": ROOT / "source-assets/characters/hero_variants/hero_tier_3_epic.glb",
-        "model": ROOT / "game/assets/characters/hero_variants/hero_tier_3_epic.glb",
-        "rig": ROOT / "game/assets/characters/hero_variants/hero_tier_3_epic_rig.json",
+        "enemy_id": "robot_tier_3_epic",
+        "display_name": "Epic Robot Enemy",
+        "source": ROOT / "source-assets/enemies/robot_tier_3_epic_source.glb",
+        "model": ROOT / "game/assets/enemies/robot_tier_3_epic.glb",
+        "rig": ROOT / "game/assets/enemies/robot_tier_3_epic_rig.json",
     },
 )
 
 CHECK_ONLY = "--check" in sys.argv
 
-# build_clips.py is the canonical weapon/IK recipe. Its target points and gun
-# size are authored for a 1 m tall hero; the inputs are temporarily scaled to
+# build_robot_enemy_clips.py is the canonical weapon/IK recipe. Its target points and gun
+# size are authored for a 1 m tall robot; the inputs are temporarily scaled to
 # the target model's measured height and restored after each variant.
 BASE_RIGHT_HAND = build_clips.RIGHT_HAND.copy()
 BASE_RIGHT_POLE = build_clips.RIGHT_POLE.copy()
@@ -119,7 +119,7 @@ def _animation_times(skeleton: Skeleton, clip: str) -> tuple[np.ndarray, float]:
 
 
 def _upper_body(name: str) -> bool:
-    """The authored aim-locomotion mask from tools/blender/author_hero.py."""
+    """The authored aim-locomotion mask from the robot rig upper-body mask."""
     return name in {"Hip", "Waist", "Spine01", "Spine02"} or name.startswith(
         (
             "L_Upperarm", "L_Forearm", "L_Elbow", "L_Hand", "L_Clavicle",
@@ -225,7 +225,7 @@ def _retarget_pose(
 
     # Rebuild target positions from the target's own local bone lengths. Only
     # root/hip translation deltas are transferred; rotating a shoulder must
-    # not stretch the target's arm to match the Common character's proportions.
+    # not stretch the target's arm to match the Robot Common model's proportions.
     for index in target._topological():
         parent = target.parent.get(index)
         scale = np.asarray(target_local_scale[index], dtype=np.float64)
@@ -420,8 +420,8 @@ def _build_variant(variant: dict, source: Skeleton) -> dict:
     target = Skeleton(js, bin_)
     if not CHECK_ONLY and set(target.animations) != {"idle"}:
         raise RuntimeError(
-            f"{variant['hero_id']}: expected a clean optimized GLB with only idle; "
-            "run tools/gltf/build_all.sh before retargeting."
+            f"{variant['enemy_id']}: expected a clean optimized GLB with only idle; "
+            "run tools/gltf/build_robot_enemy_variants.sh before retargeting."
         )
     source_joints = _joint_names(source)
     target_joints = _joint_names(target)
@@ -430,7 +430,7 @@ def _build_variant(variant: dict, source: Skeleton) -> dict:
     unexpected_missing = sorted(set(missing) - OPTIONAL_MISSING_JOINTS)
     if unexpected_missing or extra:
         raise RuntimeError(
-            f"{variant['hero_id']}: skeleton mapping mismatch; missing={unexpected_missing}, extra={extra}"
+            f"{variant['enemy_id']}: skeleton mapping mismatch; missing={unexpected_missing}, extra={extra}"
         )
 
     for name in sorted(source_joints & target_joints):
@@ -442,14 +442,14 @@ def _build_variant(variant: dict, source: Skeleton) -> dict:
         target_parent_name = target.nodes[target_parent].get("name") if target_parent is not None else None
         if source_parent_name != target_parent_name:
             raise RuntimeError(
-                f"{variant['hero_id']}: {name} parent differs ({source_parent_name} vs {target_parent_name})"
+                f"{variant['enemy_id']}: {name} parent differs ({source_parent_name} vs {target_parent_name})"
             )
 
     source_height = _mesh_height(source.js, source.bin)
     target_height = _mesh_height(js, bin_)
     if not (0.95 <= source_height <= 1.05 and 0.95 <= target_height <= 1.05):
         raise RuntimeError(
-            f"{variant['hero_id']}: expected one-metre model units, got Common={source_height:.4f}, "
+            f"{variant['enemy_id']}: expected one-metre model units, got Common={source_height:.4f}, "
             f"target={target_height:.4f}"
         )
     unit_ratio = target_height / source_height
@@ -477,7 +477,7 @@ def _build_variant(variant: dict, source: Skeleton) -> dict:
             for path in ("rot", "tra", "sca")
         }
 
-        # build_all.sh regenerates a clean optimized GLB before this step. Keep
+        # prepare_robot_enemy_variants.mjs regenerates a clean optimized GLB before this step. Keep
         # its native idle and append the retargeted clips exactly once.
         js["animations"] = [
             animation for animation in js.get("animations", []) if animation.get("name") == "idle"
@@ -542,7 +542,7 @@ def _build_variant(variant: dict, source: Skeleton) -> dict:
         )
         clip_reports.append(_write_clip(target, writer, "death", times, frames))
         # Present the imported animations in a predictable order. The native
-        # target idle remains first, followed by the Common-derived clip names.
+        # target idle remains first, followed by the Robot Common-derived clip names.
         by_name = {animation.get("name", ""): animation for animation in js["animations"]}
         js["animations"] = [by_name[name] for name in REQUIRED_CLIPS]
         write_glb(variant["model"], js, writer.bin)
@@ -560,7 +560,7 @@ def _build_variant(variant: dict, source: Skeleton) -> dict:
         to_hero, barrel_q, _hand_position = build_clips.gun_transform(
             aim_keys["rot"][0], aim_keys["tra"][0], aim_keys["sca"][0], target, attach
         )
-        muzzle_hero = to_hero(build_clips.GUN_MUZZLE)
+        muzzle_character = to_hero(build_clips.GUN_MUZZLE)
     finally:
         build_clips.GUN_SCALE = original_gun_scale
     barrel_direction = q_rotate(barrel_q, np.array([0.0, 0.0, -1.0]))
@@ -568,22 +568,22 @@ def _build_variant(variant: dict, source: Skeleton) -> dict:
     carry_error = float(np.linalg.norm(carry[2] - carry[3]))
     if hand_error >= 0.002 or left_error >= 0.01 or pitch >= 1.5 or carry_error >= 0.01:
         raise RuntimeError(
-            f"{variant['hero_id']}: IK check failed: hand={hand_error:.4f}, "
+            f"{variant['enemy_id']}: IK check failed: hand={hand_error:.4f}, "
             f"support={left_error:.4f}, pitch={pitch:.2f}, carry={carry_error:.4f}"
         )
 
     rig = {
-        "note": "Generated by tools/gltf/retarget_hero_variants.py — do not edit by hand.",
+        "note": "Generated by tools/gltf/retarget_robot_enemy_variants.py — do not edit by hand.",
         "model": variant["model"].name,
-        "source_common_model": "hero.glb",
-        "source_common_sha256": _sha256(SOURCE_HERO),
+        "source_robot_common_model": "robot_common.glb",
+        "source_robot_common_sha256": _sha256(SOURCE_ROBOT),
         "source_variant_sha256": _sha256(variant["source"]),
         "retarget_method": (
-            "Global source pose deltas relative to Common idle/aim are applied to the target's own "
+            "Global source pose deltas relative to Robot Common idle/aim are applied to the target's own "
             "idle/IK aim reference. Target-local rotations are rebuilt through the matching hierarchy; "
             "target bone lengths are preserved."
         ),
-        "units": "model height is measured in GLB space; CharacterVisual fits it to target_height",
+        "units": "model height is measured in GLB space; the receiving character setup fits it to target height",
         "model_height_units": round(target_height, 6),
         "skeleton": "Armature",
         "hand_bone": "R_Hand",
@@ -619,7 +619,7 @@ def _build_variant(variant: dict, source: Skeleton) -> dict:
             "reach_left": round(float(aim_report["reach_left"]), 4),
             "hand_ik_error_m": round(hand_error, 6),
             "support_ik_error_m": round(left_error, 6),
-            "muzzle": [round(float(value), 4) for value in muzzle_hero],
+            "muzzle": [round(float(value), 4) for value in muzzle_character],
             "barrel_dir": [round(float(value), 4) for value in barrel_direction],
             "barrel_pitch_deg": round(pitch, 3),
         },
@@ -642,69 +642,69 @@ def _build_variant(variant: dict, source: Skeleton) -> dict:
 def _validate_variant(variant: dict, common_sha: str) -> list[str]:
     errors = []
     if not variant["model"].exists():
-        return [f"{variant['hero_id']}: missing runtime GLB {variant['model']}"]
+        return [f"{variant['enemy_id']}: missing runtime GLB {variant['model']}"]
     if not variant["rig"].exists():
-        return [f"{variant['hero_id']}: missing rig profile {variant['rig']}"]
+        return [f"{variant['enemy_id']}: missing rig profile {variant['rig']}"]
     js, bin_ = read_glb(variant["model"])
     skeleton = Skeleton(js, bin_)
     names = set(skeleton.animations)
     if names != set(REQUIRED_CLIPS):
-        errors.append(f"{variant['hero_id']}: clips {sorted(names)} != {sorted(REQUIRED_CLIPS)}")
+        errors.append(f"{variant['enemy_id']}: clips {sorted(names)} != {sorted(REQUIRED_CLIPS)}")
     if not (70 <= len(skeleton.joints) <= 80):
-        errors.append(f"{variant['hero_id']}: unexpected joint count {len(skeleton.joints)}")
+        errors.append(f"{variant['enemy_id']}: unexpected joint count {len(skeleton.joints)}")
     if "R_Hand" not in skeleton.name or "BoneRoot" not in skeleton.name:
-        errors.append(f"{variant['hero_id']}: required hand/root bone missing")
+        errors.append(f"{variant['enemy_id']}: required hand/root bone missing")
     for clip in REQUIRED_CLIPS:
         if clip in skeleton.animations and skeleton.clip_duration(clip) <= 0.0:
-            errors.append(f"{variant['hero_id']}: {clip} has no duration")
+            errors.append(f"{variant['enemy_id']}: {clip} has no duration")
 
     try:
         rig = json.loads(variant["rig"].read_text())
     except (OSError, json.JSONDecodeError) as error:
-        return errors + [f"{variant['hero_id']}: rig JSON failed to parse ({error})"]
-    if rig.get("source_common_sha256") != common_sha:
-        errors.append(f"{variant['hero_id']}: stale Common animation source hash")
+        return errors + [f"{variant['enemy_id']}: rig JSON failed to parse ({error})"]
+    if rig.get("source_robot_common_sha256") != common_sha:
+        errors.append(f"{variant['enemy_id']}: stale Robot Common animation source hash")
     if rig.get("source_variant_sha256") != _sha256(variant["source"]):
-        errors.append(f"{variant['hero_id']}: stale source GLB hash")
+        errors.append(f"{variant['enemy_id']}: stale source GLB hash")
     if rig.get("model") != variant["model"].name:
-        errors.append(f"{variant['hero_id']}: rig model name does not match runtime GLB")
+        errors.append(f"{variant['enemy_id']}: rig model name does not match runtime GLB")
     if rig.get("hand_bone") != "R_Hand":
-        errors.append(f"{variant['hero_id']}: weapon hand socket is not R_Hand")
-    if rig.get("retarget", {}).get("unmapped_source_joints") != ["neutral_bone"] and variant["hero_id"] == "hero_tier_2_rare":
-        errors.append(f"{variant['hero_id']}: only neutral_bone may be omitted from the target")
+        errors.append(f"{variant['enemy_id']}: weapon hand socket is not R_Hand")
+    if rig.get("retarget", {}).get("unmapped_source_joints") != ["neutral_bone"] and variant["enemy_id"] == "robot_tier_2_rare":
+        errors.append(f"{variant['enemy_id']}: only neutral_bone may be omitted from the target")
     aim = rig.get("aim_pose", {})
     if float(aim.get("hand_ik_error_m", math.inf)) >= 0.002:
-        errors.append(f"{variant['hero_id']}: right-hand IK error is outside tolerance")
+        errors.append(f"{variant['enemy_id']}: right-hand IK error is outside tolerance")
     if float(aim.get("support_ik_error_m", math.inf)) >= 0.01:
-        errors.append(f"{variant['hero_id']}: support-hand IK error is outside tolerance")
+        errors.append(f"{variant['enemy_id']}: support-hand IK error is outside tolerance")
     if abs(float(aim.get("barrel_pitch_deg", math.inf))) >= 1.5:
-        errors.append(f"{variant['hero_id']}: aim barrel is not level")
+        errors.append(f"{variant['enemy_id']}: aim barrel is not level")
     if float(rig.get("carry", {}).get("socket_error", math.inf)) >= 0.01:
-        errors.append(f"{variant['hero_id']}: carry socket check failed")
+        errors.append(f"{variant['enemy_id']}: carry socket check failed")
     return errors
 
 
 def main() -> int:
-    if not SOURCE_HERO.exists():
-        raise RuntimeError(f"Common runtime hero missing: {SOURCE_HERO}")
-    source = Skeleton(*read_glb(SOURCE_HERO))
+    if not SOURCE_ROBOT.exists():
+        raise RuntimeError(f"Robot Common runtime enemy missing: {SOURCE_ROBOT}")
+    source = Skeleton(*read_glb(SOURCE_ROBOT))
     missing_common_clips = sorted(set(REQUIRED_CLIPS) - set(source.animations))
     if missing_common_clips:
-        raise RuntimeError(f"Common runtime hero is missing clips: {missing_common_clips}")
-    common_sha = _sha256(SOURCE_HERO)
+        raise RuntimeError(f"Robot Common runtime enemy is missing clips: {missing_common_clips}")
+    common_sha = _sha256(SOURCE_ROBOT)
     errors: list[str] = []
 
     for variant in VARIANTS:
         if CHECK_ONLY:
             errors.extend(_validate_variant(variant, common_sha))
             if not errors:
-                print(f"{variant['hero_id']}: GLB, 10 clips, rig profile and source hashes pass")
+                print(f"{variant['enemy_id']}: GLB, 10 clips, rig profile and source hashes pass")
             continue
         rig = _build_variant(variant, source)
         errors.extend(_validate_variant(variant, common_sha))
         report = rig["aim_pose"]
         print(
-            f"{variant['hero_id']}: {rig['retarget']['mapped_joint_count']}/"
+            f"{variant['enemy_id']}: {rig['retarget']['mapped_joint_count']}/"
             f"{rig['retarget']['target_joint_count']} joints · {len(rig['clips'])} clips · "
             f"hand IK {report['hand_ik_error_m'] * 1000:.3f} mm · "
             f"support {report['support_ik_error_m'] * 1000:.3f} mm · "

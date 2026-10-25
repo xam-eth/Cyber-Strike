@@ -1,60 +1,67 @@
 # Cyber-Strike Character Assets
 
-This branch snapshot is intentionally limited to **character design assets, rigs, animation retargeting, and standalone visual QA**. It is not the full Cyber-Strike game project: gameplay systems, UI, worlds, weapons, web export, and general game tooling are outside this scope and are not included in this branch's current tree.
+This branch contains **character assets, rigs, animation tooling, and a standalone visual QA project only**. It does not include the gameplay framework or a playable game.
 
-## Contents
+## Updated character plan
 
-- `source-assets/characters/` — preserved Common, Rare, and Epic hero source files.
-- `source-assets/enemies/` — preserved Sentinel and Warden source GLBs.
-- `source-assets/tripo_references/` — individual character reference PNGs only.
-- `game/assets/characters/` and `game/assets/enemies/` — character GLBs and rig metadata, kept at runtime-compatible paths for the receiving game project.
-- `tools/gltf/` — character-only optimization, animation-retarget, and enemy-rigging tools.
-- `character_visual_qa/` — separate Godot project for importing and visually reviewing the seven character GLBs before approval.
+- **One human hero with five visual upgrade tiers:** Tier 1 through Tier 5 are appearances for the same hero identity, not five separate heroes.
+- The five Drive files are preserved at `source-assets/characters/human_hero_tiers/` as original source GLBs.
+- Structural inspection found each human GLB is a single static mesh at approximately 480k triangles, with **no skeleton, skin, or animation clips**. These are source visuals for review—not rigged/runtime-ready heroes. Visual review, optimization, skinning, and animation remain pending.
+- The former Common, Rare, and Epic robot hero models have been reclassified under `game/assets/enemies/` and `source-assets/enemies/`. Robot Common remains the shared rig template for the robot enemies; Sentinel and Warden remain enemies too.
 
-The `game/assets/` directory here contains only character assets; there is no main game project or gameplay integration in this snapshot. The consuming game's controller, UI, scenes, and systems are deliberately not part of this branch tree.
+## Character-only files
 
-## Character deliverables
+- `character_visual_qa/` — standalone Godot project for the current 15-entry visual review set.
+- `source-assets/characters/human_hero_tiers/` — five human hero tier source models from Drive.
+- `source-assets/enemies/` — robot source GLBs and the existing Sentinel/Warden source GLBs.
+- `game/assets/enemies/` — runtime-form robot enemy GLBs and rig metadata. This folder contains assets only, not game code.
+- `source-assets/tripo_references/` — individual robot/enemy character reference PNGs.
+- `tools/gltf/` — character-only asset optimization, rigging, and animation tools.
 
-| Character | Asset state |
-| --- | --- |
-| Common hero | Existing 79-joint runtime model and rig profile used as the shared rig/animation template. |
-| Rare hero | Optimized GLB retargeted to its own rig profile; 10 runtime clips. |
-| Epic hero | Optimized GLB retargeted to its own rig profile; 10 runtime clips. |
-| Iron Sentinel enemy | Original source preserved; optimized runtime GLB weighted to the Common 79-joint skeleton. No authored enemy clips yet. |
-| Iron Warden Boss enemy | Original source preserved; optimized runtime GLB weighted to the Common 79-joint skeleton. No authored enemy clips yet. |
+## Visual review in Godot
 
-The enemy GLBs have per-mesh skin weights; adding a skeleton alone would not make their original meshes deform. Source models remain separate from optimized runtime outputs.
-
-## Rebuild the character assets
-
-Requirements: Python 3, Node/npm, and Godot 4.7.2 for the optional visual QA project.
-
-```sh
-python3 -m venv .venv
-.venv/bin/pip install -r requirements-dev.txt
-./tools/gltf/build_hero_variants.sh
-./tools/gltf/build_enemy_models.sh
-```
-
-The build scripts install the pinned glTF dependencies with `npm ci` when needed. They use the Common runtime GLB as the shared rig/animation template and leave the preserved source GLBs untouched.
-
-## Visual QA
+Stage the models, then check that the local copies match the manifest:
 
 ```sh
 python3 character_visual_qa/tools/sync_assets.py
 python3 character_visual_qa/tools/sync_assets.py --check
 ```
 
-Open `character_visual_qa/project.godot` in Godot 4.7.2 and perform the rendered visual review there. The review records start as `PENDING`; this repository does not claim GUI verification or an approval result. See `character_visual_qa/README.md` for the review steps and gate commands.
+Import `character_visual_qa/project.godot` in Godot 4.7.2 and review the five human tiers plus the robot enemy models. All review records start as `PENDING`; the human tier entries are explicitly marked unrigged and review-only. See `character_visual_qa/README.md` for controls and gate commands.
 
-This asset-only snapshot intentionally does not wire models into gameplay. Any receiving game project should perform its own Godot import and integration checks after the character review passes.
+## Robot enemy rebuild tools
 
-## Clone only the character snapshot
-
-The branch preserves its earlier Git history, which contains the original game framework. To fetch only the current character-only snapshot and avoid downloading that old history, use a shallow clone:
+The retained build scripts apply only to the existing robot assets; they do not rig the new human hero GLBs:
 
 ```sh
-git clone --depth 1 --single-branch \
+python3 -m venv .venv
+.venv/bin/pip install -r requirements-dev.txt
+./tools/gltf/build_robot_enemy_variants.sh
+./tools/gltf/build_enemy_models.sh
+```
+
+Human tier optimization, rigging, and animation must be treated as a separate next step after visual review. No human tier is claimed complete or wired into gameplay.
+
+## Clone only the visual QA project and its required character assets
+
+GitHub does not offer a direct single-folder `clone`. This sparse, shallow clone gets the Godot review project and only the character assets it reads, without the rest of the branch tree or its older history:
+
+```sh
+git clone --depth 1 --filter=blob:none --sparse --single-branch \
   --branch arena/0b00d4dd-cyber-strike \
-  https://github.com/xam-eth/Cyber-Strike.git Cyber-Strike-characters
+  https://github.com/xam-eth/Cyber-Strike.git Cyber-Strike-Character-QA
+cd Cyber-Strike-Character-QA
+git sparse-checkout set \
+  character_visual_qa \
+  game/assets/enemies \
+  source-assets/enemies \
+  source-assets/characters/human_hero_tiers
+python3 character_visual_qa/tools/sync_assets.py
+```
+
+Then import `Cyber-Strike-Character-QA/character_visual_qa/project.godot` through Godot Project Manager. For later updates, from the clone root run:
+
+```sh
+git pull --ff-only origin arena/0b00d4dd-cyber-strike
+python3 character_visual_qa/tools/sync_assets.py
 ```

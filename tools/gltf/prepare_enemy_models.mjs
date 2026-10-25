@@ -3,8 +3,8 @@
  * Optimize the supplied Iron Sentinel and Iron Warden enemy GLBs for runtime.
  * Original source files stay intact in source-assets/enemies/. The supplied
  * meshes are static and unskinned; this step emits optimized intermediates.
- * rig_enemy_models.py then applies Common's skin. No animation clips are
- * embedded; EnemyVisual keeps its existing procedural motion and hit/death.
+ * rig_enemy_models.py then applies Robot Common's enemy skin. No animation clips are
+ * embedded; Enemy-specific animation clips are still pending; this step only optimizes mesh and textures.
  *
  * Usage:
  *   node tools/gltf/prepare_enemy_models.mjs

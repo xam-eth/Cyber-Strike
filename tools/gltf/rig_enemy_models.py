@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-"""Apply the Common hero skeleton to the two supplied static enemy meshes.
+"""Apply the Robot Common enemy skeleton to the two supplied static enemy meshes.
 
 The GLB hierarchy, 79-joint skin, bind matrices and rest pose are copied from
-``game/assets/characters/hero/hero.glb``. The enemy meshes get their own
+``game/assets/enemies/robot_common.glb``. The enemy meshes get their own
 per-vertex JOINTS_0 / WEIGHTS_0 attributes, derived from proximity to the copied
 bone segments. Enemy-specific clips are deliberately not embedded: the enemies
 can receive their own animations later while keeping this shared skeleton.
 
 This is a deterministic glTF skinning build, not a Blender autorig or a visual
 weight-paint review. ``--check`` verifies the exported GLB by re-reading it,
-checking rest-pose identity, and probing deformations with Common's clips in
+checking rest-pose identity, and probing deformations with Robot Common's clips in
 memory without copying those clips into the enemy files.
 
 Usage:
@@ -34,17 +34,17 @@ sys.path.insert(0, str(HERE))
 
 from rigmath import BinWriter, Skeleton, accessor_array, read_glb, write_glb  # noqa: E402
 
-HERO_MODEL = ROOT / "game/assets/characters/hero/hero.glb"
+RIG_TEMPLATE_MODEL = ROOT / "game/assets/enemies/robot_common.glb"
 VARIANTS = (
     {
-        "hero_id": "iron_sentinel",
+        "enemy_id": "iron_sentinel",
         "source": ROOT / "source-assets/enemies/iron-sentinel-enimies.glb",
         "optimized": ROOT / "tools/gltf/build/enemies/iron_sentinel.glb",
         "model": ROOT / "game/assets/enemies/iron_sentinel.glb",
         "rig": ROOT / "game/assets/enemies/iron_sentinel_rig.json",
     },
     {
-        "hero_id": "iron_warden_boss",
+        "enemy_id": "iron_warden_boss",
         "source": ROOT / "source-assets/enemies/Iron-Warnden-Bos-enimies.glb",
         "optimized": ROOT / "tools/gltf/build/enemies/iron_warden_boss.glb",
         "model": ROOT / "game/assets/enemies/iron_warden_boss.glb",
@@ -75,25 +75,25 @@ def _parent_map(nodes: list[dict[str, Any]]) -> dict[int, int]:
     return parents
 
 
-def _source_skeleton_region(hero_js: dict[str, Any]) -> tuple[int, int, set[int]]:
-    skins = hero_js.get("skins", [])
+def _source_skeleton_region(template_js: dict[str, Any]) -> tuple[int, int, set[int]]:
+    skins = template_js.get("skins", [])
     if len(skins) != 1:
-        raise RuntimeError(f"Common hero must contain one skin; got {len(skins)}")
+        raise RuntimeError(f"Robot Common enemy must contain one skin; got {len(skins)}")
     skin = skins[0]
     joint_nodes = skin.get("joints", [])
     mesh_nodes = [
         index
-        for index, node in enumerate(hero_js["nodes"])
+        for index, node in enumerate(template_js["nodes"])
         if node.get("skin") == 0 and node.get("mesh") is not None
     ]
     if not joint_nodes or len(mesh_nodes) != 1:
-        raise RuntimeError("Common hero must have one skinned mesh and a non-empty joint list")
+        raise RuntimeError("Robot Common enemy must have one skinned mesh and a non-empty joint list")
 
-    parents = _parent_map(hero_js["nodes"])
+    parents = _parent_map(template_js["nodes"])
     source_mesh_node = mesh_nodes[0]
     armature_root = parents.get(source_mesh_node)
     if armature_root is None:
-        raise RuntimeError("Common hero mesh is not parented under its armature root")
+        raise RuntimeError("Robot Common enemy mesh is not parented under its armature root")
 
     # The Common GLB's mesh and joint hierarchy are siblings under Armature.
     # Verify every skin joint descends from that same root before copying it.
@@ -107,7 +107,7 @@ def _source_skeleton_region(hero_js: dict[str, Any]) -> tuple[int, int, set[int]
             current = parents.get(current)
         if current != armature_root:
             raise RuntimeError(
-                f"Common joint {hero_js['nodes'][joint].get('name', joint)!r} "
+                f"Common joint {template_js['nodes'][joint].get('name', joint)!r} "
                 "does not descend from its armature root"
             )
     if source_mesh_node in region:
@@ -116,35 +116,35 @@ def _source_skeleton_region(hero_js: dict[str, Any]) -> tuple[int, int, set[int]
 
 
 def _deforming_segments(
-    hero_js: dict[str, Any], hero_skeleton: Skeleton
+    template_js: dict[str, Any], template_skeleton: Skeleton
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, list[str]]:
     """Return target-joint ids and rest-pose segments for automatic weighting."""
-    skin = hero_js["skins"][0]
+    skin = template_js["skins"][0]
     joint_nodes = skin["joints"]
     joint_to_skin_index = {node_index: skin_index for skin_index, node_index in enumerate(joint_nodes)}
-    _, global_pos = hero_skeleton.rest_pose()
+    _, global_pos = template_skeleton.rest_pose()
     starts: list[np.ndarray] = []
     ends: list[np.ndarray] = []
     skin_indices: list[int] = []
     names: list[str] = []
 
     for node_index in joint_nodes:
-        name = hero_js["nodes"][node_index].get("name", f"node{node_index}")
+        name = template_js["nodes"][node_index].get("name", f"node{node_index}")
         if name in HELPER_BONES or "ShareBone" in name:
             continue
         start = np.asarray(global_pos[node_index], dtype=np.float64)
 
         children = [
             child
-            for child in hero_js["nodes"][node_index].get("children", [])
+            for child in template_js["nodes"][node_index].get("children", [])
             if child in joint_to_skin_index
-            and hero_js["nodes"][child].get("name", "") not in HELPER_BONES
-            and "ShareBone" not in hero_js["nodes"][child].get("name", "")
+            and template_js["nodes"][child].get("name", "") not in HELPER_BONES
+            and "ShareBone" not in template_js["nodes"][child].get("name", "")
         ]
         primary_children = [
             child
             for child in children
-            if "Twist" not in hero_js["nodes"][child].get("name", "")
+            if "Twist" not in template_js["nodes"][child].get("name", "")
         ]
         if len(primary_children) == 1:
             endpoint = np.asarray(global_pos[primary_children[0]], dtype=np.float64)
@@ -239,19 +239,19 @@ def _skin_points(
 
 
 def _load_template() -> tuple[dict[str, Any], bytes, Skeleton]:
-    if not HERO_MODEL.exists():
-        raise RuntimeError(f"Common rig template missing: {HERO_MODEL}")
-    hero_js, hero_bin = read_glb(HERO_MODEL)
-    skeleton = Skeleton(hero_js, hero_bin)
-    if len(hero_js.get("skins", [])) != 1:
-        raise RuntimeError("Common rig template must have exactly one skin")
-    if len(hero_js["skins"][0].get("joints", [])) < 70:
-        raise RuntimeError("Common rig template unexpectedly has fewer than 70 joints")
-    return hero_js, hero_bin, skeleton
+    if not RIG_TEMPLATE_MODEL.exists():
+        raise RuntimeError(f"Robot Common rig template missing: {RIG_TEMPLATE_MODEL}")
+    template_js, template_bin = read_glb(RIG_TEMPLATE_MODEL)
+    skeleton = Skeleton(template_js, template_bin)
+    if len(template_js.get("skins", [])) != 1:
+        raise RuntimeError("Robot Common rig template must have exactly one skin")
+    if len(template_js["skins"][0].get("joints", [])) < 70:
+        raise RuntimeError("Robot Common rig template unexpectedly has fewer than 70 joints")
+    return template_js, template_bin, skeleton
 
 
 def _build_variant(
-    variant: dict, hero_js: dict[str, Any], hero_bin: bytes, hero_skeleton: Skeleton
+    variant: dict, template_js: dict[str, Any], template_bin: bytes, template_skeleton: Skeleton
 ) -> dict:
     if not variant["optimized"].exists():
         raise RuntimeError(f"Optimized mesh is missing: {variant['optimized']}")
@@ -260,18 +260,18 @@ def _build_variant(
         raise RuntimeError(f"{variant['optimized']} must be a static mesh before rigging")
     mesh_nodes = [index for index, node in enumerate(js["nodes"]) if node.get("mesh") is not None]
     if len(mesh_nodes) != 1 or len(js.get("scenes", [])) != 1:
-        raise RuntimeError(f"{variant['hero_id']}: expected one mesh node in one scene")
+        raise RuntimeError(f"{variant['enemy_id']}: expected one mesh node in one scene")
     mesh_node = mesh_nodes[0]
 
-    source_mesh_node, armature_root, region = _source_skeleton_region(hero_js)
-    source_skin = hero_js["skins"][0]
+    source_mesh_node, armature_root, region = _source_skeleton_region(template_js)
+    source_skin = template_js["skins"][0]
     source_joint_nodes = source_skin["joints"]
     mapping: dict[int, int] = {source_mesh_node: mesh_node}
     sorted_region = sorted(region)
     for offset, source_node in enumerate(sorted_region):
         mapping[source_node] = len(js["nodes"]) + offset
     for source_node in sorted_region:
-        copied = copy.deepcopy(hero_js["nodes"][source_node])
+        copied = copy.deepcopy(template_js["nodes"][source_node])
         copied["children"] = [
             mapping[child]
             for child in copied.get("children", [])
@@ -287,7 +287,7 @@ def _build_variant(
     js["nodes"][mesh_node]["skin"] = 0
 
     writer = BinWriter(js, bin_)
-    inverse_bind = accessor_array(hero_js, hero_bin, source_skin["inverseBindMatrices"])
+    inverse_bind = accessor_array(template_js, template_bin, source_skin["inverseBindMatrices"])
     inverse_bind_accessor = writer.add(inverse_bind, "MAT4", 5126, minmax=False)
     skin = copy.deepcopy(source_skin)
     skin["joints"] = [mapping[index] for index in source_joint_nodes]
@@ -295,13 +295,13 @@ def _build_variant(
     skin["inverseBindMatrices"] = inverse_bind_accessor
     js["skins"] = [skin]
 
-    starts, ends, deform_skin_indices, deform_names = _deforming_segments(hero_js, hero_skeleton)
+    starts, ends, deform_skin_indices, deform_names = _deforming_segments(template_js, template_skeleton)
     all_weight_reports = []
     mesh_index = js["nodes"][mesh_node]["mesh"]
     for primitive in js["meshes"][mesh_index].get("primitives", []):
         position_accessor = primitive.get("attributes", {}).get("POSITION")
         if position_accessor is None:
-            raise RuntimeError(f"{variant['hero_id']}: primitive is missing POSITION")
+            raise RuntimeError(f"{variant['enemy_id']}: primitive is missing POSITION")
         points = accessor_array(js, writer.bin, position_accessor).astype(np.float64)
         joints, weights = _weights_for_points(points, starts, ends, deform_skin_indices)
         primitive.setdefault("attributes", {})["JOINTS_0"] = writer.add(
@@ -322,7 +322,7 @@ def _build_variant(
     variant["model"].parent.mkdir(parents=True, exist_ok=True)
     write_glb(variant["model"], js, writer.bin)
     output_js, output_bin = read_glb(variant["model"])
-    checks = _validate_variant(variant, output_js, output_bin, hero_js, hero_skeleton)
+    checks = _validate_variant(variant, output_js, output_bin, template_js, template_skeleton)
 
     metadata = {
         "note": "Generated by tools/gltf/rig_enemy_models.py; do not edit by hand.",
@@ -330,8 +330,8 @@ def _build_variant(
         "source_model": variant["source"].name,
         "source_model_sha256": _sha256(variant["source"]),
         "optimized_mesh_sha256": _sha256(variant["optimized"]),
-        "rig_template": "game/assets/characters/hero/hero.glb",
-        "rig_template_sha256": _sha256(HERO_MODEL),
+        "rig_template": "game/assets/enemies/robot_common.glb",
+        "rig_template_sha256": _sha256(RIG_TEMPLATE_MODEL),
         "skeleton_root": output_js["nodes"][output_js["skins"][0]["skeleton"]].get("name"),
         "joint_count": len(output_js["skins"][0]["joints"]),
         "joint_names": [output_js["nodes"][index].get("name") for index in output_js["skins"][0]["joints"]],
@@ -354,34 +354,34 @@ def _validate_variant(
     variant: dict,
     js: dict[str, Any],
     bin_: bytes,
-    hero_js: dict[str, Any],
-    hero_skeleton: Skeleton,
+    template_js: dict[str, Any],
+    template_skeleton: Skeleton,
 ) -> dict:
     skins = js.get("skins", [])
     if len(skins) != 1:
-        raise RuntimeError(f"{variant['hero_id']}: expected one copied hero skin, got {len(skins)}")
+        raise RuntimeError(f"{variant['enemy_id']}: expected one copied robot skin, got {len(skins)}")
     skin = skins[0]
-    hero_skin = hero_js["skins"][0]
-    if len(skin.get("joints", [])) != len(hero_skin["joints"]):
-        raise RuntimeError(f"{variant['hero_id']}: joint count differs from Common")
+    template_skin = template_js["skins"][0]
+    if len(skin.get("joints", [])) != len(template_skin["joints"]):
+        raise RuntimeError(f"{variant['enemy_id']}: joint count differs from Common")
     joint_names = [js["nodes"][index].get("name") for index in skin["joints"]]
-    hero_joint_names = [hero_js["nodes"][index].get("name") for index in hero_skin["joints"]]
-    if joint_names != hero_joint_names:
-        raise RuntimeError(f"{variant['hero_id']}: copied joint order differs from Common")
+    template_joint_names = [template_js["nodes"][index].get("name") for index in template_skin["joints"]]
+    if joint_names != template_joint_names:
+        raise RuntimeError(f"{variant['enemy_id']}: copied joint order differs from Common")
     if js.get("animations", []):
-        raise RuntimeError(f"{variant['hero_id']}: enemy-specific animations should not be embedded yet")
+        raise RuntimeError(f"{variant['enemy_id']}: enemy-specific animations should not be embedded yet")
 
     mesh_nodes = [index for index, node in enumerate(js["nodes"]) if node.get("mesh") is not None]
     if len(mesh_nodes) != 1 or js["nodes"][mesh_nodes[0]].get("skin") != 0:
-        raise RuntimeError(f"{variant['hero_id']}: mesh node does not reference the copied skin")
+        raise RuntimeError(f"{variant['enemy_id']}: mesh node does not reference the copied skin")
     parent = _parent_map(js["nodes"])
     if parent.get(mesh_nodes[0]) != skin.get("skeleton"):
-        raise RuntimeError(f"{variant['hero_id']}: mesh is not parented to the copied armature root")
+        raise RuntimeError(f"{variant['enemy_id']}: mesh is not parented to the copied armature root")
 
     mesh_index = js["nodes"][mesh_nodes[0]]["mesh"]
     primitives = js["meshes"][mesh_index].get("primitives", [])
     if not primitives:
-        raise RuntimeError(f"{variant['hero_id']}: no mesh primitives found")
+        raise RuntimeError(f"{variant['enemy_id']}: no mesh primitives found")
     all_points: list[np.ndarray] = []
     all_joint_arrays: list[np.ndarray] = []
     all_weight_arrays: list[np.ndarray] = []
@@ -390,22 +390,22 @@ def _validate_variant(
     for primitive in primitives:
         attributes = primitive.get("attributes", {})
         if "JOINTS_0" not in attributes or "WEIGHTS_0" not in attributes:
-            raise RuntimeError(f"{variant['hero_id']}: primitive is missing skin attributes")
+            raise RuntimeError(f"{variant['enemy_id']}: primitive is missing skin attributes")
         points = accessor_array(js, bin_, attributes["POSITION"]).astype(np.float64)
         joints = accessor_array(js, bin_, attributes["JOINTS_0"]).astype(np.int64)
         weights = accessor_array(js, bin_, attributes["WEIGHTS_0"]).astype(np.float64)
         if joints.shape != weights.shape or joints.shape != (len(points), MAX_INFLUENCES):
-            raise RuntimeError(f"{variant['hero_id']}: skin attributes do not match vertex count")
+            raise RuntimeError(f"{variant['enemy_id']}: skin attributes do not match vertex count")
         if not np.isfinite(points).all() or not np.isfinite(weights).all():
-            raise RuntimeError(f"{variant['hero_id']}: non-finite vertex or skin data")
+            raise RuntimeError(f"{variant['enemy_id']}: non-finite vertex or skin data")
         if np.any(joints < 0) or np.any(joints >= len(skin["joints"])):
-            raise RuntimeError(f"{variant['hero_id']}: vertex references an unknown joint")
+            raise RuntimeError(f"{variant['enemy_id']}: vertex references an unknown joint")
         if np.any(weights < 0.0) or np.any(weights > 1.0 + 1e-6):
-            raise RuntimeError(f"{variant['hero_id']}: invalid skin weight range")
+            raise RuntimeError(f"{variant['enemy_id']}: invalid skin weight range")
         local_error = float(np.max(np.abs(weights.sum(axis=1) - 1.0)))
         max_weight_sum_error = max(max_weight_sum_error, local_error)
         if local_error > 1e-5:
-            raise RuntimeError(f"{variant['hero_id']}: vertex weights do not sum to one")
+            raise RuntimeError(f"{variant['enemy_id']}: vertex weights do not sum to one")
         all_points.append(points)
         all_joint_arrays.append(joints)
         all_weight_arrays.append(weights)
@@ -413,14 +413,14 @@ def _validate_variant(
 
     ibm_accessor = skin.get("inverseBindMatrices")
     if ibm_accessor is None:
-        raise RuntimeError(f"{variant['hero_id']}: inverse bind matrices are missing")
+        raise RuntimeError(f"{variant['enemy_id']}: inverse bind matrices are missing")
     inverse_bind = accessor_array(js, bin_, ibm_accessor).reshape(-1, 4, 4).transpose(0, 2, 1)
     if inverse_bind.shape != (len(skin["joints"]), 4, 4) or not np.isfinite(inverse_bind).all():
-        raise RuntimeError(f"{variant['hero_id']}: inverse bind matrices are invalid")
+        raise RuntimeError(f"{variant['enemy_id']}: inverse bind matrices are invalid")
 
-    common_rest_rot, common_rest_pos = hero_skeleton.rest_pose()
+    common_rest_rot, common_rest_pos = template_skeleton.rest_pose()
     rest_parts = [
-        _skin_points(points, joints, weights, hero_skin["joints"], common_rest_rot, common_rest_pos, inverse_bind)
+        _skin_points(points, joints, weights, template_skin["joints"], common_rest_rot, common_rest_pos, inverse_bind)
         for points, joints, weights in zip(all_points, all_joint_arrays, all_weight_arrays)
     ]
     rest_error = max(
@@ -428,31 +428,31 @@ def _validate_variant(
         for points, deformed in zip(all_points, rest_parts)
     )
     if rest_error > MAX_REST_ERROR:
-        raise RuntimeError(f"{variant['hero_id']}: bind pose alters the mesh by {rest_error:.6f}m")
+        raise RuntimeError(f"{variant['enemy_id']}: bind pose alters the mesh by {rest_error:.6f}m")
 
-    # Probe deformations against Common's clips in memory; these clips are only
+    # Probe deformations against Robot Common's clips in memory; these clips are only
     # used for verification and are intentionally not shipped in enemy GLBs.
     pose_reports = {}
     for clip in PROBE_CLIPS:
-        if clip not in hero_skeleton.animations:
-            raise RuntimeError(f"Common rig template is missing probe clip {clip!r}")
-        duration = hero_skeleton.clip_duration(clip)
+        if clip not in template_skeleton.animations:
+            raise RuntimeError(f"Robot Common rig template is missing probe clip {clip!r}")
+        duration = template_skeleton.clip_duration(clip)
         p95_displacement = 0.0
         max_radius = 0.0
         for phase in (0.25, 0.5, 0.75):
-            local_pose = hero_skeleton.local_pose(clip, duration * phase)
-            global_rot, global_pos = hero_skeleton.fk(*local_pose)
+            local_pose = template_skeleton.local_pose(clip, duration * phase)
+            global_rot, global_pos = template_skeleton.fk(*local_pose)
             for points, joints, weights in zip(all_points, all_joint_arrays, all_weight_arrays):
                 deformed = _skin_points(
-                    points, joints, weights, hero_skin["joints"], global_rot, global_pos, inverse_bind
+                    points, joints, weights, template_skin["joints"], global_rot, global_pos, inverse_bind
                 )
                 displacement = np.linalg.norm(deformed - points, axis=1)
                 p95_displacement = max(p95_displacement, float(np.quantile(displacement, 0.95)))
                 max_radius = max(max_radius, float(np.max(np.linalg.norm(deformed, axis=1))))
         if not math.isfinite(p95_displacement) or max_radius > MAX_POSE_RADIUS:
-            raise RuntimeError(f"{variant['hero_id']}/{clip}: deformation probe produced invalid bounds")
+            raise RuntimeError(f"{variant['enemy_id']}/{clip}: deformation probe produced invalid bounds")
         if p95_displacement < 0.002:
-            raise RuntimeError(f"{variant['hero_id']}/{clip}: copied weights do not respond to the clip")
+            raise RuntimeError(f"{variant['enemy_id']}/{clip}: copied weights do not respond to the clip")
         pose_reports[clip] = {
             "p95_displacement_m": round(p95_displacement, 6),
             "max_radius_m": round(max_radius, 6),
@@ -460,17 +460,17 @@ def _validate_variant(
 
     # Check that each copied joint retains the same name and parent as Common.
     output_skeleton = Skeleton(js, bin_)
-    for source_index in hero_skin["joints"]:
-        name = hero_js["nodes"][source_index].get("name", f"node{source_index}")
+    for source_index in template_skin["joints"]:
+        name = template_js["nodes"][source_index].get("name", f"node{source_index}")
         target_index = output_skeleton.name.get(name)
         if target_index is None:
-            raise RuntimeError(f"{variant['hero_id']}: copied bone {name!r} is missing")
-        source_parent = hero_skeleton.parent.get(source_index)
+            raise RuntimeError(f"{variant['enemy_id']}: copied bone {name!r} is missing")
+        source_parent = template_skeleton.parent.get(source_index)
         target_parent = output_skeleton.parent.get(target_index)
-        source_parent_name = hero_js["nodes"][source_parent].get("name") if source_parent is not None else None
+        source_parent_name = template_js["nodes"][source_parent].get("name") if source_parent is not None else None
         target_parent_name = js["nodes"][target_parent].get("name") if target_parent is not None else None
         if source_parent_name != target_parent_name:
-            raise RuntimeError(f"{variant['hero_id']}: parent mismatch for bone {name!r}")
+            raise RuntimeError(f"{variant['enemy_id']}: parent mismatch for bone {name!r}")
 
     return {
         "joint_count": len(skin["joints"]),
@@ -482,7 +482,7 @@ def _validate_variant(
 
 
 def _main() -> int:
-    hero_js, hero_bin, hero_skeleton = _load_template()
+    template_js, template_bin, template_skeleton = _load_template()
     if CHECK_ONLY:
         errors = []
         for variant in VARIANTS:
@@ -490,9 +490,9 @@ def _main() -> int:
                 if not variant["model"].exists() or not variant["rig"].exists():
                     raise RuntimeError("rigged GLB or rig profile is missing")
                 js, bin_ = read_glb(variant["model"])
-                checks = _validate_variant(variant, js, bin_, hero_js, hero_skeleton)
+                checks = _validate_variant(variant, js, bin_, template_js, template_skeleton)
                 metadata = json.loads(variant["rig"].read_text(encoding="utf-8"))
-                if metadata.get("rig_template_sha256") != _sha256(HERO_MODEL):
+                if metadata.get("rig_template_sha256") != _sha256(RIG_TEMPLATE_MODEL):
                     raise RuntimeError("rig profile is stale for the current Common template")
                 if metadata.get("source_model_sha256") != _sha256(variant["source"]):
                     raise RuntimeError("rig profile is stale for the preserved enemy source")
@@ -501,20 +501,20 @@ def _main() -> int:
                 if metadata.get("verification") != checks:
                     raise RuntimeError("stored rig verification report differs from the current GLB")
                 print(
-                    f"{variant['hero_id']}: {checks['joint_count']} shared joints · "
+                    f"{variant['enemy_id']}: {checks['joint_count']} shared joints · "
                     f"{checks['vertex_count']:,} weighted vertices · "
                     f"bind error {checks['bind_pose_max_error_m']:.2e}m · deformation probes pass"
                 )
             except (OSError, ValueError, RuntimeError, KeyError) as error:
-                errors.append(f"{variant['hero_id']}: {error}")
+                errors.append(f"{variant['enemy_id']}: {error}")
         for error in errors:
             print(f"ERROR: {error}", file=sys.stderr)
         return 1 if errors else 0
 
     for variant in VARIANTS:
-        report = _build_variant(variant, hero_js, hero_bin, hero_skeleton)
+        report = _build_variant(variant, template_js, template_bin, template_skeleton)
         print(
-            f"{variant['hero_id']}: {report['joint_count']} shared joints · "
+            f"{variant['enemy_id']}: {report['joint_count']} shared joints · "
             f"{sum(item['vertices'] for item in report['primitive_weights']):,} weighted vertices · "
             f"bind error {report['verification']['bind_pose_max_error_m']:.2e}m · "
             f"probes " + ", ".join(

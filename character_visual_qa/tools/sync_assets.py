@@ -2,9 +2,9 @@
 """Stage the manifest's GLBs inside the standalone Godot QA project.
 
 The staged copies are ignored by Git so character binaries are not duplicated
-in the repository. Source GLBs stay in game/assets (baseline review) or
-source-assets (new candidates); this command makes the QA project portable and
-keeps its local copies byte-identical to the declared source.
+in the repository. Runtime-form character assets stay in game/assets, while
+original source GLBs stay in source-assets. This command stages the manifest's
+current role/tier set and keeps local copies byte-identical to their sources.
 """
 from __future__ import annotations
 
@@ -71,6 +71,17 @@ def run(check_only: bool) -> int:
     assets = load_manifest()
     report: dict[str, Any] = {"schema_version": 1, "assets": {}}
     problems: list[str] = []
+    expected_destinations = {(PROJECT / str(entry["qa_file"])).resolve() for entry in assets}
+    staged_dir = PROJECT / "assets"
+    for stale in staged_dir.glob("*.glb"):
+        if stale.resolve() in expected_destinations:
+            continue
+        if check_only:
+            problems.append(f"stale staged GLB is not in the manifest: {stale.relative_to(PROJECT)}")
+        else:
+            stale.unlink()
+            print(f"Removed stale staged GLB · {stale.name}")
+
     for entry in assets:
         asset_id = str(entry["id"])
         source = (ROOT / str(entry["source"])).resolve()

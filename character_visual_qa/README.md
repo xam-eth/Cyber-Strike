@@ -1,49 +1,43 @@
-# Character Visual QA — standalone pre-integration review
+# Character Visual QA — standalone review project
 
-This is a standalone Godot 4.7.2 project for visually reviewing character GLBs, their imported skeletons, skin weights, materials, and animation clips. It is separate from the consuming game. This branch intentionally contains no gameplay framework or character-to-gameplay wiring; the `game/assets/` paths here hold assets only.
+This Godot 4.7.2 project is for inspecting character GLBs and their imported skeletons, skin weights, materials, and animation clips. It is separate from the game; this branch contains character assets and QA only, not gameplay systems.
 
 ## Stage and open the project
 
-From the repository root, run:
+From the repository root:
 
 ```sh
 python3 character_visual_qa/tools/sync_assets.py
 python3 character_visual_qa/tools/sync_assets.py --check
 ```
 
-The sync tool copies the seven manifest GLBs to `character_visual_qa/assets/` and writes `staged_assets.json`. These local copies are ignored by Git; the preserved sources and runtime-form assets stay in `source-assets/` and `game/assets/`.
+The sync tool stages the 15 manifest GLBs under `character_visual_qa/assets/`. These copies are local and Git-ignored; original/source and runtime-form assets remain under `source-assets/` and `game/assets/`. The sync removes staged GLBs no longer listed in the manifest.
 
-In Godot Project Manager, import and open `character_visual_qa/project.godot`, then run the main scene. Godot imports the GLBs before the review desk loads them. This is the intended visual review path; static checks are not a substitute for inspecting the models in the Godot viewport.
+In Godot Project Manager, choose **Import** and select `character_visual_qa/project.godot`. Run the project to open the review desk. Structural checks are not a substitute for visually inspecting the models in Godot.
 
-## Review desk
+## Updated role and tier plan
 
-- Select a labeled hero or enemy. The desk displays the exact GLB, mesh count, skin bindings, skeleton joints, imported clips, and structural contract result.
+- **Human Operative Tiers 1–5** are five visual upgrade states of one hero identity, not five different heroes. The Drive GLBs are currently unrigged static source meshes: no skeleton, skin, or animation clips. Their QA entries are source-only and review-only; they are not approved for runtime use.
+- **Robot Common, Rare, and Epic** are now classified as enemy models, not player heroes. Their runtime-form GLBs and preserved source GLBs are listed separately for comparison. Robot Common remains the shared rig/animation template for the robot enemy family.
+- **Iron Sentinel** and **Iron Warden Boss** remain enemies. Their original unrigged Drive GLBs appear as separate review-only entries alongside their rigged runtime-form assets.
+
+All 15 review records start as `PENDING`. The five human tiers require visual, material, scale/pose, and import review; they are not expected to contain a skeleton or animations yet. Runtime robot entries require skin review, and the robot hero-origin tiers also list their imported clips. Sentinel/Warden currently have no authored animation clips.
+
+## Review desk controls
+
+- Select a labeled hero tier or enemy. The desk shows the GLB filename, source path, mesh count, skin bindings, joint count, clips, and automated contract result.
 - Drag to orbit, use the mouse wheel to zoom, or choose **RESET VIEW**. Auto-rotation can be paused.
-- Play every required animation clip and mark it reviewed. Static enemies have no authored clips yet; use **TEST SKIN POSE** to check their imported skin weights.
-- Complete the manual visual checklist, add notes, and record **APPROVE** or **NEEDS FIX**. The checklist covers silhouette, materials, scale/facing/rest pose, skinning, animation, and import issues.
-- Use **Left/Right** to change character, **R** to reset the view, and **Space** to play/restart the selected clip.
+- Play and mark required clips reviewed where an asset has clips. For rigged robots, use **TEST SKIN POSE** to inspect deformation. The unrigged human sources have no skin pose or animation to test yet.
+- Complete the visual checklist, add notes, then record **APPROVE** or **NEEDS FIX**. This is a review record, not a claim that assets have been integrated into gameplay.
+- Use **Left/Right** to change asset, **R** to reset the view, and **Space** to play/restart the selected clip.
 
-`review_results.json` starts every entry as `PENDING`. A PASS requires the manifest contract, completed manual checks, reviewed required clips, and an unchanged reviewed GLB hash. No entry is approved in advance.
+## Gate helpers
 
-## Gate and promotion helpers
-
-Check every manifest entry, or a specific one:
+Check all entries, or one specific entry:
 
 ```sh
 python3 character_visual_qa/tools/check_gate.py
-python3 character_visual_qa/tools/check_gate.py --asset-id hero_tier_2_rare
+python3 character_visual_qa/tools/check_gate.py --asset-id human_hero_t1
 ```
 
-The promotion helper only accepts an approved, hash-matched candidate with a `promotion_destination` in the manifest:
-
-```sh
-python3 character_visual_qa/tools/promote_character.py --asset-id hero_new
-```
-
-Promotion copies the reviewed GLB to its asset destination. Importing it into, and wiring it to, the consuming game remains a separate integration task; this branch contains no game systems.
-
-## Current roster
-
-The desk lists Common, Rare, and Epic player heroes; the rigged runtime-form Iron Sentinel and Iron Warden Boss; and each enemy's original unrigged source GLB as a separate **review-only** comparison entry. The source entries cannot be promoted. The three player heroes have ten required clips each. The two runtime enemy models currently have no authored animation clips.
-
-Future character candidates should be preserved under `source-assets/`, added to `asset_manifest.json`, staged with the sync tool, and reviewed in Godot before approval. Keep original sources separate from runtime-form outputs.
+The promotion helper refuses `review_only` entries. Human tiers must not be promoted until they have completed the separate optimization, rigging, animation, and approval steps. Any later integration into the consuming game is outside this branch's scope.

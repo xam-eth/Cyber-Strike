@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 /*
- * Prepare the Rare and Epic source GLBs for the game's runtime roster.
+ * Prepare the Rare and Epic robot enemy source GLBs for runtime.
  *
- * Source meshes remain untouched in source-assets/. This mirrors the Common
- * hero pipeline: weld and simplify the skinned mesh, resample the native idle,
+ * Source meshes remain untouched in source-assets/. This mirrors the Robot Common
+ * enemy pipeline: weld and simplify the skinned mesh, resample the native idle,
  * resize material textures to 1024 px, and remove unsupported extensions.
  * Animation retargeting is a separate, deterministic Python step so the mesh
- * optimizer can never silently copy Common's animation channels onto a
+ * optimizer can never silently copy Robot Common's animation channels onto a
  * different rest pose.
  *
  * Usage:
- *   node tools/gltf/prepare_hero_variants.mjs
- *   node tools/gltf/prepare_hero_variants.mjs --check
+ *   node tools/gltf/prepare_robot_enemy_variants.mjs
+ *   node tools/gltf/prepare_robot_enemy_variants.mjs --check
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -40,14 +40,14 @@ const RETARGETED_CLIPS = new Set([
 ]);
 const VARIANTS = [
   {
-    id: 'hero_tier_2_rare',
-    source: 'source-assets/characters/hero_variants/hero_tier_2_rare.glb',
-    output: 'game/assets/characters/hero_variants/hero_tier_2_rare.glb',
+    id: 'robot_tier_2_rare',
+    source: 'source-assets/enemies/robot_tier_2_rare_source.glb',
+    output: 'game/assets/enemies/robot_tier_2_rare.glb',
   },
   {
-    id: 'hero_tier_3_epic',
-    source: 'source-assets/characters/hero_variants/hero_tier_3_epic.glb',
-    output: 'game/assets/characters/hero_variants/hero_tier_3_epic.glb',
+    id: 'robot_tier_3_epic',
+    source: 'source-assets/enemies/robot_tier_3_epic_source.glb',
+    output: 'game/assets/enemies/robot_tier_3_epic.glb',
   },
 ];
 

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Bake the hero's combat clips (aim, fire) into the rigged hero GLB.
+"""Bake the Robot Common enemy's combat clips (aim, fire) into its rigged GLB.
 
 Why this exists
 ---------------
-The Tripo hero arrived with ``idle``, ``run`` and ``walk`` only — no aiming and
+The Robot Common source arrived with ``idle``, ``run`` and ``walk`` only — no aiming and
 no firing, which is exactly what a third-person shooter needs. There is no
 Blender in this environment (the bpy wheel needs native GL libraries this image
 does not ship), so the clips are authored here, in glTF space, with analytic
@@ -14,13 +14,13 @@ two-bone IK on the real skeleton:
 
 The right hand is solved to a fixed point in the character's local space and the
 wrist keeps the forearm's natural orientation, so the pose does not depend on
-where the shoulder happens to be. ``hero_rig.json`` records the resulting
+where the shoulder happens to be. ``robot_common_rig.json`` records the resulting
 weapon attach rotation and scale — the weapon is then parented to the hand bone
 with those numbers, and its baked ``MuzzlePoint`` is what the shot effect is
 placed on. That is the whole trick behind "the flash comes out of the barrel":
 the muzzle is a node in the rifle mesh, not a hand-tuned offset.
 
-Run:  .venv/bin/python tools/gltf/build_clips.py [--check]
+Run:  .venv/bin/python tools/gltf/build_robot_enemy_clips.py [--check]
 """
 from __future__ import annotations
 
@@ -47,19 +47,19 @@ from rigmath import (  # noqa: E402
 )
 
 ROOT = Path(__file__).resolve().parents[2]
-HERO = ROOT / "game/assets/characters/hero/hero.glb"
-RIG_JSON = ROOT / "game/assets/characters/hero/hero_rig.json"
+ROBOT_COMMON = ROOT / "game/assets/enemies/robot_common.glb"
+RIG_JSON = ROOT / "game/assets/enemies/robot_common_rig.json"
 
 FPS = 30
 AIM_SECONDS = 2.0
 FIRE_SECONDS = 0.5
 
-# --- pose targets, in hero-local metres (the mesh is 1.0 m tall, faces +Z) ---
+# --- pose targets, in robot-local metres (the mesh is 1.0 m tall, faces +Z) ---
 RIGHT_HAND = np.array([-0.035, 0.660, 0.120])
 RIGHT_POLE = np.array([-0.42, 0.52, -0.10])  # elbow points out, back and down
 LEFT_POLE = np.array([0.50, 0.46, -0.02])  # support elbow drops below the rifle
 
-GUN_SCALE = 0.40  # weapon units -> hero model units (0.40 * 1.78 m = 0.71 m)
+GUN_SCALE = 0.40  # weapon units -> robot model units (0.40 * 1.78 m = 0.71 m)
 GUN_MUZZLE = np.array([0.0, 0.16121, -0.67008])  # from rifle_points.json
 GUN_SUPPORT = np.array([0.0, 0.050, -0.28])  # left hand on the handguard
 
@@ -115,12 +115,12 @@ def gun_transform(rot, tra, sca, sk, offset_local):
     hand_q = grot[hand]
     hand_p = gpos[hand]
 
-    def to_hero(p_gun):
+    def to_character(p_gun):
         v = q_rotate(hand_q, q_rotate(offset_local, np.asarray(p_gun) * GUN_SCALE))
         return hand_p + v
 
     barrel = q_mul(hand_q, offset_local)
-    return to_hero, barrel, hand_p
+    return to_character, barrel, hand_p
 
 
 def solve_pose(sk, base, hand_target, hand_pitch, breath, attach):
@@ -141,8 +141,8 @@ def solve_pose(sk, base, hand_target, hand_pitch, breath, attach):
         hand = sk.name["R_Hand"]
         rot[hand] = q_mul(rot[hand], q_about_axis(PITCH_AXIS, hand_pitch))
 
-    to_hero, barrel_q, hand_p = gun_transform(rot, tra, sca, sk, attach)
-    support = to_hero(GUN_SUPPORT)
+    to_character, barrel_q, hand_p = gun_transform(rot, tra, sca, sk, attach)
+    support = to_character(GUN_SUPPORT)
     rot, left_hand, _, reach_l = two_bone_ik(
         sk, rot, tra, sca, "L_Upperarm", "L_Forearm", "L_Hand", support, LEFT_POLE
     )
@@ -157,7 +157,7 @@ def solve_pose(sk, base, hand_target, hand_pitch, breath, attach):
 
 
 def build_attach(sk, base):
-    """Weapon socket rotation that makes the barrel point along hero +Z."""
+    """Weapon socket rotation that makes the barrel point along robot +Z."""
     rot, tra, sca, _ = solve_pose(sk, base, RIGHT_HAND, 0.0, 0.0, np.array([0.0, 0.0, 0.0, 1.0]))
     grot, _ = sk.fk(rot, tra, sca)
     # -Z forward and +Y up means a 180 deg yaw: basis X=-X, Y=+Y, Z=-Z.
@@ -193,8 +193,8 @@ def build_fire(sk, base, attach):
         return rot, tra, sca, info
 
     def muzzle_of(rot, tra, sca):
-        to_hero, _, _ = gun_transform(rot, tra, sca, sk, attach)
-        return to_hero(GUN_MUZZLE)
+        to_character, _, _ = gun_transform(rot, tra, sca, sk, attach)
+        return to_character(GUN_MUZZLE)
 
     rest_rot, rest_tra, rest_sca, _ = frame_at(0.0, 1.0)
     rest_muzzle = muzzle_of(rest_rot, rest_tra, rest_sca)
@@ -302,7 +302,7 @@ def add_clip(sk, js, writer, name, keys, changed_bones):
 
 def main():
     check_only = "--check" in sys.argv
-    js, bin_ = read_glb(HERO)
+    js, bin_ = read_glb(ROBOT_COMMON)
     sk = Skeleton(js, bin_)
     for clip in ("idle", "run", "walk"):
         assert clip in sk.animations, f"missing source clip {clip}"
@@ -314,8 +314,8 @@ def main():
     # ---- verification numbers (these are what the report prints) ----------
     grot, gpos = sk.fk(aim_keys["rot"][0], aim_keys["tra"][0], aim_keys["sca"][0])
     hand_err = float(np.linalg.norm(gpos[sk.name["R_Hand"]] - RIGHT_HAND))
-    to_hero, barrel_q, hand_p = gun_transform(aim_keys["rot"][0], aim_keys["tra"][0], aim_keys["sca"][0], sk, attach)
-    muzzle_hero = to_hero(GUN_MUZZLE)
+    to_character, barrel_q, hand_p = gun_transform(aim_keys["rot"][0], aim_keys["tra"][0], aim_keys["sca"][0], sk, attach)
+    muzzle_character = to_character(GUN_MUZZLE)
     barrel_dir = q_rotate(barrel_q, np.array([0.0, 0.0, -1.0]))
     pitch = math.degrees(math.asin(max(-1.0, min(1.0, barrel_dir[1]))))
     left_err = float(np.linalg.norm(gpos[sk.name["L_Hand"]] - report["support"]))
@@ -331,13 +331,13 @@ def main():
                                                    "Spine01", "Spine02", "NeckTwist02"])
         add_clip(sk, js, writer, "fire", fire_keys, ["R_Upperarm", "R_Forearm", "R_Hand",
                                                      "L_Upperarm", "L_Forearm", "Spine01", "Spine02"])
-        write_glb(HERO, js, writer.bin)
+        write_glb(ROBOT_COMMON, js, writer.bin)
 
     RIG_JSON.parent.mkdir(parents=True, exist_ok=True)
     rig = {
-        "note": "Generated by tools/gltf/build_clips.py — do not edit by hand.",
-        "model": "hero.glb",
-        "units": "hero model is 1.0 unit tall; CharacterVisual scales it to target_height",
+        "note": "Generated by tools/gltf/build_robot_enemy_clips.py — do not edit by hand.",
+        "model": "robot_common.glb",
+        "units": "robot model is 1.0 unit tall; the receiving character setup fits it to target height",
         "skeleton": "Armature",
         "hand_bone": "R_Hand",
         "weapon_socket": {
@@ -357,7 +357,7 @@ def main():
             "support": [round(float(v), 4) for v in report["support"]],
             "reach_right": round(report["reach_right"], 4),
             "reach_left": round(report["reach_left"], 4),
-            "muzzle": [round(float(v), 4) for v in muzzle_hero],
+            "muzzle": [round(float(v), 4) for v in muzzle_character],
             "barrel_dir": [round(float(v), 4) for v in barrel_dir],
             "barrel_pitch_deg": round(pitch, 2),
         },
@@ -375,14 +375,14 @@ def main():
 
     print(f"hand IK error {hand_err * 1000:.2f} mm · support error {left_err * 1000:.2f} mm "
           f"· reach {report['reach_right']:.2f}/{report['reach_left']:.2f}")
-    print(f"muzzle {np.round(muzzle_hero, 3)} · barrel dir {np.round(barrel_dir, 3)} (pitch {pitch:+.2f} deg)")
+    print(f"muzzle {np.round(muzzle_character, 3)} · barrel dir {np.round(barrel_dir, 3)} (pitch {pitch:+.2f} deg)")
     print(f"recoil: muzzle {muzzle_dz * 1000:+.1f} mm back, {muzzle_dy * 1000:+.1f} mm up "
           f"(rest z={rest_muzzle[2]:.3f})")
     print(f"attach rotation (xyzw) {np.round(attach, 4)}")
     print("recentered: " + ", ".join(f"{k} {v:.2f}" for k, v in recentered.items()))
     print(f"carry socket: barrel {np.round(carry_before, 2)} -> {np.round(carry_check, 2)} "
           f"(want {np.round(carry_desired, 2)})")
-    print(f"hero.glb {HERO.stat().st_size / 1e6:.2f} MB")
+    print(f"robot_common.glb {ROBOT_COMMON.stat().st_size / 1e6:.2f} MB")
 
     ok = (hand_err < 0.002 and left_err < 0.01 and pitch < 1.5
           and muzzle_dz < -0.015 and muzzle_dy > 0.002
