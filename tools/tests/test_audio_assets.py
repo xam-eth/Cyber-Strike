@@ -8,6 +8,7 @@ human listening review, loudness-normalisation acceptance, or device testing.
 from __future__ import annotations
 
 from array import array
+import configparser
 import hashlib
 import json
 import math
@@ -95,6 +96,22 @@ class AudioAssetsTest(unittest.TestCase):
                 _, samples = self.read_pcm(name)
                 self.assertLessEqual(max(abs(samples[0]), abs(samples[1])), 32)
                 self.assertLessEqual(max(abs(samples[-2]), abs(samples[-1])), 32)
+
+    def test_godot_import_preserves_stereo_pcm16(self) -> None:
+        # Godot 4.7 otherwise selects QOA for these WAVs. QOA is a valid playback
+        # format, but the existing audio contract deliberately requires PCM16.
+        for name in EXPECTED:
+            with self.subTest(name=name):
+                config = configparser.ConfigParser()
+                path = AUDIO_DIR / f"{name}.import"
+                self.assertEqual(config.read(path), [str(path)])
+                self.assertEqual(config["remap"]["importer"].strip('"'), "wav")
+                self.assertEqual(
+                    config["deps"]["source_file"].strip('"'), f"res://assets/audio/{name}"
+                )
+                self.assertEqual(config["params"]["compress/mode"], "0")
+                self.assertEqual(config["params"]["force/8_bit"], "false")
+                self.assertEqual(config["params"]["force/mono"], "false")
 
     def test_generator_reproduces_committed_bytes(self) -> None:
         result = subprocess.run(

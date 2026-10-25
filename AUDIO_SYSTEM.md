@@ -58,7 +58,10 @@ and synthesis code are reviewable source.
 All five are 22,050 Hz, stereo, 16-bit PCM WAV and total about 2.82 MB. The
 adjacent `manifest.json` records provenance, dimensions, hash, peak/RMS, and
 loop status. WAV is intentional: both Web Audio and Godot decode it without an
-additional codec tool. Regenerate and require byte-identical output with:
+additional codec tool. The five small `.wav.import` files are deliberately
+tracked source settings (`compress/mode=0`), not cache: Godot 4.7 otherwise uses
+QOA, while the existing runtime/headless contract requires stereo PCM16.
+Regenerate and require byte-identical output with:
 
 ```bash
 python3 tools/generate_audio.py
