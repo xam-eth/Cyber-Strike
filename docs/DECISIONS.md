@@ -159,3 +159,52 @@ only an opinion is not here.
     the player has not bought. BP is still spent in the arena, never in the
     shell, which is why the rack lists a priced weapon with its price and does
     not let you take it.
+33. **Every screen stands on a painted plate** (2026-10-25). The shell used to be
+    panels on a dark gradient with a grid drawn on it, and the owner's verdict
+    was that it read as an app rather than a game. Each screen now cross-fades to
+    its own painted plate — key art for the opening, a command-deck viewport for
+    HOME, the mech service bay for OPERATIVE and TAMPILAN, the battlefield for the
+    hand-off — graded to near-black only at the edges the controls sit on. The
+    plates are the product's art direction in `ui/art/` (with web-sized JPEG
+    derivatives in `ui/art/web/`); the shell frames them, it is never the subject.
+34. **The opening is a poster with its title at the top — this reverses rule 30's
+    composition for the shell.** Rule 30 was measured off *Doomsday: Last
+    Survivors*, whose mark sits low; the owner's direction is the other way
+    round ("art photo + wordmark + a fairly large tagline, centred at the top"),
+    which is the Call of Duty Mobile / PUBG Mobile arrangement. So the shell's
+    opening (screen 01 of the player journey) is key art edge to edge, the
+    EXOCOMFLICT lockup centred at the top on its own machined banner, the tagline
+    `TAK ADA GARIS DI BELAKANGMU` in display caps under it at ~5.4 % of screen
+    height, and one rail at the bottom reporting the three real readiness checks
+    as a percentage. Nothing else is on the screen: the previous version printed
+    a three-row checklist with tick marks, which is a diagnostic panel and made
+    the first frame of the game look like a status page. Rule 30 still governs
+    the engine's own LOADING stage, which the shell never shows (Deploy hands
+    over into gameplay).
+35. **The theatre is a carousel of painted cards.** Two museum-style cards with
+    the world's own painted art, a third slot drawn as an unbuilt slot, each with
+    its own silhouette cut from the one 45 degree family (the frontier drops its
+    trailing foot, the station shears its leading corner, the empty slot is
+    notched on both diagonals). The card art is painted, never a gameplay
+    capture: a first-person frame with the rig in it is not a picture of a place.
+    All three fit the frame at 844×390 and 667×375, so the selection moves and
+    the row never scrolls — a sideways scroller on a phone held sideways fights
+    the thumb. The engine's WORLD stage and DASHBOARD read
+    `WorldDefinition.plate_path`, which now points at the same painted cards.
+36. **The dock carries glyphs, and the exported shell carries nothing.** The top
+    strip printed a sector string, the measured viewport and the pointer type on
+    every screen; the owner's reading was that it made the design worse, and it
+    is a diagnostic strip rather than part of the game. It is now the wordmark
+    plate, an engine-state glyph and two controls (fullscreen, settings). In the
+    exported web shell the browser bar (a `UI` toggle, a product chip,
+    Fullscreen / Hide UI, and a controls legend) was removed outright: it sat on
+    top of the engine's own HUD in every gameplay frame and was the first thing
+    the eye found.
+37. **The combat HUD has its own stencil set.** Fire, aim, weapon, EMP, pause and
+    retry are authored as flat silhouettes on one chamfer grid
+    (`game/assets/ui/icons/hud/`) and are drawn through `AegisTheme.hud_icon()`,
+    which falls back to the Phosphor menu glyph if a stencil is missing. The
+    touch tiles gained a machined inner bevel, two rivets and a hazard band along
+    the leading cut, so a tile on the touch layer and a button in the shell are
+    the same manufactured object. A borrowed icon family drawn at 120 px is what
+    read as "generic standard" in the owner's review.

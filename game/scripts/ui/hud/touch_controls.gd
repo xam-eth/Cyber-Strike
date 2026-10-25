@@ -575,7 +575,7 @@ func _apply_aim_visual(aiming: bool) -> void:
 		active_face.modulate_color = Color(0.82, 1.0, 1.0, 1.0)
 		_aim_button.add_theme_stylebox_override("normal", active_face)
 	AegisTheme.tint_icon(_aim_button, AegisTokens.INFO if aiming else AegisTokens.INK)
-	_aim_button.icon = AegisTheme.icon("optic")
+	_aim_button.icon = AegisTheme.hud_icon("hud-aim")
 	_aim_button.set_meta("aegis_state", "active" if aiming else "idle")
 
 
@@ -589,9 +589,13 @@ func set_player_down(down: bool) -> void:
 		_clear_touch_state()
 	if is_instance_valid(_pause_button):
 		if down:
-			_pause_button.icon = AegisTheme.icon("arrow-counter-clockwise")
+			_pause_button.icon = AegisTheme.hud_icon("hud-retry")
 		else:
-			_pause_button.icon = AegisTheme.icon("play" if get_tree().paused else "pause", true)
+			_pause_button.icon = (
+				AegisTheme.icon("play", true)
+				if get_tree().paused
+				else AegisTheme.hud_icon("hud-pause")
+			)
 		_pause_button.set_meta("aegis_state", "retry" if down else "pause")
 		_pause_button.text = ""
 		_pause_button.tooltip_text = "Retry the run" if down else "Pause (Esc)"
@@ -740,25 +744,25 @@ func _build_combat_feedback() -> void:
 
 func _build_touch_buttons() -> void:
 	_fire_button = _combat_button(
-		"shot-burst", "FireButton", "combat_fire", "Hold to fire", AegisTokens.ACCENT
+		"hud-fire", "FireButton", "combat_fire", "Hold to fire", AegisTokens.ACCENT
 	)
 	_fire_button.button_down.connect(_on_fire_down)
 	_fire_button.button_up.connect(_on_fire_up)
 
 	_weapon_button = _combat_button(
-		"swap", "WeaponSwitchButton", "combat_weapon", "Swap / Armory", AegisTokens.INFO
+		"hud-weapon", "WeaponSwitchButton", "combat_weapon", "Swap / Armory", AegisTokens.INFO
 	)
 	_weapon_button.set_meta("aegis_state", "armory")
 	_weapon_button.pressed.connect(_on_weapon_switch_pressed)
 
 	_aim_button = _combat_button(
-		"optic", "AimButton", "combat_aim", "Hold to aim down sights", AegisTokens.INFO
+		"hud-aim", "AimButton", "combat_aim", "Hold to aim down sights", AegisTokens.INFO
 	)
 	_aim_button.button_down.connect(_on_aim_down)
 	_aim_button.button_up.connect(_on_aim_up)
 
 	_skill_button = _combat_button(
-		"pulse",
+		"hud-emp",
 		"SkillButton",
 		"combat_ability",
 		"EMP Pulse: damage nearby enemies",
@@ -869,7 +873,7 @@ func _combat_button(
 	button.tooltip_text = tooltip
 	button.focus_mode = Control.FOCUS_NONE
 	button.mouse_filter = Control.MOUSE_FILTER_STOP
-	button.icon = AegisTheme.icon(icon_name)
+	button.icon = AegisTheme.hud_icon(icon_name)
 	button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	# Grow to the texture ceiling; only a browser screenshot proves glyph size.
 	button.expand_icon = true

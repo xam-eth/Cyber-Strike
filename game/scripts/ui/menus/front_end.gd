@@ -83,6 +83,10 @@ func _ready() -> void:
 	# changing the scene out from under it leaves that stage's awaited frames
 	# resuming on a freed node -- a real "data.tree is null" error in the log.
 	if _qa_stage_name() == &"GAMEPLAY":
+		# The shell hands over the theatre it picked as `?qa_world=`, so this is
+		# the hand-off's loadout too: the player chose a world on a card before
+		# pressing Deploy, and the arena they land in has to be that card.
+		_enter_qa_world()
 		call_deferred("start_gameplay")
 		return
 	_enter(&"BOOT", {})
