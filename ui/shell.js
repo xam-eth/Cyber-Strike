@@ -1,5 +1,5 @@
 /*
- * Player shell: opening -> hub -> deploy -> gameplay.
+ * Player shell: opening -> hero -> hub -> deploy -> gameplay.
  *
  * Why this exists as its own layer: the web build used to open on an engine
  * splash and a debug chip bar. A player's first seconds are the opening of the
@@ -18,14 +18,24 @@
  *   3. Every screen is reachable by keyboard, works in landscape on a phone,
  *      and honours reduced motion.
  *
- * This round removed the last of the diagnostic UI: the top strip used to print
- * a sector string, the viewport size and the pointer type on every screen, and
- * the opening carried a three-row checklist. Both read as software. The dock is
- * glyphs now and the opening is a poster.
+ * This round fixed the order of the journey, which was wrong: pressing Masuk
+ * after the load screen dropped the player on a map, asking where they wanted to
+ * go before it had told them who they were going as. The first lobby screen is
+ * now HERO -- roster, celebration, and the four tabs a character page carries
+ * (info, upgrade, skin, weapon) -- and the theatre map is the second screen, once
+ * the operative is chosen. The old OPERATIF page was folded into it; two pages
+ * showing the same character in two compositions was the duplication, not the
+ * styling.
+ *
+ * Everything before that is unchanged: the top strip carries no text, the
+ * opening is a poster, and nothing on any screen is invented -- the roster is
+ * the one hero the registry ships, the skin slots say "belum dibuat" instead of
+ * selling something that does not exist, and the upgrade ladder is the weapon
+ * tiers priced in the currency the arena pays.
  */
 'use strict';
 
-const SCREENS = ['opening', 'hub', 'arsenal', 'settings', 'launch'];
+const SCREENS = ['opening', 'hero', 'hub', 'settings', 'launch'];
 const params = new URLSearchParams(location.search);
 
 const el = (id) => document.getElementById(id);
@@ -44,6 +54,13 @@ const prefs = Object.assign(
 );
 
 let current = 'opening';
+/* Where the settings sheet returns to. It can be opened from the dock on any
+   screen, and "close" must mean "back to where I was", not "to the hub". */
+let fromSettings = 'hub';
+/* Which screen the hero page was opened from. The journey enters it from the
+   opening (first run) and from the hub (the Operatif tile), and "kembali" has to
+   mean "back to where I was" in both cases. */
+let fromHero = 'opening';
 let engineReady = false;
 let engineStarted = false;
 let hold = params.has('ui_hold');
@@ -78,6 +95,11 @@ function show(name, options = {}) {
   current = name;
   document.body.dataset.screen = name;
   if (name === 'hub') paintWorld();
+  if (name === 'hero') {
+    if (options.from) fromHero = options.from;
+    celebrate();
+  }
+  if (name === 'settings') fromSettings = options.from === 'hero' ? 'hero' : 'hub';
   if (options.focus !== false) {
     const target = screens[name].querySelector('.btn--primary, .wcard[aria-selected="true"], button, [tabindex]');
     if (target) target.focus({ preventScroll: true });
@@ -85,9 +107,9 @@ function show(name, options = {}) {
 }
 
 function back() {
-  if (current === 'settings') show('hub');
-  else if (current === 'arsenal') show('hub');
-  else if (current === 'hub') show('opening', { focus: false });
+  if (current === 'settings') show(fromSettings);
+  else if (current === 'hub') show('hero');
+  else if (current === 'hero') show(fromHero, { focus: false });
 }
 
 /* -------------------------------------------------------------------- dock */
@@ -213,6 +235,8 @@ function paintWorld() {
   }
   const line = el('hub-world-line');
   if (line) line.textContent = WORLDS[worldIndex()].line;
+  const kitWorld = el('hero-kit-world');
+  if (kitWorld) kitWorld.textContent = WORLDS[worldIndex()].name;
   const eyebrow = el('launch-eyebrow');
   if (eyebrow) eyebrow.textContent = `Deploy · ${WORLDS[worldIndex()].name}`;
 }
@@ -234,6 +258,112 @@ for (const card of document.querySelectorAll('.wcard[data-world]')) {
 }
 el('world-prev').addEventListener('click', () => stepWorld(-1));
 el('world-next').addEventListener('click', () => stepWorld(1));
+
+/* ------------------------------------------------------------------ hero */
+
+/*
+ * The first lobby screen: who the player deploys as.
+ *
+ * The composition is the one a modern mobile shooter's character page uses
+ * (CoD Mobile's Operator page, Free Fire's Character page): the hero as the
+ * largest object, a roster strip under him, a rail of tabs that each answer one
+ * question, and exactly one lit action. The research that shaped it:
+ *
+ *   - a character page is a stage, not a form: identity first, detail on demand;
+ *   - the roster belongs on the page, because choosing a hero is the same act as
+ *     reviewing one;
+ *   - every tab must have something true in it, or it should not exist. So this
+ *     hero has three tabs that describe the game as it is today -- his rig, the
+ *     kit ladder the arena pays for, and the one livery the rig actually wears --
+ *     plus the rack, which is the only choice here that changes the run.
+ */
+const HERO_TABS = ['info', 'upgrade', 'skin', 'weapon'];
+
+function paintTab(name) {
+  if (!HERO_TABS.includes(name)) return;
+  for (const tab of document.querySelectorAll('.htab')) {
+    const on = tab.dataset.tab === name;
+    tab.setAttribute('aria-selected', String(on));
+    tab.tabIndex = on ? 0 : -1;
+  }
+  for (const panel of document.querySelectorAll('.hpanel')) {
+    panel.hidden = panel.id !== `hero-panel-${name}`;
+  }
+}
+
+for (const tab of document.querySelectorAll('.htab')) {
+  tab.addEventListener('click', () => paintTab(tab.dataset.tab));
+}
+
+/*
+ * The celebration. Sparks are generated rather than typed into the markup: the
+ * pattern wants variety (angle, distance, colour, duration) and fifteen spans of
+ * hand-authored CSS custom properties is not a design, it is a transcription.
+ *
+ * It runs on entry, once per entry, and it is a no-op under "kurangi gerak" --
+ * the banner simply sits there. Nothing in it is data: it is the one flourish in
+ * the lobby, and it exists because the moment a player first sees their operative
+ * is the moment a lobby is supposed to feel like an event.
+ */
+const SPARK_COLORS = ['#ffb020', '#54c8ff', '#edf5fb', '#ffd18a'];
+
+function buildSparks() {
+  const host = el('hero-sparks');
+  if (!host || host.childElementCount) return;
+  for (let index = 0; index < 18; index += 1) {
+    const spark = document.createElement('i');
+    const spread = (index % 2 === 0 ? 1 : -1) * (10 + ((index * 37) % 46));
+    spark.style.setProperty('--x', `${44 + ((index * 13) % 18)}%`);
+    spark.style.setProperty('--y', `${8 + ((index * 7) % 16)}%`);
+    spark.style.setProperty('--dx', `${spread}px`);
+    spark.style.setProperty('--dy', `${-70 - ((index * 29) % 120)}px`);
+    spark.style.setProperty('--w', `${2 + (index % 3)}px`);
+    spark.style.setProperty('--d', `${1.1 + ((index * 11) % 9) / 10}s`);
+    spark.style.setProperty('--delay', `${(index % 6) * 0.06}s`);
+    spark.style.setProperty('--c', SPARK_COLORS[index % SPARK_COLORS.length]);
+    host.appendChild(spark);
+  }
+}
+
+let celebrateTimer = 0;
+
+function celebrate() {
+  const screen = screens.hero;
+  if (!screen) return;
+  buildSparks();
+  const reduced = document.documentElement.dataset.motion === 'reduced';
+  screen.dataset.celebrate = 'false';
+  void screen.offsetWidth; // restart the animations rather than resuming them
+  screen.dataset.celebrate = 'true';
+  window.clearTimeout(celebrateTimer);
+  celebrateTimer = window.setTimeout(() => {
+    screen.dataset.celebrate = reduced ? 'true' : 'false';
+  }, reduced ? 100000 : 2800);
+}
+
+/* The roster: one hero card and two slots. Selecting a card re-plays the short
+   beat, because a tap on a character card is a confirmation and a confirmation
+   with no response reads as a missed input. A card that is already active still
+   answers -- pressing the thing you already have is how a player says "show me
+   again". */
+for (const card of document.querySelectorAll('#hero-roster .hcard[data-hero]')) {
+  card.addEventListener('click', () => {
+    for (const other of document.querySelectorAll('#hero-roster .hcard[data-hero]')) {
+      other.dataset.active = String(other === card);
+      other.setAttribute('aria-pressed', String(other === card));
+    }
+    celebrate();
+  });
+}
+
+for (const skin of document.querySelectorAll('.skin')) {
+  skin.addEventListener('click', () => {
+    if (skin.getAttribute('aria-disabled') === 'true') return;
+    for (const other of document.querySelectorAll('.skin')) {
+      other.setAttribute('aria-checked', String(other === skin));
+    }
+  });
+}
 
 /* --------------------------------------------------------------- loadout */
 
@@ -262,12 +392,14 @@ function paintLoadout() {
     button.setAttribute('aria-disabled', String(locked));
   }
   const weapon = WEAPONS[prefs.weapon] || WEAPONS.pulse_rifle;
-  const meta = el('arsenal-deploy-meta');
-  if (meta) meta.textContent = weapon.name;
+  const chip = el('hero-weapon-chip');
+  if (chip) chip.textContent = weapon.name;
   const hub = el('hub-operative-meta');
   if (hub) hub.textContent = weapon.name;
   const deployMeta = el('hub-deploy-meta');
   if (deployMeta) deployMeta.textContent = weapon.name;
+  const kitWeapon = el('hero-kit-weapon');
+  if (kitWeapon) kitWeapon.textContent = weapon.name;
 }
 
 /* --------------------------------------------------------------- deploy */
@@ -410,11 +542,11 @@ function revealCanvas() {
 
 /* ---------------------------------------------------------------- wiring */
 
-el('opening-enter').addEventListener('click', () => show('hub'));
+el('opening-enter').addEventListener('click', () => show('hero', { from: 'opening' }));
+el('hero-next').addEventListener('click', () => show('hub'));
+el('hero-back').addEventListener('click', () => show(fromHero, { focus: false }));
 el('hub-deploy').addEventListener('click', () => deploy());
-el('hub-card-operative').addEventListener('click', () => show('arsenal'));
-el('arsenal-back').addEventListener('click', () => show('hub'));
-el('arsenal-deploy').addEventListener('click', () => deploy());
+el('hub-card-operative').addEventListener('click', () => show('hero', { from: 'hub' }));
 for (const button of document.querySelectorAll('.weapon')) {
   button.addEventListener('click', () => {
     if (Number(button.dataset.cost) > 0) return;
@@ -425,8 +557,8 @@ for (const button of document.querySelectorAll('.weapon')) {
 }
 el('hub-card-controls').addEventListener('click', () => show('settings'));
 el('hub-card-display').addEventListener('click', () => show('settings'));
-el('settings-close').addEventListener('click', () => show('hub'));
-el('dock-settings').addEventListener('click', () => show('settings'));
+el('settings-close').addEventListener('click', () => show(fromSettings));
+el('dock-settings').addEventListener('click', () => show('settings', { from: current }));
 el('dock-fullscreen').addEventListener('click', () => toggleFullscreen());
 
 setSwitch('opt-touch', prefs.touch, (value) => {
@@ -446,6 +578,15 @@ document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape') {
     event.preventDefault();
     back();
+    return;
+  }
+  if (current === 'hero' && (event.key === 'ArrowDown' || event.key === 'ArrowUp')) {
+    event.preventDefault();
+    const step = event.key === 'ArrowDown' ? 1 : -1;
+    const index = HERO_TABS.indexOf(document.querySelector('.htab[aria-selected="true"]')?.dataset.tab || 'info');
+    const next = HERO_TABS[(index + step + HERO_TABS.length) % HERO_TABS.length];
+    paintTab(next);
+    document.querySelector(`.htab[data-tab="${next}"]`)?.focus();
     return;
   }
   if (current === 'hub' && (event.key === 'ArrowRight' || event.key === 'ArrowLeft')) {
@@ -500,6 +641,7 @@ paintDock(engineReady ? 'ok' : 'warn', engineReady ? 'Konsol siap' : 'Konsol bel
 paintLoadout();
 paintWorld();
 paintOpening();
+paintTab('info');
 runOpeningChecks();
 
 // QA and deep links: a page that asks for an engine stage boots immediately and

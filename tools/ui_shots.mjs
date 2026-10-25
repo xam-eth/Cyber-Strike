@@ -4,7 +4,7 @@
  *
  *   node tools/ui_shots.mjs                       # opening, hub, deploy, settings
  *   node tools/ui_shots.mjs --tag round2
- *   node tools/ui_shots.mjs --only deploy --viewport 390x844
+ *   node tools/ui_shots.mjs --only hero --viewport 667x375
  *
  * Why: the player front end (ui/) is judged on pixels, not on intent. This walks
  * the real screens in the real Chromium the repo pins, at the two shapes the
@@ -43,7 +43,7 @@ const viewports = list('--viewport').length ? list('--viewport') : ['844x390', '
 const SCREENS = [
   { id: 'opening', query: '?ui=opening' },
   { id: 'hub', query: '?ui=hub' },
-  { id: 'arsenal', query: '?ui=arsenal' },
+  { id: 'hero', query: '?ui=hero' },
   { id: 'settings', query: '?ui=settings' },
   // The hand-off screen is the one the player sees while the world loads, so it
   // is photographed like any other: a launch card that overflows or renders

@@ -211,3 +211,36 @@ only an opinion is not here.
     the leading cut, so a tile on the touch layer and a button in the shell are
     the same manufactured object. A borrowed icon family drawn at 120 px is what
     read as "generic standard" in the owner's review.
+
+38. **The journey is opening -> hero -> map -> deploy** (2026-10-25, owner). The
+    order was wrong: pressing Masuk after the load screen landed on the theatre
+    map, asking where the player was going before telling them who they were
+    going as. Screen 02 of the lobby is now HERO, and the map moved to 03. The
+    reference is the character page of a modern mobile shooter -- CoD Mobile's
+    Operator page and Free Fire's Character page -- reduced to what this game can
+    honestly fill: the hero at the largest scale on screen on his own lit stage,
+    a roster of face cards under the name, one horizontal rail of tabs, and a
+    single lit action. Each tab answers one question and states only what exists:
+      * INFO     -- the rig, the three showcase clips, the numbers from
+                    `HeroDefinition`;
+      * UPGRADE  -- the kit ladder (the three weapon tiers and their BP prices).
+                    There is no per-hero stat block to level, because
+                    `hero_definition.gd` has none on purpose; the button is
+                    therefore stated and disabled, with the reason under it;
+      * SKIN     -- the one livery the rig actually renders, plus two slots
+                    labelled "belum dibuat" rather than sold;
+      * SENJATA  -- the rack, which is the only choice on this page that changes
+                    the run, and it still travels to the arena in the URL.
+    The old OPERATIF page was folded into it: two lobby pages showing the same
+    character in two compositions was the duplication, not the styling. The kit
+    strip at the bottom of the identity column ("livery / senjata / teater") is
+    what the player is about to take into the world, read in one glance.
+39. **The hero page celebrates once.** Entering it fires a one-shot beat -- a
+    white flash, a spotlight cone, an expanding deck ring, eighteen sparks and a
+    name banner -- because the moment a player first sees their operative is the
+    one moment in a lobby that is supposed to feel like an event. It re-fires
+    when the hero card is pressed again (a confirmation with no response reads as
+    a missed input), and "kurangi gerak" turns every part of it off, banner
+    included. Sparks are generated in `ui/shell.js` rather than typed into the
+    markup: angle, distance, colour and duration vary per spark, and fifteen
+    hand-authored custom properties is a transcription, not a design.

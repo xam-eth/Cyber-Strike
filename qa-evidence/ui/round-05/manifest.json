@@ -1,0 +1,24 @@
+{
+  "tag": "round-05",
+  "viewports": [
+    "844x390"
+  ],
+  "screens": [
+    {
+      "screen": "hero",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/round-05/hero-844x390.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [],
+      "width": 844,
+      "height": 390,
+      "bytes": 301625,
+      "lumaMean": 25.678110699352228,
+      "lumaStdDev": 34.26640713264826,
+      "uniqueColors": 3697
+    }
+  ],
+  "failures": 0,
+  "generatedAt": "2026-10-25T06:08:37.891Z"
+}
