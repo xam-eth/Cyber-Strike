@@ -371,16 +371,21 @@
   object-fit: cover;
   object-position: 50% 56%;
   z-index: 0;
+  /* The push-in is baked into the JPEG (tools/web_art.mjs --crop) rather than a
+     CSS scale: a transformed plate reports an oversized box to the layout QA,
+     and the honest fix is to ship the composition, not to hide it behind a
+     transform. */
+
 }
 
 .stage__view {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 10%;
+  bottom: 13%;
   margin-inline: auto;
-  width: 66%;
-  height: 91%;
+  width: 64%;
+  height: 85%;
   z-index: 2;
   display: block;
   /* Centred with auto margins rather than translateX: the celebration animates
@@ -393,7 +398,7 @@
 .stage__note {
   position: absolute;
   left: 50%;
-  bottom: calc(10% + 8px);
+  bottom: calc(13% + 8px);
   transform: translateX(-50%);
   max-width: 84%;
   padding: 4px 8px;
@@ -423,10 +428,12 @@
   aspect-ratio: 3 / 1;
   transform: translateX(-50%);
   border-radius: 50%;
-  background: radial-gradient(ellipse at 50% 50%, rgba(84, 200, 255, 0.3), transparent 62%);
+  /* White, not cyan: the pad's ring in the plate is neutral, and a coloured
+     burst would be this hero's palette leaking into a shared stage. */
+  background: radial-gradient(ellipse at 50% 50%, rgba(232, 240, 248, 0.3), transparent 62%);
   box-shadow:
-    0 0 0 1.5px rgba(120, 220, 255, 0.5),
-    0 0 40px 6px rgba(84, 200, 255, 0.24);
+    0 0 0 1.5px rgba(240, 246, 252, 0.6),
+    0 0 40px 6px rgba(220, 232, 244, 0.26);
   z-index: 3;
   opacity: 0;
 }

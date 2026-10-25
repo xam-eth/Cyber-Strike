@@ -1,0 +1,43 @@
+{
+  "tag": "round-08",
+  "viewports": [
+    "844x390",
+    "667x375"
+  ],
+  "screens": [
+    {
+      "screen": "hero",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/round-08/hero-844x390.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (File not found)"
+      ],
+      "width": 844,
+      "height": 390,
+      "bytes": 322442,
+      "lumaMean": 33.647331727460774,
+      "lumaStdDev": 43.87062210029357,
+      "uniqueColors": 4810
+    },
+    {
+      "screen": "hero",
+      "viewport": "667x375",
+      "file": "qa-evidence/ui/round-08/hero-667x375.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (File not found)"
+      ],
+      "width": 667,
+      "height": 375,
+      "bytes": 252848,
+      "lumaMean": 36.40375590445787,
+      "lumaStdDev": 46.28329704016817,
+      "uniqueColors": 4678
+    }
+  ],
+  "failures": 0,
+  "generatedAt": "2026-10-25T07:30:26.990Z"
+}

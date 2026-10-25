@@ -3,6 +3,7 @@
  * Turn generated key art into the two kinds of file the web shell can ship.
  *
  *   node tools/web_art.mjs plate  SOURCE.png OUT.jpg [--width 1536] [--height 864] [--quality 84]
+ *                                                    [--crop l,t,r,b]
  *   node tools/web_art.mjs figure SOURCE.png OUT.png [--threshold 18] [--close 3]
  *                                                    [--feather 1.6] [--scale 0.66]
  *                                                    [--trim] [--preview OUT.jpg]
@@ -78,16 +79,26 @@ function canvasOf(w, h) {
 
 // Cover-crop then scale: the screens are 844x390 and 667x375, so a 16:9 plate
 // is cropped to the panel's own ratio rather than letterboxed.
-window.makePlate = async (blobUrl, width, height, quality) => {
+window.makePlate = async (blobUrl, width, height, quality, crop) => {
   const img = await load(blobUrl);
-  const srcRatio = img.naturalWidth / img.naturalHeight;
+  // The crop nudges the composition without a CSS transform: a scaled plate
+  // reports an oversized box to the layout QA (which is right to complain about
+  // elements outside the viewport), so the push-in is baked into the file.
+  const [cl, ct, cr, cb] = crop || [0, 0, 1, 1];
+  const regionX = img.naturalWidth * cl;
+  const regionY = img.naturalHeight * ct;
+  const regionW = img.naturalWidth * (cr - cl);
+  const regionH = img.naturalHeight * (cb - ct);
+  const srcRatio = regionW / regionH;
   const dstRatio = width / height;
-  let sw = img.naturalWidth;
-  let sh = img.naturalHeight;
-  if (srcRatio > dstRatio) sw = Math.round(sh * dstRatio);
-  else sh = Math.round(sw / dstRatio);
-  const sx = Math.round((img.naturalWidth - sw) / 2);
-  const sy = Math.round((img.naturalHeight - sh) / 2);
+  let sw = regionW;
+  let sh = regionH;
+  if (srcRatio > dstRatio) sw = sh * dstRatio;
+  else sh = sw / dstRatio;
+  const sx = Math.round(regionX + (regionW - sw) / 2);
+  const sy = Math.round(regionY + (regionH - sh) / 2);
+  sw = Math.round(sw);
+  sh = Math.round(sh);
   const c = canvasOf(width, height);
   const ctx = c.getContext('2d');
   ctx.imageSmoothingQuality = 'high';
@@ -320,12 +331,14 @@ try {
     const width = Number(arg('width', 1536));
     const height = Number(arg('height', 864));
     const quality = Number(arg('quality', 0.84));
+    const crop = (arg('crop', null) || '0,0,1,1').split(',').map(Number);
     const out = await page.evaluate(
-      (u, w, h, q) => window.makePlate(u, w, h, q),
+      (u, w, h, q, c) => window.makePlate(u, w, h, q, c),
       dataUrl,
       width,
       height,
       quality,
+      crop,
     );
     await writeFile(target, Buffer.from(out.split(',')[1], 'base64'));
     console.log(`plate  ${target}  ${width}x${height}`);

@@ -684,3 +684,85 @@ jobs:
             sleep 5
           done
           exit 1
+
+  # Every hero's celebration is authored in Blender, separately from the hero
+  # export itself: the hero art is locked, so this job may add animation files
+  # but never rewrite hero.glb. Same opt-in marker pattern as hero-blender, and
+  # the same reason for the branch check (workflow_dispatch does not trigger
+  # from an unmerged branch).
+  hero-celebrations:
+    name: Author hero celebrations in Blender
+    if: >-
+      github.event_name == 'push' &&
+      startsWith(github.ref, 'refs/heads/arena/') &&
+      contains(github.event.head_commit.message, '[celebration]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Blender and Python dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq blender python3-numpy
+          blender --background --factory-startup --python-expr 'import bpy, numpy; print(bpy.app.version_string)'
+
+      - name: Author one celebration per hero
+        run: |
+          mkdir -p exports
+          set +e
+          # Blender returns 0 even when the Python script raises.
+          blender --background --factory-startup --python-exit-code 1 \
+            --python tools/blender/author_celebrations.py > exports/blender-celebrations.log 2>&1
+          status=$?
+          set -e
+          tail -n 35 exports/blender-celebrations.log
+          if [[ "$status" -ne 0 ]]; then
+            digest="$( (grep -E 'Traceback|RuntimeError|Error:|ValueError|AttributeError' exports/blender-celebrations.log || true) | tail -n 4 | tr '\n' '|' )"
+            if [[ -z "$digest" ]]; then
+              digest="$(tail -n 8 exports/blender-celebrations.log | tr '\n' '|')"
+            fi
+            echo "::error title=Blender celebrations failed::${digest:-check logs}"
+            exit "$status"
+          fi
+          for required in game/assets/characters/hero/celebrations/manifest.json \
+                          game/assets/characters/hero/celebrations/exo_operative.glb \
+                          docs/asset-inspections/celebrations.json; do
+            if [[ ! -s "$required" ]]; then
+              echo "::error title=Blender celebration output missing::$required was not generated"
+              exit 1
+            fi
+          done
+
+      - name: Confirm the locked hero export was not rewritten
+        run: |
+          if ! git diff --quiet -- game/assets/characters/hero/hero.glb; then
+            echo "::error title=Locked hero art changed::hero.glb was modified; celebrations must only add files"
+            exit 1
+          fi
+
+      - name: Publish celebration clips on the branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add game/assets/characters/hero/celebrations \
+            docs/asset-inspections/celebrations.json \
+            source-assets/characters/hero/hero_celebrations.blend
+          git diff --cached --check
+          if git diff --cached --quiet; then
+            echo "No celebration changes to publish."
+            exit 0
+          fi
+          git commit -m 'Author hero celebrations in Blender' \
+            -m 'One animation-only GLB per hero under game/assets/characters/hero/celebrations. hero.glb is untouched by design: the hero art is locked.'
+          for attempt in 1 2 3; do
+            if git pull --rebase --autostash origin "$GITHUB_REF_NAME" && git push origin "HEAD:$GITHUB_REF_NAME"; then
+              exit 0
+            fi
+            sleep 5
+          done
+          exit 1

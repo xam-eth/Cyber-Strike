@@ -288,3 +288,29 @@ only an opinion is not here.
     the repo is the version the engine's own GLB is tested against. The render
     target is roughly 180 x 210 CSS pixels on an 844 x 390 phone and the rig is
     36 k triangles, so this is cheaper than the JPEG behind it.
+
+42. **The stage is neutral and shared; the celebration is the hero's own.** Two
+    corrections, both from the same principle: the hero art is locked, so
+    everything around it adapts to the hero, never the reverse.
+    * The first plate was lit cyan and amber -- the AEGIS palette baked into the
+      room. That paints the character (a cool rim is a colour grade on locked
+      art) and it cannot host a second hero with a different palette. The plate
+      is now gunmetal and white light only, desaturated, mid-key, with a neutral
+      white pad ring; the stage's three lights are white as well, and the
+      celebration burst and sparks are white. Per-hero colour belongs to the
+      hero. The push-in that seats the pad under the boots is baked into the JPEG
+      (`tools/web_art.mjs --crop`) rather than applied as a CSS scale, because a
+      transformed plate is an oversized box to the layout QA and the honest fix
+      is the composition.
+    * Each hero gets its **own** celebration clip, authored in Blender by
+      `tools/blender/author_celebrations.py` and exported as an animation-only
+      GLB under `game/assets/characters/hero/celebrations/<hero>.glb`, with
+      `manifest.json` naming the file per hero. `hero.glb` is never rewritten by
+      that script -- the mesh, the materials and the shipped clips stay
+      byte-identical -- and the CI job that runs it refuses to publish if
+      `hero.glb` changed. A hero without an authored celebration falls back to
+      the rig's own `aim` pose; borrowing another hero's move is not an option.
+      The authoring pass is opt-in on CI (`[celebration]` in the commit message)
+      because Blender is not installed in every environment; the script is
+      plain `blender --background --python`, which is how `author_hero.py`
+      already works.

@@ -311,7 +311,10 @@ for (const tab of document.querySelectorAll('.htab')) {
  * the lobby, and it exists because the moment a player first sees their operative
  * is the moment a lobby is supposed to feel like an event.
  */
-const SPARK_COLORS = ['#ffb020', '#54c8ff', '#edf5fb', '#ffd18a'];
+/* Whites only. The stage is shared by every hero, so a burst tinted with this
+   hero's palette would be the one thing in the room that does not belong to the
+   next hero. */
+const SPARK_COLORS = ['#ffffff', '#e2eaf2', '#b6c2cf', '#f6fafd'];
 
 function buildSparks() {
   const host = el('hero-sparks');

@@ -34,6 +34,14 @@ const MODEL = './game/assets/characters/hero/hero.glb';
 const RIFLE = './game/assets/weapons/futuristic_rifle/rifle.glb';
 const IDLE = 'idle';
 const SALUTE = 'aim';
+const CELEBRATION_CLIP = 'celebration';
+/* Per-hero signature beat, authored in Blender
+   (tools/blender/author_celebrations.py -> game/assets/characters/hero/
+   celebrations/<hero>.glb). The stage does not ship one animation for
+   everybody: a celebration is the hero's identity, so the file is looked up by
+   the hero id on the selected card, and a hero without one falls back to the
+   rig's own `aim` pose rather than borrowing someone else's move. */
+const CELEBRATIONS = './game/assets/characters/hero/celebrations/manifest.json';
 
 /* The socket numbers are the engine's, not guessed: game/assets/characters/hero/
    hero_rig.json is what CharacterVisual reads to hang the rifle off R_Hand
@@ -75,6 +83,9 @@ if (stage && canvas) {
   let frame = 0;
   let disposed = false;
   let rifleAttached = false;
+  let celebration = null;
+  const heroId =
+    document.querySelector('#hero-roster .hcard[data-active="true"]')?.dataset.hero || 'exo_operative';
   let rifleRef = null;
   let handFound = false;
   let saluteTimer = 0;
@@ -199,6 +210,48 @@ if (stage && canvas) {
     current = next;
   }
 
+  /* The celebration is a one-shot: it plays through, holds, then hands back to
+     idle. A clip that looped would turn a signature into an idle animation. */
+  function playCelebration() {
+    if (!celebration) return;
+    for (const action of Object.values(actions)) {
+      if (action !== celebration) action.fadeOut(0.2);
+    }
+    celebration.reset();
+    celebration.fadeIn(0.18);
+    celebration.play();
+    current = celebration;
+    const seconds = celebration.getClip().duration;
+    window.clearTimeout(saluteTimer);
+    saluteTimer = window.setTimeout(() => {
+      celebration.fadeOut(0.3);
+      current = null;
+      play(IDLE, 0.3);
+    }, Math.max(600, seconds * 1000 + 250));
+  }
+
+  function loadCelebration() {
+    fetch(CELEBRATIONS, { cache: 'no-cache' })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((manifest) => {
+        const entry = manifest && manifest.heroes ? manifest.heroes[heroId] : null;
+        if (!entry || !entry.file) return;
+        new GLTFLoader().load(entry.file, (gltf) => {
+          if (disposed || !mixer) return;
+          const clip =
+            gltf.animations.find((item) => item.name === CELEBRATION_CLIP) || gltf.animations[0];
+          if (!clip) return;
+          celebration = mixer.clipAction(clip);
+          celebration.setLoop(THREE.LoopOnce, 1);
+          celebration.clampWhenFinished = true;
+        });
+      })
+      .catch(() => {
+        // A missing manifest is not an error: it means no hero has a signature
+        // beat authored yet, and the aim fallback is the designed answer.
+      });
+  }
+
   function tick() {
     frame = requestAnimationFrame(tick);
     const delta = Math.min(clock.getDelta(), 0.05);
@@ -240,26 +293,31 @@ if (stage && canvas) {
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(FOV, 1, 0.1, 100);
 
-    // The bay is lit cool from above and warm from the right; the rig has to sit
-    // in the same room or it reads as a cut-out.
+    // Neutral light, on purpose. The stage is shared by every hero, and the
+    // hero art is locked: a cyan rim or an amber bounce would repaint whatever
+    // the artist painted, and the next hero's palette would clash with a room
+    // keyed to this one. So the room is gunmetal grey and the light is white --
+    // a paper white key, a softer white fill from the other side, and a dim
+    // neutral env for the metal to have something to reflect. Per-hero colour
+    // belongs to the hero, not to the room.
     const pmrem = new THREE.PMREMGenerator(renderer);
     scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-    scene.environmentIntensity = 0.42;
+    scene.environmentIntensity = 0.5;
     pmrem.dispose();
 
-    scene.add(new THREE.HemisphereLight(0xa8dcff, 0x0a1218, 0.5));
+    scene.add(new THREE.HemisphereLight(0xdfe6ee, 0x121417, 0.55));
 
-    const key = new THREE.DirectionalLight(0xdff1ff, 1.35);
+    const key = new THREE.DirectionalLight(0xffffff, 1.5);
     key.position.set(2.2, 3.4, 3.2);
     scene.add(key);
 
-    const rim = new THREE.DirectionalLight(0x6fd8ff, 2.1);
+    const rim = new THREE.DirectionalLight(0xf2f6ff, 1.35);
     rim.position.set(-2.6, 2.4, -2.2);
     scene.add(rim);
 
-    const warm = new THREE.DirectionalLight(0xffb056, 0.75);
-    warm.position.set(-2.8, 1.4, 2.4);
-    scene.add(warm);
+    const fill = new THREE.DirectionalLight(0xe8eef6, 0.5);
+    fill.position.set(-2.8, 1.4, 2.4);
+    scene.add(fill);
 
     new GLTFLoader().load(
       MODEL,
@@ -342,6 +400,7 @@ if (stage && canvas) {
         if (reduced()) mixer.update(0.001);
         start();
         canvas.dataset.state = 'ready';
+        loadCelebration();
         window.dispatchEvent(new CustomEvent('aegis:hero-stage-ready'));
       },
       undefined,
@@ -363,6 +422,15 @@ if (stage && canvas) {
     pulse() {
       if (!ready || reduced()) return;
       window.clearTimeout(saluteTimer);
+      // The hero's own move, not a weapon drill: the rifle stays holstered out
+      // of sight unless the rig has no authored celebration to play.
+      if (rifleRef) rifleRef.visible = false;
+      if (celebration) {
+        playCelebration();
+        return;
+      }
+      // No authored celebration for this hero yet: the rig's aim pose is the
+      // honest stand-in, and it is the only beat hero.glb can actually play.
       if (rifleRef) rifleRef.visible = true;
       play(SALUTE, 0.18);
       saluteTimer = window.setTimeout(() => {
@@ -399,6 +467,9 @@ if (stage && canvas) {
         model: MODEL,
         clips: Object.keys(actions),
         bone: handFound ? 'R_Hand' : null,
+        celebration: celebration ? celebration.getClip().name : null,
+        celebrationSeconds: celebration ? Number(celebration.getClip().duration.toFixed(2)) : null,
+        heroId,
         rifle: rifleAttached,
         rifleWorld: rifleRef
           ? new THREE.Box3().setFromObject(rifleRef).getCenter(new THREE.Vector3()).toArray().map((n) => Number(n.toFixed(3)))
