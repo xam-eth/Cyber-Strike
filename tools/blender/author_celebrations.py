@@ -229,9 +229,14 @@ def main():
             print(f"WARNING {hero_id}: rig has no {sorted(skipped)}; those channels are omitted")
 
         first, last = action.frame_range
-        for fcurve in action.fcurves:
-            for keyframe in fcurve.keyframe_points:
-                keyframe.interpolation = "BEZIER"
+        # Blender 5 replaced Action.fcurves with layered/slotted actions; the
+        # default interpolation is already Bezier, so this is a preference, not a
+        # requirement, and must not be the line that fails a pass.
+        fcurves = getattr(action, "fcurves", None)
+        if fcurves is not None:
+            for fcurve in fcurves:
+                for keyframe in fcurve.keyframe_points:
+                    keyframe.interpolation = "BEZIER"
 
         arm.animation_data.action = action
         bpy.context.scene.frame_set(int(first))
