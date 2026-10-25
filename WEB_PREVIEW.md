@@ -1,6 +1,6 @@
 # Exocomplict — WebAssembly Preview
 
-> **Tujuan:** melihat dan menguji game di browser **tanpa memasang Godot, Android SDK, JDK, atau Blender** — cukup satu server statis: `python -m http.server 800 --bind 0.0.0.0` dari root repo.
+> **Tujuan:** melihat dan menguji game di browser **tanpa memasang Godot, Android SDK, JDK, atau Blender** — cukup satu server statis: `python3 tools/serve_preview.py --port 800` dari root repo. Server preview ini menyimpan asset yang tidak berubah dan memvalidasinya dengan ETag.
 >
 > **Ini bukan perubahan target platform.** Android tetap target rilis; pipeline produksi tetap Godot + Blender di mesin dev. Web hanya dipakai sebagai jendela review UI/UX + gameplay supaya iterasi tidak menunggu instalasi toolchain.
 >
@@ -23,7 +23,9 @@ Artefak CI `web-preview` (zip, isi `web/` + `README.txt`) ≈ **10 MB** karena w
 
 **Bukti browser (dijalankan di sandbox ini, Chromium headless + WebGL 2):** `node tools/web_qa.mjs` → **2/2 halaman PASS**, keduanya mem-boot Godot `4.7.2.stable.official.ed1daf0bf`, kanvas 1280×720, WebGL hidup, tanpa error halaman maupun permintaan gagal. Tangkapan layar: `exports/web-qa/root.png` dan `exports/web-qa/web-index-html.png`.
 
-> **Catatan bandwidth:** opening mengunduh WASM 39,514,754 bytes + PCK 79,615,004 bytes = **119.1 MB** (tepatnya 119,129,758 bytes, sekitar **113.6 MiB**), belum termasuk loader/HTML. Setelah gesture pertama, shell juga mengambil empat WAV yang dipakai bersama (2,288,084 bytes); pulse gameplay sudah berada di PCK. `python -m http.server` tidak mengompresi payload besar; forwarded port atau Wi-Fi dapat membuat unduhan lama. DEPLOY memakai buffer PCK yang sama tanpa mengunduhnya lagi. Error dapat diulang dan watchdog tetap aktif bila tidak ada kemajuan. Jangan tutup/muat ulang saat byte masih bergerak; perilaku cache tetap bergantung pada server/proxy. Diagnosis dan bukti: [`docs/WEB_LOADING_RECOVERY.md`](docs/WEB_LOADING_RECOVERY.md).
+> **Catatan bandwidth:** opening mengunduh WASM 39,514,754 bytes + PCK 79,615,004 bytes = **119.1 MB** (tepatnya 119,129,758 bytes, sekitar **113.6 MiB**), belum termasuk loader/HTML. Setelah gesture pertama, shell juga mengambil empat WAV yang dipakai bersama (2,288,084 bytes); pulse gameplay sudah berada di PCK. `python -m http.server` tidak mengompresi payload besar; forwarded port atau Wi-Fi dapat membuat unduhan lama. DEPLOY memakai buffer PCK yang sama tanpa mengunduhnya lagi. Error dapat diulang dan watchdog tetap aktif bila tidak ada kemajuan. Jangan tutup/muat ulang saat byte masih bergerak. Diagnosis dan bukti: [`docs/WEB_LOADING_RECOVERY.md`](docs/WEB_LOADING_RECOVERY.md).
+
+**Cache warm preview:** gunakan `python3 tools/serve_preview.py --port 800`, bukan server dengan `no-store`. Cold load pertama tetap mengambil seluruh payload. Pada reload berikutnya di origin dan profil browser yang sama, file yang tidak berubah dikirim sebagai **304 Not Modified** setelah revalidasi ETag; body WASM/PCK tidak diunduh ulang. Bila isi file berubah, ETag berubah dan browser mengambil versi baru. Opsi **Disable cache** di DevTools, profil/private window baru, atau clear cache memang memaksa cold load lagi.
 
 ---
 
@@ -41,13 +43,13 @@ Repo ini disusun seperti `xam-eth/Scary-Night` (game lain yang juga dipakai lewa
 | QA browser | `tools/*.mjs` + puppeteer-core + `@sparticuz/chromium` | `tools/web_qa.mjs` + puppeteer-core + `@sparticuz/chromium`, dijalankan di CI (dan bisa lokal) |
 | Jalur Android | PWA + TWA/Bubblewrap (`android/twa-manifest.json`, `.well-known/assetlinks.json`) | ekspor Android Godot (`ANDROID_BASELINE.md`, gate E) |
 
-Konsekuensinya: `git pull` lalu `python -m http.server 800 --bind 0.0.0.0` **langsung memainkan game** — tidak perlu membuka Actions untuk mengunduh artefak.
+Konsekuensinya: `git pull` lalu `python3 tools/serve_preview.py --port 800` **langsung memainkan game** — tidak perlu membuka Actions untuk mengunduh artefak.
 
 ## 1. Alur singkat (pemakaian harian)
 
 ```bash
 git pull                                        # web/ sudah ikut di dalam repo
-python -m http.server 800 --bind 0.0.0.0        # dari root repo
+python3 tools/serve_preview.py --port 800      # dari root repo
 
 # Buka di browser
 #   http://localhost:800/        <- landing page + game
@@ -118,7 +120,7 @@ Job `deploy-pages` sudah ada di workflow dan tidak berjalan pada push biasa ke b
 ```bash
 ./scripts/install_godot.sh --with-templates   # pasang engine yang dipin
 ./scripts/export_web_preview.sh               # preset + import + export + verifikasi
-python -m http.server 800 --bind 0.0.0.0
+python3 tools/serve_preview.py --port 800
 ```
 
 `scripts/export_web_preview.sh` melakukan lima langkah dan berhenti kalau ada yang gagal:
@@ -213,7 +215,8 @@ Artinya build Android tetap memakai renderer `mobile` (sesuai `PROJECT_DECISIONS
 | Loading tanpa persen pada checkout lama | Path `./web/index` tidak memiliki entri `fileSizes`, sehingga callback ber-`total=0` | Pull perbaikan dan buka halaman `/` baru; regression gate membuktikan total 135,101,522 bytes |
 | Layar hitam, progres macet | WebGL 2 tidak tersedia/terblokir | Gunakan Chrome/Firefox/Edge terbaru; cek `chrome://gpu`; hindari mode hemat data |
 | Pesan "The following features ... are missing" | Browser tidak mendukung WebGL 2 atau canvas diblokir | Perbarui browser; pastikan bukan di iframe yang membatasi; jangan aktifkan thread support |
-| `404` pada `index.wasm` / `index.pck` | Server dijalankan dari folder yang salah | Jalankan `python -m http.server 800` **dari root repo** (atau `--directory <web>`) |
+| `404` pada `index.wasm` / `index.pck` | Server dijalankan dari folder yang salah | Jalankan `python3 tools/serve_preview.py --port 800` **dari root repo** |
+| Payload besar terunduh lagi pada setiap reload | Server mengirim `no-store`, DevTools **Disable cache** aktif, atau origin/profil browser berubah | Pakai `tools/serve_preview.py`, matikan **Disable cache**, dan buka URL preview yang sama; origin menjawab `304` dan transfer body besar harus hilang (Chromium dapat menampilkan cached `200` setelah revalidasi) |
 | Export gagal: template tidak ditemukan | Export templates belum dipasang | `./scripts/install_godot.sh --with-templates` |
 | `tools/web_preset.py check` gagal: threads | Preset memakai `variant/thread_support=true` | Jalankan `ensure` lagi (default single-thread), atau sajikan dengan header COOP/COEP dan pakai `--allow-threads` saat check |
 | Ingin lihat error engine | Build rilis menyembunyikan detail | `./scripts/export_web_preview.sh --debug`, lalu cek konsol browser |

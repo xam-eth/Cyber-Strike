@@ -127,7 +127,9 @@ export class ShellAudio {
     if (this.buffers.has(name)) return Promise.resolve(this.buffers.get(name));
     if (this.bufferPromises.has(name)) return this.bufferPromises.get(name);
     const promise = (async () => {
-      const response = await fetch(BUFFER_URLS[name], { cache: 'force-cache' });
+      // Store decoded-source bytes across previews, but revalidate them with
+      // the server's ETag. force-cache could keep a replaced WAV forever.
+      const response = await fetch(BUFFER_URLS[name], { cache: 'no-cache' });
       if (!response.ok) throw new Error(`Audio asset ${name} returned HTTP ${response.status}`);
       const bytes = await response.arrayBuffer();
       const buffer = await this.context.decodeAudioData(bytes);

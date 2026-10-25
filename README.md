@@ -13,7 +13,7 @@
 - [`WORLD_BLOCKOUT.md`](WORLD_BLOCKOUT.md) — world zones, route layout, modular asset inventory, and implementation notes.
 - [`DEVELOPMENT_ROADMAP.md`](DEVELOPMENT_ROADMAP.md) — project phases, scope gates, risks, and next steps.
 - [`ANDROID_BASELINE.md`](ANDROID_BASELINE.md) — gate-E runbook: JDK/SDK setup, local Android preset, APK build, device test and profiling checklist.
-- [`WEB_PREVIEW.md`](WEB_PREVIEW.md) — no-install WebAssembly preview: `python -m http.server 800 --bind 0.0.0.0` from the repository root, controls, limits, troubleshooting.
+- [`WEB_PREVIEW.md`](WEB_PREVIEW.md) — no-install WebAssembly preview: `python3 tools/serve_preview.py --port 800` from the repository root, with revalidated asset caching, controls, limits, troubleshooting.
 - [`GAP_ANALYSIS.md`](GAP_ANALYSIS.md) — verified-vs-claimed status, per-system gaps, prioritized backlog, and how to run the new tooling.
 - [`PROJECT_DECISIONS.md`](PROJECT_DECISIONS.md) — provisional gameplay and technical decisions.
 - [`GAME_CONCEPT.md`](GAME_CONCEPT.md) — source game and technical design concept.
@@ -66,12 +66,14 @@ The fastest way to review UI/UX and gameplay without installing Godot, the Andro
 web build. Serve the repository root and open the landing page:
 
 ```bash
-python -m http.server 800 --bind 0.0.0.0
+python3 tools/serve_preview.py --port 800
 # http://localhost:800/        landing page with status + embedded game
 # http://localhost:800/web/    raw Godot build
 ```
 
-The Godot payload lives in `web/` and **is committed** (the integrated PCK is ≈98 MB, refreshed by the `web-preview` CI job), so a plain
+The preview server gives files a content ETag and `Cache-Control: no-cache`: a cold opening downloads the full payload, while an unchanged warm preview reuses local bytes after a small 304 revalidation. A changed file is downloaded, not hidden behind a stale cache. Disabling cache in developer tools or clearing the browser profile intentionally forces another cold load.
+
+The Godot payload lives in `web/` and **is committed** (the integrated PCK is ≈79.6 MB, refreshed by the `web-preview` CI job), so a plain
 `git pull` is enough to play. The `web-preview` artifact from Actions is still there as a fallback, GitHub Pages
 (*Settings → Pages → Source: GitHub Actions*) removes the download entirely, and a local export needs only the web
 export templates that are already in the repository (`engine/web_templates/`):
