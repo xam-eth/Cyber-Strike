@@ -3,6 +3,11 @@ extends SceneTree
 const MainScene = preload("res://scenes/main.tscn")
 const ImpactBurstScript = preload("res://scripts/weapons/impact_burst.gd")
 
+## Controlled weapon-fixture origin on the clear outer-north lane. The old
+## central coordinates now intersect the real tower/arch colliders, which would
+## make this weapon test measure the environment instead of its explicit cover.
+const FIXTURE_ORIGIN := Vector3(30.0, 0.18, 60.0)
+
 
 class DamageReceiver:
 	extends StaticBody3D
@@ -27,6 +32,8 @@ func _run_smoke_test() -> void:
 	var arc_unlocked := progression.unlock_weapon(&"arc_shooter")
 
 	var player: Node3D = main_scene.get_node("Player")
+	player.global_position = FIXTURE_ORIGIN
+	player.set("velocity", Vector3.ZERO)
 	var weapon_controller: Node = player.get_node("WeaponController")
 	var muzzle: Marker3D = player.get_node("VisualRoot/WeaponSocket/Muzzle")
 	var weapon_button := main_scene.get_node("HUD/TouchControls").get("_weapon_button") as Button
@@ -229,7 +236,7 @@ func _run_smoke_test() -> void:
 func _create_receiver(parent: Node, at_position: Vector3) -> DamageReceiver:
 	var receiver := DamageReceiver.new()
 	receiver.name = "ArcDamageReceiver"
-	receiver.position = at_position
+	receiver.position = FIXTURE_ORIGIN + at_position
 	receiver.collision_layer = 2
 	receiver.collision_mask = 0
 	var shape := SphereShape3D.new()
@@ -244,7 +251,7 @@ func _create_receiver(parent: Node, at_position: Vector3) -> DamageReceiver:
 func _create_blocker(parent: Node, at_position: Vector3, size: Vector3) -> StaticBody3D:
 	var blocker := StaticBody3D.new()
 	blocker.name = "ArcBlocker"
-	blocker.position = at_position
+	blocker.position = FIXTURE_ORIGIN + at_position
 	blocker.collision_layer = 1
 	blocker.collision_mask = 0
 	var shape := BoxShape3D.new()

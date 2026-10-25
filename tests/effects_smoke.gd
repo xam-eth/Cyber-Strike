@@ -148,7 +148,14 @@ func _run_smoke_test() -> void:
 	# --- muzzle flash on a real shot ----------------------------------------
 	var weapon_controller: Node = player.get_node("WeaponController")
 	var muzzle: Marker3D = player.get_node("VisualRoot/WeaponSocket/Muzzle")
-	var fired := bool(weapon_controller.call("try_fire", player, muzzle, Vector3(0.0, 0.9, -12.0)))
+	# Use the controlled outer lane and fire east, away from its fixtures. A shot
+	# through the new central tower would create a real early impact and
+	# contaminate the independent burst-lifetime baseline.
+	player.global_position = Vector3(30.0, 0.18, 60.0)
+	player.set("velocity", Vector3.ZERO)
+	var fired := bool(
+		weapon_controller.call("try_fire", player, muzzle, Vector3(100.0, 0.9, 60.0))
+	)
 	test_passed = (_expect(fired, "the weapon fires for the effect test") and test_passed)
 	var spawned_bolt: PulseProjectile
 	for child in main_scene.get_children():

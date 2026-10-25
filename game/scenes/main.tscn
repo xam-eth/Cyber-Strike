@@ -27,7 +27,8 @@ script = ExtResource("10_progression")
 position = Vector3(0, 0, 8)
 
 [node name="TrainingDrone" parent="." instance=ExtResource("4_drone")]
-position = Vector3(0, 0, -8)
+# Clear line of sight from the STELLAR tower spawn; (0, -8) is behind the tower.
+position = Vector3(18, 0.18, -8)
 
 [node name="WaveEnemies" type="Node3D" parent="."]
 

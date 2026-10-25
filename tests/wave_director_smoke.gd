@@ -40,11 +40,10 @@ func _run_smoke_test() -> void:
 	var camera_forward := -player_camera.global_basis.z
 	camera_forward.y = 0.0
 	camera_forward = camera_forward.normalized()
-	# The east cover module is Frostline's flanking cover. The old (4, -3)
-	# fixture named the retired Neon prop; the arena monument is deliberately
-	# collider-free, so measure the real cover beside the lane instead.
-	var cover_position := Vector3(8.0, 0.0, 4.0)
-	var target_position := Vector3(0.0, 0.0, -8.0)
+	# Cover_A is authored at (12, 0, 8) in STELLAR HORIZON. The old (8, 0, 4)
+	# point is open floor in the rebuilt layout and is not a cover fixture.
+	var cover_position := Vector3(12.0, 0.0, 8.0)
+	var target_position := (main_scene.get_node("TrainingDrone") as Node3D).global_position
 	var test_passed := true
 	test_passed = (
 		_expect(

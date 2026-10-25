@@ -27,7 +27,9 @@ func _run_smoke_test() -> void:
 
 	var weapon_controller: Node = player.get_node("WeaponController")
 	var muzzle: Marker3D = player.get_node("VisualRoot/WeaponSocket/Muzzle")
-	weapon_controller.call("try_fire", player, muzzle, Vector3(0.0, 0.9, -8.0))
+	weapon_controller.call(
+		"try_fire", player, muzzle, (target as Node3D).global_position + Vector3(0.0, 0.9, 0.0)
+	)
 	for _frame in 45:
 		await physics_frame
 		if not _received_target_damage.is_empty():

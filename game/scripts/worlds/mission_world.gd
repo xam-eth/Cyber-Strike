@@ -262,6 +262,11 @@ func _add_mesh_colliders() -> void:
 		var mesh_instance := candidate as MeshInstance3D
 		if mesh_instance.mesh == null:
 			continue
+		# DeckEdge is low decorative trim placed continuously across the declared
+		# MainNorth/MainSouth routes. Keep it visible, but do not turn that trim
+		# into a 0.6 m wall through the route (measured at z=15…20 in the GLB).
+		if String(mesh_instance.get_path()).contains("/DeckEdge_"):
+			continue
 		mesh_instance.create_trimesh_collision()
 		made += 1
 	print("MISSION WORLD: %d %s mesh colliders derived from the real world" % [made, _world_id()])

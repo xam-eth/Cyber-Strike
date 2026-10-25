@@ -44,19 +44,21 @@ func _run_smoke_test() -> void:
 			and test_passed
 		)
 
-	player.global_position = Vector3(5.5, 0.0, 5.5)
+	# Follow MainNorth from the authored spawn. The old diagonal fixture walked
+	# into CentralTower ArchA; decorative DeckEdge trim must not wall off this route.
+	player.global_position = Vector3(0.0, 0.18, 8.0)
 	player.set("velocity", Vector3.ZERO)
-	player.call("set_touch_movement", Vector2.RIGHT)
-	for _frame in 120:
+	player.call("set_touch_movement", Vector2.DOWN)
+	for _frame in 180:
 		await physics_frame
-		if player.global_position.x >= 10.2:
+		if player.global_position.z >= 20.0:
 			break
 	player.call("set_touch_movement", Vector2.ZERO)
 	print("Arena traversal ended at player position %s." % player.global_position)
 	test_passed = (
 		_expect(
-			player.global_position.x >= 10.2,
-			"player can cross the arena floor on the real world's collision layer",
+			player.global_position.z >= 20.0,
+			"player can follow MainNorth on the real world's collision layer",
 		)
 		and test_passed
 	)
