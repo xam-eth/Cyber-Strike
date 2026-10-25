@@ -158,6 +158,29 @@
       "within_palette": true
     },
     {
+      "key": "world_titans",
+      "file": "res://assets/ui/world_titans.jpg",
+      "format": "JPEG",
+      "source": "res://assets/ui/generated/world_titans.png",
+      "size": [
+        1600,
+        900
+      ],
+      "mode": "cover",
+      "palette": {
+        "red": 0.8882,
+        "amber": 0.085,
+        "steel": 0.0161,
+        "off-palette": 0.0046,
+        "shadow": 0.0044,
+        "navy": 0.0014,
+        "cyan": 0.0003,
+        "green": 0.0
+      },
+      "off_palette_share": 0.0046,
+      "within_palette": true
+    },
+    {
       "key": "weapon_pulse_rifle",
       "file": "res://assets/ui/weapon_pulse_rifle.png",
       "format": "PNG",

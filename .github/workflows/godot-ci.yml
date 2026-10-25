@@ -175,18 +175,25 @@ jobs:
           from tools.check_payload import parse_pck
           entries, _, _ = parse_pck('web/index.pck')
           paths = [entry[0] for entry in entries]
-          missing = [name for name in ('frostline', 'verdant', 'emberfall', 'vanguard_station')
-                     if not any(name in path for path in paths)]
+          required = {
+              'frostline': 'assets/forge/worlds/frostline.glb',
+              'verdant': 'assets/forge/worlds/verdant.glb',
+              'emberfall': 'assets/forge/worlds/emberfall.glb',
+              'vanguard_station': 'scenes/worlds/vanguard_station.tscn',
+              'titans': 'assets/forge/worlds/titans.glb',
+          }
+          missing = [name for name, resource in required.items()
+                     if not any(resource in path for path in paths)]
           if missing:
               raise SystemExit(f'Exported PCK is missing world resources: {missing}')
           size = Path('web/index.pck').stat().st_size
           largest = sorted(entries, key=lambda entry: entry[2], reverse=True)[:5]
           detail = ', '.join(f'{path}={size}' for path, _, size in largest)
-          print(f'::notice title=Exported world payload::PCK {size} bytes, {len(entries)} files; all four worlds present; largest: {detail}')
+          print(f'::notice title=Exported world payload::PCK {size} bytes, {len(entries)} files; all five worlds present; largest: {detail}')
           Path('exports/web-payload-summary.json').write_text(json.dumps({
               'pck_bytes': size,
               'files': len(entries),
-              'worlds': ['frostline_relay', 'verdant_bloom', 'emberfall_foundry', 'vanguard_station'],
+              'worlds': ['frostline_relay', 'verdant_bloom', 'emberfall_foundry', 'vanguard_station', 'titans'],
               'largest': [{'path': path, 'bytes': size} for path, _, size in largest],
           }, indent=2) + '\n')
           PY
@@ -313,6 +320,27 @@ jobs:
               print(f'Shell world selection: {"PASS" if not page["failed"] else "FAIL"} | {page["target"]}')
               for failure in page["failed"]:
                   print(f"::error title=Shell world selection QA::{failure}")
+          raise SystemExit(0 if report["ok"] else 1)
+          PY
+          exit "$qa_status"
+
+      - name: Browser Titans selection and audio contract
+        run: |
+          # THE TITANS must pass the same real-gesture audio gate while its own
+          # card is selected and its own MissionWorld GLB is built. A Frostline
+          # or Vanguard audio pass cannot stand in for this theatre.
+          qa_status=0
+          node tools/web_qa.mjs --page / --viewport 844x390 --timeout 120 \
+            --journey --select-world titans --audio-shell --out exports/web-qa/titans \
+            --json > exports/web-qa-titans-report.json || qa_status=$?
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path("exports/web-qa-titans-report.json").read_text())
+          for page in report["pages"]:
+              print(f'Titans selection + audio: {"PASS" if not page["failed"] else "FAIL"} | {page["target"]}')
+              for failure in page["failed"]:
+                  print(f"::error title=Titans selection + audio QA::{failure}")
           raise SystemExit(0 if report["ok"] else 1)
           PY
           exit "$qa_status"

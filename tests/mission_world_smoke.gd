@@ -1,11 +1,11 @@
 extends SceneTree
 ##
-## mission_world_smoke.gd — all three worlds are real, and they work in the engine.
+## mission_world_smoke.gd — every mission world is real and works in the engine.
 ##
 ## This test used to assert the *procedural* build: component scenes generated in
 ## GDScript, an FBX kit, a hand-built arena bay, per-route causeway nodes. None of
-## that exists any more. There are three mission worlds, each one staged GLB
-## assembled by the asset forge, so what is worth asserting is different, and
+## that exists any more. Each mission world is one staged GLB assembled by the
+## asset forge, so what is worth asserting is different, and
 ## stricter:
 ##
 ##   for every world:
@@ -14,7 +14,7 @@ extends SceneTree
 ##     3. every single MeshInstance3D in the world lives inside that GLB —
 ##        nothing is added by code,
 ##     4. the authored clips are running (one player per clip),
-##     5. the lighting rig matches the world's own mood, and the three moods are
+##     5. the lighting rig matches the world's own mood, and all moods are
 ##        actually different from one another,
 ##     6. the collision floor covers that world's field and not another's size.
 ##
@@ -36,6 +36,7 @@ const EXPECTED := {
 	"verdant_bloom": {"meshes": 210, "clips": 150, "textures": 4, "field": Vector2(176.0, 164.0)},
 	"emberfall_foundry":
 	{"meshes": 400, "clips": 40, "textures": 40, "field": Vector2(200.0, 176.0)},
+	"titans": {"meshes": 180, "clips": 48, "textures": 19, "field": Vector2(64.0, 64.0)},
 }
 
 var _passed := true
@@ -67,11 +68,14 @@ func _run_smoke_test() -> void:
 		if key_color != null:
 			seen_key_colors.append(key_color)
 
-	# Three worlds, three moods: if two theatres share a key light they are the
-	# same theatre with different props.
+	# If two theatres share a key light they are the same theatre with different
+	# props. The count follows the mission registry rather than a hard-coded roster.
 	_passed = (
 		_expect(
-			seen_key_colors.size() == 3 and _all_distinct(seen_key_colors),
+			(
+				seen_key_colors.size() == WorldMood.MOOD_ORDER.size()
+				and _all_distinct(seen_key_colors)
+			),
 			(
 				"each mission world is lit by its own key colour (got %d distinct)"
 				% _distinct_count(seen_key_colors)
@@ -81,9 +85,10 @@ func _run_smoke_test() -> void:
 	)
 
 	await _check_gameplay_scene()
+	await _check_titans_gameplay_scene()
 
 	if _passed:
-		print("MISSION WORLD three-world smoke test passed.")
+		print("MISSION WORLD smoke test passed.")
 		quit()
 	else:
 		quit(1)
@@ -211,6 +216,30 @@ func _check_world(world_id: String) -> Variant:
 			and _passed
 		)
 
+	if world_id == "titans":
+		var triangle_colliders := 0
+		for candidate in real_world.find_children("*", "CollisionShape3D", true, false):
+			var collision := candidate as CollisionShape3D
+			if collision.shape is ConcavePolygonShape3D:
+				triangle_colliders += 1
+		_passed = (
+			_expect(
+				triangle_colliders >= int(expected["meshes"]),
+				(
+					"Titans uses its authored deck/stair/walkway triangles, not role-filling boxes "
+					+ "(%d mesh colliders)" % triangle_colliders
+				),
+			)
+			and _passed
+		)
+		_passed = (
+			_expect(
+				world.get_node_or_null("FrontierPropCollision") == null,
+				"Titans does not also build the flat-arena prop-box collider",
+			)
+			and _passed
+		)
+
 	world.queue_free()
 	await process_frame
 	return key_color
@@ -262,6 +291,13 @@ func _check_mood(world: Node3D, world_id: String) -> Variant:
 			)
 		"emberfall_foundry":
 			ok = ok and key.light_color.r > 0.9 and key.light_color.r > key.light_color.b * 2.0
+		"titans":
+			ok = (
+				ok
+				and key.light_color.r > 0.9
+				and key.light_color.g > key.light_color.b
+				and fill.light_color.b > fill.light_color.r
+			)
 	_passed = _expect(ok, "%s's lights, sky and fog are its theme" % world_id) and _passed
 	return key.light_color
 
@@ -363,6 +399,68 @@ func _check_gameplay_scene() -> void:
 
 	main_scene.queue_free()
 	await process_frame
+
+
+## Titans uses the same main.tscn and selection resolver as shell DEPLOY. Check
+## both the authored Hangar spawn and its physical result; a correct coordinate
+## that drops the player through the station is not a working deployment.
+func _check_titans_gameplay_scene() -> void:
+	print("--- gameplay scene (THE TITANS)")
+	var previous := WorldSelection.override_selection(&"titans")
+	var main_scene := MainScene.instantiate()
+	main_scene.set("start_wave_session_on_ready", false)
+	root.add_child(main_scene)
+	# _ready() has run synchronously, so this is the WorldDefinition mapping
+	# before gravity or collision recovery can move the body.
+	var player := main_scene.get_node("Player") as CharacterBody3D
+	var initial_spawn := player.position
+	_passed = (
+		_expect(
+			initial_spawn.is_equal_approx(Vector3(0.0, 0.1, -20.0)),
+			"Titans DEPLOY resolves the authored Hangar spawn, got %s" % initial_spawn,
+		)
+		and _passed
+	)
+
+	var world := main_scene.get_node("MissionWorld") as Node3D
+	var real_world := world.get_node_or_null("RealFrontierWorld") as Node3D
+	_passed = (
+		_expect(
+			real_world != null and String(real_world.get_meta("world_id", "")) == "titans",
+			"the selected Titans card builds titans.glb through main.tscn",
+		)
+		and _passed
+	)
+
+	for _frame in 24:
+		await physics_frame
+	_passed = (
+		_expect(
+			player.is_on_floor() and player.position.y > -0.75 and player.position.y < 0.75,
+			"Titans Hangar spawn settles on real collision, got %s" % player.position,
+		)
+		and _passed
+	)
+
+	# Walk north along the Hangar spine. This is a short deployment smoke, not a
+	# claim that every stair, pit and launch route has been traversed.
+	player.set("velocity", Vector3.ZERO)
+	player.call("set_touch_movement", Vector2.UP)
+	for _frame in 60:
+		await physics_frame
+	player.call("set_touch_movement", Vector2.ZERO)
+	_passed = (
+		_expect(
+			player.position.z < -22.0 and player.position.z > -31.0 and player.position.y > -1.0,
+			"player can leave the Titans spawn along the Hangar spine, got %s" % player.position,
+		)
+		and _passed
+	)
+	print("Titans Hangar traversal ended at %s." % player.position)
+
+	main_scene.queue_free()
+	await process_frame
+	WorldSelection.override_selection(previous)
 
 
 func _near(a: Color, b: Color, tolerance := 0.002) -> bool:

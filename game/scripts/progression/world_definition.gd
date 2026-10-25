@@ -16,10 +16,10 @@ extends Resource
 ## `scene_file_path` is that file, so a card advertising a world the launcher
 ## does not contain fails the suite.
 ##
-## The three mission worlds share one scene file. They are the same node graph --
-## a world node, a collision floor, a lighting rig -- and what differs is the GLB
-## that node loads, chosen from `world_id`. Three .tscn files for one script would
-## be three places for that graph to drift apart.
+## The mission worlds share one scene file. They are the same node graph --
+## a world node, collision geometry, a lighting rig -- and what differs is the GLB
+## that node loads, chosen from `world_id`. Separate .tscn files for one script
+## would be more places for that graph to drift apart.
 ##
 ## No wave count, enemy mix or difficulty rating: `mission_world.gd` owns that at
 ## runtime, and a copy of it here would go stale the moment it is tuned.
@@ -28,6 +28,7 @@ const DEFINITION_PATHS := {
 	&"verdant_bloom": "res://resources/worlds/verdant_bloom.tres",
 	&"emberfall_foundry": "res://resources/worlds/emberfall_foundry.tres",
 	&"vanguard_station": "res://resources/worlds/vanguard_station.tres",
+	&"titans": "res://resources/worlds/titans.tres",
 }
 
 ## Stable iteration order for the registry (GDScript dictionaries keep
@@ -37,6 +38,7 @@ const DEFINITION_IDS: Array[StringName] = [
 	&"verdant_bloom",
 	&"emberfall_foundry",
 	&"vanguard_station",
+	&"titans",
 ]
 
 ## The theatre the profile falls back to when a save names one that no longer
@@ -56,6 +58,10 @@ const DEFAULT_WORLD_ID := &"frostline_relay"
 @export var zone_title: String = "EXPLORE THE FRONTIER"
 @export var zone_subtitle: String = "SAFE ZONE · MOVE FREELY"
 @export var field_ready: bool = true
+## Gameplay reads this World-owned spawn after the shell selection is resolved.
+## The default is the legacy main.tscn position, so existing theatres and test
+## fixtures keep their original start unless their definition opts into another.
+@export var player_spawn: Vector3 = Vector3(0.0, 0.0, 8.0)
 
 
 func is_valid_definition() -> bool:

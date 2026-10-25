@@ -7,7 +7,7 @@
  * writes one self-contained GLB. The worlds are rendered in the same pinned
  * Chromium, one page per world, so nothing leaks between them.
  *
- *   node tools/asset-forge/gate/world_shot.mjs                    # all three worlds
+ *   node tools/asset-forge/gate/world_shot.mjs                    # all mission worlds
  *   node tools/asset-forge/gate/world_shot.mjs --world frostline
  *   node tools/asset-forge/gate/world_shot.mjs --world verdant --shot overview,shrine
  *   node tools/asset-forge/gate/world_shot.mjs --no-glb
@@ -41,7 +41,7 @@ const width = Number(flag('width', '2048'));
 const height = Number(flag('height', '1152'));
 const time = String(flag('t', '6'));
 const wantGlb = !has('no-glb');
-const ALL_WORLDS = ['frostline', 'verdant', 'emberfall'];
+const ALL_WORLDS = ['frostline', 'verdant', 'emberfall', 'titans'];
 const worldIds = flag('world', null) ? String(flag('world')).split(',').map((s) => s.trim()) : ALL_WORLDS;
 const shotFilter = flag('shot', null);
 const SHOTS = shotFilter ? String(shotFilter).split(',').map((s) => s.trim()) : null;

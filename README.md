@@ -48,7 +48,7 @@ Open `game/project.godot` in Godot 4.7.2 and run the main scene to explore the w
 ./scripts/run_smoke_tests.sh wave_director_smoke    # a single test
 ```
 
-`scripts/run_smoke_tests.sh` performs the headless Editor import and then every smoke test with `--headless --path game --script <absolute-test-path>`, writing logs to the git-ignored `exports/test-logs/`. The 28 tests cover the front end, all four theatres, content showcases, combat, the Pulse Rifle vertical slice, waves, rewards, progression, landscape HUD/touch, audio, effects, and content data. Use `--list` for the authoritative inventory. The equivalent manual commands are:
+`scripts/run_smoke_tests.sh` performs the headless Editor import and then every smoke test with `--headless --path game --script <absolute-test-path>`, writing logs to the git-ignored `exports/test-logs/`. The 28 tests cover the front end, all five theatres, content showcases, combat, the Pulse Rifle vertical slice, waves, rewards, progression, landscape HUD/touch, audio, effects, and content data. Use `--list` for the authoritative inventory. The equivalent manual commands are:
 
 ```bash
 godot --headless --editor --path game --quit

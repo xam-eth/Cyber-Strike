@@ -240,6 +240,8 @@ JOBS = [
      "world_verdant_bloom.jpg", "JPEG"),
     ("world_emberfall_foundry", "world_emberfall_foundry.png", "cover", (1600, 900),
      "world_emberfall_foundry.jpg", "JPEG"),
+    ("world_titans", "world_titans.png", "cover", (1600, 900),
+     "world_titans.jpg", "JPEG"),
     ("weapon_pulse_rifle", "weapon_pulse_rifle.png", "content_cover", (768, 512),
      "weapon_pulse_rifle.png", "PNG"),
     ("weapon_nova_launcher", "weapon_nova_launcher.png", "content_cover", (768, 512),

@@ -3,7 +3,7 @@ extends RefCounted
 
 ## world_mood.gd — the art direction of each mission world, as data.
 ##
-## Three missions, three moods, and the mood is what tells them apart once the
+## Each mission has its own mood, and the mood is what tells them apart once the
 ## camera is inside one. The values here are the Godot half of
 ## `tools/asset-forge/src/worlds/themes.js`: the forge decides how the *surfaces*
 ## are graded and photographed, this file decides how they are *lit* in-engine.
@@ -140,10 +140,53 @@ const MOODS := {
 		"contrast": 1.1,
 		"glow": 0.8,
 	},
+	"titans":
+	{
+		"label": "THE TITANS",
+		"mood": "breached station interior: emergency amber, alien cyan, settled dust",
+		"sky": Color(0.019608, 0.039216, 0.070588),
+		"ambient": Color(0.352941, 0.415686, 0.470588),
+		"ambient_energy": 0.85,
+		"fog": Color(0.101961, 0.149020, 0.180392),
+		"fog_density": 0.0042,
+		"key":
+		{
+			"name": "MissionKeyLight",
+			"color": Color(1.0, 0.878431, 0.658824),
+			"energy": 1.0,
+			"position": Vector3(0.0, 44.0, 8.0),
+		},
+		"fill":
+		{
+			"name": "MissionFillLight",
+			"color": Color(0.486275, 0.941176, 1.0),
+			"energy": 0.42,
+			"position": Vector3(-18.0, 18.0, -12.0),
+		},
+		"rim":
+		{
+			"name": "MissionRimLight",
+			"color": Color(0.415686, 0.431373, 1.0),
+			"energy": 0.36,
+			"position": Vector3(0.0, 14.0, -32.0),
+		},
+		"accent": Color(1.0, 0.478431, 0.117647),
+		"accent_energy": 0.9,
+		"accent_range": 10.0,
+		"exposure": 1.25,
+		"saturation": 1.0,
+		"contrast": 1.08,
+		"glow": 0.38,
+	},
 }
 
 ## Same order as `THEME_ORDER` in themes.js and `MISSION_WORLD.WORLD_ORDER`.
-const MOOD_ORDER: Array[String] = ["frostline_relay", "verdant_bloom", "emberfall_foundry"]
+const MOOD_ORDER: Array[String] = [
+	"frostline_relay",
+	"verdant_bloom",
+	"emberfall_foundry",
+	"titans",
+]
 
 
 static func has_mood(world_id: String) -> bool:

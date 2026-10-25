@@ -590,11 +590,11 @@ body[data-screen='opening'] .plate--opening::after {
   text-shadow: 0 2px 14px rgba(0, 0, 0, 0.9);
 }
 
-/* All four playable theatres fit the frame; the row never hides a registry
+/* All five playable theatres fit the frame; the row never hides a registry
    entry behind a second carousel or a fictional locked destination. */
 .carousel {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: clamp(6px, 1.1vw, 12px);
   flex: 1 1 auto;
   min-height: clamp(120px, 42vh, 240px);
@@ -677,6 +677,10 @@ body[data-screen='hub'] .plate--hub {
 
 .wcard__art--station {
   background-image: url('./art/web/world-vanguard-station.jpg');
+}
+
+.wcard__art--titans {
+  background-image: url('./art/web/world-titans.jpg');
 }
 
 .wcard__art--empty {

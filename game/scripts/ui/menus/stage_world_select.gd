@@ -171,7 +171,7 @@ func _build_map() -> void:
 	_map_name.autowrap_mode = TextServer.AUTOWRAP_OFF
 	map_caption.add_child(_map_name)
 
-	# Four theatres plus the roadmap slot share one row in the landscape-only
+	# Five theatres plus the roadmap slot share one row in the landscape-only
 	# front end. A grid keeps every registry entry visible instead of squeezing
 	# the old two-theatre HBox or introducing a second scrolling interaction.
 	_pin_row = GridContainer.new()

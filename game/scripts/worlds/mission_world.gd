@@ -1,46 +1,53 @@
 extends Node3D
 ##
-## mission_world.gd — one of the three mission worlds, loaded from one GLB.
+## mission_world.gd — one of the mission worlds, loaded from one GLB.
 ##
 ## This file used to *build* the Frontier Outpost out of GDScript primitives: a
 ## procedural floor plane, procedurally generated component scenes, dressers and
 ## a bay builder. Every one of those surfaces was code, not art. It is gone.
 ##
-## What runs now are the three worlds assembled by `tools/asset-forge`, in which
-## every visible mesh is a real licensed GLB:
+## What runs now are the mission worlds assembled by `tools/asset-forge`, in
+## which every visible mesh is a real licensed GLB:
 ##
 ##   game/assets/forge/worlds/frostline.glb   — relay layout + authored clips
 ##   game/assets/forge/worlds/verdant.glb     — grove layout + authored clips
 ##   game/assets/forge/worlds/emberfall.glb   — foundry layout + authored clips
+##   game/assets/forge/worlds/titans.glb      — station layout + authored clips
 ##
 ## Byte-identical photographic maps are staged once in `assets/forge/textures/`
-## and referenced by all three GLBs; measured geometry and clip counts live in
+## and referenced by the mission GLBs; measured geometry and clip counts live in
 ## `assets/forge/forge_manifest.json` rather than drifting in this comment.
 ##
 ## Exactly one is loaded: the theatre the launcher selected, or Frostline Relay
-## when nothing has been selected yet. There is one scene file for all three
+## when nothing has been selected yet. There is one scene file for every mission
 ## because the *scene* is the same node graph — what differs is the GLB, and
-## building three near-identical .tscn files would only give three places for
-## that graph to drift.
+## building near-identical .tscn files would only give more places for that graph
+## to drift.
 ##
 ## This script only *places* that scene and lights it. It creates no geometry: the
-## only nodes it adds to the tree itself are an invisible collision body, the
+## only nodes it adds to the tree itself are invisible collision bodies, the
 ## lighting rig and two non-visual waypoint markers.
 ##
 ## Provenance: tools/asset-forge/real/real-manifest.json
 ##   Kenney Space Kit + Nature Kit (CC0-1.0, kenney.nl)
 ##   Cinder Yard Power Plant + ground plate (CC-BY-4.0, Kammertonus)
 ##
-## Three mission worlds, each one GLB assembled from licensed real assets by
-## `tools/asset-forge`. Only the selected one is loaded: together they are 30 MB
-## of geometry and maps, and the player is in exactly one of them.
+## Mission worlds, each one GLB assembled from licensed real assets by
+## `tools/asset-forge`. Only the selected one is instantiated for gameplay; the
+## complete pack is already resident from the opening payload.
 const WORLD_SCENES := {
 	"frostline_relay": "res://assets/forge/worlds/frostline.glb",
 	"verdant_bloom": "res://assets/forge/worlds/verdant.glb",
 	"emberfall_foundry": "res://assets/forge/worlds/emberfall.glb",
+	"titans": "res://assets/forge/worlds/titans.glb",
 }
 ## Mission order; the first is the default theatre.
-const WORLD_ORDER: Array[String] = ["frostline_relay", "verdant_bloom", "emberfall_foundry"]
+const WORLD_ORDER: Array[String] = [
+	"frostline_relay",
+	"verdant_bloom",
+	"emberfall_foundry",
+	"titans",
+]
 ## The forge's theme ids, accepted as aliases for the world ids. The registry
 ## selects with the world id itself (they are the same strings), so the map is
 ## not a second list of ids to keep in sync — it only adds the short names the
@@ -78,6 +85,7 @@ const WORLD_FIELDS := {
 	"frostline_relay": {"size": Vector2(168.0, 156.0), "center": Vector2(0.0, -8.0)},
 	"verdant_bloom": {"size": Vector2(176.0, 164.0), "center": Vector2(0.0, -6.0)},
 	"emberfall_foundry": {"size": Vector2(200.0, 176.0), "center": Vector2(0.0, -10.0)},
+	"titans": {"size": Vector2(64.0, 64.0), "center": Vector2(0.0, 0.0)},
 }
 ## Fallback field, used if a world id ever arrives without an entry above.
 const WORLD_WIDTH: float = 192.0
@@ -117,7 +125,10 @@ func _ready() -> void:
 	_built = true
 	_instance_real_world()
 	_add_collision_floor()
-	_add_prop_colliders()
+	if _world_id() == "titans":
+		_add_titans_mesh_colliders()
+	else:
+		_add_prop_colliders()
 	_build_lighting_and_atmosphere()
 	_add_wayfinders()
 
@@ -222,7 +233,11 @@ func _add_collision_floor() -> void:
 	var center_z := center.y
 	var floor_body := StaticBody3D.new()
 	floor_body.name = "ArenaFloor"
-	floor_body.position = Vector3(center.x, -0.4, center_z)
+	# Titans' authored mesh supplies the main deck, pit and elevated surfaces.
+	# Keep only a below-pit safety floor here; a flat plane at y=0 would seal the
+	# pit and make the new multi-level geometry physically dishonest.
+	var floor_y := -3.4 if _world_id() == "titans" else -0.4
+	floor_body.position = Vector3(center.x, floor_y, center_z)
 	floor_body.collision_layer = 1
 	floor_body.collision_mask = 0
 	var floor_shape := CollisionShape3D.new()
@@ -304,6 +319,22 @@ func _add_prop_colliders() -> void:
 		print("MISSION WORLD: %d prop colliders derived from the real world" % made)
 
 
+## Titans is not a flat arena with cover boxes: its deck, pit, stairs, narrow
+## walkways and launch platform are the collision surface. A box derived from a
+## whole stair or walkway role would fill the space the player must occupy, so
+## this world alone uses the authored triangles. The other mission worlds keep
+## their measured, inexpensive role-box path above.
+func _add_titans_mesh_colliders() -> void:
+	var made := 0
+	for candidate in _world.find_children("*", "MeshInstance3D", true, false):
+		var mesh_instance := candidate as MeshInstance3D
+		if mesh_instance.mesh == null:
+			continue
+		mesh_instance.create_trimesh_collision()
+		made += 1
+	print("MISSION WORLD: %d Titans mesh colliders derived from the real world" % made)
+
+
 ## World-space bounds of a placed role, from the meshes it is made of.
 func _role_bounds(role: Node3D) -> AABB:
 	var merged := AABB()
@@ -361,6 +392,7 @@ func _build_lighting_and_atmosphere() -> void:
 	environment.ambient_light_color = mood["ambient"]
 	environment.ambient_light_energy = mood["ambient_energy"]
 	environment.tonemap_mode = Environment.TONE_MAPPER_ACES
+	environment.tonemap_exposure = mood["exposure"]
 	environment.tonemap_white = 6.0
 	environment.ssao_enabled = true
 	environment.ssao_radius = 2.4
@@ -383,9 +415,11 @@ func _build_lighting_and_atmosphere() -> void:
 
 ## Non-visual waypoints the HUD and the route hint read. Marker3D draws nothing.
 func _add_wayfinders() -> void:
+	var north_z := -28.0 if _world_id() == "titans" else -84.0
+	var south_z := 28.0 if _world_id() == "titans" else 44.0
 	for entry in [
-		{"name": "NorthRouteWayfinder", "pos": Vector3(0.0, 1.6, -84.0)},
-		{"name": "SouthRouteWayfinder", "pos": Vector3(0.0, 1.6, 44.0)},
+		{"name": "NorthRouteWayfinder", "pos": Vector3(0.0, 1.6, north_z)},
+		{"name": "SouthRouteWayfinder", "pos": Vector3(0.0, 1.6, south_z)},
 	]:
 		var marker := Marker3D.new()
 		marker.name = entry["name"]

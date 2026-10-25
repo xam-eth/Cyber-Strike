@@ -11,7 +11,7 @@
  *
  * Three rules it keeps:
  *   1. Nothing on screen is invented. Opening and launch share Godot's combined
- *      WASM + PCK byte count, the theatres are the four the registry can
+ *      WASM + PCK byte count, the theatres are the five the registry can
  *      actually launch, and weapon numbers come from their definitions.
  *   2. It never shows engine chrome: no module names, no version banner, no
  *      "WebAssembly" wording anywhere in the opening.
@@ -252,7 +252,7 @@ function showNote(text) {
 /* --------------------------------------------------------------- theatres */
 
 /*
- * The four theatres the registry can launch, in WorldDefinition order. Card
+ * The five theatres the registry can launch, in WorldDefinition order. Card
  * plates are captures of those worlds; the short roles only condense their
  * registry descriptions. Nothing here is a mission choice: DEPLOY launches the
  * theatre the player selected.
@@ -262,6 +262,7 @@ const WORLDS = [
   { id: 'verdant_bloom', name: 'Verdant Bloom', line: 'Verdant Bloom · grove riset' },
   { id: 'emberfall_foundry', name: 'Emberfall Foundry', line: 'Emberfall Foundry · ekstraksi' },
   { id: 'vanguard_station', name: 'Vanguard Station', line: 'Vanguard Station · hanggar 02' },
+  { id: 'titans', name: 'THE TITANS', line: 'THE TITANS · breached station' },
 ];
 
 // A saved Neon selection predates the new registry. Migrate it explicitly so

@@ -19,8 +19,13 @@ silently changing the art.
   pixels were written to disk, so the prompts cannot be reproduced from this
   repository. Any claim about what a prompt said would be invention.
 * **What *is* reproducible:** every transformation after generation. The build
-  is deterministic — same 14 inputs produce byte-identical outputs — and every
+  is deterministic — identical inputs produce byte-identical outputs — and every
   crop, resize and palette number is re-derivable by running it.
+* **Exception for `world_titans.png`:** this is a capture of the real World
+  asset, not a `generate_image` result. Reproduce it with
+  `node tools/asset-forge/gate/world_shot.mjs --world titans --shot overview --no-glb`,
+  then copy `tools/asset-forge/build/worlds/titans/overview.png` here before
+  running the deterministic shipping-art build.
 
 ## Inventory
 
@@ -39,6 +44,7 @@ Real on-disk sizes as measured. These are **not** the sizes the game uses; see
 | `world_frostline_relay.png` | 2048×1152 | 779 kB |
 | `world_verdant_bloom.png` | 2048×1152 | 406 kB |
 | `world_emberfall_foundry.png` | 2048×1152 | 659 kB |
+| `world_titans.png` | 2048×1152 | 665 kB |
 
 ## The robot frames are gone
 

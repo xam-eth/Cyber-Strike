@@ -20,12 +20,13 @@ const KitLibrary = preload("res://scripts/worlds/scifi_kit_library.gd")
 
 ## Per staged world: the material library it must still carry after import.
 ## Each world ships its surfaces inside its own GLB, so what used to be one
-## GDScript palette is three sets of real materials — and a lost import shows up
+## GDScript palette is per-world sets of real materials — and a lost import shows up
 ## as a flat grey world rather than as an error.
 const STAGED := {
 	"frostline": {"materials": 12, "textures": 8},
 	"verdant": {"materials": 8, "textures": 4},
 	"emberfall": {"materials": 40, "textures": 40},
+	"titans": {"materials": 19, "textures": 19},
 }
 
 var _failures: Array[String] = []
@@ -147,8 +148,8 @@ func _check_every_world_carries_its_surfaces() -> void:
 		instance.free()
 
 
-## Three missions, three looks. If two worlds resolve to the same sky, fog and
-## key light, the game has three copies of one theatre and the launcher is lying
+## If two worlds resolve to the same sky, fog and key light, the game has copies
+## of one theatre and the launcher is lying
 ## about what the player is choosing.
 func _check_worlds_are_not_one_palette() -> void:
 	var moods: Array[Dictionary] = []

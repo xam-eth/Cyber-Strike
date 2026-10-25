@@ -103,22 +103,21 @@ func _run() -> void:
 	#     of the frontier's, which is a card advertising one theatre with a
 	#     photograph of another.
 	var plate := FileAccess.get_md5("res://assets/ui/world_vanguard_station.jpg")
-	var mission_plates := [
-		FileAccess.get_md5("res://assets/ui/world_frostline_relay.jpg"),
-		FileAccess.get_md5("res://assets/ui/world_verdant_bloom.jpg"),
-		FileAccess.get_md5("res://assets/ui/world_emberfall_foundry.jpg"),
-	]
+	var mission_plates: Array[String] = []
+	for definition in WorldDefinition.load_all_definitions():
+		if definition.world_id != &"vanguard_station":
+			mission_plates.append(FileAccess.get_md5(definition.plate_path))
 	_expect(
 		not plate.is_empty() and not mission_plates.has(plate),
 		"the station's card plate is its own image"
 	)
-	# And the three mission worlds do not share one photograph either.
+	# And the mission worlds do not share one photograph either.
 	var distinct_plates := 0
 	for candidate in mission_plates:
 		if not candidate.is_empty() and mission_plates.count(candidate) == 1:
 			distinct_plates += 1
 	_expect(
-		distinct_plates == 3,
+		distinct_plates == mission_plates.size(),
 		"each mission world's card plate is its own render (%d distinct)" % distinct_plates
 	)
 

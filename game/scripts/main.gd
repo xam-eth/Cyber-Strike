@@ -82,6 +82,7 @@ func _ready() -> void:
 	progression_service.profile_changed.connect(_on_profile_changed)
 	_on_profile_changed()
 	_apply_saved_weapon()
+	_apply_selected_world_spawn()
 	touch_controls._update_weapon_ammo(
 		player.weapon_controller.get_current_ammo(),
 		player.weapon_controller.get_current_magazine_size(),
@@ -230,6 +231,18 @@ func _apply_saved_weapon() -> void:
 		if definition != null and definition.weapon_id == wanted:
 			player.select_weapon(index)
 			return
+
+
+## World owns the authored spawn; Main only applies it after the same selection
+## resolver used by MissionWorld has run. Existing definitions inherit the
+## original main.tscn position, while Titans starts at its Hangar socket.
+func _apply_selected_world_spawn() -> void:
+	var selected := WorldSelection.selected(self)
+	if selected == &"":
+		selected = WorldDefinition.DEFAULT_WORLD_ID
+	var definition := WorldDefinition.load_definition(selected)
+	if definition != null:
+		player.position = definition.player_spawn
 
 
 func _on_weapon_equipped(_display_name: String) -> void:

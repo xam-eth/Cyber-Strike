@@ -22,6 +22,8 @@
  *       # strict: await a real Defense transition (software WebGL can be slow)
  *   node tools/web_qa.mjs --page / --journey --select-vanguard
  *       # choose Vanguard in the shell and verify its real gameplay build
+ *   node tools/web_qa.mjs --page / --journey --select-world titans --audio-shell
+ *       # choose any registry world and verify selection, runtime and audio
  *   node tools/web_qa.mjs --page / --journey --audio-shell
  *       # real-gesture shell music, mute persistence and DEPLOY audio handoff
  *   node tools/web_qa.mjs --page / --encounter --select-vanguard
@@ -94,10 +96,17 @@ const encounterMode = requireDefense || has('--encounter-prep');
 const encounterTimeoutMs = Math.max(0, Number(flag('--encounter-timeout', '600')) || 0) * 1000;
 const exploreWaitMs = Number(flag('--explore-wait', '8000'));
 const selectVanguard = has('--select-vanguard');
+const selectedWorld = String(flag('--select-world', selectVanguard ? 'vanguard_station' : ''));
+const selectWorld = selectedWorld.length > 0;
+const selectedWorldCard = `world-card-${selectedWorld.replaceAll('_', '-')}`;
+const selectedWorldPin = `${selectedWorld.split('_').map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join('')}Pin`;
+const selectedWorldBuildLog = selectedWorld === 'vanguard_station'
+  ? 'VanguardStation:'
+  : `MISSION WORLD: ${selectedWorld} (`;
 // Journey mode proves the root shell's direct theatre hand-off, and retains
-// the measured WORLD-stage route for raw engine journeys.
-// hand-off without adding combat, audio, or a timed play claim to that check.
-const journeyMode = has('--journey') || selectVanguard;
+// the measured WORLD-stage route for raw engine journeys. --select-vanguard
+// remains the original compatibility spelling of --select-world vanguard_station.
+const journeyMode = has('--journey') || selectWorld;
 // Optional real-gesture Web Audio checks on the root shell. This is separate
 // from Godot's first-voice/mute checks and never claims human mix acceptance.
 const audioShellMode = has('--audio-shell');
@@ -177,7 +186,7 @@ async function checkPage(target, viewport) {
   const url = new URL(`${baseUrl}${target}`);
   // WORLD selection uses the engine's measured Control rectangles, never a
   // second set of guessed layout coordinates in the browser harness.
-  if (selectVanguard) url.searchParams.set('qa_menu', '1');
+  if (selectWorld) url.searchParams.set('qa_menu', '1');
   const page = await browser.newPage();
   // A narrow viewport alone is not a phone: without touch emulation Godot
   // correctly hides the thumb controls, so mobile screenshots used to QA the
@@ -215,7 +224,7 @@ async function checkPage(target, viewport) {
   // path instead of using an auto-boot that only exists for tests. Pages without
   // the shell (the raw /web/ build) skip this.
   const isFrontEnd = await page.evaluate(() => !!document.getElementById('hub-deploy'));
-  let shellVanguardSelected = null;
+  let shellWorldSelected = null;
   let shellHeroStage = null;
   let shellAudioHero = null;
   let shellAudioBefore = null;
@@ -276,16 +285,16 @@ async function checkPage(target, viewport) {
         shellUnmuteStored = await page.evaluate(() => JSON.parse(localStorage.getItem('aegis.prefs') || '{}').muted);
       }
     }
-    if (selectVanguard) {
+    if (selectWorld) {
       // Select the actual shell card before DEPLOY. The runtime assertions below
-      // still require the engine to accept that ID and build Vanguard, so a DOM
+      // still require the engine to accept that ID and build its world, so a DOM
       // aria-state change alone can never masquerade as a successful handoff.
-      shellVanguardSelected = await page.evaluate(() => {
-        const card = document.getElementById('world-card-vanguard-station');
+      shellWorldSelected = await page.evaluate((cardId) => {
+        const card = document.getElementById(cardId);
         if (!card) return false;
         card.click();
         return card.getAttribute('aria-selected') === 'true';
-      });
+      }, selectedWorldCard);
     }
     if (audioShellMode) await page.click('#hub-deploy');
     else await page.evaluate(() => document.getElementById('hub-deploy')?.click());
@@ -505,32 +514,28 @@ async function checkPage(target, viewport) {
       await new Promise((r) => setTimeout(r, 1000));
     }
     if (!reached()) progress(`  journey: front-end at ${stageLine().trim() || '(no stage yet)'}`);
-    let vanguardSelectionHandled = false;
+    let worldSelectionHandled = false;
     for (let press = 0; press < 16 && !reached(); press += 1) {
       const before = stageLine();
-      if (selectVanguard && /stage WORLD/.test(before) && !vanguardSelectionHandled) {
+      if (selectWorld && /stage WORLD/.test(before) && !worldSelectionHandled) {
         // Keyboard focus is not a reliable selector in headless Chromium, and
         // fixed fractions silently selected Neon after the UI layout changed.
         // Click the real measured pin, require its selection log, then click
         // the real measured LAUNCH rect. A miss fails before a default world
-        // can be presented as a Vanguard success.
+        // can be presented as the selected theatre.
         const worldFrame = path.join(outDir, `${slug}-${viewport.spec}-world-select.png`);
         await page.screenshot({ path: worldFrame });
-        if (!(await clickWorldControl('VanguardStationPin'))) return false;
-        const selected = await awaitConsoleText(
-          page,
-          consoleLines,
-          'FrontEnd: world selected vanguard_station',
-          10000,
-        );
+        if (!(await clickWorldControl(selectedWorldPin))) return false;
+        const selectionText = `FrontEnd: world selected ${selectedWorld}`;
+        const selected = await awaitConsoleText(page, consoleLines, selectionText, 10000);
         if (!selected) {
-          progress('  WORLD selection: Vanguard pin did not select vanguard_station');
+          progress(`  WORLD selection: ${selectedWorldPin} did not select ${selectedWorld}`);
           return false;
         }
         const selectedFrame = path.join(outDir, `${slug}-${viewport.spec}-world-selected.png`);
         await page.screenshot({ path: selectedFrame });
         if (!(await clickWorldControl('LAUNCH'))) return false;
-        vanguardSelectionHandled = true;
+        worldSelectionHandled = true;
         await awaitConsoleText(page, consoleLines, 'FrontEnd: stage PRELOAD', 10000);
         continue;
       }
@@ -840,20 +845,20 @@ async function checkPage(target, viewport) {
   if (journeyMode) {
     checks.push(['front-end handoff reached the gameplay scene', inGameplay]);
   }
-  if (selectVanguard) {
+  if (selectWorld) {
     if (isFrontEnd) {
-      checks.push(['shell Vanguard card was selected before DEPLOY', shellVanguardSelected === true]);
+      checks.push([`shell ${selectedWorld} card was selected before DEPLOY`, shellWorldSelected === true]);
     }
     const selectionLog = isFrontEnd
-      ? 'FrontEnd: qa_world selected vanguard_station'
-      : 'FrontEnd: world selected vanguard_station';
+      ? `FrontEnd: qa_world selected ${selectedWorld}`
+      : `FrontEnd: world selected ${selectedWorld}`;
     checks.push([
-      isFrontEnd ? 'engine accepted the shell Vanguard selection' : 'WORLD pin selected Vanguard before launch',
+      isFrontEnd ? `engine accepted the shell ${selectedWorld} selection` : `WORLD pin selected ${selectedWorld} before launch`,
       consoleLines.some((line) => line.includes(selectionLog)),
     ]);
     checks.push([
-      'front-end selection built Vanguard Station gameplay',
-      inGameplay && consoleLines.some((line) => line.includes('VanguardStation:')),
+      `front-end selection built ${selectedWorld} gameplay`,
+      inGameplay && consoleLines.some((line) => line.includes(selectedWorldBuildLog)),
     ]);
     checks.push([
       isFrontEnd ? 'shell DEPLOY bypassed the engine WORLD stage' : 'engine journey offered the WORLD stage',

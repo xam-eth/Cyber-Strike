@@ -30,7 +30,15 @@ export const SHOTS = {
     // enough to photograph it rather than to stand inside it.
     plant: { pos: [30, 58, 96], target: [166, 14, -18] },
   },
+  titans: {
+    // 3D station interior 64x64 — overview high, then each Kantong intimate
+    overview: { pos: [68, 42, 68], target: [0, 5, 0] },
+    hangar: { pos: [18, 12, -18], target: [0, 5, -20] },
+    lab: { pos: [18, 12, 6], target: [0, 5, 0] },
+    reactor: { pos: [18, 14, 22], target: [0, 6, 18] },
+    spine: { pos: [-14, 10, 2], target: [0, 4, 0] },
+  },
 };
 
 /** A stable order for the gate's report. */
-export const SHOT_ORDER = ['overview', 'core', 'station', 'defence', 'icefield', 'shrine', 'grove', 'wreck', 'smelters', 'yard', 'drill', 'plant'];
+export const SHOT_ORDER = ['overview', 'core', 'station', 'defence', 'icefield', 'shrine', 'grove', 'wreck', 'smelters', 'yard', 'drill', 'plant', 'hangar', 'lab', 'reactor', 'spine'];

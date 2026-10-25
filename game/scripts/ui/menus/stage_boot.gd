@@ -22,6 +22,7 @@ const FRONT_END_ART := [
 	"res://assets/ui/world_verdant_bloom.jpg",
 	"res://assets/ui/world_emberfall_foundry.jpg",
 	"res://assets/ui/world_vanguard_station.jpg",
+	"res://assets/ui/world_titans.jpg",
 	"res://assets/ui/weapon_pulse_rifle.png",
 	"res://assets/ui/weapon_nova_launcher.png",
 	"res://assets/ui/weapon_arc_shooter.png",

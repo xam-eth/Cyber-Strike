@@ -2,7 +2,7 @@
 /**
  * stage_worlds_into_game.mjs — put every mission world where Godot imports it.
  *
- * The forge ships three mission GLBs built from licensed assets. This copies
+ * The forge ships mission GLBs built from licensed assets. This copies
  * each `build/worlds/<id>/world.glb` into `game/assets/forge/worlds/`, re-encodes
  * its photographic maps (quality-92 JPEG), then moves byte-identical maps to
  * content-addressed shared textures so Godot imports one resource per distinct
@@ -10,7 +10,13 @@
  * `tools/asset-forge/godot/verify_import.gd` reads back inside the engine.
  *
  *   node tools/asset-forge/gate/stage_worlds_into_game.mjs [--dry-run]
+ *   node tools/asset-forge/gate/stage_worlds_into_game.mjs --add-world titans
+ *
+ * `--add-world` preserves every already-staged GLB and texture byte. It is for
+ * adding a new theatre, not replacing an existing one; use a full rebuild for
+ * the latter so no stale texture references can survive.
  */
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -35,6 +41,11 @@ const OUT_DIR = path.join(GAME_DIR, 'worlds');
 const TEXTURE_DIR = path.join(GAME_DIR, 'textures');
 const MANIFEST = path.join(GAME_DIR, 'forge_manifest.json');
 const dryRun = process.argv.includes('--dry-run');
+const addWorldFlag = process.argv.indexOf('--add-world');
+const addWorldIds = addWorldFlag === -1
+  ? []
+  : String(process.argv[addWorldFlag + 1] ?? '').split(',').map((id) => id.trim()).filter(Boolean);
+const incremental = addWorldIds.length > 0;
 const SOURCE_FILES = {
   frostline: 'frostline.js',
   frostline_relay: 'frostline.js',
@@ -42,6 +53,7 @@ const SOURCE_FILES = {
   verdant_bloom: 'verdant.js',
   emberfall: 'emberfall.js',
   emberfall_foundry: 'emberfall.js',
+  titans: 'titans.js',
 };
 
 if (!fs.existsSync(REPORT)) {
@@ -50,12 +62,42 @@ if (!fs.existsSync(REPORT)) {
 }
 
 const report = JSON.parse(fs.readFileSync(REPORT, 'utf8'));
+const previousManifest = incremental && fs.existsSync(MANIFEST)
+  ? JSON.parse(fs.readFileSync(MANIFEST, 'utf8'))
+  : null;
+if (incremental && !previousManifest) throw new Error('--add-world requires an existing staged manifest');
+const preservedEntries = previousManifest?.entries ?? [];
+for (const worldId of addWorldIds) {
+  if (!report.worlds[worldId]) throw new Error(`${worldId}: missing from worlds-report.json`);
+  if (preservedEntries.some((entry) => entry.id === worldId)) {
+    throw new Error(`${worldId}: already staged; run a full rebuild instead of --add-world`);
+  }
+}
+
 const io = new NodeIO();
 const entries = [];
 const stagedBinaries = [];
 const sharedTextures = new Map();
 
+// Seed the exact previous content-addressed maps. New references are added by
+// externalizeSharedTextures(); old GLBs and their manifest entries stay untouched.
+for (const file of previousManifest?.shared_textures?.files ?? []) {
+  const fileName = path.basename(file.path);
+  const data = fs.readFileSync(path.join(TEXTURE_DIR, fileName));
+  const actualHash = crypto.createHash('sha256').update(data).digest('hex');
+  if (fileName !== `${actualHash}${path.extname(fileName)}` || data.length !== file.bytes) {
+    throw new Error(`${fileName}: existing shared texture failed its content/hash check`);
+  }
+  sharedTextures.set(fileName, {
+    fileName,
+    data,
+    worlds: new Set(file.worlds),
+    references: file.references,
+  });
+}
+
 for (const [worldId, world] of Object.entries(report.worlds)) {
+  if (incremental && !addWorldIds.includes(worldId)) continue;
   if (!SOURCE_FILES[worldId]) throw new Error(`${worldId}: no source/provenance mapping`);
   const src = path.join(BUILD, worldId, 'world.glb');
   if (!fs.existsSync(src)) {
@@ -151,26 +193,28 @@ for (const { worldId, binary } of stagedBinaries) {
 }
 console.log(`shared textures: ${shared.references} references → ${shared.count} distinct files`);
 
-// Remove staged worlds that no longer exist in the build, so Godot never imports
-// a world the current build did not produce.
-for (const file of fs.readdirSync(OUT_DIR)) {
-  if (!file.endsWith('.glb')) continue;
-  const id = file.replace(/\.glb$/, '');
-  if (entries.some((e) => e.id === id)) continue;
-  fs.rmSync(path.join(OUT_DIR, file));
-  console.log(`removed stale ${file}`);
+// Only a full rebuild may prune worlds. Incremental addition deliberately
+// leaves every pre-existing GLB alone, including one absent from a partial report.
+if (!incremental) {
+  for (const file of fs.readdirSync(OUT_DIR)) {
+    if (!file.endsWith('.glb')) continue;
+    const id = file.replace(/\.glb$/, '');
+    if (entries.some((e) => e.id === id)) continue;
+    fs.rmSync(path.join(OUT_DIR, file));
+    console.log(`removed stale ${file}`);
+  }
 }
 
 const manifest = {
   generated: new Date().toISOString(),
-  note: 'Three mission worlds built from real licensed GLBs, with byte-identical images staged as shared runtime textures. Provenance: tools/asset-forge/real/real-manifest.json',
+  note: 'Mission worlds built from real licensed GLBs, with byte-identical images staged as shared runtime textures. Provenance: tools/asset-forge/real/real-manifest.json',
   shared_textures: shared,
   attribution: {
     'Kenney Space Kit': 'CC0-1.0 — Kenney (www.kenney.nl)',
     'Kenney Nature Kit': 'CC0-1.0 — Kenney (www.kenney.nl)',
     'Cinder Yard / Power Plant + set pieces + ground plate': 'CC-BY-4.0 — Kammertonus (https://twitter.com/Kammertonus)',
   },
-  entries,
+  entries: incremental ? [...preservedEntries, ...entries] : entries,
 };
 fs.writeFileSync(MANIFEST, `${JSON.stringify(manifest, null, 1)}\n`);
-console.log(`\nmanifest → ${path.relative(REPO, MANIFEST)} (${entries.length} worlds)`);
+console.log(`\nmanifest → ${path.relative(REPO, MANIFEST)} (${manifest.entries.length} worlds)`);

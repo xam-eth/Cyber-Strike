@@ -77,7 +77,7 @@ function writeGlb(json, bin) {
 /**
  * @param {Uint8Array} input embedded GLB produced by the existing stage pipeline
  * @param {string} worldId manifest id, used only for provenance/reporting
- * @param {Map<string, object>} registry shared across all three worlds
+ * @param {Map<string, object>} registry shared across all mission worlds
  * @returns {Buffer} GLB whose images reference ../textures/<sha256>.<ext>
  */
 export function externalizeSharedTextures(input, worldId, registry) {

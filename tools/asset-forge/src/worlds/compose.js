@@ -1,9 +1,9 @@
 /**
  * compose.js — turn a world's data into a scene.
  *
- * Each world module (`frostline.js`, `verdant.js`, `emberfall.js`) is *data*:
+ * Each world module (`frostline.js`, `verdant.js`, `emberfall.js`, `titans.js`) is *data*:
  * a theme, a layout, a terrain configuration and a landmark list. This file is
- * the one builder they all share, so the three worlds cannot drift apart in
+ * the one builder they all share, so the mission worlds cannot drift apart in
  * behaviour — only in art direction and in what is placed.
  *
  * It creates no geometry. Every mesh comes from `realModels.js`, which loads a

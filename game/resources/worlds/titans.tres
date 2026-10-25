@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WorldDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/world_definition.gd" id="1_definition"]
+[ext_resource type="PackedScene" path="res://scenes/worlds/mission_world.tscn" id="2_world"]
+
+[resource]
+script = ExtResource("1_definition")
+world_id = &"titans"
+display_name = "THE TITANS"
+role_description = "A breached orbital station fought through from hangar to laboratory to reactor: torn walls, hybrid human-orange and alien-blue sparks, a lower pit, narrow elevated walkways, stairs and a launch platform. A compact multi-level interior with space visible only through three breaches."
+world_scene = ExtResource("2_world")
+plate_path = "res://assets/ui/world_titans.jpg"
+status_line = "OPEN"
+zone_title = "EXPLORE THE TITANS"
+zone_subtitle = "SAFE ZONE · HANGAR TO REACTOR"
+field_ready = true
+player_spawn = Vector3(0, 0.1, -20)
