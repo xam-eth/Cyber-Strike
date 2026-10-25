@@ -61,6 +61,8 @@ loop status. WAV is intentional: both Web Audio and Godot decode it without an
 additional codec tool. The five small `.wav.import` files are deliberately
 tracked source settings (`compress/mode=0`), not cache: Godot 4.7 otherwise uses
 QOA, while the existing runtime/headless contract requires stereo PCM16.
+Godot may add local UID metadata during import; as with the repo's other UID
+cache, it is not required because every reference uses a `res://` path.
 Regenerate and require byte-identical output with:
 
 ```bash
@@ -119,8 +121,22 @@ stays silent when audio is absent, keeping isolated smoke fixtures compilable.
   weapon mapping, and a real shot through `main.tscn`.
 - `node tools/web_qa.mjs --page / --journey --audio-shell` uses real browser
   gestures to check unlock, shell playback, mute persistence, DEPLOY retirement,
-  and Godot music ownership. `--play` retains the first-voice and HUD-mute gates.
-- Waveform metrics and browser state are **not** a human listening review. Final
-  mix quality, loudness on speakers/headphones, physical mobile behavior, and
-  Android remain unverified until separately tested. No autoplay claim applies
-  before a browser-valid user gesture.
+  and Godot music ownership. Adding `--play` also checks a real weapon voice and
+  that HUD mute/unmute writes the shared shell preference in both directions.
+## Validated payload — 2026-10-25
+
+- **VERIFIED (CI/headless/runtime):** source `948ebb35`, CI `40174980634`;
+  static checks and 28/28 Godot smoke tests passed, including `audio_smoke`.
+- **VERIFIED (CI/browser):** four normal boot checks, opening/interrupted-
+  download recovery, and strict Vanguard direct-DEPLOY with `--audio-shell`.
+- **VERIFIED (local browser, final payload):** the same Vanguard journey with
+  `--audio-shell --play 12` passed all checks, including `shot_pulse_rifle`,
+  HUD mute/unmute, shared-pref mirroring, and zero shell music voices after
+  handoff. No page error, failed request, or HTTP error was reported.
+- **PAYLOAD:** commit `3719d705`; PCK 79,595,388 bytes / 884 files; SHA-256
+  `bf65a6ccf564e10c705f1cf33ec703ee3a8e791fffb66fa49e0a782bb95d1a52`.
+  This is below the 100,000,000-byte publication guard.
+- **UNKNOWN / not signed off:** human listening, final mix/loudness acceptance,
+  speaker/headphone quality, physical mobile behavior, and Android. Automated
+  playback state and waveform checks are not substitutes for those reviews.
+  No autoplay claim applies before a browser-valid user gesture.

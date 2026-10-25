@@ -7,7 +7,7 @@
 
 >
 >
-> **Status preview saat ini:** payload `0ce9d3b0` berasal dari source `7ec17b0e`; PCK berukuran 76,767,668 bytes (873 files) dan total `web/` sekitar 112 MiB. CI `40164193789` lulus static, 28/28 Godot test, export/payload audit, empat browser boot, initial-opening preload, interrupted-download recovery untuk WASM/PCK, dan kontrak shell → Vanguard direct-gameplay. Keempat theatre juga lulus opening + selection/build gate lokal. Rincian integrasi serta batas bukti ada di [`docs/WORLD_OPENING_INTEGRATION.md`](docs/WORLD_OPENING_INTEGRATION.md); diagnosis loading ada di [`docs/WEB_LOADING_RECOVERY.md`](docs/WEB_LOADING_RECOVERY.md).
+> **Status preview saat ini:** payload `3719d705` berasal dari source `948ebb35`; PCK berukuran 79,595,388 bytes (884 files) dan total `web/` sekitar 114 MiB. CI `40174980634` lulus static, 28/28 Godot test, export/payload audit, empat browser boot, initial-opening preload, interrupted-download recovery, serta strict Vanguard + audio-shell. Run lokal pada payload yang sama juga lulus Vanguard direct-DEPLOY, gesture/mute/handoff audio, `shot_pulse_rifle`, dan HUD mute/unmute. Palette serta batas listening/device evidence ada di [`AUDIO_SYSTEM.md`](AUDIO_SYSTEM.md); integrasi dunia ada di [`docs/WORLD_OPENING_INTEGRATION.md`](docs/WORLD_OPENING_INTEGRATION.md).
 >
 > **Status verifikasi (baseline lama di bawah ini; ukuran berikut bukan payload current):** seluruh wiring statis sudah diperiksa (`tools/web_preset.py check`, `tools/project_doctor.py` → 0 FAIL, 22 unit test). Ekspor Web nyata sudah berhasil di CI (run `38919299364`, job `web-preview` hijau). Hasil terukur:
 
@@ -23,7 +23,7 @@ Artefak CI `web-preview` (zip, isi `web/` + `README.txt`) ≈ **10 MB** karena w
 
 **Bukti browser (dijalankan di sandbox ini, Chromium headless + WebGL 2):** `node tools/web_qa.mjs` → **2/2 halaman PASS**, keduanya mem-boot Godot `4.7.2.stable.official.ed1daf0bf`, kanvas 1280×720, WebGL hidup, tanpa error halaman maupun permintaan gagal. Tangkapan layar: `exports/web-qa/root.png` dan `exports/web-qa/web-index-html.png`.
 
-> **Catatan bandwidth:** muat pertama mengunduh WASM 39,514,754 bytes + PCK 76,767,668 bytes = **116.3 MB** (tepatnya 116,282,422 bytes, sekitar **110.9 MiB**), belum termasuk loader/HTML. `python -m http.server` tidak mengompresi keduanya; forwarded port atau Wi-Fi dapat membuat unduhan lama. Opening sekarang mengunduh WASM + seluruh PCK dunia sebelum **Masuk**, dengan byte gabungan yang nyata; DEPLOY memakai buffer yang sama tanpa mengunduh PCK lagi. Error dapat diulang dan watchdog tetap aktif bila tidak ada kemajuan. Jangan tutup/muat ulang saat byte masih bergerak; perilaku cache tetap bergantung pada server/proxy. Diagnosis dan bukti: [`docs/WEB_LOADING_RECOVERY.md`](docs/WEB_LOADING_RECOVERY.md).
+> **Catatan bandwidth:** opening mengunduh WASM 39,514,754 bytes + PCK 79,595,388 bytes = **119.1 MB** (tepatnya 119,110,142 bytes, sekitar **113.6 MiB**), belum termasuk loader/HTML. Setelah gesture pertama, shell juga mengambil empat WAV yang dipakai bersama (2,288,084 bytes); pulse gameplay sudah berada di PCK. `python -m http.server` tidak mengompresi payload besar; forwarded port atau Wi-Fi dapat membuat unduhan lama. DEPLOY memakai buffer PCK yang sama tanpa mengunduhnya lagi. Error dapat diulang dan watchdog tetap aktif bila tidak ada kemajuan. Jangan tutup/muat ulang saat byte masih bergerak; perilaku cache tetap bergantung pada server/proxy. Diagnosis dan bukti: [`docs/WEB_LOADING_RECOVERY.md`](docs/WEB_LOADING_RECOVERY.md).
 
 ---
 
@@ -136,7 +136,7 @@ Opsi: `--debug` (build debug, error lebih jelas, ukuran lebih besar), `--output 
 | Berkas | Peran |
 |---|---|
 | `index.html` + `ui/` (root repo) | **Player shell**: opening → hub/theatre → arsenal → launch → gameplay theatre terpilih. Pilihan `qa_world`/`weapon` divalidasi adapter engine; root tidak berhenti di stage WORLD. Memuat `web/` tanpa CDN/build step, memakai font/art lokal, dan menampilkan kegagalan payload/WebGL yang dapat dibaca beserta retry. Portrait mendapat layar instruksi rotasi; produk saat ini landscape-only. |
-| `tools/web_qa.mjs` | QA browser headless: menyajikan repo, membuka `/` dan `/web/index.html`, memeriksa banner engine, WebGL 2, ukuran kanvas, 4xx/5xx, kartu error; menulis tangkapan layar dan laporan `--json`. Mode root `--journey --select-vanguard` mengklik kartu Vanguard dan mewajibkan hand-off serta log build dunia yang dipilih; raw engine mempertahankan jalur WORLD terukur. `--play <detik>` menambah input/audio, bukan bukti satu run penuh. |
+| `tools/web_qa.mjs` | QA browser headless: menyajikan repo, membuka `/` dan `/web/index.html`, memeriksa banner engine, WebGL 2, ukuran kanvas, 4xx/5xx, kartu error; menulis tangkapan layar dan laporan `--json`. Mode root `--journey --select-vanguard` mengklik kartu Vanguard dan mewajibkan hand-off serta log build dunia yang dipilih; raw engine mempertahankan jalur WORLD terukur. `--play <detik>` menambah input/SFX/mute; `--audio-shell` menambah real-gesture theme, shared mute, dan DEPLOY handoff. Keduanya bukan bukti satu run penuh atau listening test. |
 | `tools/web_loading_qa.mjs` | Opening + negative/recovery gate: membuktikan satu request WASM dan satu PCK sebelum **Masuk**, tidak ada gameplay di belakang opening, dan DEPLOY tanpa PCK kedua. Kemudian memutus tiap aset pada direct DEPLOY, mewajibkan error/retry, dan kembali ke gameplay theatre terpilih. Dengan `--throughput-mbps 100` juga mewajibkan `fileSizes` nonzero, progres byte antara, dan persen yang tidak mundur. |
 | `tools/web_loader_patch.py` | Patch ekspor Godot 4.7.2 yang idempoten agar kegagalan response WASM, module initialization, dan filesystem menolak Promise `init()`/`startGame()`; dipanggil otomatis oleh pipeline ekspor. |
 | `game/web_shell/index.html` | **Custom Godot HTML shell** (dipakai lewat `html/custom_html_shell`). Menyediakan boot overlay bertema (progress bar + persentase) dan error yang dapat dibaca, lalu menghilang tanpa browser chrome di atas HUD gameplay. Placeholder `$GODOT_*` resmi dipertahankan. |
@@ -180,6 +180,14 @@ Artinya build Android tetap memakai renderer `mobile` (sesuai `PROJECT_DECISIONS
 | Mulai Defense | B setelah menjelajah | tombol START DEFENSE (countdown sebelum wave) |
 | Pause / Resume | Esc | tombol PAUSE / RESUME |
 | Retry / kembali ke Explore | R untuk retry, setelah hasil pilih kembali | tombol RETRY DEFENSE atau EXPLORE pada hasil |
+| Mute / unmute | M atau kontrol SOUND | kontrol SOUND pada HUD |
+
+### Audio pada shell dan gameplay
+
+- Browser tidak mengizinkan autoplay sebelum interaksi. Klik/tap atau keyboard yang sah membuka audio; ikon speaker di dock dapat mengaktifkan/mute shell secara eksplisit.
+- Opening/dashboard memakai tema **Frontier Signal**. DEPLOY memainkan stinger, menghentikan loop HTML, lalu menyerahkan musik ke `AudioDirector`; tidak ada dua background loop yang bersaing.
+- Preferensi `aegis.prefs.muted` dibawa ke Godot. Perubahan dari HUD/M juga ditulis kembali ke preferensi tersebut untuk sesi shell berikutnya.
+- Detail aset, generator, state Explore/Preparing/Defense/Results, dan perintah QA ada di [`AUDIO_SYSTEM.md`](AUDIO_SYSTEM.md). Pemeriksaan otomatis bukan penilaian listening atau kualitas speaker/headphone.
 
 **Tidak ada wave otomatis saat boot**. Menembak training target di Explore tidak memulai Defense. DEPLOY pada root shell langsung memasuki Explore aman di theatre yang dipilih; raw engine journey dapat tetap melewati WORLD/LAUNCH. Layout produk saat ini **landscape-only** (844×390 dan 667×375 dalam QA); portrait menampilkan instruksi rotasi, bukan susunan HUD alternatif. Raw shell tidak lagi menambahkan lapisan HTML di atas HUD gameplay.
 
@@ -198,7 +206,8 @@ Artinya build Android tetap memakai renderer `mobile` (sesuai `PROJECT_DECISIONS
 | Gejala | Sebab | Tindakan |
 |---|---|---|
 | Landing page: "build belum ada" | `web/` belum ada | Unduh artefak `web-preview` dari Actions, ekstrak ke root repo (harus jadi `web/index.html`), muat ulang |
-| Loading lama tetapi byte/persen bergerak | Muat pertama memang 135.1 MB dan `http.server` tidak mengompresi | Biarkan tab aktif sampai 100%; jangan reload. Lewat forwarded port/Wi-Fi waktunya bergantung pada koneksi nyata |
+| Loading lama tetapi byte/persen bergerak | Opening saat ini 119.1 MB dan `http.server` tidak mengompresi | Biarkan tab aktif sampai 100%; jangan reload. Lewat forwarded port/Wi-Fi waktunya bergantung pada koneksi nyata |
+| Opening/dashboard belum berbunyi | Browser menahan autoplay sebelum gesture | Klik/tap atau gunakan keyboard, lalu cek ikon speaker; jangan menilai audio sebelum interaksi yang sah |
 | `Koneksi dunia terputus` atau server mencatat BrokenPipe | Browser/proxy menutup response sebelum aset selesai | Tekan **Coba lagi**, periksa koneksi, dan catat aset yang gagal di Network. Favicon 404 bukan penyebab boot |
 | `Unduhan dunia berhenti` / `Dunia terlalu lama disiapkan` | Tidak ada kemajuan selama 3 menit, atau aset lengkap tetapi engine belum mulai | Tekan **Coba lagi**; bila berulang simpan judul/detail layar serta Console/Network untuk membedakan delivery dari engine start |
 | Loading tanpa persen pada checkout lama | Path `./web/index` tidak memiliki entri `fileSizes`, sehingga callback ber-`total=0` | Pull perbaikan dan buka halaman `/` baru; regression gate membuktikan total 135,101,522 bytes |

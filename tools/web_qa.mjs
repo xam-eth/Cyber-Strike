@@ -223,6 +223,8 @@ async function checkPage(target, viewport) {
   let shellAudioAfter = null;
   let shellMuteStored = null;
   let shellUnmuteStored = null;
+  let gameplayMuteStored = null;
+  let gameplayUnmuteStored = null;
   if (isFrontEnd) {
     await page
       .waitForFunction(() => {
@@ -622,8 +624,14 @@ async function checkPage(target, viewport) {
       // Test the sound control separately, in sequence, after audible firing.
       await page.keyboard.press('KeyM');
       await awaitConsoleText(page, consoleLines, 'Audio: muted', 30000);
+      if (audioShellMode && isFrontEnd) {
+        gameplayMuteStored = await page.evaluate(() => JSON.parse(localStorage.getItem('aegis.prefs') || '{}').muted);
+      }
       await page.keyboard.press('KeyM');
       await awaitConsoleText(page, consoleLines, 'Audio: unmuted', 30000);
+      if (audioShellMode && isFrontEnd) {
+        gameplayUnmuteStored = await page.evaluate(() => JSON.parse(localStorage.getItem('aegis.prefs') || '{}').muted);
+      }
       // --hold presses and holds one canvas point for the whole play pass. The
       // play screenshots then show the held state (e.g. the AIM button -> the
       // aimed pose), which is the only outside proof of the aimed weapon.
@@ -765,6 +773,12 @@ async function checkPage(target, viewport) {
         && shellAudioAfter?.musicVoices === 0
         && audioLines.some((line) => /Audio: .*music=on/.test(line)),
     ]);
+    if (playSeconds > 0) {
+      checks.push([
+        'Godot HUD mute/unmute mirrors the shared shell preference',
+        gameplayMuteStored === true && gameplayUnmuteStored === false,
+      ]);
+    }
   }
   if (tourMode) {
     checks.push(['front-end journey reached the gameplay scene', inGameplay]);
@@ -908,6 +922,8 @@ async function checkPage(target, viewport) {
       after: shellAudioAfter,
       muteStored: shellMuteStored,
       unmuteStored: shellUnmuteStored,
+      gameplayMuteStored,
+      gameplayUnmuteStored,
     },
     menuTransitions: menuLines,
     scriptErrors,
