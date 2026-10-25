@@ -1,10 +1,10 @@
 {
- "generated": "2026-10-25T05:01:38.014Z",
+ "generated": "2026-10-25T09:00:43.863Z",
  "note": "Three mission worlds built from real licensed GLBs, with byte-identical images staged as shared runtime textures. Provenance: tools/asset-forge/real/real-manifest.json",
  "attribution": {
-  "Kenney Space Kit": "CC0-1.0 \u2014 Kenney (www.kenney.nl)",
-  "Kenney Nature Kit": "CC0-1.0 \u2014 Kenney (www.kenney.nl)",
-  "Cinder Yard / Power Plant + set pieces + ground plate": "CC-BY-4.0 \u2014 Kammertonus (https://twitter.com/Kammertonus)"
+  "Kenney Space Kit": "CC0-1.0 — Kenney (www.kenney.nl)",
+  "Kenney Nature Kit": "CC0-1.0 — Kenney (www.kenney.nl)",
+  "Cinder Yard / Power Plant + set pieces + ground plate": "CC-BY-4.0 — Kammertonus (https://twitter.com/Kammertonus)"
  },
  "entries": [
   {
@@ -102,18 +102,25 @@
    "theme": {
     "id": "frostline",
     "label": "Frostline Relay",
-    "mood": "polar dusk, Blade Runner on ice: white ice, cyan searchlights, monorail cutting haze, air you can see breathe",
-    "accent": "#59e6ff",
+    "mood": "polar volumetric dusk v2.1 — Blade Runner on ice, air is a visible medium but ground stays readable: aurora shafts cut low mist, ice glows like wet neon runway, distance desaturates to cyan",
+    "accent": "#8af2ff",
     "hazard": "#ff8a3d",
     "sky": {
-     "top": "#030c18",
-     "mid": "#0b2438",
-     "bottom": "#2a5468",
-     "glow": "#59e6ff"
+     "top": "#02101c",
+     "mid": "#0a2a46",
+     "bottom": "#3a788e",
+     "glow": "#8af2ff",
+     "glowStrength": 0.26,
+     "horizonHaze": 0.32,
+     "sunWarmth": 0
     },
     "fog": {
-     "color": "#1c3a48",
-     "density": 0.0034
+     "color": "#122a3a",
+     "density": 0.0036,
+     "height": 16,
+     "heightFalloff": 0.16,
+     "hazeColor": "#8af2ff",
+     "hazeStrength": 0.1
     }
    },
    "validation": {
@@ -121,7 +128,7 @@
     "warnings": 0,
     "khronos": "2.0.0-dev.3.10"
    },
-   "bytes": 2604992
+   "bytes": 2605036
   },
   {
    "id": "verdant",
@@ -316,18 +323,25 @@
    "theme": {
     "id": "verdant",
     "label": "Verdant Bloom",
-    "mood": "humid overgrowth, Destiny EDZ + Annihilation: moss eating steel, spore light pulsing, canopy sun god rays through bloom",
-    "accent": "#8cff9e",
+    "mood": "humid jungle cathedral v2.1 — canopy god rays but ground readable: thick spore haze only low, steel eaten, mist pools not washes",
+    "accent": "#7dff9c",
     "hazard": "#ffd166",
     "sky": {
-     "top": "#021208",
-     "mid": "#0f2e22",
-     "bottom": "#2d5a3e",
-     "glow": "#8cff9e"
+     "top": "#01140a",
+     "mid": "#0e2e1e",
+     "bottom": "#2f6a42",
+     "glow": "#7dff9c",
+     "glowStrength": 0.28,
+     "horizonHaze": 0.36,
+     "sunWarmth": 0.18
     },
     "fog": {
-     "color": "#122e1e",
-     "density": 0.0042
+     "color": "#0f2e1e",
+     "density": 0.0046,
+     "height": 12,
+     "heightFalloff": 0.2,
+     "hazeColor": "#7dff9c",
+     "hazeStrength": 0.12
     }
    },
    "validation": {
@@ -335,7 +349,7 @@
     "warnings": 0,
     "khronos": "2.0.0-dev.3.10"
    },
-   "bytes": 2386336
+   "bytes": 2386524
   },
   {
    "id": "emberfall",
@@ -417,18 +431,25 @@
    "theme": {
     "id": "emberfall",
     "label": "Emberfall Foundry",
-    "mood": "volcanic megastructure, Syd Mead furnace: black basalt, molten seams, ore monorail overhead, rocket gantry silhouetted, ash breathing",
-    "accent": "#ff7a1e",
+    "mood": "wildfire megastructure v2.1 — ash & heat haze but megastructure stays sharp: furnace key is a sun, floor breathes, silhouette survives ash",
+    "accent": "#ff8c1a",
     "hazard": "#ffd166",
     "sky": {
-     "top": "#060302",
-     "mid": "#1a0a06",
-     "bottom": "#5e2612",
-     "glow": "#ff7a1e"
+     "top": "#0a0302",
+     "mid": "#1e0c06",
+     "bottom": "#7a3318",
+     "glow": "#ff8c1a",
+     "glowStrength": 0.34,
+     "horizonHaze": 0.42,
+     "sunWarmth": 0.42
     },
     "fog": {
-     "color": "#4e2816",
-     "density": 0.0022
+     "color": "#3a1e0a",
+     "density": 0.0028,
+     "height": 20,
+     "heightFalloff": 0.11,
+     "hazeColor": "#ff7a1e",
+     "hazeStrength": 0.14
     }
    },
    "validation": {
@@ -436,7 +457,7 @@
     "warnings": 0,
     "khronos": "2.0.0-dev.3.10"
    },
-   "bytes": 10061632
+   "bytes": 10061740
   }
  ],
  "shared_textures": {

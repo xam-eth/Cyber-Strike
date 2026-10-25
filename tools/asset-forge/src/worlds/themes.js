@@ -18,79 +18,77 @@ export const THEMES = {
   frostline: {
     id: 'frostline',
     label: 'Frostline Relay',
-    mood: 'polar dusk, Blade Runner on ice: white ice, cyan searchlights, monorail cutting haze, air you can see breathe',
-    sky: { top: '#030c18', mid: '#0b2438', bottom: '#2a5468', glow: '#59e6ff' },
-    // Cinematic haze: Syd Mead volumetric — shafts from aurora rim through ice dust.
-    // 0.0028 was clean air; 0.0034 is visible breath without eating the yard.
-    fog: { color: '#1c3a48', density: 0.0034 },
-    exposure: 1.05,
-    environment: 0.98,
+    mood: 'polar volumetric dusk v2.1 — Blade Runner on ice, air is a visible medium but ground stays readable: aurora shafts cut low mist, ice glows like wet neon runway, distance desaturates to cyan',
+    // v2.1: pull back from v2 wash — keep breath visible but preserve depth: 0.0052→0.0036, height mist subtle
+    sky: { top: '#02101c', mid: '#0a2a46', bottom: '#3a788e', glow: '#8af2ff', glowStrength: 0.26, horizonHaze: 0.32, sunWarmth: 0.0 },
+    fog: { color: '#122a3a', density: 0.0036, height: 16, heightFalloff: 0.16, hazeColor: '#8af2ff', hazeStrength: 0.10 },
+    exposure: 1.12,
+    environment: 1.02,
     lights: [
-      { name: 'PolarKey', color: '#cfe4ff', intensity: 2.8, pos: [-58, 52, -104] },
-      { name: 'IceFill', color: '#6ea4e8', intensity: 0.85, pos: [96, 34, 24] },
-      // Aurora rim is the story light — from the polar gate (north), so the eye goes north.
-      { name: 'AuroraRim', color: '#8fe4ff', intensity: 1.2, pos: [-28, 22, 92] },
-      { name: 'Bounce', color: '#8fb4c6', intensity: 0.28, pos: [12, -26, 40] },
+      { name: 'PolarKey', color: '#d6ecff', intensity: 3.0, pos: [-58, 52, -104] },
+      { name: 'IceFill', color: '#7ab4ff', intensity: 0.88, pos: [96, 34, 24] },
+      // Aurora rim 1.75→1.55 — still silhouette but not blowing out ice
+      { name: 'AuroraRim', color: '#7cf0ff', intensity: 1.55, pos: [-28, 22, 92] },
+      { name: 'Bounce', color: '#9cc4d8', intensity: 0.30, pos: [12, -26, 40] },
+      { name: 'SearchRay', color: '#8fe4ff', intensity: 0.62, pos: [142, 18, -6] },
     ],
-    hemi: { sky: '#5d8298', ground: '#0f1a20', intensity: 0.9 },
-    // Steel darker (0.13→0.11) for stronger silhouette against cyan.
-    kit: { steel: '#3e4c56', warm: '#4b6c7a', targetLight: 0.11, targetSat: 0.11, rough: 0.66, metal: 0.28 },
-    // Polar ice lifted 1.35→1.5 so it glows under aurora like wet runway reflecting neon.
-    ground: { tint: [0.78, 0.88, 1.0], lift: 1.5, rough: 0.94, metal: 0.0 },
-    accent: '#59e6ff',
+    hemi: { sky: '#7aa8c0', ground: '#0a151e', intensity: 0.98 },
+    kit: { steel: '#3c4c5a', warm: '#4b6c7a', targetLight: 0.108, targetSat: 0.10, rough: 0.64, metal: 0.30 },
+    ground: { tint: [0.74, 0.86, 1.0], lift: 1.58, rough: 0.92, metal: 0.0 },
+    accent: '#8af2ff',
     hazard: '#ff8a3d',
+    atmosphere: { dustDensity: 0.012, dustColor: '#8af2ff', bloom: 0.36, vignette: 0.28 },
   },
 
   /* --------------------------------------------------------------- verdant */
   verdant: {
     id: 'verdant',
     label: 'Verdant Bloom',
-    mood: 'humid overgrowth, Destiny EDZ + Annihilation: moss eating steel, spore light pulsing, canopy sun god rays through bloom',
-    sky: { top: '#021208', mid: '#0f2e22', bottom: '#2d5a3e', glow: '#8cff9e' },
-    // Spore haze denser — god rays through canopy, like Destiny's EDZ at golden hour with Annihilation shimmer.
-    fog: { color: '#122e1e', density: 0.0042 },
-    exposure: 1.05,
-    environment: 0.98,
+    mood: 'humid jungle cathedral v2.1 — canopy god rays but ground readable: thick spore haze only low, steel eaten, mist pools not washes',
+    sky: { top: '#01140a', mid: '#0e2e1e', bottom: '#2f6a42', glow: '#7dff9c', glowStrength: 0.28, horizonHaze: 0.36, sunWarmth: 0.18 },
+    fog: { color: '#0f2e1e', density: 0.0046, height: 12, heightFalloff: 0.20, hazeColor: '#7dff9c', hazeStrength: 0.12 },
+    exposure: 1.08,
+    environment: 0.99,
     lights: [
-      { name: 'CanopySun', color: '#fff0c0', intensity: 4.4, pos: [-22, 98, 64] },
-      { name: 'MossFill', color: '#63c98a', intensity: 1.1, pos: [88, 28, -34] },
-      // Spore rim stronger (0.75→1.0) — violet bloom from the north, makes moss read as luminescent.
-      { name: 'SporeRim', color: '#9a68e6', intensity: 1.0, pos: [-76, 26, -56] },
-      { name: 'Bounce', color: '#93b878', intensity: 0.26, pos: [10, -24, -30] },
+      { name: 'CanopySun', color: '#fff2b0', intensity: 4.5, pos: [-22, 98, 64] },
+      { name: 'MossFill', color: '#6ee89a', intensity: 1.15, pos: [88, 28, -34] },
+      // Spore rim 1.45→1.25 — still luminescent but not washing foliage
+      { name: 'SporeRim', color: '#b18cff', intensity: 1.25, pos: [-76, 26, -56] },
+      { name: 'Bounce', color: '#a8d18a', intensity: 0.28, pos: [10, -24, -30] },
+      { name: 'CanopyScatter', color: '#8cff9e', intensity: 0.48, pos: [0, 42, 18] },
     ],
-    hemi: { sky: '#6f9c7c', ground: '#0e1a12', intensity: 0.6 },
-    kit: { steel: '#3e4a42', warm: '#6b8a45', targetLight: 0.19, targetSat: 0.14, rough: 0.68, metal: 0.15 },
-    ground: { tint: [0.24, 0.34, 0.20], mix: 0.92, rough: 0.97, metal: 0.0 },
-    // Organics slightly more saturated (satMul 1.25→1.35) so canopy pops against steel.
-    nature: { tint: '#5f9c63', tintLerp: 0.12, valueMul: 1.08, satMul: 1.35, rough: 0.92, metal: 0.0 },
-    accent: '#8cff9e',
+    hemi: { sky: '#7fbd94', ground: '#0c1a14', intensity: 0.68 },
+    kit: { steel: '#3c463e', warm: '#6b8a45', targetLight: 0.19, targetSat: 0.13, rough: 0.68, metal: 0.14 },
+    ground: { tint: [0.22, 0.32, 0.18], mix: 0.92, rough: 0.97, metal: 0.0 },
+    nature: { tint: '#52b06e', tintLerp: 0.13, valueMul: 1.09, satMul: 1.38, rough: 0.90, metal: 0.0 },
+    accent: '#7dff9c',
     hazard: '#ffd166',
+    atmosphere: { dustDensity: 0.014, dustColor: '#7dff9c', bloom: 0.32, vignette: 0.30 },
   },
 
   /* -------------------------------------------------------------- emberfall */
   emberfall: {
     id: 'emberfall',
     label: 'Emberfall Foundry',
-    mood: 'volcanic megastructure, Syd Mead furnace: black basalt, molten seams, ore monorail overhead, rocket gantry silhouetted, ash breathing',
-    sky: { top: '#060302', mid: '#1a0a06', bottom: '#5e2612', glow: '#ff7a1e' },
-    // Ash haze a bit denser 0.0016→0.0022 — megastructure silhouette needs separation, but not so much the yard vanishes. Cinder Yard plant must remain sharp.
-    fog: { color: '#4e2816', density: 0.0022 },
-    exposure: 1.35,
-    environment: 1.18,
+    mood: 'wildfire megastructure v2.1 — ash & heat haze but megastructure stays sharp: furnace key is a sun, floor breathes, silhouette survives ash',
+    sky: { top: '#0a0302', mid: '#1e0c06', bottom: '#7a3318', glow: '#ff8c1a', glowStrength: 0.34, horizonHaze: 0.42, sunWarmth: 0.42 },
+    fog: { color: '#3a1e0a', density: 0.0028, height: 20, heightFalloff: 0.11, hazeColor: '#ff7a1e', hazeStrength: 0.14 },
+    exposure: 1.42,
+    environment: 1.22,
     lights: [
-      // Furnace key higher and hotter — 55°→58°, intensity 4.0→4.6 so scanned plate glows like molten basalt catching fire.
-      { name: 'FurnaceKey', color: '#ffa866', intensity: 4.6, pos: [-64, 108, -48] },
-      { name: 'SlagFill', color: '#ff7a3a', intensity: 1.9, pos: [112, 48, 52] },
-      // Ash rim stronger 0.7→1.05 — violet backlight from foundry's heart, makes slag pools pop and rocket silhouette read.
-      { name: 'AshRim', color: '#5560d8', intensity: 1.05, pos: [74, 34, -74] },
-      { name: 'Bounce', color: '#d97a3a', intensity: 0.38, pos: [0, -30, -20] },
+      { name: 'FurnaceKey', color: '#ffb07a', intensity: 4.8, pos: [-64, 108, -48] },
+      { name: 'SlagFill', color: '#ff7a2e', intensity: 1.95, pos: [112, 48, 52] },
+      // Ash rim 1.65→1.35 — backlight survives but not blowing out steel
+      { name: 'AshRim', color: '#6a6eff', intensity: 1.35, pos: [74, 34, -74] },
+      { name: 'Bounce', color: '#e89a5a', intensity: 0.38, pos: [0, -30, -20] },
+      { name: 'HeatGlow', color: '#ff4a0a', intensity: 0.72, pos: [6, 6, 0] },
     ],
-    hemi: { sky: '#8a5433', ground: '#1a100c', intensity: 1.55 },
-    kit: { steel: '#2e2420', warm: '#a8642a', targetLight: 0.10, targetSat: 0.18, rough: 0.56, metal: 0.42 },
-    // Ground lifted 3.4→3.6 so basalt doesn't read as void next to lit deck — megastructure floor must feel hot.
-    ground: { tint: [1.0, 0.55, 0.34], lift: 3.6, rough: 0.88, metal: 0.05 },
-    accent: '#ff7a1e',
+    hemi: { sky: '#9a5a35', ground: '#1e120c', intensity: 1.55 },
+    kit: { steel: '#2c211c', warm: '#a8642a', targetLight: 0.10, targetSat: 0.19, rough: 0.56, metal: 0.42 },
+    ground: { tint: [1.0, 0.54, 0.32], lift: 3.6, rough: 0.86, metal: 0.05 },
+    accent: '#ff8c1a',
     hazard: '#ffd166',
+    atmosphere: { dustDensity: 0.016, dustColor: '#ff7a1e', bloom: 0.42, vignette: 0.34 },
   },
 };
 

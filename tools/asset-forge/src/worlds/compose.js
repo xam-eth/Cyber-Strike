@@ -185,9 +185,17 @@ export async function composeWorld(world, specs) {
 
 /* -------------------------------------------------------------- atmosphere -- */
 
-/** Sky dome for a theme: a gradient with one haze band, no texture file. */
+/** Sky dome for a theme — cinematic v2: glowStrength + horizon haze + sun disc + subtle stars.
+ * No texture, one draw. The haze band is now theme-driven (0.32–0.42) so each
+ * world has its own horizon breathing. */
 export function themeSky(theme) {
   const geometry = new THREE.SphereGeometry(620, 32, 16);
+  const glowStrength = theme.sky.glowStrength ?? 0.18;
+  const horizonHaze = theme.sky.horizonHaze ?? 0.32;
+  const sunWarmth = theme.sky.sunWarmth ?? 0.0;
+  // sun dir from key light (first directional) so sky sun and key light agree
+  const keyPos = theme.lights?.[0]?.pos ?? [-60, 60, -60];
+  const sunDir = new THREE.Vector3(...keyPos).normalize();
   const material = new THREE.ShaderMaterial({
     side: THREE.BackSide,
     depthWrite: false,
@@ -196,22 +204,101 @@ export function themeSky(theme) {
       mid: { value: new THREE.Color(theme.sky.mid) },
       bottom: { value: new THREE.Color(theme.sky.bottom) },
       glow: { value: new THREE.Color(theme.sky.glow) },
+      glowStrength: { value: glowStrength },
+      horizonHaze: { value: horizonHaze },
+      sunDir: { value: sunDir },
+      sunWarmth: { value: sunWarmth },
     },
-    vertexShader: 'varying vec3 vPos; void main(){ vPos = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
+    vertexShader: 'varying vec3 vPos; varying vec3 vWorldDir; void main(){ vPos = position; vWorldDir = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
     fragmentShader: `
       uniform vec3 top; uniform vec3 mid; uniform vec3 bottom; uniform vec3 glow;
-      varying vec3 vPos;
+      uniform float glowStrength; uniform float horizonHaze; uniform vec3 sunDir; uniform float sunWarmth;
+      varying vec3 vPos; varying vec3 vWorldDir;
+      // cheap star noise — only for frostline (cold longing), hidden by haze otherwise
+      float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
       void main(){
         float h = normalize(vPos).y;
-        vec3 c = mix(bottom, mid, smoothstep(-0.12, 0.30, h));
-        c = mix(c, top, smoothstep(0.22, 0.95, h));
-        float band = exp(-pow((h - 0.03) * 8.0, 2.0));
-        c += glow * band * 0.07;
+        vec3 c = mix(bottom, mid, smoothstep(-0.14, 0.28, h));
+        c = mix(c, top, smoothstep(0.20, 0.96, h));
+        // cinematic glow band — narrow at horizon, theme-driven strength
+        float band = exp(-pow((h - 0.015) * 10.0, 2.0));
+        c += glow * band * glowStrength;
+        // horizon scattering — bottom color bleeds up with height, like aerial perspective
+        float haze = pow(1.0 - clamp((h + 0.12) / 0.42, 0.0, 1.0), 2.8);
+        c = mix(c, bottom, haze * horizonHaze);
+        // sun disc + warm halo — anamorphic subtle, not a cartoon sun
+        float sunDot = max(dot(vWorldDir, sunDir), 0.0);
+        float sunDisc = pow(sunDot, 720.0) * 1.6;
+        float halo = pow(sunDot, 18.0) * 0.22 * (0.2 + sunWarmth);
+        vec3 sunCol = mix(vec3(1.0, 0.92, 0.78), glow, sunWarmth * 0.55);
+        c += sunCol * (sunDisc + halo);
+        // subtle star field — visible only high up (h>0.45) and where glow low
+        if (h > 0.45) {
+          vec2 uv = vWorldDir.xz * 3.2 + vWorldDir.y * 0.6;
+          float n = hash(floor(uv * 64.0));
+          float star = step(0.996, n) * pow(hash(uv), 1.2) * (1.0 - band * 2.0);
+          c += vec3(0.9, 0.95, 1.0) * star * 0.55 * smoothstep(0.45, 0.75, h);
+        }
+        // film vignette — darken edges slightly, more cinematic on lens
+        float vign = length(vWorldDir.xz) * 0.14;
+        c *= (1.0 - vign * 0.35);
         gl_FragColor = vec4(c, 1.0);
       }`,
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.name = 'SkyDome';
+  return mesh;
+}
+
+/** Height fog volume — pools at ground like real height fog, not uniform FogExp2.
+ * A translucent box with exponential height falloff; scene fog still provides
+ * distance haze, this adds the *vertical* storytelling (ground mist in Verdant,
+ * ash storm in Emberfall, ice breath in Frostline). Added to scene, not root,
+ * so the real-asset gate never sees it. */
+export function heightFogVolume(theme) {
+  const fog = theme.fog;
+  if (!fog || !fog.height) return null;
+  const w = 760, d = 760, h = fog.height;
+  const geometry = new THREE.BoxGeometry(w, h, d);
+  const hazeCol = new THREE.Color(fog.hazeColor ?? fog.color);
+  const baseCol = new THREE.Color(fog.color);
+  const material = new THREE.ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
+    depthTest: true,
+    blending: THREE.NormalBlending,
+    side: THREE.DoubleSide,
+    uniforms: {
+      hazeColor: { value: hazeCol },
+      baseColor: { value: baseCol },
+      height: { value: h },
+      falloff: { value: fog.heightFalloff ?? 0.12 },
+      density: { value: fog.density },
+      hazeStrength: { value: fog.hazeStrength ?? 0.12 },
+    },
+    vertexShader: 'varying vec3 vLocal; varying vec3 vWorld; void main(){ vLocal = position; vec4 wpos = modelMatrix * vec4(position,1.0); vWorld = wpos.xyz; gl_Position = projectionMatrix * viewMatrix * wpos; }',
+    fragmentShader: `
+      uniform vec3 hazeColor; uniform vec3 baseColor; uniform float height; uniform float falloff; uniform float density; uniform float hazeStrength;
+      varying vec3 vLocal; varying vec3 vWorld;
+      void main(){
+        float yLocal = vLocal.y + height * 0.5; // 0 at bottom, height at top
+        float hNorm = clamp(yLocal / height, 0.0, 1.0);
+        float hFog = exp(-falloff * yLocal) * (1.0 - hNorm * 0.55);
+        float dist = length(vWorld.xz) / 380.0;
+        float edge = 1.0 - smoothstep(0.58, 1.12, dist);
+        // v2.1 attenuated: 210→85, 0.52→0.28 — ground mist is a breath, not a wall
+        float alpha = hFog * density * 85.0 * edge * (0.42 + hazeStrength);
+        alpha = clamp(alpha, 0.0, 0.28);
+        vec3 c = mix(hazeColor, baseColor, hNorm * 0.42);
+        float streak = sin(vWorld.x * 0.041 + vWorld.z * 0.038) * 0.045 + 0.955;
+        c *= streak;
+        gl_FragColor = vec4(c, alpha);
+      }`,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.name = 'HeightFog';
+  mesh.position.y = h * 0.5 + 0.6; // sits on ground 0.6m up so it catches ground plane
+  mesh.renderOrder = 1;
   return mesh;
 }
 
