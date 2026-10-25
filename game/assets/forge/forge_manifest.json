@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-25T07:13:43.069Z",
+ "generated": "2026-10-25T12:04:27.499Z",
  "note": "Three mission worlds, each built from real licensed GLBs. Provenance: tools/asset-forge/real/real-manifest.json",
  "attribution": {
   "Kenney Space Kit": "CC0-1.0 — Kenney (www.kenney.nl)",
@@ -458,6 +458,105 @@
     "khronos": "2.0.0-dev.3.10"
    },
    "bytes": 22160152
+  },
+  {
+   "id": "titans",
+   "category": "world",
+   "name": "THE TITANS",
+   "mission": "titans",
+   "resource": "res://assets/forge/worlds/titans.glb",
+   "source": "tools/asset-forge/src/worlds/emberfall.js",
+   "assetPolicy": "every visible mesh is a licensed GLB from game/assets/world/real",
+   "targetHeight": 7.75,
+   "targetLength": 67.4,
+   "normalisedBy": "height",
+   "measuredHeight": 7.75,
+   "measuredWidth": 67.4,
+   "measuredDepth": 67.4,
+   "triangles": 61490,
+   "meshes": 151,
+   "materials": 151,
+   "textures": 19,
+   "clips": [
+    "HangarBreach_North_Sparks_pulse",
+    "HangarWall_TornA_TornCable_sweep",
+    "HangarCable_Intact_Cables_sweep",
+    "HangarSpark_OrangeA_Cables_sweep",
+    "HangarSpark_OrangeA_Spark_pulse",
+    "HangarSpark_BlueA_Cables_sweep",
+    "HangarSpark_BlueA_Spark_pulse",
+    "HangarConsole_Fire_Flame_pulse",
+    "HangarRover_Wreck_Hull_sweep",
+    "SpineCorridor_North_Gate_pulse",
+    "SpineCorridor_North_Cables_sweep",
+    "SpineCable_Intact_Cables_sweep",
+    "SpineCorridor_South_Gate_pulse",
+    "SpineCorridor_South_Cables_sweep",
+    "SpineGreeble_Cables_pulse",
+    "LabWall_TornA_TornCable_sweep",
+    "LabWall_TornB_TornCable_sweep",
+    "LabSpark_BlueA_Cables_sweep",
+    "LabSpark_BlueA_Spark_pulse",
+    "LabSpark_BlueB_Cables_sweep",
+    "LabSpark_BlueB_Spark_pulse",
+    "LabSpark_OrangeA_Cables_sweep",
+    "LabSpark_OrangeA_Spark_pulse",
+    "LabConsole_BlueFire_Flame_pulse",
+    "LabDressing_Terminal_pulse",
+    "LabViewport_West_Sparks_pulse",
+    "ReactorBreach_South_Sparks_pulse",
+    "ReactorWall_TornA_TornCable_sweep",
+    "ReactorWall_TornB_TornCable_sweep",
+    "ReactorSpark_OrangeA_Cables_sweep",
+    "ReactorSpark_OrangeA_Spark_pulse",
+    "ReactorSpark_BlueC_Cables_sweep",
+    "ReactorSpark_BlueC_Spark_pulse",
+    "ReactorSpark_OrangeB_Cables_sweep",
+    "ReactorSpark_OrangeB_Spark_pulse",
+    "ReactorConsole_Orange_Flame_pulse",
+    "ReactorConsole_Blue_Flame_pulse",
+    "ReactorTurret_Wreck_Turret_sweep",
+    "ReactorTurret_Wreck_Sensor_spin",
+    "CableGreeble—VitalyBulgarovdetail_00_Cables_pulse",
+    "CableGreeble—VitalyBulgarovdetail_01_Cables_pulse",
+    "CableGreeble—VitalyBulgarovdetail_02_Cables_pulse"
+   ],
+   "sockets": [
+    "spawn_titans_hangar",
+    "spawn_titans_lab",
+    "spawn_titans_reactor",
+    "spawn_titans_spine"
+   ],
+   "theme": {
+    "id": "titans",
+    "label": "THE TITANS",
+    "mood": "station interior 3D yang diserang — sempit intimately 60x60, setengah hancur, hybrid percikan orange (human) + biru (alien), lantai bolong, dinding sobek/penyok abstract, luar angkasa hanya di 3 breach",
+    "accent": "#ff7a1e",
+    "hazard": "#ffd166",
+    "sky": {
+     "top": "#050a12",
+     "mid": "#0f1f2e",
+     "bottom": "#2a3f4a",
+     "glow": "#ff7a1e",
+     "glowStrength": 0.22,
+     "horizonHaze": 0.28,
+     "sunWarmth": 0.32
+    },
+    "fog": {
+     "color": "#1a262e",
+     "density": 0.0042,
+     "height": 10,
+     "heightFalloff": 0.22,
+     "hazeColor": "#ff7a1e",
+     "hazeStrength": 0.11
+    }
+   },
+   "validation": {
+    "errors": 0,
+    "warnings": 0,
+    "khronos": "2.0.0-dev.3.10"
+   },
+   "bytes": 5285292
   }
  ]
 }

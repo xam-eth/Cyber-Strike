@@ -463,6 +463,97 @@ export const ROLES = {
     ],
     anim: [{ node: 'Cables', kind: 'pulse', amount: 0.015, speed: 1.8 }],
   },
+
+  /* ========================================================== THE TITANS — 3D station interior, setengah hancur, hybrid spark, Blender forced break targeting */
+  // CATATAN: Semua benda di sini 3D, bukan 2D. Varian utuh mudah drag-drop, varian sobek/penyok abstract akan di-Blender retargeting (hapus bagian, patah paksa, bukan potong tajam).
+  cable_intact: {
+    title: 'Cable Intact — menyambung rapi (Koridor Utama)',
+    parts: [
+      { model: 'modular-cables', height: 0.6, pos: [0, 2.4, 0], name: 'Cables' },
+      { model: 'pipe-supporthigh', height: 2.4, pos: [-2.2, 0, 0], name: 'BracketA' },
+      { model: 'pipe-supporthigh', height: 2.4, pos: [2.2, 0, 0], name: 'BracketB' },
+    ],
+    anim: [{ node: 'Cables', kind: 'sweep', axis: 'z', amount: 0.008, speed: 0.7 }],
+  },
+  cable_spark_orange: {
+    title: 'Cable Putus Percikan ORANGE — Human tech hidup',
+    parts: [
+      // Kabel putus: ujung menggantung, bracket bengkok, percikan orange
+      { model: 'modular-cables', height: 0.6, pos: [0, 2.2, 0], name: 'Cables' },
+      { model: 'pipe-supporthigh', height: 2.0, pos: [-1.6, 0, 0.4], roll: 14, name: 'BracketA' },
+      { model: 'pipe-supporthigh', height: 1.2, pos: [1.2, 0, -0.3], roll: -18, name: 'BracketB' },
+      // Spark proxy: pipe-straight kecil dengan emissive orange sebagai titik percikan — Blender nanti ganti dengan spark particle + armature
+      { model: 'pipe-straight', height: 0.32, pos: [0.8, 2.2, 0.2], name: 'Spark', emissive: { color: 0xff7a1e, intensity: 1.6 } },
+    ],
+    anim: [
+      { node: 'Cables', kind: 'sweep', axis: 'z', amount: 0.018, speed: 1.4 },
+      { node: 'Spark', kind: 'pulse', amount: 0.04, speed: 3.2 },
+    ],
+  },
+  cable_spark_blue: {
+    title: 'Cable Putus Percikan BIRU — Alien tech hidup',
+    parts: [
+      { model: 'modular-cables', height: 0.6, pos: [0, 2.2, 0], name: 'Cables' },
+      { model: 'pipe-supporthigh', height: 2.0, pos: [-1.4, 0, -0.4], roll: -12, name: 'BracketA' },
+      { model: 'pipe-supporthigh', height: 1.2, pos: [1.4, 0, 0.3], roll: 16, name: 'BracketB' },
+      { model: 'pipe-straight', height: 0.32, pos: [-0.6, 2.2, -0.1], name: 'Spark', emissive: { color: 0x59e6ff, intensity: 1.5 } },
+    ],
+    anim: [
+      { node: 'Cables', kind: 'sweep', axis: 'x', amount: 0.015, speed: 1.7 },
+      { node: 'Spark', kind: 'pulse', amount: 0.035, speed: 4.1 },
+    ],
+  },
+  wall_torn: {
+    title: 'Dinding Sobek Abstract — patah paksa bergerigi (Blender: torn variant)',
+    parts: [
+      // Placeholder: modular wall + cables menggantung + bracket miring — Blender nanti: Boolean abstract + Displace biar sobek tidak sempurna
+      { model: 'modular-template-wall', height: 3.2, pos: [0, 0, 0], name: 'Wall' },
+      { model: 'modular-cables', height: 0.7, pos: [0, 2.0, 0.35], yaw: 12, name: 'TornCable' },
+      { model: 'pipe-supporthigh', height: 1.6, pos: [-1.2, 0, 0.6], roll: 22, name: 'FrameA' },
+    ],
+    anim: [{ node: 'TornCable', kind: 'sweep', axis: 'z', amount: 0.012, speed: 1.1 }],
+  },
+  wall_dented: {
+    title: 'Dinding Penyok Bengkok — cekung tidak sobek (Blender: dented variant)',
+    parts: [
+      // Placeholder: corridor utuh tapi dengan barrel penyok di depan + dent illusion via scale
+      { model: 'modular-corridor', height: 3.0, pos: [0, 0, 0], name: 'Wall' },
+      { model: 'barrel', height: 1.1, pos: [0.6, 0, 0.8], roll: -14, name: 'Dent' },
+      { model: 'barrels', height: 1.0, pos: [-1.0, 0, 0.5], yaw: 18, name: 'Clutter' },
+    ],
+    anim: [],
+  },
+  floor_hole: {
+    title: 'Lantai Bolong Hancur — lubang abstract + rebar bengkok (Blender: hole variant)',
+    parts: [
+      // Placeholder: crater sebagai lubang + platform kecil sebagai lantai bawah + rocks sebagai puing — Blender nanti: Boolean abstract + rebar bengkok manual
+      { model: 'craterlarge', height: 0.35, pos: [0, 0, 0], name: 'Hole' },
+      { model: 'platform-small', width: 2.2, pos: [0, -0.55, 0], name: 'LowerFloor' },
+      { model: 'rocks-smalla', height: 0.6, pos: [1.4, 0, 0.9], name: 'RubbleA' },
+      { model: 'rocks-smallb', height: 0.45, pos: [-1.2, 0, -0.8], name: 'RubbleB' },
+    ],
+    anim: [],
+  },
+  console_fire: {
+    title: 'Konsol Terbakar — api kecil + asap tipis (hybrid orange/biru)',
+    parts: [
+      { model: 'desk-computer', height: 1.05, pos: [0, 0, 0], name: 'Console' },
+      { model: 'barrel', height: 0.7, pos: [0.9, 0, 0.6], roll: 22, name: 'Debris' },
+      // Api proxy: barrel kecil dengan emissive sebagai api — Blender nanti ganti dengan plane api + smoke
+      { model: 'barrel', height: 0.42, pos: [0, 0.95, 0], name: 'Flame', emissive: { color: 0xff4a0a, intensity: 0.95 } },
+    ],
+    anim: [{ node: 'Flame', kind: 'pulse', amount: 0.045, speed: 2.4 }],
+  },
+  // Viewport luar angkasa — hanya di 3 breach, bukan skybox 360
+  station_breach: {
+    title: 'Station Breach — viewport luar angkasa (kaca retak / sobek)',
+    parts: [
+      { model: 'station-door-double', height: 3.2, pos: [0, 0, 0], name: 'Frame' },
+      { model: 'station-display-wall', height: 1.6, pos: [0, 1.2, -0.4], yaw: 90, name: 'Glass', emissive: { color: 0x0a1a2a, intensity: 0.25 } },
+      { model: 'modular-cables', height: 0.5, pos: [0, 2.6, 0], name: 'Sparks' },
+    ],
+    anim: [{ node: 'Sparks', kind: 'pulse', amount: 0.02, speed: 2.8 }],
+  },
 };
 
 /** Roles per world: which of the library each mission actually uses. 
@@ -488,5 +579,13 @@ export const WORLD_ROLES = {
     'wrecked_transport', 'rock_cluster',
     // cinematic megastructure: ore monorail + rocket gantry + rail plumbing + laser gate + yard life
     'monorail_spine', 'monorail_train', 'rocket_stack', 'rover_outrider', 'rail_line', 'modular_corridor', 'station_dressing', 'cable_greeble',
+  ],
+  // THE TITANS — 3D station interior, sempit 60x60, hybrid spark, Blender forced break targeting
+  titans: [
+    'cover_module', 'defense_turret', 'enemy_spawn_gate', 'wrecked_transport', 'rock_cluster',
+    // station lived-in hancur: cable intact vs putus percikan hybrid, dinding sobek/penyok, lantai bolong, konsol api, breach viewport
+    'cable_intact', 'cable_spark_orange', 'cable_spark_blue',
+    'wall_torn', 'wall_dented', 'floor_hole', 'console_fire', 'station_breach',
+    'station_dressing', 'cable_greeble', 'modular_corridor',
   ],
 };

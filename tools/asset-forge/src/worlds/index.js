@@ -13,12 +13,14 @@ import { ROLES } from './roles.js';
 import frostline from './frostline.js';
 import verdant from './verdant.js';
 import emberfall from './emberfall.js';
+import titans from './titans.js';
 
 /** id used by the viewer, the gate and the game → module. */
 export const WORLDS = {
   frostline,
   verdant,
   emberfall,
+  titans,
 };
 
 /** Short ids, in mission order. */

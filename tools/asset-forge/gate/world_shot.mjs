@@ -41,7 +41,7 @@ const width = Number(flag('width', '2048'));
 const height = Number(flag('height', '1152'));
 const time = String(flag('t', '6'));
 const wantGlb = !has('no-glb');
-const ALL_WORLDS = ['frostline', 'verdant', 'emberfall'];
+const ALL_WORLDS = ['frostline', 'verdant', 'emberfall', 'titans'];
 const worldIds = flag('world', null) ? String(flag('world')).split(',').map((s) => s.trim()) : ALL_WORLDS;
 const shotFilter = flag('shot', null);
 const SHOTS = shotFilter ? String(shotFilter).split(',').map((s) => s.trim()) : null;

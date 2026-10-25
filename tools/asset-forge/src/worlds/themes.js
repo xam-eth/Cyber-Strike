@@ -90,7 +90,38 @@ export const THEMES = {
     hazard: '#ffd166',
     atmosphere: { dustDensity: 0.016, dustColor: '#ff7a1e', bloom: 0.42, vignette: 0.34 },
   },
+
+  /* -------------------------------------------------------------- the titans — NEW 3D station interior */
+  titans: {
+    id: 'titans',
+    label: 'THE TITANS',
+    mood: 'station interior 3D yang diserang — sempit intimately 60x60, setengah hancur, hybrid percikan orange (human) + biru (alien), lantai bolong, dinding sobek/penyok abstract, luar angkasa hanya di 3 breach',
+    // Sky: station interior tidak lihat langit 360, cuma glimpses dari breach — dark void dengan horizon orange tipis dari reaktor bocor
+    sky: { top: '#050a12', mid: '#0f1f2e', bottom: '#2a3f4a', glow: '#ff7a1e', glowStrength: 0.22, horizonHaze: 0.28, sunWarmth: 0.32 },
+    // Interior dust: tebal tapi rendah (height 10) — debu mengendap di bawah, bukan wash
+    fog: { color: '#1a262e', density: 0.0042, height: 10, heightFalloff: 0.22, hazeColor: '#ff7a1e', hazeStrength: 0.11 },
+    exposure: 1.25,
+    environment: 1.15,
+    lights: [
+      // Key: lampu darurat station warm (dari atas koridor)
+      { name: 'StationKey', color: '#ffe0a8', intensity: 3.2, pos: [0, 44, 8] },
+      // Fill: alien tech cyan dari lab (B)
+      { name: 'AlienFill', color: '#7cf0ff', intensity: 0.95, pos: [-18, 18, -12] },
+      // Rim: breach luar angkasa — biru dingin dari utara (hangar jebol), orange dari selatan (reaktor)
+      { name: 'BreachRim', color: '#6a6eff', intensity: 1.15, pos: [0, 14, -32] },
+      { name: 'Bounce', color: '#8a6a4a', intensity: 0.32, pos: [0, -18, 12] },
+      // Spark proxy: titik percikan hybrid — akan di-trigger oleh cable_spark roles, tapi light ini kasih ambient flicker
+      { name: 'SparkFlicker', color: '#ff7a1e', intensity: 0.55, pos: [8, 6, -6] },
+    ],
+    hemi: { sky: '#5a6a78', ground: '#0c1116', intensity: 0.85 },
+    // Steel desaturasi, ground lift sedang — lantai station kusam, bukan licin es
+    kit: { steel: '#3a444e', warm: '#5a4a32', targetLight: 0.12, targetSat: 0.11, rough: 0.72, metal: 0.22 },
+    ground: { tint: [0.42, 0.44, 0.46], lift: 1.45, rough: 0.94, metal: 0.0 },
+    accent: '#ff7a1e',
+    hazard: '#ffd166',
+    atmosphere: { dustDensity: 0.015, dustColor: '#ff7a1e', bloom: 0.38, vignette: 0.36 },
+  },
 };
 
 /** The order the launcher lists them in: easiest mission first. */
-export const THEME_ORDER = ['frostline', 'verdant', 'emberfall'];
+export const THEME_ORDER = ['frostline', 'verdant', 'emberfall', 'titans'];
