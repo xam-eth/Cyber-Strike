@@ -6,11 +6,19 @@ World source: `arena/3a7253a1-cyber-strike` at `6a03e6c9c838fc9417de2baa207af36d
 
 ## Status
 
-**SOURCE INTEGRATED LOCALLY; NEW-WORLD RUNTIME/PAYLOAD VALIDATION PENDING.**
+**VERIFIED on the integrated source and committed final payload.**
 
-The previous validated checkpoint remains payload `ad586eb1` from source
-`b1528e6c`. Its browser and recovery results are historical evidence for that
-payload only. They are not evidence for the three new mission worlds.
+- World merge: `fdd80f1e4cb8c85802323a610c7f0432189b9d7c`, with parents
+  `8b42deee07a0051f642520dbf1f79b59cb571055` and the World tip above.
+- Integration repairs: `1d95ba6c4c2a3403720322629549959b42ace03c`.
+- Lossless shared-texture staging: `7ec17b0eb52e0199fbeab9435e5e3164e1848fd2`.
+- Final generated payload: `0ce9d3b0cca7b6fe95968a5d481a544947152499`.
+- Final CI: [40164193789](https://github.com/xam-eth/Cyber-Strike/actions/runs/40164193789)
+  — **SUCCESS** for static checks, 28/28 import-OK Godot 4.7.2 tests, export,
+  payload audit/delivery, browser boots, opening, recovery, and strict Vanguard.
+
+The older `ad586eb1` results remain historical evidence for the previous UI
+checkpoint, not for this World payload.
 
 ## Source and merge audit
 
@@ -22,7 +30,7 @@ payload only. They are not evidence for the three new mission worlds.
 - World source contains the three-GLB `MissionWorld` implementation and retains
   `VanguardStation`. Its tip CI `40154542201` passed static and 28/28 headless
   Godot tests but failed the Web payload commit after Godot extracted untracked
-  JPG textures beside the new forge GLBs. That is not accepted as Web evidence.
+  JPG textures beside the new forge GLBs. That was not accepted as Web evidence.
 - The source's large `.claude/skills` installation and unrelated UI/gameplay
   changes are excluded. World-owned runtime, scenes, registry definitions,
   licensed source assets, forge tooling/provenance, design documents, card art,
@@ -57,9 +65,9 @@ preference is migrated to Frostline so the selected card, URL handoff, and
 `ProgressionService` agree. `FrontEnd` and `ProgressionService` remain the
 authoritative validators; the shell cannot invent a world or unlock a weapon.
 
-### Technical integration
+### Technical integration: initial opening download
 
-The root opening now uses Godot's official Web API in two phases:
+The root opening uses Godot's official Web API in two phases:
 
 ```text
 opening:  new Engine(config) -> init(executable) + preloadFile(mainPack)
@@ -76,7 +84,8 @@ Both opening and launch rails read the same aggregate WASM+PCK callback and the
 exported `fileSizes` total. No timer-based percentage, per-file accumulation,
 separate world manager, hidden gameplay scene, or duplicate fetch is used.
 This is a **download/preinitialization** contract. It is not a claim that every
-GLB is instantiated or GPU-warmed during the HTML opening.
+GLB is instantiated or GPU-warmed during the HTML opening. The selected GLB is
+still instantiated only when that theatre enters gameplay.
 
 Failures expose **Coba lagi** at the actual opening/launch failure surface and
 keep the canvas hidden. A direct DEPLOY deep link retains `qa_world` and
@@ -84,9 +93,33 @@ keep the canvas hidden. A direct DEPLOY deep link retains `qa_world` and
 post-export `web_loader_patch.py` remains necessary for WASM initialization
 rejections.
 
-### Test integration
+### Technical integration: publishable, lossless texture sharing
 
-`tools/web_loading_qa.mjs` now has two independent gates:
+The first merged export passed runtime/browser gates but produced a
+124,579,772-byte PCK, too large for the repository's plain-clone, non-LFS
+publication path. The three GLBs carried 117 embedded image references but only
+69 distinct JPEG byte sequences. Godot was importing a separate `.ctex` for each
+embedded copy.
+
+`tools/asset-forge/gate/shared_textures.mjs` now stages content-addressed images
+in `game/assets/forge/textures/` and gives every GLB relative URIs to those
+shared files. This is not texture resizing, recompression, or a visual design
+change:
+
+- every ordered image hash remained identical;
+- every non-image bufferView hash remained identical;
+- all three externalized GLBs passed Khronos validation with zero errors;
+- a Node regression test covers URI deduplication and non-image buffer
+  preservation;
+- the final PCK contains exactly 69 shared texture resources.
+
+The final PCK is **76,767,668 bytes / 873 files**, 47,812,104 bytes smaller than
+the first merged candidate. The source asset library remains excluded from the
+PCK; only staged runtime resources ship.
+
+### Test integration and repair history
+
+`tools/web_loading_qa.mjs` has two independent gates:
 
 - **Opening contract:** cache disabled; one WASM and one PCK request; aggregate
   bytes complete before MASUK; no gameplay/`engine.start()` behind the opening;
@@ -96,38 +129,64 @@ rejections.
   world DEPLOY; readable retry and a hidden canvas are required; reload must
   reach the same world's real gameplay with one fresh download per asset.
 
-The existing strict Vanguard shell gate remains. `mission_world_smoke.gd`
-replaces the retired Neon smoke test and covers all three mission GLBs.
+The first merged CI `40163018037` exposed two integration fixture/layout
+failures. `1d95ba6c` retained the stronger existing tests, moved the cover
+fixture from the retired Neon prop to Frostline's real flanking cover, and
+bounded the roadmap pin to one line inside its 64 px card. The next CI passed
+28/28 tests and all browser gates. Its 124.58 MB payload could not be published,
+which motivated the lossless texture-sharing commit above. Neither repair
+changed combat orchestration, weapon rules, wave design, or world layout.
 
-## Evidence so far — baseline only
+## Final evidence
 
-These local automated Chromium runs used the **old** payload and Vanguard,
-which exists in both registries. They isolate and verify the new opening API
-and retry behavior before the new World export exists:
+### Static, engine, and payload
 
-- `exports/integration-audit/opening-api-baseline-vanguard.json` — direct
-  selected-Vanguard gameplay PASS.
-- `exports/integration-audit/opening-contract-baseline-vanguard/report.json` —
-  one WASM + one PCK, preload-before-start, no `startGame`, direct gameplay PASS.
-- `exports/integration-audit/opening-recovery-baseline-vanguard/report.json` —
-  opening contract plus interrupted WASM and PCK recovery PASS.
-- `exports/integration-audit/world-source-static.log` — static development
-  checks PASS; local Godot and local preset checks skipped.
+- Local `scripts/dev_check.sh`: **0 failed steps, 3 skipped**; local Godot,
+  gdtoolkit, and machine-local preset checks remain skipped. The Asset Forge
+  shared-texture Node test passes.
+- Final CI static checks: **PASS**, including gdtoolkit and the Node test.
+- Final CI Godot 4.7.2: **28 passed, 0 failed, import OK**.
+- Final PCK: **76,767,668 bytes / 873 files**; WASM: **39,514,754 bytes**.
+  Aggregate opening download: **116,282,422 bytes** (116.3 MB, about 110.9 MiB).
+- `exports/integration-audit/world-final-payload/report.json`: all four world
+  resources present, 69 shared textures, zero retired Neon entries.
+- `exports/integration-audit/world-final-payload/verify.json` and `check.json`:
+  build verification and payload audit **PASS**, with no forbidden findings.
 
-These results do **not** verify Frostline, Verdant, Emberfall, the merged 28
-Godot tests, the new PCK, or its final byte total. Those require the CI export
-and subsequent new-payload browser gates.
+### Automated Chromium
 
-## Required final validation
+Final CI passed root and raw-export boots at 844×390 and 667×375, the opening
+single-download contract, interrupted WASM/PCK recovery at 100 Mbps, and strict
+shell-selected Vanguard gameplay.
 
-1. CI static checks and all 28 Godot tests on the merged source.
-2. Web export and payload commit with no untracked imported-texture failure.
-3. New-payload audit, four normal browser boots, strict Vanguard, and the
-   opening + WASM/PCK recovery gate at 100 Mbps.
-4. Explicit browser selection/build checks for Frostline, Verdant, and Emberfall.
-5. Record final PCK/WASM sizes and update `README.md`, `WEB_PREVIEW.md`,
-   `docs/WEB_LOADING_RECOVERY.md`, and `docs/INTEGRATION_VALIDATION_REPORT.md`.
+Final local opening reports, all **PASS** with one WASM request, one PCK request,
+`116282422 / 116282422` completed bytes, no `startGame()`, no second PCK, the
+authoritative selected-world build, and safe Explore:
 
-Android, physical touch/device performance, full human gameplay, final visual
-acceptance, and every real-world network/proxy failure remain unverified unless
-separately tested.
+| Theatre | Report |
+| --- | --- |
+| Frostline Relay | `exports/integration-audit/world-final-opening/frostline_relay/report.json` |
+| Verdant Bloom | `exports/integration-audit/world-final-opening/verdant_bloom/report.json` |
+| Emberfall Foundry | `exports/integration-audit/world-final-opening/emberfall_foundry/report.json` |
+| Vanguard Station | `exports/integration-audit/world-final-opening/vanguard_station/report.json` |
+
+Additional final-payload gates:
+
+- `exports/integration-audit/world-final-vanguard/report.json`: strict shell
+  Vanguard selection and direct safe Explore **PASS**.
+- `exports/integration-audit/world-final-loading-frostline/report.json`:
+  opening plus interrupted WASM and PCK at 100 Mbps **PASS**, including readable
+  retry, hidden failed canvas, and reload into selected Frostline gameplay.
+- `exports/integration-audit/world-final-ci.json`: final Actions job record.
+
+Earlier baseline-only reports (`opening-contract-baseline-vanguard` and
+`opening-recovery-baseline-vanguard`) isolated the new loader API before a World
+export existed. They are superseded for final World claims by the reports above.
+
+## Evidence limits
+
+These are static, automated, headless Godot, and headless Chromium/WebGL results.
+They do not establish Android packaging/runtime, physical touch/device
+performance, thermals or memory, every real-world network/proxy failure, a full
+human Endless Survival playthrough, retention improvement, or final visual and
+animation acceptance. Those remain open unless separately tested.

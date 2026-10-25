@@ -88,7 +88,7 @@ The `b055f0d` evidence above is historical and remains valid for that payload on
 
 - Merge source: `b1528e6c3ea306659f06670310de50e9a14d7d22`; final generated payload: `ad586eb1ab78e1ad9da484b2680afe9c456b704e`.
 - The new painted launch screen retains the `fileSizes` path remap, real combined bytes, watchdog, network-error detail, boot-only rejection fallback, and **Coba lagi** control. The post-export loader patch remains in the CI pipeline.
-- Current payload sizes are **39,514,754-byte WASM + 98,188,988-byte PCK = 137,703,742 bytes**. The PCK contains 887 files and passed the payload audit.
+- At that checkpoint, payload sizes were **39,514,754-byte WASM + 98,188,988-byte PCK = 137,703,742 bytes**. The PCK contained 887 files and passed the payload audit.
 - CI [40155061418](https://github.com/xam-eth/Cyber-Strike/actions/runs/40155061418) passed export, four normal browser boots, both interrupted-asset recovery cases, and strict shell Vanguard selection after the change.
 
 The final local command was:
@@ -135,5 +135,36 @@ payload using Vanguard (present in both registries):
   opening + interrupted WASM + interrupted PCK **PASS**.
 
 These baseline results are not evidence for Frostline, Verdant, Emberfall, or a
-new final byte total. See [`WORLD_OPENING_INTEGRATION.md`](WORLD_OPENING_INTEGRATION.md)
-for the active source merge and required new-payload gates.
+new final byte total. They were used only to isolate the loader API before the
+World export existed.
+
+### Final World payload verification
+
+The final source is `7ec17b0eb52e0199fbeab9435e5e3164e1848fd2`; the generated
+payload is `0ce9d3b0cca7b6fe95968a5d481a544947152499`. CI
+[40164193789](https://github.com/xam-eth/Cyber-Strike/actions/runs/40164193789)
+passed static, 28/28 Godot tests, export/audit, four normal browser boots,
+opening, both recovery cases, and strict Vanguard.
+
+The final opening downloads **39,514,754-byte WASM + 76,767,668-byte PCK =
+116,282,422 bytes**. The PCK has 873 files and contains all four theatres. Shared
+content-addressed textures reduced duplicate Godot imports without changing
+image bytes or geometry; this is why the final four-world pack is smaller than
+the earlier two-world checkpoint.
+
+The final local recovery command was:
+
+```bash
+node tools/web_loading_qa.mjs \
+  --url http://127.0.0.1:8000 --asset both --world frostline_relay \
+  --throughput-mbps 100 --timeout 150 \
+  --out exports/integration-audit/world-final-loading-frostline
+```
+
+**VERIFIED PASS on payload `0ce9d3b0`:** opening completed at exactly
+`116282422 / 116282422`, each interrupted asset produced a readable retry with a
+hidden canvas, and reload returned directly to authoritative Frostline safe
+Explore. Separate opening reports for Frostline, Verdant, Emberfall, and Vanguard
+all passed the one-WASM/one-PCK/no-second-PCK contract. Strict Vanguard also
+passed. Exact reports and evidence boundaries are indexed in
+[`WORLD_OPENING_INTEGRATION.md`](WORLD_OPENING_INTEGRATION.md).

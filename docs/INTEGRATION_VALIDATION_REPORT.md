@@ -193,3 +193,40 @@ The precise external browser/proxy cause of the user's original BrokenPipe remai
 - **UNKNOWN:** Android packaging/runtime, physical touch-device behavior, full Prepare → Deploy → Fight → Adapt → Survive → Reward → Upgrade → Redeploy playthrough, and final visual/animation/effects acceptance.
 - The exact external proxy/browser cause of the original BrokenPipe remains **UNKNOWN**. Controlled interruption proves the repaired error/recovery path, not every possible network failure.
 - The larger 137.7 MB initial payload makes real-network loading and physical mobile performance a concrete follow-up. Do not claim optimization from the smaller, older UI-only candidate PCK; it did not contain the integrated world baseline.
+
+## 11. World Design + initial-opening addendum — 2026-10-25
+
+**Status: VERIFIED on the integrated source and committed payload.** This section
+supersedes the previous checkpoint's world IDs, payload size, and loading-phase
+description. The complete audit and per-world evidence index is in
+[`WORLD_OPENING_INTEGRATION.md`](WORLD_OPENING_INTEGRATION.md).
+
+- World source `6a03e6c9c838fc9417de2baa207af36defd82c1b` was merged as
+  `fdd80f1e4cb8c85802323a610c7f0432189b9d7c`, retaining current Gameplay,
+  Character, painted UI, weapon handoff, and Vanguard implementations.
+- The registry and shell now offer Frostline Relay, Verdant Bloom, Emberfall
+  Foundry, and Vanguard Station. Neon is retired; no parallel world manager or
+  combat/progression replacement was introduced.
+- Initial opening awaits `Engine.init()` + `preloadFile()` for the complete
+  WASM + four-world PCK before MASUK. DEPLOY uses the same instance's `start()`
+  and `--main-pack`, with no hidden gameplay, `startGame()`, or second PCK fetch.
+  This verifies download/preinitialization, not hidden GPU warm-up.
+- `1d95ba6c` repaired the merged cover fixture and small-landscape roadmap label.
+  `7ec17b0e` staged 117 byte-identical image references as 69 shared textures,
+  preserving every image/non-image buffer hash and avoiding duplicate imports.
+- Final CI [40164193789](https://github.com/xam-eth/Cyber-Strike/actions/runs/40164193789):
+  **SUCCESS** — static checks, **28/28 import-OK Godot tests**, export/audit,
+  four normal browser boots, opening + interrupted WASM/PCK recovery at
+  100 Mbps, and strict selected-Vanguard gameplay.
+- Final payload `0ce9d3b0cca7b6fe95968a5d481a544947152499`: PCK
+  **76,767,668 bytes / 873 files**, WASM **39,514,754 bytes**, aggregate opening
+  download **116,282,422 bytes**. Local build/payload audits passed with all
+  four worlds, exactly 69 shared texture resources, and no forbidden findings.
+- Local final-payload opening + selected-world safe Explore passed independently
+  for all four theatres. Strict Vanguard and 100-Mbps Frostline WASM/PCK recovery
+  also passed. Reports are indexed in the document linked above.
+
+Android, physical-device/touch performance, full human Endless Survival gameplay,
+final visual acceptance, and every external network/proxy condition remain
+**UNKNOWN/unverified**. Automated browser and headless-engine evidence must not
+be promoted into those claims.

@@ -7,7 +7,7 @@
 
 >
 >
-> **Status preview saat ini:** payload `ad586eb1` berasal dari merge source `b1528e6c`; PCK berukuran 98,188,988 bytes (887 files) dan total `web/` sekitar 132 MiB. CI `40155061418` lulus static, 28/28 Godot test, export, empat browser boot, interrupted-download recovery untuk WASM/PCK, dan kontrak shell → Vanguard direct-gameplay. Rincian integrasi serta batas bukti ada di [`docs/INTEGRATION_VALIDATION_REPORT.md`](docs/INTEGRATION_VALIDATION_REPORT.md); diagnosis loading saat ini ada di [`docs/WEB_LOADING_RECOVERY.md`](docs/WEB_LOADING_RECOVERY.md).
+> **Status preview saat ini:** payload `0ce9d3b0` berasal dari source `7ec17b0e`; PCK berukuran 76,767,668 bytes (873 files) dan total `web/` sekitar 112 MiB. CI `40164193789` lulus static, 28/28 Godot test, export/payload audit, empat browser boot, initial-opening preload, interrupted-download recovery untuk WASM/PCK, dan kontrak shell → Vanguard direct-gameplay. Keempat theatre juga lulus opening + selection/build gate lokal. Rincian integrasi serta batas bukti ada di [`docs/WORLD_OPENING_INTEGRATION.md`](docs/WORLD_OPENING_INTEGRATION.md); diagnosis loading ada di [`docs/WEB_LOADING_RECOVERY.md`](docs/WEB_LOADING_RECOVERY.md).
 >
 > **Status verifikasi (baseline lama di bawah ini; ukuran berikut bukan payload current):** seluruh wiring statis sudah diperiksa (`tools/web_preset.py check`, `tools/project_doctor.py` → 0 FAIL, 22 unit test). Ekspor Web nyata sudah berhasil di CI (run `38919299364`, job `web-preview` hijau). Hasil terukur:
 
@@ -23,7 +23,7 @@ Artefak CI `web-preview` (zip, isi `web/` + `README.txt`) ≈ **10 MB** karena w
 
 **Bukti browser (dijalankan di sandbox ini, Chromium headless + WebGL 2):** `node tools/web_qa.mjs` → **2/2 halaman PASS**, keduanya mem-boot Godot `4.7.2.stable.official.ed1daf0bf`, kanvas 1280×720, WebGL hidup, tanpa error halaman maupun permintaan gagal. Tangkapan layar: `exports/web-qa/root.png` dan `exports/web-qa/web-index-html.png`.
 
-> **Catatan bandwidth:** muat pertama mengunduh WASM 39,514,754 bytes + PCK 98,188,988 bytes = **137.7 MB** (sekitar **131.3 MiB**), belum termasuk loader/HTML. `python -m http.server` tidak mengompresi keduanya; forwarded port atau Wi-Fi dapat membuat unduhan lama. Opening sekarang mengunduh WASM + seluruh PCK dunia sebelum **Masuk**, dengan byte gabungan yang nyata; DEPLOY memakai buffer yang sama tanpa mengunduh PCK lagi. Error dapat diulang dan watchdog tetap aktif bila tidak ada kemajuan. Jangan tutup/muat ulang saat byte masih bergerak; perilaku cache tetap bergantung pada server/proxy. Diagnosis dan bukti: [`docs/WEB_LOADING_RECOVERY.md`](docs/WEB_LOADING_RECOVERY.md).
+> **Catatan bandwidth:** muat pertama mengunduh WASM 39,514,754 bytes + PCK 76,767,668 bytes = **116.3 MB** (tepatnya 116,282,422 bytes, sekitar **110.9 MiB**), belum termasuk loader/HTML. `python -m http.server` tidak mengompresi keduanya; forwarded port atau Wi-Fi dapat membuat unduhan lama. Opening sekarang mengunduh WASM + seluruh PCK dunia sebelum **Masuk**, dengan byte gabungan yang nyata; DEPLOY memakai buffer yang sama tanpa mengunduh PCK lagi. Error dapat diulang dan watchdog tetap aktif bila tidak ada kemajuan. Jangan tutup/muat ulang saat byte masih bergerak; perilaku cache tetap bergantung pada server/proxy. Diagnosis dan bukti: [`docs/WEB_LOADING_RECOVERY.md`](docs/WEB_LOADING_RECOVERY.md).
 
 ---
 
