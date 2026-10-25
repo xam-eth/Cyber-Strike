@@ -457,10 +457,85 @@ func _check_titans_gameplay_scene() -> void:
 		and _passed
 	)
 	print("Titans Hangar traversal ended at %s." % player.position)
+	await _probe_titans_multi_level(player)
 
 	main_scene.queue_free()
 	await process_frame
 	WorldSelection.override_selection(previous)
+
+
+## Report multi-level physics without disguising a blocked route as a passing
+## assertion. The World source owns whether the sealed pit and elevated Reactor
+## stair should be opened/connected; that is not a merge-adapter decision.
+## Direct spawns on the walkway/launch probe their surfaces only, never a route
+## from the Hangar. Read the emitted positions before claiming traversability.
+func _probe_titans_multi_level(player: CharacterBody3D) -> void:
+	var space := player.get_world_3d().direct_space_state
+	var excluded: Array[RID] = [player.get_rid()]
+	var pit_query := PhysicsRayQueryParameters3D.create(
+		Vector3(0.0, 1.0, 0.0), Vector3(0.0, -3.0, 0.0), 1, excluded
+	)
+	var lower_query := PhysicsRayQueryParameters3D.create(
+		Vector3(0.0, -0.55, 0.0), Vector3(0.0, -3.0, 0.0), 1, excluded
+	)
+	var pit_hit := space.intersect_ray(pit_query)
+	var lower_hit := space.intersect_ray(lower_query)
+	var pit_position: Vector3 = pit_hit.get("position", Vector3.INF)
+	var lower_position: Vector3 = lower_hit.get("position", Vector3.INF)
+	_probe_notice(
+		"pit rays",
+		(
+			"first floor below Y=1 is %s; lower-pit ray from Y=-0.55 is %s"
+			% [pit_position, lower_position]
+		)
+	)
+
+	await _probe_move(
+		player, "Lab north stairs from deck", Vector3(0.0, 0.7, -6.0), Vector2.DOWN, 120
+	)
+	# This is a surface probe, not proof that the walkway is reachable.
+	await _probe_move(
+		player, "walkway surface (direct spawn)", Vector3(0.0, 3.2, -8.0), Vector2.RIGHT, 90
+	)
+	await _probe_move(
+		player, "Reactor stairs from ground", Vector3(0.0, 0.1, 15.0), Vector2.DOWN, 180
+	)
+	# The authored pedestal is 4.5 + 2.2m high. Probe its top directly; do not
+	# imply that the disconnected Reactor stair provided a route to this point.
+	await _probe_move(
+		player, "launch surface (direct spawn)", Vector3(-0.5, 6.9, 24.0), Vector2.ZERO, 1, 30
+	)
+
+
+func _probe_move(
+	player: CharacterBody3D,
+	label: String,
+	start: Vector3,
+	direction: Vector2,
+	frames: int,
+	settle_frames := 8
+) -> void:
+	player.global_position = start
+	player.velocity = Vector3.ZERO
+	player.call("set_touch_movement", Vector2.ZERO)
+	for _frame in settle_frames:
+		await physics_frame
+	var settled := player.global_position
+	player.call("set_touch_movement", direction)
+	for _frame in frames:
+		await physics_frame
+	player.call("set_touch_movement", Vector2.ZERO)
+	_probe_notice(
+		label,
+		(
+			"start=%s settled=%s end=%s on_floor=%s"
+			% [start, settled, player.global_position, player.is_on_floor()]
+		)
+	)
+
+
+func _probe_notice(label: String, detail: String) -> void:
+	print("::notice title=THE TITANS %s::%s" % [label, detail])
 
 
 func _near(a: Color, b: Color, tolerance := 0.002) -> bool:
