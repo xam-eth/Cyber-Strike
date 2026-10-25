@@ -65,7 +65,7 @@ def main() -> int:
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(staged, destination)
         print(f"PROMOTED: {entry['glb_label']} → {destination_rel}")
-        print("Run the project's asset build/import checks before wiring it into gameplay.")
+        print("Re-import and validate this asset in the receiving game project; gameplay integration is outside this character-only snapshot.")
         return 0
     except (OSError, ValueError) as error:
         print(f"ERROR: {error}", file=sys.stderr)

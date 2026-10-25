@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Build the Rare/Epic GLBs from preserved source models and retarget Common's
-# runtime animation set onto each skeleton. This intentionally leaves Common,
-# the rifle, and every source asset untouched.
+# runtime animation set onto each skeleton. This intentionally leaves the Common
+# model and every preserved source asset untouched.
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$HERE/../.." && pwd)"
