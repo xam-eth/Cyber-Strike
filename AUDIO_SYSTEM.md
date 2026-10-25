@@ -1,7 +1,7 @@
 # Audio system — Frontier Signal
 
-Frontier Signal is one original sci-fi palette shared by the opening, dashboard,
-DEPLOY transition, and Godot gameplay: a restrained D-modal synth pad, a clean
+Frontier Signal is one original sci-fi palette shared by the opening, HERO,
+dashboard, DEPLOY transition, and Godot gameplay: a restrained D-modal synth pad, a clean
 telemetry motif, and synchronized electronic percussion. It is not a separate
 music style for each screen. The same WAV files are loaded by the HTML shell and
 the exported game.
@@ -49,7 +49,7 @@ and synthesis code are reviewable source.
 
 | File | Duration | Use |
 | --- | ---: | --- |
-| `frontier_signal.wav` | 24.0 s | seamless opening/dashboard/gameplay theme |
+| `frontier_signal.wav` | 24.0 s | seamless opening/HERO/dashboard/gameplay theme |
 | `defense_pulse.wav` | 6.0 s | seamless gameplay-only percussion layer |
 | `ui_navigate.wav` | 0.12 s | the same navigation tick in shell and Godot |
 | `ui_confirm.wav` | 0.32 s | shell confirmation |
@@ -125,16 +125,22 @@ stays silent when audio is absent, keeping isolated smoke fixtures compilable.
   that HUD mute/unmute writes the shared shell preference in both directions.
 ## Validated payload — 2026-10-25
 
-- **VERIFIED (CI/headless/runtime):** source `948ebb35`, CI `40174980634`;
-  static checks and 28/28 Godot smoke tests passed, including `audio_smoke`.
-- **VERIFIED (CI/browser):** four normal boot checks, opening/interrupted-
-  download recovery, and strict Vanguard direct-DEPLOY with `--audio-shell`.
-- **VERIFIED (local browser, final payload):** the same Vanguard journey with
-  `--audio-shell --play 12` passed all checks, including `shot_pulse_rifle`,
-  HUD mute/unmute, shared-pref mirroring, and zero shell music voices after
-  handoff. No page error, failed request, or HTTP error was reported.
-- **PAYLOAD:** commit `3719d705`; PCK 79,595,388 bytes / 884 files; SHA-256
-  `bf65a6ccf564e10c705f1cf33ec703ee3a8e791fffb66fa49e0a782bb95d1a52`.
+- **VERIFIED (CI/headless/runtime):** merged source `35844894`, CI
+  `40179327354`; static checks and 28/28 Godot smoke tests passed, including
+  `audio_smoke`.
+- **VERIFIED (CI/browser):** four normal boot checks, HERO/rig/celebration
+  assertions, opening/interrupted-download recovery, and strict Vanguard
+  direct-DEPLOY with `--audio-shell`.
+- **VERIFIED (local browser, final payload):** the default-theatre journey with
+  `--audio-shell --play 8` passed all checks, including the HERO music scene,
+  `shot_pulse_rifle`, HUD mute/unmute, shared-pref mirroring, and zero shell
+  music voices after handoff. No page error, failed request, or HTTP error was
+  reported.
+- **VERIFIED (payload preservation):** all five imported audio resources are
+  byte-identical to payload `3719d705`; the merged UI/World export did not
+  replace or re-encode the validated audio data.
+- **PAYLOAD:** commit `c7be6bfc`; PCK 79,615,004 bytes / 887 files; SHA-256
+  `5f8c4017ff230d2a74af5f06fa0cf66d1e25105726c844bdf3d0edd93a84fec6`.
   This is below the 100,000,000-byte publication guard.
 - **UNKNOWN / not signed off:** human listening, final mix/loudness acceptance,
   speaker/headphone quality, physical mobile behavior, and Android. Automated

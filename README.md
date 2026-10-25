@@ -91,7 +91,7 @@ root DEPLOY flow goes directly to that selected theatre; raw engine journeys ret
 
 The web export is single-threaded (`variant/thread_support=false`) so it runs on a plain static server without
 COOP/COEP headers. The player meets the game through the front end at the repository root (`index.html` + `ui/`), which
-covers opening, hub/theatre selection, arsenal and launch. The opening calls `Engine.init()` and `preloadFile()` so the
+covers opening, HERO/operative selection, hub/theatre selection and launch. The opening calls `Engine.init()` and `preloadFile()` so the
 complete WASM + world PCK downloads before MASUK; no gameplay runs behind it. DEPLOY calls `start()` with that same
 main pack, hands the selected `qa_world` and `weapon` to the authoritative adapters, and enters that theatre directly
 without a second PCK download. Raw export builds use the engine shell at `game/web_shell/index.html`. The web platform always uses the Compatibility (WebGL 2) renderer, while Android keeps the
