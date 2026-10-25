@@ -554,6 +554,51 @@ export const ROLES = {
     ],
     anim: [{ node: 'Sparks', kind: 'pulse', amount: 0.02, speed: 2.8 }],
   },
+
+  /* ========================================================== THE TITANS — BERTINGKAT (foto 1 & 2) — semua GLB real, bukan procedural */
+  // Lower pit seperti foto 1: lubang bundar bercahaya di tengah — pakai crater + platform + rocks
+  titans_pit: {
+    title: 'TITANS Pit — lower level -2.5m, dinding melingkar bercahaya',
+    parts: [
+      { model: 'craterlarge', height: 0.45, pos: [0, 0, 0], name: 'PitWall' },
+      { model: 'platform-small', width: 6.2, pos: [0, -0.9, 0], name: 'PitFloor', emissive: { color: 0xff7a1e, intensity: 0.35 } },
+      { model: 'barrels', height: 1.1, pos: [-2.2, -0.7, 1.4], name: 'CrateA' },
+      { model: 'rocks-smalla', height: 0.55, pos: [2.0, -0.7, -1.2], name: 'Rubble' },
+    ],
+    anim: [{ node: 'PitFloor', kind: 'pulse', amount: 0.012, speed: 0.9 }],
+  },
+  // Walkway ring +3m mengelilingi pit — NARROW 2m wide, bukan solid platform, seperti foto 1 ring bercahaya
+  titans_walkway: {
+    title: 'TITANS Walkway Ring — +3m elevated, NARROW 2m, bercahaya',
+    parts: [
+      // Pakai platform-side yang sempit (lebar 2m) bukan platform-high yang besar, biar pit tetap terlihat di tengah
+      { model: 'platform-side', width: 4.0, pos: [0, 0, 0], name: 'Deck' },
+      { model: 'platform-cornerround', height: 0.9, pos: [1.2, 0.2, 0.6], yaw: 12, name: 'RailingA' },
+      { model: 'barrel', height: 0.6, pos: [-1.0, 0.2, 0.4], name: 'Light', emissive: { color: 0xffd166, intensity: 0.35 } },
+    ],
+    anim: [{ node: 'Light', kind: 'pulse', amount: 0.02, speed: 1.4 }],
+  },
+  // Stairs penghubung antar level — foto 1 & 2 semua pakai tangga
+  titans_stairs: {
+    title: 'TITANS Stairs — penghubung vertikal pit ↔ walkway ↔ launch',
+    parts: [
+      { model: 'stairs', height: 2.4, pos: [0, 0, 0], name: 'Stairs' },
+      { model: 'pipe-supporthigh', height: 1.8, pos: [-0.9, 0, 0.6], name: 'PillarA' },
+      { model: 'pipe-supporthigh', height: 1.8, pos: [0.9, 0, -0.6], name: 'PillarB' },
+    ],
+    anim: [],
+  },
+  // Launch platform +4.5m seperti foto 2 — pedestal roket dengan asap
+  titans_launch: {
+    title: 'TITANS Launch Platform — +4.5m, pedestal dengan smoke',
+    parts: [
+      { model: 'platform-high', height: 2.2, pos: [0, 0, 0], name: 'Pedestal' },
+      { model: 'terrain-ramplarge', height: 1.4, pos: [-2.8, 0, 1.2], yaw: -22, name: 'Ramp' },
+      { model: 'barrel', height: 0.85, pos: [1.2, 0.8, -0.8], name: 'Tank', emissive: { color: 0xff7a1e, intensity: 0.45 } },
+      { model: 'rocks-smallb', height: 0.4, pos: [-1.4, 0, -1.0], name: 'SmokeBase' },
+    ],
+    anim: [{ node: 'Tank', kind: 'pulse', amount: 0.02, speed: 1.6 }],
+  },
 };
 
 /** Roles per world: which of the library each mission actually uses. 
@@ -587,5 +632,7 @@ export const WORLD_ROLES = {
     'cable_intact', 'cable_spark_orange', 'cable_spark_blue',
     'wall_torn', 'wall_dented', 'floor_hole', 'console_fire', 'station_breach',
     'station_dressing', 'cable_greeble', 'modular_corridor',
+    // BERTINGKAT seperti foto 1 & 2: pit -2.5m + walkway ring +3m + stairs + launch +4.5m — semua GLB real
+    'titans_pit', 'titans_walkway', 'titans_stairs', 'titans_launch',
   ],
 };

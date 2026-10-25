@@ -99,6 +99,21 @@ export default {
     { role: 'console_fire', name: 'ReactorConsole_Blue', pos: [6, 0, 13], yaw: -58, district: 'reactor' },
     { role: 'cover_module', name: 'ReactorCover_A', pos: [-4, 0, 10], yaw: -38, district: 'reactor' },
     { role: 'defense_turret', name: 'ReactorTurret_Wreck', pos: [8, 0, 10], yaw: 78, district: 'reactor' }, // turret roboh
+
+    /* ===================================================== KANTONG BERTINGKAT — bukti foto refs: tidak flat, tapi pit -2.5m + walkway +3m + launch +4.5m */
+    // Pit bawah -1.2 di Lab (foto 1 cekungan melingkar bercahaya — lower floor, bagian bawah)
+    { role: 'titans_pit', name: 'LabPit_Lower', pos: [0, -1.2, 0], yaw: 0, district: 'lab' },
+    // Walkway ring +2.8 NARROW 2m mengelilingi pit — foto 1 ring bercahaya diameter 70ft, kini sempit biar pit terlihat
+    { role: 'titans_walkway', name: 'LabWalkway_North', pos: [0, 2.8, -6], yaw: 0, district: 'lab' },
+    { role: 'titans_walkway', name: 'LabWalkway_South', pos: [0, 2.8, 6], yaw: 180, district: 'lab' },
+    { role: 'titans_walkway', name: 'LabWalkway_East', pos: [6, 2.8, 0], yaw: 90, district: 'lab' },
+    { role: 'titans_walkway', name: 'LabWalkway_West', pos: [-6, 2.8, 0], yaw: -90, district: 'lab' },
+    // Tangga menghubungkan pit → walkway dan koridor → walkway — bukti foto 2 tangga kuning
+    { role: 'titans_stairs', name: 'LabStairs_North', pos: [0, 0.6, -4], yaw: 0, district: 'lab' },
+    { role: 'titans_stairs', name: 'LabStairs_South', pos: [0, 0.6, 4], yaw: 180, district: 'lab' },
+    // Launch pad +4.5 di Reactor — foto 2 pedestal peluncuran kuning di atas, dengan ramp
+    { role: 'titans_launch', name: 'ReactorLaunch_Pad', pos: [0, 4.5, 24], yaw: 0, district: 'reactor' },
+    { role: 'titans_stairs', name: 'ReactorStairs_Up', pos: [0, 2.2, 20], yaw: 0, district: 'reactor' },
   ],
 
   landmarks: [

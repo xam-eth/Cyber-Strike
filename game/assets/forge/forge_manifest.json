@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-25T12:04:27.499Z",
+ "generated": "2026-10-25T13:08:50.776Z",
  "note": "Three mission worlds, each built from real licensed GLBs. Provenance: tools/asset-forge/real/real-manifest.json",
  "attribution": {
   "Kenney Space Kit": "CC0-1.0 — Kenney (www.kenney.nl)",
@@ -467,15 +467,15 @@
    "resource": "res://assets/forge/worlds/titans.glb",
    "source": "tools/asset-forge/src/worlds/emberfall.js",
    "assetPolicy": "every visible mesh is a licensed GLB from game/assets/world/real",
-   "targetHeight": 7.75,
+   "targetHeight": 9.3,
    "targetLength": 67.4,
    "normalisedBy": "height",
-   "measuredHeight": 7.75,
+   "measuredHeight": 9.3,
    "measuredWidth": 67.4,
    "measuredDepth": 67.4,
-   "triangles": 61490,
-   "meshes": 151,
-   "materials": 151,
+   "triangles": 64930,
+   "meshes": 180,
+   "materials": 180,
    "textures": 19,
    "clips": [
     "HangarBreach_North_Sparks_pulse",
@@ -517,6 +517,12 @@
     "ReactorConsole_Blue_Flame_pulse",
     "ReactorTurret_Wreck_Turret_sweep",
     "ReactorTurret_Wreck_Sensor_spin",
+    "LabPit_Lower_PitFloor_pulse",
+    "LabWalkway_North_Light_pulse",
+    "LabWalkway_South_Light_pulse",
+    "LabWalkway_East_Light_pulse",
+    "LabWalkway_West_Light_pulse",
+    "ReactorLaunch_Pad_Tank_pulse",
     "CableGreeble—VitalyBulgarovdetail_00_Cables_pulse",
     "CableGreeble—VitalyBulgarovdetail_01_Cables_pulse",
     "CableGreeble—VitalyBulgarovdetail_02_Cables_pulse"
@@ -556,7 +562,7 @@
     "warnings": 0,
     "khronos": "2.0.0-dev.3.10"
    },
-   "bytes": 5285292
+   "bytes": 5370032
   }
  ]
 }
