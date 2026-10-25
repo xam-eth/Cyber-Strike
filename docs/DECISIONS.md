@@ -200,10 +200,13 @@ only an opinion is not here.
     Fullscreen / Hide UI, and a controls legend) was removed outright: it sat on
     top of the engine's own HUD in every gameplay frame and was the first thing
     the eye found.
-37. **The combat HUD has its own stencil set.** Fire, aim, weapon, EMP, pause and
-    retry are authored as flat silhouettes on one chamfer grid
+37. **The combat HUD has its own stencil set.** Fire, aim, weapon, EMP and swap
+    are authored as flat silhouettes on one chamfer grid
     (`game/assets/ui/icons/hud/`) and are drawn through `AegisTheme.hud_icon()`,
     which falls back to the Phosphor menu glyph if a stencil is missing. The
+    system glyphs in the top rail (sound, pause, retry) stay in the menu family:
+    they are read at 20 px while the run is paused, and the pause button's icon
+    is a contract `tests/playability_hud_smoke.gd` already holds. The
     touch tiles gained a machined inner bevel, two rivets and a hazard band along
     the leading cut, so a tile on the touch layer and a button in the shell are
     the same manufactured object. A borrowed icon family drawn at 120 px is what

@@ -589,13 +589,9 @@ func set_player_down(down: bool) -> void:
 		_clear_touch_state()
 	if is_instance_valid(_pause_button):
 		if down:
-			_pause_button.icon = AegisTheme.hud_icon("hud-retry")
+			_pause_button.icon = AegisTheme.icon("arrow-counter-clockwise")
 		else:
-			_pause_button.icon = (
-				AegisTheme.icon("play", true)
-				if get_tree().paused
-				else AegisTheme.hud_icon("hud-pause")
-			)
+			_pause_button.icon = AegisTheme.icon("play" if get_tree().paused else "pause", true)
 		_pause_button.set_meta("aegis_state", "retry" if down else "pause")
 		_pause_button.text = ""
 		_pause_button.tooltip_text = "Retry the run" if down else "Pause (Esc)"
