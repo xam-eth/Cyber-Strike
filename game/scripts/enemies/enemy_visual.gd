@@ -1,9 +1,10 @@
 class_name EnemyVisual
 extends Node3D
 
-## Presentation layer shared by every enemy: a fitted GLB (Kenney space kit),
-## a dark rim so the silhouette reads on a bright floor, procedural locomotion
-## motion, a hit flash and a death collapse.
+## Presentation layer shared by every enemy: a fitted GLB, a dark rim so the
+## silhouette reads on a bright floor, procedural locomotion, a hit flash and a
+## death collapse. Iron Sentinel and Iron Warden share Common's 79-joint skin;
+## enemy-specific animation clips can be added later without changing the rig.
 ##
 ## Gameplay code stays untouched: enemies keep their capsules, colliders and
 ## damage maths; this node only decides what the player sees. If a model is
@@ -98,8 +99,9 @@ func is_dying() -> bool:
 	return _dying
 
 
-## Limb-less kit models get their motion from here: a ground enemy bobs and leans
-## into its run, a hovering one floats and banks.
+## Procedural motion fallback: a ground enemy bobs and leans into its run, while
+## a hovering one floats and banks. The shared enemy rigs can take over when
+## enemy-specific clips are added.
 func update_motion(velocity: Vector3, delta: float) -> void:
 	if _dying or not has_model():
 		return

@@ -117,14 +117,29 @@ sixth row would be decoration disagreeing with gameplay.
 
 ## HERO SELECTION — `stage_hero_select.gd`
 
-**One operative exists.** The rig in `assets/characters/hero/` is the only
-skinned hero in the project, so one card is selectable and two slots are
-disabled and labelled `IN DEVELOPMENT`.
+Three field-ready visual profiles are registered: Common (`exo_operative`),
+Tier 2 Rare, and Tier 3 Epic. The two remaining slots are disabled and labelled
+`IN DEVELOPMENT`. Each selectable definition binds the displayed name to its
+runtime GLB and per-model rig profile; the selected id is validated and stored
+in `user://progression.cfg`, and `Main` applies that model without replacing
+the player, collider, camera, weapon socket, or combat controller.
 
-The card deliberately carries no numeric stats. There is no hero data model —
-no per-hero health, speed or damage — so any number printed here would be
-decoration. The portrait is concept art, not the playable model
-(`docs/ART_DIRECTION.md` §4).
+The Rare and Epic cards render their actual runtime GLBs in small 3D previews
+because Drive supplied no separate thumbnails. The Common card retains its
+existing concept-art portrait; as `docs/ART_DIRECTION.md` §4 states, that image
+is not the playable model.
+
+The card deliberately carries no numeric stats. All three profiles share the
+same health, movement, weapons, and combat tuning; a per-hero number here would
+be decoration rather than an implemented gameplay difference. Common
+locomotion/combat clips are retargeted to each variant's matching skeleton, and
+aim/fire plus weapon sockets are solved per target rig. Run
+`tools/gltf/build_hero_variants.sh` to regenerate the optimized GLBs and rig
+profiles from `source-assets/`; this leaves Common, the rifle, and source files
+untouched. `tests/hero_rig_smoke.gd` and `tests/hero_visibility_smoke.gd`
+cover the runtime wiring, but have not yet run in this checkout because Godot
+4.7.2 is unavailable. Run them with `scripts/run_smoke_tests.sh` and review the
+models in an editor/browser before approving the deformations.
 
 ## WEAPON SELECTION — `stage_weapon_select.gd`
 

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="HeroDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/hero_definition.gd" id="1_definition"]
+[ext_resource type="PackedScene" path="res://assets/characters/hero_variants/hero_tier_3_epic.glb" id="2_model"]
+
+[resource]
+script = ExtResource("1_definition")
+hero_id = &"hero_tier_3_epic"
+display_name = "Epic Exo Operative"
+role_description = "Tier 3 Epic armour profile. Uses the shared movement, weapons, and combat tuning; this selection changes the player model."
+status_line = "EPIC · TIER 3"
+field_ready = true
+model_scene = ExtResource("2_model")
+rig_path = "res://assets/characters/hero_variants/hero_tier_3_epic_rig.json"
+target_height = 1.78
+model_yaw_offset_degrees = 180.0

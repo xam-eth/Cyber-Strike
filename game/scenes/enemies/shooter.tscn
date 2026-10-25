@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/enemies/shooter.gd" id="1_shooter"]
 [ext_resource type="Script" path="res://scripts/enemies/enemy_visual.gd" id="2_enemy_visual"]
-[ext_resource type="PackedScene" path="res://assets/world/kenney_space_kit/astronauta.glb" id="3_astronaut"]
+[ext_resource type="PackedScene" path="res://assets/enemies/iron_warden_boss.glb" id="3_warden"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape_shooter"]
 radius = 0.36
@@ -51,7 +51,7 @@ shape = SubResource("CapsuleShape_shooter")
 
 [node name="Visuals" type="Node3D" parent="."]
 script = ExtResource("2_enemy_visual")
-model_scene = ExtResource("3_astronaut")
+model_scene = ExtResource("3_warden")
 target_size = 1.62
 outline_color = Color(0.72, 0.27, 0.94, 1)
 outline_grow = 0.032

@@ -1,2 +1,4 @@
-# Optional parser/linter/formatter for GDScript; Godot runtime checks are still required.
+# GDScript parser/linter/formatter; Godot runtime checks are still required.
 gdtoolkit==4.5.0
+# Required by the deterministic glTF clip baker and hero retargeter.
+numpy==2.2.3

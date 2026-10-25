@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "stage": "Pre-integration character visual review",
+  "assets": {
+    "hero_common": {
+      "status": "PENDING",
+      "asset_sha256": "",
+      "reviewed_clips": [],
+      "checklist": {},
+      "notes": ""
+    },
+    "hero_tier_2_rare": {
+      "status": "PENDING",
+      "asset_sha256": "",
+      "reviewed_clips": [],
+      "checklist": {},
+      "notes": ""
+    },
+    "hero_tier_3_epic": {
+      "status": "PENDING",
+      "asset_sha256": "",
+      "reviewed_clips": [],
+      "checklist": {},
+      "notes": ""
+    },
+    "enemy_iron_sentinel": {
+      "status": "PENDING",
+      "asset_sha256": "",
+      "reviewed_clips": [],
+      "checklist": {},
+      "notes": ""
+    },
+    "enemy_iron_warden_boss": {
+      "status": "PENDING",
+      "asset_sha256": "",
+      "reviewed_clips": [],
+      "checklist": {},
+      "notes": ""
+    },
+    "enemy_iron_sentinel_drive_source": {
+      "status": "PENDING",
+      "asset_sha256": "",
+      "reviewed_clips": [],
+      "checklist": {},
+      "notes": ""
+    },
+    "enemy_iron_warden_boss_drive_source": {
+      "status": "PENDING",
+      "asset_sha256": "",
+      "reviewed_clips": [],
+      "checklist": {},
+      "notes": ""
+    }
+  }
+}

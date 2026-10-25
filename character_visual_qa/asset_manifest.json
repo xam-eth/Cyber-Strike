@@ -1,0 +1,187 @@
+{
+  "schema_version": 1,
+  "stage": "Pre-integration character visual review",
+  "assets": [
+    {
+      "id": "hero_common",
+      "label": "Common Hero",
+      "category": "PLAYER HERO",
+      "glb_label": "hero.glb",
+      "source": "game/assets/characters/hero/hero.glb",
+      "qa_file": "assets/hero_common.glb",
+      "expected_joint_count": 79,
+      "requires_skin": true,
+      "expected_animation_names": [
+        "idle",
+        "walk",
+        "run",
+        "aim",
+        "aim_walk",
+        "aim_run",
+        "fire",
+        "reload",
+        "hit",
+        "death"
+      ],
+      "required_checks": [
+        "visual",
+        "materials",
+        "scale_pose",
+        "skin",
+        "animations",
+        "import"
+      ],
+      "preview_height_m": 1.78,
+      "preview_yaw_degrees": 180.0,
+      "baseline_already_in_game": true
+    },
+    {
+      "id": "hero_tier_2_rare",
+      "label": "Tier 2 Rare — Exo Operative",
+      "category": "PLAYER HERO",
+      "glb_label": "hero_tier_2_rare.glb",
+      "source": "game/assets/characters/hero_variants/hero_tier_2_rare.glb",
+      "qa_file": "assets/hero_tier_2_rare.glb",
+      "expected_joint_count": 78,
+      "requires_skin": true,
+      "expected_animation_names": [
+        "idle",
+        "walk",
+        "run",
+        "aim",
+        "aim_walk",
+        "aim_run",
+        "fire",
+        "reload",
+        "hit",
+        "death"
+      ],
+      "required_checks": [
+        "visual",
+        "materials",
+        "scale_pose",
+        "skin",
+        "animations",
+        "import"
+      ],
+      "preview_height_m": 1.78,
+      "preview_yaw_degrees": 180.0,
+      "baseline_already_in_game": true
+    },
+    {
+      "id": "hero_tier_3_epic",
+      "label": "Tier 3 Epic — Exo Operative",
+      "category": "PLAYER HERO",
+      "glb_label": "hero_tier_3_epic.glb",
+      "source": "game/assets/characters/hero_variants/hero_tier_3_epic.glb",
+      "qa_file": "assets/hero_tier_3_epic.glb",
+      "expected_joint_count": 79,
+      "requires_skin": true,
+      "expected_animation_names": [
+        "idle",
+        "walk",
+        "run",
+        "aim",
+        "aim_walk",
+        "aim_run",
+        "fire",
+        "reload",
+        "hit",
+        "death"
+      ],
+      "required_checks": [
+        "visual",
+        "materials",
+        "scale_pose",
+        "skin",
+        "animations",
+        "import"
+      ],
+      "preview_height_m": 1.78,
+      "preview_yaw_degrees": 180.0,
+      "baseline_already_in_game": true
+    },
+    {
+      "id": "enemy_iron_sentinel",
+      "label": "Iron Sentinel — Runtime/Rigged",
+      "category": "ENEMY CHARACTER · RUNTIME",
+      "glb_label": "iron_sentinel.glb",
+      "source": "game/assets/enemies/iron_sentinel.glb",
+      "qa_file": "assets/iron_sentinel.glb",
+      "expected_joint_count": 79,
+      "requires_skin": true,
+      "expected_animation_names": [],
+      "required_checks": [
+        "visual",
+        "materials",
+        "scale_pose",
+        "skin",
+        "import"
+      ],
+      "preview_height_m": 1.72,
+      "preview_yaw_degrees": 180.0,
+      "baseline_already_in_game": true
+    },
+    {
+      "id": "enemy_iron_warden_boss",
+      "label": "Iron Warden Boss — Runtime/Rigged",
+      "category": "ENEMY CHARACTER · RUNTIME",
+      "glb_label": "iron_warden_boss.glb",
+      "source": "game/assets/enemies/iron_warden_boss.glb",
+      "qa_file": "assets/iron_warden_boss.glb",
+      "expected_joint_count": 79,
+      "requires_skin": true,
+      "expected_animation_names": [],
+      "required_checks": [
+        "visual",
+        "materials",
+        "scale_pose",
+        "skin",
+        "import"
+      ],
+      "preview_height_m": 1.62,
+      "preview_yaw_degrees": 180.0,
+      "baseline_already_in_game": true
+    },
+    {
+      "id": "enemy_iron_sentinel_drive_source",
+      "label": "Iron Sentinel — Google Drive Source (Unrigged)",
+      "category": "ENEMY SOURCE · DRIVE",
+      "glb_label": "iron-sentinel-enimies.glb",
+      "source": "source-assets/enemies/iron-sentinel-enimies.glb",
+      "qa_file": "assets/drive_iron_sentinel_source.glb",
+      "expected_joint_count": 0,
+      "requires_skin": false,
+      "expected_animation_names": [],
+      "required_checks": [
+        "visual",
+        "materials",
+        "scale_pose",
+        "import"
+      ],
+      "preview_height_m": 1.72,
+      "preview_yaw_degrees": 180.0,
+      "review_only": true
+    },
+    {
+      "id": "enemy_iron_warden_boss_drive_source",
+      "label": "Iron Warden Boss — Google Drive Source (Unrigged)",
+      "category": "ENEMY SOURCE · DRIVE",
+      "glb_label": "Iron-Warnden-Bos-enimies.glb",
+      "source": "source-assets/enemies/Iron-Warnden-Bos-enimies.glb",
+      "qa_file": "assets/drive_iron_warden_boss_source.glb",
+      "expected_joint_count": 0,
+      "requires_skin": false,
+      "expected_animation_names": [],
+      "required_checks": [
+        "visual",
+        "materials",
+        "scale_pose",
+        "import"
+      ],
+      "preview_height_m": 1.62,
+      "preview_yaw_degrees": 180.0,
+      "review_only": true
+    }
+  ]
+}

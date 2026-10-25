@@ -234,22 +234,37 @@ func _check_selection_ids_are_known() -> void:
 			_expect(known.has(id), "%s: '%s' is an id the progression service knows" % [name, id])
 		_expect(offered > 0, "%s offers at least one card" % name)
 
-	# The one operative the project can render is the one the service starts on.
+	# Every ready definition has a runtime model/rig and is selectable; only the
+	# profile's current choice is pressed.
 	_front_end.go_to(&"HERO", {})
 	await process_frame
 	var hero_stage: Control = _front_end.get_node_or_null("StageHost/HERO")
 	if hero_stage != null:
 		var selectable := 0
+		var selected := 0
 		for child in hero_stage.find_children("*", "Button", true, false):
 			var button := child as Button
 			if button == null or button.disabled or not button.has_meta("hero_id"):
 				continue
 			selectable += 1
+			var hero_id := StringName(str(button.get_meta("hero_id")))
+			var definition := HeroDefinition.load_definition(hero_id)
 			_expect(
-				StringName(str(button.get_meta("hero_id"))) == ProgressionService.DEFAULT_HERO_ID,
-				"the only selectable hero is the one with a rig behind it"
+				definition != null
+				and definition.field_ready
+				and definition.model_scene != null
+				and FileAccess.file_exists(definition.rig_path),
+				"%s: the selectable card has a runtime model and rig profile" % hero_id
 			)
-		_expect(selectable == 1, "exactly one hero is selectable (%d)" % selectable)
+			if button.button_pressed:
+				selected += 1
+				_expect(hero_id == ProgressionService.DEFAULT_HERO_ID, "the fresh profile selects Common")
+		_expect(
+			selectable == HeroDefinition.DEFINITION_IDS.size(),
+			"every field-ready hero is selectable (%d of %d)"
+			% [selectable, HeroDefinition.DEFINITION_IDS.size()]
+		)
+		_expect(selected == 1, "exactly one hero card is selected (%d)" % selected)
 
 
 ## The dashboard calls the weapon what the weapon calls itself.
@@ -350,7 +365,24 @@ func _check_referenced_art_exists() -> void:
 				var rect := child as TextureRect
 				if rect != null and rect.texture != null:
 					drawn += 1
-			_expect(drawn > 0, "%s draws at least one texture (%d)" % [name, drawn])
+			if name == &"HERO":
+				var model_previews := stage.find_children("*", "SubViewportContainer", true, false)
+				for preview_node in model_previews:
+					var preview := preview_node as SubViewportContainer
+					var viewport := preview.get_child(0) as SubViewport if preview.get_child_count() > 0 else null
+					var model := (
+						viewport.find_child("PreviewModel", true, false) as Node3D
+						if viewport != null
+						else null
+					)
+					_expect(
+						viewport != null and model != null and not model.find_children(
+							"*", "MeshInstance3D", true, false
+						).is_empty(),
+					"a GLB hero card renders the model in a SubViewport"
+				)
+				drawn += model_previews.size()
+			_expect(drawn > 0, "%s draws at least one texture/model preview (%d)" % [name, drawn])
 
 
 ## Every `res://` image path the stage's script mentions, at any depth.
@@ -501,7 +533,7 @@ func _check_hero_roster_is_one_list() -> void:
 		)
 		_expect(
 			definition.is_valid_definition(),
-			"%s: the definition is complete (name, blurb, status, portrait on disk)" % hero_id
+			"%s: the definition has a name, blurb, status, runtime model and rig profile" % hero_id
 		)
 	_expect(
 		ProgressionService.HERO_IDS == HeroDefinition.DEFINITION_IDS,
@@ -566,6 +598,34 @@ func _check_hero_roster_is_one_list() -> void:
 				shown == definition.display_name.to_upper(),
 				"the dashboard calls %s '%s', the name in its own definition" % [hero_id, shown]
 			)
+
+	# Selecting a non-default card updates the single selected state and saves
+	# the id; returning to Common keeps later fixture checks isolated.
+	var chosen_id: StringName = &"hero_tier_3_epic"
+	stage.call("_on_card_pressed", chosen_id)
+	await process_frame
+	_expect(
+		_profile.get("selected_hero_id") == chosen_id,
+		"selecting Epic updates ProgressionService.selected_hero_id"
+	)
+	var saved_profile := ConfigFile.new()
+	_expect(saved_profile.load(PROFILE_PATH) == OK, "the selected hero was written to the profile")
+	_expect(
+		StringName(str(saved_profile.get_value("profile", "selected_hero", ""))) == chosen_id,
+		"the selected hero id persists in progression.cfg"
+	)
+	var selected_cards := 0
+	for child in stage.find_children("*", "Button", true, false):
+		var button := child as Button
+		if button != null and button.has_meta("hero_id") and button.button_pressed:
+			selected_cards += 1
+			_expect(
+				StringName(str(button.get_meta("hero_id"))) == chosen_id,
+				"only the chosen Epic card is pressed"
+			)
+	_expect(selected_cards == 1, "the roster keeps exactly one pressed hero card")
+	stage.call("_on_card_pressed", ProgressionService.DEFAULT_HERO_ID)
+	await process_frame
 
 
 ## Same argument for worlds, plus the one that actually bites: the WORLD card

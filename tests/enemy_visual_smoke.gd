@@ -1,6 +1,6 @@
 extends SceneTree
 
-## Guards the enemy presentation layer: every enemy must render a fitted GLB
+## Guards the enemy presentation layer: every enemy must render its fitted GLB
 ## model (not the primitive fallback capsule), the model must sit on the enemy
 ## origin, and the scene contracts that gameplay depends on — CollisionShape3D,
 ## Visuals/Muzzle and AimMarker — must survive the swap.
@@ -38,6 +38,16 @@ func _run_smoke_test() -> void:
 	test_passed = _check_visual(test_passed, runner, "runner", 1.72, false)
 
 	var runner_visuals: Node = runner.get_node("Visuals")
+	var runner_model_scene := runner_visuals.get("model_scene") as PackedScene
+	test_passed = (
+		_expect(
+			runner_model_scene != null
+			and runner_model_scene.resource_path == "res://assets/enemies/iron_sentinel.glb",
+			"runner uses the optimized Iron Sentinel GLB"
+		)
+		and test_passed
+	)
+	test_passed = _check_shared_rig(test_passed, runner_visuals, "Iron Sentinel")
 	test_passed = (
 		_expect(
 			(
@@ -88,7 +98,17 @@ func _run_smoke_test() -> void:
 	await process_frame
 	test_passed = _check_visual(test_passed, shooter, "shooter", 1.62, false)
 	var shooter_visuals: Node = shooter.get_node("Visuals")
+	var shooter_model_scene := shooter_visuals.get("model_scene") as PackedScene
 	var aim_marker := shooter.get_node_or_null("AimMarker") as MeshInstance3D
+	test_passed = (
+		_expect(
+			shooter_model_scene != null
+			and shooter_model_scene.resource_path == "res://assets/enemies/iron_warden_boss.glb",
+			"shooter uses the optimized Iron Warden Boss GLB"
+		)
+		and test_passed
+	)
+	test_passed = _check_shared_rig(test_passed, shooter_visuals, "Iron Warden Boss")
 	test_passed = (
 		_expect(
 			(
@@ -144,6 +164,25 @@ func _run_smoke_test() -> void:
 		quit()
 	else:
 		quit(1)
+
+
+## The imported mesh must expose the copied Common skeleton in Godot, not only
+## carry skin attributes in the source GLB.
+func _check_shared_rig(test_passed: bool, visuals: Node, label: String) -> bool:
+	var skeletons := visuals.find_children("*", "Skeleton3D", true, false)
+	if not _expect(skeletons.size() == 1, "%s imports one shared Skeleton3D" % label):
+		return false
+	var skeleton := skeletons[0] as Skeleton3D
+	return (
+		_expect(
+			skeleton != null
+			and skeleton.get_bone_count() == 79
+			and skeleton.find_bone("BoneRoot") >= 0
+			and skeleton.find_bone("R_Hand") >= 0,
+			"%s imports all 79 Common joints" % label,
+		)
+		and test_passed
+	)
 
 
 ## Shared assertions: a fitted model, the fallback mesh retired, and a model that

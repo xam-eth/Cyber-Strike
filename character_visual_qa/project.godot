@@ -1,0 +1,22 @@
+; Standalone Godot project for rendered, per-GLB character review before promotion.
+; Open this folder in Godot 4.7.2; see README.md for asset sync and review flow.
+config_version=5
+
+[application]
+config/name="Cyber-Strike Character Visual QA"
+config/description="Rendered, per-character GLB and animation review gate before game integration."
+run/main_scene="res://scenes/review_desk.tscn"
+config/features=PackedStringArray("4.7")
+
+[display]
+window/size/viewport_width=1600
+window/size/viewport_height=900
+window/size/window_width_override=1600
+window/size/window_height_override=900
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+
+[rendering]
+renderer/rendering_method="mobile"
+renderer/rendering_method.mobile="mobile"
+environment/defaults/default_clear_color=Color(0.018, 0.027, 0.043, 1)

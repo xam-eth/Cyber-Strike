@@ -89,8 +89,51 @@ func _run_smoke_test() -> void:
 	_check_weapon(visual, player, camera)
 	_check_fallback(visual)
 	await _check_states(main_scene, player, visual, camera, meshes, skeleton)
+	await _check_other_hero_models(main_scene, player, visual, camera)
 
 	_finish(main_scene)
+
+
+func _check_other_hero_models(
+	main_scene: Node, player: Node3D, visual: Node3D, camera: Camera3D
+) -> void:
+	var progression := main_scene.get_node("ProgressionService") as ProgressionService
+	for hero_id in HeroDefinition.DEFINITION_IDS:
+		if hero_id == ProgressionService.DEFAULT_HERO_ID:
+			continue
+		visual.call("reset_action_state")
+		visual.call("set_aiming", false)
+		visual.call("update_pose", Vector3.ZERO, true, 0.016)
+		if progression.selected_hero_id != hero_id:
+			_expect(progression.select_hero(hero_id), "visibility fixture selects %s" % hero_id)
+		await process_frame
+		await process_frame
+		var model := visual.get("_model") as Node3D
+		var skeleton := visual.get("_skeleton") as Skeleton3D
+		var anim := visual.get("_anim_player") as AnimationPlayer
+		if not _expect(model != null, "%s model instance exists" % hero_id):
+			continue
+		var meshes := _model_meshes(model)
+		_expect(not meshes.is_empty(), "%s contains real skinned mesh geometry" % hero_id)
+		if meshes.is_empty():
+			continue
+		_check_visibility(model)
+		_check_layers(meshes, camera)
+		_check_skinning(meshes, skeleton, anim)
+		await _check_bones_move(anim, skeleton)
+		var posed := _check_pose(model, meshes, skeleton, player)
+		_check_not_clipped(posed, camera)
+		_check_unoccluded(main_scene, posed, camera, [player])
+		_check_screen_cover(posed, camera)
+		_check_winding(meshes)
+		_check_material(meshes)
+		_check_weapon(visual, player, camera)
+		_check_fallback(visual)
+
+	if progression.selected_hero_id != ProgressionService.DEFAULT_HERO_ID:
+		progression.select_hero(ProgressionService.DEFAULT_HERO_ID)
+		await process_frame
+		await process_frame
 
 
 # --- checks ----------------------------------------------------------------

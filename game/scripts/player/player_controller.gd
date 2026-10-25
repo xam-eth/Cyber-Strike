@@ -55,6 +55,10 @@ func _ready() -> void:
 	health_changed.emit(current_health, max_health)
 
 
+func set_hero_definition(definition: HeroDefinition) -> bool:
+	return visual_root.set_hero_definition(definition)
+
+
 func _physics_process(delta: float) -> void:
 	if _is_defeated:
 		velocity = Vector3.ZERO

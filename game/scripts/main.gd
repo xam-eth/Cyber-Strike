@@ -201,6 +201,9 @@ func _on_settings_changed(values: Dictionary) -> void:
 
 
 func _on_profile_changed() -> void:
+	var hero := HeroDefinition.load_definition(progression_service.selected_hero_id)
+	if hero != null and not player.set_hero_definition(hero):
+		push_warning("Main: could not apply selected hero '%s'." % hero.hero_id)
 	player.weapon_controller.set_available_weapon_ids(progression_service.unlocked_ids)
 	HudArmoryBridge.refresh(
 		touch_controls,
