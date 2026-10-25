@@ -246,6 +246,9 @@ func _build_placeholder_pin(index: int) -> AegisButton:
 		"THEATRE %02d  ·  IN DEVELOPMENT" % (index + 1), "label_s", AegisTokens.INK_3
 	)
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	# Five landscape pins leave only about 115 px for this roadmap label at
+	# 667x375. Keep its copy inside the same 64 px touch target as the real pins.
+	_limit_lines(label, 1)
 	label.set_anchors_preset(Control.PRESET_FULL_RECT)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
