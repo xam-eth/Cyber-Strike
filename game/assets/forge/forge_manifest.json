@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-24T14:51:17.712Z",
+ "generated": "2026-10-25T02:27:10.679Z",
  "note": "Three mission worlds, each built from real licensed GLBs. Provenance: tools/asset-forge/real/real-manifest.json",
  "attribution": {
   "Kenney Space Kit": "CC0-1.0 — Kenney (www.kenney.nl)",
@@ -21,10 +21,10 @@
    "measuredHeight": 19.525,
    "measuredWidth": 171.6,
    "measuredDepth": 174.958,
-   "triangles": 113086,
-   "meshes": 182,
-   "materials": 182,
-   "textures": 16,
+   "triangles": 116801,
+   "meshes": 224,
+   "materials": 224,
+   "textures": 17,
    "clips": [
     "PrimaryUplink_DishA_spin",
     "PrimaryUplink_DishB_sweep",
@@ -75,6 +75,11 @@
     "IceSpire_C_Second_pulse",
     "FrozenHauler_B_Tender_sweep",
     "IceboundWreck_Hull_sweep",
+    "IceMonorail_Train_Engine_sweep",
+    "IceMonorail_Train_CarA_bob",
+    "FrozenRocket_Nose_pulse",
+    "IceRover_Rover_sweep",
+    "PolarGreeble_Cables_pulse",
     "IceCrystal_00_Spire_pulse",
     "IceCrystal_00_Second_pulse",
     "IceCrystal_01_Spire_pulse",
@@ -97,18 +102,18 @@
    "theme": {
     "id": "frostline",
     "label": "Frostline Relay",
-    "mood": "polar dusk: white ice, cyan light, air you can see",
+    "mood": "polar dusk, Blade Runner on ice: white ice, cyan searchlights, monorail cutting haze, air you can see breathe",
     "accent": "#59e6ff",
     "hazard": "#ff8a3d",
     "sky": {
-     "top": "#040d18",
-     "mid": "#0d2b3b",
-     "bottom": "#2f5f70",
+     "top": "#030c18",
+     "mid": "#0b2438",
+     "bottom": "#2a5468",
      "glow": "#59e6ff"
     },
     "fog": {
-     "color": "#20414f",
-     "density": 0.0028
+     "color": "#1c3a48",
+     "density": 0.0034
     }
    },
    "validation": {
@@ -116,7 +121,7 @@
     "warnings": 0,
     "khronos": "2.0.0-dev.3.10"
    },
-   "bytes": 6095400
+   "bytes": 6318832
   },
   {
    "id": "verdant",
@@ -132,10 +137,10 @@
    "measuredHeight": 16.452,
    "measuredWidth": 180.29,
    "measuredDepth": 168.434,
-   "triangles": 128182,
-   "meshes": 221,
-   "materials": 221,
-   "textures": 10,
+   "triangles": 137724,
+   "meshes": 276,
+   "materials": 276,
+   "textures": 13,
    "clips": [
     "SeedVaultArch_VineW_sweep",
     "SeedVaultArch_Bloom_pulse",
@@ -216,6 +221,14 @@
     "MossSensor_B_DishB_sweep",
     "MossSensor_B_RingA_spin",
     "MossSensor_B_RingB_spin",
+    "CollapsedCorridor_West_Gate_pulse",
+    "CollapsedCorridor_West_Cables_sweep",
+    "CollapsedCorridor_East_Gate_pulse",
+    "CollapsedCorridor_East_Cables_sweep",
+    "OvergrownDepot_A_Terminal_pulse",
+    "OvergrownDepot_B_Terminal_pulse",
+    "BloomRover_Rover_sweep",
+    "BloomCables_Cables_pulse",
     "Undergrowth_00_Bush_sweep",
     "Undergrowth_00_Bloom_pulse",
     "Undergrowth_01_Bush_sweep",
@@ -303,18 +316,18 @@
    "theme": {
     "id": "verdant",
     "label": "Verdant Bloom",
-    "mood": "humid overgrowth: moss, spore light, a warm green sun",
+    "mood": "humid overgrowth, Destiny EDZ + Annihilation: moss eating steel, spore light pulsing, canopy sun god rays through bloom",
     "accent": "#8cff9e",
     "hazard": "#ffd166",
     "sky": {
-     "top": "#03120a",
-     "mid": "#143226",
-     "bottom": "#2f5a3c",
+     "top": "#021208",
+     "mid": "#0f2e22",
+     "bottom": "#2d5a3e",
      "glow": "#8cff9e"
     },
     "fog": {
-     "color": "#15301f",
-     "density": 0.0038
+     "color": "#122e1e",
+     "density": 0.0042
     }
    },
    "validation": {
@@ -322,7 +335,7 @@
     "warnings": 0,
     "khronos": "2.0.0-dev.3.10"
    },
-   "bytes": 3116316
+   "bytes": 3514816
   },
   {
    "id": "emberfall",
@@ -338,10 +351,10 @@
    "measuredHeight": 24.57,
    "measuredWidth": 319.951,
    "measuredDepth": 196.386,
-   "triangles": 247553,
-   "meshes": 415,
-   "materials": 205,
-   "textures": 84,
+   "triangles": 257136,
+   "meshes": 494,
+   "materials": 284,
+   "textures": 87,
    "clips": [
     "Smelter_A_GlowBand_spin",
     "Smelter_A_Flue_bob",
@@ -379,6 +392,15 @@
     "ApproachTurret_Sensor_spin",
     "SlagPool_C_Melt_pulse",
     "SlaggedHauler_Hull_sweep",
+    "OreTrain_Engine_sweep",
+    "OreTrain_CarA_bob",
+    "FoundryRocket_Nose_pulse",
+    "FoundryGate_Lasers_Gate_pulse",
+    "FoundryGate_Lasers_Cables_sweep",
+    "YardDepot_Terminal_pulse",
+    "ApproachDepot_Terminal_pulse",
+    "FoundryRover_Rover_sweep",
+    "FoundryGreeble_Cables_pulse",
     "WreckedTransport_00_Hull_sweep",
     "WreckedTransport_01_Hull_sweep",
     "WreckedTransport_02_Hull_sweep",
@@ -395,18 +417,18 @@
    "theme": {
     "id": "emberfall",
     "label": "Emberfall Foundry",
-    "mood": "volcanic industry: black basalt, molten seams, ash in the air",
+    "mood": "volcanic megastructure, Syd Mead furnace: black basalt, molten seams, ore monorail overhead, rocket gantry silhouetted, ash breathing",
     "accent": "#ff7a1e",
     "hazard": "#ffd166",
     "sky": {
-     "top": "#070302",
-     "mid": "#1d0b06",
-     "bottom": "#5e2610",
+     "top": "#060302",
+     "mid": "#1a0a06",
+     "bottom": "#5e2612",
      "glow": "#ff7a1e"
     },
     "fog": {
-     "color": "#5a2a16",
-     "density": 0.0016
+     "color": "#4e2816",
+     "density": 0.0022
     }
    },
    "validation": {
@@ -414,7 +436,7 @@
     "warnings": 0,
     "khronos": "2.0.0-dev.3.10"
    },
-   "bytes": 21602200
+   "bytes": 22160044
   }
  ]
 }

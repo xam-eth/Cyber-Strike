@@ -101,6 +101,18 @@ export default {
     { role: 'cover_module', name: 'RootWall_East', pos: [18, 0, 4], yaw: 45, district: 'security' },
     { role: 'sensor_tower', name: 'MossSensor_A', pos: [-66, 0, 6], yaw: 22, scale: 0.9, district: 'security' },
     { role: 'sensor_tower', name: 'MossSensor_B', pos: [68, 0, -16], yaw: -40, scale: 0.85, district: 'security' },
+
+    /* ------------------------------------------ cinematic — bloom reclaims tech */
+    // Collapsed modular corridor: the lab's spine, now swallowed by bloom — Destiny EDZ / Annihilation beat.
+    // Corridor laser still pulses violet through moss, telling the player "quarantine was here".
+    { role: 'modular_corridor', name: 'CollapsedCorridor_West', pos: [-24, 0, 26], yaw: 18, district: 'station' },
+    { role: 'modular_corridor', name: 'CollapsedCorridor_East', pos: [28, 0, -18], yaw: -72, district: 'grove' },
+    // Station dressing: lived-in yard — containers half-buried, terminal still glowing cyan under vine.
+    { role: 'station_dressing', name: 'OvergrownDepot_A', pos: [-42, 0, 6], yaw: 34, district: 'station' },
+    { role: 'station_dressing', name: 'OvergrownDepot_B', pos: [48, 0, -12], yaw: -22, district: 'grove' },
+    // Rover outrider — previous recovery team, left at grove edge.
+    { role: 'rover_outrider', name: 'BloomRover', pos: [-56, 0, 38], yaw: 64, district: 'grove' },
+    { role: 'cable_greeble', name: 'BloomCables', pos: [-18, 0, -30], yaw: 0, district: 'security' },
   ],
 
   landmarks: [

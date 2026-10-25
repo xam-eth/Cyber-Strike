@@ -86,6 +86,19 @@ export default {
     { role: 'ice_crystal', name: 'IceSpire_C', pos: [50, 0, -30], yaw: 70, district: 'icefield' },
     { role: 'frozen_hauler', name: 'FrozenHauler_B', pos: [34, 0, 46], yaw: -28, district: 'icefield' },
     { role: 'wrecked_transport', name: 'IceboundWreck', pos: [-58, 0, 50], yaw: 14, district: 'icefield' },
+
+    /* ------------------------------------------ cinematic — alive & dramatic */
+    // Syd Mead transit spine: monorail cutting the icefield east-west, 3.2 m elevated.
+    // Placed south of the polar gate causeway so the critical north lane (0,-16 → 0,-58) stays clear.
+    { role: 'monorail_spine', name: 'IceMonorail_East', pos: [44, 0, 44], yaw: 90, district: 'icefield' },
+    { role: 'monorail_train', name: 'IceMonorail_Train', pos: [18, 0, 44], yaw: 90, district: 'icefield' },
+    // Rocket frozen on its pad behind the station — 18 m vertical silhouette against aurora, Vitaly Bulgarov megastructure beat.
+    { role: 'rocket_stack', name: 'FrozenRocket', pos: [-68, 0, 12], yaw: -18, district: 'station' },
+    // Rover outrider left by previous team, half-buried beside hauler — lived-in story.
+    { role: 'rover_outrider', name: 'IceRover', pos: [22, 0, 46], yaw: 118, district: 'icefield' },
+    // Ore rail ghost — supply rail frozen over in front of east breach, hints the relay was once a port.
+    { role: 'rail_line', name: 'IceRail_East', pos: [64, 0, -8], yaw: 90, district: 'defence' },
+    { role: 'cable_greeble', name: 'PolarGreeble', pos: [0, 0, -80], yaw: 0, district: 'defence' },
   ],
 
   landmarks: [

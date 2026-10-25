@@ -92,6 +92,25 @@ export default {
     { role: 'ash_statue', name: 'AshColumn_B', pos: [-70, 0, 52], yaw: 30, district: 'slagfield' },
     { role: 'slag_pool', name: 'SlagPool_C', pos: [70, 0, 48], yaw: 20, district: 'slagfield' },
     { role: 'wrecked_transport', name: 'SlaggedHauler', pos: [26, 0, 64], yaw: -40, district: 'slagfield' },
+
+    /* ------------------------------------------ cinematic megastructure — alive */
+    // Ore monorail overhead: Syd Mead transit spine carrying ore across the yard, alive with a train.
+    // Elevated 3.2 m, east-west across the yard, south of MainHaul so the haul road stays clear.
+    { role: 'monorail_spine', name: 'OreMonorail_East', pos: [36, 0, -12], yaw: 90, district: 'yard' },
+    { role: 'monorail_train', name: 'OreTrain', pos: [36, 0, -12], yaw: 90, district: 'yard' },
+    // Rocket gantry: 18 m vertical launch stack east of approach — megastructure silhouetted vs Cinder Yard plant.
+    // Vitaly Bulgarov beat: industrial launch pad that tells "this foundry builds rockets, not just ore".
+    { role: 'rocket_stack', name: 'FoundryRocket', pos: [118, 0, -18], yaw: 84, district: 'approach' },
+    // Ground rail: ore rail plumbing between smelters — industrial plumbing you can read like Syd Mead's industrial design.
+    { role: 'rail_line', name: 'SmelterRail_A', pos: [-38, 0, -12], yaw: 0, district: 'smelter' },
+    { role: 'rail_line', name: 'YardRail', pos: [12, 0, 18], yaw: 90, district: 'yard' },
+    // Laser gate: modular corridor gate at approach, pulsing cyan — dramatic airlock before the plant.
+    { role: 'modular_corridor', name: 'FoundryGate_Lasers', pos: [88, 0, 34], yaw: -10, district: 'approach' },
+    // Station dressing: lived-in yard — containers and terminal still glowing under ash.
+    { role: 'station_dressing', name: 'YardDepot', pos: [44, 0, 8], yaw: 22, district: 'yard' },
+    { role: 'station_dressing', name: 'ApproachDepot', pos: [96, 0, -38], yaw: -34, district: 'approach' },
+    { role: 'rover_outrider', name: 'FoundryRover', pos: [54, 0, -42], yaw: 72, district: 'approach' },
+    { role: 'cable_greeble', name: 'FoundryGreeble', pos: [118, 0, -26], yaw: 0, district: 'approach' },
   ],
 
   landmarks: [

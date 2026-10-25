@@ -370,23 +370,123 @@ export const ROLES = {
     ],
     anim: [],
   },
+
+  /* ========================================================== cinematic new — real GLB only, no procedural */ 
+  monorail_spine: {
+    title: 'Monorail Spine (Syd Mead transit)',
+    parts: [
+      { model: 'monorail-trackstraight', width: 12.0, pos: [0, 3.2, 0], name: 'Rail' },
+      { model: 'monorail-tracksupport', height: 3.6, pos: [-5.4, 0, 0], name: 'SupportA' },
+      { model: 'monorail-tracksupport', height: 3.6, pos: [5.4, 0, 0], name: 'SupportB' },
+      { model: 'monorail-trackstraight', width: 12.0, pos: [0, 3.2, 0], yaw: 90, name: 'Tie', scale: 0.22 },
+    ],
+    anim: [],
+  },
+  monorail_train: {
+    title: 'Monorail Train — alive',
+    parts: [
+      { model: 'monorail-trackstraight', width: 8.0, pos: [0, 3.2, 0], name: 'Rail' },
+      { model: 'monorail-tracksupport', height: 3.6, pos: [0, 0, 0], name: 'Support' },
+      { model: 'monorail-trainfront', height: 2.2, pos: [-2.6, 3.9, 0], name: 'Engine' },
+      { model: 'monorail-trainbox', height: 1.9, pos: [1.2, 3.9, 0], name: 'CarA' },
+      { model: 'monorail-trainend', height: 1.9, pos: [4.2, 3.9, 0], name: 'CarB' },
+    ],
+    anim: [
+      { node: 'Engine', kind: 'sweep', axis: 'z', amount: 0.02, speed: 0.6 },
+      { node: 'CarA', kind: 'bob', amount: 0.04, speed: 0.9, duration: 5 },
+    ],
+  },
+  rocket_stack: {
+    title: 'Rocket Stack — megastructure vertical landmark',
+    parts: [
+      { model: 'platform-low', height: 0.5, pos: [0, 0, 0], name: 'Pad' },
+      { model: 'rocket-basea', height: 3.2, pos: [0, 0.5, 0], name: 'Base' },
+      { model: 'rocket-sidesa', height: 7.5, pos: [0, 3.6, 0], name: 'Body' },
+      { model: 'rocket-fuela', height: 2.2, pos: [-1.9, 6.2, 0], name: 'TankA' },
+      { model: 'rocket-fuelb', height: 2.2, pos: [1.9, 6.2, 0], name: 'TankB' },
+      { model: 'rocket-finsa', height: 2.8, pos: [-1.4, 1.2, 1.2], yaw: 0, name: 'FinL' },
+      { model: 'rocket-finsb', height: 2.8, pos: [1.4, 1.2, -1.2], yaw: 180, name: 'FinR' },
+      { model: 'rocket-topa', height: 2.4, pos: [0, 11.0, 0], name: 'Nose', emissive: { color: 0xff3b30, intensity: 0.4 } },
+    ],
+    anim: [
+      { node: 'Nose', kind: 'pulse', amount: 0.02, speed: 1.2 },
+    ],
+  },
+  rover_outrider: {
+    title: 'Rover Outrider — lived-in vehicle',
+    parts: [
+      { model: 'terrain-roadstraight', width: 3.2, pos: [0, 0, 0], name: 'Tracks' },
+      { model: 'rover', height: 2.0, pos: [0, 0.4, 0], yaw: -12, name: 'Rover' },
+      { model: 'barrel', height: 0.8, pos: [-1.2, 0.3, 0.8], name: 'Supply' },
+    ],
+    anim: [{ node: 'Rover', kind: 'sweep', axis: 'y', amount: 0.03, speed: 0.5 }],
+  },
+  rail_line: {
+    title: 'Ore Rail Line — industrial plumbing',
+    parts: [
+      { model: 'rail-middle', width: 6.0, pos: [0, 0.15, 0], name: 'Rail' },
+      { model: 'rail-middle', width: 6.0, pos: [6.0, 0.15, 0], name: 'RailB' },
+      { model: 'supports-low', height: 0.4, pos: [-3.0, 0, 0], name: 'TieA' },
+      { model: 'supports-low', height: 0.4, pos: [3.0, 0, 0], name: 'TieB' },
+    ],
+    anim: [],
+  },
+  modular_corridor: {
+    title: 'Modular Corridor — dramatic sci-fi gate',
+    parts: [
+      { model: 'modular-corridor', height: 3.4, pos: [0, 0, 0], name: 'Corridor' },
+      { model: 'modular-gate-lasers', height: 3.6, pos: [0, 0, 2.2], name: 'Gate', emissive: { color: 0x59e6ff, intensity: 0.9 } },
+      { model: 'modular-cables', height: 0.8, pos: [0, 2.8, 0], name: 'Cables' },
+    ],
+    anim: [
+      { node: 'Gate', kind: 'pulse', amount: 0.025, speed: 1.4 },
+      { node: 'Cables', kind: 'sweep', axis: 'z', amount: 0.01, speed: 0.9 },
+    ],
+  },
+  station_dressing: {
+    title: 'Station Dressing — lived-in yard (space-kit, self-contained)',
+    parts: [
+      { model: 'platform-low', height: 0.4, pos: [0, 0, 0], name: 'Pallet' },
+      { model: 'barrels', height: 1.2, pos: [-1.4, 0.5, 0.2], name: 'CrateA' },
+      { model: 'barrels-rail', height: 1.1, pos: [1.0, 0.5, 0.6], name: 'CrateB' },
+      { model: 'desk-computer', height: 1.0, pos: [0.3, 0.5, -0.9], name: 'Terminal', emissive: { color: 0x59e6ff, intensity: 0.45 } },
+      { model: 'barrel', height: 0.9, pos: [-1.8, 0.5, -0.6], name: 'Drum' },
+    ],
+    anim: [{ node: 'Terminal', kind: 'pulse', amount: 0.02, speed: 1.6 }],
+  },
+  cable_greeble: {
+    title: 'Cable Greeble — Vitaly Bulgarov detail',
+    parts: [
+      { model: 'modular-cables', height: 0.6, pos: [0, 0.2, 0], name: 'Cables' },
+      { model: 'pipe-supporthigh', height: 1.0, pos: [-1.4, 0, 0.6], name: 'BracketA' },
+      { model: 'pipe-supporthigh', height: 1.0, pos: [1.4, 0, -0.6], name: 'BracketB' },
+    ],
+    anim: [{ node: 'Cables', kind: 'pulse', amount: 0.015, speed: 1.8 }],
+  },
 };
 
-/** Roles per world: which of the library each mission actually uses. */
+/** Roles per world: which of the library each mission actually uses. 
+ * Cinematic additions marked — all real GLB, dramatic silhouettes + lived-in greeble. */
 export const WORLD_ROLES = {
   frostline: [
     'comms_array', 'relay_mast', 'cryo_condenser', 'ice_crystal', 'frozen_hauler',
     'defense_turret', 'sensor_tower', 'cover_module', 'enemy_spawn_gate',
     'rock_cluster', 'wrecked_transport',
+    // cinematic: Syd Mead transit spine + megastructure rocket frozen
+    'monorail_spine', 'monorail_train', 'rocket_stack', 'rover_outrider', 'rail_line', 'cable_greeble',
   ],
   verdant: [
     'bio_dome', 'giant_flora', 'spore_vent', 'overgrown_arch', 'crashed_lab',
     'grove_tree', 'undergrowth', 'moss_rock', 'mushroom_ring', 'fallen_log',
     'crystal_cluster', 'alien_flora', 'rock_cluster', 'defense_turret', 'cover_module',
+    // cinematic: collapsed modular lab swallowed by bloom + lived-in station dressing
+    'modular_corridor', 'station_dressing', 'rover_outrider', 'cable_greeble',
   ],
   emberfall: [
     'smelter_tower', 'ore_silo', 'drill_rig', 'crane_gantry', 'slag_pool',
     'ash_statue', 'defense_turret', 'cover_module', 'enemy_spawn_gate',
     'wrecked_transport', 'rock_cluster',
+    // cinematic megastructure: ore monorail + rocket gantry + rail plumbing + laser gate + yard life
+    'monorail_spine', 'monorail_train', 'rocket_stack', 'rover_outrider', 'rail_line', 'modular_corridor', 'station_dressing', 'cable_greeble',
   ],
 };
