@@ -2,11 +2,11 @@
 /**
  * stage_worlds_into_game.mjs — put every mission world where Godot imports it.
  *
- * The forge ships three worlds, each one self-contained GLB built from licensed
- * assets. This copies each `build/worlds/<id>/world.glb` into
- * `game/assets/forge/worlds/`, re-encodes its photographic maps (the exporter
- * writes PNG; quality-92 JPEG is what the maps were photographed as, and it keeps
- * the repository shipping size honest), and writes the manifest that
+ * The forge ships three mission GLBs built from licensed assets. This copies
+ * each `build/worlds/<id>/world.glb` into `game/assets/forge/worlds/`, re-encodes
+ * its photographic maps (quality-92 JPEG), then moves byte-identical maps to
+ * content-addressed shared textures so Godot imports one resource per distinct
+ * image rather than one per embedded copy. It also writes the manifest that
  * `tools/asset-forge/godot/verify_import.gd` reads back inside the engine.
  *
  *   node tools/asset-forge/gate/stage_worlds_into_game.mjs [--dry-run]
@@ -18,6 +18,12 @@ import { NodeIO } from '@gltf-transform/core';
 import { textureCompress } from '@gltf-transform/functions';
 import sharp from 'sharp';
 import validator from 'gltf-validator';
+import {
+  externalizeSharedTextures,
+  sharedTextureResourceLoader,
+  sharedTextureSummary,
+  writeSharedTextures,
+} from './shared_textures.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const FORGE = path.resolve(HERE, '..');
@@ -26,8 +32,17 @@ const BUILD = path.join(FORGE, 'build', 'worlds');
 const REPORT = path.join(BUILD, 'worlds-report.json');
 const GAME_DIR = path.join(REPO, 'game', 'assets', 'forge');
 const OUT_DIR = path.join(GAME_DIR, 'worlds');
+const TEXTURE_DIR = path.join(GAME_DIR, 'textures');
 const MANIFEST = path.join(GAME_DIR, 'forge_manifest.json');
 const dryRun = process.argv.includes('--dry-run');
+const SOURCE_FILES = {
+  frostline: 'frostline.js',
+  frostline_relay: 'frostline.js',
+  verdant: 'verdant.js',
+  verdant_bloom: 'verdant.js',
+  emberfall: 'emberfall.js',
+  emberfall_foundry: 'emberfall.js',
+};
 
 if (!fs.existsSync(REPORT)) {
   console.error(`missing ${path.relative(REPO, REPORT)} — run: node tools/asset-forge/gate/world_shot.mjs`);
@@ -37,8 +52,11 @@ if (!fs.existsSync(REPORT)) {
 const report = JSON.parse(fs.readFileSync(REPORT, 'utf8'));
 const io = new NodeIO();
 const entries = [];
+const stagedBinaries = [];
+const sharedTextures = new Map();
 
 for (const [worldId, world] of Object.entries(report.worlds)) {
+  if (!SOURCE_FILES[worldId]) throw new Error(`${worldId}: no source/provenance mapping`);
   const src = path.join(BUILD, worldId, 'world.glb');
   if (!fs.existsSync(src)) {
     console.error(`missing ${path.relative(REPO, src)} — rerun the gate for ${worldId}`);
@@ -53,13 +71,16 @@ for (const [worldId, world] of Object.entries(report.worlds)) {
     quality: 92,
     resize: [2048, 2048],
   }));
-  const binary = await io.writeBinary(doc);
+  const embedded = await io.writeBinary(doc);
+  const binary = externalizeSharedTextures(embedded, worldId, sharedTextures);
   const root = doc.getRoot();
 
   // Khronos validation, on the exact bytes Godot will import. A GLB that only
   // three.js accepts is not a shipping asset, and a broken file caught here is
   // caught before it is 20 MB of repository.
-  const validation = await validator.validateBytes(new Uint8Array(binary));
+  const validation = await validator.validateBytes(new Uint8Array(binary), {
+    externalResourceFunction: sharedTextureResourceLoader(sharedTextures),
+  });
   if (validation.issues.numErrors > 0) {
     console.error(`${worldId}: ${validation.issues.numErrors} glTF error(s)`);
     for (const message of validation.issues.messages.filter((m) => m.severity === 0).slice(0, 5)) {
@@ -80,11 +101,7 @@ for (const [worldId, world] of Object.entries(report.worlds)) {
     name: world.meta?.name ?? worldId,
     mission: world.meta?.mission ?? '',
     resource: `res://assets/forge/worlds/${worldId}.glb`,
-    source: 'tools/asset-forge/src/worlds/' + (
-      worldId === 'frostline_relay' ? 'frostline.js'
-        : worldId === 'verdant_bloom' ? 'verdant.js'
-          : 'emberfall.js'
-    ),
+    source: `tools/asset-forge/src/worlds/${SOURCE_FILES[worldId]}`,
     assetPolicy: 'every visible mesh is a licensed GLB from game/assets/world/real',
     targetHeight: size[1],
     targetLength: Math.max(size[0], size[2]),
@@ -115,16 +132,24 @@ for (const [worldId, world] of Object.entries(report.worlds)) {
     + `${entry.validation.errors}E/${entry.validation.warnings}W`,
   );
 
-  if (!dryRun) {
-    fs.mkdirSync(OUT_DIR, { recursive: true });
-    fs.writeFileSync(path.join(OUT_DIR, `${worldId}.glb`), binary);
-  }
+  stagedBinaries.push({ worldId, binary });
 }
 
 if (dryRun) {
+  const shared = sharedTextureSummary(sharedTextures);
+  console.log(`shared textures: ${shared.references} references → ${shared.count} distinct files`);
   console.log('dry run — nothing written');
   process.exit(process.exitCode ?? 0);
 }
+
+// Write only after every world passed validation, textures before the GLBs that
+// reference them. A failed third world cannot leave two new GLBs with no maps.
+const shared = writeSharedTextures(sharedTextures, TEXTURE_DIR);
+fs.mkdirSync(OUT_DIR, { recursive: true });
+for (const { worldId, binary } of stagedBinaries) {
+  fs.writeFileSync(path.join(OUT_DIR, `${worldId}.glb`), binary);
+}
+console.log(`shared textures: ${shared.references} references → ${shared.count} distinct files`);
 
 // Remove staged worlds that no longer exist in the build, so Godot never imports
 // a world the current build did not produce.
@@ -138,7 +163,8 @@ for (const file of fs.readdirSync(OUT_DIR)) {
 
 const manifest = {
   generated: new Date().toISOString(),
-  note: 'Three mission worlds, each built from real licensed GLBs. Provenance: tools/asset-forge/real/real-manifest.json',
+  note: 'Three mission worlds built from real licensed GLBs, with byte-identical images staged as shared runtime textures. Provenance: tools/asset-forge/real/real-manifest.json',
+  shared_textures: shared,
   attribution: {
     'Kenney Space Kit': 'CC0-1.0 — Kenney (www.kenney.nl)',
     'Kenney Nature Kit': 'CC0-1.0 — Kenney (www.kenney.nl)',

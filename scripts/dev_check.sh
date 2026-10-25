@@ -143,6 +143,18 @@ else
   fi
 fi
 
+SHARED_TEXTURE_TEST="$TOOLS_DIR/tests/test_shared_textures.mjs"
+if [[ ! -f "$SHARED_TEXTURE_TEST" ]]; then
+  step_skipped 'no Asset Forge shared-texture test'
+elif ! command -v node >/dev/null 2>&1; then
+  step_skipped 'node is not available for Asset Forge shared-texture test'
+elif node_output="$(node --test "$SHARED_TEXTURE_TEST" 2>&1)"; then
+  step_passed 'Asset Forge shared-texture buffer/URI test passes'
+else
+  step_failed 'Asset Forge shared-texture test failed (run: node --test tools/tests/test_shared_textures.mjs)'
+  printf '%s\n' "$node_output" | tail -20 | sed 's/^/         /'
+fi
+
 # export_presets.cfg is machine-local and may hold Android presets, Web presets,
 # or both. Validate the presets that are actually present instead of assuming
 # Android only, otherwise a local web export makes this check fail falsely.

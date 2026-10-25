@@ -166,6 +166,31 @@ jobs:
             exit $status
           fi
 
+      - name: Audit the exported world payload
+        run: |
+          python3 tools/check_payload.py web/index.pck --json > exports/web-payload-report.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          from tools.check_payload import parse_pck
+          entries, _, _ = parse_pck('web/index.pck')
+          paths = [entry[0] for entry in entries]
+          missing = [name for name in ('frostline', 'verdant', 'emberfall', 'vanguard_station')
+                     if not any(name in path for path in paths)]
+          if missing:
+              raise SystemExit(f'Exported PCK is missing world resources: {missing}')
+          size = Path('web/index.pck').stat().st_size
+          largest = sorted(entries, key=lambda entry: entry[2], reverse=True)[:5]
+          detail = ', '.join(f'{path}={size}' for path, _, size in largest)
+          print(f'::notice title=Exported world payload::PCK {size} bytes, {len(entries)} files; all four worlds present; largest: {detail}')
+          Path('exports/web-payload-summary.json').write_text(json.dumps({
+              'pck_bytes': size,
+              'files': len(entries),
+              'worlds': ['frostline_relay', 'verdant_bloom', 'emberfall_foundry', 'vanguard_station'],
+              'largest': [{'path': path, 'bytes': size} for path, _, size in largest],
+          }, indent=2) + '\n')
+          PY
+
       - name: Verify static-server delivery
         run: |
           python3 -m http.server 8123 --bind 127.0.0.1 --directory web >/dev/null 2>&1 &
@@ -325,6 +350,11 @@ jobs:
         # what makes "git pull + python -m http.server 800" play the game.
         if: github.event_name == 'push' && !contains(github.event.head_commit.message, '[skip ci]')
         run: |
+          pck_bytes="$(stat -c %s web/index.pck)"
+          if (( pck_bytes >= 100000000 )); then
+            echo "::error title=Payload exceeds the plain-clone budget::web/index.pck is ${pck_bytes} bytes; keep the committed non-LFS PCK below 100000000 bytes so GitHub accepts it and a bare clone remains playable"
+            exit 1
+          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           for path in web engine/web_templates; do

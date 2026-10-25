@@ -86,28 +86,35 @@ node tools/asset-forge/gate/stage_worlds_into_game.mjs
 reads each re-exported `build/worlds/<id>/world.glb`, re-encodes its photographic
 maps as quality-92 JPEG at 2048² (the exporter writes PNG, which made a 61 MB
 file), and stages it at `game/assets/forge/worlds/<id>.glb` with a manifest of
-measured facts:
+measured facts. Byte-identical maps are then moved unchanged to
+`game/assets/forge/textures/<sha256>.jpg`; all three GLBs reference those shared
+URIs, so Godot does not import a new copy of the same texture for every world:
 
 | World | Size | Triangles | Meshes | Maps | Clips | Staged |
 | --- | --- | --- | --- | --- | --- | --- |
-| Frostline Relay | 171.6 × 19.5 × 175.0 m | 113,086 | 182 | 16 | 61 | 5.8 MB |
-| Verdant Bloom | 180.3 × 16.5 × 168.4 m | 128,182 | 221 | 10 | 156 | 3.0 MB |
-| Emberfall Foundry | 320.0 × 24.6 × 196.4 m | 247,553 | 483 | 84 | 42 | 20.6 MB |
+| Frostline Relay | 171.6 × 19.5 × 175.0 m | 116,801 | 224 | 17 | 66 | 2.60 MB |
+| Verdant Bloom | 180.3 × 16.5 × 168.4 m | 137,724 | 276 | 13 | 164 | 2.39 MB |
+| Emberfall Foundry | 320.0 × 24.6 × 196.4 m | 257,136 | 494 | 87 | 51 | 10.06 MB |
+
+Staged sizes above are the GLBs after image externalization. The 117 image
+references resolve to 69 byte-identical shared files totaling 10.54 MB; the
+manifest records each hash, size, and referencing world.
 
 The stage step also runs the **Khronos glTF validator** on the exact bytes Godot
 imports and fails on any error, because a file only three.js accepts is not a
 shipping asset:
 
 ```
-frostline  … 5.8 MB · glTF 0E/0W
-verdant    … 3.0 MB · glTF 0E/0W
-emberfall  … 20.6 MB · glTF 0E/0W
+frostline  … 2.60 MB · glTF 0E/0W
+verdant    … 2.39 MB · glTF 0E/0W
+emberfall  … 10.06 MB · glTF 0E/0W
 ```
 
 The in-file triangle count is lower than the drawn count because the exporter
 shares geometry between identical clones; nothing is dropped (an earlier attempt
-with `prune()` did drop 103 meshes and was removed for that reason). Textures are
-embedded, so each GLB opens in any glTF viewer without side-car files.
+with `prune()` did drop 103 meshes and was removed for that reason). Texture URIs
+are relative to each GLB, so keep the sibling `textures/` directory with `worlds/`
+when copying staged assets; the stage command always produces both.
 
 ## 4. Engine verification
 

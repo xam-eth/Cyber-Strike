@@ -9,9 +9,13 @@ extends Node3D
 ## What runs now are the three worlds assembled by `tools/asset-forge`, in which
 ## every visible mesh is a real licensed GLB:
 ##
-##   game/assets/forge/worlds/frostline.glb   113,086 tris · 61 clips ·  5.8 MB
-##   game/assets/forge/worlds/verdant.glb     128,182 tris · 156 clips · 3.0 MB
-##   game/assets/forge/worlds/emberfall.glb   227,811 tris · 31 clips · 20.5 MB
+##   game/assets/forge/worlds/frostline.glb   — relay layout + authored clips
+##   game/assets/forge/worlds/verdant.glb     — grove layout + authored clips
+##   game/assets/forge/worlds/emberfall.glb   — foundry layout + authored clips
+##
+## Byte-identical photographic maps are staged once in `assets/forge/textures/`
+## and referenced by all three GLBs; measured geometry and clip counts live in
+## `assets/forge/forge_manifest.json` rather than drifting in this comment.
 ##
 ## Exactly one is loaded: the theatre the launcher selected, or Frostline Relay
 ## when nothing has been selected yet. There is one scene file for all three
