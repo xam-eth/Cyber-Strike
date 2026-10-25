@@ -258,11 +258,11 @@ function showNote(text) {
  * theatre the player selected.
  */
 const WORLDS = [
-  { id: 'frostline_relay', name: 'Frostline Relay', line: 'Frostline Relay · uplink' },
-  { id: 'verdant_bloom', name: 'Verdant Bloom', line: 'Verdant Bloom · grove riset' },
-  { id: 'emberfall_foundry', name: 'Emberfall Foundry', line: 'Emberfall Foundry · ekstraksi' },
+  { id: 'frostline_relay', name: 'Frostline Relay', line: 'Stellar Horizon · daytime' },
+  { id: 'verdant_bloom', name: 'Verdant Bloom', line: 'Stellar Horizon · sunset' },
+  { id: 'emberfall_foundry', name: 'Emberfall Foundry', line: 'Stellar Horizon · night' },
   { id: 'vanguard_station', name: 'Vanguard Station', line: 'Vanguard Station · hanggar 02' },
-  { id: 'titans', name: 'THE TITANS', line: 'THE TITANS · breached station' },
+  { id: 'titans', name: 'THE TITANS', line: 'Stellar Horizon · storm' },
 ];
 
 // A saved Neon selection predates the new registry. Migrate it explicitly so

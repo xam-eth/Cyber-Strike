@@ -26,56 +26,52 @@ extends Node3D
 
 const FRONTIER_VANTAGES := [
 	{
-		# Raised and pulled back off the 42 m deck: at (-27, 14, 27) the pale
-		# perimeter structure crossed the bottom third of the frame and the
-		# hazard disc filled the centre, so the vantage meant to review the
-		# arena was framed through it (docs/DECISIONS.md §5).
-		"name": "arena",
-		"from": Vector3(-44.0, 30.0, 44.0),
-		"at": Vector3(0.0, 0.5, 0.0),
+		"name": "overview",
+		"from": Vector3(-110.0, 95.0, 125.0),
+		"at": Vector3(0.0, 4.0, 0.0),
 		"fov": 55.0,
 	},
 	{
-		"name": "outpost",
-		"from": Vector3(-30.0, 12.0, 27.0),
-		"at": Vector3(-62.0, 2.0, -8.0),
-		"fov": 55.0,
+		"name": "central_tower",
+		"from": Vector3(28.0, 22.0, 34.0),
+		"at": Vector3(0.0, 8.0, 0.0),
+		"fov": 58.0,
 	},
 	{
-		"name": "landing",
-		"from": Vector3(25.0, 12.0, -15.0),
-		"at": Vector3(52.0, 2.0, 5.0),
-		"fov": 55.0,
+		"name": "sky_bridge",
+		"from": Vector3(40.0, 22.0, 20.0),
+		"at": Vector3(22.0, 10.0, 0.0),
+		"fov": 58.0,
 	},
 	{
-		"name": "extraction",
-		"from": Vector3(28.0, 15.0, -6.0),
-		"at": Vector3(64.0, 2.0, -40.0),
-		"fov": 55.0,
+		"name": "upper_platform",
+		"from": Vector3(64.0, 32.0, 54.0),
+		"at": Vector3(42.0, 13.0, 32.0),
+		"fov": 58.0,
 	},
 	{
-		"name": "boss",
-		"from": Vector3(0.0, 12.0, -20.0),
-		"at": Vector3(0.0, 3.5, -72.0),
+		"name": "canyon",
+		"from": Vector3(20.0, 14.0, 78.0),
+		"at": Vector3(0.0, 4.0, 58.0),
 		"fov": 60.0,
 	},
 	{
-		"name": "ruins",
-		"from": Vector3(-18.0, 12.0, 18.0),
-		"at": Vector3(-52.0, 1.5, 48.0),
-		"fov": 55.0,
+		"name": "interior",
+		"from": Vector3(12.0, 6.0, -24.0),
+		"at": Vector3(0.0, 2.0, -38.0),
+		"fov": 64.0,
+	},
+	{
+		"name": "north_route",
+		"from": Vector3(-18.0, 10.0, 74.0),
+		"at": Vector3(0.0, 4.0, 42.0),
+		"fov": 60.0,
 	},
 	{
 		"name": "skyline",
-		"from": Vector3(4.0, 58.0, 96.0),
-		"at": Vector3(0.0, 0.0, -14.0),
+		"from": Vector3(4.0, 90.0, 125.0),
+		"at": Vector3(0.0, 0.0, 0.0),
 		"fov": 62.0,
-	},
-	{
-		"name": "cliffs",
-		"from": Vector3(40.0, 10.0, 30.0),
-		"at": Vector3(86.0, 4.0, 18.0),
-		"fov": 58.0,
 	},
 ]
 

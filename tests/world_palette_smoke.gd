@@ -23,10 +23,12 @@ const KitLibrary = preload("res://scripts/worlds/scifi_kit_library.gd")
 ## GDScript palette is per-world sets of real materials — and a lost import shows up
 ## as a flat grey world rather than as an error.
 const STAGED := {
-	"frostline": {"materials": 12, "textures": 8},
-	"verdant": {"materials": 8, "textures": 4},
-	"emberfall": {"materials": 40, "textures": 40},
-	"titans": {"materials": 19, "textures": 19},
+	# Floors derived from the rebuilt shared-texture GLBs: 62/59/67/62
+	# base-colour materials and hundreds of textured mesh instances.
+	"frostline": {"materials": 62, "textures": 55},
+	"verdant": {"materials": 59, "textures": 50},
+	"emberfall": {"materials": 67, "textures": 60},
+	"titans": {"materials": 62, "textures": 55},
 }
 
 var _failures: Array[String] = []

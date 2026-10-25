@@ -12,7 +12,7 @@ extends Node3D
 ##   game/assets/forge/worlds/frostline.glb   — relay layout + authored clips
 ##   game/assets/forge/worlds/verdant.glb     — grove layout + authored clips
 ##   game/assets/forge/worlds/emberfall.glb   — foundry layout + authored clips
-##   game/assets/forge/worlds/titans.glb      — station layout + authored clips
+##   game/assets/forge/worlds/titans.glb      — storm layout + authored clips
 ##
 ## Byte-identical photographic maps are staged once in `assets/forge/textures/`
 ## and referenced by the mission GLBs; measured geometry and clip counts live in
@@ -58,34 +58,16 @@ const SELECTION_ALIASES := {
 	"emberfall": "emberfall_foundry",
 }
 
-## Collision for the real props. The GLB is a visual scene: it has no physics, so
-## the player would walk through a hangar. One box per placed role, taken from the
-## bounds of that role's own meshes — no mesh is created, and the collider is
-## invisible. Props the player must be able to move through (the reactor housing,
-## the wave gates, the boss gate) are skipped on purpose.
-const COLLIDER_SKIP := ["Reactor", "WaveEntry", "DockingGate", "Perimeter", "Gate"]
-## Anything this close to the origin is the arena's centrepiece — the monument
-## every world is composed around, which the forge places at (0, 0) — and keeps
-## no collider. This is measured from the origin, not from the field centre: the
-## centrepiece is the arena, and the field's centre is wherever the fence happens
-## to be balanced. Not a shortcut either: a box around the monument walls off the
-## arena, closes the north lane the boss gate sits at the end of, and stops shots
-## at the training target standing across it. The meshes are still there; only
-## the derived box is skipped, exactly as the old reactor's was.
-const ARENA_MONUMENT_RADIUS: float = 7.0
-
-## Walking surface per world, measured from each staged GLB. The fenced field is
-## not the same size in three worlds — an extraction site is wider than a relay
-## station — so the collision floor and the bound walls follow the world rather
-## than the script. Values are `Vector2(width, depth)` in metres, plus the
-## `(x, z)` the field is centred on. These are the fences the forge builds, not
-## the GLB's total bounds: the foundry's plant is a landmark beyond the east wall,
-## so the meshes reach further than the ground the player may walk on.
+## STELLAR HORIZON uses one 180 × 180 m field plan for all four mission variants.
+## The safety floor sits below the authored geometry; the GLB's own triangles,
+## not role-filling boxes, provide the ground, cover, bridges and interiors the
+## player collides with. Values are the playable field, not total mesh bounds
+## (about 183.6 m square including the perimeter dressing).
 const WORLD_FIELDS := {
-	"frostline_relay": {"size": Vector2(168.0, 156.0), "center": Vector2(0.0, -8.0)},
-	"verdant_bloom": {"size": Vector2(176.0, 164.0), "center": Vector2(0.0, -6.0)},
-	"emberfall_foundry": {"size": Vector2(200.0, 176.0), "center": Vector2(0.0, -10.0)},
-	"titans": {"size": Vector2(64.0, 64.0), "center": Vector2(0.0, 0.0)},
+	"frostline_relay": {"size": Vector2(180.0, 180.0), "center": Vector2(0.0, 0.0)},
+	"verdant_bloom": {"size": Vector2(180.0, 180.0), "center": Vector2(0.0, 0.0)},
+	"emberfall_foundry": {"size": Vector2(180.0, 180.0), "center": Vector2(0.0, 0.0)},
+	"titans": {"size": Vector2(180.0, 180.0), "center": Vector2(0.0, 0.0)},
 }
 ## Fallback field, used if a world id ever arrives without an entry above.
 const WORLD_WIDTH: float = 192.0
@@ -125,10 +107,7 @@ func _ready() -> void:
 	_built = true
 	_instance_real_world()
 	_add_collision_floor()
-	if _world_id() == "titans":
-		_add_titans_mesh_colliders()
-	else:
-		_add_prop_colliders()
+	_add_mesh_colliders()
 	_build_lighting_and_atmosphere()
 	_add_wayfinders()
 
@@ -213,8 +192,8 @@ func _start_authored_motion() -> void:
 		imported.speed_scale = 0.0
 
 
-## Walking surface and outer bound. Invisible: it exists so the player has ground,
-## not so the world has geometry.
+## Last-resort safety floor and outer bounds. Invisible: normal walking surfaces
+## come from the authored GLB triangles, not from a flat plane covering routes.
 func _field_size() -> Vector2:
 	return WORLD_FIELDS.get(_world_id(), {"size": Vector2(WORLD_WIDTH, WORLD_DEPTH)})["size"]
 
@@ -233,11 +212,9 @@ func _add_collision_floor() -> void:
 	var center_z := center.y
 	var floor_body := StaticBody3D.new()
 	floor_body.name = "ArenaFloor"
-	# Titans' authored mesh supplies the main deck, pit and elevated surfaces.
-	# Keep only a below-pit safety floor here; a flat plane at y=0 would seal the
-	# pit and make the new multi-level geometry physically dishonest.
-	var floor_y := -3.4 if _world_id() == "titans" else -0.4
-	floor_body.position = Vector3(center.x, floor_y, center_z)
+	# Its top is y=-3, below every staged world's lowest mesh (about y=-0.6).
+	# A safety plane at y=0 would hide missing or misplaced authored surfaces.
+	floor_body.position = Vector3(center.x, -3.4, center_z)
 	floor_body.collision_layer = 1
 	floor_body.collision_mask = 0
 	var floor_shape := CollisionShape3D.new()
@@ -275,56 +252,11 @@ func _add_collision_floor() -> void:
 		walls.add_child(wall)
 
 
-func _add_prop_colliders() -> void:
-	var body := StaticBody3D.new()
-	body.name = "FrontierPropCollision"
-	body.collision_layer = 1
-	body.collision_mask = 0
-	add_child(body)
-	var made := 0
-	for district in _world.find_children("District_*", "Node3D", true, false):
-		if str(district.name).ends_with("landmark"):
-			continue
-		for role in district.get_children():
-			var role_name := str(role.name)
-			var skip := false
-			for needle in COLLIDER_SKIP:
-				if role_name.contains(needle):
-					skip = true
-					break
-			if skip or not role is Node3D:
-				continue
-			var beside_centre := (
-				Vector2((role as Node3D).global_position.x, (role as Node3D).global_position.z)
-				. length()
-			)
-			if beside_centre < ARENA_MONUMENT_RADIUS:
-				continue
-			var box := _role_bounds(role as Node3D)
-			if box.size.y < 1.2 or box.size.x < 0.6:
-				continue
-			var shape := BoxShape3D.new()
-			shape.size = Vector3(
-				maxf(box.size.x * 0.85, 0.4),
-				maxf(box.size.y * 0.92, 0.4),
-				maxf(box.size.z * 0.85, 0.4)
-			)
-			var collider := CollisionShape3D.new()
-			collider.name = "Cover_%s" % role_name
-			collider.shape = shape
-			collider.position = box.get_center()
-			body.add_child(collider)
-			made += 1
-	if made > 0:
-		print("MISSION WORLD: %d prop colliders derived from the real world" % made)
-
-
-## Titans is not a flat arena with cover boxes: its deck, pit, stairs, narrow
-## walkways and launch platform are the collision surface. A box derived from a
-## whole stair or walkway role would fill the space the player must occupy, so
-## this world alone uses the authored triangles. The other mission worlds keep
-## their measured, inexpensive role-box path above.
-func _add_titans_mesh_colliders() -> void:
+## Every STELLAR HORIZON variant shares the same physical layout. Use the
+## authored triangles for all four: a box derived from a whole bridge, island or
+## interior would fill the volume the player must occupy, while a box around a
+## small rock or cover module would not match its visible silhouette.
+func _add_mesh_colliders() -> void:
 	var made := 0
 	for candidate in _world.find_children("*", "MeshInstance3D", true, false):
 		var mesh_instance := candidate as MeshInstance3D
@@ -332,28 +264,13 @@ func _add_titans_mesh_colliders() -> void:
 			continue
 		mesh_instance.create_trimesh_collision()
 		made += 1
-	print("MISSION WORLD: %d Titans mesh colliders derived from the real world" % made)
-
-
-## World-space bounds of a placed role, from the meshes it is made of.
-func _role_bounds(role: Node3D) -> AABB:
-	var merged := AABB()
-	var has_box := false
-	for candidate in role.find_children("*", "MeshInstance3D", true, false):
-		var mesh_instance := candidate as MeshInstance3D
-		if mesh_instance.mesh == null:
-			continue
-		var box := mesh_instance.global_transform * mesh_instance.get_aabb()
-		merged = box if not has_box else merged.merge(box)
-		has_box = true
-	return merged
+	print("MISSION WORLD: %d %s mesh colliders derived from the real world" % [made, _world_id()])
 
 
 ## Lighting rig, built from the world's own mood. Light is not an asset; it is
 ## how the licensed surfaces are read, and it is the single strongest signal that
-## the player has changed theatre: frostline is a cool key over a cyan ambient,
-## verdant a hot green-white sun under a warm canopy, emberfall an orange key
-## against a violet rim with molten fill from below.
+## the player has changed theatre: bright daytime, warm sunset, cyan night and
+## a colder storm all illuminate the same STELLAR HORIZON route.
 func _build_lighting_and_atmosphere() -> void:
 	var mood := WorldMood.mood(_world_id())
 
@@ -370,9 +287,14 @@ func _build_lighting_and_atmosphere() -> void:
 			light.shadow_opacity = 0.58
 			light.directional_shadow_max_distance = 220.0
 		add_child(light)
-		light.look_at_from_position(
-			spec["position"], Vector3(0.0, 0.0, _field_center_z()), Vector3.UP
-		)
+		var target := Vector3(0.0, 0.0, _field_center_z())
+		var light_position: Vector3 = spec["position"]
+		var up := Vector3.UP
+		# The tower rim is directly overhead. Godot rejects a look-at whose up
+		# vector is parallel to its direction, so choose a stable roll reference.
+		if absf((target - light_position).normalized().dot(up)) > 0.999:
+			up = Vector3.FORWARD
+		light.look_at_from_position(light_position, target, up)
 		light.rotation.z = 0.0
 
 	# The landmark's own light: an emissive accent that blooms in the haze.
@@ -415,8 +337,9 @@ func _build_lighting_and_atmosphere() -> void:
 
 ## Non-visual waypoints the HUD and the route hint read. Marker3D draws nothing.
 func _add_wayfinders() -> void:
-	var north_z := -28.0 if _world_id() == "titans" else -84.0
-	var south_z := 28.0 if _world_id() == "titans" else 44.0
+	# Match the forge's MainNorth (+Z) and MainSouth (-Z) route sockets.
+	var north_z := 62.0
+	var south_z := -62.0
 	for entry in [
 		{"name": "NorthRouteWayfinder", "pos": Vector3(0.0, 1.6, north_z)},
 		{"name": "SouthRouteWayfinder", "pos": Vector3(0.0, 1.6, south_z)},

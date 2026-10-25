@@ -1,114 +1,24 @@
 {
- "generated": "2026-10-25T14:59:36.161Z",
+ "generated": "2026-10-25T23:04:43.609Z",
  "note": "Mission worlds built from real licensed GLBs, with byte-identical images staged as shared runtime textures. Provenance: tools/asset-forge/real/real-manifest.json",
  "shared_textures": {
   "policy": "byte-identical images use content-addressed URIs shared by every mission GLB; pixels and JPEG encoding are not changed",
-  "count": 71,
-  "references": 136,
-  "bytes": 11296261,
+  "count": 17,
+  "references": 72,
+  "bytes": 3263762,
   "files": [
-   {
-    "path": "res://assets/forge/textures/00d5cd930bab2b1d5e7145fb8953721be962ef267c6f23a6a07ed2a10918e97c.jpg",
-    "bytes": 11997,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/02c2ad31883846a31a3f1f7ebb0bd52506948112c922a88133ba46a9b675b516.jpg",
-    "bytes": 360267,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/07c508fd85682a4e9cb2d312ecdad927b83caa64c8adce4d1d314bb099b8145a.jpg",
-    "bytes": 396512,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/092204b1525d7be96d6c9803e4672aef8971e1c786c148c15634d986c07f571d.jpg",
-    "bytes": 79562,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/0c0b68fc67716e48bb6ae6441b298ea0d57cf88d8aafd2f4ae3c8c1c9b3b77b9.jpg",
-    "bytes": 201349,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
    {
     "path": "res://assets/forge/textures/0c4e3490c7ce96a049e58f8107d6cffe6785d2bc50bc10c714a8d085587e8cca.jpg",
     "bytes": 162934,
-    "references": 5,
+    "references": 2,
     "worlds": [
-     "emberfall",
      "frostline",
-     "titans",
-     "verdant"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/0cb616df225883265ac432f9e477792c0b01eec9640ca3407d8f34cd36bce61c.jpg",
-    "bytes": 151554,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/0f8b9262cbd00cf0c958b5e11aec06d45788c3caecd1992c90e3931fb3376046.jpg",
-    "bytes": 12059,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/12c0a992e672e8dfd8a5c9f297a8783af334feb8730649553d11cf12b1571f9e.jpg",
-    "bytes": 38914,
-    "references": 1,
-    "worlds": [
-     "emberfall"
+     "titans"
     ]
    },
    {
     "path": "res://assets/forge/textures/159b829fc59f293367e4275b455f39287fe71986f0a416fc4a816a8c7fb16185.jpg",
     "bytes": 23644,
-    "references": 2,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/19a8a1aedc00c5077cde3ffe689f4ac6bd53f9d1c5d0e3bcd361a6cb0b6a160a.jpg",
-    "bytes": 16877,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/22380a27fed56be4c9f12fd9ab36c7093fe30cbfb4c65ff1333ee6671e819060.jpg",
-    "bytes": 7246,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/26c7b2b55fe0fdf1ae628f553a3458b625378443b6e4bd94b4f26066673d67e8.jpg",
-    "bytes": 361193,
     "references": 1,
     "worlds": [
      "emberfall"
@@ -117,198 +27,69 @@
    {
     "path": "res://assets/forge/textures/27c627ec9ad42da391c5a7aac5c011790fdb873c43b07a1c614c0d52200a393c.jpg",
     "bytes": 30352,
-    "references": 1,
+    "references": 4,
     "worlds": [
-     "titans"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/30cef75731b306d82548a270256537f4ec9e3e6095945ebd2ff984db20d0bd18.jpg",
-    "bytes": 13485,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/3203ad83d1ad938a44337714f0cf96b557ca9f38bfa2e26e9c1388ae5a5b2f6b.jpg",
-    "bytes": 14784,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/363afd8046ae750b8e92011ac46247edd06c087c4fb6e93355476f3833622160.jpg",
-    "bytes": 38289,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/384b5e0c29266141ed52c9c61cd77a78fdf29c4f53e86ecdaf2513170181dc8d.jpg",
-    "bytes": 83163,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/38b4fa4870cb9a5defb98579287af7d27b073ef28cca1089bcfefaed11aac6c9.jpg",
-    "bytes": 388319,
-    "references": 1,
-    "worlds": [
-     "emberfall"
+     "emberfall",
+     "frostline",
+     "titans",
+     "verdant"
     ]
    },
    {
     "path": "res://assets/forge/textures/38f20261421ac9b21f3473d3fd259561dcac5c0152d0cf9c78f3b28d223bff08.jpg",
     "bytes": 165075,
-    "references": 5,
-    "worlds": [
-     "emberfall",
-     "frostline",
-     "titans",
-     "verdant"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/39f9816e1de19b6d9208a2850b750f9d063e84a543de109eca862dd07d620f09.jpg",
-    "bytes": 390073,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/3e390be8f33492f27d2f7e71522dc20bde1a9d898988a8f7951844fb253147a0.jpg",
-    "bytes": 164017,
-    "references": 5,
-    "worlds": [
-     "emberfall",
-     "frostline",
-     "titans",
-     "verdant"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/47c567553f1c470044db19fd980e7b51959ed56204beef715b31ed7333d6a8cc.jpg",
-    "bytes": 37651,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/4e8c5aefb1b66b6df8fc053a53d26d4b09b63f829e24b42fc1cb6b96bdea996f.jpg",
-    "bytes": 6684,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/56adada36264f063c898aed81d648c3dadad3dc3c63ec13b827e1dc7e1e46c76.jpg",
-    "bytes": 1029177,
     "references": 2,
     "worlds": [
-     "emberfall",
-     "frostline"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/59b7bd6c2f5e1a4ed7cc8a87b2e81c3e3adc3da1a1f409e5ac5b59cd9160f140.jpg",
-    "bytes": 152841,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/60ecafe4ac141dc85d844e4b24ad43daf7eb569b741b452a7a2d5f493489101d.jpg",
-    "bytes": 18360,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/61dcb60e77dd505deab497c1c01a75e4fedf4c74d5fecd5fab9bba09fc30c73d.jpg",
-    "bytes": 63923,
-    "references": 5,
-    "worlds": [
-     "emberfall",
-     "frostline",
-     "titans",
-     "verdant"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/640945bc728e1c3912123728e951450b6af20798e0f47c01c00301464b442a7c.jpg",
-    "bytes": 190194,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/6514ea8f38c19909fec45d8587fe0beb92997adb27ad056d8b21606f0fb20f8e.jpg",
-    "bytes": 19524,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/6d45a523f13d6c6d10e2fb1b7c715d39580ca58acd506d0ec26567421493c51c.jpg",
-    "bytes": 10005,
-    "references": 6,
-    "worlds": [
-     "emberfall",
-     "frostline",
-     "titans",
-     "verdant"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/6e8a5c538b1182e89a7d75924f4905626377e540f7d339e53bf115d13ed95c4b.jpg",
-    "bytes": 302279,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/6ecb2388eac8b8e15c7feab2d8307c60919fc61feb5398d699f839112c6c7bdb.jpg",
-    "bytes": 345231,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/71ece6fec39213e7c07f4289cdda6d52a4ee72dd6869c13fe9b8be033822dd65.jpg",
-    "bytes": 18398,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/7c39573fb164fb64e9f7482fe08d4af1c4e7101c998c630fad3a3e521477b8a1.jpg",
-    "bytes": 1146947,
-    "references": 3,
-    "worlds": [
-     "emberfall",
      "frostline",
      "titans"
     ]
    },
    {
+    "path": "res://assets/forge/textures/3e390be8f33492f27d2f7e71522dc20bde1a9d898988a8f7951844fb253147a0.jpg",
+    "bytes": 164017,
+    "references": 2,
+    "worlds": [
+     "frostline",
+     "titans"
+    ]
+   },
+   {
+    "path": "res://assets/forge/textures/61dcb60e77dd505deab497c1c01a75e4fedf4c74d5fecd5fab9bba09fc30c73d.jpg",
+    "bytes": 63923,
+    "references": 4,
+    "worlds": [
+     "emberfall",
+     "frostline",
+     "titans",
+     "verdant"
+    ]
+   },
+   {
+    "path": "res://assets/forge/textures/6d45a523f13d6c6d10e2fb1b7c715d39580ca58acd506d0ec26567421493c51c.jpg",
+    "bytes": 10005,
+    "references": 4,
+    "worlds": [
+     "emberfall",
+     "frostline",
+     "titans",
+     "verdant"
+    ]
+   },
+   {
+    "path": "res://assets/forge/textures/7c39573fb164fb64e9f7482fe08d4af1c4e7101c998c630fad3a3e521477b8a1.jpg",
+    "bytes": 1146947,
+    "references": 4,
+    "worlds": [
+     "emberfall",
+     "frostline",
+     "titans",
+     "verdant"
+    ]
+   },
+   {
     "path": "res://assets/forge/textures/7e85e3e71fbf7fbd94bcbd3df6234b0b0449776f7492443fc103f44811edf980.jpg",
     "bytes": 145874,
-    "references": 4,
+    "references": 3,
     "worlds": [
      "emberfall",
      "frostline",
@@ -316,56 +97,8 @@
     ]
    },
    {
-    "path": "res://assets/forge/textures/81b2605cf24bf9ffcbd871e70488a7faa058394c15c4b2a7187164743c624e2d.jpg",
-    "bytes": 6192,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/8238a48e1527bc4e2b70f1dc45caa53d3bc91dfe125f898f36fd651a7f69390d.jpg",
-    "bytes": 350670,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/830274a581d9b82881aced12a120e646204e001a5ecdfeb2dde74ecc88db1dc1.jpg",
-    "bytes": 33767,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/879d7f17970850bdf1fdeb1168555a6175a70efecff5e67903ded10cbae3496b.jpg",
-    "bytes": 414612,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/896dde7a01a5de36ba27a1343402d29a3395c4bd9f90e27d503150bd783669af.jpg",
-    "bytes": 21327,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
     "path": "res://assets/forge/textures/8b6f815cc6f26fe22f9cdf70b6e86c2bf076a6fca1f70f06989e2d2a8e64fec2.jpg",
     "bytes": 28959,
-    "references": 2,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/9c353b6f97ae1a6d0058e85ca4896f67cf1acbabcf0fbcd91a2b851facd9cd09.jpg",
-    "bytes": 68244,
     "references": 1,
     "worlds": [
      "emberfall"
@@ -374,7 +107,7 @@
    {
     "path": "res://assets/forge/textures/9cba6262f5e585f785e80ebbbda0141db608146c865aec94c303debbae27b764.jpg",
     "bytes": 10196,
-    "references": 13,
+    "references": 21,
     "worlds": [
      "emberfall",
      "frostline",
@@ -385,42 +118,18 @@
    {
     "path": "res://assets/forge/textures/a9e5a2f76c24988089f444b07ed1328c6c45f77e238173afbfdfea12a34e5588.jpg",
     "bytes": 8264,
-    "references": 6,
+    "references": 4,
     "worlds": [
      "emberfall",
      "frostline",
      "titans",
      "verdant"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/aa8a29c716afab27d2ab59fd477a123b8513376b3008b2f14591d29b2e24bedf.jpg",
-    "bytes": 38390,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/ab8e6903ebef4ded772a6b1ea5d646b4a16aa16b0ef02354c19413d750fa4753.jpg",
-    "bytes": 32232,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/b498c3eab86e85dda37a6bf8aeb7c92c7813c15799347bd16b38493408ed534a.jpg",
-    "bytes": 55144,
-    "references": 1,
-    "worlds": [
-     "emberfall"
     ]
    },
    {
     "path": "res://assets/forge/textures/b511852ed38762fe0cd555f9f8b16ef8411553f2064778394c71e65e214eb69e.jpg",
     "bytes": 167373,
-    "references": 8,
+    "references": 5,
     "worlds": [
      "emberfall",
      "frostline",
@@ -429,41 +138,8 @@
     ]
    },
    {
-    "path": "res://assets/forge/textures/b56656e6469880a0edb2118da21a1c85a7dfea1f5b7fda7a78ba24d23ffea7fd.jpg",
-    "bytes": 508577,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/b611cdae974ad3d6deb8e5d77bf0bcd300c9ff6d9a712cef62a6ce7be0f0dfb7.jpg",
-    "bytes": 51837,
-    "references": 2,
-    "worlds": [
-     "emberfall",
-     "frostline"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/b8f0e3d2d8f5cf321cd2bff272253519097d9b9beea63b51229ef2c0470d4e12.jpg",
-    "bytes": 23695,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
     "path": "res://assets/forge/textures/ba23044972992f2d07729fb1caf91d545746b54cc7b9ff8bba82f72689f60426.jpg",
     "bytes": 201132,
-    "references": 2,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/bcc1383ebd14bc08c4fbf1253877fdc2649a8d4e4b19a358a18f438886ceec33.jpg",
-    "bytes": 496907,
     "references": 1,
     "worlds": [
      "emberfall"
@@ -472,7 +148,7 @@
    {
     "path": "res://assets/forge/textures/c01585172860c2c77ae7adb078802a502250107790e38249c23fd99bc9c350cf.jpg",
     "bytes": 191542,
-    "references": 6,
+    "references": 5,
     "worlds": [
      "emberfall",
      "frostline",
@@ -483,23 +159,7 @@
    {
     "path": "res://assets/forge/textures/c1c3b070b4208d2d0f421c77ea3467b48dbc29d7d6b569237c0798795a36210c.jpg",
     "bytes": 724593,
-    "references": 1,
-    "worlds": [
-     "titans"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/c3d92f3072a3d5e8b04629d6a981170ef674f916456dc87adb02d1e0a68fbbac.jpg",
-    "bytes": 57219,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/ca005ce4b759ec1434f51588a8ff8313f82bc834239feaf70dd7f14a8f6294f8.jpg",
-    "bytes": 18932,
-    "references": 6,
+    "references": 4,
     "worlds": [
      "emberfall",
      "frostline",
@@ -508,107 +168,14 @@
     ]
    },
    {
-    "path": "res://assets/forge/textures/d0c7a4fa9121eb85a289bc934c4d5339dddc2c9f799c5e2be1801692db7cfe05.jpg",
-    "bytes": 11488,
-    "references": 1,
+    "path": "res://assets/forge/textures/ca005ce4b759ec1434f51588a8ff8313f82bc834239feaf70dd7f14a8f6294f8.jpg",
+    "bytes": 18932,
+    "references": 5,
     "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/d305a8673aa037891b584f17416b95af0ca04f34d98d9e85e4ad2507c4208af8.jpg",
-    "bytes": 63610,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/e083539f0b0aa2035dbbd65112137c7b639b7ab463259ec5123b1c9ff373a651.jpg",
-    "bytes": 21030,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/e2b464d53dae395dd547ece4e31d8b9fe880e09d0aceb1a1cc5a5e18ca3d8613.jpg",
-    "bytes": 352070,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/e476cee90243f4b6031acea10556c14aa1f69d0fdb8c4cd77523d54bf6410f52.jpg",
-    "bytes": 169814,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/ed0ea9020547c86b0c325e4d9441d7304cb66e37b44615654df3b8535864b47c.jpg",
-    "bytes": 138063,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/f14c665dcf94e7b7d5985312c371fc6fd25a0cc86586c4410ec0be61899fc08b.jpg",
-    "bytes": 20727,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/f1f1d174bfedaf1cd54abd8c9d2c0810b672e97b2a70ed196690afdd45755afc.jpg",
-    "bytes": 17265,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/f65a6ddc481b476149781a3f45b87041d53f18c3e3f1443c08f7b81dc2ea8886.jpg",
-    "bytes": 184383,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/f887dd6c577d0a681caf819eca38fc1dc3448f0ea249419abc8da519c25a5ab3.jpg",
-    "bytes": 39776,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/f9e2a62f34a297bf64aeb6b68a4c3befdeb26b6f9d6cccd1d566083e75ff72f4.jpg",
-    "bytes": 80688,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/fc443c99e8d22045b5eb4cefc01dc6337074c9ad3732fd9695e6bf77e2a33652.jpg",
-    "bytes": 12714,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/fe34455becad84166c859378e43a149b1f2ad03496a4dbe8f665b08a69354b38.jpg",
-    "bytes": 76076,
-    "references": 1,
-    "worlds": [
-     "emberfall"
+     "emberfall",
+     "frostline",
+     "titans",
+     "verdant"
     ]
    }
   ]
@@ -622,116 +189,275 @@
   {
    "id": "frostline",
    "category": "world",
-   "name": "FROSTLINE RELAY",
+   "name": "FROSTLINE RELAY — DAYTIME",
    "mission": "defence",
    "resource": "res://assets/forge/worlds/frostline.glb",
    "source": "tools/asset-forge/src/worlds/frostline.js",
    "assetPolicy": "every visible mesh is a licensed GLB from game/assets/world/real",
-   "targetHeight": 19.525,
-   "targetLength": 174.958,
+   "targetHeight": 22.575,
+   "targetLength": 183.6,
    "normalisedBy": "height",
-   "measuredHeight": 19.525,
-   "measuredWidth": 171.6,
-   "measuredDepth": 174.958,
-   "triangles": 116801,
-   "meshes": 224,
-   "materials": 224,
-   "textures": 17,
+   "measuredHeight": 22.575,
+   "measuredWidth": 183.6,
+   "measuredDepth": 183.6,
+   "triangles": 103376,
+   "meshes": 192,
+   "materials": 192,
+   "textures": 18,
    "clips": [
-    "PrimaryUplink_DishA_spin",
-    "PrimaryUplink_DishB_sweep",
-    "PrimaryUplink_Ring_spin",
-    "RelayMast_North_Whip_spin",
-    "RelayMast_North_BandLow_bob",
-    "RelayMast_South_Whip_spin",
-    "RelayMast_South_BandLow_bob",
-    "RelayMast_SouthFront_Whip_spin",
-    "RelayMast_SouthFront_BandLow_bob",
-    "CryoCondenser_A_Collar_spin",
-    "CryoCondenser_A_Vent_bob",
-    "CryoCondenser_B_Collar_spin",
-    "CryoCondenser_B_Vent_bob",
-    "StationDish_DishA_spin",
-    "StationDish_DishB_sweep",
-    "StationDish_Ring_spin",
-    "WestSentry_Dish_spin",
-    "WestSentry_DishB_sweep",
-    "WestSentry_RingA_spin",
-    "WestSentry_RingB_spin",
-    "FrozenHauler_A_Tender_sweep",
-    "Turret_North_Turret_sweep",
-    "Turret_North_Sensor_spin",
-    "Turret_West_Turret_sweep",
-    "Turret_West_Sensor_spin",
-    "Turret_East_Turret_sweep",
-    "Turret_East_Sensor_spin",
-    "Turret_South_Turret_sweep",
-    "Turret_South_Sensor_spin",
-    "NorthWatch_Dish_spin",
-    "NorthWatch_DishB_sweep",
-    "NorthWatch_RingA_spin",
-    "NorthWatch_RingB_spin",
-    "BreachNorth_Beacon_spin",
-    "BreachNorth_Gate_pulse",
-    "BreachSouth_Beacon_spin",
-    "BreachSouth_Gate_pulse",
-    "BreachWest_Beacon_spin",
-    "BreachWest_Gate_pulse",
-    "BreachEast_Beacon_spin",
-    "BreachEast_Gate_pulse",
-    "IceSpire_A_Spire_pulse",
-    "IceSpire_A_Second_pulse",
-    "IceSpire_B_Spire_pulse",
-    "IceSpire_B_Second_pulse",
-    "IceSpire_C_Spire_pulse",
-    "IceSpire_C_Second_pulse",
-    "FrozenHauler_B_Tender_sweep",
-    "IceboundWreck_Hull_sweep",
-    "IceMonorail_Train_Engine_sweep",
-    "IceMonorail_Train_CarA_bob",
-    "FrozenRocket_Nose_pulse",
-    "IceRover_Rover_sweep",
-    "PolarGreeble_Cables_pulse",
-    "IceCrystal_00_Spire_pulse",
-    "IceCrystal_00_Second_pulse",
-    "IceCrystal_01_Spire_pulse",
-    "IceCrystal_01_Second_pulse",
-    "IceCrystal_02_Spire_pulse",
-    "IceCrystal_02_Second_pulse",
-    "IceCrystal_03_Spire_pulse",
-    "IceCrystal_03_Second_pulse",
-    "IceCrystal_04_Spire_pulse",
-    "IceCrystal_04_Second_pulse",
-    "IceCrystal_05_Spire_pulse",
-    "IceCrystal_05_Second_pulse"
+    "CentralTower_RingA_spin",
+    "CentralTower_RingB_spin",
+    "CentralTower_Beam_pulse",
+    "Bridge_E_Light_pulse",
+    "Bridge_W_Light_pulse",
+    "Bridge_N_Light_pulse",
+    "Bridge_S_Light_pulse",
+    "InteriorBase_South_Console_pulse",
+    "InteriorBase_South_Door_pulse",
+    "InteriorBase_North_Console_pulse",
+    "InteriorBase_North_Door_pulse",
+    "EnemyGate_North_Beacon_spin",
+    "EnemyGate_North_Gate_pulse",
+    "EnemyGate_South_Beacon_spin",
+    "EnemyGate_South_Gate_pulse",
+    "EnemyGate_East_Beacon_spin",
+    "EnemyGate_East_Gate_pulse",
+    "EnemyGate_West_Beacon_spin",
+    "EnemyGate_West_Gate_pulse",
+    "EnemyGate_Center_Beacon_spin",
+    "EnemyGate_Center_Gate_pulse",
+    "Turret_N_Turret_sweep",
+    "Turret_N_Sensor_spin",
+    "Turret_S_Turret_sweep",
+    "Turret_S_Sensor_spin",
+    "Turret_E_Turret_sweep",
+    "Turret_E_Sensor_spin",
+    "Turret_W_Turret_sweep",
+    "Turret_W_Sensor_spin",
+    "RelayTower_DishA_spin",
+    "RelayTower_DishB_sweep",
+    "RelayTower_Ring_spin",
+    "IceCrystal_A_Spire_pulse",
+    "IceCrystal_A_Second_pulse",
+    "Hauler_A_Tender_sweep"
    ],
    "sockets": [
-    "spawn_relay_core",
-    "spawn_relay_station",
-    "spawn_relay_north",
-    "spawn_relay_south"
+    "spawn_frostline_north",
+    "spawn_frostline_south",
+    "spawn_frostline_east",
+    "spawn_frostline_west",
+    "spawn_frostline_tower",
+    "spawn_frostline_interior"
    ],
    "theme": {
     "id": "frostline",
-    "label": "Frostline Relay",
-    "mood": "polar volumetric dusk v2.1 — Blade Runner on ice, air is a visible medium but ground stays readable: aurora shafts cut low mist, ice glows like wet neon runway, distance desaturates to cyan",
-    "accent": "#8af2ff",
+    "label": "STELLAR HORIZON — DAYTIME",
+    "mood": "daytime floating archipelago — bright blue sky, white high clouds, sun from east, central tower beam cuts air, waterfalls off islands, ground readable, Blade Runner volumetrics but natural",
+    "accent": "#59e6ff",
     "hazard": "#ff8a3d",
     "sky": {
-     "top": "#02101c",
-     "mid": "#0a2a46",
-     "bottom": "#3a788e",
-     "glow": "#8af2ff",
-     "glowStrength": 0.26,
-     "horizonHaze": 0.32,
+     "top": "#0a2e5a",
+     "mid": "#2e7eb8",
+     "bottom": "#87c4ea",
+     "glow": "#ffffff",
+     "glowStrength": 0.52,
+     "horizonHaze": 0.22,
+     "sunWarmth": 0.18
+    },
+    "fog": {
+     "color": "#9cc6e8",
+     "density": 0.0016,
+     "height": 28,
+     "heightFalloff": 0.08,
+     "hazeColor": "#cfe9ff",
+     "hazeStrength": 0.06
+    }
+   },
+   "validation": {
+    "errors": 0,
+    "warnings": 0,
+    "khronos": "2.0.0-dev.3.10"
+   },
+   "bytes": 2536884
+  },
+  {
+   "id": "verdant",
+   "category": "world",
+   "name": "VERDANT BLOOM — SUNSET",
+   "mission": "hunt",
+   "resource": "res://assets/forge/worlds/verdant.glb",
+   "source": "tools/asset-forge/src/worlds/verdant.js",
+   "assetPolicy": "every visible mesh is a licensed GLB from game/assets/world/real",
+   "targetHeight": 22.096,
+   "targetLength": 183.6,
+   "normalisedBy": "height",
+   "measuredHeight": 22.096,
+   "measuredWidth": 183.6,
+   "measuredDepth": 183.6,
+   "triangles": 97146,
+   "meshes": 185,
+   "materials": 185,
+   "textures": 15,
+   "clips": [
+    "CentralTower_RingA_spin",
+    "CentralTower_RingB_spin",
+    "CentralTower_Beam_pulse",
+    "Bridge_E_Light_pulse",
+    "Bridge_W_Light_pulse",
+    "Bridge_N_Light_pulse",
+    "Bridge_S_Light_pulse",
+    "InteriorBase_South_Console_pulse",
+    "InteriorBase_South_Door_pulse",
+    "InteriorBase_North_Console_pulse",
+    "InteriorBase_North_Door_pulse",
+    "EnemyGate_North_Beacon_spin",
+    "EnemyGate_North_Gate_pulse",
+    "EnemyGate_South_Beacon_spin",
+    "EnemyGate_South_Gate_pulse",
+    "EnemyGate_East_Beacon_spin",
+    "EnemyGate_East_Gate_pulse",
+    "EnemyGate_West_Beacon_spin",
+    "EnemyGate_West_Gate_pulse",
+    "EnemyGate_Center_Beacon_spin",
+    "EnemyGate_Center_Gate_pulse",
+    "Turret_N_Turret_sweep",
+    "Turret_N_Sensor_spin",
+    "Turret_S_Turret_sweep",
+    "Turret_S_Sensor_spin",
+    "Turret_E_Turret_sweep",
+    "Turret_E_Sensor_spin",
+    "Turret_W_Turret_sweep",
+    "Turret_W_Sensor_spin",
+    "BloomDome_CrownBand_spin",
+    "BloomDome_Overgrowth_sweep",
+    "BloomDome_Vent_spin",
+    "GiantTree_A_Trunk_sweep",
+    "GiantTree_A_Canopy_pulse",
+    "GiantTree_A_Shoot_sweep",
+    "Crystal_A_Main_pulse",
+    "Crystal_A_Second_pulse"
+   ],
+   "sockets": [
+    "spawn_verdant_north",
+    "spawn_verdant_south",
+    "spawn_verdant_east",
+    "spawn_verdant_west",
+    "spawn_verdant_tower",
+    "spawn_verdant_interior"
+   ],
+   "theme": {
+    "id": "verdant",
+    "label": "STELLAR HORIZON — SUNSET",
+    "mood": "sunset golden hour — orange horizon, warm side light, long shadows, islands glow amber, tower beam still blue against warm sky, humid haze low",
+    "accent": "#59e6ff",
+    "hazard": "#ffd166",
+    "sky": {
+     "top": "#0f1020",
+     "mid": "#3a2040",
+     "bottom": "#ff8c52",
+     "glow": "#ffb86a",
+     "glowStrength": 0.48,
+     "horizonHaze": 0.52,
+     "sunWarmth": 0.52
+    },
+    "fog": {
+     "color": "#2a1a20",
+     "density": 0.0028,
+     "height": 22,
+     "heightFalloff": 0.14,
+     "hazeColor": "#ffb86a",
+     "hazeStrength": 0.18
+    }
+   },
+   "validation": {
+    "errors": 0,
+    "warnings": 0,
+    "khronos": "2.0.0-dev.3.10"
+   },
+   "bytes": 2095972
+  },
+  {
+   "id": "emberfall",
+   "category": "world",
+   "name": "EMBERFALL FOUNDRY — NIGHT",
+   "mission": "extraction",
+   "resource": "res://assets/forge/worlds/emberfall.glb",
+   "source": "tools/asset-forge/src/worlds/emberfall.js",
+   "assetPolicy": "every visible mesh is a licensed GLB from game/assets/world/real",
+   "targetHeight": 22.57,
+   "targetLength": 183.6,
+   "normalisedBy": "height",
+   "measuredHeight": 22.57,
+   "measuredWidth": 183.6,
+   "measuredDepth": 183.6,
+   "triangles": 105882,
+   "meshes": 178,
+   "materials": 178,
+   "textures": 21,
+   "clips": [
+    "CentralTower_RingA_spin",
+    "CentralTower_RingB_spin",
+    "CentralTower_Beam_pulse",
+    "Bridge_E_Light_pulse",
+    "Bridge_W_Light_pulse",
+    "Bridge_N_Light_pulse",
+    "Bridge_S_Light_pulse",
+    "InteriorBase_South_Console_pulse",
+    "InteriorBase_South_Door_pulse",
+    "InteriorBase_North_Console_pulse",
+    "InteriorBase_North_Door_pulse",
+    "EnemyGate_North_Beacon_spin",
+    "EnemyGate_North_Gate_pulse",
+    "EnemyGate_South_Beacon_spin",
+    "EnemyGate_South_Gate_pulse",
+    "EnemyGate_East_Beacon_spin",
+    "EnemyGate_East_Gate_pulse",
+    "EnemyGate_West_Beacon_spin",
+    "EnemyGate_West_Gate_pulse",
+    "EnemyGate_Center_Beacon_spin",
+    "EnemyGate_Center_Gate_pulse",
+    "Turret_N_Turret_sweep",
+    "Turret_N_Sensor_spin",
+    "Turret_S_Turret_sweep",
+    "Turret_S_Sensor_spin",
+    "Turret_E_Turret_sweep",
+    "Turret_E_Sensor_spin",
+    "Turret_W_Turret_sweep",
+    "Turret_W_Sensor_spin",
+    "Smelter_A_GlowBand_spin",
+    "Smelter_A_Flue_bob",
+    "Crane_A_Beam_bob",
+    "Slag_A_Melt_pulse"
+   ],
+   "sockets": [
+    "spawn_emberfall_north",
+    "spawn_emberfall_south",
+    "spawn_emberfall_east",
+    "spawn_emberfall_west",
+    "spawn_emberfall_tower",
+    "spawn_emberfall_interior"
+   ],
+   "theme": {
+    "id": "emberfall",
+    "label": "STELLAR HORIZON — NIGHT",
+    "mood": "night megacity — deep navy sky, city lights and tower beam dominate, interior base blue glow, canyon dark with rim lights, stars visible, ground readable via bounce",
+    "accent": "#59e6ff",
+    "hazard": "#ffd166",
+    "sky": {
+     "top": "#020208",
+     "mid": "#0a0f1e",
+     "bottom": "#1a2a4a",
+     "glow": "#59e6ff",
+     "glowStrength": 0.32,
+     "horizonHaze": 0.28,
      "sunWarmth": 0
     },
     "fog": {
-     "color": "#122a3a",
-     "density": 0.0036,
-     "height": 16,
-     "heightFalloff": 0.16,
-     "hazeColor": "#8af2ff",
+     "color": "#0a1428",
+     "density": 0.0022,
+     "height": 18,
+     "heightFalloff": 0.12,
+     "hazeColor": "#59e6ff",
      "hazeStrength": 0.1
     }
    },
@@ -740,327 +466,92 @@
     "warnings": 0,
     "khronos": "2.0.0-dev.3.10"
    },
-   "bytes": 2605036
+   "bytes": 2611380
   },
   {
-   "id": "verdant",
+   "id": "titans",
    "category": "world",
-   "name": "VERDANT BLOOM",
-   "mission": "recovery",
-   "resource": "res://assets/forge/worlds/verdant.glb",
-   "source": "tools/asset-forge/src/worlds/verdant.js",
+   "name": "THE TITANS — STORM",
+   "mission": "titans",
+   "resource": "res://assets/forge/worlds/titans.glb",
+   "source": "tools/asset-forge/src/worlds/titans.js",
    "assetPolicy": "every visible mesh is a licensed GLB from game/assets/world/real",
-   "targetHeight": 16.452,
-   "targetLength": 180.29,
+   "targetHeight": 22.524,
+   "targetLength": 183.6,
    "normalisedBy": "height",
-   "measuredHeight": 16.452,
-   "measuredWidth": 180.29,
-   "measuredDepth": 168.434,
-   "triangles": 137724,
-   "meshes": 276,
-   "materials": 276,
-   "textures": 13,
+   "measuredHeight": 22.524,
+   "measuredWidth": 183.6,
+   "measuredDepth": 183.6,
+   "triangles": 101924,
+   "meshes": 186,
+   "materials": 186,
+   "textures": 18,
    "clips": [
-    "SeedVaultArch_VineW_sweep",
-    "SeedVaultArch_Bloom_pulse",
-    "VaultVent_W_Spore_pulse",
-    "VaultVent_W_Frond_sweep",
-    "VaultVent_E_Spore_pulse",
-    "VaultVent_E_Frond_sweep",
-    "BioDome_North_CrownBand_spin",
-    "BioDome_North_Overgrowth_sweep",
-    "BioDome_North_Vent_spin",
-    "BioDome_East_CrownBand_spin",
-    "BioDome_East_Overgrowth_sweep",
-    "BioDome_East_Vent_spin",
-    "BioDome_South_CrownBand_spin",
-    "BioDome_South_Overgrowth_sweep",
-    "BioDome_South_Vent_spin",
-    "CrashedModule_West_Scout_sweep",
-    "CrashedModule_South_Scout_sweep",
-    "CrashedModule_North_Scout_sweep",
-    "StationVent_Spore_pulse",
-    "StationVent_Frond_sweep",
-    "StationVent_B_Spore_pulse",
-    "StationVent_B_Frond_sweep",
-    "StationGate_VineW_sweep",
-    "StationGate_Bloom_pulse",
-    "GroveTree_A_Trunk_sweep",
-    "GroveTree_A_Canopy_pulse",
-    "GroveTree_A_Shoot_sweep",
-    "GroveTree_B_Trunk_sweep",
-    "GroveTree_B_Canopy_pulse",
-    "GroveTree_B_Shoot_sweep",
-    "GroveTree_C_Trunk_sweep",
-    "GroveTree_C_Canopy_pulse",
-    "GroveTree_C_Shoot_sweep",
-    "GroveTree_D_Trunk_sweep",
-    "GroveTree_D_Canopy_pulse",
-    "GroveTree_D_Shoot_sweep",
-    "GroveTree_E_Trunk_sweep",
-    "GroveTree_E_Canopy_pulse",
-    "GroveTree_E_Shoot_sweep",
-    "GroveTree_F_Trunk_sweep",
-    "GroveTree_F_Canopy_pulse",
-    "GroveTree_F_Shoot_sweep",
-    "Pine_A_Canopy_sweep",
-    "Pine_B_Canopy_sweep",
-    "Pine_C_Canopy_sweep",
-    "Pine_D_Canopy_sweep",
-    "Pine_E_Canopy_sweep",
-    "Pine_F_Canopy_sweep",
-    "FungalRing_A_Stalk_pulse",
-    "FungalRing_B_Stalk_pulse",
-    "MossBoulder_A_Drape_sweep",
-    "MossBoulder_B_Drape_sweep",
-    "GroveTree_G_Trunk_sweep",
-    "GroveTree_G_Canopy_pulse",
-    "GroveTree_G_Shoot_sweep",
-    "GroveArch_VineW_sweep",
-    "GroveArch_Bloom_pulse",
-    "GroveVent_A_Spore_pulse",
-    "GroveVent_A_Frond_sweep",
-    "GroveVent_B_Spore_pulse",
-    "GroveVent_B_Frond_sweep",
-    "OvergrownTurret_A_Turret_sweep",
-    "OvergrownTurret_A_Sensor_spin",
-    "OvergrownTurret_B_Turret_sweep",
-    "OvergrownTurret_B_Sensor_spin",
-    "OvergrownTurret_C_Turret_sweep",
-    "OvergrownTurret_C_Sensor_spin",
-    "OvergrownTurret_D_Turret_sweep",
-    "OvergrownTurret_D_Sensor_spin",
-    "OvergrownTurret_E_Turret_sweep",
-    "OvergrownTurret_E_Sensor_spin",
-    "MossSensor_A_Dish_spin",
-    "MossSensor_A_DishB_sweep",
-    "MossSensor_A_RingA_spin",
-    "MossSensor_A_RingB_spin",
-    "MossSensor_B_Dish_spin",
-    "MossSensor_B_DishB_sweep",
-    "MossSensor_B_RingA_spin",
-    "MossSensor_B_RingB_spin",
-    "CollapsedCorridor_West_Gate_pulse",
-    "CollapsedCorridor_West_Cables_sweep",
-    "CollapsedCorridor_East_Gate_pulse",
-    "CollapsedCorridor_East_Cables_sweep",
-    "OvergrownDepot_A_Terminal_pulse",
-    "OvergrownDepot_B_Terminal_pulse",
-    "BloomRover_Rover_sweep",
-    "BloomCables_Cables_pulse",
-    "Undergrowth_00_Bush_sweep",
-    "Undergrowth_00_Bloom_pulse",
-    "Undergrowth_01_Bush_sweep",
-    "Undergrowth_01_Bloom_pulse",
-    "Undergrowth_02_Bush_sweep",
-    "Undergrowth_02_Bloom_pulse",
-    "Undergrowth_03_Bush_sweep",
-    "Undergrowth_03_Bloom_pulse",
-    "Undergrowth_04_Bush_sweep",
-    "Undergrowth_04_Bloom_pulse",
-    "Undergrowth_05_Bush_sweep",
-    "Undergrowth_05_Bloom_pulse",
-    "Undergrowth_06_Bush_sweep",
-    "Undergrowth_06_Bloom_pulse",
-    "Undergrowth_07_Bush_sweep",
-    "Undergrowth_07_Bloom_pulse",
-    "Undergrowth_08_Bush_sweep",
-    "Undergrowth_08_Bloom_pulse",
-    "Undergrowth_09_Bush_sweep",
-    "Undergrowth_09_Bloom_pulse",
-    "Undergrowth_10_Bush_sweep",
-    "Undergrowth_10_Bloom_pulse",
-    "Undergrowth_11_Bush_sweep",
-    "Undergrowth_11_Bloom_pulse",
-    "Undergrowth_12_Bush_sweep",
-    "Undergrowth_12_Bloom_pulse",
-    "Undergrowth_13_Bush_sweep",
-    "Undergrowth_13_Bloom_pulse",
-    "Undergrowth_14_Bush_sweep",
-    "Undergrowth_14_Bloom_pulse",
-    "Undergrowth_15_Bush_sweep",
-    "Undergrowth_15_Bloom_pulse",
-    "MossyBoulder_00_Drape_sweep",
-    "MossyBoulder_01_Drape_sweep",
-    "MossyBoulder_02_Drape_sweep",
-    "MossyBoulder_03_Drape_sweep",
-    "MossyBoulder_04_Drape_sweep",
-    "AlienFlora_00_Growth_sweep",
-    "AlienFlora_00_Bloom_pulse",
-    "AlienFlora_01_Growth_sweep",
-    "AlienFlora_01_Bloom_pulse",
-    "AlienFlora_02_Growth_sweep",
-    "AlienFlora_02_Bloom_pulse",
-    "AlienFlora_03_Growth_sweep",
-    "AlienFlora_03_Bloom_pulse",
-    "AlienFlora_04_Growth_sweep",
-    "AlienFlora_04_Bloom_pulse",
-    "AlienFlora_05_Growth_sweep",
-    "AlienFlora_05_Bloom_pulse",
-    "AlienFlora_06_Growth_sweep",
-    "AlienFlora_06_Bloom_pulse",
-    "AlienFlora_07_Growth_sweep",
-    "AlienFlora_07_Bloom_pulse",
-    "AlienFlora_08_Growth_sweep",
-    "AlienFlora_08_Bloom_pulse",
-    "AlienFlora_09_Growth_sweep",
-    "AlienFlora_09_Bloom_pulse",
-    "AlienFlora_10_Growth_sweep",
-    "AlienFlora_10_Bloom_pulse",
-    "AlienFlora_11_Growth_sweep",
-    "AlienFlora_11_Bloom_pulse",
-    "AlienFlora_12_Growth_sweep",
-    "AlienFlora_12_Bloom_pulse",
-    "AlienFlora_13_Growth_sweep",
-    "AlienFlora_13_Bloom_pulse",
-    "AlienFlora_14_Growth_sweep",
-    "AlienFlora_14_Bloom_pulse",
-    "AlienFlora_15_Growth_sweep",
-    "AlienFlora_15_Bloom_pulse",
-    "CrystalCluster_00_Main_pulse",
-    "CrystalCluster_00_Second_pulse",
-    "CrystalCluster_01_Main_pulse",
-    "CrystalCluster_01_Second_pulse",
-    "CrystalCluster_02_Main_pulse",
-    "CrystalCluster_02_Second_pulse",
-    "CrystalCluster_03_Main_pulse",
-    "CrystalCluster_03_Second_pulse"
+    "CentralTower_RingA_spin",
+    "CentralTower_RingB_spin",
+    "CentralTower_Beam_pulse",
+    "Bridge_E_Light_pulse",
+    "Bridge_W_Light_pulse",
+    "Bridge_N_Light_pulse",
+    "Bridge_S_Light_pulse",
+    "InteriorBase_South_Console_pulse",
+    "InteriorBase_South_Door_pulse",
+    "InteriorBase_North_Console_pulse",
+    "InteriorBase_North_Door_pulse",
+    "EnemyGate_North_Beacon_spin",
+    "EnemyGate_North_Gate_pulse",
+    "EnemyGate_South_Beacon_spin",
+    "EnemyGate_South_Gate_pulse",
+    "EnemyGate_East_Beacon_spin",
+    "EnemyGate_East_Gate_pulse",
+    "EnemyGate_West_Beacon_spin",
+    "EnemyGate_West_Gate_pulse",
+    "EnemyGate_Center_Beacon_spin",
+    "EnemyGate_Center_Gate_pulse",
+    "Turret_N_Turret_sweep",
+    "Turret_N_Sensor_spin",
+    "Turret_S_Turret_sweep",
+    "Turret_S_Sensor_spin",
+    "Turret_E_Turret_sweep",
+    "Turret_E_Sensor_spin",
+    "Turret_W_Turret_sweep",
+    "Turret_W_Sensor_spin",
+    "StormSpark_A_Cables_sweep",
+    "StormSpark_A_Spark_pulse",
+    "StormSpark_B_Cables_sweep",
+    "StormSpark_B_Spark_pulse",
+    "StormConsole_Flame_pulse",
+    "StormWreck_Hull_sweep"
    ],
    "sockets": [
-    "spawn_bloom_shrine",
-    "spawn_bloom_nursery",
-    "spawn_bloom_grove",
-    "spawn_bloom_east"
+    "spawn_titans_north",
+    "spawn_titans_south",
+    "spawn_titans_east",
+    "spawn_titans_west",
+    "spawn_titans_tower",
+    "spawn_titans_interior"
    ],
    "theme": {
-    "id": "verdant",
-    "label": "Verdant Bloom",
-    "mood": "humid jungle cathedral v2.1 — canopy god rays but ground readable: thick spore haze only low, steel eaten, mist pools not washes",
-    "accent": "#7dff9c",
+    "id": "titans",
+    "label": "STELLAR HORIZON — STORM",
+    "mood": "storm tempest — dark grey sky, low clouds, rain haze, tower beam cuts through storm, lightning rim, interior base shelter glow, waterfall heavy",
+    "accent": "#59e6ff",
     "hazard": "#ffd166",
     "sky": {
-     "top": "#01140a",
-     "mid": "#0e2e1e",
-     "bottom": "#2f6a42",
-     "glow": "#7dff9c",
+     "top": "#0a0e14",
+     "mid": "#1a232e",
+     "bottom": "#2e3440",
+     "glow": "#8af2ff",
      "glowStrength": 0.28,
-     "horizonHaze": 0.36,
-     "sunWarmth": 0.18
+     "horizonHaze": 0.48,
+     "sunWarmth": 0
     },
     "fog": {
-     "color": "#0f2e1e",
-     "density": 0.0046,
-     "height": 12,
-     "heightFalloff": 0.2,
-     "hazeColor": "#7dff9c",
-     "hazeStrength": 0.12
-    }
-   },
-   "validation": {
-    "errors": 0,
-    "warnings": 0,
-    "khronos": "2.0.0-dev.3.10"
-   },
-   "bytes": 2386524
-  },
-  {
-   "id": "emberfall",
-   "category": "world",
-   "name": "EMBERFALL FOUNDRY",
-   "mission": "extraction",
-   "resource": "res://assets/forge/worlds/emberfall.glb",
-   "source": "tools/asset-forge/src/worlds/emberfall.js",
-   "assetPolicy": "every visible mesh is a licensed GLB from game/assets/world/real",
-   "targetHeight": 24.57,
-   "targetLength": 319.951,
-   "normalisedBy": "height",
-   "measuredHeight": 24.57,
-   "measuredWidth": 319.951,
-   "measuredDepth": 196.386,
-   "triangles": 257136,
-   "meshes": 494,
-   "materials": 284,
-   "textures": 87,
-   "clips": [
-    "Smelter_A_GlowBand_spin",
-    "Smelter_A_Flue_bob",
-    "Smelter_B_GlowBand_spin",
-    "Smelter_B_Flue_bob",
-    "Smelter_C_GlowBand_spin",
-    "Smelter_C_Flue_bob",
-    "OreSilo_A_DrumTop_spin",
-    "OreSilo_B_DrumTop_spin",
-    "OreSilo_C_DrumTop_spin",
-    "YardCrane_North_Beam_bob",
-    "YardCrane_South_Beam_bob",
-    "SeamDrill_Crown_spin",
-    "SeamDrill_Arm_sweep",
-    "SlagPool_A_Melt_pulse",
-    "SlagPool_B_Melt_pulse",
-    "FoundryTurret_A_Turret_sweep",
-    "FoundryTurret_A_Sensor_spin",
-    "FoundryTurret_B_Turret_sweep",
-    "FoundryTurret_B_Sensor_spin",
-    "FoundryTurret_C_Turret_sweep",
-    "FoundryTurret_C_Sensor_spin",
-    "FoundryGate_West_Beacon_spin",
-    "FoundryGate_West_Gate_pulse",
-    "FoundryGate_South_Beacon_spin",
-    "FoundryGate_South_Gate_pulse",
-    "FoundryGate_North_Beacon_spin",
-    "FoundryGate_North_Gate_pulse",
-    "ApproachSilo_A_DrumTop_spin",
-    "ApproachSilo_B_DrumTop_spin",
-    "ApproachSilo_C_DrumTop_spin",
-    "ApproachCrane_Beam_bob",
-    "ApproachSlag_Melt_pulse",
-    "ApproachTurret_Turret_sweep",
-    "ApproachTurret_Sensor_spin",
-    "SlagPool_C_Melt_pulse",
-    "SlaggedHauler_Hull_sweep",
-    "OreTrain_Engine_sweep",
-    "OreTrain_CarA_bob",
-    "FoundryRocket_Nose_pulse",
-    "FoundryGate_Lasers_Gate_pulse",
-    "FoundryGate_Lasers_Cables_sweep",
-    "YardDepot_Terminal_pulse",
-    "ApproachDepot_Terminal_pulse",
-    "FoundryRover_Rover_sweep",
-    "FoundryGreeble_Cables_pulse",
-    "WreckedTransport_00_Hull_sweep",
-    "WreckedTransport_01_Hull_sweep",
-    "WreckedTransport_02_Hull_sweep",
-    "SlagPool_00_Melt_pulse",
-    "SlagPool_01_Melt_pulse",
-    "SlagPool_02_Melt_pulse"
-   ],
-   "sockets": [
-    "spawn_foundry_yard",
-    "spawn_foundry_smelter",
-    "spawn_foundry_drill",
-    "spawn_foundry_plant"
-   ],
-   "theme": {
-    "id": "emberfall",
-    "label": "Emberfall Foundry",
-    "mood": "wildfire megastructure v2.1 — ash & heat haze but megastructure stays sharp: furnace key is a sun, floor breathes, silhouette survives ash",
-    "accent": "#ff8c1a",
-    "hazard": "#ffd166",
-    "sky": {
-     "top": "#0a0302",
-     "mid": "#1e0c06",
-     "bottom": "#7a3318",
-     "glow": "#ff8c1a",
-     "glowStrength": 0.34,
-     "horizonHaze": 0.42,
-     "sunWarmth": 0.42
-    },
-    "fog": {
-     "color": "#3a1e0a",
-     "density": 0.0028,
-     "height": 20,
-     "heightFalloff": 0.11,
-     "hazeColor": "#ff7a1e",
+     "color": "#1a222e",
+     "density": 0.0048,
+     "height": 14,
+     "heightFalloff": 0.18,
+     "hazeColor": "#8af2ff",
      "hazeStrength": 0.14
     }
    },
@@ -1069,112 +560,7 @@
     "warnings": 0,
     "khronos": "2.0.0-dev.3.10"
    },
-   "bytes": 10061740
-  },
-  {
-   "id": "titans",
-   "category": "world",
-   "name": "THE TITANS",
-   "mission": "titans",
-   "resource": "res://assets/forge/worlds/titans.glb",
-   "source": "tools/asset-forge/src/worlds/titans.js",
-   "assetPolicy": "every visible mesh is a licensed GLB from game/assets/world/real",
-   "targetHeight": 9.3,
-   "targetLength": 67.4,
-   "normalisedBy": "height",
-   "measuredHeight": 9.3,
-   "measuredWidth": 67.4,
-   "measuredDepth": 67.4,
-   "triangles": 64930,
-   "meshes": 180,
-   "materials": 180,
-   "textures": 19,
-   "clips": [
-    "HangarBreach_North_Sparks_pulse",
-    "HangarWall_TornA_TornCable_sweep",
-    "HangarCable_Intact_Cables_sweep",
-    "HangarSpark_OrangeA_Cables_sweep",
-    "HangarSpark_OrangeA_Spark_pulse",
-    "HangarSpark_BlueA_Cables_sweep",
-    "HangarSpark_BlueA_Spark_pulse",
-    "HangarConsole_Fire_Flame_pulse",
-    "HangarRover_Wreck_Hull_sweep",
-    "SpineCorridor_North_Gate_pulse",
-    "SpineCorridor_North_Cables_sweep",
-    "SpineCable_Intact_Cables_sweep",
-    "SpineCorridor_South_Gate_pulse",
-    "SpineCorridor_South_Cables_sweep",
-    "SpineGreeble_Cables_pulse",
-    "LabWall_TornA_TornCable_sweep",
-    "LabWall_TornB_TornCable_sweep",
-    "LabSpark_BlueA_Cables_sweep",
-    "LabSpark_BlueA_Spark_pulse",
-    "LabSpark_BlueB_Cables_sweep",
-    "LabSpark_BlueB_Spark_pulse",
-    "LabSpark_OrangeA_Cables_sweep",
-    "LabSpark_OrangeA_Spark_pulse",
-    "LabConsole_BlueFire_Flame_pulse",
-    "LabDressing_Terminal_pulse",
-    "LabViewport_West_Sparks_pulse",
-    "ReactorBreach_South_Sparks_pulse",
-    "ReactorWall_TornA_TornCable_sweep",
-    "ReactorWall_TornB_TornCable_sweep",
-    "ReactorSpark_OrangeA_Cables_sweep",
-    "ReactorSpark_OrangeA_Spark_pulse",
-    "ReactorSpark_BlueC_Cables_sweep",
-    "ReactorSpark_BlueC_Spark_pulse",
-    "ReactorSpark_OrangeB_Cables_sweep",
-    "ReactorSpark_OrangeB_Spark_pulse",
-    "ReactorConsole_Orange_Flame_pulse",
-    "ReactorConsole_Blue_Flame_pulse",
-    "ReactorTurret_Wreck_Turret_sweep",
-    "ReactorTurret_Wreck_Sensor_spin",
-    "LabPit_Lower_PitFloor_pulse",
-    "LabWalkway_North_Light_pulse",
-    "LabWalkway_South_Light_pulse",
-    "LabWalkway_East_Light_pulse",
-    "LabWalkway_West_Light_pulse",
-    "ReactorLaunch_Pad_Tank_pulse",
-    "CableGreeble—VitalyBulgarovdetail_00_Cables_pulse",
-    "CableGreeble—VitalyBulgarovdetail_01_Cables_pulse",
-    "CableGreeble—VitalyBulgarovdetail_02_Cables_pulse"
-   ],
-   "sockets": [
-    "spawn_titans_hangar",
-    "spawn_titans_lab",
-    "spawn_titans_reactor",
-    "spawn_titans_spine"
-   ],
-   "theme": {
-    "id": "titans",
-    "label": "THE TITANS",
-    "mood": "station interior 3D yang diserang — sempit intimately 60x60, setengah hancur, hybrid percikan orange (human) + biru (alien), lantai bolong, dinding sobek/penyok abstract, luar angkasa hanya di 3 breach",
-    "accent": "#ff7a1e",
-    "hazard": "#ffd166",
-    "sky": {
-     "top": "#050a12",
-     "mid": "#0f1f2e",
-     "bottom": "#2a3f4a",
-     "glow": "#ff7a1e",
-     "glowStrength": 0.22,
-     "horizonHaze": 0.28,
-     "sunWarmth": 0.32
-    },
-    "fog": {
-     "color": "#1a262e",
-     "density": 0.0042,
-     "height": 10,
-     "heightFalloff": 0.22,
-     "hazeColor": "#ff7a1e",
-     "hazeStrength": 0.11
-    }
-   },
-   "validation": {
-    "errors": 0,
-    "warnings": 0,
-    "khronos": "2.0.0-dev.3.10"
-   },
-   "bytes": 1961632
+   "bytes": 2456752
   }
  ]
 }

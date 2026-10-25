@@ -1,150 +1,130 @@
 /**
- * emberfall.js — WORLD 3 / mission: EXTRACTION.
+ * emberfall.js — STELLAR HORIZON / EMBERFALL FOUNDRY — NIGHT — ONE WORLD (foto ref).
  *
- * The foundry that feeds the frontier: smelters, silos, a drill rig working a
- * magma seam and a gantry crane that never stops. The Cinder Yard power station
- * itself stands at the east end of the yard — the landmark the whole map is built
- * around. The mood is volcanic industry: black basalt, molten seams, ash in the air.
- *
- * Data only — see `compose.js`. Every mesh is a licensed GLB.
+ * Foto: floating islands di langit, central tower dengan beam biru, jembatan melengkung,
+ * air terjun, canyon, interior base. Level Layout: central tower hub, 4 spawns, main/secondary routes,
+ * cover tiap 5-6m. Environment & Mood: EMBERFALL FOUNDRY — NIGHT — Night at the foundry — city lights and interior base glow, tower beam dominates dark sky.
+ * Geometry SAMA untuk semua 4 worlds — hanya sky/fog/lights dan dressing berbeda.
+ * Satu jalur world konsisten, bukan 4 dimensi terpisah — survival adventure.
  */
 import { THEMES } from './themes.js';
 
 export default {
   id: 'emberfall_foundry',
-  name: 'EMBERFALL FOUNDRY',
+  name: 'EMBERFALL FOUNDRY — NIGHT',
   mission: 'extraction',
-  tagline: 'Tap the seam, load the ore, get out before the floor opens.',
-  width: 200,
-  depth: 176,
-  centreZ: -10,
+  tagline: 'Night at the foundry — city lights and interior base glow, tower beam dominates dark sky.',
+  width: 180,
+  depth: 180,
+  centreZ: 0,
   theme: THEMES.emberfall,
-  scatterDistrict: 'slagfield',
+  scatterDistrict: 'central',
 
   terrain: {
-    floor: { tile: 12.5 },
-    deck: { width: 34, depth: 26, tile: 6.5, lift: 0.12, model: 'platform-center', edge: false },
+    floor: { tile: 12 },
+    deck: { width: 36, depth: 36, tile: 6, lift: 0.18 },
     roads: [
-      { name: 'MainHaul', from: [-18, 0], to: [-76, -4] },
-      { name: 'FurnaceRun', from: [18, -6], to: [68, -20] },
-      { name: 'SeamRoad', from: [0, 16], to: [4, 62] },
-      { name: 'NorthRail', from: [0, -18], to: [-6, -60] },
+      // Main Route solid — Level Layout: hub central tower ke 4 spawns
+      { name: 'MainNorth', from: [0, 8], to: [0, 62] },
+      { name: 'MainSouth', from: [0, -8], to: [0, -62] },
+      { name: 'MainEast', from: [8, 0], to: [62, 0] },
+      { name: 'MainWest', from: [-8, 0], to: [-62, 0] },
+      // Outer loop — Level Layout outer ring
+      { name: 'OuterNorth', from: [-58, 58], to: [58, 58] },
+      { name: 'OuterSouth', from: [-58, -58], to: [58, -58] },
+      { name: 'OuterEast', from: [58, -58], to: [58, 58] },
+      { name: 'OuterWest', from: [-58, -58], to: [-58, 58] },
+      // Secondary dashed — alternative flanking via islands
+      { name: 'SecondaryNE', from: [22, 22], to: [52, 42] },
+      { name: 'SecondaryNW', from: [-22, 22], to: [-52, 42] },
+      { name: 'SecondarySE', from: [22, -22], to: [52, -42] },
+      { name: 'SecondarySW', from: [-22, -22], to: [-52, -42] },
     ],
     perimeter: {
-      spacing: 3.2,
-      height: 3.2,
-      frame: 'structure',
-      corner: 'columns',
-      cornerHeight: 13,
+      spacing: 3.4,
+      height: 3.6,
+      corner: 'column',
+      cornerHeight: 11,
       gaps: [
-        { axis: 'z', at: -10 - 88, gap: 12 },
-        { axis: 'z', at: -10 + 88, gap: 12 },
-        { axis: 'x', at: -100, gap: 12 },
-        { axis: 'x', at: 100, gap: 12 },
+        { axis: 'z', at: 90, gap: 14 },
+        { axis: 'z', at: -90, gap: 14 },
+        { axis: 'x', at: -90, gap: 14 },
+        { axis: 'x', at: 90, gap: 14 },
       ],
     },
-    dressing: { count: 20, centre: [40, 52], radius: 30, squash: 0.7, craterScale: 9, rockScale: 2.8 },
+    dressing: { count: 18, centre: [0, 0], radius: 28, squash: 0.85, craterScale: 8, rockScale: 2.4 },
   },
 
   layout: [
-    /* ------------------------------------------------------------- smelters */
-    { role: 'smelter_tower', name: 'Smelter_A', pos: [-44, 0, -34], yaw: 0, district: 'smelter' },
-    { role: 'smelter_tower', name: 'Smelter_B', pos: [-64, 0, 4], yaw: 18, district: 'smelter' },
-    { role: 'smelter_tower', name: 'Smelter_C', pos: [-30, 0, 30], yaw: -12, district: 'smelter' },
-    { role: 'ore_silo', name: 'OreSilo_A', pos: [-26, 0, -12], yaw: 0, district: 'smelter' },
-    { role: 'ore_silo', name: 'OreSilo_B', pos: [-52, 0, -14], yaw: 40, district: 'smelter' },
-    { role: 'ore_silo', name: 'OreSilo_C', pos: [-16, 0, 24], yaw: 75, district: 'smelter' },
+    /* ===================================================== STELLAR HORIZON — ONE WORLD */
+    // Central landmark — the blue beam tower from foto top (01 MAIN VIEW), height 28m, visible dari semua pulau
+    { role: 'stellar_tower', name: 'CentralTower', pos: [0, 0, 0], yaw: 0, district: 'central' },
+    // Floating islands — tebing curam + platform atas + waterfall (foto floating islands), tiap 40m dari center, y +8-10
+    { role: 'stellar_island', name: 'Island_NE', pos: [42, 9, 32], yaw: 12, district: 'islands' },
+    { role: 'stellar_island', name: 'Island_NW', pos: [-38, 11, 28], yaw: -18, district: 'islands' },
+    { role: 'stellar_island', name: 'Island_SE', pos: [40, 7, -30], yaw: 22, district: 'islands' },
+    { role: 'stellar_island', name: 'Island_SW', pos: [-42, 10, -34], yaw: -8, district: 'islands' },
+    { role: 'stellar_island', name: 'Island_E', pos: [58, 6, 8], yaw: 90, district: 'islands' },
+    { role: 'stellar_island', name: 'Island_W', pos: [-56, 8, -6], yaw: -90, district: 'islands' },
+    // Sky bridges — jembatan melengkung antar pulau seperti foto jembatan utama (foto top, curving bridge)
+    { role: 'stellar_bridge', name: 'Bridge_E', pos: [22, 6, 0], yaw: 0, district: 'bridges' },
+    { role: 'stellar_bridge', name: 'Bridge_W', pos: [-22, 6, 0], yaw: 180, district: 'bridges' },
+    { role: 'stellar_bridge', name: 'Bridge_N', pos: [0, 6, 22], yaw: 90, district: 'bridges' },
+    { role: 'stellar_bridge', name: 'Bridge_S', pos: [0, 6, -22], yaw: -90, district: 'bridges' },
+    // Canyon — tebing dalam di sisi, seperti foto 02 CANYON ROUTE, dengan shadows
+    { role: 'stellar_canyon', name: 'Canyon_N', pos: [0, 0, 58], yaw: 0, district: 'canyon' },
+    { role: 'stellar_canyon', name: 'Canyon_S', pos: [0, 0, -62], yaw: 180, district: 'canyon' },
+    { role: 'stellar_canyon', name: 'Canyon_E', pos: [68, 0, 0], yaw: 90, district: 'canyon' },
+    { role: 'stellar_canyon', name: 'Canyon_W', pos: [-66, 0, 0], yaw: -90, district: 'canyon' },
+    // Interior Base — lab gelap, console biru, seperti foto 02 FACILITY INSIDE + 4 INTERIOR BASE
+    { role: 'stellar_interior', name: 'InteriorBase_South', pos: [0, 0, -38], yaw: 180, district: 'interior' },
+    { role: 'stellar_interior', name: 'InteriorBase_North', pos: [0, 0, 42], yaw: 0, district: 'interior' },
+    // Cover tiap 5-6m — survival, bukan arena kosong, seperti Level Layout COVER/BARRICADE
+    { role: 'stellar_cover', name: 'Cover_A', pos: [12, 0, 8], yaw: 22, district: 'cover' },
+    { role: 'stellar_cover', name: 'Cover_B', pos: [28, 0, -6], yaw: -14, district: 'cover' },
+    { role: 'stellar_cover', name: 'Cover_C', pos: [-18, 0, 14], yaw: 42, district: 'cover' },
+    { role: 'stellar_cover', name: 'Cover_D', pos: [-32, 0, -10], yaw: -28, district: 'cover' },
+    { role: 'stellar_cover', name: 'Cover_E', pos: [0, 0, 34], yaw: 8, district: 'cover' },
+    { role: 'stellar_cover', name: 'Cover_F', pos: [0, 0, -24], yaw: -12, district: 'cover' },
+    { role: 'stellar_cover', name: 'Cover_G', pos: [48, 0, 22], yaw: 68, district: 'cover' },
+    { role: 'stellar_cover', name: 'Cover_H', pos: [-48, 0, -22], yaw: -68, district: 'cover' },
+    // Enemy spawns — segitiga merah di Level Layout, dekat central dan key locations
+    { role: 'enemy_spawn_gate', name: 'EnemyGate_North', pos: [0, 0, 72], yaw: 180, scale: [1.35,1.3,1.2], district: 'spawns' },
+    { role: 'enemy_spawn_gate', name: 'EnemyGate_South', pos: [0, 0, -74], yaw: 0, scale: [1.35,1.3,1.2], district: 'spawns' },
+    { role: 'enemy_spawn_gate', name: 'EnemyGate_East', pos: [76, 0, 0], yaw: -90, scale: [1.35,1.3,1.2], district: 'spawns' },
+    { role: 'enemy_spawn_gate', name: 'EnemyGate_West', pos: [-76, 0, 0], yaw: 90, scale: [1.35,1.3,1.2], district: 'spawns' },
+    { role: 'enemy_spawn_gate', name: 'EnemyGate_Center', pos: [18, 0, 18], yaw: 42, scale: [1.1,1.1,1.0], district: 'spawns' },
+    // Defense & key locations — kuning di Level Layout
+    { role: 'defense_turret', name: 'Turret_N', pos: [14, 0, 44], yaw: -12, district: 'guard' },
+    { role: 'defense_turret', name: 'Turret_S', pos: [-12, 0, -44], yaw: 168, district: 'guard' },
+    { role: 'defense_turret', name: 'Turret_E', pos: [44, 0, 12], yaw: 82, district: 'guard' },
+    { role: 'defense_turret', name: 'Turret_W', pos: [-42, 0, -14], yaw: -82, district: 'guard' },
 
-    /* ---------------------------------------------------------- the yard */
-    { role: 'crane_gantry', name: 'YardCrane_North', pos: [34, 0, -30], yaw: 0, district: 'yard' },
-    { role: 'crane_gantry', name: 'YardCrane_South', pos: [30, 0, 26], yaw: 180, district: 'yard' },
-    { role: 'drill_rig', name: 'SeamDrill', pos: [4, 0, 44], yaw: 8, district: 'yard' },
-    { role: 'slag_pool', name: 'SlagPool_A', pos: [16, 0, 8], yaw: 0, district: 'yard' },
-    { role: 'slag_pool', name: 'SlagPool_B', pos: [52, 0, -6], yaw: 40, district: 'yard' },
-    { role: 'cover_module', name: 'YardCover_W', pos: [-4, 0, -4], yaw: 30, district: 'yard' },
-    { role: 'cover_module', name: 'YardCover_E', pos: [10, 0, -2], yaw: -40, district: 'yard' },
-
-    /* -------------------------------------------------------------- guard */
-    { role: 'defense_turret', name: 'FoundryTurret_A', pos: [0, 0, -34], yaw: 0, district: 'guard' },
-    { role: 'defense_turret', name: 'FoundryTurret_B', pos: [-78, 0, -18], yaw: 90, district: 'guard' },
-    { role: 'defense_turret', name: 'FoundryTurret_C', pos: [64, 0, 30], yaw: -70, district: 'guard' },
-    { role: 'enemy_spawn_gate', name: 'FoundryGate_West', pos: [-92, 0, 22], yaw: 90, scale: [1.4, 1.35, 1.25], district: 'guard' },
-    { role: 'enemy_spawn_gate', name: 'FoundryGate_South', pos: [40, 0, 78], yaw: 180, scale: [1.4, 1.35, 1.25], district: 'guard' },
-    { role: 'enemy_spawn_gate', name: 'FoundryGate_North', pos: [40, 0, -74], yaw: 0, scale: [1.4, 1.35, 1.25], district: 'guard' },
-
-    /* ------------------------------------------------- the plant approach */
-    // The east third of the field is the run-up to the Cinder Yard station: a
-    // rail of silos and a second crane so the player has cover on the way in,
-    // and so the largest empty rectangle in this world is not the one the
-    // mission's objective stands behind.
-    { role: 'ore_silo', name: 'ApproachSilo_A', pos: [88, 0, -34], yaw: 15, district: 'approach' },
-    { role: 'ore_silo', name: 'ApproachSilo_B', pos: [104, 0, -6], yaw: 60, district: 'approach' },
-    { role: 'ore_silo', name: 'ApproachSilo_C', pos: [86, 0, 24], yaw: 100, district: 'approach' },
-    { role: 'crane_gantry', name: 'ApproachCrane', pos: [62, 0, -52], yaw: 90, district: 'approach' },
-    { role: 'cover_module', name: 'ApproachCover_A', pos: [58, 0, 8], yaw: 10, district: 'approach' },
-    { role: 'cover_module', name: 'ApproachCover_B', pos: [80, 0, 44], yaw: 75, district: 'approach' },
-    { role: 'slag_pool', name: 'ApproachSlag', pos: [112, 0, 34], yaw: 55, district: 'approach' },
-    { role: 'ash_statue', name: 'ApproachStack', pos: [120, 0, -46], yaw: 12, district: 'approach' },
-    { role: 'defense_turret', name: 'ApproachTurret', pos: [52, 0, -20], yaw: -120, district: 'approach' },
-
-    /* ------------------------------------------------------------ slagfield */
-    { role: 'ash_statue', name: 'AshColumn_A', pos: [76, 0, -46], yaw: 0, district: 'slagfield' },
-    { role: 'ash_statue', name: 'AshColumn_B', pos: [-70, 0, 52], yaw: 30, district: 'slagfield' },
-    { role: 'slag_pool', name: 'SlagPool_C', pos: [70, 0, 48], yaw: 20, district: 'slagfield' },
-    { role: 'wrecked_transport', name: 'SlaggedHauler', pos: [26, 0, 64], yaw: -40, district: 'slagfield' },
-
-    /* ------------------------------------------ cinematic megastructure — alive */
-    // Ore monorail overhead: Syd Mead transit spine carrying ore across the yard, alive with a train.
-    // Elevated 3.2 m, east-west across the yard, south of MainHaul so the haul road stays clear.
-    { role: 'monorail_spine', name: 'OreMonorail_East', pos: [36, 0, -12], yaw: 90, district: 'yard' },
-    { role: 'monorail_train', name: 'OreTrain', pos: [36, 0, -12], yaw: 90, district: 'yard' },
-    // Rocket gantry: 18 m vertical launch stack east of approach — megastructure silhouetted vs Cinder Yard plant.
-    // Vitaly Bulgarov beat: industrial launch pad that tells "this foundry builds rockets, not just ore".
-    { role: 'rocket_stack', name: 'FoundryRocket', pos: [118, 0, -18], yaw: 84, district: 'approach' },
-    // Ground rail: ore rail plumbing between smelters — industrial plumbing you can read like Syd Mead's industrial design.
-    { role: 'rail_line', name: 'SmelterRail_A', pos: [-38, 0, -12], yaw: 0, district: 'smelter' },
-    { role: 'rail_line', name: 'YardRail', pos: [12, 0, 18], yaw: 90, district: 'yard' },
-    // Laser gate: modular corridor gate at approach, pulsing cyan — dramatic airlock before the plant.
-    { role: 'modular_corridor', name: 'FoundryGate_Lasers', pos: [88, 0, 34], yaw: -10, district: 'approach' },
-    // Station dressing: lived-in yard — containers and terminal still glowing under ash.
-    { role: 'station_dressing', name: 'YardDepot', pos: [44, 0, 8], yaw: 22, district: 'yard' },
-    { role: 'station_dressing', name: 'ApproachDepot', pos: [96, 0, -38], yaw: -34, district: 'approach' },
-    { role: 'rover_outrider', name: 'FoundryRover', pos: [54, 0, -42], yaw: 72, district: 'approach' },
-    { role: 'cable_greeble', name: 'FoundryGreeble', pos: [118, 0, -26], yaw: 0, district: 'approach' },
+    // Night variant — foundry, slag, crane (glow di night)
+    { role: 'smelter_tower', name: 'Smelter_A', pos: [32, 0, -42], yaw: 0, district: 'dressing' },
+    { role: 'crane_gantry', name: 'Crane_A', pos: [-28, 0, 52], yaw: 90, district: 'dressing' },
+    { role: 'slag_pool', name: 'Slag_A', pos: [-36, 0, -36], yaw: 0, district: 'dressing' },
   ],
 
   landmarks: [
-    {
-      // The photographed Cinder Yard plant, standing at the east end of its own
-      // yard: 245 m of real industrial scene, brought to a 24 m ridge.
-      id: 'cinder_yard',
-      model: 'powerplant',
-      height: 24,
-      pos: [166, 0, -18],
-      yaw: 98,
-    },
+    // Central tower is the landmark itself — not a separate powerplant
   ],
 
   scatter: {
     rock_cluster: [
-      [-84, 46, 1.1], [84, 62, 0.95], [58, -62, 1.0], [-40, 68, 0.9], [10, -66, 0.85],
-      [-88, -52, 0.95],
+      [-70, -70, 0.9], [70, -70, 0.9], [-70, 70, 0.9], [70, 70, 0.9], [0, 58, 0.8], [0, -58, 0.8],
     ],
-    wrecked_transport: [
-      [-58, 62, 0.9, 40], [66, 6, 0.85, -25], [96, 60, 0.95, 130],
-    ],
-    slag_pool: [
-      [-14, -54, 0.9, 10], [40, -44, 0.8, 70], [-96, -6, 0.85, 25],
-    ],
-    ash_statue: [
-      [54, 52, 0.9, 0], [-22, 66, 0.85, 45], [122, 12, 0.9, 100],
+    cover_module: [
+      [12, 12, 0.9], [-12, 12, 0.9], [12, -12, 0.9], [-12, -12, 0.9],
     ],
   },
 
   spawns: [
-    { name: 'spawn_foundry_yard', pos: [0, 0.1, 10] },
-    { name: 'spawn_foundry_smelter', pos: [-38, 0.1, -6] },
-    { name: 'spawn_foundry_drill', pos: [6, 0.1, 34] },
-    { name: 'spawn_foundry_plant', pos: [78, 0.1, -18] },
+    { name: 'spawn_emberfall_north', pos: [0, 0.1, 62] },
+    { name: 'spawn_emberfall_south', pos: [0, 0.1, -62] },
+    { name: 'spawn_emberfall_east', pos: [62, 0.1, 0] },
+    { name: 'spawn_emberfall_west', pos: [-62, 0.1, 0] },
+    { name: 'spawn_emberfall_tower', pos: [0, 0.1, 8] },
+    { name: 'spawn_emberfall_interior', pos: [0, 0.1, -32] },
   ],
 };

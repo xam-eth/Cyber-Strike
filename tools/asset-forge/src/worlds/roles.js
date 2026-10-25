@@ -599,40 +599,118 @@ export const ROLES = {
     ],
     anim: [{ node: 'Tank', kind: 'pulse', amount: 0.02, speed: 1.6 }],
   },
+
+  /* ========================================================== STELLAR HORIZON — ONE WORLD (foto ref) — floating islands, central tower, canyon, interior — semua GLB real, tidak datar */
+  stellar_tower: {
+    title: 'STELLAR Tower — central landmark 28m, beam biru, jembatan melengkung',
+    parts: [
+      { model: 'column', height: 22.0, pos: [0, 0, 0], name: 'Core' },
+      { model: 'tank_ring', width: 6.2, pos: [0, 8.5, 0], name: 'RingA', emissive: { color: 0x59e6ff, intensity: 0.85 } },
+      { model: 'tank_ring', width: 4.8, pos: [0, 16.2, 0], name: 'RingB', emissive: { color: 0x59e6ff, intensity: 1.0 } },
+      { model: 'platform-center', scale: 14.0, pos: [0, 0, 0], name: 'Base' },
+      { model: 'modular-gate-lasers', height: 3.2, pos: [0, 1.2, 3.8], name: 'Beam', emissive: { color: 0x59e6ff, intensity: 1.2 } },
+      { model: 'tall_arch', scale: 1.4, pos: [-4.2, 0, 2.4], name: 'ArchA' },
+      { model: 'tall_arch', scale: 1.4, pos: [4.2, 0, -2.4], yaw: 180, name: 'ArchB' },
+    ],
+    anim: [
+      { node: 'RingA', kind: 'spin', axis: 'y', speed: 0.18 },
+      { node: 'RingB', kind: 'spin', axis: 'y', speed: -0.22 },
+      { node: 'Beam', kind: 'pulse', amount: 0.025, speed: 1.15 },
+    ],
+  },
+  stellar_island: {
+    title: 'Floating Island — tebing curam + platform atas + air terjun',
+    parts: [
+      { model: 'craterlarge', height: 0.85, pos: [0, 0, 0], name: 'CliffBase' },
+      { model: 'terrain-sidecliff', height: 5.2, pos: [-3.2, 2.4, 1.2], yaw: -22, name: 'CliffA' },
+      { model: 'terrain-side', height: 4.6, pos: [2.8, 2.2, -1.0], yaw: 34, name: 'CliffB' },
+      { model: 'platform-large', scale: 10.0, pos: [0, 5.8, 0], name: 'TopDeck' },
+      { model: 'rocks-smallb', height: 1.1, pos: [3.2, 5.6, 2.4], name: 'RockA' },
+      { model: 'barrel', height: 0.7, pos: [-2.4, 6.0, -1.2], name: 'Crate' },
+    ],
+    anim: [],
+  },
+  stellar_bridge: {
+    title: 'Sky Bridge — melengkung antar pulau, seperti foto jembatan utama',
+    parts: [
+      { model: 'platform-long', scale: 14.0, pos: [0, 6.4, 0], name: 'Span' },
+      { model: 'platform-side', width: 3.6, pos: [0, 6.8, 1.4], name: 'RailingA' },
+      { model: 'platform-side', width: 3.6, pos: [0, 6.8, -1.4], name: 'RailingB' },
+      { model: 'barrel', height: 0.5, pos: [0, 6.6, 0], name: 'Light', emissive: { color: 0xffd166, intensity: 0.35 } },
+    ],
+    anim: [{ node: 'Light', kind: 'pulse', amount: 0.02, speed: 1.4 }],
+  },
+  stellar_canyon: {
+    title: 'Canyon Wall — tebing dalam dengan shadows, jalur canyon',
+    parts: [
+      { model: 'terrain-sidecliff', height: 7.2, pos: [-4.2, 0, 0], yaw: 0, name: 'WallA' },
+      { model: 'terrain-side', height: 6.4, pos: [4.2, 0, 0], yaw: 180, name: 'WallB' },
+      { model: 'rocks-smallb', height: 1.4, pos: [0, 0, 2.2], name: 'Rubble' },
+      { model: 'structure', height: 3.2, pos: [0, 1.2, -2.4], name: 'Support' },
+    ],
+    anim: [],
+  },
+  stellar_interior: {
+    title: 'Interior Base — lab gelap, console biru, seperti foto Facility Inside',
+    parts: [
+      { model: 'modular-corridor', height: 3.4, pos: [0, 0, 0], name: 'Corridor' },
+      { model: 'modular-room-small', height: 3.6, pos: [0, 0, 3.2], name: 'Room' },
+      { model: 'station-computer', height: 1.1, pos: [-1.2, 0.4, 1.4], name: 'Console', emissive: { color: 0x59e6ff, intensity: 0.55 } },
+      { model: 'station-container', height: 1.4, pos: [1.4, 0.4, -1.2], name: 'Crate' },
+      { model: 'modular-gate-lasers', height: 2.8, pos: [0, 0.2, -3.4], name: 'Door', emissive: { color: 0x59e6ff, intensity: 0.85 } },
+    ],
+    anim: [
+      { node: 'Console', kind: 'pulse', amount: 0.02, speed: 1.8 },
+      { node: 'Door', kind: 'pulse', amount: 0.02, speed: 1.2 },
+    ],
+  },
+  stellar_cover: {
+    title: 'Cover Barricade — tiap 5-6m, bukan arena kosong, survival',
+    parts: [
+      { model: 'barrels', height: 1.2, pos: [0, 0, 0], name: 'Barricade' },
+      { model: 'platform-small', width: 2.4, pos: [0, 0.2, 0.8], name: 'Plate' },
+      { model: 'rocks-smalla', height: 0.6, pos: [1.2, 0, -0.4], name: 'Rock' },
+    ],
+    anim: [],
+  },
 };
 
 /** Roles per world: which of the library each mission actually uses.
  * Cinematic additions marked — all real GLB, dramatic silhouettes + lived-in greeble. */
 export const WORLD_ROLES = {
   frostline: [
+    // ONE WORLD base — stellar horizon floating archipelago (foto ref) — central tower + islands + canyon + interior + cover tiap 5m
+    'stellar_tower', 'stellar_island', 'stellar_bridge', 'stellar_canyon', 'stellar_interior', 'stellar_cover',
+    // legacy: keep for variation but now secondary — polar relay dressing as daytime variant
     'comms_array', 'relay_mast', 'cryo_condenser', 'ice_crystal', 'frozen_hauler',
     'defense_turret', 'sensor_tower', 'cover_module', 'enemy_spawn_gate',
     'rock_cluster', 'wrecked_transport',
-    // cinematic: Syd Mead transit spine + megastructure rocket frozen
     'monorail_spine', 'monorail_train', 'rocket_stack', 'rover_outrider', 'rail_line', 'cable_greeble',
   ],
   verdant: [
+    // ONE WORLD base — same layout as frostline, sunset mood
+    'stellar_tower', 'stellar_island', 'stellar_bridge', 'stellar_canyon', 'stellar_interior', 'stellar_cover',
     'bio_dome', 'giant_flora', 'spore_vent', 'overgrown_arch', 'crashed_lab',
     'grove_tree', 'undergrowth', 'moss_rock', 'mushroom_ring', 'fallen_log',
     'crystal_cluster', 'alien_flora', 'rock_cluster', 'defense_turret', 'cover_module',
-    // cinematic: collapsed modular lab swallowed by bloom + lived-in station dressing
     'modular_corridor', 'station_dressing', 'rover_outrider', 'cable_greeble',
   ],
   emberfall: [
+    // ONE WORLD base — same layout, night mood
+    'stellar_tower', 'stellar_island', 'stellar_bridge', 'stellar_canyon', 'stellar_interior', 'stellar_cover',
     'smelter_tower', 'ore_silo', 'drill_rig', 'crane_gantry', 'slag_pool',
     'ash_statue', 'defense_turret', 'cover_module', 'enemy_spawn_gate',
     'wrecked_transport', 'rock_cluster',
-    // cinematic megastructure: ore monorail + rocket gantry + rail plumbing + laser gate + yard life
     'monorail_spine', 'monorail_train', 'rocket_stack', 'rover_outrider', 'rail_line', 'modular_corridor', 'station_dressing', 'cable_greeble',
   ],
-  // THE TITANS — 3D station interior, sempit 60x60, hybrid spark, Blender forced break targeting
+  // THE TITANS — now STELLAR HORIZON storm variant, exterior + interior base (bukan dimensi terpisah)
   titans: [
+    // ONE WORLD base — same layout, storm mood + interior facility
+    'stellar_tower', 'stellar_island', 'stellar_bridge', 'stellar_canyon', 'stellar_interior', 'stellar_cover',
     'cover_module', 'defense_turret', 'enemy_spawn_gate', 'wrecked_transport', 'rock_cluster',
-    // station lived-in hancur: cable intact vs putus percikan hybrid, dinding sobek/penyok, lantai bolong, konsol api, breach viewport
     'cable_intact', 'cable_spark_orange', 'cable_spark_blue',
     'wall_torn', 'wall_dented', 'floor_hole', 'console_fire', 'station_breach',
     'station_dressing', 'cable_greeble', 'modular_corridor',
-    // BERTINGKAT seperti foto 1 & 2: pit -2.5m + walkway ring +3m + stairs + launch +4.5m — semua GLB real
     'titans_pit', 'titans_walkway', 'titans_stairs', 'titans_launch',
   ],
 };

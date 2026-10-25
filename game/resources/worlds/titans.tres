@@ -7,11 +7,11 @@
 script = ExtResource("1_definition")
 world_id = &"titans"
 display_name = "THE TITANS"
-role_description = "A breached orbital station fought through from hangar to laboratory to reactor: torn walls, hybrid human-orange and alien-blue sparks, a lower pit, narrow elevated walkways, stairs and a launch platform. A compact multi-level interior with space visible only through three breaches."
+role_description = "STELLAR HORIZON — Storm. The shared canyon, central tower, sky bridges and interior bases beneath low storm cloud, with Titans wreckage, torn structures and lightning-rim dressing."
 world_scene = ExtResource("2_world")
 plate_path = "res://assets/ui/world_titans.jpg"
 status_line = "OPEN"
 zone_title = "EXPLORE THE TITANS"
-zone_subtitle = "SAFE ZONE · HANGAR TO REACTOR"
+zone_subtitle = "SAFE ZONE · STORM ROUTE"
 field_ready = true
-player_spawn = Vector3(0, 0.1, -20)
+player_spawn = Vector3(0, 0.1, 8)

@@ -7,10 +7,11 @@
 script = ExtResource("1_definition")
 world_id = &"emberfall_foundry"
 display_name = "Emberfall Foundry"
-role_description = "An extraction site that never shut down: smelter towers venting over black basalt, ore silos, a magma drill rig, gantry cranes over the yard, slag pools glowing through the ash, and the Cinder Yard plant standing beyond the east wall. Extraction mission — keep the line running and take the ore out."
+role_description = "STELLAR HORIZON — Night. The common tower-and-islands route under a deep navy sky, with foundry silhouettes, city light and cyan interior bases keeping the path readable."
 world_scene = ExtResource("2_world")
 plate_path = "res://assets/ui/world_emberfall_foundry.jpg"
 status_line = "OPEN"
 zone_title = "EXPLORE THE FOUNDRY"
-zone_subtitle = "SAFE ZONE · LINE RUNNING"
+zone_subtitle = "SAFE ZONE · NIGHT ROUTE"
 field_ready = true
+player_spawn = Vector3(0, 0.1, 8)

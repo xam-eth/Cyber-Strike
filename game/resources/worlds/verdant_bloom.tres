@@ -7,10 +7,11 @@
 script = ExtResource("1_definition")
 world_id = &"verdant_bloom"
 display_name = "Verdant Bloom"
-role_description = "A research bloom that outgrew its own station: bio domes swallowed by canopy, giant flora, spore vents in the moss, an overgrown arch where the corridor used to be, and the crashed lab the recovery team came for. Recovery mission — walk the grove and bring back what is still readable."
+role_description = "STELLAR HORIZON — Sunset. The shared canyon, tower, sky-bridge and interior route at golden hour, dressed with living canopy, giant flora and research-bloom structures."
 world_scene = ExtResource("2_world")
 plate_path = "res://assets/ui/world_verdant_bloom.jpg"
 status_line = "OPEN"
-zone_title = "EXPLORE THE GROVE"
-zone_subtitle = "SAFE ZONE · SPORES DRIFT"
+zone_title = "EXPLORE THE BLOOM"
+zone_subtitle = "SAFE ZONE · SUNSET ROUTE"
 field_ready = true
+player_spawn = Vector3(0, 0.1, 8)

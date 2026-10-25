@@ -18,8 +18,9 @@ extends SceneTree
 ##        actually different from one another,
 ##     6. the collision floor covers that world's field and not another's size.
 ##
-##   for the default world, through `main.tscn`:
-##     7. the player can walk the field and cross to the outpost district.
+##   for every mission world, through `main.tscn`:
+##     7. DEPLOY resolves the shared tower spawn and the player can leave it
+##        along MainNorth; surface probes report the other STELLAR districts.
 ##
 ## (3) is the in-engine version of the forge's asset-policy gate: it fails the day
 ## somebody adds a MeshInstance3D with a primitive mesh to the world script.
@@ -32,11 +33,11 @@ const WorldScript = preload("res://scripts/worlds/mission_world.gd")
 ## floors sit just under those counts, so losing a district fails the test while a
 ## re-tune of a scatter field does not need this file edited.
 const EXPECTED := {
-	"frostline_relay": {"meshes": 175, "clips": 60, "textures": 8, "field": Vector2(168.0, 156.0)},
-	"verdant_bloom": {"meshes": 210, "clips": 150, "textures": 4, "field": Vector2(176.0, 164.0)},
+	"frostline_relay": {"meshes": 185, "clips": 35, "textures": 55, "field": Vector2(180.0, 180.0)},
+	"verdant_bloom": {"meshes": 180, "clips": 37, "textures": 50, "field": Vector2(180.0, 180.0)},
 	"emberfall_foundry":
-	{"meshes": 400, "clips": 40, "textures": 40, "field": Vector2(200.0, 176.0)},
-	"titans": {"meshes": 180, "clips": 48, "textures": 19, "field": Vector2(64.0, 64.0)},
+	{"meshes": 175, "clips": 33, "textures": 60, "field": Vector2(180.0, 180.0)},
+	"titans": {"meshes": 180, "clips": 35, "textures": 55, "field": Vector2(180.0, 180.0)},
 }
 
 var _passed := true
@@ -85,7 +86,7 @@ func _run_smoke_test() -> void:
 	)
 
 	await _check_gameplay_scene()
-	await _check_titans_gameplay_scene()
+	await _check_mission_deployments()
 
 	if _passed:
 		print("MISSION WORLD smoke test passed.")
@@ -216,29 +217,28 @@ func _check_world(world_id: String) -> Variant:
 			and _passed
 		)
 
-	if world_id == "titans":
-		var triangle_colliders := 0
-		for candidate in real_world.find_children("*", "CollisionShape3D", true, false):
-			var collision := candidate as CollisionShape3D
-			if collision.shape is ConcavePolygonShape3D:
-				triangle_colliders += 1
-		_passed = (
-			_expect(
-				triangle_colliders >= int(expected["meshes"]),
-				(
-					"Titans uses its authored deck/stair/walkway triangles, not role-filling boxes "
-					+ "(%d mesh colliders)" % triangle_colliders
-				),
-			)
-			and _passed
+	var triangle_colliders := 0
+	for candidate in real_world.find_children("*", "CollisionShape3D", true, false):
+		var collision := candidate as CollisionShape3D
+		if collision.shape is ConcavePolygonShape3D:
+			triangle_colliders += 1
+	_passed = (
+		_expect(
+			triangle_colliders >= int(expected["meshes"]),
+			(
+				"%s uses its authored route/cover/interior triangles, not role-filling boxes "
+				+ "(%d mesh colliders)" % [world_id, triangle_colliders]
+			),
 		)
-		_passed = (
-			_expect(
-				world.get_node_or_null("FrontierPropCollision") == null,
-				"Titans does not also build the flat-arena prop-box collider",
-			)
-			and _passed
+		and _passed
+	)
+	_passed = (
+		_expect(
+			world.get_node_or_null("FrontierPropCollision") == null,
+			"%s does not also build the obsolete flat-arena prop-box collider" % world_id,
 		)
+		and _passed
+	)
 
 	world.queue_free()
 	await process_frame
@@ -281,22 +281,36 @@ func _check_mood(world: Node3D, world_id: String) -> Variant:
 	# muddy grey would still "match" a typo in both files, so check the intent.
 	match world_id:
 		"frostline_relay":
-			ok = ok and key.light_color.b > key.light_color.r and env.ambient_light_color.b > 0.4
+			# Daytime: warm sun, blue sky and bright sky fill.
+			ok = (
+				ok
+				and key.light_color.r > 0.9
+				and env.background_color.b > env.background_color.r
+				and env.ambient_light_color.b > 0.7
+			)
 		"verdant_bloom":
+			# Sunset: amber key/horizon with the cyan tower rim preserved.
 			ok = (
 				ok
 				and key.light_color.r > 0.9
 				and key.light_color.b < 0.8
-				and env.ambient_light_color.g > 0.5
+				and rim.light_color.b > rim.light_color.r
 			)
 		"emberfall_foundry":
-			ok = ok and key.light_color.r > 0.9 and key.light_color.r > key.light_color.b * 2.0
-		"titans":
+			# Night: blue moon key rather than the old orange furnace key.
 			ok = (
 				ok
-				and key.light_color.r > 0.9
-				and key.light_color.g > key.light_color.b
+				and key.light_color.b > key.light_color.r
+				and env.background_color.b > env.background_color.r
+				and accent.light_color.b > 0.9
+			)
+		"titans":
+			# Storm: cold key plus a brighter cyan lightning fill and dense haze.
+			ok = (
+				ok
+				and key.light_color.b > key.light_color.r
 				and fill.light_color.b > fill.light_color.r
+				and env.fog_density >= 0.004
 			)
 	_passed = _expect(ok, "%s's lights, sky and fog are its theme" % world_id) and _passed
 	return key.light_color
@@ -311,7 +325,7 @@ func _floor_shape(world: Node3D) -> BoxShape3D:
 	return collision.shape as BoxShape3D
 
 
-## The default world through the real gameplay scene, including a walk.
+## The default world through the real gameplay scene and selection resolver.
 func _check_gameplay_scene() -> void:
 	print("--- gameplay scene (%s)" % WorldMood.label(WorldMood.MOOD_ORDER[0]))
 	var main_scene := MainScene.instantiate()
@@ -323,7 +337,6 @@ func _check_gameplay_scene() -> void:
 		await process_frame
 
 	var world: Node3D = main_scene.get_node("MissionWorld")
-	var player: Node3D = main_scene.get_node("Player")
 
 	var real_world := world.get_node_or_null("RealFrontierWorld") as Node3D
 	_passed = (
@@ -361,52 +374,22 @@ func _check_gameplay_scene() -> void:
 			and _passed
 		)
 
-	# Walk the field: the GLB is visual, the collision floor is the ground.
-	player.global_position = Vector3(0.0, 0.0, 8.0)
-	player.set("velocity", Vector3.ZERO)
-	player.call("set_touch_movement", Vector2.UP)
-	for _frame in 800:
-		await physics_frame
-		if player.global_position.z <= -49.0:
-			break
-	player.call("set_touch_movement", Vector2.ZERO)
-	_passed = (
-		_expect(
-			player.global_position.z <= -49.0,
-			"player can walk from the arena to the boss gate on the real world floor",
-		)
-		and _passed
-	)
-	print("Central-to-boss traversal ended at %s." % player.global_position)
-
-	# Along z = 8 the outpost lane is clear: the command centre sits at z = -4 and
-	# the depot at z = 19, and both are solid now that the props have colliders.
-	player.global_position = Vector3(-40.0, 0.0, 8.0)
-	player.set("velocity", Vector3.ZERO)
-	player.call("set_touch_movement", Vector2.LEFT)
-	for _frame in 400:
-		await physics_frame
-		if player.global_position.x <= -60.0:
-			break
-	player.call("set_touch_movement", Vector2.ZERO)
-	_passed = (
-		_expect(
-			player.global_position.x <= -60.0,
-			"player can cross to the outpost district",
-		)
-		and _passed
-	)
-
 	main_scene.queue_free()
 	await process_frame
 
 
-## Titans uses the same main.tscn and selection resolver as shell DEPLOY. Check
-## both the authored Hangar spawn and its physical result; a correct coordinate
-## that drops the player through the station is not a working deployment.
-func _check_titans_gameplay_scene() -> void:
-	print("--- gameplay scene (THE TITANS)")
-	var previous := WorldSelection.override_selection(&"titans")
+## Every mission card uses the same main.tscn and selection resolver as shell
+## DEPLOY. Check the authored spawn and a real MainNorth walk for all four
+## variants; a correct coordinate that drops or traps the player is not a
+## working deployment.
+func _check_mission_deployments() -> void:
+	for world_id in WorldMood.MOOD_ORDER:
+		await _check_mission_deployment(world_id)
+
+
+func _check_mission_deployment(world_id: String) -> void:
+	print("--- gameplay scene (%s)" % WorldMood.label(world_id))
+	var previous := WorldSelection.override_selection(StringName(world_id))
 	var main_scene := MainScene.instantiate()
 	main_scene.set("start_wave_session_on_ready", false)
 	root.add_child(main_scene)
@@ -416,128 +399,100 @@ func _check_titans_gameplay_scene() -> void:
 	var initial_spawn := player.position
 	_passed = (
 		_expect(
-			initial_spawn.is_equal_approx(Vector3(0.0, 0.1, -20.0)),
-			"Titans DEPLOY resolves the authored Hangar spawn, got %s" % initial_spawn,
+			initial_spawn.is_equal_approx(Vector3(0.0, 0.1, 8.0)),
+			"%s DEPLOY resolves the STELLAR tower spawn, got %s" % [world_id, initial_spawn],
 		)
 		and _passed
 	)
 
 	var world := main_scene.get_node("MissionWorld") as Node3D
 	var real_world := world.get_node_or_null("RealFrontierWorld") as Node3D
+	var selected_ok := (
+		real_world != null and String(real_world.get_meta("world_id", "")) == world_id
+	)
 	_passed = (
 		_expect(
-			real_world != null and String(real_world.get_meta("world_id", "")) == "titans",
-			"the selected Titans card builds titans.glb through main.tscn",
+			selected_ok,
+			"the selected %s card builds its GLB through main.tscn" % world_id,
 		)
 		and _passed
 	)
+	if not selected_ok:
+		main_scene.queue_free()
+		await process_frame
+		WorldSelection.override_selection(previous)
+		return
 
 	for _frame in 24:
 		await physics_frame
+	var settled := player.position
 	_passed = (
 		_expect(
-			player.is_on_floor() and player.position.y > -0.75 and player.position.y < 0.75,
-			"Titans Hangar spawn settles on real collision, got %s" % player.position,
+			player.is_on_floor() and settled.y > -1.0 and settled.y < 3.0,
+			"%s tower spawn settles on real collision, got %s" % [world_id, settled],
 		)
 		and _passed
 	)
 
-	# Walk north along the Hangar spine. This is a short deployment smoke, not a
-	# claim that every stair, pit and launch route has been traversed.
+	# MainNorth runs from the tower spawn towards +Z. Stop before Cover_E at
+	# z=34; this tests deployment and the shared route, not a fictitious boss
+	# gate left over from the replaced layouts.
 	player.set("velocity", Vector3.ZERO)
-	player.call("set_touch_movement", Vector2.UP)
-	for _frame in 60:
+	player.call("set_touch_movement", Vector2.DOWN)
+	for _frame in 180:
 		await physics_frame
+		if player.position.z >= 28.0:
+			break
 	player.call("set_touch_movement", Vector2.ZERO)
 	_passed = (
 		_expect(
-			player.position.z < -22.0 and player.position.z > -31.0 and player.position.y > -1.0,
-			"player can leave the Titans spawn along the Hangar spine, got %s" % player.position,
+			player.position.z >= 20.0 and player.position.z < 34.0 and player.position.y > -1.0,
+			"%s player can leave the tower spawn along MainNorth, got %s" % [world_id, player.position],
 		)
 		and _passed
 	)
-	print("Titans Hangar traversal ended at %s." % player.position)
-	await _probe_titans_multi_level(player)
+	_probe_notice(
+		world_id,
+		(
+			"spawn=%s settled=%s MainNorth end=%s on_floor=%s"
+			% [initial_spawn, settled, player.position, player.is_on_floor()]
+		)
+	)
+	if world_id == "frostline_relay":
+		_probe_stellar_surfaces(player)
 
 	main_scene.queue_free()
 	await process_frame
 	WorldSelection.override_selection(previous)
 
 
-## Report multi-level physics without disguising a blocked route as a passing
-## assertion. The World source owns whether the sealed pit and elevated Reactor
-## stair should be opened/connected; that is not a merge-adapter decision.
-## Direct spawns on the walkway/launch probe their surfaces only, never a route
-## from the Hangar. Read the emitted positions before claiming traversability.
-func _probe_titans_multi_level(player: CharacterBody3D) -> void:
+## Surface rays make the new bridge/island/interior/canyon collision heights
+## visible in CI without pretending that a ray proves those districts are
+## connected. The deployment walk above is the actual traversal assertion.
+func _probe_stellar_surfaces(player: CharacterBody3D) -> void:
 	var space := player.get_world_3d().direct_space_state
 	var excluded: Array[RID] = [player.get_rid()]
-	var pit_query := PhysicsRayQueryParameters3D.create(
-		Vector3(0.0, 1.0, 0.0), Vector3(0.0, -3.0, 0.0), 1, excluded
-	)
-	var lower_query := PhysicsRayQueryParameters3D.create(
-		Vector3(0.0, -0.55, 0.0), Vector3(0.0, -3.0, 0.0), 1, excluded
-	)
-	var pit_hit := space.intersect_ray(pit_query)
-	var lower_hit := space.intersect_ray(lower_query)
-	var pit_position: Vector3 = pit_hit.get("position", Vector3.INF)
-	var lower_position: Vector3 = lower_hit.get("position", Vector3.INF)
-	_probe_notice(
-		"pit rays",
-		(
-			"first floor below Y=1 is %s; lower-pit ray from Y=-0.55 is %s"
-			% [pit_position, lower_position]
+	for entry in [
+		{"label": "tower", "point": Vector2(0.0, 8.0)},
+		{"label": "Bridge_E", "point": Vector2(22.0, 0.0)},
+		{"label": "Island_NE", "point": Vector2(42.0, 32.0)},
+		{"label": "InteriorBase_South", "point": Vector2(0.0, -38.0)},
+		{"label": "Canyon_N", "point": Vector2(0.0, 58.0)},
+		{"label": "NorthSpawn", "point": Vector2(0.0, 62.0)},
+	]:
+		var point: Vector2 = entry["point"]
+		var query := PhysicsRayQueryParameters3D.create(
+			Vector3(point.x, 30.0, point.y), Vector3(point.x, -5.0, point.y), 1, excluded
 		)
-	)
-
-	await _probe_move(
-		player, "Lab north stairs from deck", Vector3(0.0, 0.7, -6.0), Vector2.DOWN, 120
-	)
-	# This is a surface probe, not proof that the walkway is reachable.
-	await _probe_move(
-		player, "walkway surface (direct spawn)", Vector3(0.0, 3.2, -8.0), Vector2.RIGHT, 90
-	)
-	await _probe_move(
-		player, "Reactor stairs from ground", Vector3(0.0, 0.1, 15.0), Vector2.DOWN, 180
-	)
-	# The authored pedestal is 4.5 + 2.2m high. Probe its top directly; do not
-	# imply that the disconnected Reactor stair provided a route to this point.
-	await _probe_move(
-		player, "launch surface (direct spawn)", Vector3(-0.5, 6.9, 24.0), Vector2.ZERO, 1, 30
-	)
-
-
-func _probe_move(
-	player: CharacterBody3D,
-	label: String,
-	start: Vector3,
-	direction: Vector2,
-	frames: int,
-	settle_frames := 8
-) -> void:
-	player.global_position = start
-	player.velocity = Vector3.ZERO
-	player.call("set_touch_movement", Vector2.ZERO)
-	for _frame in settle_frames:
-		await physics_frame
-	var settled := player.global_position
-	player.call("set_touch_movement", direction)
-	for _frame in frames:
-		await physics_frame
-	player.call("set_touch_movement", Vector2.ZERO)
-	_probe_notice(
-		label,
-		(
-			"start=%s settled=%s end=%s on_floor=%s"
-			% [start, settled, player.global_position, player.is_on_floor()]
-		)
-	)
+		var hit := space.intersect_ray(query)
+		var hit_position: Vector3 = hit.get("position", Vector3.INF)
+		_probe_notice("surface " + String(entry["label"]), "first collision below Y=30 is %s" % hit_position)
 
 
 func _probe_notice(label: String, detail: String) -> void:
 	# run_smoke_tests captures each engine log. The CI evidence step lifts these
 	# lines into one annotation so restricted contributors can inspect the result.
-	print("THE TITANS PROBE %s | %s" % [label, detail])
+	print("STELLAR HORIZON PROBE %s | %s" % [label, detail])
 
 
 func _near(a: Color, b: Color, tolerance := 0.002) -> bool:

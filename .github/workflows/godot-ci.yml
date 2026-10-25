@@ -97,12 +97,12 @@ jobs:
           from pathlib import Path
           log = Path('exports/test-logs/mission_world_smoke.log')
           if log.exists():
-              prefix = 'THE TITANS PROBE '
+              prefix = 'STELLAR HORIZON PROBE '
               probes = [line[len(prefix):].strip() for line in log.read_text(errors='replace').splitlines()
                         if line.startswith(prefix)]
               if probes:
                   detail = ' | '.join(probes).replace('\r', ' ')[:1800]
-                  print(f'::notice title=THE TITANS multi-level probe::{detail}')
+                  print(f'::notice title=STELLAR HORIZON deployment and surface probe::{detail}')
           PY
 
       - name: Upload smoke test logs

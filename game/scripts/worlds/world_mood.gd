@@ -1,182 +1,169 @@
 class_name WorldMood
 extends RefCounted
 
-## world_mood.gd — the art direction of each mission world, as data.
+## world_mood.gd — the Godot lighting half of the STELLAR HORIZON forge themes.
 ##
-## Each mission has its own mood, and the mood is what tells them apart once the
-## camera is inside one. The values here are the Godot half of
-## `tools/asset-forge/src/worlds/themes.js`: the forge decides how the *surfaces*
-## are graded and photographed, this file decides how they are *lit* in-engine.
-## Keeping both lists next to each other and in the same order is deliberate —
-## `tests/world_palette_smoke.gd` reads both and fails if a world's key light,
-## sky, fog or accent stops matching its theme.
-##
-## A mood is one dictionary:
-##
-##   label, mood      what the launcher card and this file say about it
-##   sky, ambient     background and ambient fill (Godot `Color`, sRGB)
-##   fog, fog_density atmosphere: the haze that makes a field look big
-##   key/fill/rim     the three directional lights, as `position` + colour
-##   accent, glow     the emissive light at the landmark, and bloom strength
-##   exposure, sat    tonemapping white and saturation adjustment
+## All four theatres share one physical route. Daytime, sunset, night and storm
+## are therefore carried by light, sky, fog and surface dressing rather than by
+## four unrelated layouts. Colours and positions mirror
+## `tools/asset-forge/src/worlds/themes.js`; energies are scaled for Godot because
+## three.js and Godot lights do not share units.
 ##
 ## A `position` is where the light sits relative to the field centre; the rig
-## aims it at the centre, so the same numbers read the same way in three.js and
-## here. Energies are Godot's: the forge's HDR intensities are scaled down,
-## because three.js lights and Godot lights do not share units.
+## aims it at the centre, so the same direction reads in the forge and in-game.
 
 const MOODS := {
 	"frostline_relay":
 	{
-		"label": "Frostline Relay",
-		"mood": "polar dusk: white ice, cyan light, air you can see",
-		"sky": Color(0.051, 0.169, 0.231),
-		"ambient": Color(0.365, 0.510, 0.596),
-		"ambient_energy": 0.9,
-		"fog": Color(0.125, 0.255, 0.310),
-		"fog_density": 0.0058,
+		"label": "Frostline Relay — Daytime",
+		"mood": "bright floating archipelago, blue sky and a cyan tower beam",
+		"sky": Color(0.180392, 0.494118, 0.721569),
+		"ambient": Color(0.556863, 0.776471, 1.0),
+		"ambient_energy": 0.68,
+		"fog": Color(0.611765, 0.776471, 0.909804),
+		"fog_density": 0.0016,
 		"key":
 		{
 			"name": "MissionKeyLight",
-			"color": Color(0.812, 0.894, 1.0),
-			"energy": 1.0,
-			"position": Vector3(-52.0, 46.0, -96.0),
+			"color": Color(1.0, 0.968627, 0.878431),
+			"energy": 1.72,
+			"position": Vector3(-120.0, 140.0, -80.0),
 		},
 		"fill":
 		{
 			"name": "MissionFillLight",
-			"color": Color(0.431, 0.643, 0.910),
-			"energy": 0.34,
-			"position": Vector3(96.0, 34.0, 24.0),
+			"color": Color(0.556863, 0.776471, 1.0),
+			"energy": 0.57,
+			"position": Vector3(90.0, 60.0, 40.0),
 		},
 		"rim":
 		{
 			"name": "MissionRimLight",
-			"color": Color(0.561, 0.894, 1.0),
-			"energy": 0.4,
-			"position": Vector3(-30.0, 18.0, 88.0),
+			"color": Color(0.349020, 0.901961, 1.0),
+			"energy": 0.70,
+			"position": Vector3(0.0, 32.0, 0.0),
 		},
-		"accent": Color(0.349, 0.902, 1.0),
-		"accent_energy": 0.7,
-		"accent_range": 14.0,
-		"exposure": 1.0,
-		"saturation": 0.92,
+		"accent": Color(0.349020, 0.901961, 1.0),
+		"accent_energy": 0.85,
+		"accent_range": 16.0,
+		"exposure": 1.18,
+		"saturation": 1.0,
 		"contrast": 1.06,
-		"glow": 0.5,
+		"glow": 0.28,
 	},
 	"verdant_bloom":
 	{
-		"label": "Verdant Bloom",
-		"mood": "humid overgrowth: moss, spore light, a warm green sun",
-		"sky": Color(0.078, 0.196, 0.149),
-		"ambient": Color(0.435, 0.612, 0.486),
-		"ambient_energy": 0.85,
-		"fog": Color(0.082, 0.188, 0.122),
-		"fog_density": 0.0072,
+		"label": "Verdant Bloom — Sunset",
+		"mood": "golden-hour islands, humid haze and a cyan tower against amber sky",
+		"sky": Color(0.227451, 0.125490, 0.250980),
+		"ambient": Color(1.0, 0.603922, 0.352941),
+		"ambient_energy": 0.60,
+		"fog": Color(0.164706, 0.101961, 0.125490),
+		"fog_density": 0.0028,
 		"key":
 		{
 			"name": "MissionKeyLight",
-			"color": Color(1.0, 0.941, 0.753),
-			"energy": 1.35,
-			"position": Vector3(-24.0, 92.0, 58.0),
+			"color": Color(1.0, 0.721569, 0.415686),
+			"energy": 1.65,
+			"position": Vector3(140.0, 40.0, -60.0),
 		},
 		"fill":
 		{
 			"name": "MissionFillLight",
-			"color": Color(0.388, 0.788, 0.541),
-			"energy": 0.46,
-			"position": Vector3(88.0, 28.0, -34.0),
+			"color": Color(1.0, 0.603922, 0.352941),
+			"energy": 0.61,
+			"position": Vector3(-80.0, 30.0, 40.0),
 		},
 		"rim":
 		{
 			"name": "MissionRimLight",
-			"color": Color(0.604, 0.408, 0.902),
-			"energy": 0.34,
-			"position": Vector3(-76.0, 22.0, -52.0),
+			"color": Color(0.349020, 0.901961, 1.0),
+			"energy": 0.60,
+			"position": Vector3(0.0, 32.0, 0.0),
 		},
-		"accent": Color(0.549, 1.0, 0.620),
-		"accent_energy": 0.55,
+		"accent": Color(0.349020, 0.901961, 1.0),
+		"accent_energy": 0.75,
 		"accent_range": 16.0,
-		"exposure": 1.0,
-		"saturation": 1.02,
+		"exposure": 1.28,
+		"saturation": 1.04,
 		"contrast": 1.04,
-		"glow": 0.62,
+		"glow": 0.38,
 	},
 	"emberfall_foundry":
 	{
-		"label": "Emberfall Foundry",
-		"mood": "volcanic industry: black basalt, molten seams, ash in the air",
-		"sky": Color(0.114, 0.043, 0.024),
-		"ambient": Color(0.369, 0.208, 0.125),
-		"ambient_energy": 0.85,
-		"fog": Color(0.239, 0.102, 0.059),
-		"fog_density": 0.0078,
+		"label": "Emberfall Foundry — Night",
+		"mood": "deep navy night, city light and a readable cyan interior glow",
+		"sky": Color(0.039216, 0.058824, 0.117647),
+		"ambient": Color(0.164706, 0.227451, 0.352941),
+		"ambient_energy": 0.44,
+		"fog": Color(0.039216, 0.078431, 0.156863),
+		"fog_density": 0.0022,
 		"key":
 		{
 			"name": "MissionKeyLight",
-			"color": Color(1.0, 0.616, 0.329),
-			"energy": 1.15,
-			"position": Vector3(-70.0, 40.0, -40.0),
+			"color": Color(0.556863, 0.721569, 1.0),
+			"energy": 0.92,
+			"position": Vector3(80.0, 90.0, -40.0),
 		},
 		"fill":
 		{
 			"name": "MissionFillLight",
-			"color": Color(1.0, 0.353, 0.118),
-			"energy": 0.32,
-			"position": Vector3(40.0, -8.0, 30.0),
+			"color": Color(0.349020, 0.901961, 1.0),
+			"energy": 0.78,
+			"position": Vector3(40.0, 20.0, 30.0),
 		},
 		"rim":
 		{
 			"name": "MissionRimLight",
-			"color": Color(0.333, 0.376, 0.847),
-			"energy": 0.3,
-			"position": Vector3(70.0, 30.0, -70.0),
+			"color": Color(0.349020, 0.901961, 1.0),
+			"energy": 1.06,
+			"position": Vector3(0.0, 32.0, 0.0),
 		},
-		"accent": Color(1.0, 0.478, 0.118),
-		"accent_energy": 1.1,
+		"accent": Color(0.349020, 0.901961, 1.0),
+		"accent_energy": 1.0,
 		"accent_range": 18.0,
-		"exposure": 1.0,
-		"saturation": 0.96,
-		"contrast": 1.1,
-		"glow": 0.8,
+		"exposure": 1.35,
+		"saturation": 0.92,
+		"contrast": 1.10,
+		"glow": 0.42,
 	},
 	"titans":
 	{
-		"label": "THE TITANS",
-		"mood": "breached station interior: emergency amber, alien cyan, settled dust",
-		"sky": Color(0.019608, 0.039216, 0.070588),
-		"ambient": Color(0.352941, 0.415686, 0.470588),
-		"ambient_energy": 0.85,
-		"fog": Color(0.101961, 0.149020, 0.180392),
-		"fog_density": 0.0042,
+		"label": "THE TITANS — Storm",
+		"mood": "low storm cloud, rain haze, lightning rim and interior shelter light",
+		"sky": Color(0.101961, 0.137255, 0.180392),
+		"ambient": Color(0.352941, 0.415686, 0.478431),
+		"ambient_energy": 0.49,
+		"fog": Color(0.101961, 0.133333, 0.180392),
+		"fog_density": 0.0048,
 		"key":
 		{
 			"name": "MissionKeyLight",
-			"color": Color(1.0, 0.878431, 0.658824),
-			"energy": 1.0,
-			"position": Vector3(0.0, 44.0, 8.0),
+			"color": Color(0.752941, 0.815686, 0.909804),
+			"energy": 1.19,
+			"position": Vector3(-40.0, 80.0, 60.0),
 		},
 		"fill":
 		{
 			"name": "MissionFillLight",
-			"color": Color(0.486275, 0.941176, 1.0),
-			"energy": 0.42,
-			"position": Vector3(-18.0, 18.0, -12.0),
+			"color": Color(0.541176, 0.949020, 1.0),
+			"energy": 0.84,
+			"position": Vector3(60.0, 40.0, -30.0),
 		},
 		"rim":
 		{
 			"name": "MissionRimLight",
-			"color": Color(0.415686, 0.431373, 1.0),
-			"energy": 0.36,
-			"position": Vector3(0.0, 14.0, -32.0),
+			"color": Color(0.349020, 0.901961, 1.0),
+			"energy": 0.89,
+			"position": Vector3(0.0, 32.0, 0.0),
 		},
-		"accent": Color(1.0, 0.478431, 0.117647),
-		"accent_energy": 0.9,
-		"accent_range": 10.0,
-		"exposure": 1.25,
-		"saturation": 1.0,
+		"accent": Color(0.349020, 0.901961, 1.0),
+		"accent_energy": 0.90,
+		"accent_range": 16.0,
+		"exposure": 1.15,
+		"saturation": 0.96,
 		"contrast": 1.08,
-		"glow": 0.38,
+		"glow": 0.32,
 	},
 }
 

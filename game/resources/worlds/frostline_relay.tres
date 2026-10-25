@@ -7,10 +7,11 @@
 script = ExtResource("1_definition")
 world_id = &"frostline_relay"
 display_name = "Frostline Relay"
-role_description = "A polar relay station under a cyan dusk: a comms array in the core, a relay station and its cryo condensers, a turret line holding the north and south gates, and a frozen hauler out on the icefield. Defence mission — hold the uplink until the last wave breaks."
+role_description = "STELLAR HORIZON — Daytime. A bright archipelago route linking canyon approaches, the central relay tower, upper platforms and interior bases, with ice formations and relay equipment as dressing."
 world_scene = ExtResource("2_world")
 plate_path = "res://assets/ui/world_frostline_relay.jpg"
 status_line = "OPEN"
 zone_title = "EXPLORE THE RELAY"
-zone_subtitle = "SAFE ZONE · UPLINK OPEN"
+zone_subtitle = "SAFE ZONE · DAYTIME ROUTE"
 field_ready = true
+player_spawn = Vector3(0, 0.1, 8)
