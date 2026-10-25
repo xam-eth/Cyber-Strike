@@ -8,7 +8,7 @@
  *   import { WORLDS, buildWorld, buildAll } from './index.js';
  *   const world = await buildWorld('frostline');   // -> { root, clips, stats, meta }
  */
-import { composeWorld, themeLighting, themeSky } from './compose.js';
+import { composeWorld, themeLighting, themeSky, heightFogVolume } from './compose.js';
 import { ROLES } from './roles.js';
 import frostline from './frostline.js';
 import verdant from './verdant.js';
@@ -40,10 +40,15 @@ export async function buildWorld(id) {
 /** Lighting rig + sky for a world, shared by the viewer, the gate and the docs. */
 export function worldAtmosphere(id, scene) {
   const world = worldConfig(id);
+  const sky = themeSky(world.theme);
+  const lights = themeLighting(scene, world.theme);
+  const haze = heightFogVolume(world.theme);
+  if (haze) scene.add(haze);
   return {
     theme: world.theme,
-    sky: themeSky(world.theme),
-    lights: themeLighting(scene, world.theme),
+    sky,
+    haze,
+    lights,
   };
 }
 
