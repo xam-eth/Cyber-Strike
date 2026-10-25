@@ -314,14 +314,15 @@ only an opinion is not here.
       because Blender is not installed in every environment; the script is
       plain `blender --background --python`, which is how `author_hero.py`
       already works.
-      Timelines are written in **world axes** (`X` the character's left, `Y` up,
-      `Z` facing) and converted into each bone's frame from its rest matrix, so
-      the numbers mean the same thing on the next hero: Blender's glTF importer
-      reorients bones Y-along-the-bone, and a rig-local angle is a fact about
-      one rig, not an instruction. `tools/pose_oracle.mjs` is the oracle for
-      those numbers -- it poses `hero.glb` in the browser with the same world
-      axes and writes a PNG per variant, which settles a sign in one screenshot
-      instead of one CI round trip. Two things it settled about this rig: the
-      rest-frame conversion needs its axis negated to match the browser, and the
-      forearm channels twist rather than bend, so the celebration moves the
-      shoulders and the spine instead.
+      Timelines are written in **bone-local axes** -- the same numbers a Blender
+      pose rotation uses -- and every one of them is verified first against
+      `tools/pose_oracle.mjs`, which poses `hero.glb` in the pinned Chromium with
+      the same axis vocabulary and writes a PNG per variant. That tool replaced
+      a CI round trip per sign, and it also told the truth about this rig: the
+      forearm channels twist instead of bending, so the celebration has to be
+      carried by the shoulders and the spine. Two earlier attempts at a
+      two-arm overhead flare (world-axis, then negated world-axis) both folded
+      the arms across the chest in the bake; the guard beat that shipped is the
+      pose the rig can actually hold. A rig that cannot straighten an arm cannot
+      salute, and pretending otherwise is how a "celebration" ends up looking
+      like a shrug.

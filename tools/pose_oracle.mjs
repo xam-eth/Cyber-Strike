@@ -58,9 +58,17 @@ new GLTFLoader().load('/game/assets/characters/hero/hero.glb', (gltf) => {
     for (const [name, [axis, deg]] of Object.entries(spec)) {
       const bone = model.getObjectByName(name);
       if (!bone) continue;
-      const qw = bone.getWorldQuaternion(new THREE.Quaternion()).invert();
-      const world = new THREE.Vector3(...(axis === 'X' ? [1,0,0] : axis === 'Y' ? [0,1,0] : [0,0,1]));
-      const local = world.clone().applyQuaternion(qw).normalize();
+      // "lX/lY/lZ" rotate about the bone's own axis, exactly the way a Blender
+      // pose bone does; "X/Y/Z" rotate about a world axis, which is what the
+      // authoring timeline means when it says "abduct".
+      let local;
+      if (axis.startsWith('l')) {
+        local = new THREE.Vector3(...(axis === 'lX' ? [1,0,0] : axis === 'lY' ? [0,1,0] : [0,0,1]));
+      } else {
+        const qw = bone.getWorldQuaternion(new THREE.Quaternion()).invert();
+        const world = new THREE.Vector3(...(axis === 'X' ? [1,0,0] : axis === 'Y' ? [0,1,0] : [0,0,1]));
+        local = world.clone().applyQuaternion(qw).normalize();
+      }
       bone.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(local, deg * Math.PI / 180));
       bone.updateMatrixWorld(true);
     }

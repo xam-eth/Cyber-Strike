@@ -20,13 +20,23 @@ authored here get one, and the page falls back to the plain `aim` beat for the
 rest. That is deliberate: a hero without a signature move should not borrow
 someone else's.
 
-The timeline below is written in **world axes** -- X is the character's left,
-Y is up, Z is the way the character faces -- and the script converts each one
-into the bone's own frame with the rest matrix before keying it. That is the
-difference between "raise the arm" and "guess which of three local axes on this
-particular rig raises the arm": Blender's glTF importer reorients bones (Y along
-the bone), so a local-axis number measured on the rig is meaningless to the next
-hero, while a world axis means the same thing for everybody.
+Timelines are written in **bone-local axes** -- X, Y, Z of the bone itself,
+which is what a Blender pose rotation is -- because those are the numbers that
+can be verified before a Blender run. `tools/pose_oracle.mjs` poses `hero.glb`
+in the browser with the same local axes and writes a PNG per variant, so a sign
+is settled by one screenshot instead of one CI round trip. Two facts that oracle
+settled about this rig, and which the timeline below obeys:
+
+  * `lZ -85` on both upper arms brings the fists up into a guard; positive Z
+    pushes them down and behind.
+  * the forearm channels twist instead of bending, so a celebration on this rig
+    has to be carried by shoulders and spine, not by elbow articulation. The
+    rig cannot straighten an arm, and inventing a shoulder-only "overhead V"
+    made the arms fold in front of the chest instead.
+
+What that means for the next hero: give it its own pose vocabulary from the
+same oracle, not a copy of this one. The infrastructure is per-hero already --
+this table, one GLB each, one manifest entry each.
 """
 
 from __future__ import annotations
@@ -73,60 +83,40 @@ OPTIONAL_PREFIXES = ("Neck", "Head", "L_Clavicle", "R_Clavicle")
 HEROES = {
     "exo_operative": {
         "label": "Lockdown",
-        "notes": "Braced drop, then a two-arm flare overhead with the chin up; ends back at idle.",
-        # Numbers below were read off tools/pose_oracle.mjs, not invented: the
-        # flare is a rotation about the world Z axis, mirrored per arm, and the
-        # elbow channels are deliberately absent because on this rig they twist
-        # rather than bend -- a fact the oracle showed in one screenshot instead
-        # of one CI round trip.
+        "notes": "Braced drop, then a fists-up guard with the chest open and the chin up; settles back to idle.",
         "timeline": [
             (1, {}),
+            # Drop: knees load, chest folds, head goes down. The pad is
+            # "magnetising" the boots.
             (7, {"rotate": {"Spine01": ("X", 10), "Head": ("X", 6),
                             "L_Thigh": ("X", 8), "R_Thigh": ("X", 8)},
                  "move": {"Hip": (0, -0.022, 0)}}),
-            (16, {"rotate": {"Spine01": ("X", -8), "Head": ("X", -8),
-                             "R_Upperarm": ("Z", -118), "L_Upperarm": ("Z", 118)},
+            # Drive up into the guard: both fists up, chest open, chin lifted.
+            (16, {"rotate": {"Spine01": ("X", -8), "Head": ("X", -6),
+                             "R_Upperarm": ("Z", -85), "L_Upperarm": ("Z", -85)},
                   "move": {"Hip": (0, 0.02, 0)}}),
-            (22, {"rotate": {"Spine01": ("X", -11), "Head": ("X", -10),
-                             "R_Upperarm": ("Z", -132), "L_Upperarm": ("Z", 132)},
+            (22, {"rotate": {"Spine01": ("X", -11), "Head": ("X", -8),
+                             "R_Upperarm": ("Z", -95), "L_Upperarm": ("Z", -95)},
                   "move": {"Hip": (0, 0.026, 0)}}),
-            (34, {"rotate": {"Spine01": ("X", -7), "Head": ("X", -7),
-                             "R_Upperarm": ("Z", -114), "L_Upperarm": ("Z", 114)},
+            (34, {"rotate": {"Spine01": ("X", -7), "Head": ("X", -6),
+                             "R_Upperarm": ("Z", -80), "L_Upperarm": ("Z", -80)},
                   "move": {"Hip": (0, 0.018, 0)}}),
-            (50, {"rotate": {"Spine01": ("X", -9), "Head": ("X", -8),
-                             "R_Upperarm": ("Z", -108), "L_Upperarm": ("Z", 108)},
+            (50, {"rotate": {"Spine01": ("X", -9), "Head": ("X", -7),
+                             "R_Upperarm": ("Z", -76), "L_Upperarm": ("Z", -76)},
                   "move": {"Hip": (0, 0.018, 0)}}),
             (62, {"rotate": {"Spine01": ("X", 1),
-                             "R_Upperarm": ("Z", -24), "L_Upperarm": ("Z", 24)}}),
+                             "R_Upperarm": ("Z", -18), "L_Upperarm": ("Z", -18)}}),
             (72, {}),
         ],
     },
 }
 
 
-WORLD_AXES = {"X": Vector((1, 0, 0)), "Y": Vector((0, 1, 0)), "Z": Vector((0, 0, 1))}
+AXES = {"X": Vector((1, 0, 0)), "Y": Vector((0, 1, 0)), "Z": Vector((0, 0, 1))}
 
 
 def radians_quat(axis, degrees):
     return Quaternion(Vector(axis).normalized(), math.radians(degrees))
-
-
-def local_axis(arm, pose_bone, axis):
-    """A world axis expressed in one bone's own frame, at rest.
-
-    The rig's own local axes are an artefact of how the glTF importer oriented
-    the bones, and every hero rig can orient them differently. A world axis is
-    the same instruction for everybody: "abduct" stays abduction.
-    """
-    world = WORLD_AXES[axis] if isinstance(axis, str) else Vector(axis)
-    rest = (arm.matrix_world @ pose_bone.bone.matrix_local).to_quaternion()
-    # Negated on purpose, and measured rather than guessed: a rotation about
-    # the rest-frame conversion above turns the arms *inward* where three.js
-    # turns them outward for the same numbers, because Blender's imported bone
-    # rests carry their own handedness. tools/pose_oracle.mjs is the oracle that
-    # settled it -- pose hero.glb in the browser, read the sign off the frame,
-    # then write the same number here.
-    return -(rest.inverted() @ world)
 
 
 def sample(arm, action, frame):
@@ -240,9 +230,7 @@ def main():
                 if target is None:
                     skipped.add(bone)
                     continue
-                rotations[target] = radians_quat(
-                    local_axis(arm, arm.pose.bones[target], axis), degrees
-                )
+                rotations[target] = radians_quat(AXES[axis], degrees)
             for bone, xyz in weights.get("move", {}).items():
                 target = resolve(bone)
                 if target is None:
