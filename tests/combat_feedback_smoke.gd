@@ -27,17 +27,30 @@ func _run_smoke_test() -> void:
 
 	var weapon_controller: Node = player.get_node("WeaponController")
 	var muzzle: Marker3D = player.get_node("VisualRoot/WeaponSocket/Muzzle")
-	weapon_controller.call(
-		"try_fire", player, muzzle, (target as Node3D).global_position + Vector3(0.0, 0.9, 0.0)
-	)
+	var shot_origin := muzzle.global_position
+	var aim_point := (target as Node3D).global_position + Vector3(0.0, 0.9, 0.0)
+	var shot_started := bool(weapon_controller.call("try_fire", player, muzzle, aim_point))
 	for _frame in 45:
 		await physics_frame
 		if not _received_target_damage.is_empty():
 			break
 
+	var projectile_diagnostic := ""
+	if _received_target_damage.is_empty():
+		var excluded: Array[RID] = [(player as CollisionObject3D).get_rid()]
+		var query := PhysicsRayQueryParameters3D.create(shot_origin, aim_point, 3, excluded)
+		var direct_hit := player.get_world_3d().direct_space_state.intersect_ray(query)
+		projectile_diagnostic = (
+			" [started=%s, origin=%s, aim=%s, direct_hit=%s]"
+			% [shot_started, shot_origin, aim_point, direct_hit]
+		)
+
 	var test_passed := true
 	test_passed = (
-		_expect(not _received_target_damage.is_empty(), "projectile hits the training target")
+		_expect(
+			not _received_target_damage.is_empty(),
+			"projectile hits the training target" + projectile_diagnostic,
+		)
 		and test_passed
 	)
 	test_passed = (
