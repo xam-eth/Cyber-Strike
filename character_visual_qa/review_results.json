@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "stage": "Role and visual review \u2014 human hero upgrade track and robot enemies",
+  "stage": "Human hero rig and animation review — visual verification pending in local Godot",
   "assets": {
     "human_hero_t1": {
       "status": "PENDING",

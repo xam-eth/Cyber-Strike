@@ -49,6 +49,8 @@ var _skin_mesh_count: int = 0
 var _joint_count: int = 0
 
 var _asset_list: VBoxContainer
+var _tier_label: Label
+var _tier_selector: OptionButton
 var _asset_title: Label
 var _asset_status: Label
 var _asset_details: Label
@@ -224,10 +226,27 @@ func _create_interface() -> void:
 	column.add_theme_constant_override("separation", 8)
 	sidebar.add_child(column)
 
-	var title := _label("CHARACTER VISUAL QA", 22, Color("#8ce6ff"))
+	var title := _label("CHARACTER RIG + ANIMATION QA", 20, Color("#8ce6ff"))
 	column.add_child(title)
-	var subtitle := _label("PRE-INTEGRATION REVIEW GATE  ·  GODOT RENDERED", 10, Color("#a7b8c5"))
+	var subtitle := _label("GODOT-RENDERED · SKIN, SKELETON & CLIPS", 10, Color("#a7b8c5"))
 	column.add_child(subtitle)
+
+	_tier_label = _label("ONE HERO · UPGRADE TIER", 12, Color("#d9e7ef"))
+	_tier_label.visible = false
+	column.add_child(_tier_label)
+	_tier_selector = OptionButton.new()
+	_tier_selector.name = "HumanHeroTierSelector"
+	_tier_selector.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_tier_selector.visible = false
+	for asset_index in _assets.size():
+		var entry: Dictionary = _assets[asset_index]
+		if str(entry.get("upgrade_track_id", "")) != "human_operative":
+			continue
+		var tier := int(entry.get("upgrade_tier", 0))
+		_tier_selector.add_item("T%d  ·  Human Hero Tier %d" % [tier, tier])
+		_tier_selector.set_item_metadata(_tier_selector.item_count - 1, asset_index)
+	_tier_selector.item_selected.connect(_on_tier_selected)
+	column.add_child(_tier_selector)
 
 	var asset_header := _label("CHARACTER / GLB", 13, Color("#d9e7ef"))
 	column.add_child(asset_header)
@@ -242,7 +261,7 @@ func _create_interface() -> void:
 
 	var separator := HSeparator.new()
 	column.add_child(separator)
-	column.add_child(_label("MANUAL VISUAL CHECKLIST", 13, Color("#d9e7ef")))
+	column.add_child(_label("RIG / ANIMATION / VISUAL REVIEW", 13, Color("#d9e7ef")))
 	_checklist_container = VBoxContainer.new()
 	_checklist_container.add_theme_constant_override("separation", 2)
 	column.add_child(_checklist_container)
@@ -250,7 +269,7 @@ func _create_interface() -> void:
 	column.add_child(_label("Reviewer notes", 12, Color("#a7b8c5")))
 	_notes_edit = TextEdit.new()
 	_notes_edit.custom_minimum_size = Vector2(0.0, 68.0)
-	_notes_edit.placeholder_text = "Describe defects, odd poses, texture issues, or why it is ready."
+	_notes_edit.placeholder_text = "Note skinning, clip, weapon-pose, texture, or import issues."
 	_notes_edit.text_changed.connect(_on_notes_changed)
 	column.add_child(_notes_edit)
 
@@ -283,7 +302,7 @@ func _create_interface() -> void:
 	info_panel.offset_left = -496.0
 	info_panel.offset_right = -16.0
 	info_panel.offset_top = 16.0
-	info_panel.offset_bottom = 230.0
+	info_panel.offset_bottom = 300.0
 	_style_panel(info_panel, Color(0.025, 0.045, 0.065, 0.91))
 	screen.add_child(info_panel)
 	var info_column := VBoxContainer.new()
@@ -313,8 +332,9 @@ func _create_interface() -> void:
 	var animation_column := VBoxContainer.new()
 	animation_column.add_theme_constant_override("separation", 5)
 	animation_panel.add_child(animation_column)
+	animation_column.add_child(_label("RIG & ANIMATION CONTROLS", 13, Color("#d9e7ef")))
 	_clip_progress = _label(
-		"Animation clips: choose, play, inspect, then mark each required clip reviewed.",
+		"Choose a clip, play it, inspect the rigged mesh, then mark each required clip reviewed.",
 		12,
 		Color("#c3d0da")
 	)
@@ -504,9 +524,25 @@ func _select_relative(offset: int) -> void:
 	_select_asset(posmod(_asset_index + offset, _assets.size()))
 
 
+func _on_tier_selected(option_index: int) -> void:
+	if _tier_selector == null or option_index < 0 or option_index >= _tier_selector.item_count:
+		return
+	_select_asset(int(_tier_selector.get_item_metadata(option_index)))
+
+
 func _load_asset(index: int) -> void:
 	_asset_index = index
 	_current_asset = _assets[index]
+	var is_human_hero := str(_current_asset.get("upgrade_track_id", "")) == "human_operative"
+	if _tier_label != null:
+		_tier_label.visible = is_human_hero
+	if _tier_selector != null:
+		_tier_selector.visible = is_human_hero
+		if is_human_hero:
+			for tier_index in _tier_selector.item_count:
+				if int(_tier_selector.get_item_metadata(tier_index)) == index:
+					_tier_selector.select(tier_index)
+					break
 	_current_hash = ""
 	_automated_errors.clear()
 	_automated_report.clear()
@@ -753,13 +789,21 @@ func _inspect_instance() -> void:
 				", ".join(_available_clip_names),
 			]
 		)
-	_asset_details.text = (
-		"\n"
-		. join(
+	var detail_lines: Array[String] = [
+		"GLB: %s" % _current_asset.get("glb_label", "unknown.glb"),
+		"Category: %s" % _current_asset.get("category", "CHARACTER"),
+		"Runtime source: %s" % source_path,
+	]
+	var original_source := str(_current_asset.get("original_source", ""))
+	if not original_source.is_empty():
+		detail_lines.append("Original source: %s" % original_source)
+	var rig_profile := str(_current_asset.get("rig_profile", ""))
+	if not rig_profile.is_empty():
+		detail_lines.append("Rig profile: %s" % rig_profile)
+	(
+		detail_lines
+		. append_array(
 			[
-				"GLB: %s" % _current_asset.get("glb_label", "unknown.glb"),
-				"Category: %s" % _current_asset.get("category", "CHARACTER"),
-				"Source: %s" % source_path,
 				"",
 				"Meshes: %d  ·  Skinned meshes: %d" % [_mesh_count, _skin_mesh_count],
 				"Skeleton joints: %d / %d expected" % [_joint_count, expected_joints],
@@ -770,6 +814,7 @@ func _inspect_instance() -> void:
 			]
 		)
 	)
+	_asset_details.text = "\n".join(detail_lines)
 
 
 func _build_animation_controls() -> void:
@@ -779,9 +824,9 @@ func _build_animation_controls() -> void:
 		var clip_name := str(record.get("clip", ""))
 		var player_name := str(record.get("player_name", "AnimationPlayer"))
 		var duration := float(record.get("duration", 0.0))
-		var label := clip_name
+		var label := _clip_display_name(clip_name)
 		if _animation_players.size() > 1:
-			label = "%s / %s" % [player_name, clip_name]
+			label = "%s / %s" % [player_name, label]
 		_clip_selector.add_item("%s  ·  %.2f s" % [label, duration])
 		_clip_selector.set_item_metadata(index, index)
 	var expected: Array = _current_asset.get("expected_animation_names", [])
@@ -812,6 +857,24 @@ func _build_animation_controls() -> void:
 		_clip_selector.select(default_index)
 		_on_clip_selected(default_index)
 	_update_action_state()
+
+
+func _clip_display_name(clip_name: String) -> String:
+	var names := {
+		"idle": "Idle / Breathing",
+		"walk": "Walk",
+		"run": "Run",
+		"raise_weapon": "Raise Weapon",
+		"aim": "Aim / Ready",
+		"aim_walk": "Aim Walk",
+		"aim_run": "Aim Run",
+		"fire": "Fire / Recoil",
+		"reload": "Reload",
+		"hit": "Hit Reaction",
+		"death": "Death",
+		"lower_weapon": "Lower Weapon",
+	}
+	return str(names.get(clip_name, clip_name.replace("_", " ").capitalize()))
 
 
 func _update_automated_report() -> void:

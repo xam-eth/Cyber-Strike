@@ -165,8 +165,14 @@ def build_attach(sk, base):
     return q_normalize(q_mul(q_conj(grot[sk.name["R_Hand"]]), gun_target_q))
 
 
-def build_aim(sk, attach):
-    base = sk.local_pose("idle", 0.0)
+def build_aim(sk, attach, base=None):
+    if base is None:
+        base = sk.local_pose("idle", 0.0)
+    else:
+        base = tuple(
+            {index: np.asarray(value, dtype=np.float64).copy() for index, value in table.items()}
+            for table in base
+        )
     frames = int(round(AIM_SECONDS * FPS)) + 1
     keys = {"rot": [], "tra": [], "sca": []}
     report = {}

@@ -3,8 +3,8 @@
 config_version=5
 
 [application]
-config/name="Cyber-Strike Character Visual QA"
-config/description="Rendered, per-character GLB and animation review gate before game integration."
+config/name="Cyber-Strike Character Rig and Animation QA"
+config/description="Rendered, per-tier character rig, skin, and animation review desk before game integration."
 run/main_scene="res://scenes/review_desk.tscn"
 config/features=PackedStringArray("4.7")
 

@@ -1,48 +1,56 @@
 # Cyber-Strike Character Assets
 
-This branch contains **character assets, rigs, animation tooling, and a standalone visual QA project only**. It does not include the gameplay framework or a playable game.
+This branch contains **character meshes, rigs, animation clips, glTF build tooling, and a standalone Godot QA project only**. It does not include the wider gameplay framework or a playable game.
 
-## Updated character plan
+## Character plan and current state
 
-- **One human hero with five visual upgrade tiers:** Tier 1 through Tier 5 are appearances for the same hero identity, not five separate heroes.
-- The five Drive files are preserved at `source-assets/characters/human_hero_tiers/` as original source GLBs.
-- Structural inspection found each human GLB is a single static mesh at approximately 480k triangles, with **no skeleton, skin, or animation clips**. These are source visuals for review—not rigged/runtime-ready heroes. Visual review, optimization, skinning, and animation remain pending.
-- The former Common, Rare, and Epic robot hero models have been reclassified under `game/assets/enemies/` and `source-assets/enemies/`. Robot Common remains the shared rig template for the robot enemies; Sentinel and Warden remain enemies too.
+- **One human hero with five visual upgrade tiers:** T1 through T5 are appearances for the same hero identity, not five separate heroes.
+- The five original Drive GLBs are preserved unchanged at `source-assets/characters/human_hero_tiers/Hero_Human_T1.glb` through `Hero_Human_T5.glb`.
+- Optimized review candidates live at `game/assets/characters/human_hero_tiers/`. Each uses its own per-mesh skin weights on a copied 79-joint Robot Common rig and currently contains twelve clips: idle, walk, run, raise weapon, aim, aim-walk, aim-run, fire, reload, hit, death, and lower weapon.
+- The former Common, Rare, and Epic robot hero models have been reclassified as enemies under `game/assets/enemies/` and `source-assets/enemies/`. Robot Common remains the shared rig/animation template; Sentinel and Warden remain enemies too.
+- The human models and their animation/skin candidates are **not visually approved or wired into gameplay**. Inspect all tiers, skin deformation, and clips in the local Godot QA project before any integration.
 
 ## Character-only files
 
-- `character_visual_qa/` — standalone Godot project for the current 15-entry visual review set.
-- `source-assets/characters/human_hero_tiers/` — five human hero tier source models from Drive.
+- `character_visual_qa/` — standalone Godot project with a T1–T5 hero selector, rendered rig/skin/animation review controls, plus robot-enemy review entries.
+- `source-assets/characters/human_hero_tiers/` — five original high-poly source meshes.
+- `game/assets/characters/human_hero_tiers/` — optimized, rigged, animated review candidates and generated rig profiles.
 - `source-assets/enemies/` — robot source GLBs and the existing Sentinel/Warden source GLBs.
 - `game/assets/enemies/` — runtime-form robot enemy GLBs and rig metadata. This folder contains assets only, not game code.
 - `source-assets/tripo_references/` — individual robot/enemy character reference PNGs.
 - `tools/gltf/` — character-only asset optimization, rigging, and animation tools.
 
-## Visual review in Godot
+## Build the human hero tier candidates
 
-Stage the models, then check that the local copies match the manifest:
+The pipeline keeps source meshes unchanged, optimizes their real geometry, generates mesh-specific skin weights from the copied Robot Common rig, and writes animation clips plus weapon raise/lower transitions:
+
+```sh
+python3 -m venv .venv
+.venv/bin/pip install -r requirements-dev.txt
+./tools/gltf/build_human_hero_tiers.sh
+```
+
+Runtime candidates target a 50,000-triangle maximum. The build verifies mesh budgets, 79-joint order/hierarchy, skin-weight sums, bind-pose identity, deformation probes, weapon grip/socket IK, clip presence, and raise/lower transition continuity.
+
+## Standalone Godot review
+
+Stage the 15 QA assets and verify they match their manifest sources:
 
 ```sh
 python3 character_visual_qa/tools/sync_assets.py
 python3 character_visual_qa/tools/sync_assets.py --check
 ```
 
-Import `character_visual_qa/project.godot` in Godot 4.7.2 and review the five human tiers plus the robot enemy models. All review records start as `PENDING`; the human tier entries are explicitly marked unrigged and review-only. See `character_visual_qa/README.md` for controls and gate commands.
+Import `character_visual_qa/project.godot` in Godot 4.7.2. Choose T1–T5 from the dedicated hero-tier dropdown, then use the animation selector and playback controls to review the rig and clips. All review records start as `PENDING`; automated checks are not a substitute for visual GUI review. See `character_visual_qa/README.md` for the full controls and gate commands.
 
-## Robot enemy rebuild tools
-
-The retained build scripts apply only to the existing robot assets; they do not rig the new human hero GLBs:
+## Rebuild the robot enemy assets
 
 ```sh
-python3 -m venv .venv
-.venv/bin/pip install -r requirements-dev.txt
 ./tools/gltf/build_robot_enemy_variants.sh
 ./tools/gltf/build_enemy_models.sh
 ```
 
-Human tier optimization, rigging, and animation must be treated as a separate next step after visual review. No human tier is claimed complete or wired into gameplay.
-
-## Clone only the visual QA project and its required character assets
+## Clone only the QA project and required character assets
 
 GitHub does not offer a direct single-folder `clone`. This sparse, shallow clone gets the Godot review project and only the character assets it reads, without the rest of the branch tree or its older history:
 
@@ -53,6 +61,7 @@ git clone --depth 1 --filter=blob:none --sparse --single-branch \
 cd Cyber-Strike-Character-QA
 git sparse-checkout set \
   character_visual_qa \
+  game/assets/characters/human_hero_tiers \
   game/assets/enemies \
   source-assets/enemies \
   source-assets/characters/human_hero_tiers
