@@ -16,18 +16,15 @@
       "bones_animated": [
         "Head",
         "Hip",
-        "L_Forearm",
         "L_Thigh",
         "L_Upperarm",
-        "R_Forearm",
         "R_Thigh",
         "R_Upperarm",
-        "Spine01",
-        "Spine02"
+        "Spine01"
       ],
-      "bytes": 92840,
+      "bytes": 89436,
       "bones_exported": 79,
-      "notes": "Braced drop, then a two-arm flare with the chin up; ends back at idle."
+      "notes": "Braced drop, then a two-arm flare overhead with the chin up; ends back at idle."
     }
   },
   "limitations": [
