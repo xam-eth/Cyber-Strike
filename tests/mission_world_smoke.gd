@@ -535,7 +535,9 @@ func _probe_move(
 
 
 func _probe_notice(label: String, detail: String) -> void:
-	print("::notice title=THE TITANS %s::%s" % [label, detail])
+	# run_smoke_tests captures each engine log. The CI evidence step lifts these
+	# lines into one annotation so restricted contributors can inspect the result.
+	print("THE TITANS PROBE %s | %s" % [label, detail])
 
 
 func _near(a: Color, b: Color, tolerance := 0.002) -> bool:

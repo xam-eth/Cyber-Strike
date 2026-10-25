@@ -90,6 +90,20 @@ jobs:
               echo '```'
             } >> "$GITHUB_STEP_SUMMARY"
           done
+          # Engine stdout is captured per test, so a green job alone must not be
+          # mistaken for route evidence. Surface the measured positions through
+          # the annotations API when full log/artifact downloads are unavailable.
+          python3 - <<'PY'
+          from pathlib import Path
+          log = Path('exports/test-logs/mission_world_smoke.log')
+          if log.exists():
+              prefix = 'THE TITANS PROBE '
+              probes = [line[len(prefix):].strip() for line in log.read_text(errors='replace').splitlines()
+                        if line.startswith(prefix)]
+              if probes:
+                  detail = ' | '.join(probes).replace('\r', ' ')[:1800]
+                  print(f'::notice title=THE TITANS multi-level probe::{detail}')
+          PY
 
       - name: Upload smoke test logs
         if: always()
