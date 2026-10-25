@@ -125,8 +125,8 @@ stays silent when audio is absent, keeping isolated smoke fixtures compilable.
   that HUD mute/unmute writes the shared shell preference in both directions.
 ## Validated payload — 2026-10-25
 
-- **VERIFIED (CI/headless/runtime):** merged source `35844894`, CI
-  `40179327354`; static checks and 28/28 Godot smoke tests passed, including
+- **VERIFIED (CI/headless/runtime):** source `c9535571`, CI
+  `40191527600`; static checks and 28/28 Godot smoke tests passed, including
   `audio_smoke`.
 - **VERIFIED (CI/browser):** four normal boot checks, HERO/rig/celebration
   assertions, opening/interrupted-download recovery, and strict Vanguard
@@ -136,11 +136,12 @@ stays silent when audio is absent, keeping isolated smoke fixtures compilable.
   `shot_pulse_rifle`, HUD mute/unmute, shared-pref mirroring, and zero shell
   music voices after handoff. No page error, failed request, or HTTP error was
   reported.
-- **VERIFIED (payload preservation):** all five imported audio resources are
-  byte-identical to payload `3719d705`; the merged UI/World export did not
-  replace or re-encode the validated audio data.
-- **PAYLOAD:** commit `c7be6bfc`; PCK 79,615,004 bytes / 887 files; SHA-256
-  `5f8c4017ff230d2a74af5f06fa0cf66d1e25105726c844bdf3d0edd93a84fec6`.
+- **VERIFIED (payload preservation baseline):** in the earlier merged payload
+  `c7be6bfc`, all five imported audio resources were byte-identical to payload
+  `3719d705`; that UI/World export did not replace or re-encode the validated
+  audio data. The current export separately passes the audio smoke/browser gates.
+- **PAYLOAD:** commit `e85902c6`; PCK 79,615,068 bytes / 887 files; SHA-256
+  `554b5e611811090fff9a717a9a0cc3d9875a824304db237b5d6e4c62281855ae`.
   This is below the 100,000,000-byte publication guard.
 - **UNKNOWN / not signed off:** human listening, final mix/loudness acceptance,
   speaker/headphone quality, physical mobile behavior, and Android. Automated
