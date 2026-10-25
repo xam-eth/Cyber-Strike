@@ -1,0 +1,5 @@
+{
+  "note": "Placeholder until tools/blender/author_celebrations.py runs: the shell fetches this file on the hero screen, and a missing manifest is a 404 in the smoke test. An empty map means no hero has a signature beat yet, so the stage falls back to the rig's own aim pose. The Blender job overwrites this file with the real entries.",
+  "clip": "celebration",
+  "heroes": {}
+}
