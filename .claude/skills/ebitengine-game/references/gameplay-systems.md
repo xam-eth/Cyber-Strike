@@ -183,7 +183,8 @@ Spawn bursts from the rules' events (`Landed`, `Coin`, `Hit`), not from inside
 the rules. Colours are premultiplied, so fading scales R, G, B and A together.
 Profile the expected particle count on the target devices. If individual shape
 draws are a bottleneck, draw a pre-rendered small image per particle with
-`DrawImage` or batch geometry with `DrawTriangles`. The sample antialiases smooth
+`DrawImage` or batch geometry with `DrawTriangles32` (its `uint32` indices are not
+capped at 65,536 vertices like the `uint16` indices of `DrawTriangles`). The sample antialiases smooth
 geometry; intentional pixel art needs a consistent snapped grid instead.
 
 ## Screen shake and hit-stop

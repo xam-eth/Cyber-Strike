@@ -66,8 +66,9 @@ rules, monorepos, and plain-text engine mentions, read `references/engine-detect
 
 After identifying the engine, read its version from project metadata or dependency locks before
 choosing APIs. Existing projects keep their pinned version unless migration is requested; the
-catalog baseline is only for new projects. The exact version sources are in the detection reference
-and `../docs/VERSION-SUPPORT.md`.
+catalog baseline is only for new projects. The exact version sources are in the detection reference;
+each engine skill states its new-project baseline, and the catalog-wide table is
+`docs/VERSION-SUPPORT.md` in the source repository (it is not installed with the router).
 
 ## 2. Task classification (phrasing → category)
 
@@ -123,7 +124,7 @@ File signals sharpen this: `*.yarn`/`*.ink` → `dialogue-systems`/`visual-novel
 | art direction, game assets, sprites, tilesets, textures, icons, 3D props | `create-game-assets` | engine importer/rendering skill; `imagegen` when available |
 | enemy AI, behavior tree, pathfinding, steering | `game-ai` | `unity-navmesh` / `unreal-behavior-trees` / Godot nav |
 | BT runtime, blackboard, decorator, selector/sequence, utility AI, response curve, consideration | `ai-behavior-trees-utility-ai` | `game-ai` (model choice) / `unreal-behavior-trees` (engine assets) |
-| procedural, noise, seed, dungeon generator | `procedural-gen` | engine tilemap/grid skill |
+| procedural, noise, seed, dungeon generator, WFC | `procedural-gen` | engine tilemap/grid skill |
 | dialogue, Yarn, Ink, conversation tree | `dialogue-systems` | engine UI skill |
 | save/load, slots, persistence | `save-systems` | `roblox-datastores` / engine IO |
 | adaptive music, mixer, ducking, SFX | `audio-design` | `godot-audio` / Unity AudioMixer |

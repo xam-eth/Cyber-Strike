@@ -19,7 +19,7 @@ Scan for the highest-confidence signal and stop at the first match in this prece
 | 9 | Defold | `game.project` | `*.collection`, `*.go`, `*.script`, `*.gui_script`, `*.atlas`, `*.input_binding`, `/builtins/` paths | `skills/other-engines/defold-core/` |
 | 10 | LÖVE | `conf.lua`, or `main.lua` calling `love.*` | `*.love` | `skills/other-engines/love2d-core/` |
 | 11 | pygame | `*.py` with `import pygame` | `pygame.init()`, `pygame.display.set_mode` | `skills/other-engines/pygame-core/` |
-| 12 | Roblox | `*.rbxl` / `*.rbxlx`, or `*.project.json` (Rojo) | `*.luau`, `DataStoreService`, `game:GetService` | `skills/other-engines/roblox-luau`, `roblox-datastores` |
+| 12 | Roblox | `*.rbxl` / `*.rbxlx`, or `*.project.json` (Rojo) | `*.luau`, `DataStoreService`, `game:GetService` | `skills/other-engines/roblox-*` (`roblox-luau` first, then the focused Roblox skill) |
 
 ## Detect the installed version
 
@@ -38,7 +38,8 @@ Engine identity is not enough. Read the version source before using version-sens
 | LÖVE | `conf.lua` version when declared, then the installed runtime |
 | Roblox | platform APIs are rolling; inspect current Creator Hub documentation for unstable APIs |
 
-For a new project use the baseline in `../../docs/VERSION-SUPPORT.md`. For an existing project,
+For a new project use the baseline stated in the engine skill (the catalog-wide table is
+`docs/VERSION-SUPPORT.md` in the source repository). For an existing project,
 preserve the detected version unless the user explicitly requests migration.
 
 ## Disambiguation rules (must-handle ambiguities)

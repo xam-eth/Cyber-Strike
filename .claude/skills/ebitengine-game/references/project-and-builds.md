@@ -175,5 +175,5 @@ package (here `game`) that both `main` and the mobile package import.
       [CI](ci-and-release.md). Test the final archive after extraction.
 
 Sources: [v2.10 installation/runtime requirements](https://ebitengine.org/en/documents/install.html),
-[WebAssembly](https://ebitengine.org/en/documents/wasm.html),
+[WebAssembly](https://ebitengine.org/en/documents/webassembly.html),
 [mobile setup](https://ebitengine.org/en/documents/mobile.html).
