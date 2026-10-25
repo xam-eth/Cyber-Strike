@@ -92,7 +92,8 @@ const encounterMode = requireDefense || has('--encounter-prep');
 const encounterTimeoutMs = Math.max(0, Number(flag('--encounter-timeout', '600')) || 0) * 1000;
 const exploreWaitMs = Number(flag('--explore-wait', '8000'));
 const selectVanguard = has('--select-vanguard');
-// Journey-only mode proves the shell -> WORLD -> selected theatre -> Explore
+// Journey mode proves the root shell's direct theatre hand-off, and retains
+// the measured WORLD-stage route for raw engine journeys.
 // hand-off without adding combat, audio, or a timed play claim to that check.
 const journeyMode = has('--journey') || selectVanguard;
 const port = Number(flag('--port', '8126'));
@@ -210,6 +211,7 @@ async function checkPage(target, viewport) {
   // auto-boot that only exists for tests. Pages without the shell (the raw
   // /web/ build) skip this.
   const isFrontEnd = await page.evaluate(() => !!document.getElementById('hub-deploy'));
+  let shellVanguardSelected = null;
   if (isFrontEnd) {
     await page
       .waitForFunction(() => {
@@ -219,6 +221,17 @@ async function checkPage(target, viewport) {
       .catch(() => {});
     await page.evaluate(() => document.getElementById('opening-enter')?.click());
     await page.waitForFunction(() => document.body.dataset.screen === 'hub', { timeout: 15000 }).catch(() => {});
+    if (selectVanguard) {
+      // Select the actual shell card before DEPLOY. The runtime assertions below
+      // still require the engine to accept that ID and build Vanguard, so a DOM
+      // aria-state change alone can never masquerade as a successful handoff.
+      shellVanguardSelected = await page.evaluate(() => {
+        const card = document.getElementById('world-card-vanguard-station');
+        if (!card) return false;
+        card.click();
+        return card.getAttribute('aria-selected') === 'true';
+      });
+    }
     await page.evaluate(() => document.getElementById('hub-deploy')?.click());
   }
 
@@ -416,7 +429,13 @@ async function checkPage(target, viewport) {
     // The opening cinematic is 9.58 s of video and ignores Enter entirely.
     // Software WebGL decodes it at roughly a fifth of real time, so the wait
     // is measured in minutes, not seconds.
-    for (let i = 0; i < 240 && !/stage (CHAPTER|DASHBOARD|HERO|WEAPON|WORLD|PRELOAD)/.test(stageLine()); i += 1) {
+    for (
+      let i = 0;
+      i < 240 && !reached() && !/stage (CHAPTER|DASHBOARD|HERO|WEAPON|WORLD|PRELOAD)/.test(stageLine());
+      i += 1
+    ) {
+      // The root shell now hands straight to gameplay, so there is no engine
+      // stage line to wait for. Raw engine/deep-link journeys still use stages.
       await new Promise((r) => setTimeout(r, 1000));
     }
     if (!reached()) progress(`  journey: front-end at ${stageLine().trim() || '(no stage yet)'}`);
@@ -694,20 +713,28 @@ async function checkPage(target, viewport) {
     ]);
   }
   if (journeyMode) {
-    checks.push(['shell reached WORLD and then the gameplay scene', inGameplay]);
+    checks.push(['front-end handoff reached the gameplay scene', inGameplay]);
   }
   if (selectVanguard) {
+    if (isFrontEnd) {
+      checks.push(['shell Vanguard card was selected before DEPLOY', shellVanguardSelected === true]);
+    }
+    const selectionLog = isFrontEnd
+      ? 'FrontEnd: qa_world selected vanguard_station'
+      : 'FrontEnd: world selected vanguard_station';
     checks.push([
-      'WORLD pin selected Vanguard before launch',
-      consoleLines.some((line) => line.includes('FrontEnd: world selected vanguard_station')),
+      isFrontEnd ? 'engine accepted the shell Vanguard selection' : 'WORLD pin selected Vanguard before launch',
+      consoleLines.some((line) => line.includes(selectionLog)),
     ]);
     checks.push([
       'front-end selection built Vanguard Station gameplay',
       inGameplay && consoleLines.some((line) => line.includes('VanguardStation:')),
     ]);
     checks.push([
-      'shell offered the engine WORLD stage before launch',
-      consoleLines.some((line) => line.includes('FrontEnd: stage WORLD')),
+      isFrontEnd ? 'shell DEPLOY bypassed the engine WORLD stage' : 'engine journey offered the WORLD stage',
+      isFrontEnd
+        ? !consoleLines.some((line) => line.includes('FrontEnd: stage WORLD'))
+        : consoleLines.some((line) => line.includes('FrontEnd: stage WORLD')),
     ]);
   }
   if (encounterMode) {

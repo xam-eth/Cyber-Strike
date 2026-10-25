@@ -1,0 +1,164 @@
+{
+  "tag": "round-04",
+  "viewports": [
+    "844x390",
+    "667x375"
+  ],
+  "screens": [
+    {
+      "screen": "opening",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/round-04/opening-844x390.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [],
+      "width": 844,
+      "height": 390,
+      "bytes": 397389,
+      "lumaMean": 36.30084106396796,
+      "lumaStdDev": 37.45951058746797,
+      "uniqueColors": 6507
+    },
+    {
+      "screen": "hub",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/round-04/hub-844x390.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [],
+      "width": 844,
+      "height": 390,
+      "bytes": 310385,
+      "lumaMean": 22.340278563622512,
+      "lumaStdDev": 34.687900360434504,
+      "uniqueColors": 3886
+    },
+    {
+      "screen": "arsenal",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/round-04/arsenal-844x390.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [],
+      "width": 844,
+      "height": 390,
+      "bytes": 276457,
+      "lumaMean": 25.411534636655542,
+      "lumaStdDev": 34.97619037178847,
+      "uniqueColors": 4708
+    },
+    {
+      "screen": "settings",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/round-04/settings-844x390.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [],
+      "width": 844,
+      "height": 390,
+      "bytes": 220040,
+      "lumaMean": 17.862623618313318,
+      "lumaStdDev": 22.197632263051545,
+      "uniqueColors": 1057
+    },
+    {
+      "screen": "launch",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/round-04/launch-844x390.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [
+        "ERROR: Condition \"!is_inside_tree()\" is true.",
+        "   at: grab_focus (scene/gui/control.cpp:3001)"
+      ],
+      "width": 844,
+      "height": 390,
+      "bytes": 389499,
+      "lumaMean": 30.97392092905654,
+      "lumaStdDev": 25.99101922723539,
+      "uniqueColors": 2778
+    },
+    {
+      "screen": "opening",
+      "viewport": "667x375",
+      "file": "qa-evidence/ui/round-04/opening-667x375.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [],
+      "width": 667,
+      "height": 375,
+      "bytes": 308347,
+      "lumaMean": 35.767663839313194,
+      "lumaStdDev": 37.56867899324219,
+      "uniqueColors": 4957
+    },
+    {
+      "screen": "hub",
+      "viewport": "667x375",
+      "file": "qa-evidence/ui/round-04/hub-667x375.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [],
+      "width": 667,
+      "height": 375,
+      "bytes": 221010,
+      "lumaMean": 21.55680506227742,
+      "lumaStdDev": 36.58725834445192,
+      "uniqueColors": 3403
+    },
+    {
+      "screen": "arsenal",
+      "viewport": "667x375",
+      "file": "qa-evidence/ui/round-04/arsenal-667x375.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [],
+      "width": 667,
+      "height": 375,
+      "bytes": 243857,
+      "lumaMean": 25.633942228892828,
+      "lumaStdDev": 36.96741639491842,
+      "uniqueColors": 4475
+    },
+    {
+      "screen": "settings",
+      "viewport": "667x375",
+      "file": "qa-evidence/ui/round-04/settings-667x375.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [],
+      "width": 667,
+      "height": 375,
+      "bytes": 171970,
+      "lumaMean": 18.595390554338525,
+      "lumaStdDev": 25.1852770938603,
+      "uniqueColors": 1062
+    },
+    {
+      "screen": "launch",
+      "viewport": "667x375",
+      "file": "qa-evidence/ui/round-04/launch-667x375.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [
+        "ERROR: Condition \"!is_inside_tree()\" is true.",
+        "   at: grab_focus (scene/gui/control.cpp:3001)"
+      ],
+      "width": 667,
+      "height": 375,
+      "bytes": 304737,
+      "lumaMean": 30.912474746653498,
+      "lumaStdDev": 28.14863530119473,
+      "uniqueColors": 2650
+    }
+  ],
+  "failures": 0,
+  "generatedAt": "2026-10-25T00:35:04.777Z",
+  "in_engine": {
+    "screen": "gameplay",
+    "viewport": "844x390",
+    "file": "qa-evidence/ui/round-04/gameplay-844x390.png",
+    "source": "node tools/qa_flow_shots.mjs --tag round-04-hud --stages GAMEPLAY --viewport 844x390",
+    "note": "the committed payload after CI rebuilt it: no browser chrome, the combat stencils inside their tiles"
+  }
+}

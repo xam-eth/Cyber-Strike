@@ -20,10 +20,15 @@
 			  GODOT_HEAD_INCLUDE      extra markup from the export preset
 			  GODOT_SPLASH / GODOT_SPLASH_CLASSES   boot splash image and classes
 
-			The shell adds a HUD layer (controls legend, fullscreen) on top of the
-			engine canvas. Web exports run on the Compatibility renderer, so WebGL 2
-			is required -- but the browser chrome does not say so: a player reads
-			the game's name and nothing about how it was built (DECISIONS 17).
+			The shell draws nothing over the engine canvas. It used to carry a
+			browser chrome bar (an UI toggle, a product chip, Fullscreen, Hide UI)
+			and a controls legend behind a second toggle; in a screenshot that bar
+			was the first thing the eye found, and it made a running game look like
+			a page hosting one. The HUD, the pause menu and the results card are the
+			engine's own screens, so every control a player needs is already inside
+			the frame. Web exports run on the Compatibility renderer, so WebGL 2 is
+			required -- but the browser chrome does not say so either: a player
+			reads the game's name and nothing about how it was built.
 		-->
 		<style>
 			html, body, #canvas {
@@ -149,131 +154,6 @@
 				z-index: 21;
 			}
 
-			/* ---------- in-game HUD layer ---------- */
-			#shell-ui {
-				position: fixed;
-				inset: 0;
-				pointer-events: none;
-				z-index: 10;
-				opacity: 1;
-				transition: opacity 200ms ease-out;
-			}
-
-			#shell-ui.hidden {
-				opacity: 0;
-			}
-
-			.shell-bar {
-				position: absolute;
-				top: 0;
-				left: 0;
-				display: flex;
-				align-items: center;
-				gap: 0.55rem;
-				padding: 0.5rem 0.6rem;
-				pointer-events: auto;
-			}
-
-			/* The game draws its own HUD at the top of the canvas. The browser
-			   chrome steps aside once the run starts: only the small toggle stays,
-			   and the full bar returns on hover, focus or click. */
-			.shell-bar[data-collapsed='true'] .shell-chip,
-			.shell-bar[data-collapsed='true'] .shell-button:not(#shell-bar-toggle) {
-				display: none;
-			}
-
-			#shell-bar-toggle {
-				opacity: 0.72;
-			}
-
-			.shell-bar:not([data-collapsed='true']) #shell-bar-toggle {
-				opacity: 1;
-			}
-
-			.shell-chip {
-				display: inline-flex;
-				align-items: center;
-				gap: 0.4rem;
-				padding: 0.32rem 0.6rem;
-				border-radius: 999px;
-				background: rgba(5, 12, 22, 0.72);
-				border: 1px solid rgba(127, 216, 255, 0.24);
-				color: #bfe6ff;
-				font-size: 0.7rem;
-				letter-spacing: 0.08em;
-				text-transform: uppercase;
-				backdrop-filter: blur(6px);
-			}
-
-			.shell-chip b {
-				color: #7cffcb;
-				font-weight: 600;
-			}
-
-			.shell-button {
-				pointer-events: auto;
-				cursor: pointer;
-				padding: 0.34rem 0.7rem;
-				border-radius: 999px;
-				background: rgba(5, 12, 22, 0.72);
-				border: 1px solid rgba(127, 216, 255, 0.28);
-				color: #dff3ff;
-				font: inherit;
-				font-size: 0.7rem;
-				letter-spacing: 0.1em;
-				text-transform: uppercase;
-				backdrop-filter: blur(6px);
-			}
-
-			.shell-button:hover,
-			.shell-button:focus-visible {
-				border-color: #7cffcb;
-				color: #ffffff;
-				outline: none;
-			}
-
-			.shell-help[data-collapsed='true'] .shell-help-body {
-				display: none;
-			}
-
-			.shell-help {
-				position: absolute;
-				left: 0.6rem;
-				bottom: 0.6rem;
-				max-width: min(28rem, 72vw);
-				padding: 0.55rem 0.7rem;
-				border-radius: 0.55rem;
-				background: rgba(5, 12, 22, 0.68);
-				border: 1px solid rgba(127, 216, 255, 0.18);
-				color: #a9c6dd;
-				font-size: 0.68rem;
-				line-height: 1.55;
-				pointer-events: auto;
-				backdrop-filter: blur(6px);
-			}
-
-			.shell-help strong {
-				color: #7fd8ff;
-				font-weight: 600;
-			}
-
-			.shell-help[data-collapsed="true"] .shell-help-body {
-				display: none;
-			}
-
-			@media (max-width: 720px) {
-				.shell-chip.build {
-					display: none;
-				}
-
-				.shell-help[data-collapsed='true'] .shell-help-body {
-				display: none;
-			}
-
-			.shell-help {
-					font-size: 0.62rem;
-				}
-			}
 		</style>
 		$GODOT_HEAD_INCLUDE
 	</head>
@@ -285,28 +165,6 @@
 		<noscript>
 			Your browser does not support JavaScript.
 		</noscript>
-
-		<div id="shell-ui" class="hidden">
-			<div class="shell-bar" id="shell-bar" data-collapsed="true">
-				<button id="shell-bar-toggle" class="shell-button" type="button" title="Show or hide the browser chrome">UI</button>
-				<span class="shell-chip">Exocomplict</span>
-				<button id="shell-fullscreen" class="shell-button" type="button">Fullscreen</button>
-				<button id="shell-toggle-ui" class="shell-button" type="button">Hide UI</button>
-			</div>
-			<div class="shell-help" id="shell-help" data-collapsed="true">
-				<button id="shell-toggle-help" class="shell-button" type="button" style="margin-bottom:0.4rem">Controls</button>
-				<div class="shell-help-body">
-					<strong>Safe Explore:</strong> no automatic waves. Press B or START DEFENSE when ready; countdown before enemies.<br>
-					<strong>Keyboard:</strong> WASD move · right mouse aim · left mouse fire ·
-					E switch weapon · EMP · Esc pause · R retry<br>
-					<strong>Touch:</strong> left joystick · drag right to aim ·
-					FIRE · WEAPON / EMP / PAUSE · RETRY DEFENSE or EXPLORE after results<br>
-					<strong>Note:</strong> this build uses the Compatibility renderer (WebGL 2) and runs the
-					desktop/mobile gameplay code unmodified; statistics that depend on real device GPU
-					performance are not representative of an Android build.
-				</div>
-			</div>
-		</div>
 
 		<!--
 			The boot overlay is a dark frame, and nothing else.
@@ -343,8 +201,6 @@ const engine = new Engine(GODOT_CONFIG);
 	const statusProgress = document.getElementById('status-progress');
 	const statusProgressLabel = document.getElementById('status-progress-label');
 	const statusNotice = document.getElementById('status-notice');
-	const shellUi = document.getElementById('shell-ui');
-	const helpPanel = document.getElementById('shell-help');
 
 	let initializing = true;
 	let statusMode = '';
@@ -391,75 +247,6 @@ const engine = new Engine(GODOT_CONFIG);
 		setStatusMode('notice');
 		initializing = false;
 	}
-
-	let collapseTimer = 0;
-
-	/* The in-game HUD owns the top of the screen once play starts, so the browser
-	   chrome folds itself away and waits to be asked for. */
-	function scheduleChromeCollapse(delay = 6000) {
-		const bar = document.getElementById('shell-bar');
-		if (!bar || bar.dataset.collapsed === 'true') {
-			return;
-		}
-		window.clearTimeout(collapseTimer);
-		collapseTimer = window.setTimeout(() => {
-			bar.dataset.collapsed = 'true';
-		}, delay);
-	}
-
-	function wireShellControls() {
-		const fullscreenButton = document.getElementById('shell-fullscreen');
-		const toggleUiButton = document.getElementById('shell-toggle-ui');
-		const toggleHelpButton = document.getElementById('shell-toggle-help');
-		const canvas = document.getElementById('canvas');
-		const bar = document.getElementById('shell-bar');
-		const barToggle = document.getElementById('shell-bar-toggle');
-
-		barToggle.addEventListener('click', () => {
-			const collapsed = bar.dataset.collapsed === 'true';
-			bar.dataset.collapsed = collapsed ? 'false' : 'true';
-			if (collapsed) {
-				scheduleChromeCollapse(8000);
-			}
-			canvas.focus();
-		});
-		bar.addEventListener('pointerenter', () => {
-			bar.dataset.collapsed = 'false';
-			window.clearTimeout(collapseTimer);
-		});
-		bar.addEventListener('pointerleave', () => scheduleChromeCollapse(3500));
-		bar.addEventListener('focusin', () => {
-			bar.dataset.collapsed = 'false';
-			window.clearTimeout(collapseTimer);
-		});
-
-		fullscreenButton.addEventListener('click', () => {
-			if (document.fullscreenElement) {
-				document.exitFullscreen();
-			} else if (document.documentElement.requestFullscreen) {
-				document.documentElement.requestFullscreen().catch((err) => console.warn(err));
-			}
-			canvas.focus();
-		});
-
-		toggleUiButton.addEventListener('click', () => {
-			shellUi.classList.toggle('hidden');
-			canvas.focus();
-		});
-
-		toggleHelpButton.textContent = 'Show controls (web)';
-		toggleHelpButton.addEventListener('click', () => {
-			const collapsed = helpPanel.dataset.collapsed === 'true';
-			helpPanel.dataset.collapsed = collapsed ? 'false' : 'true';
-			toggleHelpButton.textContent = collapsed ? 'Hide controls (web)' : 'Show controls (web)';
-		});
-
-		document.addEventListener('fullscreenchange', () => {
-			fullscreenButton.textContent = document.fullscreenElement ? 'Exit fullscreen' : 'Fullscreen';
-		});
-	}
-
-	wireShellControls();
 
 	const missing = Engine.getMissingFeatures({
 		threads: GODOT_THREADS_ENABLED,
@@ -513,10 +300,8 @@ const engine = new Engine(GODOT_CONFIG);
 		}).then(() => {
 			statusProgressLabel.textContent = 'starting…';
 			setStatusMode('hidden');
-			shellUi.classList.remove('hidden');
-			// Keep diagnostics behind one small toggle as soon as gameplay starts.
-			// The Godot HUD no longer reserves two rows of browser chrome.
-			document.getElementById('shell-bar').dataset.collapsed = 'true';
+			// Nothing is layered over the canvas: the first frame of gameplay is
+			// the frame the engine drew.
 			document.getElementById('canvas').focus();
 		}, displayFailureNotice);
 	}

@@ -82,17 +82,18 @@ export templates that are already in the repository (`engine/web_templates/`):
 
 A headless browser check for both entry pages is one command (`npm ci --prefix tools && node tools/web_qa.mjs`); CI runs
 the same gate, and it is what proves the engine actually boots instead of only serving bytes. Add `--tour` and the
-same run presses F10 in the engine, walks the eight review vantages and saves one screenshot per district — that is how
+same run presses P in the engine, walks the eight review vantages and saves one screenshot per district — that is how
 `qa-evidence/world-kit/` was captured, from the shipped `web/` payload rather than from a separate scene. CI also runs
-`node tools/web_qa.mjs --page / --journey --select-vanguard`: the pass requires the engine WORLD stage, real gameplay
-entry, and the runtime `VanguardStation:` build log, so DEPLOY cannot silently bypass theatre selection.
+`node tools/web_qa.mjs --page / --journey --select-vanguard`: the pass clicks the shell's Vanguard theatre card, requires
+the authoritative `qa_world` hand-off and real gameplay entry, and checks the runtime `VanguardStation:` build log. The
+root DEPLOY flow goes directly to that selected theatre; raw engine journeys retain their measured WORLD-stage path.
 
 The web export is single-threaded (`variant/thread_support=false`) so it runs on a plain static server without
 COOP/COEP headers. The player meets the game through the front end at the repository root (`index.html` + `ui/`), which
-covers opening, hub and launch, then hands the screen to the engine's WORLD/loadout journey rather than choosing a
-default theatre in JavaScript. Export builds use the equivalent shell at `game/web_shell/index.html`. The web platform always uses the
-Compatibility (WebGL 2) renderer, while Android keeps the `mobile` renderer — see [`WEB_PREVIEW.md`](WEB_PREVIEW.md)
-for the differences that must not be mistaken for Android behaviour.
+covers opening, hub/theatre selection, arsenal and launch. DEPLOY hands the selected `qa_world` and `weapon` to the
+authoritative engine adapters and enters that theatre's gameplay directly. Raw export builds use the engine shell at
+`game/web_shell/index.html`. The web platform always uses the Compatibility (WebGL 2) renderer, while Android keeps the
+`mobile` renderer — see [`WEB_PREVIEW.md`](WEB_PREVIEW.md) for the differences that must not be mistaken for Android behaviour.
 
 ## Android import/export workflow
 

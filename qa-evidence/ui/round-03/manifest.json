@@ -1,0 +1,157 @@
+{
+  "tag": "round-03",
+  "viewports": [
+    "844x390",
+    "667x375"
+  ],
+  "screens": [
+    {
+      "screen": "opening",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/round-03/opening-844x390.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [],
+      "width": 844,
+      "height": 390,
+      "bytes": 108621,
+      "lumaMean": 19.618872263307765,
+      "lumaStdDev": 32.89180837362207,
+      "uniqueColors": 886
+    },
+    {
+      "screen": "hub",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/round-03/hub-844x390.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [],
+      "width": 844,
+      "height": 390,
+      "bytes": 102337,
+      "lumaMean": 22.77830660164331,
+      "lumaStdDev": 33.138528318731176,
+      "uniqueColors": 1463
+    },
+    {
+      "screen": "arsenal",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/round-03/arsenal-844x390.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [],
+      "width": 844,
+      "height": 390,
+      "bytes": 127584,
+      "lumaMean": 26.642425168339074,
+      "lumaStdDev": 37.81370532710344,
+      "uniqueColors": 3131
+    },
+    {
+      "screen": "settings",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/round-03/settings-844x390.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [],
+      "width": 844,
+      "height": 390,
+      "bytes": 77913,
+      "lumaMean": 20.124019431991957,
+      "lumaStdDev": 22.841050063842896,
+      "uniqueColors": 664
+    },
+    {
+      "screen": "launch",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/round-03/launch-844x390.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [
+        "ERROR: Condition \"!is_inside_tree()\" is true.",
+        "   at: grab_focus (scene/gui/control.cpp:3001)"
+      ],
+      "width": 844,
+      "height": 390,
+      "bytes": 90319,
+      "lumaMean": 14.200886749904166,
+      "lumaStdDev": 18.066551367906943,
+      "uniqueColors": 473
+    },
+    {
+      "screen": "opening",
+      "viewport": "667x375",
+      "file": "qa-evidence/ui/round-03/opening-667x375.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [],
+      "width": 667,
+      "height": 375,
+      "bytes": 93912,
+      "lumaMean": 22.26367485455327,
+      "lumaStdDev": 36.97974716080571,
+      "uniqueColors": 849
+    },
+    {
+      "screen": "hub",
+      "viewport": "667x375",
+      "file": "qa-evidence/ui/round-03/hub-667x375.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [],
+      "width": 667,
+      "height": 375,
+      "bytes": 89890,
+      "lumaMean": 25.56386996263089,
+      "lumaStdDev": 37.20658301681711,
+      "uniqueColors": 1495
+    },
+    {
+      "screen": "arsenal",
+      "viewport": "667x375",
+      "file": "qa-evidence/ui/round-03/arsenal-667x375.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [],
+      "width": 667,
+      "height": 375,
+      "bytes": 110013,
+      "lumaMean": 25.49416838622844,
+      "lumaStdDev": 37.760205378735364,
+      "uniqueColors": 3169
+    },
+    {
+      "screen": "settings",
+      "viewport": "667x375",
+      "file": "qa-evidence/ui/round-03/settings-667x375.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [],
+      "width": 667,
+      "height": 375,
+      "bytes": 67805,
+      "lumaMean": 21.4260254569594,
+      "lumaStdDev": 25.650271177637517,
+      "uniqueColors": 653
+    },
+    {
+      "screen": "launch",
+      "viewport": "667x375",
+      "file": "qa-evidence/ui/round-03/launch-667x375.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [
+        "ERROR: Condition \"!is_inside_tree()\" is true.",
+        "   at: grab_focus (scene/gui/control.cpp:3001)"
+      ],
+      "width": 667,
+      "height": 375,
+      "bytes": 76494,
+      "lumaMean": 15.93256045897021,
+      "lumaStdDev": 23.787461502371713,
+      "uniqueColors": 525
+    }
+  ],
+  "failures": 0,
+  "generatedAt": "2026-10-24T23:07:42.544Z"
+}

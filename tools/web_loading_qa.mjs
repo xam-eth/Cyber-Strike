@@ -2,8 +2,8 @@
 /*
  * Interrupt each large Web download, require a visible error (not an endless
  * loading screen), then allow the asset through and activate the real retry.
- * PASS requires a fresh engine boot into WORLD, no unhandled rejection, and
- * monotonic combined WASM + PCK progress after recovery.
+ * PASS requires a fresh engine boot into the selected theatre's gameplay, no
+ * unhandled rejection, and monotonic combined WASM + PCK progress after recovery.
  *
  *   node tools/web_loading_qa.mjs --json
  *   node tools/web_loading_qa.mjs --asset wasm --out exports/web-loading-qa
@@ -199,6 +199,7 @@ async function runCase(asset) {
       return button && !button.disabled;
     }, { timeout: 30000 });
     await page.evaluate(() => document.getElementById('opening-enter').click());
+    await page.evaluate(() => document.getElementById('world-card-neon-frontier').click());
     await page.evaluate(() => document.getElementById('hub-deploy').click());
     await page.waitForFunction(() => {
       const button = document.getElementById('launch-retry');
@@ -231,6 +232,12 @@ async function runCase(asset) {
       && getComputedStyle(document.getElementById('app')).display === 'none'
     ), { timeout: timeoutMs });
     await page.waitForFunction(() => document.getElementById('launch-status')?.textContent === 'dunia siap', { timeout: 15000 });
+    // Canvas reveal proves presentation only. Require the selected world handoff
+    // and the real gameplay scene's safe-Explore marker before calling recovery.
+    for (let attempt = 0; attempt < 120; attempt += 1) {
+      if (consoleLines.some((line) => line.includes('Encounter: Explore safe'))) break;
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    }
     result.recovered = await state();
     result.recoveredConsole = [...consoleLines];
     result.recoveredPageErrors = [...pageErrors];
@@ -240,14 +247,19 @@ async function runCase(asset) {
     const events = result.recovered.progressEvents;
     expect(result.recovered.mode === 'playing' && result.recovered.canvasHidden === 'false', 'retry did not reveal the game canvas');
     expect(consoleLines.some((line) => /Godot Engine v/i.test(line)), 'retry produced no Godot engine banner');
-    expect(consoleLines.some((line) => line.includes('FrontEnd: stage WORLD')), 'retry did not reach WORLD');
+    expect(
+      consoleLines.some((line) => line.includes('FrontEnd: qa_world selected neon_frontier')),
+      'retry lost the selected Neon Frontier handoff',
+    );
+    expect(consoleLines.some((line) => line.includes('Encounter: Explore safe')), 'retry did not reach real gameplay');
+    expect(!consoleLines.some((line) => line.includes('FrontEnd: stage WORLD')), 'retry stopped at the engine WORLD stage');
     expect(result.recoveredPageErrors.length === 0, `retry page errors: ${result.recoveredPageErrors.join(' | ')}`);
     expect(events.length > 0, 'the loader emitted no byte-progress events');
     expect(events.every((event) => event[1] > 0), 'loader regressed to total=0; remap the rewritten fileSizes paths');
     expect(events.at(-1)?.[0] === events.at(-1)?.[1], 'the final loader event was incomplete');
     // Reload intentionally aborts any still-active request from the failed
     // document. Keep those diagnostics, but prove recovery by the fresh engine
-    // banner/WORLD/canvas instead of misattributing that old ERR_ABORTED.
+    // banner/gameplay/canvas instead of misattributing that old ERR_ABORTED.
     expect(percentages.at(-1) === 100, `combined progress did not finish at 100: ${percentages.join(',')}`);
     expect(percentages.every((value, index) => index === 0 || value >= percentages[index - 1]), `combined progress moved backwards: ${percentages.join(',')}`);
     if (throughputMbps > 0) {

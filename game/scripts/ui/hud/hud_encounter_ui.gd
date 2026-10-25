@@ -113,7 +113,7 @@ static func refresh_weapon_action(hud) -> void:
 	var compact_armory: bool = weapon_acts_as_armory(hud)
 	var can_swap: bool = hud._state.available_weapons > 1 and not compact_armory
 	hud._weapon_button.text = ""
-	hud._weapon_button.icon = AegisTheme.icon("rifle" if compact_armory else "swap")
+	hud._weapon_button.icon = AegisTheme.hud_icon("hud-weapon" if compact_armory else "hud-swap")
 	hud._weapon_button.set_meta("aegis_state", "swap" if can_swap else "armory")
 	hud._weapon_button.tooltip_text = (
 		("Tap to swap · Equipped: " if can_swap else "Open Armory · Equipped: ")

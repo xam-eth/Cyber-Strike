@@ -30,11 +30,11 @@ Audit **HUD sebelum redesain** (bukan keadaan build terbaru) menemukan:
 Arah yang diusulkan — **AEGIS Industrial** — mempertahankan bahasa sci-fi yang
 sudah ada di dunia, tetapi merapikannya menjadi sistem:
 
-* panel gelap **92%** dengan hairline 1px dan **corner bracket**, bukan kotak penuh;
+* panel gelap **92%** dengan hairline 1px dan **potongan 45°**, bukan kotak membulat;
 * **satu aksen amber** untuk aksi/fokus, mint untuk health, cyan untuk armor,
   merah untuk damage, violet untuk EMP;
-* **Chakra Petch** untuk display, **Rajdhani** untuk UI, **JetBrains Mono** untuk
-  semua angka (tabular);
+* **Rajdhani** untuk display, **Chakra Petch** untuk UI; angka tabular memakai
+  `font-variant-numeric`, bukan keluarga font ketiga;
 * **Phosphor Icons** (MIT) regular + fill;
 * target sentuh **44px adalah lantai**, FIRE 92px;
 * maksimal **6 kontrol aktif** di layar; sisanya masuk pause/settings;
@@ -154,10 +154,39 @@ Semua komersial-aman tanpa atribusi wajib; lisensi tetap disertakan di
 
 ### A. Aegis Industrial — **dipilih**
 
-Panel gelap biru-arang, hairline 1px, bracket di empat sudut, sudut tajam
-(radius 0–2px), satu aksen amber, angka mono, label uppercase bertracking lebar.
-Terasa seperti perangkat keras militer, bukan neon arcade. Kontras tinggi di atas
-dunia pastel, dan tetap terbaca saat layar kecil.
+Panel gelap biru-arang, hairline 1px, sudut **dipotong 45°** (radius 0), satu
+aksen amber, label uppercase bertracking lebar. Terasa seperti perangkat keras
+militer, bukan neon arcade. Kontras tinggi di atas dunia pastel, dan tetap
+terbaca saat layar kecil.
+
+#### Bentuk: satu sudut, banyak siluet
+
+Kotak membulat adalah bentuk setiap aplikasi di ponsel, jadi tidak ada satu pun
+di produk ini. Sebuah kartu adalah pelat: satu sudut dipotong 45°, dan **sudut
+mana yang dipotong adalah arah kartu itu**. Skala potongannya lima langkah:
+`5 / 8 / 12 / 22 / 32 px` (`--cut-xs` … `--cut-xl`), dan setiap pelat menamai
+keempat sudutnya (`--tl/--tr/--br/--bl`). Hairline mengikuti potongan lewat
+empat ubin gradien di `::after`; isi dan tepi memakai `inset box-shadow`, karena
+`border` tidak bisa mengikuti sudut yang sudah di-clip.
+
+| Permukaan | Potongan | Motif tunggalnya |
+|---|---|---|
+| panel dasar | 8 / 8 diagonal | hairline saja |
+| panel pembuka (telemetri) | 22 / 22 | `linklist` bertanda |
+| pelat perintah HOME | tl 12 / br 32 (amber) | ruler tick + wordmark |
+| slate misi | tr 12 / bl 12, tanpa amber | flight-strip: witness + nilai tabular |
+| baris kartu hub | tr 22 (baris kedua: br 22) | tab indeks + kanal verba |
+| tombol utama | tr 22 / bl 5 | potongan amber |
+| tombol ghost | bl 8 | — |
+| chip | tr 5 | pip persegi |
+| sakelar | 60×28 rocker | kenop berchamfer + seam |
+| drawer settings | tl/tr 22, kaki rata | amber lip + grip tarik |
+| dermaga deploy | tl 12 / br 32 + tr 12 / bl 12 | rail bertakik 8 px |
+
+Aturannya: **satu motif per kartu**. Motif kedua di kartu yang sama menghapus
+arah; itu sebabnya tidak ada tekstur isi dan tidak ada gigi gergaji berulang.
+Warna state tidak berubah (ok `#37e08c`, info `#54c8ff`, danger `#ff5a5a`,
+ability `#b79cff`), jadi amber tetap satu-satunya aksen aksi.
 
 Alasan menang: paling dekat dengan dunia SciFi Bay yang sudah ada, paling murah
 diimplementasikan (StyleBoxFlat + `_draw`), dan paling tahan terhadap latar
@@ -474,7 +503,8 @@ set, ikon **selalu** punya label di menu (kecuali pause/sound di HUD).
 ```
 game/scripts/ui/tokens.gd              # warna, ukuran, durasi (const)
 game/scripts/ui/aegis_theme.gd         # Theme + StyleBoxFlat dibangun runtime
-game/scripts/ui/widgets/bracket_panel.gd
+game/scripts/ui/bezel.gd              # geometri potongan 45°
+game/scripts/ui/widgets/aegis_panel.gd # pelat; bezel = true menggambar sendiri
 game/scripts/ui/widgets/stat_card.gd
 game/scripts/ui/widgets/hud_button.gd
 game/scripts/ui/widgets/cooldown_ring.gd
@@ -496,10 +526,13 @@ nama signal di tengah refactor.
 
 ### 11.2 Theme
 
-* `StyleBoxFlat`: `bg_color`, `border_width_* = 1`, `border_color`, `corner_radius
-  = 0–2`. Tanpa tekstur.
-* Bracket sudut digambar oleh `BracketPanel._draw()` (8 garis) — jauh lebih
-  murah daripada nine-patch dan tetap tajam di semua skala.
+* `StyleBoxFlat`: `bg_color`, `border_width_* = 1`, `border_color`,
+  `corner_radius = 0`. Tanpa tekstur.
+* Potongan 45° digambar oleh `AegisBezel` (poligon + polyline) — jauh lebih
+  murah daripada nine-patch dan tetap tajam di semua skala. `AegisPanel` punya
+  dua mode: `bezel = true` menggambar isi + hairline sendiri (kartu menu,
+  overlay), atau hanya menandai potongan ketika StyleBox tetap memiliki isi
+  (chip HUD, yang opacity-nya diuji smoke test).
 * Font: impor 6 TTF; buat `FontVariation` untuk weight, atau pakai family
   terpisah (Chakra Petch 600 / Rajdhani 400·500·600 / JetBrains Mono 500).
 * Ikon: impor SVG pada 1× dan 2×; `TextureRect` + `modulate` untuk warna state.
@@ -594,7 +627,7 @@ Estimasi kasar: M0–M2 = 2 hari, M3–M4 = 2 hari, M5–M6 = 1 hari.
 
 | Risiko | Mitigasi |
 |---|---|
-| Dunia terang membuat panel "menyatu" | bracket + hairline, panel 92%, diuji di 3 crop nyata |
+| Dunia terang membuat panel "menyatu" | potongan 45° + hairline, panel 92%, diuji di 2 viewport landscape |
 | Refactor 1.300 baris merusak input | port widget dulu, signal tetap, smoke tiap milestone |
 | Font menambah ukuran build | subset Latin + hanya 6 file; ukur di CI |
 | HUD editor menambah kompleksitas | mulai preset 3 pilihan, drag grup, opacity; tanpa rotasi |

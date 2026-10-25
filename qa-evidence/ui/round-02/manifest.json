@@ -8,7 +8,7 @@
     {
       "screen": "opening",
       "viewport": "844x390",
-      "file": "qa-evidence/ui/r3/opening-844x390.png",
+      "file": "qa-evidence/ui/round-02/opening-844x390.png",
       "blank": false,
       "overflow": [],
       "errors": [],
@@ -22,7 +22,7 @@
     {
       "screen": "hub",
       "viewport": "844x390",
-      "file": "qa-evidence/ui/r3/hub-844x390.png",
+      "file": "qa-evidence/ui/round-02/hub-844x390.png",
       "blank": false,
       "overflow": [],
       "errors": [],
@@ -36,7 +36,7 @@
     {
       "screen": "settings",
       "viewport": "844x390",
-      "file": "qa-evidence/ui/r3/settings-844x390.png",
+      "file": "qa-evidence/ui/round-02/settings-844x390.png",
       "blank": false,
       "overflow": [],
       "errors": [],
@@ -48,9 +48,26 @@
       "uniqueColors": 664
     },
     {
+      "screen": "launch",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/round-02/launch-844x390.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [
+        "ERROR: Condition \"!is_inside_tree()\" is true.",
+        "   at: grab_focus (scene/gui/control.cpp:3001)"
+      ],
+      "width": 844,
+      "height": 390,
+      "bytes": 91083,
+      "lumaMean": 15.190540794116307,
+      "lumaStdDev": 21.508897512251565,
+      "uniqueColors": 546
+    },
+    {
       "screen": "opening",
       "viewport": "667x375",
-      "file": "qa-evidence/ui/r3/opening-667x375.png",
+      "file": "qa-evidence/ui/round-02/opening-667x375.png",
       "blank": false,
       "overflow": [],
       "errors": [],
@@ -64,7 +81,7 @@
     {
       "screen": "hub",
       "viewport": "667x375",
-      "file": "qa-evidence/ui/r3/hub-667x375.png",
+      "file": "qa-evidence/ui/round-02/hub-667x375.png",
       "blank": false,
       "overflow": [],
       "errors": [],
@@ -78,7 +95,7 @@
     {
       "screen": "settings",
       "viewport": "667x375",
-      "file": "qa-evidence/ui/r3/settings-667x375.png",
+      "file": "qa-evidence/ui/round-02/settings-667x375.png",
       "blank": false,
       "overflow": [],
       "errors": [],
@@ -88,8 +105,25 @@
       "lumaMean": 21.4260254569594,
       "lumaStdDev": 25.650271177637517,
       "uniqueColors": 653
+    },
+    {
+      "screen": "launch",
+      "viewport": "667x375",
+      "file": "qa-evidence/ui/round-02/launch-667x375.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [
+        "ERROR: Condition \"!is_inside_tree()\" is true.",
+        "   at: grab_focus (scene/gui/control.cpp:3001)"
+      ],
+      "width": 667,
+      "height": 375,
+      "bytes": 76494,
+      "lumaMean": 15.93256045897021,
+      "lumaStdDev": 23.787461502371713,
+      "uniqueColors": 525
     }
   ],
   "failures": 0,
-  "generatedAt": "2026-10-24T12:44:08.036Z"
+  "generatedAt": "2026-10-24T16:11:09.604Z"
 }

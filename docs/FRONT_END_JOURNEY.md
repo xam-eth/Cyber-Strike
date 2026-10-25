@@ -4,9 +4,11 @@ status: implemented. `tests/front_end_journey_smoke.gd` walks the engine
 journey and `tests/menu_layout_smoke.gd` measures every interactive stage at the
 two shipping landscape sizes, 844×390 and 667×375. See the integration validation
 report for the exact commit and current result rather than treating this design
-document as a runtime pass. The root web shell hands DEPLOY to WORLD, preserving
-this registry-driven journey. Portrait arrangements described below are historical:
-`docs/DECISIONS.md` §31 makes landscape-only the current UI-domain behavior.
+document as a runtime pass. The root web shell owns theatre/loadout selection and
+hands DEPLOY directly to the selected gameplay scene through the same registry-
+driven engine adapters. The engine journey below remains the raw/native path.
+Portrait arrangements described below are historical: `docs/DECISIONS.md` §31
+makes landscape-only the current UI-domain behavior.
 
 Before this work the game booted straight into `scenes/main.tscn`. The journey
 below did not exist at any point — no boot screen, no loading screen, no
@@ -188,6 +190,36 @@ pure form was extracted from `resolve_safe_insets()` so the two cannot drift,
 which is the failure BUG 2 was about. Back navigation is wired to `ui_cancel`
 with a per-stage `BACK_TARGET`, plus an on-screen BACK button on each selection
 screen for devices with no Escape key.
+
+## The web shell (`ui/`) — HOME for the web build
+
+The engine's own board is not what a browser first meets. `index.html` + `ui/shell.js`
+own the pages before the world, and the engine boots behind them only once Deploy
+is pressed:
+
+```
+opening ──> hub ──> arsenal ──> deploy (launch) ──> the world
+              │         │
+              └────────>└──> settings (from any row, Esc returns)
+```
+
+| Page | What it is |
+| --- | --- |
+| opening | painted key art, the wordmark/tagline, and three real readiness checks on one rail |
+| hub | the painted theatre carousel, selected loadout, and DEPLOY |
+| arsenal | the operative bay (portrait, status, chassis read-out) and the weapon rack |
+| settings | the console drawer: display/control switches and the key list |
+| launch | the selected theatre plate, real combined byte progress, and actionable error/retry |
+
+Every page is a plate with the same 45 degree cut vocabulary (docs/UI_UX_REDESIGN_SPEC.md §3A);
+what changes per page is the silhouette and the one motif, not the colour. The
+loadout chosen on the arsenal page leaves as `?weapon=`, which the engine reads in
+`ProgressionService._apply_web_loadout()` (docs/DECISIONS.md 32). The theatre card
+leaves as `?qa_world=`; `FrontEnd` accepts only `ProgressionService.WORLD_IDS` and
+selects it before `qa_stage=GAMEPLAY` enters the scene directly. The root journey
+therefore does not stop at the engine WORLD stage.
+`tools/ui_shots.mjs` photographs all five pages at 844x390 and 667x375 and fails a
+frame that is blank or that puts anything outside the viewport.
 
 ## Layout at phone sizes
 

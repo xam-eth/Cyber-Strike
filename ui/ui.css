@@ -57,6 +57,27 @@ ul {
   outline-offset: 2px;
 }
 
+/* A clipped plate swallows its own outline: clip-path cuts everything the
+   element paints, ring included. So a cut surface draws focus *inside* its
+   edge -- a 2 px amber rule that follows the chamfer instead of hovering
+   outside it -- and anything that is not clipped keeps the outline above. */
+.btn:focus-visible,
+.card:focus-visible,
+.chip:focus-visible,
+.tab:focus-visible {
+  outline: none;
+  box-shadow:
+    inset 0 0 0 1px var(--accent),
+    inset 0 0 0 4px rgba(255, 176, 32, 0.16);
+}
+
+/* On the amber primary the ring has to be dark: amber on amber is no ring. */
+.btn--primary:focus-visible {
+  box-shadow:
+    inset 0 0 0 2px var(--accent-ink),
+    inset 0 0 0 5px rgba(255, 214, 143, 0.55);
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -195,75 +216,6 @@ body[data-mode='playing'] #canvas {
   font-variant-numeric: tabular-nums;
   font-weight: 600;
   letter-spacing: 0.02em;
-}
-
-/* ==========================================================================
-   Frame: status strip + viewport gutters
-   ========================================================================== */
-
-.strip {
-  position: absolute;
-  inset: 0 0 auto 0;
-  display: flex;
-  align-items: center;
-  gap: var(--s4);
-  padding: calc(var(--s3) + var(--safe-t)) calc(var(--gutter) + var(--safe-r)) var(--s3)
-    calc(var(--gutter) + var(--safe-l));
-  border-bottom: 1px solid var(--hair);
-  font-size: var(--text-micro);
-  letter-spacing: var(--track-label);
-  text-transform: uppercase;
-  color: var(--ink-3);
-  background: linear-gradient(180deg, rgba(5, 8, 12, 0.86), transparent);
-}
-
-.strip__mark {
-  display: flex;
-  align-items: center;
-  gap: var(--s2);
-  color: var(--ink-2);
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-/* The strip mark is the smallest plate in the product: the same chamfer as the
-   buttons, 3 px at 10 px, with the amber core showing through it. */
-.strip__mark::before {
-  content: '';
-  width: 11px;
-  height: 11px;
-  background: rgba(255, 176, 32, 0.18);
-  clip-path: polygon(0 0, calc(100% - 3px) 0, 100% 3px, 100% 100%, 3px 100%, 0 calc(100% - 3px));
-  box-shadow: inset 0 0 0 1px var(--accent);
-}
-
-.strip__spacer {
-  flex: 1;
-}
-
-.strip__item {
-  display: flex;
-  align-items: center;
-  gap: var(--s2);
-  white-space: nowrap;
-}
-
-.strip__item[data-state='ok'] {
-  color: var(--ok);
-}
-.strip__item[data-state='warn'] {
-  color: var(--accent);
-}
-.strip__item[data-state='bad'] {
-  color: var(--danger);
-}
-
-.dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: currentColor;
-  box-shadow: 0 0 8px currentColor;
 }
 
 .viewport {
@@ -447,11 +399,6 @@ body[data-mode='playing'] #canvas {
 
 /* A panel that carries a reading, not an action: its cut is larger and the
    same corner is cut on both ends of the diagonal, so the shape points. */
-.opening__panel {
-  --tl: var(--cut-lg);
-  --br: var(--cut-lg);
-}
-
 /* ==========================================================================
    Controls
    ========================================================================== */
@@ -860,147 +807,6 @@ body[data-mode='playing'] #canvas {
 }
 
 /* Card as a list row on the hub: same anatomy, denser. */
-.card--row {
-  flex-direction: row;
-  align-items: center;
-  gap: var(--s3);
-  min-height: var(--tap-lg);
-  padding: var(--s2) var(--s4) var(--s2) var(--s3);
-}
-
-.card--row .card__top {
-  flex: 0 0 auto;
-}
-
-.card--row .card__body {
-  flex: 1 1 auto;
-  flex-direction: row;
-  align-items: baseline;
-  gap: var(--s3);
-}
-
-.card--row .card__title {
-  font-size: 1.12rem;
-}
-
-.card--row .card__desc {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* The channel the verb sits in: a hairline between the reading and the action,
-   so the row is a two-part instrument instead of a menu item. */
-.card--row .card__go {
-  padding-left: var(--s3);
-  border-left: 1px solid var(--hair);
-  align-self: stretch;
-  display: flex;
-  align-items: center;
-}
-
-/* Second row of the pair: the cut moves to the other end, so the two read as a
-   matched set rather than one box printed twice. */
-.card--row-alt {
-  --tr: 0px;
-  --br: var(--cut-lg);
-}
-
-.card--row-alt .card::before,
-.card--row-alt::before {
-  background: linear-gradient(0deg, var(--line-hi), rgba(78, 106, 126, 0.35));
-}
-
-.card--row-alt:hover::before,
-.card--row-alt:focus-visible::before {
-  background: linear-gradient(0deg, var(--accent), rgba(255, 176, 32, 0.25));
-}
-
-/* ==========================================================================
-   Opening
-   --------------------------------------------------------------------------
-   Two pieces: the wordmark and the commit button on the left, and a telemetry
-   panel that states the three things the shell actually verified. The panel is
-   the opening's only chrome, which is the point — the first screen of a game
-   should be a promise, not a download dialog.
-   ========================================================================== */
-
-.screen--opening {
-  justify-content: center;
-}
-
-.opening {
-  display: grid;
-  gap: var(--s5);
-  grid-template-columns: 1fr;
-  align-items: end;
-}
-
-.opening__lead {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s4);
-  max-width: 40rem;
-}
-
-.opening__word {
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: clamp(2.6rem, 8vw, 5.4rem);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink);
-  line-height: 0.92;
-}
-
-.opening__word em {
-  font-style: normal;
-  color: var(--accent);
-  text-shadow: 0 0 42px rgba(255, 176, 32, 0.32);
-}
-
-.opening__body {
-  max-width: 44ch;
-}
-
-.opening__actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--s4);
-  margin-top: var(--s2);
-}
-
-.opening__hint {
-  color: var(--ink-3);
-  font-size: var(--text-label);
-  letter-spacing: var(--track-label);
-  text-transform: uppercase;
-}
-
-.opening__panel {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s3);
-  padding: var(--s4);
-  min-width: 0;
-}
-
-/* The launch read-out is the same list component as the opening's checks, with
-   one row: the engine's own byte count, never a synthetic percentage. */
-.launch__log {
-  max-width: 42rem;
-}
-
-.launch__retry {
-  margin-top: var(--s3);
-}
-
-/* Author display:inline-flex would otherwise override the browser's [hidden]. */
-.launch__retry[hidden] {
-  display: none;
-}
-
 /* The settings sheet: one column of switches, one of reference, side by side. */
 .sheet__body {
   display: grid;
@@ -1021,186 +827,6 @@ body[data-mode='playing'] #canvas {
   margin-top: var(--s2);
 }
 
-/* --- the command plate ----------------------------------------------------
-
-   HOME's lead card is the one surface a player commits from, so it is the one
-   that points: a small cut at the top-left, and a deep 32 px cut at the
-   bottom-right that finishes under DEPLOY. The deep cut is amber, the shallow
-   one machined grey, so the shape says which way the screen goes. */
-
-.hub__lead {
-  --tl: var(--cut);
-  --br: var(--cut-xl);
-  --cut-ink-b: var(--accent-dim);
-}
-
-/* The measured rule under the wordmark: ticks every 8 px with an amber witness
-   at the origin. It is the cheapest way to say "instrument" without drawing an
-   icon, and it fills the dead line the wordmark used to leave. */
-.ruler {
-  height: 7px;
-  background:
-    repeating-linear-gradient(90deg, var(--line) 0 1px, transparent 1px 8px) left bottom / 100%
-      4px no-repeat,
-    linear-gradient(90deg, var(--accent) 0 var(--s6), rgba(255, 176, 32, 0.12) var(--s6)) left
-      bottom / 100% 1px no-repeat;
-}
-
-/* --- the mission slate ----------------------------------------------------
-
-   The brief is read, not tapped, so its shape is the opposite of the plate's:
-   the cut corners sit on the other diagonal and there is no amber in it at all.
-   Its rows are flight-strip lines: a square witness, the label, a dotted leader
-   and the value hard right. */
-
-.hub__brief {
-  --tr: var(--cut);
-  --bl: var(--cut);
-  --tl: 0px;
-  --br: 0px;
-}
-
-.hub__brief .linklist li {
-  border-left: 0;
-  border-bottom: 1px solid rgba(39, 56, 74, 0.55);
-  padding-left: 0;
-  background: none;
-}
-
-.hub__brief .linklist li:last-child {
-  border-bottom: 0;
-}
-
-.hub__brief .linklist li .tick {
-  width: 5px;
-  height: 5px;
-  background: var(--line-hi);
-  clip-path: polygon(0 0, 100% 0, 100% 60%, 60% 100%, 0 100%);
-}
-
-.hub__brief .linklist li[data-tone='ok'] .tick {
-  background: var(--ok);
-}
-
-.hub__brief .linklist li b {
-  font-variant-numeric: tabular-nums;
-}
-
-/* The product wordmark, used the way the engine uses it: the logo is the name. */
-
-.panel__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--s3);
-}
-
-/* The link list: a terminal read-out, not a paragraph. Each row is a check the
-   shell ran, so the column is honest about what "siap" means. */
-.linklist {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.linklist li {
-  display: flex;
-  align-items: center;
-  gap: var(--s3);
-  min-height: 30px;
-  padding: 0 var(--s2);
-  border-left: 2px solid var(--line);
-  color: var(--ink-3);
-  font-family: var(--font-ui);
-  font-size: var(--text-label);
-  font-weight: 500;
-  letter-spacing: var(--track-label);
-  text-transform: uppercase;
-  transition:
-    color var(--motion-base) var(--ease),
-    border-color var(--motion-base) var(--ease),
-    background var(--motion-base) var(--ease);
-}
-
-.linklist li .tick {
-  width: 18px;
-  height: 1px;
-  background: var(--line);
-  flex: 0 0 auto;
-  transition: background var(--motion-base) var(--ease);
-}
-
-.linklist li b {
-  margin-left: auto;
-  font-weight: 600;
-  color: var(--ink-3);
-}
-
-.linklist li[data-shown='true'] {
-  color: var(--ink-2);
-  border-left-color: var(--line-hi);
-  background: rgba(22, 35, 46, 0.5);
-}
-
-.linklist li[data-shown='true'] b {
-  color: var(--ink);
-}
-
-.linklist li[data-tone='ok'] {
-  border-left-color: var(--ok);
-}
-.linklist li[data-tone='ok'] .tick {
-  background: var(--ok);
-}
-.linklist li[data-tone='ok'] b {
-  color: var(--ok);
-}
-
-.linklist li[data-tone='bad'] {
-  border-left-color: var(--danger);
-  color: var(--danger);
-}
-.linklist li[data-tone='bad'] .tick {
-  background: var(--danger);
-}
-.linklist li[data-tone='bad'] b {
-  color: var(--danger);
-}
-
-.statusgrid--tight > div {
-  padding: var(--s2) var(--s3);
-}
-
-/* ==========================================================================
-   Hub
-   ========================================================================== */
-
-.hub {
-  display: grid;
-  gap: var(--s5);
-  grid-template-columns: 1fr;
-  align-items: start;
-}
-
-.hub__lead {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s4);
-  padding: var(--s5);
-}
-
-.hub__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--s3);
-}
-
-.hub__side {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s3);
-}
-
 .statusgrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1215,6 +841,425 @@ body[data-mode='playing'] #canvas {
   display: flex;
   flex-direction: column;
   gap: 2px;
+}
+
+/* ==========================================================================
+   Operatif: the hero bay and the weapon rack
+   --------------------------------------------------------------------------
+   The one screen where the player chooses who they deploy as and what they
+   carry. Two plates, and they are deliberately not the same plate: the bay
+   points at the operative (a deep amber cut under the portrait), the rack is
+   cut on the other diagonal because it is a list you read, not a door you walk
+   through.
+   ========================================================================== */
+
+.arsenal {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: clamp(var(--s2), 1.8vh, var(--s4));
+  align-items: stretch;
+}
+
+/* 667x375 is the tight case, and it is tight in *both* directions: the rack
+   column is 270 px wide and the screen has 375 px of height. A 844x390 phone
+   is short but wide and keeps the full copy, so this is a two-condition query
+   rather than a height breakpoint -- keying it on height alone emptied the bay
+   on the bigger screen. */
+@media (max-height: 400px) and (max-width: 760px) {
+  .rack__hint {
+    display: none;
+  }
+
+  .bay__role {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .bay__portrait {
+    width: clamp(64px, 17vh, 96px);
+  }
+
+  .arsenal__actions .btn--primary {
+    min-height: 44px;
+  }
+
+  /* The deploy plate's meta repeats the rack's lit row two centimetres above
+     it, and it is what truncated DEPLOY to "DEP..." at 667 px. The action word
+     wins. */
+  .arsenal__actions .btn__meta,
+  .rack__note {
+    display: none;
+  }
+
+  .rack__head {
+    margin-bottom: 2px;
+  }
+}
+
+.arsenal__bay {
+  --tl: var(--cut);
+  --br: var(--cut-xl);
+  --cut-ink-b: var(--accent-dim);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  padding: clamp(var(--s3), 2.4vh, var(--s5));
+  min-width: 0;
+}
+
+.bay__id {
+  display: flex;
+  gap: clamp(var(--s3), 2.2vh, var(--s4));
+  align-items: stretch;
+  min-width: 0;
+}
+
+/* The portrait is not a rounded thumbnail. It is a plate cut on two opposite
+   corners, so its silhouette belongs to this product and not to a contact list. */
+.bay__portrait {
+  position: relative;
+  flex: 0 0 auto;
+  width: clamp(74px, 19vh, 116px);
+  aspect-ratio: 3 / 4;
+  background: var(--void-2);
+  box-shadow: inset 0 0 0 1px var(--hair);
+  clip-path: polygon(
+    var(--cut-sm) 0,
+    100% 0,
+    100% calc(100% - var(--cut-lg)),
+    calc(100% - var(--cut-lg)) 100%,
+    0 100%,
+    0 var(--cut-sm)
+  );
+}
+
+.bay__portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 18%;
+  filter: saturate(0.86) contrast(1.04);
+}
+
+/* The lit edge of the cut, drawn as a 1 px amber rule inside the plate. */
+.bay__portrait-cut {
+  position: absolute;
+  inset: auto 0 0 auto;
+  width: var(--cut-lg);
+  height: var(--cut-lg);
+  background: linear-gradient(135deg, var(--accent-dim), rgba(255, 176, 32, 0));
+  clip-path: polygon(100% 0, 100% 100%, 0 100%);
+}
+
+.bay__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.bay__name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.35rem, 4.4vh, 2rem);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.bay__role {
+  color: var(--ink-3);
+  font-size: clamp(0.72rem, 1.85vh, 0.85rem);
+  line-height: 1.4;
+  max-width: 42ch;
+}
+
+.bay__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+  margin-top: 2px;
+}
+
+/* The roster. Each slot is a machined key with its number punched at the
+   leading edge; the built one is lit, the empty ones are hatched. */
+.roster-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  margin-top: auto;
+  min-width: 0;
+}
+
+.roster {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, auto));
+  gap: var(--s2);
+  flex: 0 0 auto;
+}
+
+.roster-wrap + .bay__data,
+.bay__data + .roster-wrap {
+  margin-top: 0;
+}
+
+/* The bay's read-out: three cells on the plate's own hairline grid, so the
+   empty middle of the bay becomes a receipt instead of a hole. */
+.bay__data {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: auto;
+}
+
+@media (max-height: 400px) and (max-width: 760px) {
+  /* 375 px of height cannot hold three cells and three slots; the slots are the
+     control, so they stay and the read-out folds away. */
+  .bay__data {
+    display: none;
+  }
+}
+
+.bay__data > div {
+  padding: 5px var(--s3);
+  background: rgba(8, 13, 19, 0.7);
+}
+
+.bay__data .metric__val {
+  font-size: clamp(0.82rem, 2.1vh, 0.95rem);
+}
+
+.slot {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-height: 34px;
+  padding: 6px var(--s3) 6px var(--s2);
+  background: rgba(8, 13, 19, 0.72);
+  box-shadow: inset 0 0 0 1px var(--hair);
+  clip-path: polygon(0 0, calc(100% - var(--cut-xs)) 0, 100% var(--cut-xs), 100% 100%, 0 100%);
+}
+
+.slot--ready {
+  background: linear-gradient(180deg, rgba(255, 176, 32, 0.13), rgba(8, 13, 19, 0.72));
+  box-shadow: inset 0 0 0 1px rgba(255, 176, 32, 0.55);
+}
+
+.slot__no {
+  font-family: var(--font-ui);
+  font-size: var(--text-micro);
+  font-weight: 600;
+  letter-spacing: var(--track-micro);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-3);
+}
+
+.slot--ready .slot__no {
+  color: var(--accent);
+}
+
+.slot__state {
+  grid-area: state;
+  font-size: var(--text-micro);
+  letter-spacing: var(--track-micro);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.slot--ready .slot__state {
+  color: var(--ok);
+}
+
+/* A slot that is not built is hatched, not greyed: a flat grey box reads as a
+   disabled button, and this is not a button. */
+.slot--locked {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgba(78, 106, 126, 0.14) 0 2px,
+    transparent 2px 7px
+  );
+}
+
+.arsenal__side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  min-width: 0;
+}
+
+/* The rack is cut on the other diagonal from the bay. */
+.rack {
+  --tl: 0px;
+  --tr: var(--cut);
+  --br: 0px;
+  --bl: var(--cut-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  padding: clamp(var(--s2), 1.8vh, var(--s3)) clamp(var(--s3), 2vh, var(--s4));
+  min-width: 0;
+}
+
+.rack__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s3);
+}
+
+.rack__note,
+.rack__hint {
+  color: var(--ink-3);
+  font-size: var(--text-micro);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.rack__hint {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.7rem;
+  line-height: 1.35;
+}
+
+.rack__list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+/* One spec line per weapon: mark, name, numbers, a four-pip damage meter and
+   the state. The pip meter is the only graphic, which is why the row reads at
+   a glance instead of becoming a table. */
+.weapon {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  grid-template-areas:
+    'mark name state'
+    'mark spec state';
+  align-items: center;
+  gap: var(--s2);
+  width: 100%;
+  min-height: clamp(34px, 9vh, 44px);
+  padding: 4px var(--s3) 4px var(--s2);
+  border: 0;
+  background: rgba(8, 13, 19, 0.6);
+  box-shadow: inset 0 0 0 1px transparent;
+  text-align: left;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.weapon:hover,
+.weapon:focus-visible {
+  background: rgba(24, 38, 50, 0.85);
+  box-shadow: inset 0 0 0 1px var(--hair);
+  outline: none;
+}
+
+.weapon[aria-pressed='true'] {
+  background: linear-gradient(90deg, rgba(255, 176, 32, 0.16), rgba(8, 13, 19, 0.6) 60%);
+  box-shadow: inset 2px 0 0 var(--accent);
+  color: var(--ink);
+}
+
+.weapon__mark {
+  grid-area: mark;
+  align-self: center;
+  font-family: var(--font-ui);
+  font-size: var(--text-micro);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--ink-3);
+  text-align: center;
+}
+
+.weapon[aria-pressed='true'] .weapon__mark {
+  color: var(--accent);
+}
+
+.weapon__name {
+  grid-area: name;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(0.82rem, 2.2vh, 1rem);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.weapon__spec {
+  grid-area: spec;
+  display: flex;
+  overflow: hidden;
+  align-items: baseline;
+  gap: 3px;
+  font-size: var(--text-micro);
+  letter-spacing: 0.03em;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.weapon__spec b {
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.weapon__pips {
+  display: none;
+}
+
+.weapon__state {
+  grid-area: state;
+  align-self: center;
+  min-width: 62px;
+  text-align: right;
+  font-size: var(--text-micro);
+  letter-spacing: var(--track-micro);
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.weapon[aria-pressed='true'] .weapon__state {
+  color: var(--accent);
+}
+
+.weapon[aria-disabled='true'] .weapon__state {
+  color: var(--info);
+}
+
+.arsenal__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  margin-top: auto;
+  min-width: 0;
+}
+
+/* The deploy plate takes the slack and the ghost keeps its measured width; both
+   are allowed to shrink, because a ghost that cannot shrink is what pushed
+   KEMBALI 11 px past the right edge at 667 px. */
+.arsenal__actions .btn--primary {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-inline: var(--s4);
+}
+
+.arsenal__actions .btn--ghost {
+  flex: 0 0 auto;
+  padding-inline: var(--s3);
+}
+
+.arsenal__actions .btn span {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ==========================================================================
@@ -1322,23 +1367,83 @@ body[data-mode='playing'] #canvas {
    Loading hand-off
    ========================================================================== */
 
-.progress {
+/* The gantry: two plates on one baseline. The bay points at the world (deep cut
+   on its trailing foot, under the hint), the manifest is cut on the opposite
+   diagonal so the pair reads as a bay and its read-out rather than two boxes. */
+.launch {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(240px, 0.9fr);
+  gap: clamp(var(--s3), 2.6vh, var(--s5));
+  align-items: stretch;
+}
+
+.launch__bay {
+  --tl: var(--cut);
+  --br: var(--cut-xl);
+  --cut-ink-b: var(--accent-dim);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(var(--s2), 1.6vh, var(--s3));
+  padding: clamp(var(--s4), 3vh, var(--s5));
+  min-width: 0;
+}
+
+.launch__bay .title {
+  font-size: clamp(1.5rem, 4.6vh, 2.2rem);
+}
+
+.launch__retry {
+  align-self: flex-start;
+  margin-top: var(--s2);
+}
+
+/* Author display:inline-flex would otherwise override the browser's [hidden]. */
+.launch__retry[hidden] {
+  display: none;
+}
+
+/* A machined channel, not a web progress bar: a recessed slot with 8 px ticks
+   cut into it, an amber fill that ends in a 45 degree head, and the head is the
+   only thing that moves while the byte count is indeterminate. */
+.rail {
   position: relative;
-  height: 3px;
-  background: rgba(78, 106, 126, 0.28);
+  height: 10px;
+  margin-top: var(--s2);
+  background:
+    repeating-linear-gradient(90deg, rgba(78, 106, 126, 0.35) 0 1px, transparent 1px 8px)
+      left bottom / 100% 4px no-repeat,
+    rgba(5, 8, 12, 0.9);
+  box-shadow: inset 0 0 0 1px var(--line);
   overflow: hidden;
 }
 
-.progress__fill {
+.rail__fill {
   position: absolute;
-  inset: 0 auto 0 0;
+  inset: 2px auto 2px 0;
   width: 0;
   background: linear-gradient(90deg, var(--accent-dim), var(--accent));
-  box-shadow: 0 0 18px rgba(255, 176, 32, 0.55);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
   transition: width 220ms linear;
 }
 
-.progress[data-indeterminate='true'] .progress__fill {
+.rail__head {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  left: 0;
+  background: var(--accent);
+  box-shadow: 0 0 14px rgba(255, 176, 32, 0.7);
+  opacity: 0;
+  transition: left 220ms linear;
+}
+
+.rail[data-indeterminate='false'] .rail__head {
+  opacity: 1;
+}
+
+.rail[data-indeterminate='true'] .rail__fill {
   width: 34%;
   animation: sweep 1.4s var(--ease) infinite;
 }

@@ -266,11 +266,11 @@ jobs:
           PY
           exit "$qa_status"
 
-      - name: Browser world-selection contract
+      - name: Browser shell world-selection contract
         run: |
-          # The shell must not bypass HERO/WORLD and silently launch a default
-          # theatre. Drive its real DEPLOY hand-off, select Vanguard on the
-          # engine's WORLD stage, and require the selected world to build.
+          # Drive the real shell: select Vanguard's theatre card, DEPLOY directly,
+          # and require both the authoritative handoff and the selected world's
+          # runtime build. A default Neon boot is not a passing substitute.
           qa_status=0
           node tools/web_qa.mjs --page / --viewport 844x390 --timeout 120 \
             --journey --select-vanguard --out exports/web-qa/vanguard \
@@ -280,9 +280,9 @@ jobs:
           from pathlib import Path
           report = json.loads(Path("exports/web-qa-vanguard-report.json").read_text())
           for page in report["pages"]:
-              print(f'WORLD selection: {"PASS" if not page["failed"] else "FAIL"} | {page["target"]}')
+              print(f'Shell world selection: {"PASS" if not page["failed"] else "FAIL"} | {page["target"]}')
               for failure in page["failed"]:
-                  print(f"::error title=World selection QA::{failure}")
+                  print(f"::error title=Shell world selection QA::{failure}")
           raise SystemExit(0 if report["ok"] else 1)
           PY
           exit "$qa_status"

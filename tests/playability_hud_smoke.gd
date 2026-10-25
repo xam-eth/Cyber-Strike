@@ -896,9 +896,10 @@ func _run_smoke_test() -> void:
 		"touching results RETRY restores the player and returns to the HUD",
 	)
 	# The escape hatch must clear every wave enemy and return to safe Explore,
-	# never quietly start another Defense run after the pause closes. These are
-	# separate player taps, not three callbacks in one frame: let the results
-	# teardown and then the pause container settle before reading the next rect.
+	# never quietly start another Defense run after the pause closes. RETRY rebuilds
+	# the whole HUD, so these are separate player taps with time for both the new
+	# container rect and the pause panel to settle before the next hit test.
+	await process_frame
 	await process_frame
 	_tap_screen_button(controls, pause_button, 91)
 	await process_frame
@@ -907,13 +908,16 @@ func _run_smoke_test() -> void:
 		(
 			(
 				"retried preparation opens an actionable pause panel "
-				+ "(paused=%s panel=%s pause_visible=%s pause_disabled=%s down=%s hit=%s)"
+				+ "(paused=%s panel=%s restart=%s pause_visible=%s pause_disabled=%s rect=%s top=%s down=%s hit=%s)"
 			)
 			% [
 				paused,
 				pause_panel.visible,
+				restart_button.is_visible_in_tree(),
 				pause_button.is_visible_in_tree(),
 				pause_button.disabled,
+				pause_button.get_global_rect(),
+				(controls.get("_top_bar") as Control).visible,
 				controls.get("_player_down"),
 				controls.get("_last_touch_debug"),
 			]

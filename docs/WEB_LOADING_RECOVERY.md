@@ -36,7 +36,7 @@ Godot 4.7.2's generated `doInit()` accepts `reject` but did not forward failures
 
 - Loading shows real combined WASM + PCK bytes and the expected **135.1 MB** first-download total (about **128.8 MiB**), rather than an unexplained indefinite bar.
 - A failed download or initialization produces a readable error and does not reveal the canvas.
-- **Coba lagi** reloads the existing DEPLOY hand-off and retries the real assets; it does not bypass WORLD or fabricate a ready state.
+- **Coba lagi** reloads the existing DEPLOY hand-off and retries the real assets. On the current root shell it must return to the selected theatre's real gameplay, not stop at WORLD or fabricate a ready state.
 - Three minutes without byte/start progress produces an actionable stalled-loading error. Progress events reset that watchdog, so a slow but active download is not failed merely for exceeding a fixed total duration.
 - The shell still reveals the canvas only after `startGame()` resolves.
 

@@ -8,6 +8,11 @@ class_name AegisTheme
 extends RefCounted
 
 const ICON_ROOT := "res://assets/ui/icons"
+## The combat stencils: authored flat silhouettes, one family, drawn on the
+## same chamfer grid as the touch tiles they sit on. They are separate from
+## the Phosphor menu set because a HUD glyph is read at a glance in motion and
+## a menu glyph is read while standing still.
+const HUD_ICON_ROOT := "res://assets/ui/icons/hud"
 
 static var _fonts: Dictionary = {}
 static var _tracked: Dictionary = {}
@@ -212,6 +217,24 @@ static func combat_tile_style(variant: String, state: String) -> StyleBoxTexture
 	elif state == "hover" or state == "pressed":
 		style.modulate_color = Color(1.0, 1.0, 1.0, 1.0)
 	return style
+
+
+## A HUD stencil from `res://assets/ui/icons/hud/`. The set is small and total:
+## fire, aim, weapon, emp, pause, retry. A missing file must never leave a 120 px
+## empty tile on the touch layer, so the look-up falls back to the Phosphor glyph
+## of the same verb instead of returning null.
+static func hud_icon(icon_name: String) -> Texture2D:
+	var key := "hud/%s" % icon_name
+	if _icons.has(key):
+		return _icons[key]
+	var path := "%s/%s.svg" % [HUD_ICON_ROOT, icon_name]
+	var texture: Texture2D = null
+	if ResourceLoader.exists(path):
+		texture = load(path) as Texture2D
+	if texture == null:
+		texture = icon(icon_name.trim_prefix("hud-"))
+	_icons[key] = texture
+	return texture
 
 
 ## Focus ring: 2 px amber border offset 2 px outside the button, visible for
