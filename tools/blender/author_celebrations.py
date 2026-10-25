@@ -73,41 +73,35 @@ OPTIONAL_PREFIXES = ("Neck", "Head", "L_Clavicle", "R_Clavicle")
 HEROES = {
     "exo_operative": {
         "label": "Lockdown",
-        "notes": "Braced drop, then a two-arm flare with the chin up; ends back at idle.",
+        "notes": "Braced drop, then a two-arm flare overhead with the chin up; ends back at idle.",
+        # Numbers below were read off tools/pose_oracle.mjs, not invented: the
+        # flare is a rotation about the world Z axis, mirrored per arm, and the
+        # elbow channels are deliberately absent because on this rig they twist
+        # rather than bend -- a fact the oracle showed in one screenshot instead
+        # of one CI round trip.
         "timeline": [
             (1, {}),
-            # Sink: knees load, chest folds forward, head drops -- the pad is
-            # "magnetising" the boots.
-            (7, {"rotate": {"Spine01": ("X", 8), "Spine02": ("X", 5), "Head": ("X", 6),
-                            "L_Thigh": ("X", 7), "R_Thigh": ("X", 7)},
+            (7, {"rotate": {"Spine01": ("X", 10), "Head": ("X", 6),
+                            "L_Thigh": ("X", 8), "R_Thigh": ("X", 8)},
                  "move": {"Hip": (0, -0.022, 0)}}),
-            # Drive up and throw both arms out and overhead: abduction is a
-            # rotation about the forward axis, mirrored per side.
-            (16, {"rotate": {"Spine01": ("X", -8), "Spine02": ("X", -5), "Head": ("X", -8),
-                             "R_Upperarm": ("Z", -96), "L_Upperarm": ("Z", 96),
-                             "R_Forearm": ("X", -18), "L_Forearm": ("X", -18)},
+            (16, {"rotate": {"Spine01": ("X", -8), "Head": ("X", -8),
+                             "R_Upperarm": ("Z", -118), "L_Upperarm": ("Z", 118)},
                   "move": {"Hip": (0, 0.02, 0)}}),
-            (22, {"rotate": {"Spine01": ("X", -11), "Spine02": ("X", -6), "Head": ("X", -10),
-                             "R_Upperarm": ("Z", -112), "L_Upperarm": ("Z", 112),
-                             "R_Forearm": ("X", -24), "L_Forearm": ("X", -24)},
+            (22, {"rotate": {"Spine01": ("X", -11), "Head": ("X", -10),
+                             "R_Upperarm": ("Z", -132), "L_Upperarm": ("Z", 132)},
                   "move": {"Hip": (0, 0.026, 0)}}),
-            (34, {"rotate": {"Spine01": ("X", -7), "Spine02": ("X", -4), "Head": ("X", -7),
-                             "R_Upperarm": ("Z", -98), "L_Upperarm": ("Z", 98),
-                             "R_Forearm": ("X", -16), "L_Forearm": ("X", -16)},
+            (34, {"rotate": {"Spine01": ("X", -7), "Head": ("X", -7),
+                             "R_Upperarm": ("Z", -114), "L_Upperarm": ("Z", 114)},
                   "move": {"Hip": (0, 0.018, 0)}}),
             (50, {"rotate": {"Spine01": ("X", -9), "Head": ("X", -8),
-                             "R_Upperarm": ("Z", -94), "L_Upperarm": ("Z", 94),
-                             "R_Forearm": ("X", -15), "L_Forearm": ("X", -15)},
+                             "R_Upperarm": ("Z", -108), "L_Upperarm": ("Z", 108)},
                   "move": {"Hip": (0, 0.018, 0)}}),
             (62, {"rotate": {"Spine01": ("X", 1),
-                             "R_Upperarm": ("Z", -22), "L_Upperarm": ("Z", 22)}}),
+                             "R_Upperarm": ("Z", -24), "L_Upperarm": ("Z", 24)}}),
             (72, {}),
         ],
     },
 }
-
-
-WORLD_AXES = {"X": Vector((1, 0, 0)), "Y": Vector((0, 1, 0)), "Z": Vector((0, 0, 1))}
 
 
 def radians_quat(axis, degrees):
@@ -123,7 +117,13 @@ def local_axis(arm, pose_bone, axis):
     """
     world = WORLD_AXES[axis] if isinstance(axis, str) else Vector(axis)
     rest = (arm.matrix_world @ pose_bone.bone.matrix_local).to_quaternion()
-    return rest.inverted() @ world
+    # Negated on purpose, and measured rather than guessed: a rotation about
+    # the rest-frame conversion above turns the arms *inward* where three.js
+    # turns them outward for the same numbers, because Blender's imported bone
+    # rests carry their own handedness. tools/pose_oracle.mjs is the oracle that
+    # settled it -- pose hero.glb in the browser, read the sign off the frame,
+    # then write the same number here.
+    return -(rest.inverted() @ world)
 
 
 def sample(arm, action, frame):
