@@ -94,36 +94,23 @@ if (mode === 'calib') {
   await waitFor('Encounter: Explore safe');
   await sleep(2500);
   await shot('01-explore');
-  if (mode === 'armory') {
+  if (process.env.TAPS) {
+    // "x,y:name;x,y:name" -- tap, then shoot a frame named `name`.
+    for (const step of process.env.TAPS.split(';')) {
+      const [coords, label] = step.split(':');
+      const [x, y] = coords.split(',').map(Number);
+      await tap(x, y);
+      if (label) await shot(label);
+    }
+  } else if (mode === 'armory') {
     await tap(437, 135); // ARMORY · n BP
     await shot('02-armory');
-    if (process.env.HOME_AT) {
-      const [hx, hy] = process.env.HOME_AT.split(',').map(Number);
-      await tap(hx, hy);
-      await waitFor('FrontEnd: stage DASHBOARD', 60000);
-      await shot('05-dashboard-from-armory');
-    }
   } else {
     await tap(447, 65); // pause plate
     await shot('02-pause');
-    if (process.env.SETTINGS_AT) {
-      const [sx, sy] = process.env.SETTINGS_AT.split(',').map(Number);
-      await tap(sx, sy);
-      await shot('03-settings');
-      if (process.env.DONE_AT) {
-        const [dx, dy] = process.env.DONE_AT.split(',').map(Number);
-        await tap(dx, dy);
-        await shot('04-pause-again');
-      }
-    }
-    if (process.env.HOME_AT) {
-      const [hx, hy] = process.env.HOME_AT.split(',').map(Number);
-      await tap(hx, hy);
-      await waitFor('FrontEnd: stage DASHBOARD', 60000);
-      await shot('05-dashboard');
-    }
   }
 }
 console.log('errors:', lines.filter((l) => l.startsWith('PAGEERROR')).slice(0, 3));
+if (process.env.DEBUG_LINES) console.log('TAIL\n' + lines.slice(-Number(process.env.DEBUG_LINES)).join('\n'));
 await browser.close();
 server.close();

@@ -80,11 +80,37 @@ func _run_smoke_test() -> void:
 			"%s HOME raises home_requested" % label,
 		)
 
+	await _check_touch_dispatch(hud)
+
 	main.queue_free()
 	await process_frame
 
 	await _check_resume_stage()
 	_finish()
+
+
+## The touch build does not let Godot's Button GUI do the work: `HudTouchInput`
+## resolves a finger to a button and then walks a hand-written `activate()` chain.
+## A plate that is missing from that chain is drawn, pressed by `pressed.emit()`
+## and completely dead under a real finger -- which is how the first cut of these
+## HOME buttons shipped. So the last check uses a finger, not a signal emit.
+func _check_touch_dispatch(hud: Control) -> void:
+	hud.call("set_paused", true)
+	await process_frame
+	await process_frame
+	var panel: Node = hud.get("_pause_panel")
+	var home := panel.find_child("PauseHomeButton", true, false) as Button
+	if not is_instance_valid(home):
+		_expect(false, "the pause card builds its HOME plate")
+		return
+	var center: Vector2 = home.get_global_rect().get_center()
+	var touch: Object = hud.get("_touch")
+	var before := _home_requests
+	touch.call("begin", 0, center)
+	touch.call("end", 0, center)
+	_expect(_home_requests == before + 1, "a finger on pause HOME reaches Main")
+	hud.call("set_paused", false)
+	await process_frame
 
 
 func _check_resume_stage() -> void:

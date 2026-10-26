@@ -204,6 +204,11 @@ func activate(button: Button) -> void:
 		hud._on_restart_pressed()
 	elif button == hud._pause_settings_button:
 		hud._open_settings()
+	elif button == hud._pause_home_button or button == hud._results_home_button:
+		# Synthetic touches skip Godot's Button GUI, so a menu action that is
+		# not named in this chain is drawn, pressable-looking and dead. The two
+		# HOME plates were exactly that until a browser tap proved it.
+		hud._on_home_pressed()
 	elif is_instance_valid(hud._settings_menu) and hud._settings_menu.is_ancestor_of(button):
 		if button.toggle_mode:
 			button.button_pressed = not button.button_pressed
