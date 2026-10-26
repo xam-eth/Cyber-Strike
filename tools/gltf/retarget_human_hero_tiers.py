@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Retarget Robot Common's animation set onto the five human hero tier rigs.
 
-The human GLBs have independently generated skin weights on the copied 79-joint
-Robot Common skeleton. This tool transfers idle/walk/run, weapon aim/fire/reload,
-hit, and death motion, then authors explicit raise/lower-weapon transition clips.
-The original human meshes and the Robot Common enemy template are never modified.
+The human GLBs have independently generated, component-constrained skin weights
+on the copied 79-joint Robot Common skeleton. This tool transfers idle/walk/run,
+weapon aim/fire/reload, hit, and death motion, authors explicit raise/lower-weapon
+transitions, and stress-checks the actual skinned aim_run mesh over seven loop
+phases. The original human meshes and Robot Common enemy template are unchanged.
 
 Usage:
   .venv/bin/python tools/gltf/retarget_human_hero_tiers.py
@@ -49,6 +50,12 @@ ANIMATION_NAMES = (
 )
 LOOPING_CLIPS = {"idle", "walk", "run", "aim", "aim_walk", "aim_run"}
 TRANSITION_SECONDS = {"raise_weapon": 0.8, "lower_weapon": 0.7}
+AIM_RUN_STRETCH_PHASES = tuple(float(value) for value in np.linspace(0.0, 1.0, 7))
+MAX_AIM_RUN_P95_EDGE_STRETCH = 1.35
+MAX_AIM_RUN_P99_EDGE_STRETCH = 4.0
+MAX_AIM_RUN_EDGES_OVER_2X = 1800
+MAX_AIM_RUN_VERTEX_RADIUS = 1.5
+MIN_AIM_RUN_VERTEX_Y = -0.03
 CHECK_ONLY = "--check" in sys.argv
 VARIANTS = tuple(
     {
@@ -198,6 +205,127 @@ def _validate_animation_tracks(js: dict, bin_: bytes, skeleton: Skeleton) -> Non
                 raise RuntimeError(f"{name}: unexpected interpolation mode")
             if values.shape[0] != times.shape[0]:
                 raise RuntimeError(f"{name}: sampler input/output key counts differ")
+
+
+def _aim_run_mesh_deformation_report(
+    js: dict[str, Any], bin_: bytes, skeleton: Skeleton
+) -> dict[str, Any]:
+    """Measure actual skinned-mesh edge stretch through the full aim-run cycle.
+
+    The report samples the output GLB's JOINTS_0/WEIGHTS_0 and inverse bind
+    matrices, not just animation channels. Percentile stretch catches the broad
+    limb/torso spikes caused by cross-family skin weights while ignoring a few
+    intrinsically tiny triangulation edges.
+    """
+    if "aim_run" not in skeleton.animations:
+        raise RuntimeError("human GLB is missing the aim_run clip for mesh deformation QA")
+    skins = js.get("skins", [])
+    if len(skins) != 1:
+        raise RuntimeError(f"aim_run mesh QA expected one skin, found {len(skins)}")
+    skin = skins[0]
+    joint_nodes = skin.get("joints", [])
+    if len(joint_nodes) != 79:
+        raise RuntimeError(f"aim_run mesh QA expected 79 joints, found {len(joint_nodes)}")
+    ibm_accessor = skin.get("inverseBindMatrices")
+    if ibm_accessor is None:
+        raise RuntimeError("aim_run mesh QA is missing inverse bind matrices")
+    inverse_bind = accessor_array(js, bin_, int(ibm_accessor)).reshape(-1, 4, 4).transpose(0, 2, 1)
+    mesh_nodes = [node for node in js["nodes"] if node.get("mesh") is not None and node.get("skin") == 0]
+    if len(mesh_nodes) != 1:
+        raise RuntimeError(f"aim_run mesh QA expected one skinned mesh, found {len(mesh_nodes)}")
+    primitives = js["meshes"][int(mesh_nodes[0]["mesh"])].get("primitives", [])
+    if not primitives:
+        raise RuntimeError("aim_run mesh QA found no mesh primitives")
+
+    primitive_data: list[tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]] = []
+    for primitive in primitives:
+        if int(primitive.get("mode", 4)) != 4:
+            raise RuntimeError("aim_run mesh QA only supports triangle primitives")
+        attributes = primitive.get("attributes", {})
+        if not all(key in attributes for key in ("POSITION", "JOINTS_0", "WEIGHTS_0")):
+            raise RuntimeError("aim_run mesh QA found a primitive without vertex skin weights")
+        points = accessor_array(js, bin_, int(attributes["POSITION"])).astype(np.float64)
+        joints = accessor_array(js, bin_, int(attributes["JOINTS_0"])).astype(np.int64)
+        weights = accessor_array(js, bin_, int(attributes["WEIGHTS_0"])).astype(np.float64)
+        if "indices" in primitive:
+            triangles = accessor_array(js, bin_, int(primitive["indices"])).reshape(-1).astype(np.int64)
+        else:
+            triangles = np.arange(len(points), dtype=np.int64)
+        if triangles.size % 3:
+            raise RuntimeError("aim_run mesh QA found a non-triangle index count")
+        triangles = triangles.reshape(-1, 3)
+        if triangles.size and (int(triangles.min()) < 0 or int(triangles.max()) >= len(points)):
+            raise RuntimeError("aim_run mesh QA found an out-of-range triangle index")
+        edges = np.concatenate(
+            (triangles[:, [0, 1]], triangles[:, [1, 2]], triangles[:, [2, 0]]), axis=0
+        )
+        edges = np.unique(np.sort(edges, axis=1), axis=0)
+        rest_length = np.linalg.norm(points[edges[:, 0]] - points[edges[:, 1]], axis=1)
+        valid_edges = rest_length > 1e-5
+        if not valid_edges.any():
+            raise RuntimeError("aim_run mesh QA found no non-degenerate triangle edges")
+        primitive_data.append((points, joints, weights, edges[valid_edges], rest_length[valid_edges]))
+
+    max_p95 = 0.0
+    max_p99 = 0.0
+    max_edges_over_2x = 0
+    max_radius = 0.0
+    min_y = math.inf
+    phase_reports: list[dict[str, float | int]] = []
+    duration = skeleton.clip_duration("aim_run")
+    for phase in AIM_RUN_STRETCH_PHASES:
+        pose = skeleton.local_pose("aim_run", duration * phase)
+        global_rotation, global_position = skeleton.fk(*pose)
+        all_ratios: list[np.ndarray] = []
+        for points, joints, weights, edges, rest_length in primitive_data:
+            deformed = rig_builder._skin_points(
+                points,
+                joints,
+                weights,
+                joint_nodes,
+                global_rotation,
+                global_position,
+                inverse_bind,
+            )
+            posed_length = np.linalg.norm(deformed[edges[:, 0]] - deformed[edges[:, 1]], axis=1)
+            all_ratios.append(posed_length / rest_length)
+            max_radius = max(max_radius, float(np.max(np.linalg.norm(deformed, axis=1))))
+            min_y = min(min_y, float(np.min(deformed[:, 1])))
+        ratios = np.concatenate(all_ratios)
+        p95 = float(np.quantile(ratios, 0.95))
+        p99 = float(np.quantile(ratios, 0.99))
+        edges_over_2x = int(np.count_nonzero(ratios > 2.0))
+        max_p95 = max(max_p95, p95)
+        max_p99 = max(max_p99, p99)
+        max_edges_over_2x = max(max_edges_over_2x, edges_over_2x)
+        phase_reports.append(
+            {
+                "phase": round(phase, 3),
+                "p95_edge_stretch": round(p95, 4),
+                "p99_edge_stretch": round(p99, 4),
+                "edges_over_2x": edges_over_2x,
+            }
+        )
+
+    report = {
+        "clip": "aim_run",
+        "sample_count": len(AIM_RUN_STRETCH_PHASES),
+        "max_p95_edge_stretch": round(max_p95, 4),
+        "max_p99_edge_stretch": round(max_p99, 4),
+        "max_edges_over_2x": max_edges_over_2x,
+        "max_vertex_radius_m": round(max_radius, 4),
+        "min_vertex_y_m": round(min_y, 4),
+        "samples": phase_reports,
+    }
+    if max_p95 > MAX_AIM_RUN_P95_EDGE_STRETCH:
+        raise RuntimeError(f"aim_run mesh p95 edge stretch exceeds limit: {report}")
+    if max_p99 > MAX_AIM_RUN_P99_EDGE_STRETCH:
+        raise RuntimeError(f"aim_run mesh p99 edge stretch exceeds limit: {report}")
+    if max_edges_over_2x > MAX_AIM_RUN_EDGES_OVER_2X:
+        raise RuntimeError(f"too many aim_run mesh edges stretch over 2x: {report}")
+    if max_radius > MAX_AIM_RUN_VERTEX_RADIUS or min_y < MIN_AIM_RUN_VERTEX_Y:
+        raise RuntimeError(f"aim_run mesh bounds are outside the deformation limits: {report}")
+    return report
 
 
 def _validate_transitions(report: dict[str, dict[str, float]]) -> None:
@@ -401,6 +529,9 @@ def _build_variant(variant: dict[str, Any], source: Skeleton) -> dict[str, Any]:
     for clip, duration in clip_durations.items():
         if duration <= 0.0:
             raise RuntimeError(f"T{variant['tier']}: generated clip {clip!r} has no duration")
+    aim_run_deformation = _aim_run_mesh_deformation_report(
+        final_js, final_bin, final_skeleton
+    )
 
     profile = json.loads(variant["rig"].read_text(encoding="utf-8"))
     source_names = [source.nodes[index].get("name") for index in source.joints]
@@ -469,6 +600,7 @@ def _build_variant(variant: dict[str, Any], source: Skeleton) -> dict[str, Any]:
                 "socket_error": round(carry_error, 6),
             },
             "weapon_transition_checks": transition_checks,
+            "aim_run_mesh_deformation": aim_run_deformation,
             "animation_build_reports": clip_reports,
         }
     )
@@ -533,6 +665,9 @@ def _check_variant(
     skin_checks = hero_rigging._validate_variant(variant, template_js, template_skeleton)
     profile = json.loads(variant["rig"].read_text(encoding="utf-8"))
     validate_profile_identity(profile, variant["asset_id"])
+    aim_run_deformation = _aim_run_mesh_deformation_report(js, bin_, skeleton)
+    if profile.get("aim_run_mesh_deformation") != aim_run_deformation:
+        raise RuntimeError("stored aim_run skinned-mesh deformation report is stale")
     if profile.get("source_robot_common_sha256") != _sha256(SOURCE_ROBOT):
         raise RuntimeError("rig profile is stale for the current Robot Common clips/template")
     if profile.get("source_variant_sha256") != _sha256(variant["source"]):
@@ -562,7 +697,12 @@ def _check_variant(
         raise RuntimeError("carry socket check failed")
     if skin_checks["joint_count"] != 79:
         raise RuntimeError("skin verification did not retain all 79 shared joints")
-    return {"skin": skin_checks, "transitions": transitions, "clips": len(skeleton.animations)}
+    return {
+        "skin": skin_checks,
+        "transitions": transitions,
+        "clips": len(skeleton.animations),
+        "aim_run_deformation": aim_run_deformation,
+    }
 
 
 def main() -> int:
@@ -588,6 +728,9 @@ def main() -> int:
                 f"T{variant['tier']}: {report['clips']} clips · "
                 f"{report['skin']['joint_count']} joints · "
                 f"{report['skin']['vertex_count']:,} independently weighted vertices · "
+                f"aim_run edge stretch p95/p99 "
+                f"{report['aim_run_deformation']['max_p95_edge_stretch']:.2f}/"
+                f"{report['aim_run_deformation']['max_p99_edge_stretch']:.2f} · "
                 "raise/lower transitions and weapon IK pass"
             )
         except (OSError, ValueError, RuntimeError, KeyError) as error:

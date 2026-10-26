@@ -32,7 +32,7 @@ python3 -m venv .venv
 ./tools/gltf/build_human_hero_tiers.sh
 ```
 
-Runtime candidates target a 50,000-triangle maximum. The build verifies mesh budgets, 79-joint order/hierarchy, skin-weight sums, bind-pose identity, deformation probes, weapon grip/socket IK, clip presence, and raise/lower transition continuity. The retarget checks also require `aim_walk`/`aim_run` to use the exact walk/run key times, keep the upper body on the aim pose, and match the lower-body gait. Root/Hip translation is transferred only when that joint actually moves in the source clip, so a static Hip cannot counteract a moving BoneRoot during death.
+Runtime candidates target a 50,000-triangle maximum. Human skin weights are constrained per connected mesh island and anatomical bone family, preventing hands resting against the thighs from pulling nearby leg or torso geometry into the aim pose. The retargeter also deforms the actual skinned mesh through seven `aim_run` loop phases and enforces edge-stretch and bounds limits; it does not rely on animation-track checks alone. Other build checks cover mesh budgets, 79-joint order/hierarchy, skin-weight sums, bind-pose identity, weapon grip/socket IK, clip presence, and raise/lower transition continuity. The retarget checks require `aim_walk`/`aim_run` to use the exact walk/run key times, keep the upper body on the aim pose, and match the lower-body gait. Root/Hip translation is transferred only when that joint actually moves in the source clip, so a static Hip cannot counteract a moving BoneRoot during death.
 
 ## Standalone Godot review
 

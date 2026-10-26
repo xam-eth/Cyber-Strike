@@ -24,7 +24,7 @@ import json
 import math
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 import numpy as np
 
@@ -256,7 +256,11 @@ def _load_template() -> tuple[dict[str, Any], bytes, Skeleton]:
 
 
 def _build_variant(
-    variant: dict, template_js: dict[str, Any], template_bin: bytes, template_skeleton: Skeleton
+    variant: dict,
+    template_js: dict[str, Any],
+    template_bin: bytes,
+    template_skeleton: Skeleton,
+    weight_builder: Callable[..., tuple[np.ndarray, np.ndarray]] | None = None,
 ) -> dict:
     if not variant["optimized"].exists():
         raise RuntimeError(f"Optimized mesh is missing: {variant['optimized']}")
@@ -308,7 +312,19 @@ def _build_variant(
         if position_accessor is None:
             raise RuntimeError(f"{_variant_label(variant)}: primitive is missing POSITION")
         points = accessor_array(js, writer.bin, position_accessor).astype(np.float64)
-        joints, weights = _weights_for_points(points, starts, ends, deform_skin_indices)
+        if weight_builder is None:
+            joints, weights = _weights_for_points(points, starts, ends, deform_skin_indices)
+        else:
+            joints, weights = weight_builder(
+                points,
+                primitive,
+                js,
+                writer.bin,
+                starts,
+                ends,
+                deform_skin_indices,
+                deform_names,
+            )
         primitive.setdefault("attributes", {})["JOINTS_0"] = writer.add(
             joints, "VEC4", 5123, target=34962, minmax=True
         )
