@@ -1,13 +1,21 @@
 /*
- * Round-11 HUD capture: real frames out of the committed WebAssembly export.
+ * HUD evidence: real frames out of the committed WebAssembly export.
  *
- * The engine is the shipped `web/index.pck` served from disk, driven with real
- * touch events at a real phone viewport -- not a mock-up. Three routes:
- *   calib   one frame at device scale 1 so canvas pixel == CSS pixel
- *   armory  Explore -> ARMORY -> card modal -> press its HOME
- *   menus   Explore -> pause -> SETTINGS -> back -> pause HOME
- * Every route that presses HOME waits for the front end to announce DASHBOARD,
- * which is what makes the screenshot evidence of behaviour and not decoration.
+ * The engine is the shipped `web/index.pck` served from disk and driven with
+ * real touch events at a real phone viewport -- not a mock-up, and not a
+ * composited screenshot. Frames are written to SHOT_DIR (default /tmp/hud11).
+ *
+ *   node tools/hud_evidence.mjs calib 844x390
+ *       one frame at device scale 1, so CSS pixel == canvas pixel; use it to
+ *       read the coordinates the routes below are written in
+ *   TAPS="x,y:frame-name;x,y:frame-name" node tools/hud_evidence.mjs taps 844x390
+ *       tap, then shoot a frame under that name
+ *
+ * Requires `npm ci --prefix tools` and the al2023 libraries that
+ * @sparticuz/chromium unpacks (`LD_LIBRARY_PATH=tools/.cache/lib`). The build
+ * under test is whatever `web/index.pck` the branch currently commits: this
+ * script never calls the engine's own build step, so a stale payload shows the
+ * previous round's HUD.
  */
 import http from 'node:http';
 import fs from 'node:fs';
