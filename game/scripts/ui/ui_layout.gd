@@ -257,7 +257,12 @@ static func overlays(hud) -> void:
 		0.5,
 		Rect2(-pause_width * 0.5, -pause_height * 0.5, pause_width, pause_height)
 	)
-	for button in [hud._pause_resume_button, hud._pause_restart_button, hud._pause_settings_button]:
+	for button in [
+		hud._pause_resume_button,
+		hud._pause_restart_button,
+		hud._pause_settings_button,
+		hud._pause_home_button,
+	]:
 		if is_instance_valid(button):
 			button.custom_minimum_size = Vector2(0.0, hud._to_layout(52.0))
 

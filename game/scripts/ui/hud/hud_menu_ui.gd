@@ -47,16 +47,27 @@ static func build_pause(hud) -> void:
 	content.add_child(hud._pause_resume_button)
 	hud._touch_buttons.append(hud._pause_resume_button)
 
+	# One primary action and three secondary ones in a single row. Three stacked
+	# 52 px plates plus the header did not fit a 375 px-tall phone: the card grew
+	# past the glass and the last action fell off it. The row keeps every target
+	# at 52 px tall and ~104 px wide -- above the 44 pt touch minimum -- and the
+	# rank is read from size, not from position: RESUME spans the card.
+	var actions := HBoxContainer.new()
+	actions.name = "PauseActions"
+	actions.add_theme_constant_override("separation", 8)
+	content.add_child(actions)
+
 	hud._pause_restart_button = AegisButton.new()
 	hud._pause_restart_button.name = "RestartButton"
-	hud._pause_restart_button.text = "RESTART RUN"
+	hud._pause_restart_button.text = "RESTART"
 	hud._pause_restart_button.focus_mode = Control.FOCUS_ALL
 	hud._pause_restart_button.mouse_filter = Control.MOUSE_FILTER_STOP
+	hud._pause_restart_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hud._pause_restart_button.icon = AegisTheme.icon("arrow-counter-clockwise")
 	hud._pause_restart_button.add_theme_constant_override("icon_max_width", 18)
 	AegisTheme.set_button_variant(hud._pause_restart_button, "round")
 	hud._pause_restart_button.pressed.connect(hud._on_restart_pressed)
-	content.add_child(hud._pause_restart_button)
+	actions.add_child(hud._pause_restart_button)
 	hud._touch_buttons.append(hud._pause_restart_button)
 
 	hud._pause_settings_button = AegisButton.new()
@@ -64,10 +75,24 @@ static func build_pause(hud) -> void:
 	hud._pause_settings_button.text = "SETTINGS"
 	hud._pause_settings_button.icon = AegisTheme.icon("gear-six")
 	hud._pause_settings_button.focus_mode = Control.FOCUS_ALL
+	hud._pause_settings_button.mouse_filter = Control.MOUSE_FILTER_STOP
+	hud._pause_settings_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	AegisTheme.set_button_variant(hud._pause_settings_button, "ghost")
 	hud._pause_settings_button.pressed.connect(hud._open_settings)
-	content.add_child(hud._pause_settings_button)
+	actions.add_child(hud._pause_settings_button)
 	hud._touch_buttons.append(hud._pause_settings_button)
+
+	hud._pause_home_button = AegisButton.new()
+	hud._pause_home_button.name = "PauseHomeButton"
+	hud._pause_home_button.text = "HOME"
+	hud._pause_home_button.icon = AegisTheme.icon("house")
+	hud._pause_home_button.focus_mode = Control.FOCUS_ALL
+	hud._pause_home_button.mouse_filter = Control.MOUSE_FILTER_STOP
+	hud._pause_home_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	AegisTheme.set_button_variant(hud._pause_home_button, "ghost")
+	hud._pause_home_button.pressed.connect(hud._on_home_pressed)
+	actions.add_child(hud._pause_home_button)
+	hud._touch_buttons.append(hud._pause_home_button)
 
 	var hint: Label = hud._label("SETTINGS → CONTROLS · ESC RESUME", "label_s", AegisTokens.INK_3)
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -166,6 +191,20 @@ static func build_results(hud) -> void:
 	hud._results_explore_button.pressed.connect(hud._on_return_to_explore_pressed)
 	content.add_child(hud._results_explore_button)
 	hud._touch_buttons.append(hud._results_explore_button)
+
+	# A run ends where the player came from: the results card is the one screen
+	# that can name the dashboard without leaving the report behind.
+	hud._results_home_button = AegisButton.new()
+	hud._results_home_button.name = "ResultsHomeButton"
+	hud._results_home_button.text = "HOME"
+	hud._results_home_button.focus_mode = Control.FOCUS_ALL
+	hud._results_home_button.mouse_filter = Control.MOUSE_FILTER_STOP
+	hud._results_home_button.icon = AegisTheme.icon("house")
+	hud._results_home_button.add_theme_constant_override("icon_max_width", 18)
+	AegisTheme.set_button_variant(hud._results_home_button, "ghost")
+	hud._results_home_button.pressed.connect(hud._on_home_pressed)
+	content.add_child(hud._results_home_button)
+	hud._touch_buttons.append(hud._results_home_button)
 
 
 ## Results makes the objective -> earned reward -> next loadout relationship

@@ -656,6 +656,28 @@ function lockLandscape() {
   }
 }
 
+/* ------------------------------------------------------------------- home */
+
+/*
+ * HOME is the lobby, and the engine asks for it by name: an in-game HOME button
+ * calls `window.AegisShell.home()` through
+ * game/scripts/ui/dashboard_return.gd. The world is a WebGL context the page
+ * cannot unload in place, so the honest way back is a fresh document: the
+ * hand-off parameters are dropped and `ui=hub` puts the lobby up -- loadout,
+ * world and progress all survive because they live in storage, not in the tab.
+ */
+function home() {
+  const url = new URL(location.href);
+  url.searchParams.delete('qa_stage');
+  url.searchParams.delete('weapon');
+  url.searchParams.delete('qa_world');
+  url.searchParams.set('ui', 'hub');
+  location.replace(url.toString());
+}
+
+/* Read by the engine's HOME affordances and by the shell's own QA harness. */
+window.AegisShell = { home, screen: () => current };
+
 /* ------------------------------------------------------------------ boot */
 
 applyMotionPref();

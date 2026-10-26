@@ -18,6 +18,7 @@ extends AegisPanel
 
 signal weapon_action_requested(weapon_id: StringName)
 signal close_requested
+signal home_requested
 
 const ORDER := [&"pulse_rifle", &"nova_launcher", &"arc_shooter"]
 const SHORT_NAMES := ["PULSE · PRECISION", "NOVA · BLAST", "ARC · CHAIN"]
@@ -37,6 +38,7 @@ var _weapon_buttons: Array[AegisButton] = []
 var _cards: Array[AegisPanel] = []
 var _states: Array[Label] = []
 var _close_button: AegisButton
+var _home_button: AegisButton
 var _column: VBoxContainer
 
 
@@ -63,14 +65,38 @@ func _ready() -> void:
 	for index in range(ORDER.size()):
 		row.add_child(_build_card(index))
 
+	# Two ways out, both explicit: back to the run, or back to the dashboard the
+	# run was launched from. RETURN TO FIELD stays the primary action because
+	# leaving the world from a loadout screen is the rarer choice.
+	var footer := HBoxContainer.new()
+	footer.name = "ArmoryFooter"
+	footer.add_theme_constant_override("separation", 8)
+	_column.add_child(footer)
+
 	_close_button = AegisButton.new()
 	_close_button.name = "CloseArmoryButton"
 	_close_button.text = "RETURN TO FIELD"
+	_close_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_close_button.focus_mode = Control.FOCUS_ALL
 	_close_button.mouse_filter = Control.MOUSE_FILTER_STOP
 	AegisTheme.set_button_variant(_close_button, "primary")
 	_close_button.pressed.connect(_on_close_pressed)
-	_column.add_child(_close_button)
+	footer.add_child(_close_button)
+
+	_home_button = AegisButton.new()
+	_home_button.name = "ArmoryHomeButton"
+	_home_button.text = "HOME"
+	_home_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_home_button.focus_mode = Control.FOCUS_ALL
+	_home_button.mouse_filter = Control.MOUSE_FILTER_STOP
+	_home_button.icon = AegisTheme.icon("house")
+	_home_button.add_theme_constant_override("icon_max_width", 18)
+	AegisTheme.set_button_variant(_home_button, "ghost")
+	_home_button.pressed.connect(_on_home_pressed)
+	footer.add_child(_home_button)
+	# Hidden by default: the dashboard shows this same panel as its own armory,
+	# and there HOME would be a button that reloads the screen you are on.
+	_home_button.visible = false
 	visible = false
 
 
@@ -168,6 +194,12 @@ func refresh_profile(
 			button.set_meta("armory_variant", variant)
 
 
+## The in-world HUD is the only context where leaving for the dashboard is a
+## different place than the one the panel is standing on.
+func show_home(enabled: bool) -> void:
+	_home_button.visible = enabled
+
+
 func show_hint(text: String) -> void:
 	_hint_label.text = text
 
@@ -183,6 +215,7 @@ func layout_for(hud) -> void:
 	for button in _weapon_buttons:
 		button.custom_minimum_size = Vector2(0, hud._to_layout(38.0))
 	_close_button.custom_minimum_size = Vector2(0, hud._to_layout(40.0))
+	_home_button.custom_minimum_size = Vector2(hud._to_layout(120.0), hud._to_layout(40.0))
 	add_theme_stylebox_override(
 		"panel",
 		AegisTheme.panel_style(
@@ -197,6 +230,10 @@ func layout_for(hud) -> void:
 
 func focus_first() -> void:
 	_weapon_buttons[0].grab_focus()
+
+
+func _on_home_pressed() -> void:
+	home_requested.emit()
 
 
 func _on_weapon_pressed(id: StringName) -> void:

@@ -24,6 +24,9 @@ signal sound_mute_requested
 signal armory_requested
 signal armory_weapon_action_requested(weapon_id: StringName)
 signal armory_close_requested
+## One signal for every HOME in the HUD: pause, results, armory and settings all
+## mean "leave the world for the dashboard", and main.gd answers it once.
+signal home_requested
 signal settings_changed(values: Dictionary)
 
 const HIT_CONFIRM_DURATION: float = AegisTokens.HIT_MARKER
@@ -132,6 +135,8 @@ var _score_chip: AegisPanel
 var _compact_card: AegisPanel
 var _help_panel: AegisPanel
 var _feedback_panel: HudCombatFeedbackUi
+var _pause_home_button: AegisButton
+var _results_home_button: AegisButton
 var _armory_panel: ArmoryUi
 var _armory_button: AegisButton
 var _scrim: ColorRect
@@ -804,6 +809,7 @@ func _build_overlays() -> void:
 	_settings_menu.visible = false
 	_settings_menu.changed.connect(_apply_preferences)
 	_settings_menu.close_requested.connect(_close_settings)
+	_settings_menu.home_requested.connect(_on_home_pressed)
 	add_child(_settings_menu)
 	HudEditorBridge.install(self)
 
@@ -1269,6 +1275,14 @@ func _on_defense_pressed() -> void:
 		return
 	Sfx.play_ui(&"ui_click")
 	defense_start_requested.emit()
+
+
+## HOME is answered by main.gd, which owns the scene: the HUD only knows that the
+## player asked to leave. The overlay stays up until the scene actually changes,
+## so a failed hand-off cannot look like a dead button.
+func _on_home_pressed() -> void:
+	Sfx.play_ui(&"ui_click")
+	home_requested.emit()
 
 
 func _on_return_to_explore_pressed() -> void:

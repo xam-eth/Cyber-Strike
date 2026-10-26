@@ -357,3 +357,51 @@ only an opinion is not here.
       and the camera tilts just enough to show the deck as an ellipse. Stage, rig
       and light now share a space, which is the only version of "standing on a
       stage" that is not a caption.
+
+44. **Home is one button, one meaning, and it exists in every in-game menu.**
+    Four menus could hold the player — pause, results, armory, settings — and
+    between them they offered resume, restart, retry, return to explore, close
+    and done. None of them offered the way back to the dashboard, so the only
+    exit from a run was the browser. Now all four carry **HOME**, they raise one
+    signal (`TouchControls.home_requested`), and one object decides where home
+    is: `DashboardReturn`. Embedded in the player shell it hands the document
+    back to `window.AegisShell.home()`, which reloads into `?ui=hub` with the
+    hand-off parameters dropped; running on its own it changes to
+    `front_end.tscn` with `FrontEnd.resume_stage = DASHBOARD`, so the return does
+    not replay BOOT → LOADING → CHAPTER on the way. The button unpauses the tree
+    and releases the cursor before either route, because the pause card is what
+    holds `get_tree().paused`.
+
+    The pause card also had to change shape to hold a fourth action. Three
+    stacked 52 px plates plus its header overflowed a 375 px-tall phone; RESUME
+    now spans the card and RESTART / SETTINGS / HOME share one row at the same
+    52 px height. Rank is read from size — the primary action is the wide one —
+    not from a position that a short screen can crop. `tests/menu_home_smoke.gd`
+    presses all four and asserts the signal, and that `resume_stage` lands on
+    DASHBOARD and is spent.
+
+### What the reference research says
+
+The round-11 brief asked for real references rather than taste, so these are the
+rules the HUD and the menus are held to, with their sources:
+
+| Rule | Number | Source |
+| --- | --- | --- |
+| Minimum touch target | 44 pt iOS / 48 dp Android, 8 pt between actions | game-ace, *Mobile game design* |
+| Primary actions sit in the lower thumb arc | bottom corners, not the top edge | game-ace; Unity anchor notes (top-left status, top-right pause, bottom-right confirm) |
+| Physical edges are not a layout guide | pad by the platform insets, never by 0 | game-ace; polypane, *safe-area-inset* |
+| Action safe / title safe | actions within 95 % of the edges, information within 90 % | gameuxmasterguide, *Layout of the HUD* |
+| Nine-part grid | status top-left, pause top-right, actions bottom-right, alert centre | gameuxmasterguide; *How the HUD works in Black Ops 7* |
+| HUD never bleeds to the glass | Borderlands 3 keeps every element inside the safe zone | medium, *Art Direction for AAA UI* |
+| Pause menu: one prominent resume, then the exits | resume first and biggest; exits explicit, not nested | wayline, *20 reasons your pause menu is sabotaging your game*; UQ 2026 studio notes |
+| The exit is named after the place it goes | "Return to Main Menu" / "Exit to Title"; "Exit" alone is ambiguous | gamedev.stackexchange 20492 |
+| Menus are a stack, not a mode switch | a pause/settings/armory overlay returns to what was underneath | r/gamedev *menu stack* thread |
+
+What that changed in the HUD: `AegisTokens.MIN_TOUCH_PX` is 64 and
+`TOUCH_GAP_PX` is 14 (both above the 44/8 floor); the four docks are the grid —
+status strip and system plate on the top edge, movement bracket bottom-left,
+action rail bottom-right, ammo column on the trailing edge; the modal cards are
+inset from the glass by the same safe reserves the thumb controls use; and the
+shell already pads its chrome with `env(safe-area-inset-*)`. What it changed in
+the menus: HOME is the last item in every list, always with the same word, and
+settings is an overlay that returns to the card it was opened from.

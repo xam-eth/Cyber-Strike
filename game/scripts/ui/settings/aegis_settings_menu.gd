@@ -6,6 +6,9 @@ extends AegisPanel
 
 signal changed(values: Dictionary)
 signal close_requested
+## HOME leaves the world from the settings page too: a player who opened settings
+## to fix the controls should not have to close two plates to reach the lobby.
+signal home_requested
 signal editor_requested
 
 var preference_path: String = AegisPreferences.PATH
@@ -120,10 +123,20 @@ func _build() -> void:
 	reset.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	reset.pressed.connect(_reset_defaults)
 	_footer.add_child(reset)
+	var home := _button("HOME", "HomeSettingsButton", "ghost")
+	home.icon = AegisTheme.icon("house")
+	home.add_theme_constant_override("icon_max_width", 18)
+	home.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	home.pressed.connect(_on_home_pressed)
+	_footer.add_child(home)
 	var done := _button("DONE", "DoneSettingsButton", "primary")
 	done.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	done.pressed.connect(close)
 	_footer.add_child(done)
+
+
+func _on_home_pressed() -> void:
+	home_requested.emit()
 
 
 func _show_tab(index: int) -> void:

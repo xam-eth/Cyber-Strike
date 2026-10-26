@@ -45,6 +45,11 @@ const BACK_TARGET := {
 	&"PRELOAD": &"WORLD",
 }
 
+## Set by `DashboardReturn` when the player leaves the world: the next front end
+## opens on that stage instead of replaying the boot and the chapter card, and
+## clears itself so a later BOOT is a BOOT again.
+static var resume_stage := StringName()
+
 ## Read-only view of the active stage, for tests and for QA logging.
 var current_stage_name := StringName()
 
@@ -88,6 +93,13 @@ func _ready() -> void:
 		# pressing Deploy, and the arena they land in has to be that card.
 		_enter_qa_world()
 		call_deferred("start_gameplay")
+		return
+	if resume_stage != &"" and STAGE_SCENES.has(resume_stage):
+		# Coming back from the world is a return, not a launch: no boot overlay,
+		# no load bar, no chapter card. The dashboard reads the profile itself.
+		var target := resume_stage
+		resume_stage = &""
+		_enter(target, {})
 		return
 	_enter(&"BOOT", {})
 	_enter_qa_stage()
