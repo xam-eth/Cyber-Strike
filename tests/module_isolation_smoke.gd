@@ -61,7 +61,7 @@ func _run_smoke_test() -> void:
 	_check_shell_and_controller(broken_characters, "broken hero")
 
 	var runner := RunnerScene.instantiate()
-	var enemy_visual := runner.get_node("VisualRoot")
+	var enemy_visual := runner.get_node("Visuals")
 	enemy_visual.set("model_scene", null)
 	enemy_visual.set("model_scene_path", "res://content/characters/missing/runtime/enemy.glb")
 	runner.set_physics_process(false)
