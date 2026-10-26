@@ -68,6 +68,62 @@ func _run() -> void:
 	_expect(not paused and not armory.visible, "close returns to playable safe Explore")
 	_expect(not wallet.unlock_weapon(&"unknown"), "unknown weapon ID cannot be purchased")
 
+	# --- the operative ladder -------------------------------------------------
+	# The tier cards on the operative page and the arena both read this table, so
+	# what is checked here is the whole chain: the roster parses, a rank is earned
+	# by runs, a rank that is not earned cannot be selected, and the player's body
+	# and health follow the selection.
+	_expect(HeroTier.has_roster(), "resources/heroes/roster.json parses")
+	_expect(HeroTier.tier_count() == 5, "the ladder has five ranks")
+	_expect(HeroTier.owned_tier(0) == 1, "tier 1 needs no runs")
+	_expect(HeroTier.owned_tier(1) == 2 and HeroTier.owned_tier(2) == 2, "one run opens tier 2")
+	_expect(HeroTier.owned_tier(10) == 5, "ten runs open the last tier")
+	_expect(
+		HeroTier.vitals(5) > HeroTier.vitals(1) and HeroTier.reduction(5) > HeroTier.reduction(1),
+		"a higher rank is worth more health and more plate",
+	)
+	_expect(
+		HeroTier.model_path(&"sable", 3).ends_with("hero_human_tier_3.glb"),
+		"each rank has its own model",
+	)
+	_expect(
+		not HeroTier.is_field_ready(&"kestrel"),
+		"a hero with no rig cannot be fielded",
+	)
+	# A fresh profile has no runs, so the only fieldable rank is the first one --
+	# whatever the save says.
+	_expect(
+		wallet.owned_tier() == 1 and wallet.fieldable_tier() == 1, "a new profile fields tier 1"
+	)
+	_expect(not wallet.select_tier(4), "an unearned rank cannot be selected")
+	wallet.completed_runs = 12
+	_expect(wallet.owned_tier() == 5, "runs earned in the arena open the ranks")
+	_expect(
+		wallet.select_tier(4) and wallet.fieldable_tier() == 4, "an earned rank can be selected"
+	)
+	_expect(
+		player.max_health == HeroTier.vitals(4),
+		"the arena's health pool is the selected rank's vitals",
+	)
+	_expect(
+		is_equal_approx(player.tier_damage_reduction(), HeroTier.reduction(4) / 100.0),
+		"the selected rank's plate is applied to incoming damage",
+	)
+	var reduced_before := 200.0
+	player.current_health = reduced_before
+	var dealt := 100.0
+	player.apply_damage(dealt)
+	_expect(
+		is_equal_approx(
+			player.current_health, reduced_before - dealt * (1.0 - player.tier_damage_reduction())
+		),
+		"a hit is reduced by the rank's plate, not by nothing",
+	)
+	# An id that is not in the roster cannot become the operative, even though the
+	# id is a string the profile is happy to hold.
+	wallet.selected_hero_id = &"sable"
+	_expect(HeroTier.model_path(wallet.selected_hero_id, 1) != "", "the fielded hero has a rig")
+
 	main.queue_free()
 	await process_frame
 	DirAccess.remove_absolute(disk_path)

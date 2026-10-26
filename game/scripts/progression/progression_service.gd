@@ -167,7 +167,7 @@ func select_tier(tier: int) -> bool:
 	if wanted > owned_tier() or wanted == selected_tier:
 		return false
 	selected_tier = wanted
-	save_profile()
+	_save_profile()
 	profile_changed.emit()
 	return true
 
