@@ -4,7 +4,7 @@
 The web build is the project's no-install preview path: a single-threaded
 Godot Web export runs on WebGL 2 and needs no cross-origin isolation headers,
 so it can be served by a plain ``python -m http.server`` from the repository
-root (see WEB_PREVIEW.md).
+root (see docs/runbooks/WEB_PREVIEW.md).
 
 ``game/export_presets.cfg`` is git-ignored (it is machine-local), so this tool
 generates the Web preset deterministically instead of committing it. Shared

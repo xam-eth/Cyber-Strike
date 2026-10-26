@@ -5,7 +5,7 @@
 
 The source hero had no aiming or firing animation and the weapon was a floating
 box with a hand-placed muzzle marker. These frames and numbers are what replaced
-that. Full pipeline: [`../../HERO_RIG_PIPELINE.md`](../../HERO_RIG_PIPELINE.md).
+that. Full pipeline: [`../../docs/runbooks/HERO_RIG.md`](../../docs/runbooks/HERO_RIG.md).
 
 ## What was checked automatically
 

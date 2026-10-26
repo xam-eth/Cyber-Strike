@@ -6,10 +6,11 @@ should go. Everything below is either generated from the code or enforced by a
 check, so it cannot quietly go stale — see [Keeping this document
 true](#keeping-this-document-true).
 
-For what the game *is*, read [`README.md`](../README.md). For why the code is
-shaped this way and what is still to do, read
-[`ARCHITECTURE.md`](ARCHITECTURE.md) and
-[`DECISIONS.md`](DECISIONS.md).
+For the selected game direction and active gameplay scope, read
+[`GAMEPLAY_DESIGN.md`](GAMEPLAY_DESIGN.md). For task sequencing and quality
+gates, read [`DEVELOPMENT.md`](DEVELOPMENT.md). For documentation authority and
+conflict handling, start at [`README.md`](README.md). This document governs code
+placement; it does not approve new gameplay systems.
 
 ---
 
@@ -74,9 +75,6 @@ folder rule would otherwise be wrong. Each has the reason next to it in
 <!-- module-map:end -->
 
 
-<!-- module-map:end -->
-
-
 
 
 
@@ -107,10 +105,10 @@ folder rule would otherwise be wrong. Each has the reason next to it in
 ## What has to pass before a merge
 
 ```bash
-./scripts/dev_check.sh              # lint, format, static calls, boundaries, handover map, test inventory
-./scripts/run_smoke_tests.sh        # 28 headless Godot tests
-python3 tools/web_qa.mjs --tour     # boots the web build in a real browser and reaches gameplay
-python3 tools/check_payload.py web/index.pck   # no tests or QA code in what ships
+./scripts/dev_check.sh                    # lint, format, static calls, boundaries, docs, test inventory
+./scripts/run_smoke_tests.sh              # current headless Godot smoke inventory
+node tools/web_qa.mjs --tour              # boot the Web build, enter gameplay, capture the tour
+python3 tools/check_payload.py web/index.pck  # no tests or QA code in what ships
 ```
 
 The web QA is the check that catches what headless tests cannot: it plays
@@ -145,23 +143,19 @@ negative controls, including the exact regression above.
 
 ## The other documents
 
-| Document | What it is |
+| Document | What it governs |
 | --- | --- |
-| [`ARCHITECTURE.md`](ARCHITECTURE.md) | The ordered plan: what each phase moves, and what is done |
-| [`DECISIONS.md`](DECISIONS.md) | Measured findings, including the mistakes — read this before changing the tooling |
-| [`DECISIONS.md`](DECISIONS.md) | What was measured after the phase-2 repair: CI, the browser run, and the frames |
-| [`ARCHITECTURE.md`](ARCHITECTURE.md) | What is under Git LFS, and what deliberately is not |
-| [`../WEB_PREVIEW.md`](../WEB_PREVIEW.md) | Running and exporting the browser preview |
-| [`GAMEPLAY_MECHANICS_AUDIT.md`](GAMEPLAY_MECHANICS_AUDIT.md), [`GAMEPLAY_LOOP_SPEC.md`](GAMEPLAY_LOOP_SPEC.md), [`GAMEPLAY_CONTENT_CONTRACTS.md`](GAMEPLAY_CONTENT_CONTRACTS.md) | Gameplay ownership, loop, and content contracts from the Core audit |
-| [`HOOK_AND_RETENTION_SPEC.md`](HOOK_AND_RETENTION_SPEC.md), [`GAMEPLAY_VALIDATION_REPORT.md`](GAMEPLAY_VALIDATION_REPORT.md) | Provisional hook evaluation and pre-integration validation evidence |
-| [`INTEGRATION_BASELINE.md`](INTEGRATION_BASELINE.md), [`INTEGRATION_VALIDATION_REPORT.md`](INTEGRATION_VALIDATION_REPORT.md) | Actual domain branches, source assessment, ownership map, final integration status, and runtime/browser evidence |
-| [`../TOOLCHAIN_SETUP.md`](../TOOLCHAIN_SETUP.md) | Installing Godot 4.7.2 and the export templates |
-| [`../WORLD_BLOCKOUT.md`](../WORLD_BLOCKOUT.md), [`../WORLD_KIT_BUILD.md`](../WORLD_KIT_BUILD.md) | How the world is laid out and what the kit provides |
-| [`../HERO_RIG_PIPELINE.md`](../HERO_RIG_PIPELINE.md) | Hero and weapon rig, muzzle alignment, open animation work |
-| [`../AUDIO_SYSTEM.md`](../AUDIO_SYSTEM.md) | Frontier Signal music, shared shell/gameplay audio, and runtime SFX |
-| [`../GAME_OVERVIEW.md`](../GAME_OVERVIEW.md), [`../GAME_CONCEPT.md`](../GAME_CONCEPT.md) | What the game is |
-| [`../DEVELOPMENT_ROADMAP.md`](../DEVELOPMENT_ROADMAP.md) | Where the game is headed |
+| [`README.md`](README.md) | Documentation authority, status labels, and conflict handling |
+| [`GAMEPLAY_DESIGN.md`](GAMEPLAY_DESIGN.md) | Selected experience, TECH HUNT 0 scope, gameplay rules and contracts |
+| [`DEVELOPMENT.md`](DEVELOPMENT.md) | Delivery sequence, ownership, workflow, and definition of done |
+| [`DECISIONS.md`](DECISIONS.md) | Durable measured technical decisions and reversals |
+| [`VALIDATION.md`](VALIDATION.md) | Latest relevant executed evidence and its limits |
+| [`FRONT_END_JOURNEY.md`](FRONT_END_JOURNEY.md) | Shell/engine journey and selection handoff |
+| [`world/README.md`](world/README.md) | World build policy and world-specific references |
+| [`runbooks/WEB_PREVIEW.md`](runbooks/WEB_PREVIEW.md) | Running, exporting, and validating the browser preview |
+| [`runbooks/TOOLCHAIN.md`](runbooks/TOOLCHAIN.md) | Installing the pinned engine and related tools |
+| [`runbooks/HERO_RIG.md`](runbooks/HERO_RIG.md) | Hero/weapon rig, muzzle alignment, and animation work |
+| [`runbooks/AUDIO.md`](runbooks/AUDIO.md) | Frontier Signal music, shared audio, and runtime SFX |
 
-Documents at the repository root are dated records of past passes. They are
-history, not instructions: when they disagree with `ARCHITECTURE.md` or the
-code, the code wins.
+The repository root contains only the human entry point and `AGENTS.md`.
+Retired reports remain in Git history, not as competing active instructions.

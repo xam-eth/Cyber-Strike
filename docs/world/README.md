@@ -1,107 +1,118 @@
-# NEON FRONTIER — three mission worlds, built from real assets
+# World Build, Assets, and Verification
 
-This branch ships **three complete playable worlds**, one per mission. Every
-visible surface in all three is a **real, licensed, pre-modelled GLB**: triangle
-meshes with vertices and faces, produced by their authors' DCC pipelines, loaded
-and placed by code that creates no geometry of its own.
+This is the canonical World subsystem runbook. World identity and route intent live in [`CONCEPT.md`](CONCEPT.md). Gameplay missions, guards, rewards, and cache state belong to [`../GAMEPLAY_DESIGN.md`](../GAMEPLAY_DESIGN.md); World metadata does not implement them.
 
-| World | Mission | Mood | Signature components |
-| --- | --- | --- | --- |
-| **Frostline Relay** | defence | polar dusk — white ice, cyan light, visible air | comms array, relay masts, cryo condensers, ice spires, frozen hauler |
-| **Verdant Bloom** | recovery | humid overgrowth — moss, spore light, green sun | bio domes, giant flora, spore vents, overgrown arches, crashed lab, real pine groves |
-| **Emberfall Foundry** | extraction | volcanic industry — basalt, molten seams, ash | smelter towers, ore silos, magma drill rig, gantry cranes, slag pools, silo rail on the plant approach, the Cinder Yard plant |
+## 1. Current content shape
 
-```
-game/assets/world/real/        130 files · 52.8 MB · provenance: real-manifest.json
-  kenney/*.glb                 87 × CC0 Space Kit hardware
-  nature/*.glb                 33 × CC0 Nature Kit (trees, bushes, moss, grass, rocks)
-  powerplant.glb                1 × CC-BY-4.0 Cinder Yard plant (Kammertonus)
-  setpieces/*.glb               8 × real structures cut out of that plant
-  ground/tile_floor.glb         1 × CC-BY-4.0 photographed ground plate
+The theatre registry contains five definitions:
 
-tools/asset-forge/src/worlds/
-  themes.js        art direction per world (sky, fog, four lights, grades)
-  roles.js         30 roles, each an assembly of real parts + motion rules
-  frostline.js     world 1 — data: theme, layout, terrain, landmark
-  verdant.js       world 2 — data
-  emberfall.js     world 3 — data
-  terrainKit.js    ground/configurable terrain layers, all real files
-  compose.js       the single builder all three worlds share
-  index.js         the register: id → world, buildWorld(id)
+- Four shared-builder Forge worlds: **Frostline Relay**, **Verdant Bloom**, **Emberfall Foundry**, and **The Titans**.
+- **Vanguard Station**, which remains a separate imported-kit station implementation.
 
-game/assets/forge/worlds/       staged GLBs Godot imports
-  frostline.glb   171.6 × 19.5 × 175.0 m · 113,086 tris · 61 clips · 5.8 MB
-  verdant.glb     180.3 × 16.5 × 168.4 m · 128,182 tris · 156 clips · 3.0 MB
-  emberfall.glb   320.0 × 24.6 × 196.4 m · 247,553 tris · 42 clips · 20.6 MB
+The four Forge worlds share `MissionWorld` and the asset-forge build pipeline while loading their own staged GLB, mood, markers, collision/configuration, and registry metadata. Vanguard is not replaced by that pipeline.
+
+Measured file counts, geometry, textures, hashes, and dimensions are generated data. Use [`game/assets/forge/forge_manifest.json`](../../game/assets/forge/forge_manifest.json) and [`tools/asset-forge/real/real-manifest.json`](../../tools/asset-forge/real/real-manifest.json) rather than copying those values into prose.
+
+## 2. Source → staged world → runtime
+
+```text
+licensed source GLBs + provenance ledger
+  → tools/asset-forge/src/worlds/{frostline,verdant,emberfall,titans}.js
+  → shared roles / terrain / composition / atmosphere
+  → rendered review + asset-policy gate
+  → staged GLBs + content-addressed shared textures
+  → game/assets/forge/ + forge_manifest.json
+  → MissionWorld + WorldDefinition registry
+  → selected theatre gameplay
 ```
 
-## The rule, and how it is enforced
+Important locations:
 
-`realModels.js` is the only module that constructs a `GLTFLoader`. It tags every
-mesh it returns with `userData.realSource = <file>`. The capture gate asks the
-live scene for any mesh without that tag and **fails the run** before it writes a
-single photograph; the Godot smoke test asserts the same thing in-engine.
+| Path | Role |
+|---|---|
+| `game/assets/world/real/` | Licensed source model libraries used by the Forge pipeline |
+| `tools/asset-forge/real/real-manifest.json` | Upstream source, license, and hash ledger |
+| `tools/asset-forge/src/worlds/` | World data, roles, composition, terrain, moods, and build registry |
+| `tools/asset-forge/gate/` | Review renders, validation, shared-texture staging, and Godot handoff |
+| `game/assets/forge/worlds/` | Runtime world GLBs imported by Godot |
+| `game/assets/forge/textures/` | Content-addressed images shared across runtime GLBs |
+| `game/assets/forge/forge_manifest.json` | Generated measurements and staging contract |
+| `game/resources/worlds/` | Five `WorldDefinition` resources consumed by shell/engine |
+| `game/scripts/worlds/mission_world.gd` | Shared runtime adapter for the four Forge worlds |
 
-| Stage | File | What it does |
-| --- | --- | --- |
-| provenance | `real/fetch_real_assets.mjs` | downloads and hash-verifies every file, writes the ledger |
-| slicing | `real/slice_setpieces.mjs` | cuts real structures out of `powerplant.glb` (copies nodes, materials, maps) |
-| loading | `src/worlds/realModels.js` | loads + caches models, grades surfaces per library, tags meshes |
-| roles | `src/worlds/roles.js` | what each role is made of, and what moves |
-| assembly | `src/worlds/assemblyReal.js` | instancing, name prefixing, animation clips |
-| terrain | `src/worlds/terrainKit.js` | floor, routes, decks, fences, dressing — every layer a real file |
-| composition | `src/worlds/compose.js` | districts, landmarks, scatter, stats, atmosphere |
+## 3. Real-asset and provenance policy
 
-## Why three worlds share one builder
+For Forge world geometry, every visible mesh must come from a licensed, pre-authored GLB in the approved source library. The review gate inspects mesh provenance tags and fails when an untagged/procedural mesh enters the scene.
 
-The three worlds differ in **art direction and content, not in machinery**: each
-is a data module (theme + layout + terrain config + landmarks) handed to the same
-`composeWorld()`. That is what keeps a 30-role library maintainable: adding a prop
-to Emberfall cannot change how Frostline is assembled, and a fix to placement
-lands in all three at once.
+The current ledger includes:
 
-Surfaces are graded per library, because they are not the same kind of asset:
+| Library | License | Use |
+|---|---|---|
+| Kenney Space Kit | CC0-1.0 | Modular hardware and structures |
+| Kenney Nature Kit | CC0-1.0 | Organics, rocks, foliage, and terrain dressing |
+| Cinder Yard / Power Plant, derived set pieces, and ground plate | CC-BY-4.0 | Industrial landmarks and scanned surfaces; attribution required |
 
-* **hardware** (Space Kit) — untextured painted metal, re-mapped onto the world's
-  steel-and-accent ramp in sRGB;
-* **organics** (Nature Kit) — authored foliage colours, only lerped toward the
-  world's plant tone, never hue-replaced;
-* **floor** (scanned plate, grass tiles) — exposed per theme, because a polar
-  plate and a volcanic one need different values;
-* **scanned set pieces and the plant** — left exactly as the author authored them.
+Keep attribution in the manifest and shipping notices where required. Slicing a real model into set pieces must preserve its geometry/material provenance; it does not make the result an original CC0 asset.
 
-## Build, look, export
+## 4. Build and review
+
+Install the asset-tool dependencies as required by the existing lockfiles, then use the established entry points:
 
 ```bash
-node tools/asset-forge/real/fetch_real_assets.mjs --verify   # 130 files, hash-checked
-node tools/asset-forge/gate/world_shot.mjs                   # 15 shots + 3 GLBs + policy gate
+# Verify licensed source files and hashes
+node tools/asset-forge/real/fetch_real_assets.mjs --verify
+
+# Build/review all currently registered Forge worlds
+node tools/asset-forge/gate/world_shot.mjs
+
+# Build one world/vantage while iterating
 node tools/asset-forge/gate/world_shot.mjs --world verdant --shot overview
-node tools/asset-forge/gate/stage_worlds_into_game.mjs        # stage into Godot + manifest
+
+# Stage validated worlds and shared textures into Godot
+node tools/asset-forge/gate/stage_worlds_into_game.mjs
 ```
 
-Or browse them interactively (each world is one page load):
+For interactive authoring review, serve the repository and open `tools/asset-forge/world.html?world=<id>` for a registered Forge id.
+
+Do not edit staged GLBs or generated manifests by hand. Change the source data/pipeline, rebuild, inspect the affected renders, and stage again. Keep generated caches and unneeded large review output out of Git according to existing ignore conventions.
+
+## 5. Shared textures and download behavior
+
+Byte-identical images are externalized to content-addressed shared files so Godot does not import a separate copy for every world reference. This is a packaging/deduplication contract, not permission to change image pixels or geometry silently.
+
+After staging:
+
+- verify GLB relative texture URIs and keep the sibling texture directory with the worlds;
+- compare source/non-image buffer integrity through the existing checks;
+- inspect the generated manifest rather than inferring the texture count;
+- run the payload audit to ensure required runtime resources are included and source-only libraries are not shipped accidentally.
+
+The player opening downloads the required main pack before MASUK and DEPLOY reuses it. Unchanged development assets should revalidate rather than requiring repeated full downloads. See [`../runbooks/WEB_PREVIEW.md`](../runbooks/WEB_PREVIEW.md).
+
+## 6. Godot and browser verification
+
+Applicable checks include:
 
 ```bash
-python3 -m http.server 8080
-# /tools/asset-forge/world.html?world=frostline
-# /tools/asset-forge/world.html?world=verdant
-# /tools/asset-forge/world.html?world=emberfall
+./scripts/dev_check.sh
+./scripts/run_smoke_tests.sh
+python3 tools/check_payload.py web/index.pck
+node tools/web_qa.mjs
+node tools/web_loading_qa.mjs
 ```
 
-## The design record
+World-specific tests and the forge import verifier inspect actual imported geometry/materials/animation/configuration where applicable. Browser selection checks must prove the authoritative world id and real selected-world gameplay, not only a card click.
 
-[`CONCEPT.md`](CONCEPT.md) is the world design document: the beats of each world,
-why the light is what it is, and what moves. It is illustrated with the capture
-renders in `docs/world/images/`, so the pictures are of the shipped build.
+Record the exact source/payload commit and results in [`../VALIDATION.md`](../VALIDATION.md). Static GLB inspection, headless import, and automated Chromium do not prove physical-device performance, free-roam traversal, final visual acceptance, or human mission comprehension.
 
-## Credits
+## 7. World change checklist
 
-| Library | Licence | Author |
-| --- | --- | --- |
-| Kenney Space Kit (87 models) | CC0-1.0 | Kenney — <https://kenney.nl/assets/space-kit> |
-| Kenney Nature Kit (33 models) | CC0-1.0 | Kenney — <https://kenney.nl/assets/nature-kit> |
-| Cinder Yard Power Plant, set pieces, ground plate | CC-BY-4.0 | Kammertonus — <https://twitter.com/Kammertonus> |
-
-Redistribution of the CC-BY material requires that attribution; it is also carried
-inside `tools/asset-forge/real/real-manifest.json` and
-`game/assets/forge/forge_manifest.json`.
+- [ ] Registry id and source module are intentional and stable.
+- [ ] Source assets have provenance/license and pass hash verification.
+- [ ] No unapproved procedural mesh or generated texture enters the Forge policy path.
+- [ ] Shared route/collision/markers and `MissionWorld` configuration agree.
+- [ ] World mood and card art use the current STELLAR HORIZON direction.
+- [ ] The four-world shared builder and separate Vanguard path are not accidentally conflated.
+- [ ] Initial pack, shared textures, payload, and warm-cache behavior still pass applicable gates.
+- [ ] Gameplay behavior is not inferred from World metadata; mission/guardian/reward changes are coordinated with Gameplay/Core.
+- [ ] Canonical docs and validation are updated without copying soon-to-be-stale measurements into prose.

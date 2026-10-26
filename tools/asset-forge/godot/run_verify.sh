@@ -20,7 +20,7 @@ STAGE="$ROOT/game/verify_import.gd"
 
 if [[ -z "$GODOT" ]]; then
   echo "✗ no Godot binary found. Install Godot 4.x or set GODOT=/path/to/godot" >&2
-  echo "  (the project targets Godot 4.7.2 — see TOOLCHAIN_SETUP.md)" >&2
+  echo "  (the project targets Godot 4.7.2 — see docs/runbooks/TOOLCHAIN.md)" >&2
   exit 2
 fi
 

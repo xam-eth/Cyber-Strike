@@ -1,9 +1,9 @@
 ## AEGIS design tokens: the single source of truth for colour, type, spacing
 ## and shape in the HUD and menus.
 ##
-## The values mirror docs/UI_UX_REDESIGN_SPEC.md §4. Nothing in the UI should
-## hard-code a colour or font path again: components read `AegisTokens` and
-## `AegisTheme`, which also keeps the palette auditable in one place.
+## These executable values are summarized by docs/ART_DIRECTION.md. Nothing in
+## the UI should hard-code a colour or font path again: components read
+## `AegisTokens` and `AegisTheme`, which keeps the palette auditable in one place.
 class_name AegisTokens
 extends RefCounted
 

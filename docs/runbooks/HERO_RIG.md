@@ -1,6 +1,6 @@
 # Hero rig and weapon asset pipeline
 
-**Date:** 2026-10-17
+**Document role:** current hero/rifle pipeline runbook. For the latest executed checkpoint, see [`../VALIDATION.md`](../VALIDATION.md); do not treat historical production notes as a new runtime pass.
 
 **Scope:** the rigged hero (`source-assets/characters/hero/hero_rigged_source.glb`, 24.4 MB) and the rifle
 (`source-assets/weapons/rifle_source.glb`, 17.3 MB) that were uploaded to the repository
@@ -10,12 +10,11 @@ unverified.
 
 ## Why the work happens in glTF space, not in Blender
 
-`GAME_CONCEPT.md` §13.4 asks for a Blender `.blend` source next to every GLB.
-That is still the right long-term home for authoring, but **no Blender ran in
-this environment**: the `bpy` wheel needs native libraries this image does not
-ship (`libXrender`, `libXfixes`, `libXi`, `libxkbcommon`, `libSM`, `libICE`,
-`libGL`), and there is no GPU or X server to run the editor anyway. Claiming a
-Blender pass would be false.
+Editable authoring sources belong in `source-assets/`, with reviewable runtime
+GLBs under `game/assets/`. This particular pipeline performs inspectable glTF
+processing rather than claiming an unexecuted Blender pass. The original
+environment lacked the native libraries/GPU required by its Blender options;
+that is an environment limitation, not evidence that Blender ran.
 
 What was done instead is real, inspectable work on the same data Blender would
 edit: the GLB is parsed as JSON + binary buffers (`tools/gltf/rigmath.py`), the

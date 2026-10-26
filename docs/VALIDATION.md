@@ -1,0 +1,110 @@
+# Validation Status
+
+This document records the latest relevant evidence and its limits. It is not a design specification, a chronological collection of old reports, or proof that every current branch change has been validated.
+
+For intended behavior, read [`GAMEPLAY_DESIGN.md`](GAMEPLAY_DESIGN.md). For required gates, read [`DEVELOPMENT.md`](DEVELOPMENT.md).
+
+## 1. Latest recorded full product checkpoint
+
+| Item | Checkpoint |
+|---|---|
+| Source validated by full CI | `b4f6d1b62d48a472938081c7e1a66621a898e382` |
+| Full CI run | [40245581197](https://github.com/xam-eth/Cyber-Strike/actions/runs/40245581197) — **SUCCESS** |
+| Committed Web payload after that gate | `15e594f47fe30c20e3fab119e81d5974cc6d28af` |
+| Evidence date | 2026-10-25/26 |
+| Documentation consolidation | Separate source-only change; it does not revalidate gameplay or create a new runtime checkpoint |
+
+### Documentation consolidation gate — 2026-10-26
+
+For the canonical-documentation/tooling consolidation itself:
+
+- **VERIFIED (local static):** `tools/check_docs.py` accepts all 17 canonical Markdown files and their relative links, with root-guide and single module-map marker rules enforced.
+- **VERIFIED (local static):** `./scripts/dev_check.sh` reports **0 failed steps**, including 56 tooling tests, static project doctor, 76-script static-call scan, architecture boundaries, generated module map, and the 28-test inventory.
+- **SKIPPED locally:** gdtoolkit, machine-local export preset, and Godot binary/runtime. No new Godot, browser, Android, human, or device result is claimed for this consolidation.
+
+Older failed/partial gameplay, integration, loading, and World reports describe their own historical commits. They must not be used to override the full checkpoint above or to describe a later branch without a new run.
+
+## 2. Automated evidence at that checkpoint
+
+| Gate | Result | Evidence level and boundary |
+|---|---|---|
+| Static source/tooling | **VERIFIED PASS in CI** | Static only; not runtime or human experience |
+| Godot import + smoke suite | **VERIFIED 28/28 PASS in CI** | Headless Godot 4.7.2; not rendered/device proof |
+| Web export and payload audit | **VERIFIED PASS in CI** | Export/content checks; not Android packaging |
+| Root/raw browser boot | **VERIFIED PASS in CI** | Automated Chromium/WebGL at configured viewports |
+| Initial opening preload and interrupted recovery | **VERIFIED PASS in CI** | Tested Web paths/network controls; not every proxy/network condition |
+| Theatre selection/DEPLOY | **VERIFIED for all five definitions across CI and local automated runs** | CI covered Vanguard/Titans; local automated checks covered Frostline/Verdant/Emberfall |
+| Rebuilt-world traversal | **VERIFIED for four rebuilt worlds in automated checks** | MainNorth route reached `z=25.30062`, `on_floor=true`; not free-roam coverage |
+| Frostline tour | **VERIFIED 8/8 distinct captured frames** | Automated visual captures; not final aesthetic acceptance |
+| Shell/gameplay audio gates | **VERIFIED for automated signal/state checks** | Does not establish human audibility or speaker/headphone quality |
+
+### Published payload identity
+
+| Asset | Bytes | SHA-256 |
+|---|---:|---|
+| `web/index.pck` | 54,012,180 | `3ac7bff773b700edbc27a3c3709bbe47c8931431bd81b0b8a9fd9b555dc20a1d` |
+| `web/index.wasm` | 39,514,754 | `fc74679e3b97f76878947fcd4fbe1268cbfa6188182a2e33bbc3f5dc9bfa57d0` |
+
+These hashes identify the payload commit above. Recompute them after any later export rather than carrying the numbers forward.
+
+### Cache/delivery evidence
+
+- Cold requests returned full successful responses.
+- Warm unchanged WASM/PCK requests returned **304 with zero response body** using strong content ETags.
+- The real Chromium warm-reload harness transferred **220 + 220 bytes** for those revalidations rather than downloading the full assets again.
+- This supports the unchanged-asset Web caching contract for the tested server/browser path. It is not a universal CDN/proxy guarantee.
+
+## 3. Gameplay evidence interpretation
+
+The automated suite and browser paths support the existing combat/session/world baseline described in `GAMEPLAY_DESIGN.md`. They do **not** establish that TECH HUNT 0 is implemented.
+
+The following remain **ABSENT or UNVERIFIED as a complete experience** until new checks exist:
+
+- mission card → guarded cache → secure → permanent blueprint → redeploy;
+- death-before/death-after secure for the new mission system;
+- Extract versus Continue to Endless after a mission objective;
+- human understanding of the mission and optional risk;
+- human mastery/enjoyment of locked-shot dodge/punish;
+- long-run Endless decision quality and post-cap balance;
+- retention or engagement improvement.
+
+A selected design, a resource file, a UI card, or a passing static check must not be reported as completion of those paths.
+
+## 4. Explicitly unverified at the full checkpoint
+
+- Android APK/runtime on a physical device.
+- Physical touch ergonomics and device-specific input behavior.
+- Representative mobile frame time, thermals, memory, and battery behavior.
+- Final visual, animation, and auditory acceptance by a human on target hardware.
+- Every real-world network/proxy/interruption condition.
+- Full human Endless Survival playthrough and long-term stability.
+- Player retention, engagement improvement, or market-level appeal.
+
+Use [`runbooks/ANDROID.md`](runbooks/ANDROID.md), [`runbooks/WEB_PREVIEW.md`](runbooks/WEB_PREVIEW.md), and the human gates in `GAMEPLAY_DESIGN.md` for the appropriate follow-up.
+
+## 5. Recording new evidence
+
+Replace or extend the current checkpoint only with executed results. Do not stack contradictory addenda.
+
+Record:
+
+```text
+Date and exact source/payload commit:
+Task/scope:
+Environment (static / Godot / Chromium / interactive / physical device):
+Commands or CI run:
+Pass/fail/skip counts and named failures:
+Artifacts or reports:
+What the result proves:
+What remains unverified:
+```
+
+Rules:
+
+- A skipped check is **SKIPPED**, not passed.
+- A harness error is not automatically a product failure; diagnose and label it.
+- An aggregate suite result does not identify an individual test unless the log does.
+- Browser software rendering is not physical-device performance evidence.
+- A screenshot needs the correct stage/gameplay state and must not be blank or unrelated.
+- Payload sizes/hashes, test counts, and world counts are checkpoint data, not timeless constants.
+- Human playtest observations include setup and sample; do not generalize them to retention without suitable evidence.

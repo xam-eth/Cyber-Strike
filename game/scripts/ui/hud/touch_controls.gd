@@ -6,8 +6,8 @@ extends Control
 ## The thumb cluster, the objective rail and the docked magazine are the HUD on
 ## every device. A mouse and keyboard drive the same controls, and a larger
 ## window gets the same composition at a larger scale — there is no desktop
-## variant to drift from the one that is tested. Uses the AEGIS tokens from
-## docs/UI_UX_REDESIGN_SPEC.md.
+## variant to drift from the one that is tested. Uses the executable AEGIS
+## tokens summarized by docs/ART_DIRECTION.md.
 
 signal movement_changed(value: Vector2)
 signal look_delta(value: Vector2)

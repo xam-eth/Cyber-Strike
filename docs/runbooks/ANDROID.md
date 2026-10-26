@@ -1,6 +1,6 @@
 # Exocomplict — Android Baseline Runbook (Gate E)
 
-> **Tujuan:** membuat build Android debug yang benar-benar terpasang dan berjalan di perangkat, lalu mengukur performa serta kontrol sentuh sesuai `DEVELOPMENT_ROADMAP.md` (Phase 0 dan Phase 6, gate E).
+> **Tujuan:** membuat build Android debug yang benar-benar terpasang dan berjalan di perangkat, lalu mengukur performa serta kontrol sentuh sesuai quality gates di [`../DEVELOPMENT.md`](../DEVELOPMENT.md).
 >
 > **Status tooling:** siap dan sudah diuji sejauh mungkin tanpa perangkat. **Belum ada APK atau hasil perangkat** yang dihasilkan dari repo ini — dokumen ini adalah prosedur, bukan laporan hasil.
 >
@@ -14,7 +14,7 @@ Gate E dianggap lulus jika **semua** poin ini ada buktinya:
 
 1. `./scripts/check_toolchain.sh` melaporkan **0 FAIL** (Godot Editor, Java/JDK, Android SDK).
 2. `python3 tools/android_preset.py check` melaporkan **0 FAIL** pada preset `Android`.
-3. `./scripts/export_android_debug.sh` menghasilkan `exports/exocomplict-debug.apk` dan seluruh 9 smoke test lulus pada langkah itu.
+3. `./scripts/export_android_debug.sh` menghasilkan `exports/exocomplict-debug.apk` dan seluruh smoke test dalam inventaris saat ini lulus pada langkah itu.
 4. APK terpasang dan dapat dijalankan di minimal satu perangkat Android nyata (`adb install` sukses, aplikasi masuk ke arena).
 5. Kontrol sentuh terverifikasi manual: joystick kiri menggerakkan, drag kanan mengubah kamera, FIRE/WEAPON/EMP/PAUSE merespons, orientasi landscape, tidak ada tombol yang tertutup area sistem.
 6. Pause/resume, kehilangan fokus (home), dan kembali ke aplikasi tidak merusak sesi; RETRY setelah defeat bekerja.
@@ -107,13 +107,13 @@ Checklist uji manual yang harus dicatat hasilnya:
 | E1 | Layar & orientasi | Buka aplikasi | Landscape penuh, HUD tidak terpotong, tidak ada tombol di bawah area sistem |
 | E2 | Gerak | Tahan dan geser di sisi kiri | Player bergerak 360°, kecepatan proporsional jarak geser, lepas = berhenti |
 | E3 | Kamera/aim | Geser di sisi kanan | Kamera berputar, pitch terbatas, crosshair tetap di tengah |
-| E4 | Tembak | Tahan FIRE | Pulsa Rifle menembak terus; proyektil mengenai target; hit feedback muncul |
+| E4 | Tembak | Tahan FIRE | Pulse Rifle menembak terus; proyektil mengenai target; hit feedback muncul |
 | E5 | Ganti senjata | Tombol senjata | Nama senjata berubah; Nova meledak area, Arc merantai ke musuh terdekat |
 | E6 | EMP | Tombol EMP saat READY | Musuh di radius kena damage, cincin muncul, tombol cooldown 12 s |
-| E7 | Wave | Diamkan permainan | Musuh spawn dari perimeter non-depan-kamera, wave naik, hasil tampil setelah defeat |
+| E7 | Wave | Dari Explore aman, tekan START DEFENSE / `B` | Countdown terlihat sebelum wave; musuh spawn dari marker yang valid, wave naik, dan hasil tampil setelah defeat |
 | E8 | Pause | Tombol PAUSE | Sesi berhenti, RESUME mengembalikan; input sentuh yang tertahan dibersihkan |
 | E9 | Fokus | Tekan Home lalu kembali | Tidak ada input macet; joystick tidak "menempel" |
-| E10 | Retry | Defeat lalu RETRY | Run baru bersih: HP penuh, wave 1, skor/BP nol |
+| E10 | Retry | Defeat lalu RETRY | Run baru bersih: HP penuh, wave 1, score/run-BP nol; wallet dan unlock permanen tetap |
 | E11 | Stabilitas | Main 10–15 menit | Tidak ada crash/ANR; `adb logcat` tanpa error berulang |
 | E12 | Suhu/baterai | Setelah 15 menit | Catat suhu dan tingkat baterai; perhatikan throttle |
 
@@ -136,11 +136,11 @@ Baseline yang harus dicatat pada tabel ini (satu baris per perangkat/pengaturan)
 |---|---|---|---|---|---|---|---|---|
 | | | mobile | | | | | | |
 
-**Gap yang diketahui sebelum profiling ini berguna:** HUD belum menampilkan FPS/frame time di dalam game (tercatat sebagai G9 di `GAP_ANALYSIS.md`). Remote debug dari Editor tetap memberi angka tersebut; menambahkan overlay internal direkomendasikan sebagai pekerjaan kecil berikutnya agar pengukuran tidak bergantung pada kabel/editor.
+Jika HUD tidak menampilkan FPS/frame time pada build yang diuji, gunakan remote debug dari Editor dan catat keterbatasan pengukurannya. Tambahkan overlay internal hanya bila kebutuhan profiling membenarkannya; jangan menganggap angka browser sebagai pengganti pengukuran perangkat.
 
 ## 8. Kalibrasi keputusan setelah data pertama
 
-- **Renderer:** bandingkan `mobile` vs `compatibility` pada perangkat baseline sebelum mengunci pilihan di `PROJECT_DECISIONS.md`.
+- **Renderer:** bandingkan `mobile` vs `compatibility` pada perangkat baseline sebelum mengunci pilihan dan mencatat keputusan teknis di [`../DECISIONS.md`](../DECISIONS.md).
 - **Batas musuh & efek:** nilai `max_active_enemies`, partikel, dan shadow ditetapkan dari frame time terukur, bukan tebakan.
 - **Resolusi:** pertimbangkan `rendering/scaling_3d/scale` bila perangkat baseline tertinggal; catat nilai yang dipakai.
 - **Perangkat minimum:** setelah angka pertama ada, tuliskan spesifikasi perangkat baseline sebagai keputusan resmi (saat ini masih “Not chosen yet”).
@@ -160,5 +160,5 @@ Baseline yang harus dicatat pada tabel ini (satu baris per perangkat/pengaturan)
 ## 10. Batas kejujuran dokumen ini
 
 - Tidak ada APK, hasil perangkat, atau angka performa yang dihasilkan dari repo ini sampai langkah di atas benar-benar dijalankan pada mesin/perangkat Anda.
-- `tools/android_preset.py` dan `scripts/setup_android_sdk.sh` diuji lokal dengan layout SDK/JPK tiruan (deteksi, patch, backup, validasi) dan `export_android_debug.sh` sudah ada sebelumnya; kombinasi dengan export nyata belum pernah dijalankan.
-- Setelah selesai, kirimkan: keluaran `check_toolchain.sh`, keluaran `android_preset.py check`, log export, dan tabel §7. Dari data itu saya bisa lanjut ke optimasi terukur (G9/G11) dan melengkapi gate E di `DEVELOPMENT_ROADMAP.md`.
+- `tools/android_preset.py` dan `scripts/setup_android_sdk.sh` dapat diuji dengan layout SDK/JDK tiruan, tetapi hasil tiruan itu bukan bukti export/perangkat nyata.
+- Setelah selesai, catat keluaran `check_toolchain.sh`, keluaran `android_preset.py check`, log export, dan tabel §7 bersama commit/perangkat yang diuji. Ringkas hasilnya di [`../VALIDATION.md`](../VALIDATION.md) tanpa mengubah prosedur ini menjadi laporan checkpoint lama.

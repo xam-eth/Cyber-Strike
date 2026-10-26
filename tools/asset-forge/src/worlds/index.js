@@ -1,9 +1,9 @@
 /**
- * index.js — the three worlds, as one list.
+ * index.js — the Forge worlds, as one list.
  *
  * Each world is data (a theme, a layout, a terrain configuration, landmarks);
- * `compose.js` is the single builder they share. Adding a world means adding a
- * module here and nothing else.
+ * `compose.js` is the single builder they share. Runtime registry, staging,
+ * provenance, and validation steps are documented in docs/world/README.md.
  *
  *   import { WORLDS, buildWorld, buildAll } from './index.js';
  *   const world = await buildWorld('frostline');   // -> { root, clips, stats, meta }

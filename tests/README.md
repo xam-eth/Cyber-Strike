@@ -16,7 +16,8 @@ separate assertion framework. Logs land in `exports/test-logs/`.
 Godot can only see files inside the project directory (`game/`). That means a
 test file inside `game/` is an export candidate: it gets compiled to `.gdc`,
 packed, and shipped to players — measured at **52 entries / 206 KB** in
-`web/index.pck` before this moved (see `docs/DECISIONS.md` §5).
+`web/index.pck` before this moved. The current export/payload gate is described
+in the [development guide](../docs/DEVELOPMENT.md).
 
 The first fix was `exclude_filter="tests/*"` on the export presets. That is a
 setting, and settings get lost the next time someone hand-edits a preset, so the

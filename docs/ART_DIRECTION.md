@@ -1,7 +1,8 @@
 # Art Direction — EXOCOMFLICT: Stellar Horizon
 
-status: draft for Phase 2 (menus) — this document is the contract, the shipped
-textures under `res://assets/ui/` are the evidence.
+Status: canonical visual direction. Executable tokens and shipped assets are the
+implementation baseline; executed visual evidence is recorded separately in
+[`VALIDATION.md`](VALIDATION.md).
 
 The game runs on a deliberately narrow palette, and it has to: the combat HUD is
 already built from `AegisTokens`, the enemy telegraphs are colour-coded, and the
@@ -94,16 +95,16 @@ to its content box from a 1024×1024 render whose glyph band occupies only
 
 ## 4. What these textures are, and what they are not
 
-**They are 2D key art and UI plates.** They are the loading backdrop, the
-dashboard backdrop, the menu wordmark, hero and weapon portraits, a world plate
-and a loading-animation sprite sheet.
+**They are 2D key art and UI plates.** They include loading/dashboard
+backdrops, the wordmark, hero and weapon portraits, and registry-backed theatre
+plates used by the engine and Web shell.
 
-**They are not the game's 3D representation.** The playable hero is the skinned
-`hero_rig`/`character_visual` model measured in
-`docs/DECISIONS.md`; the playable weapons
-are the ones attached in `weapon_controller.gd`. No portrait in this document
-shows the in-game model, and no model was changed to match a portrait. Where a
-portrait and the rig disagree, the rig is right and the portrait is decoration.
+**They are not proof of the game's 3D representation.** The playable hero is
+the skinned `hero_rig`/`character_visual` model and the playable weapons are
+attached through the current controller/socket path. Where the shell uses a
+live hero stage, it reads the shipped rig rather than treating a painting as
+the operative. Where a portrait and the actual rig disagree, the rig is the
+gameplay authority.
 
 ---
 
@@ -124,9 +125,9 @@ Step by step:
    outer-border colour), then trims to the largest rectangle that is not it.
    This is what turns a 1024×1024 wordmark into 1024×256, and it is why the
    weapon plates are not framed by generator padding.
-   Images with no flat backdrop (`dashboard_bg`, `hero_portrait`,
-   `loading_keyart`, `world_neon_frontier`) are correctly left alone — the
-   survey measured their content bbox at ~100% of area.
+   Images with no flat backdrop (for example `dashboard_bg`, `hero_portrait`,
+   `loading_keyart`, and full-bleed `world_*` plates) are left alone when their
+   measured content box already covers the image.
 2. **Luma key to alpha** — the wordmark arrives with the generator's backdrop
    painted on: a near-black navy plate, which every menu then drew as a black
    box around the logo. `key_to_alpha` measures that plate's luma from the
@@ -165,58 +166,47 @@ manifest records the format per asset.
 
 ## 6. Shipping inventory
 
-Produced by `tools/art/build_ui_art.py` from `game/assets/ui/generated/`.
-Sizes are the real imported sizes, verified at runtime by
-`tests/ui_art_smoke.gd` — not the sizes claimed by the generator.
+`tools/art/build_ui_art.py` produces its shipping set from
+`game/assets/ui/generated/`. The authoritative inventory is
+[`game/assets/ui/art_manifest.json`](../game/assets/ui/art_manifest.json):
+it records each key, source, runtime path, measured dimensions, format, alpha
+mode, and palette result. Do not copy asset counts or file sizes into this
+document.
 
-| Key | File | Res | Format | Off-palette | Integration |
-| --- | --- | --- | --- | --- | --- |
-| `wordmark` | `logo_wordmark.png` | 1024×256 | PNG **RGBA** | 0.8% | BOOT, CHAPTER, DASHBOARD, LOADING — alpha keyed, no plate |
-| `loading_keyart` | `loading_keyart.jpg` | 1920×1080 | JPEG q90 | 0.0% | LOADING, PRELOAD |
-| `dashboard_bg` | `dashboard_bg.jpg` | 1920×1080 | JPEG q90 | 0.2% | DASHBOARD, HERO, WEAPON |
-| `hero_portrait` | `portrait_hero.png` | 768×1024 | PNG | 0.2% | HERO selection card |
-| `world_neon_frontier` | `world_neon_frontier.jpg` | 1600×900 | JPEG q90 | 0.0% | CHAPTER, WORLD selection |
-| `weapon_pulse_rifle` | `weapon_pulse_rifle.png` | 768×512 | PNG | 0.0% | WEAPON selection card |
-| `weapon_nova_launcher` | `weapon_nova_launcher.png` | 768×512 | PNG | 1.3% | WEAPON selection card |
-| `weapon_arc_shooter` | `weapon_arc_shooter.png` | 768×512 | PNG | 0.1% | WEAPON selection card |
+The current asset families are:
 
-Every texture is loaded through `MenuStage.try_texture()`, which returns null
-for a missing file instead of crashing, so a lost plate is a visual regression
-rather than a boot failure. `tests/ui_art_smoke.gd` loads all eight at
-runtime, compares the size the engine reports against this table, and — for the
-wordmark — asserts the alpha channel exists and its corners are transparent, so
-a future build that lost the key fails the suite instead of quietly shipping a
-black box again.
+- wordmark, loading key art, and dashboard/backdrop plates;
+- hero and Pulse/Nova/Arc presentation assets;
+- registry-compatible `world_*` plates for the Forge theatres.
 
-Total on disk: **4.5 MB**. Sources in `generated/` are kept (16 MB) so the build
-is reproducible; without them `build_ui_art.py` cannot run.
+The Web shell also has its painted plates and web-sized derivatives under
+`ui/art/`; those follow the shell pipeline and must not be confused with a
+runtime gameplay capture. `WorldDefinition` remains the authority for which
+plate each theatre uses.
+
+Every texture produced by the manifest is loaded through the existing UI
+texture path. `tests/ui_art_smoke.gd` iterates the manifest rather than relying
+on a prose count, checks imported dimensions and pixel content, and verifies
+the wordmark's alpha contract. A missing plate is a visual regression to fix,
+not something to hide behind a fabricated ready state.
 
 ## 6b. Video
 
-**The project ships no video.** The studio ident (`branding_studio_present.mp4`
-and its Theora transcode `studio_ident.ogv`) was removed on 2026-10-24 on the
-owner's instruction, together with `stage_studio_ident.gd`,
-`tools/art/build_ui_video.py`, `video_manifest.json` and
-`tests/video_asset_smoke.gd` (docs/DECISIONS.md 28). There is nothing to encode,
-nothing to audit and no aspect rule left to keep.
-
-If a film is ever added back, the rule it has to satisfy is unchanged:
-`expand = true` on a `VideoStreamPlayer` stretches the decoded frame to whatever
-rect the control has, so the rect must carry the video's own aspect and the fit
-is `contain` (`min(size/frame)`, centred), never `cover`.
+The project ships no studio-ident video and has no required video stage. Do not
+reintroduce one from an old UI concept without explicit product scope and a new
+verification path. If video is ever approved, its control must preserve the
+source aspect rather than stretching the decoded frame.
 
 ---
 
 ## 7. Verification
 
-| Check | Command | Result |
+| Check | Command | What it establishes |
 | --- | --- | --- |
-| Palette audit | `python3 tools/art/build_ui_art.py --check` | 9/9 within palette |
-| Textures load in-engine at documented size | `godot --headless --path game --script res://tests/ui_art_smoke.gd` | see §7 note |
-| Not flat rectangles | same | luma spread > 40/255 required |
+| Deterministic palette/art audit | `python3 tools/art/build_ui_art.py --check` | Source/output audit and manifest consistency |
+| Engine texture smoke | `./scripts/run_smoke_tests.sh ui_art_smoke` | Runtime loading, measured size, non-flat pixels, palette and wordmark alpha |
+| Shell/browser review | `node tools/web_qa.mjs` and the applicable UI capture tools | Actual page/stage and rendered frame evidence |
 
-§7 note: the runtime test is the one that matters. A file can be on disk, listed
-in this document, and still 404 in an export because it was never imported.
-`ui_art_smoke.gd` loads each texture through `ResourceLoader` at runtime and
-compares the size the engine reports against the manifest, so a report that
-claims a resolution the engine never got fails the suite.
+Executed results and their checkpoint belong in [`VALIDATION.md`](VALIDATION.md).
+Palette and file checks cannot judge composition, beauty, legibility, comfort,
+or final visual acceptance; those require human review of the actual output.

@@ -8,8 +8,8 @@
  * is a description of an animation that only exists in a comment.
  *
  * Character-shaped models (the hero, the humanoid enemy) get a named limb
- * hierarchy instead of a bone rig. `docs/3D_ASSET_FORGE.md` states the limit
- * plainly: this is not a skinned mesh, so shoulders and knees do not deform.
+ * hierarchy instead of a bone rig. This is not a skinned mesh, so shoulders
+ * and knees do not deform.
  */
 import * as THREE from 'three';
 

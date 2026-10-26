@@ -120,6 +120,22 @@ else
     step_failed 'project doctor reported structural failures (see above)'
   fi
 fi
+
+DOC_CHECK="$ROOT_DIR/tools/check_docs.py"
+if [[ ! -f "$DOC_CHECK" ]]; then
+  step_failed 'tools/check_docs.py is missing'
+elif [[ -z "$PYTHON_BIN" ]]; then
+  step_skipped 'no python3 interpreter available for canonical documentation checks'
+else
+  doc_output="$("$PYTHON_BIN" "$DOC_CHECK" --root "$ROOT_DIR" 2>&1)"
+  doc_code=$?
+  printf '%s\n' "$doc_output" | sed 's/^/         /'
+  if (( doc_code == 0 )); then
+    step_passed 'canonical documentation and relative links are coherent'
+  else
+    step_failed 'documentation contracts failed (see above)'
+  fi
+fi
 printf '\n'
 
 # --------------------------------------------------------------------------- #

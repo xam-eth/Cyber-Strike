@@ -1,6 +1,6 @@
 ; Exocomplict — Stellar Horizon. The product name is the wordmark; there is
 ; no working title left anywhere that a player can reach.
-; Engine baseline: Godot 4.7.2-stable (provisional; see TOOLCHAIN_SETUP.md)
+; Engine baseline: Godot 4.7.2-stable (provisional; see docs/runbooks/TOOLCHAIN.md)
 config_version=5
 
 [application]

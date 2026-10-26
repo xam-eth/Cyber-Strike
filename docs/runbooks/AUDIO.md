@@ -9,10 +9,10 @@ the exported game.
 ## Ownership and flow
 
 - The `Audio` autoload
-  ([`game/scripts/audio/audio_director.gd`](game/scripts/audio/audio_director.gd))
+  ([`game/scripts/audio/audio_director.gd`](../../game/scripts/audio/audio_director.gd))
   remains the only owner of gameplay music, pooled one-shots, throttling, and
   mute state. Gameplay calls the `Sfx` facade, never the autoload directly.
-- [`ui/audio.js`](ui/audio.js) is a presentation-layer adapter for the HTML
+- [`ui/audio.js`](../../ui/audio.js) is a presentation-layer adapter for the HTML
   shell. It creates one Web Audio context only after a real pointer/keyboard
   gesture; it does not start hidden gameplay or a second gameplay director.
 - DEPLOY plays `deploy_stinger.wav`, fades and disconnects the shell theme, and
@@ -42,7 +42,7 @@ adapters in `main.gd`; it does not change combat, waves, rewards, or run state.
 
 ## Original generated assets
 
-[`tools/generate_audio.py`](tools/generate_audio.py) uses only the Python
+[`tools/generate_audio.py`](../../tools/generate_audio.py) uses only the Python
 standard library. There are no external samples, borrowed tracks, runtime random
 choices, or encoder dependencies. The fixed seed, 80 BPM tempo, pitch palette,
 and synthesis code are reviewable source.
@@ -123,27 +123,15 @@ stays silent when audio is absent, keeping isolated smoke fixtures compilable.
   gestures to check unlock, shell playback, mute persistence, DEPLOY retirement,
   and Godot music ownership. Adding `--play` also checks a real weapon voice and
   that HUD mute/unmute writes the shared shell preference in both directions.
-## Validated payload — 2026-10-25
 
-- **VERIFIED (CI/headless/runtime):** source `c9535571`, CI
-  `40191527600`; static checks and 28/28 Godot smoke tests passed, including
-  `audio_smoke`.
-- **VERIFIED (CI/browser):** four normal boot checks, HERO/rig/celebration
-  assertions, opening/interrupted-download recovery, and strict Vanguard
-  direct-DEPLOY with `--audio-shell`.
-- **VERIFIED (local browser, final payload):** the default-theatre journey with
-  `--audio-shell --play 8` passed all checks, including the HERO music scene,
-  `shot_pulse_rifle`, HUD mute/unmute, shared-pref mirroring, and zero shell
-  music voices after handoff. No page error, failed request, or HTTP error was
-  reported.
-- **VERIFIED (payload preservation baseline):** in the earlier merged payload
-  `c7be6bfc`, all five imported audio resources were byte-identical to payload
-  `3719d705`; that UI/World export did not replace or re-encode the validated
-  audio data. The current export separately passes the audio smoke/browser gates.
-- **PAYLOAD:** commit `e85902c6`; PCK 79,615,068 bytes / 887 files; SHA-256
-  `554b5e611811090fff9a717a9a0cc3d9875a824304db237b5d6e4c62281855ae`.
-  This is below the 100,000,000-byte publication guard.
-- **UNKNOWN / not signed off:** human listening, final mix/loudness acceptance,
-  speaker/headphone quality, physical mobile behavior, and Android. Automated
-  playback state and waveform checks are not substitutes for those reviews.
-  No autoplay claim applies before a browser-valid user gesture.
+## Current evidence
+
+The latest executed audio/browser checkpoint is summarized in
+[`../VALIDATION.md`](../VALIDATION.md). Do not copy old payload hashes or CI
+numbers into this runbook.
+
+**UNKNOWN / not signed off without a separate review:** human listening, final
+mix/loudness acceptance, speaker/headphone quality, physical mobile behavior,
+and Android. Automated playback state and waveform checks are not substitutes
+for those reviews. No autoplay claim applies before a browser-valid user
+gesture.

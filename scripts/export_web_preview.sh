@@ -101,7 +101,7 @@ done
 if [[ -z "$GODOT" ]]; then
   printf 'ERROR: Godot editor/CLI not found.\n' >&2
   printf 'Install the pinned build (./scripts/install_godot.sh --with-templates) or set GODOT_BIN.\n' >&2
-  printf 'On a machine without Godot you can instead download the CI artifact — see WEB_PREVIEW.md.\n' >&2
+  printf 'On a machine without Godot you can instead download the CI artifact — see docs/runbooks/WEB_PREVIEW.md.\n' >&2
   exit 127
 fi
 
@@ -163,4 +163,4 @@ else
   printf '  (this run wrote the build outside the repository: %s)\n\n' "$OUTPUT_DIR"
 fi
 printf 'From another device on the same network use http://<your-ip>:800/ .\n'
-printf 'Details, limitations, and troubleshooting: WEB_PREVIEW.md\n'
+printf 'Details, limitations, and troubleshooting: docs/runbooks/WEB_PREVIEW.md\n'

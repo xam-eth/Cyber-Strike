@@ -96,7 +96,7 @@ Manual Android toolchain setup for Exocomplict
      adb shell monkey -p com.yourstudio.exocomplict -c android.intent.category.LAUNCHER 1
      adb logcat -s godot:V
 
-See ANDROID_BASELINE.md for the full gate-E runbook, device test procedure, and
+See docs/runbooks/ANDROID.md for the full gate-E runbook, device test procedure, and
 the profiling checklist.
 GUIDE
 }
@@ -237,4 +237,4 @@ printf 'Toolchain looks ready. Next:\n'
 printf '  python3 tools/android_preset.py scaffold --package-id com.yourstudio.exocomplict\n'
 printf '  python3 tools/android_preset.py check\n'
 printf '  ./scripts/export_android_debug.sh\n'
-printf 'Full device test and profiling procedure: ANDROID_BASELINE.md\n'
+printf 'Full device test and profiling procedure: docs/runbooks/ANDROID.md\n'

@@ -1,135 +1,84 @@
-# Exocomplict — NEON FRONTIER World Prototype
+# Exocomplict — STELLAR HORIZON
 
-**Exocomplict** is a mobile-first, single-player third-person sci-fi action shooter prototype. **NEON FRONTIER** now contains three real-asset mission theatres—Frostline Relay, Verdant Bloom, and Emberfall Foundry—plus Vanguard Station. The mission worlds are assembled from licensed GLBs with runtime collision, lighting, atmosphere, and authored motion; provenance and design records live in [`docs/world/`](docs/world/) and [`tools/asset-forge/real/real-manifest.json`](tools/asset-forge/real/real-manifest.json).
+A mobile-first, single-player third-person sci-fi action/adventure-survival prototype built with Godot 4.7.2 and GDScript.
+
+The executable baseline includes safe Explore, explicit Defense, Pulse/Nova/Arc weapons, Runner/Shooter enemies, persistent BP weapon unlocks, five registered theatre definitions, and a painted shell with direct selected-theatre DEPLOY. **TECH HUNT 0**—guarded technology missions with permanently secured blueprints—is the selected next prototype direction, not an implemented-feature claim.
 
 ## Start here
 
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — **read this first if you are new to the code**: where every subsystem lives, what a file may import, where a change of yours goes, and what has to pass before a merge. The module map in it is generated from the tree, so it cannot go stale.
-- [`docs/INTEGRATION_VALIDATION_REPORT.md`](docs/INTEGRATION_VALIDATION_REPORT.md) — previous validated cross-domain checkpoint and open issues.
-- [`docs/WORLD_OPENING_INTEGRATION.md`](docs/WORLD_OPENING_INTEGRATION.md) — active four-theatre World import and initial-opening download contract, with evidence boundaries.
-- [`game/scenes/worlds/mission_world.tscn`](game/scenes/worlds/mission_world.tscn) + [`game/scripts/worlds/mission_world.gd`](game/scripts/worlds/mission_world.gd) — shared runtime for the three selected mission GLBs.
-- [`game/assets/forge/worlds/`](game/assets/forge/worlds/) — staged Frostline, Verdant, and Emberfall geometry; [`game/resources/worlds/`](game/resources/worlds/) is the four-theatre registry.
-- [`game/assets/world/kenney_space_kit/ASSET_PROVENANCE.md`](game/assets/world/kenney_space_kit/ASSET_PROVENANCE.md) — downloaded Kenney GLB candidates, CC0/source provenance, hashes, and rig inspection; not yet instantiated by gameplay scenes.
-- [`WORLD_BLOCKOUT.md`](WORLD_BLOCKOUT.md) — world zones, route layout, modular asset inventory, and implementation notes.
-- [`DEVELOPMENT_ROADMAP.md`](DEVELOPMENT_ROADMAP.md) — project phases, scope gates, risks, and next steps.
-- [`ANDROID_BASELINE.md`](ANDROID_BASELINE.md) — gate-E runbook: JDK/SDK setup, local Android preset, APK build, device test and profiling checklist.
-- [`WEB_PREVIEW.md`](WEB_PREVIEW.md) — no-install WebAssembly preview: `python3 tools/serve_preview.py --port 800` from the repository root, with revalidated asset caching, controls, limits, troubleshooting.
-- [`GAP_ANALYSIS.md`](GAP_ANALYSIS.md) — verified-vs-claimed status, per-system gaps, prioritized backlog, and how to run the new tooling.
-- [`PROJECT_DECISIONS.md`](PROJECT_DECISIONS.md) — provisional gameplay and technical decisions.
-- [`GAME_CONCEPT.md`](GAME_CONCEPT.md) — source game and technical design concept.
-- [`HERO_RIG_PIPELINE.md`](HERO_RIG_PIPELINE.md) — how the rigged hero and rifle were reduced, how the aim/fire clips are baked, and what is still unverified.
-- [`WORLD_KIT_BUILD.md`](WORLD_KIT_BUILD.md) — how the level is assembled from the KayKit Space Base Bits pack, and how to review it in-game.
-- [`GAME_OVERVIEW.md`](GAME_OVERVIEW.md) — gameplay/visual overview.
-- [`TOOLCHAIN_SETUP.md`](TOOLCHAIN_SETUP.md) — Godot/Android/Blender setup and asset workflow.
-- [`docs/3D_ASSET_FORGE.md`](docs/3D_ASSET_FORGE.md) — code-only three.js models for the world/hero/weapon/enemy/VFX kit, rebuilt from reference images behind a deterministic quality gate (`tools/asset-forge/`), plus the two installed agent skill sets in `.claude/skills/`.
+| Need | Read |
+|---|---|
+| Documentation map and conflict rules | [`docs/README.md`](docs/README.md) |
+| **Game direction, gameplay logic, active scope** | [`docs/GAMEPLAY_DESIGN.md`](docs/GAMEPLAY_DESIGN.md) |
+| Development workflow, ownership, roadmap, quality gates | [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) |
+| Code/module boundaries | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) |
+| Latest executed evidence and limitations | [`docs/VALIDATION.md`](docs/VALIDATION.md) |
+| Persistent instructions for coding agents | [`AGENTS.md`](AGENTS.md) |
 
-## Playable 3D world
+Old concept, audit, roadmap, integration, and validation reports have been retired from the active tree. Their useful current rules are consolidated above; earlier versions remain in Git history.
 
-The Godot project is in [`game/`](game/). Frostline Relay, Verdant Bloom, and Emberfall Foundry share one `MissionWorld` runtime but load distinct authored GLBs, field bounds, prop colliders, waypoint markers, lighting, atmosphere, and animation. Vanguard Station remains a separate imported-kit station. The shell and engine read the same four-entry `WorldDefinition` registry, and only the selected theatre builds in gameplay. These are real 3D scenes, not card images or disconnected backdrops; final visual acceptance and physical-device performance remain separate gates.
+## Run the Godot project
 
-The player now boots into **safe Explore**: no Wave Director starts until the player deliberately selects **START DEFENSE** (or presses `B`), after a visible preparation countdown. Defense runs the capped Runner/Shooter waves; Results offers both **RETRY DEFENSE** and **EXPLORE**. The contextual HUD keeps an objective and clear actions in Explore, introduces wave/ammo/health during Defense, and moves detailed Score/BP/KOs/time to results/pause. Keyboard and touch support movement, aim, fire, weapon cycling, EMP, pause, retry, and return to Explore. `tests/exploration_flow_smoke.gd` checks the mode changes headlessly; visual readability still requires actual WASM/device review.
-
-**Previously verified (headless, before the current GLTF/skill integration):** an earlier checkout passed nine world/combat/playability smoke tests, including the original touch/HUD checks and central-to-boss/landing-pad traversal. **Historical worktree (checked 18 Oct 2026):** static GDScript parse, `gdlint`, and `gdformat --check` pass for all 63 GDScript files (gdtoolkit 4.5.0 via `./scripts/dev_check.sh`), and the static project doctor reports 0 failures (13 non-blocking warnings) across scene references, node paths, script-to-node types, input actions, signals, groups, weapon contracts, glTF integrity, and documentation drift. The **thirteen smoke tests on commit `125b2ee`** (world/arena/traversal, weapons, combat feedback, waves, rewards, shooter AI, HUD/touch, enemy visuals, audio, combat effects, and the rigged hero) passed headlessly on real Godot 4.7.2-stable in CI. All fifteen smoke tests, including settings and the HUD editor, passed on commit `4fcbf5f` in CI. The same workflow runs static checks and exports a WebAssembly preview; visual browser QA still must be done separately. That verifies gameplay logic only — the checks cannot see rendering, frame time, or device input. Browser gameplay was additionally checked by hand through the WebAssembly preview: `qa-evidence/enemies-and-audio/` holds frames from ~40 s and ~73 s of scripted play (runner reached melee range, dealt damage, HUD updated) plus the audio log lines, and `qa-evidence/hud-mobile/` holds the portrait/landscape layouts and the mute assertion. That run is a headless Chromium with **software rendering**, so its frame rate is not representative of a real GPU browser. **Not verified:** Android touch behaviour on a real device, mobile performance, Android export, and whether a human actually hears the audio on that device.
-
-**Actor presentation:** the player is the uploaded rigged hero (`game/assets/characters/hero/hero.glb`) holding the uploaded rifle (`game/assets/weapons/futuristic_rifle/rifle.glb`). A `BoneAttachment3D` on `R_Hand` and measured `MuzzlePoint` align shots with the barrel. The optimized hero has ten clips, including moving aim, reload, hit and death; automated rig tests cover playback and sockets, while human visual review, weapon identity and physical-device performance remain open ([`HERO_RIG_PIPELINE.md`](HERO_RIG_PIPELINE.md)). The world now instantiates the user-uploaded FBX SciFi kit converted to GLB for its central bay, district landmarks, landing deck and perimeter; KayKit runtime scripts/assets have been removed. Procedural foundations and details remain, and **this is not a claim of final FBX-only art** ([`docs/DECISIONS.md`](docs/DECISIONS.md)). Enemies remain Kenney kit GLBs. Audio is synthesised at runtime, not final authored sound ([`AUDIO_SYSTEM.md`](AUDIO_SYSTEM.md)). Android device QA, polish and visual acceptance are still open.
-
-Open `game/project.godot` in Godot 4.7.2 and run the main scene to explore the world. Install the pinned engine build and run everything without a GUI:
+Install the pinned engine and matching export templates using [`docs/runbooks/TOOLCHAIN.md`](docs/runbooks/TOOLCHAIN.md), then open `game/project.godot` or use the CLI:
 
 ```bash
-# 1. Static checks that need no engine (syntax, lint, format, references, contracts)
-./scripts/dev_check.sh
-
-# 2. Install the pinned Godot 4.7.2 editor (+ export templates) outside the repo
 ./scripts/install_godot.sh --with-templates
-
-# 3. Import the project and run all 28 smoke tests with per-test logs
-./scripts/run_smoke_tests.sh
-./scripts/run_smoke_tests.sh --list                 # available tests
-./scripts/run_smoke_tests.sh wave_director_smoke    # a single test
-```
-
-`scripts/run_smoke_tests.sh` performs the headless Editor import and then every smoke test with `--headless --path game --script <absolute-test-path>`, writing logs to the git-ignored `exports/test-logs/`. The 28 tests cover the front end, all five theatres, content showcases, combat, the Pulse Rifle vertical slice, waves, rewards, progression, landscape HUD/touch, audio, effects, and content data. Use `--list` for the authoritative inventory. The equivalent manual commands are:
-
-```bash
 godot --headless --editor --path game --quit
-godot --headless --path game --script "$PWD/tests/mission_world_smoke.gd"
-godot --headless --path game --script "$PWD/tests/weapon_system_smoke.gd"
+godot --path game
 ```
 
-`.github/workflows/godot-ci.yml` runs the static job plus a headless Godot job (install → import → all smoke tests → uploaded logs) on every pull request.
+Gameplay starts safely. The existing Defense path begins only through its explicit action and preparation countdown. Keyboard/touch controls and platform limits are documented in the Web/Android runbooks.
 
-PC controls: WASD to move, right mouse drag to aim, left mouse or FIRE to shoot, `E` to cycle weapons, EMP to pulse, `B` to request Defense from Explore, Escape to pause, and `R` to retry a run. Mobile: joystick, look drag, FIRE, weapon, EMP, PAUSE, a labeled START DEFENSE button, and Results buttons for RETRY DEFENSE or EXPLORE. **No wave automatically starts when the game opens.**
+## Browser preview
 
-## No-install browser preview (WebAssembly)
-
-The fastest way to review UI/UX and gameplay without installing Godot, the Android SDK, or JDK is the exported
-web build. Serve the repository root and open the landing page:
+The committed Web payload can be served without installing Godot:
 
 ```bash
 python3 tools/serve_preview.py --port 800
-# http://localhost:800/        landing page with status + embedded game
-# http://localhost:800/web/    raw Godot build
 ```
 
-The preview server gives files a content ETag and `Cache-Control: no-cache`: a cold opening downloads the full payload, while an unchanged warm preview reuses local bytes after a small 304 revalidation. A changed file is downloaded, not hidden behind a stale cache. Disabling cache in developer tools or clearing the browser profile intentionally forces another cold load.
+Open the landing page at `http://localhost:800/` on the same development machine. The opening preloads the WASM + main PCK before MASUK; DEPLOY reuses that pack for the selected theatre. A warm unchanged preview revalidates content instead of intentionally downloading every asset again.
 
-The Godot payload lives in `web/` and **is committed** (the integrated PCK is ≈79.6 MB, refreshed by the `web-preview` CI job), so a plain
-`git pull` is enough to play. The `web-preview` artifact from Actions is still there as a fallback, GitHub Pages
-(*Settings → Pages → Source: GitHub Actions*) removes the download entirely, and a local export needs only the web
-export templates that are already in the repository (`engine/web_templates/`):
+Full export, QA, cache, recovery, and troubleshooting instructions: [`docs/runbooks/WEB_PREVIEW.md`](docs/runbooks/WEB_PREVIEW.md).
+
+## Checks
 
 ```bash
-./scripts/install_godot.sh --with-templates
-./scripts/export_web_preview.sh      # preset + import + export + build verification
+./scripts/dev_check.sh
+./scripts/run_smoke_tests.sh
+python3 tools/check_payload.py web/index.pck
 ```
 
-A headless browser check for both entry pages is one command (`npm ci --prefix tools && node tools/web_qa.mjs`); CI runs
-the same gate, and it is what proves the engine actually boots instead of only serving bytes. Add `--tour` and the
-same run presses P in the engine, walks the eight review vantages and saves one screenshot per district — that is how
-`qa-evidence/world-kit/` was captured, from the shipped `web/` payload rather than from a separate scene. CI also runs
-`node tools/web_qa.mjs --page / --journey --select-vanguard`: the pass clicks the shell's Vanguard theatre card, requires
-the authoritative `qa_world` hand-off and real gameplay entry, and checks the runtime `VanguardStation:` build log. The
-root DEPLOY flow goes directly to that selected theatre; raw engine journeys retain their measured WORLD-stage path.
-
-The web export is single-threaded (`variant/thread_support=false`) so it runs on a plain static server without
-COOP/COEP headers. The player meets the game through the front end at the repository root (`index.html` + `ui/`), which
-covers opening, HERO/operative selection, hub/theatre selection and launch. The opening calls `Engine.init()` and `preloadFile()` so the
-complete WASM + world PCK downloads before MASUK; no gameplay runs behind it. DEPLOY calls `start()` with that same
-main pack, hands the selected `qa_world` and `weapon` to the authoritative adapters, and enters that theatre directly
-without a second PCK download. Raw export builds use the engine shell at `game/web_shell/index.html`. The web platform always uses the Compatibility (WebGL 2) renderer, while Android keeps the
-`mobile` renderer — see [`WEB_PREVIEW.md`](WEB_PREVIEW.md) for the differences that must not be mistaken for Android behaviour.
-
-## Android import/export workflow
-
-The project structure is prepared for Android packaging: runtime KayKit GLTFs are explicitly preloaded as imported `PackedScene` resources so Godot can trace their BIN/texture dependencies. A local Godot Android export preset is still required. Create it in the Editor (`Project > Export > Add... > Android`), set the team's package ID and debug options, and configure matching SDK/JDK/export templates. `game/export_presets.cfg` is intentionally git-ignored because it may contain machine-local paths and signing settings; `tools/android_preset.py` creates, patches, and validates it from the command line.
-
-The local toolchain and preset can be prepared without the Editor GUI:
+Browser and device checks are separate gates:
 
 ```bash
-./scripts/install_godot.sh --with-templates     # pinned editor + export templates
-./scripts/setup_android_sdk.sh --guide           # JDK/SDK instructions per OS
-./scripts/setup_android_sdk.sh --install-packages
-python3 tools/android_preset.py scaffold --package-id com.yourstudio.exocomplict
-python3 tools/android_preset.py check
+npm ci --prefix tools
+node tools/web_qa.mjs
+node tools/web_loading_qa.mjs
 ```
 
-Then run:
+See [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) before interpreting results. Static/headless/browser success does not prove physical Android behavior, touch comfort, representative mobile performance, human enjoyment, or retention.
 
-```bash
-./scripts/check_toolchain.sh
-./scripts/export_android_debug.sh
+## Repository map
+
+```text
+game/             Godot project: scripts, scenes, resources, runtime assets
+tests/            Headless Godot smoke/regression tests
+ui/               Painted Web shell, selection, loadout, art and audio
+web/              Committed WebAssembly export and loader
+engine/           Pinned Web export templates
+scripts/          Setup, validation, test and export entry points
+tools/            Asset, QA, payload, preview and architecture tooling
+source-assets/    Authoring sources outside the runtime pack
+qa-evidence/      Deliberately tracked QA evidence, not design authority
+docs/             Canonical design, development, domain docs and runbooks
 ```
 
-`ANDROID_BASELINE.md` covers the device installation commands, the manual touch/pause/retry checklist, the profiling procedure, and the gate-E acceptance criteria.
+## Subsystem runbooks
 
-The export script imports in headless Editor mode, runs all `tests/*_smoke.gd` scripts, exports `exports/exocomplict-debug.apk`, and checks the APK archive when `unzip` is installed. Override the preset/output with `ANDROID_EXPORT_PRESET` and `ANDROID_APK_PATH`; set `GODOT_BIN` if the executable is not named `godot` or `godot4`. It does not install SDK packages, create release signing keys, or deploy to a device. **This workflow is prepared, not executed here:** Godot, JDK, Android SDK/ADB and Gradle are unavailable in the current environment, so no APK or Android runtime result is claimed. Use [`TOOLCHAIN_SETUP.md`](TOOLCHAIN_SETUP.md) for setup details.
-
-## Toolchain check
-
-Run this read-only preflight after installing local tools:
-
-```bash
-./scripts/check_toolchain.sh
-```
-
-It reports missing tools but does not install software or modify project settings. Optional static lint: create `.venv`, install `requirements-dev.txt`, then run `./scripts/lint_gdscript.sh`. Headless Editor import, Android export, interactive touch validation, and physical-device testing remain required; no GUI is needed for the CLI workflow.
+- [Toolchain setup](docs/runbooks/TOOLCHAIN.md)
+- [Web preview and recovery](docs/runbooks/WEB_PREVIEW.md)
+- [Android build/device/profiling](docs/runbooks/ANDROID.md)
+- [Frontier Signal audio](docs/runbooks/AUDIO.md)
+- [Hero/rifle rig pipeline](docs/runbooks/HERO_RIG.md)
+- [World asset build and design index](docs/world/README.md)

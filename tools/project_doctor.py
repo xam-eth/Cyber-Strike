@@ -1131,7 +1131,7 @@ def check_docs(report: Report, root: Path, game_root: Path, scenes: dict[str, Sc
         problems += 1
 
     tests = sorted(p.name for p in (game_root / "tests").glob("*_smoke.gd"))
-    for doc_name in ("README.md", "TOOLCHAIN_SETUP.md"):
+    for doc_name in ("README.md", "docs/runbooks/TOOLCHAIN.md"):
         doc = root / doc_name
         if not doc.exists():
             continue
