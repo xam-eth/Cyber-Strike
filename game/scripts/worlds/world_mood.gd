@@ -167,7 +167,7 @@ const MOODS := {
 	},
 }
 
-## Same order as `THEME_ORDER` in themes.js and `MISSION_WORLD.WORLD_ORDER`.
+## Stable presentation order; not a second environment/asset registry.
 const MOOD_ORDER: Array[String] = [
 	"frostline_relay",
 	"verdant_bloom",

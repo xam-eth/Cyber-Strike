@@ -49,6 +49,15 @@ const DEFAULT_WORLD_ID := &"frostline_relay"
 @export var display_name: String = ""
 @export_multiline var role_description: String = ""
 @export var world_scene: PackedScene
+## Optional environment asset consumed by the shared MissionWorld adapter.
+## It is a path, not a PackedScene dependency: a broken external environment
+## must not prevent this metadata, the theatre screen, or other worlds loading.
+## Vanguard's internal adapter builds its own environment and leaves this empty.
+@export var environment_scene_path: String = ""
+## Physical fallback bounds belong to the World definition, not a second map in
+## the adapter. They are used only for the safety floor and outer boundaries.
+@export var field_size: Vector2 = Vector2(192.0, 180.0)
+@export var field_center: Vector2 = Vector2(0.0, -10.0)
 @export var plate_path: String = ""
 @export var status_line: String = ""
 ## The objective card's explore-mode copy. It lived as two literals inside
@@ -71,6 +80,8 @@ func is_valid_definition() -> bool:
 		and not role_description.strip_edges().is_empty()
 		and not status_line.strip_edges().is_empty()
 		and is_instance_valid(world_scene)
+		and field_size.x > 0.0
+		and field_size.y > 0.0
 		# The plate is the card's whole illustration, so like the hero portrait
 		# an unusable path would render an empty box rather than a fallback.
 		and ResourceLoader.exists(plate_path)

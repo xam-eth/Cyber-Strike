@@ -11,6 +11,7 @@ Repository-level reminders for coding agents and developers live in [`../AGENTS.
 | What experience are we building, and why? | [`GAMEPLAY_DESIGN.md`](GAMEPLAY_DESIGN.md) | That the target design is already implemented or fun |
 | What is in the active prototype scope? | `GAMEPLAY_DESIGN.md` + [`DEVELOPMENT.md`](DEVELOPMENT.md) | Permission to add every future idea |
 | Where should code and content live? | [`ARCHITECTURE.md`](ARCHITECTURE.md) | Product/design approval |
+| How do external World/Character packages enter the game? | [`CONTENT_IMPORT.md`](CONTENT_IMPORT.md) | Gameplay/roster activation, arbitrary code sandboxing, or IAP approval |
 | What does the game do today? | Source, scenes, resources, and tests | A design document by itself |
 | What has actually passed? | [`VALIDATION.md`](VALIDATION.md) and linked CI | Unrun platforms, human enjoyment, or retention |
 | Why does a technical rule exist? | [`DECISIONS.md`](DECISIONS.md) | A replacement for current source inspection |
@@ -28,6 +29,7 @@ Repository-level reminders for coding agents and developers live in [`../AGENTS.
 | [`GAMEPLAY_DESIGN.md`](GAMEPLAY_DESIGN.md) | Gameplay Design + Gameplay/Core; player experience, active prototype scope, game rules, content boundaries | Any gameplay direction, mechanic, mission, economy, progression, save, or run-lifecycle change |
 | [`DEVELOPMENT.md`](DEVELOPMENT.md) | Integration/production; workflow, sequence, ownership, definition of done | Priority, dependency, process, or quality-gate change |
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | Integration/Core; module map and import boundaries | Module/file/boundary change; regenerate its map with the provided tool |
+| [`CONTENT_IMPORT.md`](CONTENT_IMPORT.md) | Integration + World/Character; external package, staging, fallback, and bundle contract | Package schema, target path, isolation rule, or activation workflow change |
 | [`DECISIONS.md`](DECISIONS.md) | Technical/domain owners; durable measured decisions and reversals | A costly technical lesson or explicit decision replaces an earlier rule |
 | [`VALIDATION.md`](VALIDATION.md) | Integration/QA; latest relevant evidence and evidence limits | A meaningful static, engine, browser, interactive, or device gate completes |
 

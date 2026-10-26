@@ -1,4 +1,8 @@
 extends Node3D
+
+signal world_ready(world_id: String)
+signal world_load_failed(world_id: String, reason: String)
+
 ##
 ## mission_world.gd — one of the mission worlds, loaded from one GLB.
 ##
@@ -35,19 +39,9 @@ extends Node3D
 ## Mission worlds, each one GLB assembled from licensed real assets by
 ## `tools/asset-forge`. Only the selected one is instantiated for gameplay; the
 ## complete pack is already resident from the opening payload.
-const WORLD_SCENES := {
-	"frostline_relay": "res://assets/forge/worlds/frostline.glb",
-	"verdant_bloom": "res://assets/forge/worlds/verdant.glb",
-	"emberfall_foundry": "res://assets/forge/worlds/emberfall.glb",
-	"titans": "res://assets/forge/worlds/titans.glb",
-}
-## Mission order; the first is the default theatre.
-const WORLD_ORDER: Array[String] = [
-	"frostline_relay",
-	"verdant_bloom",
-	"emberfall_foundry",
-	"titans",
-]
+## Environment paths and field bounds live in WorldDefinition. This adapter
+## owns only the default used by a fresh profile or an isolated test fixture.
+const DEFAULT_MISSION_WORLD_ID := "frostline_relay"
 ## The forge's theme ids, accepted as aliases for the world ids. The registry
 ## selects with the world id itself (they are the same strings), so the map is
 ## not a second list of ids to keep in sync — it only adds the short names the
@@ -58,18 +52,9 @@ const SELECTION_ALIASES := {
 	"emberfall": "emberfall_foundry",
 }
 
-## STELLAR HORIZON uses one 180 × 180 m field plan for all four mission variants.
-## The safety floor sits below the authored geometry; the GLB's own triangles,
-## not role-filling boxes, provide the ground, cover, bridges and interiors the
-## player collides with. Values are the playable field, not total mesh bounds
-## (about 183.6 m square including the perimeter dressing).
-const WORLD_FIELDS := {
-	"frostline_relay": {"size": Vector2(180.0, 180.0), "center": Vector2(0.0, 0.0)},
-	"verdant_bloom": {"size": Vector2(180.0, 180.0), "center": Vector2(0.0, 0.0)},
-	"emberfall_foundry": {"size": Vector2(180.0, 180.0), "center": Vector2(0.0, 0.0)},
-	"titans": {"size": Vector2(180.0, 180.0), "center": Vector2(0.0, 0.0)},
-}
-## Fallback field, used if a world id ever arrives without an entry above.
+## Fallback field, used only when a test override has no WorldDefinition.
+## The safety floor sits below authored geometry; real GLB triangles provide
+## normal walking surfaces, cover, bridges, and interiors.
 const WORLD_WIDTH: float = 192.0
 const WORLD_DEPTH: float = 180.0
 const WORLD_CENTER_Z: float = -10.0
@@ -82,6 +67,8 @@ const WORLD_CENTER_Z: float = -10.0
 ## Force a world (tests and captures). Empty = follow the launcher selection.
 @export var world_override: String = ""
 
+var load_error: String = ""
+var loaded_world_id: String = ""
 var _built: bool = false
 var _world: Node3D
 
@@ -98,18 +85,23 @@ func _ready() -> void:
 			(
 				"MISSION WORLD: not building %s (launcher selected '%s')"
 				% [
-					world_override if not world_override.is_empty() else WORLD_ORDER[0],
+					world_override if not world_override.is_empty() else DEFAULT_MISSION_WORLD_ID,
 					String(WorldSelection.selected(self)),
 				]
 			)
 		)
 		return
 	_built = true
-	_instance_real_world()
+	var loaded := _instance_real_world()
+	# A rejected environment still gets safe bounds, lighting, wayfinders, and a
+	# working HUD/player. Only the failed visual/collision module is absent.
 	_add_collision_floor()
-	_add_mesh_colliders()
+	if loaded:
+		_add_mesh_colliders()
 	_build_lighting_and_atmosphere()
 	_add_wayfinders()
+	if loaded:
+		world_ready.emit(_world_id())
 
 
 func _is_selected() -> bool:
@@ -127,9 +119,11 @@ func _is_selected() -> bool:
 ## forge's theme ids are aliases. Anything else — the station's id, a stale save
 ## — means this node is not the theatre the player chose, and it stays empty.
 static func world_for_selection(selected: String) -> String:
-	if WORLD_SCENES.has(selected):
-		return selected
-	return String(SELECTION_ALIASES.get(selected, ""))
+	var candidate := String(SELECTION_ALIASES.get(selected, selected))
+	var definition := WorldDefinition.load_definition(StringName(candidate))
+	if definition != null and not definition.environment_scene_path.is_empty():
+		return candidate
+	return ""
 
 
 ## Which mission world this node is. An explicit override wins; otherwise the
@@ -141,27 +135,48 @@ func _world_id() -> String:
 	var resolved := world_for_selection(selected)
 	if not resolved.is_empty():
 		return resolved
-	return WORLD_ORDER[0]
+	return DEFAULT_MISSION_WORLD_ID
 
 
-## Place the real asset. Everything the player sees inside this node came out of
-## that one file.
-func _instance_real_world() -> void:
+## Place the declared real asset. Loading is dynamic and failure-returning so
+## an external World cannot prevent the main scene or UI from loading.
+func _instance_real_world() -> bool:
 	var world_id := _world_id()
-	var scene_path: String = WORLD_SCENES.get(world_id, WORLD_SCENES[WORLD_ORDER[0]])
-	var packed := load(scene_path) as PackedScene
-	if packed == null:
-		push_error("MISSION WORLD: world '%s' did not import (%s)" % [world_id, scene_path])
-		return
-	_world = packed.instantiate() as Node3D
+	loaded_world_id = ""
+	load_error = ""
+	var definition := WorldDefinition.load_definition(StringName(world_id))
+	var scene_path := definition.environment_scene_path if definition != null else ""
+	var result := ContentModuleLoader.load_scene(scene_path, ContentModuleLoader.WORLD_ROOTS)
+	if not bool(result["ok"]):
+		return _fail_world_load(world_id, String(result["code"]), String(result["message"]))
+	var packed := result["scene"] as PackedScene
+	var instance := packed.instantiate()
+	if not instance is Node3D:
+		if instance != null:
+			instance.free()
+		return _fail_world_load(world_id, "wrong_root", "World root must be Node3D.")
+	_world = instance as Node3D
 	_world.name = "RealFrontierWorld"
 	_world.set_meta("world_id", world_id)
 	add_child(_world)
+	loaded_world_id = world_id
 	print("MISSION WORLD: %s (%s)" % [world_id, scene_path.get_file()])
 	for child in _world.find_children("*", "MeshInstance3D", true, false):
 		var mesh_instance := child as MeshInstance3D
 		mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 	_start_authored_motion()
+	return true
+
+
+func _fail_world_load(world_id: String, code: String, message: String) -> bool:
+	load_error = "%s: %s" % [code, message]
+	push_warning("MISSION WORLD: %s disabled (%s)" % [world_id, load_error])
+	world_load_failed.emit(world_id, load_error)
+	return false
+
+
+func has_world_geometry() -> bool:
+	return is_instance_valid(_world)
 
 
 ## One AnimationPlayer can only run one clip, and the world ships 119 of them --
@@ -169,6 +184,8 @@ func _instance_real_world() -> void:
 ## own player, rooted at the GLB so the tracks resolve, so every district moves at
 ## the same time instead of one prop winning the whole animation.
 func _start_authored_motion() -> void:
+	if not is_instance_valid(_world):
+		return
 	var found := _world.find_children("*", "AnimationPlayer", true, false)
 	if found.is_empty():
 		return
@@ -195,11 +212,17 @@ func _start_authored_motion() -> void:
 ## Last-resort safety floor and outer bounds. Invisible: normal walking surfaces
 ## come from the authored GLB triangles, not from a flat plane covering routes.
 func _field_size() -> Vector2:
-	return WORLD_FIELDS.get(_world_id(), {"size": Vector2(WORLD_WIDTH, WORLD_DEPTH)})["size"]
+	var definition := WorldDefinition.load_definition(StringName(_world_id()))
+	if definition != null:
+		return definition.field_size
+	return Vector2(WORLD_WIDTH, WORLD_DEPTH)
 
 
 func _field_center() -> Vector2:
-	return WORLD_FIELDS.get(_world_id(), {"center": Vector2(0.0, WORLD_CENTER_Z)})["center"]
+	var definition := WorldDefinition.load_definition(StringName(_world_id()))
+	if definition != null:
+		return definition.field_center
+	return Vector2(0.0, WORLD_CENTER_Z)
 
 
 func _field_center_z() -> float:
@@ -257,6 +280,8 @@ func _add_collision_floor() -> void:
 ## interior would fill the volume the player must occupy, while a box around a
 ## small rock or cover module would not match its visible silhouette.
 func _add_mesh_colliders() -> void:
+	if not is_instance_valid(_world):
+		return
 	var made := 0
 	for candidate in _world.find_children("*", "MeshInstance3D", true, false):
 		var mesh_instance := candidate as MeshInstance3D

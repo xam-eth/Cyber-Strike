@@ -45,9 +45,14 @@ const DEFAULT_HERO_ID := &"exo_operative"
 ## `player.tscn`, so a selection screen had to either guess it or fall back to a
 ## painted portrait -- and a showcase showing a different model from the one
 ## that spawns is the same class of lie as a card quoting the wrong damage
-## number. `showcase_smoke.gd` asserts this resource and the scene's
-## `VisualRoot.model_scene` are the same file.
+## number. `showcase_smoke.gd` asserts the resolved definition path and the
+## scene's `VisualRoot.model_scene_path` name the same file.
 @export var model_scene: PackedScene
+## Dynamic equivalent used by imported/character-owned content. Prefer this for
+## new definitions: the roster and UI metadata remain readable even when the
+## visual asset is unavailable. `model_scene` remains for trusted fixtures and
+## backwards-compatible internal resources.
+@export var model_scene_path: String = ""
 ## Showcase clips, in the order the screen should cycle them. They are checked
 ## against the GLB before anything plays (`ShowcaseViewport` only ever calls
 ## `has_animation`), and `showcase_smoke.gd` fails if one is not in the file --
@@ -65,9 +70,26 @@ func is_valid_definition() -> bool:
 		# player sees before the briefing, so an empty path would render a blank
 		# card rather than fall back to anything.
 		and ResourceLoader.exists(portrait_path)
-		# A hero with no rig cannot be shown in the showcase or in gameplay.
-		and is_instance_valid(model_scene)
+		# Structural validity is separate from visual availability. Gameplay has
+		# a capsule fallback; the showcase reports a failed load without taking
+		# down the roster or another Character package.
+		and (is_instance_valid(model_scene) or not model_scene_path.is_empty())
 	)
+
+
+func resolved_model_path() -> String:
+	if is_instance_valid(model_scene):
+		return model_scene.resource_path
+	return model_scene_path
+
+
+func load_model_scene() -> PackedScene:
+	if is_instance_valid(model_scene):
+		return model_scene
+	var result := ContentModuleLoader.load_scene(
+		model_scene_path, ContentModuleLoader.CHARACTER_ROOTS
+	)
+	return result["scene"] as PackedScene if bool(result["ok"]) else null
 
 
 static func load_definition(hero_id: StringName) -> HeroDefinition:

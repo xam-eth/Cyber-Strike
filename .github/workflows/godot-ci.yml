@@ -180,7 +180,7 @@ jobs:
             exit $status
           fi
 
-      - name: Audit the exported world payload
+      - name: Audit the exported content payload
         run: |
           python3 tools/check_payload.py web/index.pck --json > exports/web-payload-report.json
           python3 - <<'PY'
@@ -195,19 +195,27 @@ jobs:
               'emberfall': 'assets/forge/worlds/emberfall.glb',
               'vanguard_station': 'scenes/worlds/vanguard_station.tscn',
               'titans': 'assets/forge/worlds/titans.glb',
+              # These are dynamic ContentModuleLoader paths now. Their presence
+              # must be measured in the pack, not inferred from scene imports.
+              'hero': 'assets/characters/hero/hero.glb',
+              'held_weapon': 'assets/weapons/futuristic_rifle/rifle.glb',
+              'runner': 'assets/world/kenney_space_kit/alien.glb',
+              'shooter': 'assets/world/kenney_space_kit/astronauta.glb',
+              'training_drone': 'assets/world/kenney_space_kit/craft-miner.glb',
           }
           missing = [name for name, resource in required.items()
                      if not any(resource in path for path in paths)]
           if missing:
-              raise SystemExit(f'Exported PCK is missing world resources: {missing}')
+              raise SystemExit(f'Exported PCK is missing content resources: {missing}')
           size = Path('web/index.pck').stat().st_size
           largest = sorted(entries, key=lambda entry: entry[2], reverse=True)[:5]
           detail = ', '.join(f'{path}={size}' for path, _, size in largest)
-          print(f'::notice title=Exported world payload::PCK {size} bytes, {len(entries)} files; all five worlds present; largest: {detail}')
+          print(f'::notice title=Exported content payload::PCK {size} bytes, {len(entries)} files; all five worlds and dynamic Character visuals present; largest: {detail}')
           Path('exports/web-payload-summary.json').write_text(json.dumps({
               'pck_bytes': size,
               'files': len(entries),
               'worlds': ['frostline_relay', 'verdant_bloom', 'emberfall_foundry', 'vanguard_station', 'titans'],
+              'dynamic_character_visuals': ['hero', 'held_weapon', 'runner', 'shooter', 'training_drone'],
               'largest': [{'path': path, 'bytes': size} for path, _, size in largest],
           }, indent=2) + '\n')
           PY

@@ -76,6 +76,9 @@ PATH_LAYERS: list[tuple[str, str, str]] = [
     (r"^tests/", FREE, ""),
     # --- current (phase 0) tree, mapped onto the target layers --------------
     (r"^scripts/audio/", "core", ""),
+    # Stateless integration adapters are core plumbing. They return load
+    # failures to the owning domain and never import World, Character, or UI.
+    (r"^scripts/integration/", "core", ""),
     (r"^scripts/progression/(progression_service|reward_service|run_stats)\.gd$", "systems", ""),
     (r"^scripts/progression/hero_definition\.gd$", "content", "hero"),
     (r"^scripts/progression/world_definition\.gd$", "content", "world"),

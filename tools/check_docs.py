@@ -20,6 +20,7 @@ REQUIRED_FILES = {
     "docs/README.md",
     "docs/GAMEPLAY_DESIGN.md",
     "docs/DEVELOPMENT.md",
+    "docs/CONTENT_IMPORT.md",
     "docs/ARCHITECTURE.md",
     "docs/DECISIONS.md",
     "docs/VALIDATION.md",
@@ -65,6 +66,12 @@ REQUIRED_TOKENS = {
         "Death and permanent-save contract",
     ),
     "docs/DEVELOPMENT.md": ("GAMEPLAY_DESIGN.md", "Definition of done"),
+    "docs/CONTENT_IMPORT.md": (
+        "contract_version = 1",
+        "game/content/worlds/<id>/",
+        "game/content/characters/<id>/",
+        "No IAP or monetization concept",
+    ),
 }
 
 LINK_PATTERN = re.compile(r"\[[^\]]*\]\(([^)]+)\)")

@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/player_controller.gd" id="1_player"]
 [ext_resource type="Script" path="res://scripts/camera/camera_rig.gd" id="2_camera"]
@@ -7,8 +7,6 @@
 [ext_resource type="Resource" path="res://resources/weapons/nova_launcher.tres" id="5_nova_launcher"]
 [ext_resource type="Resource" path="res://resources/weapons/arc_shooter.tres" id="6_arc_shooter"]
 [ext_resource type="Script" path="res://scripts/player/character_visual.gd" id="7_character_visual"]
-[ext_resource type="PackedScene" path="res://assets/characters/hero/hero.glb" id="8_hero"]
-[ext_resource type="PackedScene" path="res://assets/weapons/futuristic_rifle/rifle.glb" id="9_rifle"]
 [ext_resource type="Script" path="res://scripts/effects/muzzle_flash.gd" id="10_muzzle_flash"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape_player"]
@@ -35,8 +33,8 @@ shape = SubResource("CapsuleShape_player")
 
 [node name="VisualRoot" type="Node3D" parent="."]
 script = ExtResource("7_character_visual")
-model_scene = ExtResource("8_hero")
-weapon_scene = ExtResource("9_rifle")
+model_scene_path = "res://assets/characters/hero/hero.glb"
+weapon_scene_path = "res://assets/weapons/futuristic_rifle/rifle.glb"
 
 [node name="BodyMesh" type="MeshInstance3D" parent="VisualRoot"]
 position = Vector3(0, 0.9, 0)

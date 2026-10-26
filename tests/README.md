@@ -1,15 +1,19 @@
 # Smoke tests
 
-28 GDScript tests, 8,792 lines, run headlessly on the pinned Godot 4.7.2 build.
+GDScript smoke tests run headlessly on the pinned Godot 4.7.2 build. Use `--list` or the static development-check inventory for the current count rather than copying it into prose.
 
 ```bash
-scripts/run_smoke_tests.sh            # import once, then run all 28
+scripts/run_smoke_tests.sh            # import once, then run the full inventory
 scripts/run_smoke_tests.sh --list     # names
 scripts/run_smoke_tests.sh audio_smoke   # one test
 ```
 
 Every test exits non-zero on failure, so the runner is the gate; there is no
 separate assertion framework. Logs land in `exports/test-logs/`.
+
+## Integration failure regression
+
+`module_isolation_smoke.gd` enters the real `main.tscn` composition with a missing World environment, hero/enemy model, and held-weapon visual, then enters the real HERO/WORLD shell with a missing hero package. It proves unrelated World/Character/HUD/controller paths remain mounted, metadata/navigation survive, and the documented fallbacks are explicit. `showcase_smoke.gd` separately proves definition and gameplay model paths still agree. Package traversal, script, dependency, rollback, and bundle checks live in `tools/tests/test_import_content.py`.
 
 ## Why this folder is not `game/tests/`
 

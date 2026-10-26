@@ -39,7 +39,11 @@ const RUN_THRESHOLD := 0.55
 const WALK_THRESHOLD := 0.06
 
 @export var model_scene: PackedScene
+## Dynamic character-owned model path. When set without model_scene, a failed
+## package load keeps the capsule, weapon sockets, camera, HUD, and controller.
+@export var model_scene_path: String = ""
 @export var weapon_scene: PackedScene
+@export var weapon_scene_path: String = ""
 @export_range(1.0, 2.4, 0.01) var target_height: float = 1.78
 @export_range(0.2, 2.0, 0.01) var weapon_length: float = 0.86
 @export_range(-180.0, 180.0, 1.0) var weapon_yaw_offset_degrees: float = 0.0
@@ -374,8 +378,22 @@ func _spawn_model() -> void:
 	# The kit models are authored facing +Z while the game's forward is -Z, and the
 	# ModelFitter pivot carries that yaw and centres the model inside itself: doing
 	# the compensation on the rotated node would push the avatar ~9 m off-centre.
+	var selected_scene := model_scene
+	if selected_scene == null and not model_scene_path.is_empty():
+		var result := ContentModuleLoader.load_scene(
+			model_scene_path, ContentModuleLoader.CHARACTER_ROOTS
+		)
+		if not bool(result["ok"]):
+			_keep_fallback("%s: %s" % [result["code"], result["message"]])
+			return
+		selected_scene = result["scene"] as PackedScene
 	var fitted := ModelFitterScript.attach(
-		self, model_scene, target_height, model_yaw_offset_degrees, "ModelPivot", "CharacterModel"
+		self,
+		selected_scene,
+		target_height,
+		model_yaw_offset_degrees,
+		"ModelPivot",
+		"CharacterModel"
 	)
 	if fitted.is_empty():
 		_keep_fallback("no measurable model")
@@ -563,12 +581,28 @@ func _blend_socket(delta: float) -> void:
 
 
 func _spawn_weapon() -> void:
-	if weapon_scene == null or not is_instance_valid(_weapon_socket):
+	if not is_instance_valid(_weapon_socket):
+		return
+	var selected_scene := weapon_scene
+	if selected_scene == null and not weapon_scene_path.is_empty():
+		var result := ContentModuleLoader.load_scene(
+			weapon_scene_path, ContentModuleLoader.CHARACTER_ROOTS
+		)
+		if not bool(result["ok"]):
+			push_warning(
+				(
+					"CharacterVisual: weapon visual disabled (%s: %s); combat uses the fallback muzzle."
+					% [result["code"], result["message"]]
+				)
+			)
+			return
+		selected_scene = result["scene"] as PackedScene
+	if selected_scene == null:
 		return
 	if is_rigged():
-		_spawn_rigged_weapon()
+		_spawn_rigged_weapon(selected_scene)
 		return
-	var instance := weapon_scene.instantiate()
+	var instance := selected_scene.instantiate()
 	if not instance is Node3D:
 		push_warning("CharacterVisual: weapon scene did not instantiate as Node3D.")
 		return
@@ -605,12 +639,12 @@ func _spawn_weapon() -> void:
 ## Rigged path: the socket lives under the hand bone, the rifle is pre-authored
 ## with the barrel on -Z and the grip at the origin, and the muzzle marker is
 ## copied from the rifle's own MuzzlePoint so the flash starts at the barrel.
-func _spawn_rigged_weapon() -> void:
+func _spawn_rigged_weapon(selected_scene: PackedScene) -> void:
 	_weapon_socket.transform = Transform3D(_socket_carry_basis, _socket_offset)
 	_weapon_socket_base_position = _weapon_socket.position
 	_weapon_socket_base_rotation = _weapon_socket.rotation
 
-	var instance := weapon_scene.instantiate()
+	var instance := selected_scene.instantiate()
 	if not instance is Node3D:
 		push_warning("CharacterVisual: rigged weapon scene did not instantiate as Node3D.")
 		return

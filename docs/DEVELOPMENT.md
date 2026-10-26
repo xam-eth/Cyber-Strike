@@ -17,7 +17,7 @@ This is the canonical guide for turning the selected game direction into verifie
 | Combat | Pulse/Nova/Arc, Runner/Shooter, EMP, damage and feedback | Prove guarded tech encounters with existing content |
 | Progression | Persistent BP wallet, weapon unlock/equip, profile save | Add secured blueprint/milestone semantics without a new currency |
 | Endless | Structurally endless waves with capped count/composition | Preserve mode; add meaningful escalation only after measurement |
-| Worlds/UI | Five registered theatre definitions, shell selection and direct DEPLOY, initial opening preload | Reuse current registries/adapters; no parallel World or UI navigation flow |
+| Worlds/UI | Five registered theatre definitions, shell selection and direct DEPLOY, initial opening preload | Reuse current registries/adapters; receive external visual packages through the isolated import path |
 | Validation | Full automated gate recorded at the checkpoint in `VALIDATION.md` | TECH HUNT-specific engine/browser/human/device evidence still needed |
 
 The active prototype is **TECH HUNT 0**. Its inclusion and exclusion lists are normative. Do not substitute the retired arena-only roadmap or old monetization concept.
@@ -119,7 +119,7 @@ A change is not coherent if code and canonical docs disagree. Update:
 | Character & Content | Hero/enemy/boss assets and behaviors, weapon/module definitions and effects | Damage signatures, spawn contracts, persistent writes, new combat roles |
 | World | Environment identity, geometry, routes, markers, cache/guardian placement, world configuration | Guard activation, mission behavior, collision/traversal changes affecting Core |
 | UI/UX | Opening/HERO/theatre/DEPLOY, HUD, mission card/tracker, field kit, Results, interaction presentation | State authority, navigation, reward/save transactions, touch/input ownership |
-| Integration/QA | Merge classification, architecture, test strategy, Web/Android delivery, evidence | Cross-domain conflicts and claims beyond executed checks |
+| Integration/QA | Merge classification, architecture, external package intake/activation, test strategy, Web/Android delivery, evidence | Cross-domain conflicts and claims beyond executed checks |
 
 ### Shared-file rule
 
@@ -130,6 +130,12 @@ When two contributors change the same file:
 3. preserve compatible functionality from both;
 4. do not use wholesale ours/theirs replacement for unresolved gameplay logic;
 5. escalate ambiguous product direction instead of encoding a guess.
+
+### External World/Character contributions
+
+External contributors own independent source packages; they do not need to edit the internal UI, World, Character, or Gameplay/Core implementation. The internal integrator owns validation, staging, adapter/definition changes, registry activation, and final bundle evidence. The required package, target roots, script prohibition, and rollback behavior are in [`CONTENT_IMPORT.md`](CONTENT_IMPORT.md).
+
+A staged visual package is not automatically a playable hero, enemy role, weapon behavior, mission, or product purchase. Those activations remain separate domain decisions. Keep unchanged assets at stable paths so the existing opening payload/cache contract continues to apply.
 
 ## 6. Active delivery plan
 
@@ -145,6 +151,17 @@ The phases below are dependency gates, not calendar promises.
 - Use the latest full CI checkpoint as the baseline; do not carry old blockers forward as current.
 
 **Exit:** canonical links pass, repository checks pass, and no retired document remains an active instruction.
+
+### Integration support track — isolated content intake (CURRENT)
+
+**Goal:** external World and Character design can continue independently while the internal branch provides clean activation and bundle boundaries.
+
+- Load replaceable World, hero/enemy, and held-weapon visuals through domain-restricted paths rather than static scene dependencies.
+- Preserve internal controllers, UI, fallback visuals, collision, sockets, and gameplay authority when a visual package fails.
+- Validate self-contained script-free packages; stage with rollback and create deterministic integrity-manifest bundles.
+- Keep contributor source directories disjoint and shared registry edits under internal integration ownership.
+
+**Explicitly out of scope:** new gameplay/economy/save behavior, automatic roster or enemy-role activation, arbitrary runtime-code sandboxing, and IAP. **Exit:** static/package gates and module-isolation/domain smoke tests pass; export and browser evidence are recorded separately when run.
 
 ### Phase B — TECH HUNT 0 contract lock
 
@@ -231,9 +248,10 @@ Use the gates appropriate to the change. A skipped gate is reported as skipped, 
 
 ```bash
 ./scripts/dev_check.sh
+python3 tools/import_content.py check-committed
 ```
 
-This covers source/static tooling and repository contracts available in the environment. Individual optional tools may be skipped; read the summary rather than assuming all runtime checks ran.
+The first command already includes the second; the direct command is useful when reviewing only a content handoff. This covers source/static tooling and repository contracts available in the environment. Individual optional tools may be skipped; read the summary rather than assuming all runtime checks ran.
 
 ### 8.2 Headless Godot
 
@@ -241,6 +259,7 @@ This covers source/static tooling and repository contracts available in the envi
 ./scripts/run_smoke_tests.sh
 ./scripts/run_smoke_tests.sh --list
 ./scripts/run_smoke_tests.sh gameplay_vertical_slice_smoke
+./scripts/run_smoke_tests.sh module_isolation_smoke showcase_smoke
 ```
 
 The runner imports the project and executes tests on the pinned Godot version when installed. Test count and names come from `--list`/the current test inventory, not old prose.

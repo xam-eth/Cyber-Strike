@@ -12,6 +12,9 @@ extends Node3D
 const ModelFitterScript = preload("res://scripts/visual/model_fitter.gd")
 
 @export var model_scene: PackedScene
+## Dynamic visual package path; enemy behaviour, collision, and fallback mesh
+## remain internal and usable when this asset cannot be loaded.
+@export var model_scene_path: String = ""
 @export_range(0.3, 3.0, 0.01) var target_size: float = 1.7
 @export_enum("Width", "Height", "Depth") var fit_axis: int = 1
 @export_range(-180.0, 180.0, 1.0) var model_yaw_offset_degrees: float = 180.0
@@ -50,9 +53,18 @@ var _death_tween: Tween
 func _ready() -> void:
 	_outline = ModelFitterScript.outline_material(outline_color, outline_grow)
 	_flash = ModelFitterScript.flash_material(hit_flash_color)
+	var selected_scene := model_scene
+	if selected_scene == null and not model_scene_path.is_empty():
+		var result := ContentModuleLoader.load_scene(
+			model_scene_path, ContentModuleLoader.CHARACTER_ROOTS
+		)
+		if not bool(result["ok"]):
+			_keep_fallback("%s: %s" % [result["code"], result["message"]])
+			return
+		selected_scene = result["scene"] as PackedScene
 	var fitted := ModelFitterScript.attach(
 		self,
-		model_scene,
+		selected_scene,
 		target_size,
 		model_yaw_offset_degrees,
 		"ModelPivot",

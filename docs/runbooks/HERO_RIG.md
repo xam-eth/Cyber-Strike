@@ -96,12 +96,14 @@ never snap up for half a second.
 
 ## Engine integration
 
-`game/scripts/player/character_visual.gd` now has two paths:
+External hero/enemy/weapon visual handoffs use [`../CONTENT_IMPORT.md`](../CONTENT_IMPORT.md). Runtime scenes and definitions resolve `model_scene_path` / `weapon_scene_path` through the domain-restricted loader rather than preloading contributor assets. A missing visual keeps the capsule/socket/muzzle fallbacks; it does not authorize a new combat controller.
+
+`game/scripts/player/character_visual.gd` now has two presentation paths:
 
 * **rigged** (`hero.glb`): `Skeleton3D` + `AnimationPlayer` drive the body; a
   `BoneAttachment3D` on `R_Hand` provides the hand transform; `WeaponSocket`
   stays a child of `VisualRoot` (so `VisualRoot/WeaponSocket/Muzzle` and
-  `.../MuzzleFlash` keep their paths for combat code and six existing smoke
+  `.../MuzzleFlash` keep their paths for combat code and the affected smoke
   tests) and copies the attachment's global transform every frame. The rifle is
   parented to the socket with the JSON rotation and scale.
 * **static** (the Kenney astronaut, still the fallback): the previous procedural
@@ -132,7 +134,7 @@ the source GLB).
 
 | Evidence | What it proves |
 |---|---|
-| `tests/hero_rig_smoke.gd` (13th smoke test) | the avatar is rigged, all five clips exist, the socket rides the hand (0.088 m from the bone), the `Muzzle` marker is on `MuzzlePoint`, the flash node is on the muzzle, the barrel is angled down when carried and level with the player's facing when aimed (dot 1.00), a shot spawns at the barrel (0.000 m), and `fire` returns to `aim` |
+| `tests/hero_rig_smoke.gd` | the avatar is rigged, all five clips exist, the socket rides the hand (0.088 m from the bone), the `Muzzle` marker is on `MuzzlePoint`, the flash node is on the muzzle, the barrel is angled down when carried and level with the player's facing when aimed (dot 1.00), a shot spawns at the barrel (0.000 m), and `fire` returns to `aim` |
 | `tools/render/pose_shot.mjs` | 8 still frames of the baked clips, rendered through three.js in headless Chromium with the same socket transform the game uses |
 | `tools/web_qa.mjs --play --hold … --touch` | the exported WebAssembly build boots, the hero renders in-game, and the touch AIM button puts the rig into the aim pose (camera zoom + arm silhouette) |
 | `qa-evidence/hero-rig/` | committed copies of the above frames |

@@ -9,8 +9,9 @@ Read [`docs/README.md`](docs/README.md) before changing documentation or startin
 1. [`docs/GAMEPLAY_DESIGN.md`](docs/GAMEPLAY_DESIGN.md) — **mandatory for gameplay logic, combat, enemies, weapons, missions, exploration, rewards, upgrades, progression, saves, run lifecycle, Endless Survival, and player-facing UI that exposes those systems.**
 2. [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) — scope sequencing, ownership, workflow, and quality gates.
 3. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — module boundaries and generated code map.
-4. The relevant domain document or runbook listed in the documentation index.
-5. [`docs/VALIDATION.md`](docs/VALIDATION.md) — what has actually been verified, and what must not be claimed.
+4. [`docs/CONTENT_IMPORT.md`](docs/CONTENT_IMPORT.md) — **mandatory for receiving, staging, bundling, or activating external World/Character content.**
+5. The relevant domain document or runbook listed in the documentation index.
+6. [`docs/VALIDATION.md`](docs/VALIDATION.md) — what has actually been verified, and what must not be claimed.
 
 Do not treat reading the design as evidence that its proposal is implemented. Inspect the current source and tests before changing behavior.
 
@@ -20,6 +21,7 @@ Do not treat reading the design as evidence that its proposal is implemented. In
 - **What may be built in the current prototype:** the active scope in `GAMEPLAY_DESIGN.md`, sequenced by `docs/DEVELOPMENT.md`, plus the user's explicit current request.
 - **Current executable behavior:** source, resources, scenes, and tests.
 - **Code placement and imports:** `docs/ARCHITECTURE.md` and the architecture checker.
+- **External World/Character intake:** `docs/CONTENT_IMPORT.md`; staging never implies gameplay, roster, economy, or IAP activation.
 - **Verification claims:** executed checks and `docs/VALIDATION.md`, never a design statement.
 - **Historical reports:** Git history only. Retired documents are not active instructions.
 

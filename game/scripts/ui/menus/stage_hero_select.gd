@@ -552,16 +552,34 @@ func _present_selected(reveal: bool) -> void:
 	if definition == null:
 		_showcase.clear_model()
 		return
-	if not is_instance_valid(definition.model_scene):
+	# Metadata and navigation do not depend on the 3D package. Keep them live
+	# even when the model is unavailable, then report the visual fallback.
+	_name_label.text = definition.display_name.to_upper()
+	_status_label.text = definition.status_line.to_upper()
+	_status_label.add_theme_color_override("font_color", AegisTokens.OK)
+	_role_label.text = _first_sentence(definition.role_description)
+	var progression := progression_service()
+	if progression != null:
+		_loadout_label.text = (
+			"%s  ·  %s"
+			% [
+				_weapon_name(progression.selected_weapon_id),
+				_world_name(progression.selected_world_id),
+			]
+		)
+	var selected_model := definition.load_model_scene()
+	if not is_instance_valid(selected_model):
 		_showcase.clear_model()
+		_status_label.text = "VISUAL OFFLINE · GAMEPLAY FALLBACK"
+		_status_label.add_theme_color_override("font_color", AegisTokens.DANGER)
 		return
-	var already := _showcase.model_path() == definition.model_scene.resource_path
+	var already := _showcase.model_path() == definition.resolved_model_path()
 	if not already:
 		var clips: Array = definition.showcase_clips
 		(
 			_showcase
 			. present(
-				definition.model_scene,
+				selected_model,
 				{
 					"fit_axis": 1,
 					"height": SHOWCASE_HEIGHT,
@@ -577,19 +595,6 @@ func _present_selected(reveal: bool) -> void:
 		_showcase.frame_to_fill(SHOWCASE_FILL, 0.06)
 		if not reveal:
 			_showcase.skip_reveal()
-	_name_label.text = definition.display_name.to_upper()
-	_status_label.text = definition.status_line.to_upper()
-	_status_label.add_theme_color_override("font_color", AegisTokens.OK)
-	_role_label.text = _first_sentence(definition.role_description)
-	var progression := progression_service()
-	if progression != null:
-		_loadout_label.text = (
-			"%s  ·  %s"
-			% [
-				_weapon_name(progression.selected_weapon_id),
-				_world_name(progression.selected_world_id),
-			]
-		)
 
 
 func _hero_name(hero_id: StringName) -> String:

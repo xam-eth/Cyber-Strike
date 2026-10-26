@@ -38,9 +38,12 @@ const DEFAULT_WEAPON_ID := &"pulse_rifle"
 ## `player.tscn` cannot disagree. All three definitions currently point at the
 ## same `rifle.glb`, which is the truth of this build: there is one weapon mesh.
 ## The showcase shows that mesh and does not pretend each weapon has its own
-## silhouette; `showcase_smoke.gd` asserts every definition's model is the exact
-## resource the player scene instantiates.
+## silhouette; `showcase_smoke.gd` asserts every definition resolves the same
+## model path the player scene instantiates.
 @export var model_scene: PackedScene
+## Dynamic visual path for imported character/weapon content. Combat keeps its
+## own internal projectile contract and does not depend on this mesh loading.
+@export var model_scene_path: String = ""
 @export var projectile_scene: PackedScene
 @export_range(0.1, 20.0, 0.1) var fire_rate: float = 5.0
 @export_range(1, 100, 1) var magazine_size: int = 24
@@ -61,9 +64,9 @@ func is_valid_definition() -> bool:
 		weapon_id != &""
 		and not display_name.strip_edges().is_empty()
 		and is_instance_valid(projectile_scene)
-		# A weapon with no mesh cannot be held in gameplay or shown in the
-		# selection screen, so the registry would be selling a statistic.
-		and is_instance_valid(model_scene)
+		# Visual loading has a fallback and is checked separately from the
+		# structural definition; projectile/combat data remains mandatory.
+		and (is_instance_valid(model_scene) or not model_scene_path.is_empty())
 		and fire_rate > 0.0
 		and magazine_size > 0
 		and reload_seconds > 0.0
@@ -80,6 +83,21 @@ func is_valid_definition() -> bool:
 		and chain_damage_multiplier <= 1.0
 		and (chain_count <= 0 or chain_damage_multiplier > 0.0)
 	)
+
+
+func resolved_model_path() -> String:
+	if is_instance_valid(model_scene):
+		return model_scene.resource_path
+	return model_scene_path
+
+
+func load_model_scene() -> PackedScene:
+	if is_instance_valid(model_scene):
+		return model_scene
+	var result := ContentModuleLoader.load_scene(
+		model_scene_path, ContentModuleLoader.CHARACTER_ROOTS
+	)
+	return result["scene"] as PackedScene if bool(result["ok"]) else null
 
 
 static func load_definition(weapon_id: StringName) -> WeaponDefinition:

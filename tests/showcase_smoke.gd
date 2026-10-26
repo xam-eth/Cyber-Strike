@@ -12,7 +12,7 @@ extends SceneTree
 ##
 ## So this measures, headlessly:
 ##
-##   * `HeroDefinition.model_scene` is the same resource `player.tscn` attaches
+##   * `HeroDefinition` resolves the same model path `player.tscn` attaches
 ##     to `VisualRoot` -- one file, two uses;
 ##   * every weapon definition's `model_scene` is the resource the player scene
 ##     holds, and the suite prints how many distinct meshes that turns out to be
@@ -62,6 +62,11 @@ func _gameplay_hero_scene() -> PackedScene:
 	var player := PlayerScene.instantiate()
 	var visual := player.get_node_or_null("VisualRoot")
 	var scene: PackedScene = visual.get("model_scene") if visual != null else null
+	if scene == null and visual != null:
+		var result := ContentModuleLoader.load_scene(
+			String(visual.get("model_scene_path")), ContentModuleLoader.CHARACTER_ROOTS
+		)
+		scene = result["scene"] as PackedScene if bool(result["ok"]) else null
 	player.free()
 	return scene
 
@@ -70,6 +75,11 @@ func _gameplay_weapon_scene() -> PackedScene:
 	var player := PlayerScene.instantiate()
 	var visual := player.get_node_or_null("VisualRoot")
 	var scene: PackedScene = visual.get("weapon_scene") if visual != null else null
+	if scene == null and visual != null:
+		var result := ContentModuleLoader.load_scene(
+			String(visual.get("weapon_scene_path")), ContentModuleLoader.CHARACTER_ROOTS
+		)
+		scene = result["scene"] as PackedScene if bool(result["ok"]) else null
 	player.free()
 	return scene
 
@@ -78,21 +88,22 @@ func _check_hero_model_is_the_gameplay_model() -> void:
 	var gameplay := _gameplay_hero_scene()
 	_expect(gameplay != null, "player.tscn declares a hero model on VisualRoot")
 	for definition in HeroDefinition.load_all_definitions():
+		var declared := definition.load_model_scene()
 		_expect(
-			is_instance_valid(definition.model_scene),
-			"%s: the definition declares a model scene" % definition.hero_id
+			is_instance_valid(declared),
+			"%s: the definition declares a loadable model scene" % definition.hero_id
 		)
-		if not is_instance_valid(definition.model_scene) or gameplay == null:
+		if not is_instance_valid(declared) or gameplay == null:
 			continue
 		_expect(
-			definition.model_scene.resource_path == gameplay.resource_path,
+			definition.resolved_model_path() == gameplay.resource_path,
 			(
 				"%s: the showcased model is the avatar's model (%s)"
 				% [definition.hero_id, gameplay.resource_path]
 			)
 		)
 		# A rig is what makes the showcase a character rather than a statue.
-		var instance := definition.model_scene.instantiate()
+		var instance := declared.instantiate()
 		root.add_child(instance)
 		await process_frame
 		var skeletons := instance.find_children("*", "Skeleton3D", true, false)
@@ -110,22 +121,23 @@ func _check_weapon_models_are_the_gameplay_model() -> void:
 	_expect(gameplay != null, "player.tscn declares a weapon model on VisualRoot")
 	var distinct: Array[String] = []
 	for definition in WeaponDefinition.load_all_definitions():
+		var declared := definition.load_model_scene()
 		_expect(
-			is_instance_valid(definition.model_scene),
-			"%s: the definition declares a model scene" % definition.weapon_id
+			is_instance_valid(declared),
+			"%s: the definition declares a loadable model scene" % definition.weapon_id
 		)
-		if not is_instance_valid(definition.model_scene):
+		if not is_instance_valid(declared):
 			continue
 		if gameplay != null:
 			_expect(
-				definition.model_scene.resource_path == gameplay.resource_path,
+				definition.resolved_model_path() == gameplay.resource_path,
 				(
 					"%s: the showcase model is the held model (%s)"
 					% [definition.weapon_id, gameplay.resource_path]
 				)
 			)
-		if not distinct.has(definition.model_scene.resource_path):
-			distinct.append(definition.model_scene.resource_path)
+		if not distinct.has(declared.resource_path):
+			distinct.append(declared.resource_path)
 	print(
 		(
 			"Showcase: %d weapon definition(s) share %d mesh file(s) (%s)"
@@ -138,9 +150,10 @@ func _check_weapon_models_are_the_gameplay_model() -> void:
 ## from being a guess. A name that is not in the GLB would simply never play.
 func _check_declared_clips_exist() -> void:
 	for definition in HeroDefinition.load_all_definitions():
-		if not is_instance_valid(definition.model_scene):
+		var declared := definition.load_model_scene()
+		if not is_instance_valid(declared):
 			continue
-		var instance := definition.model_scene.instantiate()
+		var instance := declared.instantiate()
 		root.add_child(instance)
 		var players := instance.find_children("*", "AnimationPlayer", true, false)
 		if players.is_empty():
@@ -179,7 +192,7 @@ func _check_the_live_stage_shows_a_model() -> void:
 	_expect(showcase.has_model(), "the showcase has a model on it")
 	var definition := HeroDefinition.load_definition(ProgressionService.DEFAULT_HERO_ID)
 	_expect(
-		showcase.model_path() == definition.model_scene.resource_path,
+		showcase.model_path() == definition.resolved_model_path(),
 		"the live showcase is showing the definition's model (%s)" % showcase.model_path()
 	)
 	_expect(

@@ -11,6 +11,8 @@ The theatre registry contains five definitions:
 
 The four Forge worlds share `MissionWorld` and the asset-forge build pipeline while loading their own staged GLB, mood, markers, collision/configuration, and registry metadata. Vanguard is not replaced by that pipeline.
 
+For an external contributor package, the intake contract is [`../CONTENT_IMPORT.md`](../CONTENT_IMPORT.md). `WorldDefinition.environment_scene_path`, `field_size`, and `field_center` are the adapter inputs; `MissionWorld` loads the environment dynamically and retains safe bounds/lighting when that visual load fails. This does not replace the Forge provenance/render policy above or authorize new gameplay.
+
 Measured file counts, geometry, textures, hashes, and dimensions are generated data. Use [`game/assets/forge/forge_manifest.json`](../../game/assets/forge/forge_manifest.json) and [`tools/asset-forge/real/real-manifest.json`](../../tools/asset-forge/real/real-manifest.json) rather than copying those values into prose.
 
 ## 2. Source → staged world → runtime
@@ -22,7 +24,8 @@ licensed source GLBs + provenance ledger
   → rendered review + asset-policy gate
   → staged GLBs + content-addressed shared textures
   → game/assets/forge/ + forge_manifest.json
-  → MissionWorld + WorldDefinition registry
+  → WorldDefinition.environment_scene_path + field configuration
+  → MissionWorld dynamic load boundary
   → selected theatre gameplay
 ```
 
@@ -38,7 +41,8 @@ Important locations:
 | `game/assets/forge/textures/` | Content-addressed images shared across runtime GLBs |
 | `game/assets/forge/forge_manifest.json` | Generated measurements and staging contract |
 | `game/resources/worlds/` | Five `WorldDefinition` resources consumed by shell/engine |
-| `game/scripts/worlds/mission_world.gd` | Shared runtime adapter for the four Forge worlds |
+| `game/content/worlds/<id>/` | Optional validated external package target; activation remains internal |
+| `game/scripts/worlds/mission_world.gd` | Shared runtime adapter and failure-containing environment loader |
 
 ## 3. Real-asset and provenance policy
 
@@ -70,6 +74,9 @@ node tools/asset-forge/gate/world_shot.mjs --world verdant --shot overview
 
 # Stage validated worlds and shared textures into Godot
 node tools/asset-forge/gate/stage_worlds_into_game.mjs
+
+# Separate external-package intake (not the Forge builder)
+python3 tools/import_content.py check /path/to/world-package
 ```
 
 For interactive authoring review, serve the repository and open `tools/asset-forge/world.html?world=<id>` for a registered Forge id.
@@ -111,6 +118,7 @@ Record the exact source/payload commit and results in [`../VALIDATION.md`](../VA
 - [ ] Source assets have provenance/license and pass hash verification.
 - [ ] No unapproved procedural mesh or generated texture enters the Forge policy path.
 - [ ] Shared route/collision/markers and `MissionWorld` configuration agree.
+- [ ] External packages pass `import_content.py`; a missing environment leaves UI/Character and safe World fallbacks operational.
 - [ ] World mood and card art use the current STELLAR HORIZON direction.
 - [ ] The four-world shared builder and separate Vanguard path are not accidentally conflated.
 - [ ] Initial pack, shared textures, payload, and warm-cache behavior still pass applicable gates.

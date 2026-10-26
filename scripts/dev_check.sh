@@ -136,6 +136,22 @@ else
     step_failed 'documentation contracts failed (see above)'
   fi
 fi
+
+CONTENT_CHECK="$ROOT_DIR/tools/import_content.py"
+if [[ ! -f "$CONTENT_CHECK" ]]; then
+  step_failed 'tools/import_content.py is missing'
+elif [[ -z "$PYTHON_BIN" ]]; then
+  step_skipped 'no python3 interpreter available for committed content-package checks'
+else
+  content_output="$("$PYTHON_BIN" "$CONTENT_CHECK" --root "$ROOT_DIR" check-committed 2>&1)"
+  content_code=$?
+  printf '%s\n' "$content_output" | sed 's/^/         /'
+  if (( content_code == 0 )); then
+    step_passed 'committed World/Character packages are self-contained and script-free'
+  else
+    step_failed 'committed content-package validation failed (see above)'
+  fi
+fi
 printf '\n'
 
 # --------------------------------------------------------------------------- #

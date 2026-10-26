@@ -22,6 +22,14 @@ For the canonical-documentation/tooling consolidation itself:
 - **VERIFIED (local static):** `./scripts/dev_check.sh` reports **0 failed steps**, including 56 tooling tests, static project doctor, 76-script static-call scan, architecture boundaries, generated module map, and the 28-test inventory.
 - **SKIPPED locally:** gdtoolkit, machine-local export preset, and Godot binary/runtime. No new Godot, browser, Android, human, or device result is claimed for this consolidation.
 
+### Content-module import integration — 2026-10-26
+
+For the dynamic World/Character visual-load and package-intake change:
+
+- **VERIFIED (local static):** `./scripts/dev_check.sh` completed with **0 failed steps and 2 skipped steps**: 77 GDScript files parsed/linted/formatted, 64 tooling tests, 18/18 canonical documents, 141 relative links, 77-script static-call scan, architecture boundaries, package validation, generated module map, and 29-test inventory.
+- **VERIFIED (local static):** importer tests cover self-contained GLTF dependencies, script/cache rejection, traversal/symlinks, deterministic bundle hashes, failed-stage preservation of active content, and committed-package checks.
+- **SKIPPED locally:** machine-local export preset and Godot binary/runtime. Engine execution of `module_isolation_smoke`, existing domain regressions, PCK inclusion, and browser behavior require the CI/export checkpoint; they are not claimed by the static result.
+
 Older failed/partial gameplay, integration, loading, and World reports describe their own historical commits. They must not be used to override the full checkpoint above or to describe a later branch without a new run.
 
 ## 2. Automated evidence at that checkpoint
