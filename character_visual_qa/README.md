@@ -14,9 +14,9 @@ In Godot Project Manager, import `character_visual_qa/project.godot` and run the
 
 ## Review controls
 
-- **T1–T5** switch between five upgrades of the same human hero.
-- **Other models** selects robot runtime models and source comparisons. Original Drive enemy GLBs remain separate, review-only entries.
-- The information panel reports mesh count, skinned mesh count, skeleton joints, and expected animation clips found. **STRUCTURE CHECK** is an automated import check, not a visual approval.
+- **T1–T5** switch between five visual progression tiers of the same human player hero.
+- **Other models** selects robot enemies and source comparisons. Robot Common has no inferred T1; Robot T2 Rare and T3 Epic are enemies that also serve as animation references for the Human Operative hero. The original Drive enemy GLBs remain separate, review-only entries.
+- The information panel reports canonical hero/enemy role, tier or rarity, GLB/profile identity, mesh and skin counts, skeleton joints, and expected clips. **STRUCTURE CHECK** is an automated import check, not a visual approval.
 - Choose an animation clip, then use **PLAY**, **PAUSE**, **STOP**, and the speed selector. Use **TEST SKIN POSE** and **RESET POSE** to inspect deformation.
 - Drag in the viewport to orbit; use the mouse wheel to zoom. **RESET VIEW** and **Rotate** are in the left panel. Keyboard: **Left/Right** changes model, **R** resets the view, **Space** plays the selected clip.
 

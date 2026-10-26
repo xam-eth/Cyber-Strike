@@ -1,21 +1,24 @@
 #!/usr/bin/env bash
-# Optimize the five real human tier meshes, apply per-mesh weights on the shared
-# Robot Common skeleton, and retarget its locomotion/combat clips plus weapon transitions.
+# Optimize the five real human hero progression meshes, apply per-mesh weights on
+# Robot Common's shared animation-reference skeleton, then retarget its clips.
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$HERE/../.." && pwd)"
-PYTHON="$ROOT/.venv/bin/python"
-
+PYTHON="${PYTHON:-$ROOT/.venv/bin/python}"
 if [[ ! -x "$PYTHON" ]]; then
-  echo "Missing $PYTHON; create the development environment and install requirements-dev.txt first." >&2
+  PYTHON="$(command -v python3 || true)"
+fi
+
+if [[ -z "$PYTHON" || ! -x "$PYTHON" ]]; then
+  echo "Python 3 is required to build the human hero tier assets." >&2
   exit 2
 fi
-if [[ ! -f "$ROOT/game/assets/enemies/robot_common.glb" ]]; then
+if [[ ! -f "$ROOT/game/assets/enemies/enemy_robot_common.glb" ]]; then
   echo "Missing Robot Common, the shared 79-joint rig and animation template." >&2
   exit 2
 fi
 for tier in 1 2 3 4 5; do
-  source="$ROOT/source-assets/characters/human_hero_tiers/Hero_Human_T${tier}.glb"
+  source="$ROOT/source-assets/characters/human_hero_tiers/hero_human_tier_${tier}_source.glb"
   if [[ ! -f "$source" ]]; then
     echo "Missing preserved T${tier} source mesh: $source" >&2
     exit 2

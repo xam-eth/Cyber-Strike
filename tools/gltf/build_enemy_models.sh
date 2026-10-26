@@ -10,13 +10,13 @@ if [[ ! -x "$PYTHON" ]]; then
   echo "Missing $PYTHON; create the development environment and install requirements-dev.txt first." >&2
   exit 2
 fi
-if [[ ! -f "$ROOT/game/assets/enemies/robot_common.glb" ]]; then
+if [[ ! -f "$ROOT/game/assets/enemies/enemy_robot_common.glb" ]]; then
   echo "Missing the Robot Common runtime enemy GLB used as the shared rig template." >&2
   exit 2
 fi
 for source in \
-  "$ROOT/source-assets/enemies/iron-sentinel-enimies.glb" \
-  "$ROOT/source-assets/enemies/Iron-Warnden-Bos-enimies.glb"; do
+  "$ROOT/source-assets/enemies/enemy_iron_sentinel_source.glb" \
+  "$ROOT/source-assets/enemies/enemy_iron_warden_boss_source.glb"; do
   if [[ ! -f "$source" ]]; then
     echo "Missing preserved enemy source: $source" >&2
     exit 2

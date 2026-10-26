@@ -5,9 +5,11 @@ This branch contains **character meshes, rigs, animation clips, glTF build tooli
 ## Character plan and current state
 
 - **One human hero with five visual upgrade tiers:** T1 through T5 are appearances for the same hero identity, not five separate heroes.
-- The five original Drive GLBs are preserved unchanged at `source-assets/characters/human_hero_tiers/Hero_Human_T1.glb` through `Hero_Human_T5.glb`.
+- The five original Drive GLBs are preserved unchanged at `source-assets/characters/human_hero_tiers/hero_human_tier_1_source.glb` through `hero_human_tier_5_source.glb`.
 - Optimized review candidates live at `game/assets/characters/human_hero_tiers/`. Each uses its own per-mesh skin weights on a copied 79-joint Robot Common rig and currently contains twelve clips: idle, walk, run, raise weapon, aim, aim-walk, aim-run, fire, reload, hit, death, and lower weapon.
-- The former Common, Rare, and Epic robot hero models have been reclassified as enemies under `game/assets/enemies/` and `source-assets/enemies/`. Robot Common remains the shared rig/animation template; Sentinel and Warden remain enemies too.
+- Robot Common, Robot T2 Rare, and Robot T3 Epic are enemies—not player heroes—and live under `game/assets/enemies/` and `source-assets/enemies/`. Robot T2 Rare and T3 Epic are additionally marked as animation references for the Human Operative hero; Robot Common remains the shared rig/animation template. Iron Sentinel and Iron Warden are enemies too.
+- Runtime GLB names are role-first: `hero_human_tier_1.glb` through `hero_human_tier_5.glb`; `enemy_robot_common.glb`, `enemy_robot_tier_2_rare.glb`, and `enemy_robot_tier_3_epic.glb`.
+- Runtime rig profiles distinguish `character_role: player_hero` from `character_role: enemy` and carry canonical identity metadata. Robot Common is Common with no inferred numeric tier; the Rare and Epic robot references remain T2 and T3.
 - The human models and their animation/skin candidates are **not visually approved or wired into gameplay**. Inspect all tiers, skin deformation, and clips in the local Godot QA project before any integration.
 
 ## Character-only files

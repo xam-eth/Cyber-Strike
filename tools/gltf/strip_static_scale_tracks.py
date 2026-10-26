@@ -30,10 +30,10 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_MODELS = (
-    ROOT / "game/assets/enemies/robot_common.glb",
-    ROOT / "game/assets/enemies/robot_tier_2_rare.glb",
-    ROOT / "game/assets/enemies/robot_tier_3_epic.glb",
-    *(ROOT / f"game/assets/characters/human_hero_tiers/human_hero_t{tier}.glb" for tier in range(1, 6)),
+    ROOT / "game/assets/enemies/enemy_robot_common.glb",
+    ROOT / "game/assets/enemies/enemy_robot_tier_2_rare.glb",
+    ROOT / "game/assets/enemies/enemy_robot_tier_3_epic.glb",
+    *(ROOT / f"game/assets/characters/human_hero_tiers/hero_human_tier_{tier}.glb" for tier in range(1, 6)),
 )
 
 GLB_MAGIC = 0x46546C67
@@ -302,7 +302,7 @@ def main() -> int:
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--check", action="store_true", help="inspect only; return non-zero if cleanup is needed")
     mode.add_argument("--write", action="store_true", help="remove only scale tracks that exactly match rest scale")
-    parser.add_argument("models", nargs="*", type=Path, help="GLB files (defaults to Robot Common, robot T2/T3, and human T1–T5 runtime models)")
+    parser.add_argument("models", nargs="*", type=Path, help="GLB files (defaults to Robot Common, enemy robot T2/T3, and human hero T1–T5 runtime models)")
     args = parser.parse_args()
     paths = args.models or list(DEFAULT_MODELS)
     failures = 0

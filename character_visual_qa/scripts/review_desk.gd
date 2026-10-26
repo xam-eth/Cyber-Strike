@@ -159,7 +159,11 @@ func _load_manifest() -> void:
 		if entry is Dictionary:
 			_assets.append(entry)
 	for index in range(_assets.size()):
-		if str(_assets[index].get("upgrade_track_id", "")) == HUMAN_TRACK_ID:
+		var identity: Dictionary = _assets[index].get("asset_identity", {})
+		if (
+			str(identity.get("role", "")) == "hero"
+			or str(_assets[index].get("upgrade_track_id", "")) == HUMAN_TRACK_ID
+		):
 			_tier_asset_indices.append(index)
 		else:
 			_other_asset_indices.append(index)
@@ -167,7 +171,11 @@ func _load_manifest() -> void:
 
 
 func _sort_tier_indices(left: int, right: int) -> bool:
-	return int(_assets[left].get("upgrade_tier", 0)) < int(_assets[right].get("upgrade_tier", 0))
+	var left_identity: Dictionary = _assets[left].get("asset_identity", {})
+	var right_identity: Dictionary = _assets[right].get("asset_identity", {})
+	var left_tier := int(left_identity.get("tier_number", _assets[left].get("upgrade_tier", 0)))
+	var right_tier := int(right_identity.get("tier_number", _assets[right].get("upgrade_tier", 0)))
+	return left_tier < right_tier
 
 
 func _create_interface() -> void:
@@ -202,7 +210,8 @@ func _create_interface() -> void:
 	_tier_row.add_theme_constant_override("separation", 5)
 	sidebar_column.add_child(_tier_row)
 	for asset_index in _tier_asset_indices:
-		var tier := int(_assets[asset_index].get("upgrade_tier", 0))
+		var identity: Dictionary = _assets[asset_index].get("asset_identity", {})
+		var tier := int(identity.get("tier_number", _assets[asset_index].get("upgrade_tier", 0)))
 		var button := Button.new()
 		button.text = "T%d" % tier
 		button.tooltip_text = str(_assets[asset_index].get("label", "Tier %d" % tier))
@@ -631,13 +640,65 @@ func _update_structure_report() -> void:
 	if not missing_clips.is_empty():
 		errors.append("missing clips: %s" % ", ".join(PackedStringArray(missing_clips)))
 
+	var identity: Dictionary = _current_asset.get("asset_identity", {})
+	var identity_id := str(identity.get("asset_id", ""))
+	var identity_role := str(identity.get("role", ""))
+	var identity_species := str(identity.get("species", ""))
+	var asset_kind := str(_current_asset.get("asset_kind", ""))
+	if identity_id.is_empty():
+		errors.append("missing canonical role/tier identity")
+	else:
+		var expected_glb_name := (
+			"%s.glb" % identity_id
+			if asset_kind == "runtime"
+			else "%s_source.glb" % identity_id
+		)
+		if str(_current_asset.get("glb_label", "")) != expected_glb_name:
+			errors.append("GLB name does not match canonical asset identity")
+		if identity_role == "hero":
+			var identity_tier := int(identity.get("tier_number", 0))
+			if identity_species != "human":
+				errors.append("player hero identity must be human")
+			if str(_current_asset.get("upgrade_track_id", "")) != HUMAN_TRACK_ID:
+				errors.append("human tiers must share the human_operative progression track")
+			if (
+				int(_current_asset.get("upgrade_tier", 0)) != identity_tier
+				or identity_tier < 1
+				or identity_tier > 5
+			):
+				errors.append("selected human model and canonical T1–T5 identity do not match")
+		elif identity_role == "enemy":
+			if identity_species != "robot":
+				errors.append("robot character identity must remain an enemy")
+			if _current_asset.get("upgrade_track_id") != null or _current_asset.get("upgrade_tier") != null:
+				errors.append("enemy model must not use the human hero progression track")
+			if identity_id == "enemy_robot_common":
+				if identity.get("tier_number") != null or str(identity.get("rarity", "")) != "common":
+					errors.append("Robot Common must stay Common; do not infer T1")
+		else:
+			errors.append("identity role must be hero or enemy")
+
 	var source := str(_current_asset.get("source", ""))
 	var details := [
+		"Identity: %s · %s" % [identity_role.to_upper(), identity_species.to_upper()],
+		"Asset kind: %s" % asset_kind.replace("_", " ").to_upper(),
 		"GLB: %s" % _current_asset.get("glb_label", "unknown.glb"),
 		"Category: %s" % _current_asset.get("category", "CHARACTER"),
 		"Source: %s" % source,
 		"Meshes: %d · skinned: %d" % [_mesh_count, _skinned_mesh_count],
 	]
+	if identity_role == "hero":
+		details.append(
+			"Progression: Human Operative · %s of 5" % str(identity.get("tier_label", "Unknown tier"))
+		)
+	elif identity_role == "enemy":
+		var enemy_tier_label := str(identity.get("tier_label", ""))
+		if not enemy_tier_label.is_empty():
+			details.append("Enemy tier / rarity: %s" % enemy_tier_label)
+		else:
+			details.append("Enemy class: %s" % str(identity.get("enemy_class", "unspecified")).capitalize())
+		if str(identity.get("animation_reference_for", "")) == HUMAN_TRACK_ID:
+			details.append("Animation reference for: Human Operative player hero")
 	if expected_joints > 0:
 		details.append("Skeleton: %d / %d joints" % [_joint_count, expected_joints])
 	else:

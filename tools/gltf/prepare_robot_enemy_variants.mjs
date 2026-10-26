@@ -40,14 +40,14 @@ const RETARGETED_CLIPS = new Set([
 ]);
 const VARIANTS = [
   {
-    id: 'robot_tier_2_rare',
-    source: 'source-assets/enemies/robot_tier_2_rare_source.glb',
-    output: 'game/assets/enemies/robot_tier_2_rare.glb',
+    id: 'enemy_robot_tier_2_rare',
+    source: 'source-assets/enemies/enemy_robot_tier_2_rare_source.glb',
+    output: 'game/assets/enemies/enemy_robot_tier_2_rare.glb',
   },
   {
-    id: 'robot_tier_3_epic',
-    source: 'source-assets/enemies/robot_tier_3_epic_source.glb',
-    output: 'game/assets/enemies/robot_tier_3_epic.glb',
+    id: 'enemy_robot_tier_3_epic',
+    source: 'source-assets/enemies/enemy_robot_tier_3_epic_source.glb',
+    output: 'game/assets/enemies/enemy_robot_tier_3_epic.glb',
   },
 ];
 

@@ -4,7 +4,7 @@ config_version=5
 
 [application]
 config/name="Cyber-Strike Character Visual QA"
-config/description="Rendered GLB viewer with rig and animation checks."
+config/description="Rendered character GLB reviewer with explicit hero/enemy, tier, rig and animation checks."
 run/main_scene="res://scenes/review_desk.tscn"
 config/features=PackedStringArray("4.7")
 

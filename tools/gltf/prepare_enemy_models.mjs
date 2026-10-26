@@ -33,14 +33,14 @@ const MAX_RUNTIME_TRIANGLES = 50000;
 const MAX_TEXTURE_EDGE = 1024;
 const VARIANTS = [
   {
-    id: 'iron_sentinel',
-    source: 'source-assets/enemies/iron-sentinel-enimies.glb',
-    output: 'tools/gltf/build/enemies/iron_sentinel.glb',
+    id: 'enemy_iron_sentinel',
+    source: 'source-assets/enemies/enemy_iron_sentinel_source.glb',
+    output: 'tools/gltf/build/enemies/enemy_iron_sentinel.glb',
   },
   {
-    id: 'iron_warden_boss',
-    source: 'source-assets/enemies/Iron-Warnden-Bos-enimies.glb',
-    output: 'tools/gltf/build/enemies/iron_warden_boss.glb',
+    id: 'enemy_iron_warden_boss',
+    source: 'source-assets/enemies/enemy_iron_warden_boss_source.glb',
+    output: 'tools/gltf/build/enemies/enemy_iron_warden_boss.glb',
   },
 ];
 

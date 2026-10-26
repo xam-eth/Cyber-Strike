@@ -30,10 +30,10 @@ const TRIANGLE_RATIO = 0.075;
 const MAX_RUNTIME_TRIANGLES = 50000;
 const MAX_TEXTURE_EDGE = 1024;
 const VARIANTS = [1, 2, 3, 4, 5].map((tier) => ({
-  id: `human_hero_t${tier}`,
+  id: `hero_human_tier_${tier}`,
   tier,
-  source: `source-assets/characters/human_hero_tiers/Hero_Human_T${tier}.glb`,
-  output: `tools/gltf/build/human_hero_tiers/human_hero_t${tier}.glb`,
+  source: `source-assets/characters/human_hero_tiers/hero_human_tier_${tier}_source.glb`,
+  output: `tools/gltf/build/human_hero_tiers/hero_human_tier_${tier}.glb`,
 }));
 
 const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
