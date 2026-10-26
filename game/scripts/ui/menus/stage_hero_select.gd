@@ -462,11 +462,8 @@ func _build_panel() -> void:
 	# was the widest single-line text on the screen (334 px at 13 px with 10 px
 	# tracking) and, with autowrap off, its width was the *minimum width* of the
 	# whole column -- 370 px of panel on a 360 px phone.
-	_development_label = make_label(
-		"%d OPERATIVE SLOT%s IN DEVELOPMENT" % [LOCKED_SLOTS, "" if LOCKED_SLOTS == 1 else "S"],
-		"label_s",
-		AegisTokens.INK_3
-	)
+	_development_label = make_label("", "label_s", AegisTokens.INK_3)
+	AegisText.apply(_development_label, "hero.slots_development", [LOCKED_SLOTS])
 	_development_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_limit_lines(_development_label, 1)
 	column.add_child(_development_label)

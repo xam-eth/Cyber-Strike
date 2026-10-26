@@ -55,7 +55,10 @@ func set_weapon(short_name: String) -> void:
 func set_ammo(remaining: int, capacity: int, reloading: bool) -> void:
 	if not is_instance_valid(value_label):
 		return
-	value_label.text = "RELOAD" if reloading else "%d/%d" % [remaining, capacity]
+	if reloading:
+		AegisText.apply(value_label, "hud.reloading")
+	else:
+		value_label.text = "%d/%d" % [remaining, capacity]
 	value_label.add_theme_color_override(
 		"font_color",
 		(

@@ -405,10 +405,15 @@ for (const skin of document.querySelectorAll('.skin')) {
  * armory follows.
  */
 const WEAPONS = {
-  pulse_rifle: { name: 'Pulse Rifle', cost: 0 },
-  nova_launcher: { name: 'Nova Launcher', cost: 120 },
-  arc_shooter: { name: 'Arc Shooter', cost: 250 },
+  pulse_rifle: { nameKey: 'wpn.pulse.name', cost: 0 },
+  nova_launcher: { nameKey: 'wpn.nova.name', cost: 120 },
+  arc_shooter: { nameKey: 'wpn.arc.name', cost: 250 },
 };
+
+function weaponName(id) {
+  const weapon = WEAPONS[id] || WEAPONS.pulse_rifle;
+  return t(weapon.nameKey);
+}
 
 function paintLoadout() {
   for (const button of document.querySelectorAll('.weapon')) {
@@ -420,15 +425,18 @@ function paintLoadout() {
     button.setAttribute('aria-pressed', String(!locked && button.dataset.weapon === prefs.weapon));
     button.setAttribute('aria-disabled', String(locked));
   }
-  const weapon = WEAPONS[prefs.weapon] || WEAPONS.pulse_rifle;
+  // Resolved through the catalogue, not stored: a weapon's name is the player's
+  // word for it, and painting it from a literal left three English chips on an
+  // Indonesian page (qa-evidence/ui/round-12/i18n).
+  const weapon = weaponName(prefs.weapon);
   const chip = el('hero-weapon-chip');
-  if (chip) chip.textContent = weapon.name;
+  if (chip) chip.textContent = weapon;
   const hub = el('hub-operative-meta');
-  if (hub) hub.textContent = weapon.name;
+  if (hub) hub.textContent = weapon;
   const deployMeta = el('hub-deploy-meta');
-  if (deployMeta) deployMeta.textContent = weapon.name;
+  if (deployMeta) deployMeta.textContent = weapon;
   const kitWeapon = el('hero-kit-weapon');
-  if (kitWeapon) kitWeapon.textContent = weapon.name;
+  if (kitWeapon) kitWeapon.textContent = weapon;
 }
 
 /* --------------------------------------------------------------- deploy */

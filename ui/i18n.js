@@ -67,6 +67,11 @@ const STRINGS = {
     'world.vanguard_station.line': 'Vanguard Station · hangar 02',
     'world.slot_03.name': 'Sector 08',
     'world.slot_03.role': 'Not open yet',
+    'wpn.pulse.name': 'PULSE RIFLE',
+    'wpn.nova.name': 'NOVA LAUNCHER',
+    'wpn.arc.name': 'ARC SHOOTER',
+    'wpn.unit_damage': 'dmg',
+    'wpn.unit_bp': 'BP',
     'world.state.open': 'OPEN',
     'world.state.soon': 'SOON',
 
@@ -194,6 +199,11 @@ const STRINGS = {
     'world.vanguard_station.line': 'Vanguard Station · hanggar 02',
     'world.slot_03.name': 'Sektor 08',
     'world.slot_03.role': 'Belum dibuka',
+    'wpn.pulse.name': 'PULSE RIFLE',
+    'wpn.nova.name': 'NOVA LAUNCHER',
+    'wpn.arc.name': 'ARC SHOOTER',
+    'wpn.unit_damage': 'dmg',
+    'wpn.unit_bp': 'BP',
     'world.state.open': 'TERBUKA',
     'world.state.soon': 'SEGERA',
 
