@@ -16,6 +16,9 @@ static func build_pause(hud) -> void:
 	hud._pause_panel.bezel = true
 	hud._pause_panel.cut_top_left = AegisBezel.CUT_LG
 	hud._pause_panel.cut_bottom_right = AegisBezel.CUT_LG
+	# A modal is read, not seen through: at the soft fill the thumb stick and the
+	# fire tile drew a faint ring and a faint corner across the card's actions.
+	hud._pause_panel.surface_alpha = AegisTokens.PANEL_ALPHA
 	hud._pause_panel.visible = false
 	hud.add_child(hud._pause_panel)
 
@@ -47,16 +50,11 @@ static func build_pause(hud) -> void:
 	content.add_child(hud._pause_resume_button)
 	hud._touch_buttons.append(hud._pause_resume_button)
 
-	# One primary action and three secondary ones in a single row. Three stacked
-	# 52 px plates plus the header did not fit a 375 px-tall phone: the card grew
-	# past the glass and the last action fell off it. The row keeps every target
-	# at 52 px tall and ~104 px wide -- above the 44 pt touch minimum -- and the
-	# rank is read from size, not from position: RESUME spans the card.
-	var actions := HBoxContainer.new()
-	actions.name = "PauseActions"
-	actions.add_theme_constant_override("separation", 8)
-	content.add_child(actions)
-
+	# RESUME, then the run decision, then the pair of ways out. That is three
+	# 52 px rows plus the header, which is what a 375 px-tall phone can hold; the
+	# old four stacked plates overflowed it and the last action fell off the card.
+	# The two exits share a row because they are the same rank: one goes back to
+	# the field's settings, the other leaves the world entirely.
 	hud._pause_restart_button = AegisButton.new()
 	hud._pause_restart_button.name = "RestartButton"
 	hud._pause_restart_button.text = "RESTART"
@@ -67,8 +65,13 @@ static func build_pause(hud) -> void:
 	hud._pause_restart_button.add_theme_constant_override("icon_max_width", 18)
 	AegisTheme.set_button_variant(hud._pause_restart_button, "round")
 	hud._pause_restart_button.pressed.connect(hud._on_restart_pressed)
-	actions.add_child(hud._pause_restart_button)
+	content.add_child(hud._pause_restart_button)
 	hud._touch_buttons.append(hud._pause_restart_button)
+
+	var actions := HBoxContainer.new()
+	actions.name = "PauseActions"
+	actions.add_theme_constant_override("separation", 8)
+	content.add_child(actions)
 
 	hud._pause_settings_button = AegisButton.new()
 	hud._pause_settings_button.name = "SettingsButton"
@@ -86,6 +89,7 @@ static func build_pause(hud) -> void:
 	hud._pause_home_button.name = "PauseHomeButton"
 	hud._pause_home_button.text = "HOME"
 	hud._pause_home_button.icon = AegisTheme.icon("house")
+	hud._pause_home_button.add_theme_constant_override("icon_max_width", 18)
 	hud._pause_home_button.focus_mode = Control.FOCUS_ALL
 	hud._pause_home_button.mouse_filter = Control.MOUSE_FILTER_STOP
 	hud._pause_home_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
