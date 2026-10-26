@@ -352,8 +352,9 @@ func _build_actions() -> void:
 
 	# The caption states the action's condition, not the theatre: row 02 and the
 	# dock both already name the theatre, and printing it a third time under the
-	# tile is what pushed `NEON FRONTIER · READY TO DEPLOY` past the label's width
-	# and cut it to `READY TO…` at 844 px (qa-evidence/ui/round-12/i18n/engine).
+	# tile is what pushed the caption past its label's width and cut it to
+	# `READY TO…` at 844 px -- in both languages
+	# (qa-evidence/ui/round-12/i18n/engine).
 	_deploy_caption = make_label("", "label_s", AegisTokens.INK_3)
 	_deploy_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_deploy_caption.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

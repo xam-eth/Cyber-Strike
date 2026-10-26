@@ -6,8 +6,13 @@ extends SceneTree
 ## Separate from `localization_smoke.gd` because it touches `user://`: a store
 ## that writes nothing and a store that writes the wrong key look identical from
 ## inside a screen.
-
-const PROFILE_PATH := "user://localization_preferences_smoke.cfg"
+##
+## It writes the *real* profile path on purpose. `AegisText.set_locale()` saves
+## through `AegisPreferences.write()` with no path argument -- that is the
+## production call -- so a test that pointed at a scratch file would be testing a
+## store the game never uses, and it would pass while the game forgot. The
+## profile is reset to defaults at the end, and each smoke test runs in its own
+## Godot process.
 
 var _failures: int = 0
 
@@ -17,15 +22,15 @@ func _initialize() -> void:
 
 
 func _run() -> void:
-	AegisPreferences.write(AegisPreferences.defaults(), PROFILE_PATH)
+	AegisPreferences.write(AegisPreferences.defaults())
 	AegisText.set_locale(AegisTextCatalog.ID)
 	_expect(
-		String(AegisPreferences.read(PROFILE_PATH).get("locale", "")) == "id",
+		String(AegisPreferences.read().get("locale", "")) == "id",
 		"choosing Indonesian writes it to the save file",
 	)
 	AegisText.set_locale(AegisTextCatalog.EN)
 	_expect(
-		String(AegisPreferences.read(PROFILE_PATH).get("locale", "")) == "en",
+		String(AegisPreferences.read().get("locale", "")) == "en",
 		"and choosing English writes that instead",
 	)
 
@@ -42,7 +47,7 @@ func _run() -> void:
 	)
 	_expect(String(fresh["locale"]) == "", "the sanitized value is an empty locale, not 'de'")
 
-	DirAccess.remove_absolute(ProjectSettings.globalize_path(PROFILE_PATH))
+	AegisPreferences.write(AegisPreferences.defaults())
 	_finish()
 
 
