@@ -9,7 +9,9 @@
 extends MenuStage
 
 const MINIMUM_SECONDS := 1.2
-const STATUS := "READING PROFILE"
+## Catalog key, not the words: the boot line is read on every launch and must
+## follow the language the last launch ended in.
+const STATUS_KEY := "boot.reading_profile"
 
 ## The art the front end needs resident before the first menu is worth showing.
 ## BOOT does not load it; it names it, and LOADING loads it with real progress.
@@ -68,7 +70,7 @@ func _ready() -> void:
 	physical_min_size(_bar, 420.0, 10.0)
 	holder.add_child(_bar)
 
-	_status = make_label(STATUS, "label", AegisTokens.INK_2)
+	_status = make_label_key(STATUS_KEY, "label", AegisTokens.INK_2)
 	_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	holder.add_child(_status)
 
@@ -79,7 +81,7 @@ func enter(_stage_payload: Dictionary) -> void:
 	_reported = false
 	_hold_remaining = MINIMUM_SECONDS
 	_bar.set_running(true)
-	_status.text = STATUS
+	AegisText.apply(_status, STATUS_KEY)
 	_connect_resized(_on_resized)
 	relayout()
 	set_process(true)

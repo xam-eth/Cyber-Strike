@@ -7,12 +7,12 @@ extends RefCounted
 static func install_entry(hud) -> void:
 	hud._armory_button = (
 		hud
-		. _text_button(
-			"ARMORY · 0 BP",
+		. _text_button_key(
+			"armory.chip",
 			"ArmoryButton",
 			"round",
 			"",
-			"Open Armory: unlock and equip weapons with Battle Points",
+			"armory.chip_tip",
 		)
 	)
 	hud._armory_button.pressed.connect(_request_open.bind(hud))
@@ -41,7 +41,7 @@ static func refresh_entry_label(hud) -> void:
 		return
 	# The only armory action is the 186 px landscape plate, which fits the
 	# balance; the Armory and Results panels still carry the full figure.
-	hud._armory_button.text = "ARMORY · %d BP" % hud._state.wallet_bp
+	AegisText.apply(hud._armory_button, "armory.chip_bp", [hud._state.wallet_bp])
 
 
 static func show_panel(hud) -> void:

@@ -33,7 +33,15 @@
  * selling something that does not exist, and the upgrade ladder is the weapon
  * tiers priced in the currency the arena pays.
  */
-'use strict';
+import {
+  apply as applyLocale,
+  init as initLocale,
+  locale,
+  nativeName,
+  nextLocale,
+  setLocale,
+  t,
+} from './i18n.js';
 
 const SCREENS = ['opening', 'hero', 'hub', 'settings', 'launch'];
 const params = new URLSearchParams(location.search);
@@ -157,14 +165,16 @@ function paintOpening() {
   el('opening-fill').style.width = `${(ratio * 100).toFixed(0)}%`;
 
   el('opening-status').textContent = done
-    ? 'Konsol siap · sambungkan'
+    ? t('opening.status.ready')
     : failed
-      ? 'Konsol tidak siap'
-      : `Menyiapkan konsol · ${Math.round(ratio * 100)}%`;
+      ? t('opening.status.failed')
+      : `${t('opening.status.checking')} · ${Math.round(ratio * 100)}%`;
 
   const button = el('opening-enter');
   button.disabled = !done;
-  button.querySelector('.btn__label').textContent = done ? 'Masuk' : 'Menyiapkan';
+  button.querySelector('.btn__label').textContent = done
+    ? t('opening.enter')
+    : t('opening.enter_wait');
 }
 
 function markCheck(key, ok) {
@@ -198,9 +208,9 @@ async function runOpeningChecks() {
   paintOpening();
 
   if (!checks.engine) {
-    showNote('Konsol tidak termuat. Jalankan halaman dari root repo: python -m http.server 800');
+    showNote(t('opening.note.no_engine'));
   } else if (!checks.payload) {
-    showNote('Paket dunia (web/index.pck) tidak ditemukan. Ekspor ulang dengan ./scripts/export_web_preview.sh');
+    showNote(t('opening.note.no_payload'));
   }
 }
 
@@ -220,8 +230,8 @@ function showNote(text) {
  * and it launches the theatre the player selected.
  */
 const WORLDS = [
-  { id: 'neon_frontier', name: 'Neon Frontier', line: 'Neon Frontier · sektor 07' },
-  { id: 'vanguard_station', name: 'Vanguard Station', line: 'Vanguard Station · hanggar 02' },
+  { id: 'neon_frontier', name: 'Neon Frontier', lineKey: 'world.neon_frontier.line' },
+  { id: 'vanguard_station', name: 'Vanguard Station', lineKey: 'world.vanguard_station.line' },
 ];
 
 function worldIndex() {
@@ -240,11 +250,11 @@ function paintWorld() {
     });
   }
   const line = el('hub-world-line');
-  if (line) line.textContent = WORLDS[worldIndex()].line;
+  if (line) line.textContent = t(WORLDS[worldIndex()].lineKey);
   const kitWorld = el('hero-kit-world');
   if (kitWorld) kitWorld.textContent = WORLDS[worldIndex()].name;
   const eyebrow = el('launch-eyebrow');
-  if (eyebrow) eyebrow.textContent = `Deploy · ${WORLDS[worldIndex()].name}`;
+  if (eyebrow) eyebrow.textContent = t('launch.eyebrow', WORLDS[worldIndex()].name);
 }
 
 function selectWorld(id) {
@@ -453,7 +463,7 @@ function applyMotionPref() {
 function deploy() {
   lockLandscape();
   paintWorld();
-  el('launch-title').textContent = 'Menyiapkan dunia';
+  el('launch-title').textContent = t('launch.title');
   show('launch', { focus: false });
   el('canvas').dataset.hidden = 'true';
 
@@ -484,12 +494,12 @@ async function bootEngine() {
     const response = await fetch('./web/index.html', { cache: 'no-store' });
     html = await response.text();
   } catch (error) {
-    launchFailed('Payload tidak terbaca', String(error));
+    launchFailed(t('launch.failed.payload'), String(error));
     return;
   }
   const match = html.match(/const GODOT_CONFIG = (\{[^\n]*\});/);
   if (!match) {
-    launchFailed('Konfigurasi ekspor tidak terbaca', './web/index.html has no GODOT_CONFIG line.');
+    launchFailed(t('launch.failed.config'), './web/index.html has no GODOT_CONFIG line.');
     return;
   }
 
@@ -506,7 +516,7 @@ async function bootEngine() {
   const hint = el('launch-hint');
 
   const engine = new EngineClass(config);
-  status.textContent = 'Memuat aset dunia';
+  status.textContent = t('launch.status.loading');
 
   engine.startGame({
     onProgress: (loaded, total) => {
@@ -519,31 +529,32 @@ async function bootEngine() {
         // it sits on the far end of the channel instead of just past it.
         progress.querySelector('.rail__head').style.left = `calc(${(ratio * 100).toFixed(1)}% - 2px)`;
         percent.textContent = `${Math.floor(ratio * 100)}%`;
-        status.textContent = ratio >= 1 ? 'Aset lengkap · menyusun dunia' : 'Memuat aset dunia';
+        status.textContent =
+          ratio >= 1 ? t('launch.status.assembling') : t('launch.status.loading');
       }
     },
   }).then(
     () => {
       engineReady = true;
-      paintDock('ok', 'Konsol siap');
+      paintDock('ok', t('dock.ready'));
       progress.dataset.indeterminate = 'false';
       fill.style.width = '100%';
       percent.textContent = '100%';
-      status.textContent = 'Dunia siap';
-      hint.textContent = 'Masuk ke dunia…';
+      status.textContent = t('launch.status.ready');
+      hint.textContent = t('launch.hint.enter');
       revealCanvas();
     },
-    (error) => launchFailed('Dunia gagal dimuat', String(error)),
+    (error) => launchFailed(t('launch.failed.world'), String(error)),
   );
 }
 
 function launchFailed(title, detail) {
   el('launch-title').textContent = title;
-  el('launch-status').textContent = 'Berhenti';
+  el('launch-status').textContent = t('launch.status.stopped');
   el('launch-percent').textContent = '';
   el('launch-hint').textContent = detail;
   el('launch-progress').dataset.indeterminate = 'false';
-  paintDock('bad', 'Konsol gagal dimuat');
+  paintDock('bad', t('dock.failed'));
 }
 
 function revealCanvas() {
@@ -595,6 +606,32 @@ setSwitch('opt-motion', prefs.motion, (value) => {
   applyMotionPref();
 });
 setSwitch('opt-fullscreen', false, (value) => toggleFullscreen(value));
+
+/*
+ * The language row: one press, the whole document re-reads, and the engine is
+ * told through `window.aegisSetLocale` if it is already running. The value is
+ * shown in the language's own name -- a player looking for Indonesian should not
+ * have to find the word "Indonesian" in English first.
+ */
+function paintLanguage() {
+  const value = el('opt-language-value');
+  if (value) value.textContent = nativeName(locale());
+}
+
+el('opt-language')?.addEventListener('click', () => {
+  // `setLocale` re-reads the static tree, writes `?lang=` into the URL so a
+  // reload agrees, and calls the running engine's callback if it registered one.
+  setLocale(nextLocale());
+  paintLanguage();
+  // The dynamic lines (opening status, dock state, launch title, the theatre
+  // line) are painted by their owners, so the switch repaints them by hand.
+  paintOpening();
+  paintWorld();
+  paintDock(engineReady ? 'ok' : 'warn', engineReady ? t('dock.ready') : t('dock.not_ready'));
+  if (current === 'launch') el('launch-title').textContent = t('launch.title');
+});
+
+document.addEventListener('aegis:locale', () => paintLanguage());
 
 document.addEventListener('keydown', (event) => {
   if (event.defaultPrevented) return;
@@ -680,9 +717,14 @@ window.AegisShell = { home, screen: () => current };
 
 /* ------------------------------------------------------------------ boot */
 
+// Language first: every painter below reads its words from the catalog, so the
+// active language has to be resolved before the first frame is painted.
+initLocale();
+applyLocale();
 applyMotionPref();
 applyPrefsToUrl();
-paintDock(engineReady ? 'ok' : 'warn', engineReady ? 'Konsol siap' : 'Konsol belum siap');
+paintLanguage();
+paintDock(engineReady ? 'ok' : 'warn', engineReady ? t('dock.ready') : t('dock.not_ready'));
 paintLoadout();
 paintWorld();
 paintOpening();

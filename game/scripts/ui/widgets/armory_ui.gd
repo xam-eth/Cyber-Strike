@@ -21,11 +21,18 @@ signal close_requested
 signal home_requested
 
 const ORDER := [&"pulse_rifle", &"nova_launcher", &"arc_shooter"]
+## Node names are built from these, so they keep the id: a test finds
+## `ArcWeaponButton` by name, and a name is not copy.
+## Node-name stems only. These are never drawn: `wpn.*.name` and `wpn.*.role`
+## are the words on the card, and a node name is not copy.
 const SHORT_NAMES := ["PULSE · PRECISION", "NOVA · BLAST", "ARC · CHAIN"]
 const CARD_NAMES := ["PULSE RIFLE", "NOVA LAUNCHER", "ARC SHOOTER"]
 ## One line per weapon: what it does in play, in the player's words. The full
-## `role_description` is a sentence in a resource; a card needs a verdict.
-const CARD_ROLES := ["Tembakan cepat, akurat", "Ledakan area, lambat", "Rantai listrik"]
+## `role_description` is a sentence in a resource; a card needs a verdict. These
+## were three Indonesian lines in an otherwise English card -- the exact mix this
+## catalog exists to end -- so they are keys now, in both languages.
+const CARD_ROLE_KEYS := ["wpn.pulse.role", "wpn.nova.role", "wpn.arc.role"]
+const CARD_NAME_KEYS := ["wpn.pulse.name", "wpn.nova.name", "wpn.arc.name"]
 const ART := [
 	"res://assets/ui/weapon_pulse_rifle.png",
 	"res://assets/ui/weapon_nova_launcher.png",
@@ -41,6 +48,14 @@ var _arts: Array[TextureRect] = []
 var _close_button: AegisButton
 var _home_button: AegisButton
 var _column: VBoxContainer
+## What the last `refresh_profile` was told, so a language change can re-print
+## the wallet and the three cards without the HUD handing the numbers over again.
+var _last_balance := 0
+var _last_best := 0
+var _last_unlocked: Dictionary = {}
+var _last_equipped := &""
+var _hint_key := ""
+var _hint_args: Array = []
 
 
 func _ready() -> void:
@@ -52,10 +67,10 @@ func _ready() -> void:
 
 	_column = VBoxContainer.new()
 	add_child(_column)
-	_column.add_child(_label("ARMORY / FIELD LOADOUT", "display_l", AegisTokens.INK))
-	_wallet_label = _label("0 BP · BEST 0", "mono_m", AegisTokens.ACCENT)
+	_column.add_child(_label_key("armory.title", "display_l", AegisTokens.INK))
+	_wallet_label = _label("", "mono_m", AegisTokens.ACCENT)
 	_column.add_child(_wallet_label)
-	_hint_label = _label("EARN BP BY DEFEATING WAVES", "label", AegisTokens.INK_2)
+	_hint_label = _label_key("armory.hint", "label", AegisTokens.INK_2)
 	_column.add_child(_hint_label)
 
 	var row := HBoxContainer.new()
@@ -76,7 +91,7 @@ func _ready() -> void:
 
 	_close_button = AegisButton.new()
 	_close_button.name = "CloseArmoryButton"
-	_close_button.text = "RETURN TO FIELD"
+	AegisText.apply(_close_button, "armory.return_field")
 	_close_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_close_button.focus_mode = Control.FOCUS_ALL
 	_close_button.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -86,7 +101,7 @@ func _ready() -> void:
 
 	_home_button = AegisButton.new()
 	_home_button.name = "ArmoryHomeButton"
-	_home_button.text = "HOME"
+	AegisText.apply(_home_button, "armory.home")
 	_home_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_home_button.focus_mode = Control.FOCUS_ALL
 	_home_button.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -133,9 +148,9 @@ func _build_card(index: int) -> AegisPanel:
 	column.add_child(shot)
 	_arts.append(shot)
 
-	var name_label := _label(CARD_NAMES[index], "mono_m", AegisTokens.INK)
+	var name_label := _label_key(CARD_NAME_KEYS[index], "mono_m", AegisTokens.INK)
 	column.add_child(name_label)
-	var role_label := _label(CARD_ROLES[index], "label", AegisTokens.INK_3)
+	var role_label := _label_key(CARD_ROLE_KEYS[index], "label", AegisTokens.INK_3)
 	column.add_child(role_label)
 
 	var state := _label("", "label", AegisTokens.INFO)
@@ -157,32 +172,40 @@ func _build_card(index: int) -> AegisPanel:
 func refresh_profile(
 	balance: int, best_score: int, unlocked_ids: Dictionary, equipped: StringName
 ) -> void:
-	_wallet_label.text = "BP  %d  ·  BEST  %d" % [balance, best_score]
+	_last_balance = balance
+	_last_best = best_score
+	_last_unlocked = unlocked_ids
+	_last_equipped = equipped
+	_wallet_label.text = AegisText.t("armory.wallet", [balance, best_score])
 	for index in range(ORDER.size()):
 		var id: StringName = ORDER[index]
 		var definition := load("res://resources/weapons/%s.tres" % String(id)) as WeaponDefinition
 		var specs := ""
 		if definition != null:
-			specs = (
-				"%d DMG · %.1f/S · %d"
-				% [roundi(definition.damage), definition.fire_rate, definition.magazine_size]
+			specs = AegisText.t(
+				"armory.specs",
+				[
+					roundi(definition.damage),
+					_numeral(definition.fire_rate),
+					definition.magazine_size
+				]
 			)
 		var state := _states[index]
 		state.text = specs
 		var button := _weapon_buttons[index]
 		var variant := "round"
 		if String(id) == String(equipped):
-			button.text = "EQUIPPED"
+			AegisText.apply(button, "common.equipped")
 			state.add_theme_color_override("font_color", AegisTokens.ACCENT)
 			_cards[index].accent_color = AegisTokens.ACCENT
 			variant = "round"
 		elif unlocked_ids.has(String(id)):
-			button.text = "EQUIP"
+			AegisText.apply(button, "armory.equip")
 			state.add_theme_color_override("font_color", AegisTokens.OK)
 			_cards[index].accent_color = AegisTokens.OK
 		else:
 			var cost: int = int(ProgressionService.COSTS[String(id)])
-			button.text = "UNLOCK %d BP" % cost
+			AegisText.apply(button, "armory.unlock", [cost])
 			state.add_theme_color_override("font_color", AegisTokens.INK_2)
 			_cards[index].accent_color = AegisTokens.LINE_HI
 			variant = "primary" if balance >= cost else "round"
@@ -202,8 +225,31 @@ func show_home(enabled: bool) -> void:
 	_home_button.visible = enabled
 
 
+## A hint that is a catalog key plus its numbers, so it survives a language
+## change. The literal setter stays for a caller that already has a finished
+## sentence, and clears the key so the language walk cannot overwrite it.
+func show_hint_key(key: String, args: Array = []) -> void:
+	_hint_key = key
+	_hint_args = args
+	AegisText.apply(_hint_label, key, args)
+
+
 func show_hint(text: String) -> void:
+	_hint_key = ""
+	_hint_args = []
+	if _hint_label.has_meta("i18n_key"):
+		_hint_label.remove_meta("i18n_key")
 	_hint_label.text = text
+
+
+## Re-reads every card in the new language. Called by the HUD when the player
+## switches language while the armory is open.
+func refresh_language() -> void:
+	AegisText.refresh(self)
+	if not _last_equipped.is_empty():
+		refresh_profile(int(_last_balance), int(_last_best), _last_unlocked, _last_equipped)
+	if not _hint_key.is_empty():
+		AegisText.apply(_hint_label, _hint_key, _hint_args)
 
 
 func layout_for(hud) -> void:
@@ -255,6 +301,21 @@ func _on_weapon_pressed(id: StringName) -> void:
 
 func _on_close_pressed() -> void:
 	close_requested.emit()
+
+
+func _label_key(key: String, role: String, color: Color) -> Label:
+	var result := _label("", role, color)
+	AegisText.apply(result, key)
+	return result
+
+
+## "5" not "5.00": the same trimming the weapon rail uses, so one card and one
+## rail print a rate the same way.
+static func _numeral(value: float) -> String:
+	var text := "%.2f" % value
+	while text.ends_with("0") and text.contains("."):
+		text = text.substr(0, text.length() - 1)
+	return text.substr(0, text.length() - 1) if text.ends_with(".") else text
 
 
 func _label(text: String, role: String, color: Color) -> Label:

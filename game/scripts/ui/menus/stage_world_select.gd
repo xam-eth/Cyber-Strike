@@ -164,7 +164,7 @@ func _build_map() -> void:
 	map_caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	physical_separation(map_caption, 2)
 	_map.add_child(map_caption)
-	var kicker := make_label("DEPLOYMENT THEATRE", "label_s", AegisTokens.ACCENT)
+	var kicker := make_label_key("world.kicker", "label_s", AegisTokens.ACCENT)
 	map_caption.add_child(kicker)
 	_map_name = make_label("", "display_m", AegisTokens.INK)
 	_map_name.autowrap_mode = TextServer.AUTOWRAP_OFF
@@ -213,7 +213,7 @@ func _build_pin(definition: WorldDefinition) -> AegisButton:
 	# disabled: the map holds the whole roadmap without pretending any of it is
 	# playable.
 	var state := make_label(
-		definition.status_line.to_upper() if definition.field_ready else "IN DEVELOPMENT",
+		definition.display_status().to_upper(),
 		"label_s",
 		AegisTokens.OK if definition.field_ready else AegisTokens.INK_3
 	)
@@ -238,7 +238,7 @@ func _build_placeholder_pin(index: int) -> AegisButton:
 	slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	AegisTheme.set_button_variant(slot, "card")
 	var label := make_label(
-		"THEATRE %02d  ·  IN DEVELOPMENT" % (index + 1), "label_s", AegisTokens.INK_3
+		AegisText.t("world.locked_pin", [index + 1]), "label_s", AegisTokens.INK_3
 	)
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -270,7 +270,7 @@ func _build_info() -> void:
 	_brief = make_label("", "body_s", AegisTokens.INK_2)
 	_brief.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_status = make_label("", "label_s", AegisTokens.OK)
-	_launch = make_button("LAUNCH", "primary", "Drop into the selected theatre")
+	_launch = make_button_key("world.launch", "primary", "world.launch_tip")
 	_launch.pressed.connect(_on_launch_pressed)
 	for node in [_chapter, _title, _brief, _status]:
 		_info_text.add_child(node)
@@ -338,12 +338,20 @@ func enter(_stage_payload: Dictionary) -> void:
 	apply_safe_margins(_margin)
 	_on_resized()
 	_refresh()
+	AegisText.watch(_on_language)
 
 
 func refresh_profile() -> void:
 	_refresh()
 	if _chrome != null:
 		_chrome.refresh(progression_service())
+
+
+## The theatre's copy is read out of a definition on every refresh, so a
+## language change is `refresh_profile()` plus the keyed tree.
+func _on_language(_code: String) -> void:
+	AegisText.refresh(self)
+	refresh_profile()
 
 
 func _on_nav_requested(tab_id: StringName) -> void:
@@ -381,14 +389,14 @@ func _refresh() -> void:
 	# The registry has no chapter number, so the line states the theatre's own
 	# role rather than inventing "CHAPTER 2" or echoing the id with its
 	# underscores taken out.
-	_chapter.text = ("DEPLOYMENT THEATRE" if definition.field_ready else "NOT YET DEPLOYABLE")
+	AegisText.apply(_chapter, "world.kicker" if definition.field_ready else "world.not_deployable")
 	_title.text = definition.display_name.to_upper()
 	if is_instance_valid(_map_name):
 		_map_name.text = definition.display_name.to_upper()
 	if is_instance_valid(_map_plate):
 		_map_plate.texture = try_texture(definition.plate_path)
-	_brief.text = _first_sentence(definition.role_description)
-	_status.text = definition.status_line.to_upper()
+	_brief.text = _first_sentence(definition.display_role())
+	_status.text = definition.display_status().to_upper()
 	if definition.field_ready:
 		_status.add_theme_color_override("font_color", AegisTokens.OK)
 	else:
@@ -422,7 +430,7 @@ func _on_launch_pressed() -> void:
 			&"PRELOAD",
 			{
 				"scene": FrontEnd.GAMEPLAY_SCENE,
-				"title": "PREPARING DROP",
+				"title": AegisText.t("world.preparing_drop"),
 				"targets": [FrontEnd.GAMEPLAY_SCENE],
 				"weapon_id": String(progression.selected_weapon_id),
 				"world_id": String(progression.selected_world_id),

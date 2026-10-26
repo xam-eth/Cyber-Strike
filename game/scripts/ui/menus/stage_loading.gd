@@ -184,7 +184,7 @@ func _build_caption() -> void:
 	# drew a 14 px credit line under a 720 px wordmark and the frame read as a
 	# mock-up. The floor for supporting text in this project is 16 px
 	# (docs/DECISIONS.md 20).
-	_title = make_label("LOADING", "label", AegisTokens.INK_2)
+	_title = make_label_key("loading.title", "label", AegisTokens.INK_2)
 	_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	headline.add_child(_title)
 
@@ -244,7 +244,9 @@ func enter(stage_payload: Dictionary) -> void:
 	_failed = []
 	_done = false
 	_hold = bool(stage_payload.get("hold", false))
-	_title.text = str(stage_payload.get("title", "LOADING"))
+	# A loader is handed a title by whoever asked for it; `LOADING` is the word
+	# when nobody did.
+	_title.text = str(stage_payload.get("title", AegisText.t("loading.title")))
 	_apply_poster()
 	var total := _targets.size()
 	if total == 0:
@@ -254,13 +256,13 @@ func enter(stage_payload: Dictionary) -> void:
 		_indeterminate.reduce_motion = _reduce_motion
 		_indeterminate.set_running(true)
 		_percent.text = ""
-		_status.text = "PREPARING"
+		AegisText.apply(_status, "loading.preparing")
 	else:
 		_bar.visible = true
 		_indeterminate.visible = false
 		_bar.value = 0.0
 		_percent.text = "0%"
-		_status.text = "0 / %d" % total
+		AegisText.apply(_status, "loading.progress", [0, total])
 		ResourceLoader.load_threaded_request(_targets[0])
 	set_process(true)
 	# An empty queue still has to leave the stage; give it one beat.
@@ -281,7 +283,7 @@ func _process(_delta: float) -> void:
 	match status:
 		ResourceLoader.THREAD_LOAD_LOADED:
 			_index += 1
-			_status.text = "%d / %d" % [_index, _targets.size()]
+			AegisText.apply(_status, "loading.progress", [_index, _targets.size()])
 			if _index < _targets.size():
 				ResourceLoader.load_threaded_request(_targets[_index])
 			else:
@@ -312,7 +314,7 @@ func _finish() -> void:
 	_indeterminate.set_running(false)
 	_bar.value = 1.0
 	_percent.text = "100%"
-	_status.text = "READY"
+	AegisText.apply(_status, "loading.ready")
 	if _hold:
 		return
 	var scene_path := str(payload.get("scene", ""))

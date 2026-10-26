@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="id">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -54,7 +54,7 @@
     -->
   </head>
   <body data-screen="opening">
-    <canvas id="canvas" data-hidden="true" aria-label="Dunia permainan"></canvas>
+    <canvas id="canvas" data-hidden="true" aria-label="Game world"></canvas>
     <div class="field" aria-hidden="true"></div>
 
     <!-- The only portrait view: rotate. The product is landscape-only, so this
@@ -66,8 +66,8 @@
           <path d="M10.5 19h3" />
         </svg>
       </span>
-      <p class="rotate__title">Putar perangkat</p>
-      <p class="rotate__hint">Konsol ini hanya berjalan dalam mode mendatar</p>
+      <p class="rotate__title" data-i18n="rotate.title">ROTATE DEVICE</p>
+      <p class="rotate__hint" data-i18n="rotate.hint">This console only runs in landscape</p>
     </div>
 
     <div id="app">
@@ -98,7 +98,7 @@
         <button class="dockbtn" id="dock-fullscreen" type="button" aria-label="Layar penuh" title="Layar penuh">
           <svg class="ico" aria-hidden="true"><use href="#i-expand" /></svg>
         </button>
-        <button class="dockbtn" id="dock-settings" type="button" aria-label="Tampilan dan kontrol" title="Tampilan">
+        <button class="dockbtn" id="dock-settings" type="button" data-i18n-aria="dock.settings" data-i18n-title="dock.settings_title" aria-label="Display and controls" title="Display">
           <svg class="ico" aria-hidden="true"><use href="#i-gear" /></svg>
         </button>
       </header>
@@ -116,19 +116,19 @@
               <div class="lockup">
                 <img class="opening__word" src="./game/assets/ui/logo_wordmark.png" alt="Exocomplict — Stellar Horizon" />
               </div>
-              <p class="opening__tag" id="opening-tagline">Tak ada garis di belakangmu</p>
+              <p class="opening__tag" id="opening-tagline" data-i18n="opening.tagline">No line at your back</p>
             </div>
 
             <div class="opening__foot">
-              <div class="rail rail--open" id="opening-progress" data-indeterminate="true" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Menyiapkan konsol">
+              <div class="rail rail--open" id="opening-progress" data-indeterminate="true" role="progressbar" aria-valuemin="0" aria-valuemax="100" data-i18n-aria="opening.rail_label" aria-label="Preparing console">
                 <span class="rail__fill" id="opening-fill"></span>
                 <span class="rail__head" aria-hidden="true"></span>
               </div>
               <div class="opening__footrow">
-                <p class="opening__status" id="opening-status">Menyiapkan konsol</p>
+                <p class="opening__status" id="opening-status" data-i18n="opening.status.checking">Preparing console</p>
                 <button class="btn btn--hero" id="opening-enter" type="button" disabled>
                   <svg class="ico" aria-hidden="true"><use href="#i-deploy" /></svg>
-                  <span class="btn__label">Masuk</span>
+                  <span class="btn__label" data-i18n="opening.enter">ENTER</span>
                 </button>
               </div>
               <p class="opening__note" id="opening-note" hidden></p>
@@ -141,19 +141,19 @@
           <div class="screen__inner hub">
             <div class="hub__main">
               <div class="hub__head">
-                <p class="eyebrow">Peta operasi</p>
-                <h1 class="hub__title" id="hub-title">Pilih teater</h1>
+                <p class="eyebrow" data-i18n="hub.eyebrow">OPERATIONS MAP</p>
+                <h1 class="hub__title" id="hub-title" data-i18n="hub.title">CHOOSE THEATRE</h1>
               </div>
 
-              <div class="carousel" id="world-carousel" role="listbox" aria-label="Teater">
+              <div class="carousel" id="world-carousel" role="listbox" data-i18n-aria="hub.carousel_label" aria-label="Theatres">
                 <button class="wcard" id="world-card-neon-frontier" data-world="neon_frontier" type="button" role="option" aria-selected="true">
                   <span class="wcard__art wcard__art--frontier" aria-hidden="true"></span>
                   <span class="wcard__no" aria-hidden="true">01</span>
                   <span class="wcard__copy">
                     <span class="wcard__name">Neon Frontier</span>
-                    <span class="wcard__role">Pos luar · menara reaktor</span>
+                    <span class="wcard__role" data-i18n="world.neon_frontier.role">Outpost · reactor spire</span>
                   </span>
-                  <span class="wcard__state">Terbuka</span>
+                  <span class="wcard__state" data-i18n="world.state.open">OPEN</span>
                   <span class="wcard__tick" aria-hidden="true"><svg class="ico"><use href="#i-check" /></svg></span>
                 </button>
 
@@ -162,9 +162,9 @@
                   <span class="wcard__no" aria-hidden="true">02</span>
                   <span class="wcard__copy">
                     <span class="wcard__name">Vanguard Station</span>
-                    <span class="wcard__role">Hanggar · pintu ledak</span>
+                    <span class="wcard__role" data-i18n="world.vanguard_station.role">Hangar · blast door</span>
                   </span>
-                  <span class="wcard__state">Terbuka</span>
+                  <span class="wcard__state" data-i18n="world.state.open">OPEN</span>
                   <span class="wcard__tick" aria-hidden="true"><svg class="ico"><use href="#i-check" /></svg></span>
                 </button>
 
@@ -174,49 +174,49 @@
                   <span class="wcard__art wcard__art--empty" aria-hidden="true"></span>
                   <span class="wcard__no" aria-hidden="true">03</span>
                   <span class="wcard__copy">
-                    <span class="wcard__name">Sektor 08</span>
-                    <span class="wcard__role">Belum dibuka</span>
+                    <span class="wcard__name" data-i18n="world.slot_03.name">Sector 08</span>
+                    <span class="wcard__role" data-i18n="world.slot_03.role">Not open yet</span>
                   </span>
-                  <span class="wcard__state"><svg class="ico" aria-hidden="true"><use href="#i-lock" /></svg>Segera</span>
+                  <span class="wcard__state"><svg class="ico" aria-hidden="true"><use href="#i-lock" /></svg><span data-i18n="world.state.soon">SOON</span></span>
                 </button>
               </div>
 
               <div class="carousel__foot">
-                <button class="cbtn" id="world-prev" type="button" aria-label="Teater sebelumnya">
+                <button class="cbtn" id="world-prev" type="button" data-i18n-aria="hub.prev" aria-label="Previous theatre">
                   <svg class="ico" aria-hidden="true"><use href="#i-chev-left" /></svg>
                 </button>
                 <span class="dots" id="world-dots" aria-hidden="true"><i data-active="true"></i><i></i></span>
-                <button class="cbtn" id="world-next" type="button" aria-label="Teater berikutnya">
+                <button class="cbtn" id="world-next" type="button" data-i18n-aria="hub.next" aria-label="Next theatre">
                   <svg class="ico" aria-hidden="true"><use href="#i-chev-right" /></svg>
                 </button>
-                <span class="carousel__line" id="hub-world-line">Neon Frontier · sektor 07</span>
+                <span class="carousel__line" id="hub-world-line">Neon Frontier · sector 07</span>
               </div>
 
               <div class="hub__deploy">
                 <button class="btn btn--primary btn--deploy" id="hub-deploy" type="button">
                   <svg class="ico" aria-hidden="true"><use href="#i-deploy" /></svg>
-                  <span class="btn__label">Deploy</span>
+                  <span class="btn__label" data-i18n="hub.deploy">DEPLOY</span>
                   <span class="btn__meta" id="hub-deploy-meta">Pulse Rifle</span>
                 </button>
-                <p class="hub__hint">Gelombang pertama dimulai di dalam arena</p>
+                <p class="hub__hint" data-i18n="hub.hint">The first wave starts inside the arena</p>
               </div>
             </div>
 
-            <nav class="side" aria-label="Menu">
+            <nav class="side" data-i18n-aria="hub.menu" aria-label="Menu">
               <button class="tile" id="hub-card-operative" type="button">
                 <span class="tile__ico" aria-hidden="true"><svg class="ico"><use href="#i-operative" /></svg></span>
-                <span class="tile__label">Operatif</span>
+                <span class="tile__label" data-i18n="hub.tile.operative">OPERATIVE</span>
                 <span class="tile__meta" id="hub-operative-meta">Pulse Rifle</span>
               </button>
               <button class="tile" id="hub-card-display" type="button">
                 <span class="tile__ico" aria-hidden="true"><svg class="ico"><use href="#i-gear" /></svg></span>
-                <span class="tile__label">Tampilan</span>
-                <span class="tile__meta">HUD · gerak</span>
+                <span class="tile__label" data-i18n="hub.tile.display">DISPLAY</span>
+                <span class="tile__meta" data-i18n="hub.tile.display_meta">HUD · motion</span>
               </button>
               <button class="tile" id="hub-card-controls" type="button">
                 <span class="tile__ico" aria-hidden="true"><svg class="ico"><use href="#i-keys" /></svg></span>
-                <span class="tile__label">Kontrol</span>
-                <span class="tile__meta">Tombol</span>
+                <span class="tile__label" data-i18n="hub.tile.controls">CONTROLS</span>
+                <span class="tile__meta" data-i18n="hub.tile.controls_meta">Keys</span>
               </button>
             </nav>
           </div>
@@ -242,24 +242,24 @@
           <div class="hero">
             <div class="hero__left">
               <div class="hero__id">
-                <p class="eyebrow">Operatif · 01 / 03</p>
+                <p class="eyebrow" data-i18n="hero.eyebrow">OPERATIVE · 01 / 03</p>
                 <h1 class="hero__name" id="hero-name">EXO Operative</h1>
                 <div class="hero__tags">
-                  <span class="chip chip--ok" id="hero-status">Field ready</span>
+                  <span class="chip chip--ok" id="hero-status" data-i18n="hero.status">Field ready</span>
                   <span class="chip chip--quiet">E-07</span>
                 </div>
               </div>
 
-              <p class="hero__role" id="hero-role">
-                Pasukan AEGIS dari program pelatihan lapangan. Satu rangka untuk semua
-                operatif; yang berbeda corak lapangannya.
+              <p class="hero__role" id="hero-role" data-i18n="hero.role">
+                AEGIS infantry out of the field training programme. One frame for every
+                operative; what changes is the livery and the weapon.
               </p>
 
               <!-- The hero list. A card per operative, the way the roster of a
                    character page reads: portrait, name, state. Three slots, one
                    filled -- and the two empty ones are drawn as slots, not as
                    silhouettes of heroes that do not exist. -->
-              <ul class="hcards" id="hero-roster" aria-label="Daftar operatif">
+              <ul class="hcards" id="hero-roster" data-i18n-aria="hero.roster_label" aria-label="Operative list">
                 <li>
                   <button class="hcard" type="button" data-hero="exo_operative" data-active="true" aria-pressed="true">
                     <span class="hcard__thumb">
@@ -267,7 +267,7 @@
                     </span>
                     <span class="hcard__body">
                       <span class="hcard__name">EXO Operative</span>
-                      <span class="hcard__state">Siap deploy</span>
+                      <span class="hcard__state" data-i18n="hero.roster_state">Ready to deploy</span>
                     </span>
                     <span class="hcard__tick" aria-hidden="true"><svg class="ico"><use href="#i-check" /></svg></span>
                   </button>
@@ -277,7 +277,7 @@
                     <span class="hcard__thumb hcard__thumb--empty"></span>
                     <span class="hcard__body">
                       <span class="hcard__name">Slot 02</span>
-                      <span class="hcard__state">Kosong</span>
+                      <span class="hcard__state" data-i18n="hero.slot_empty">Empty</span>
                     </span>
                   </button>
                 </li>
@@ -286,7 +286,7 @@
                     <span class="hcard__thumb hcard__thumb--empty"></span>
                     <span class="hcard__body">
                       <span class="hcard__name">Slot 03</span>
-                      <span class="hcard__state">Kosong</span>
+                      <span class="hcard__state" data-i18n="hero.slot_empty">Empty</span>
                     </span>
                   </button>
                 </li>
@@ -297,10 +297,10 @@
                    row on purpose: the questions a character page answers run
                    name -> who -> what do they carry, and the strip is the third
                    answer, not decoration. -->
-              <div class="hero__kitted" aria-label="Bawaan saat deploy">
-                <span class="kitted__row"><i>Livery</i><b id="hero-kit-skin">AEGIS</b></span>
-                <span class="kitted__row"><i>Senjata</i><b id="hero-kit-weapon">Pulse Rifle</b></span>
-                <span class="kitted__row"><i>Teater</i><b id="hero-kit-world">Neon Frontier</b></span>
+              <div class="hero__kitted" data-i18n-aria="hero.kitted_label" aria-label="Issued for deployment">
+                <span class="kitted__row"><i data-i18n="hero.kit.livery">Livery</i><b id="hero-kit-skin">AEGIS</b></span>
+                <span class="kitted__row"><i data-i18n="hero.kit.weapon">Weapon</i><b id="hero-kit-weapon">Pulse Rifle</b></span>
+                <span class="kitted__row"><i data-i18n="hero.kit.theatre">Theatre</i><b id="hero-kit-world">Neon Frontier</b></span>
               </div>
             </div>
 
@@ -314,7 +314,7 @@
                   class="stage__view"
                   id="hero-canvas"
                   role="img"
-                  aria-label="EXO Operative, render langsung dari hero.glb"
+                  data-i18n-aria="hero.stage_label" aria-label="EXO Operative, rendered live from hero.glb"
                 ></canvas>
                 <span class="stage__note" id="hero-stage-note" hidden></span>
                 <span class="stage__ring" aria-hidden="true"></span>
@@ -322,26 +322,26 @@
                 <span class="stage__flash" aria-hidden="true"></span>
                 <span class="stage__sparks" id="hero-sparks" aria-hidden="true"></span>
                 <span class="stage__banner" id="hero-banner" aria-hidden="true">
-                  <b>Operatif 01</b><i>Siap deploy</i>
+                  <b data-i18n="hero.banner_name">OPERATIVE 01</b><i data-i18n="hero.status">Field ready</i>
                 </span>
               </div>
 
-              <div class="hero__tabs" role="tablist" aria-label="Detail operatif">
+              <div class="hero__tabs" role="tablist" data-i18n-aria="hero.tabs_label" aria-label="Operative detail">
                 <button class="htab" type="button" role="tab" id="tab-info" data-tab="info" aria-selected="true" aria-controls="hero-panel-info">
                   <svg class="ico" aria-hidden="true"><use href="#i-info" /></svg>
-                  <span>Info</span>
+                  <span data-i18n="hero.tab.info">Info</span>
                 </button>
                 <button class="htab" type="button" role="tab" id="tab-upgrade" data-tab="upgrade" aria-selected="false" aria-controls="hero-panel-upgrade">
                   <svg class="ico" aria-hidden="true"><use href="#i-upgrade" /></svg>
-                  <span>Upgrade</span>
+                  <span data-i18n="hero.tab.upgrade">Upgrade</span>
                 </button>
                 <button class="htab" type="button" role="tab" id="tab-skin" data-tab="skin" aria-selected="false" aria-controls="hero-panel-skin">
                   <svg class="ico" aria-hidden="true"><use href="#i-skin" /></svg>
-                  <span>Skin</span>
+                  <span data-i18n="hero.tab.skin">Livery</span>
                 </button>
                 <button class="htab" type="button" role="tab" id="tab-weapon" data-tab="weapon" aria-selected="false" aria-controls="hero-panel-weapon">
                   <svg class="ico" aria-hidden="true"><use href="#i-rifle" /></svg>
-                  <span>Senjata</span>
+                  <span data-i18n="hero.tab.weapon">Weapon</span>
                 </button>
               </div>
             </div>
@@ -351,23 +351,23 @@
                    the game loads (rig height, the model, the slot). -->
               <div class="hpanel" id="hero-panel-info" role="tabpanel" aria-labelledby="tab-info">
                 <div class="hpanel__head">
-                  <p class="eyebrow">Profil</p>
-                  <span class="chip chip--ok">Siap</span>
+                  <p class="eyebrow" data-i18n="hero.info.eyebrow">PROFILE</p>
+                  <span class="chip chip--ok" data-i18n="hero.ready_chip">READY</span>
                 </div>
-                <p class="hpanel__text">
-                  Rangka E-07 dengan pelat dada, bahu dan lutut buatan. Satu rig, satu
-                  set animasi. Pilihan ada di corak dan senjata.
+                <p class="hpanel__text" data-i18n="hero.info.body">
+                  An E-07 frame with fabricated chest, shoulder and knee plates. One rig,
+                  one animation set. The choice lives in the livery and the weapon.
                 </p>
                 <div class="statusgrid hpanel__grid">
-                  <div><span class="metric__key">Chassis</span><span class="metric__val">E-07</span></div>
-                  <div><span class="metric__key">Tinggi</span><span class="metric__val">1.78 m</span></div>
-                  <div><span class="metric__key">Slot</span><span class="metric__val" data-tone="accent">01 / 03</span></div>
-                  <div><span class="metric__key">Rig</span><span class="metric__val">hero.glb</span></div>
+                  <div><span class="metric__key" data-i18n="hero.info.chassis">Chassis</span><span class="metric__val">E-07</span></div>
+                  <div><span class="metric__key" data-i18n="hero.info.height">Height</span><span class="metric__val">1.78 m</span></div>
+                  <div><span class="metric__key" data-i18n="hero.info.slot">Slot</span><span class="metric__val" data-tone="accent">01 / 03</span></div>
+                  <div><span class="metric__key" data-i18n="hero.info.rig">Rig</span><span class="metric__val">hero.glb</span></div>
                 </div>
                 <ul class="hlist">
-                  <li><b>Idle</b><span>sikap siaga</span></li>
-                  <li><b>Aim</b><span>angkat sungsang</span></li>
-                  <li><b>Fire</b><span>rekoil tembakan</span></li>
+                  <li><b>Idle</b><span data-i18n="hero.clip.idle">ready stance</span></li>
+                  <li><b>Aim</b><span data-i18n="hero.clip.aim">sights up</span></li>
+                  <li><b>Fire</b><span data-i18n="hero.clip.fire">recoil</span></li>
                 </ul>
               </div>
 
@@ -379,7 +379,7 @@
                    action is stated and disabled instead of pretending. -->
               <div class="hpanel" id="hero-panel-upgrade" role="tabpanel" aria-labelledby="tab-upgrade" hidden>
                 <div class="hpanel__head">
-                  <p class="eyebrow">Jalur kit</p>
+                  <p class="eyebrow" data-i18n="hero.upgrade.eyebrow">KIT PATH</p>
                   <span class="chip chip--quiet">BP</span>
                 </div>
                 <ol class="tiers" id="hero-tiers">
@@ -389,7 +389,7 @@
                       <b>Pulse Rifle</b>
                       <i>18 dmg · 5.0/s · 24</i>
                     </span>
-                    <span class="tier__state">terbuka</span>
+                    <span class="tier__state" data-i18n="hero.upgrade.state">open</span>
                   </li>
                   <li class="tier">
                     <span class="tier__no">02</span>
@@ -411,12 +411,12 @@
                 <div class="tier__meter" aria-hidden="true"><i></i><i></i><i></i></div>
                 <button class="btn btn--upgrade" type="button" disabled aria-describedby="upgrade-note">
                   <svg class="ico" aria-hidden="true"><use href="#i-upgrade" /></svg>
-                  <span class="btn__label">Tingkatkan</span>
-                  <span class="btn__meta">arena</span>
+                  <span class="btn__label" data-i18n="hero.upgrade.button">UPGRADE</span>
+                  <span class="btn__meta" data-i18n="hero.upgrade.meta">arena</span>
                 </button>
-                <p class="hpanel__note" id="upgrade-note">
-                  Battle Points didapat dan dibelanjakan di dalam arena, jadi tidak ada
-                  yang bisa dibeli sebelum Deploy.
+                <p class="hpanel__note" id="upgrade-note" data-i18n="hero.upgrade.note">
+                  Battle Points are earned and spent inside the arena, so nothing can be
+                  bought before Deploy.
                 </p>
               </div>
 
@@ -426,29 +426,29 @@
                    a hero that does not exist. -->
               <div class="hpanel" id="hero-panel-skin" role="tabpanel" aria-labelledby="tab-skin" hidden>
                 <div class="hpanel__head">
-                  <p class="eyebrow">Livery</p>
+                  <p class="eyebrow" data-i18n="hero.skin.eyebrow">LIVERY</p>
                   <span class="chip chip--quiet">1 / 3</span>
                 </div>
-                <div class="skins" role="radiogroup" aria-label="Livery operatif">
+                <div class="skins" role="radiogroup" data-i18n-aria="hero.skin.group" aria-label="Operative livery">
                   <button class="skin" type="button" role="radio" aria-checked="true" data-skin="aegis">
                     <span class="skin__swatch skin__swatch--aegis" aria-hidden="true"></span>
                     <span class="skin__name">AEGIS</span>
-                    <span class="skin__state">Terpasang</span>
+                    <span class="skin__state" data-i18n="hero.skin.equipped">Equipped</span>
                   </button>
                   <button class="skin" type="button" role="radio" aria-checked="false" aria-disabled="true" data-skin="glacier">
                     <span class="skin__swatch skin__swatch--glacier" aria-hidden="true"></span>
                     <span class="skin__name">Glacier</span>
-                    <span class="skin__state">Belum dibuat</span>
+                    <span class="skin__state" data-i18n="hero.skin.not_built">Not built</span>
                   </button>
                   <button class="skin" type="button" role="radio" aria-checked="false" aria-disabled="true" data-skin="ember">
                     <span class="skin__swatch skin__swatch--ember" aria-hidden="true"></span>
                     <span class="skin__name">Ember</span>
-                    <span class="skin__state">Belum dibuat</span>
+                    <span class="skin__state" data-i18n="hero.skin.not_built">Not built</span>
                   </button>
                 </div>
-                <p class="hpanel__note">
-                  Livery mengikuti rig: yang terpasang adalah yang dipakai di arena.
-                  Slot lain ditandai apa adanya, bukan dijual.
+                <p class="hpanel__note" data-i18n="hero.skin.note">
+                  A livery follows the rig: the equipped one is the one the arena renders.
+                  The other slots are labelled as they are, not sold.
                 </p>
               </div>
 
@@ -457,7 +457,7 @@
                    still travels to the arena in the URL. -->
               <div class="hpanel hpanel--rack" id="hero-panel-weapon" role="tabpanel" aria-labelledby="tab-weapon" hidden>
                 <div class="hpanel__head">
-                  <p class="eyebrow">Rak senjata</p>
+                  <p class="eyebrow" data-i18n="hero.weapon.eyebrow">WEAPON RACK</p>
                   <span class="chip chip--quiet" id="hero-weapon-chip">Pulse Rifle</span>
                 </div>
                 <ul class="rack__list" id="hero-rack">
@@ -468,7 +468,7 @@
                         <span class="weapon__name">Pulse Rifle</span>
                         <span class="weapon__spec"><b>18</b> dmg · <b>5.0</b>/s · <b>24</b></span>
                       </span>
-                      <span class="weapon__state">Terpasang</span>
+                      <span class="weapon__state" data-i18n="hero.weapon.equipped">Equipped</span>
                     </button>
                   </li>
                   <li>
@@ -492,17 +492,17 @@
                     </button>
                   </li>
                 </ul>
-                <p class="hpanel__note">Senjata terpilih terbawa saat Deploy.</p>
+                <p class="hpanel__note" data-i18n="hero.weapon.note">The selected weapon travels with you on Deploy.</p>
               </div>
 
               <div class="hero__actions">
                 <button class="btn btn--primary btn--deploy" id="hero-next" type="button">
-                  <span class="btn__label">Lanjut ke peta</span>
+                  <span class="btn__label" data-i18n="hero.next">CONTINUE TO MAP</span>
                   <svg class="ico" aria-hidden="true"><use href="#i-chev-right" /></svg>
                 </button>
                 <button class="btn btn--ghost" id="hero-back" type="button">
                   <svg class="ico" aria-hidden="true"><use href="#i-back" /></svg>
-                  <span class="btn__label">Kembali</span>
+                  <span class="btn__label" data-i18n="hero.back">BACK</span>
                 </button>
               </div>
             </div>
@@ -516,11 +516,11 @@
               <span class="drawer__grip" aria-hidden="true"></span>
               <div class="sheet__head">
                 <span class="sheet__ico" aria-hidden="true"><svg class="ico"><use href="#i-gear" /></svg></span>
-                <h1 class="title" id="settings-title">Tampilan &amp; kontrol</h1>
+                <h1 class="title" id="settings-title" data-i18n="settings.title">Display &amp; controls</h1>
                 <span class="dock__spacer"></span>
                 <button class="btn btn--ghost" id="settings-close" type="button">
                   <svg class="ico" aria-hidden="true"><use href="#i-back" /></svg>
-                  <span class="btn__label">Tutup</span>
+                  <span class="btn__label" data-i18n="settings.close">CLOSE</span>
                 </button>
               </div>
 
@@ -532,39 +532,53 @@
                 <div class="sheet__col">
                   <button class="switch" type="button" role="switch" aria-checked="false" id="opt-touch">
                     <span class="switch__text">
-                      <span class="switch__title">HUD sentuh</span>
-                      <span class="switch__hint">Joystick dan tombol tembak selalu ada.</span>
+                      <span class="switch__title" data-i18n="settings.touch">Touch HUD</span>
+                      <span class="switch__hint" data-i18n="settings.touch_hint">Joystick and fire button are always available.</span>
                     </span>
                     <span class="switch__track" aria-hidden="true"></span>
                   </button>
 
                   <button class="switch" type="button" role="switch" aria-checked="false" id="opt-motion">
                     <span class="switch__text">
-                      <span class="switch__title">Kurangi gerak</span>
-                      <span class="switch__hint">Transisi layar dimatikan.</span>
+                      <span class="switch__title" data-i18n="settings.motion">Reduce motion</span>
+                      <span class="switch__hint" data-i18n="settings.motion_hint">Screen transitions are turned off.</span>
                     </span>
                     <span class="switch__track" aria-hidden="true"></span>
                   </button>
 
+                  <!-- The one row that changes the words on every other row.
+                       It shows the active language in its own name, because a
+                       player looking for their language should not have to read
+                       the name of it in a language they do not have. -->
+                  <button class="switch" type="button" id="opt-language">
+                    <span class="switch__text">
+                      <span class="switch__title" data-i18n="settings.language">Language</span>
+                      <span class="switch__hint" data-i18n="settings.language_hint">Applies to the lobby and the arena.</span>
+                    </span>
+                    <span class="switch__track switch__track--value" aria-hidden="true">
+                      <b id="opt-language-value">ENGLISH</b>
+                    </span>
+                  </button>
+
                   <button class="switch" type="button" role="switch" aria-checked="false" id="opt-fullscreen">
                     <span class="switch__text">
-                      <span class="switch__title">Layar penuh</span>
-                      <span class="switch__hint">Bilah peramban hilang saat bermain.</span>
+                      <span class="switch__title" data-i18n="settings.fullscreen">Full screen</span>
+                      <span class="switch__hint" data-i18n="settings.fullscreen_hint">The browser bar goes away while you play.</span>
                     </span>
                     <span class="switch__track" aria-hidden="true"></span>
                   </button>
                 </div>
 
                 <div class="sheet__col">
-                  <p class="eyebrow">Kontrol</p>
+                  <p class="eyebrow" data-i18n="settings.controls">CONTROLS</p>
                   <div class="keys" id="keys-list">
-                    <div><span>Bergerak</span><kbd>W A S D</kbd></div>
-                    <div><span>Bidik</span><kbd>Klik kanan</kbd></div>
-                    <div><span>Tembak</span><kbd>Klik kiri</kbd></div>
-                    <div><span>Ganti senjata</span><kbd>E</kbd></div>
-                    <div><span>EMP</span><kbd>Q</kbd></div>
-                    <div><span>Pertahanan</span><kbd>B</kbd></div>
-                    <div><span>Pause</span><kbd>Esc</kbd></div>
+                    <div><span data-i18n="key.move">Move</span><kbd>W A S D</kbd></div>
+                    <div><span data-i18n="key.aim">Aim</span><kbd data-i18n="key.aim_value">Right click</kbd></div>
+                    <div><span data-i18n="key.fire">Fire</span><kbd data-i18n="key.fire_value">Left click</kbd></div>
+                    <div><span data-i18n="key.swap">Swap weapon</span><kbd>E</kbd></div>
+                    <div><span data-i18n="key.emp">EMP</span><kbd>Q</kbd></div>
+                    <div><span data-i18n="key.defense">Defence</span><kbd>B</kbd></div>
+                    <div><span data-i18n="key.pause">Pause</span><kbd>Esc</kbd></div>
                   </div>
                 </div>
               </div>
@@ -579,17 +593,17 @@
                  theatre being entered, and the gantry's real byte count. -->
             <div class="launch">
               <div class="launch__bay">
-                <p class="eyebrow" id="launch-eyebrow">Deploy · Neon Frontier</p>
-                <h1 class="launch__title" id="launch-title">Menyiapkan dunia</h1>
-                <div class="rail rail--open" id="launch-progress" data-indeterminate="true" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Memuat aset dunia">
+                <p class="eyebrow" id="launch-eyebrow">DEPLOY · Neon Frontier</p>
+                <h1 class="launch__title" id="launch-title" data-i18n="launch.title">PREPARING WORLD</h1>
+                <div class="rail rail--open" id="launch-progress" data-indeterminate="true" role="progressbar" aria-valuemin="0" aria-valuemax="100" data-i18n-aria="launch.rail_label" aria-label="Loading world assets">
                   <span class="rail__fill" id="launch-fill"></span>
                   <span class="rail__head" aria-hidden="true"></span>
                 </div>
                 <div class="launch__foot">
-                  <p class="launch__status" id="launch-status">Memuat aset dunia</p>
+                  <p class="launch__status" id="launch-status" data-i18n="launch.status.loading">Loading world assets</p>
                   <span class="launch__percent" id="launch-percent">—</span>
                 </div>
-                <p class="launch__hint" id="launch-hint">Tetap di layar ini sampai dunia siap.</p>
+                <p class="launch__hint" id="launch-hint" data-i18n="launch.hint.stay">Stay on this screen until the world is ready.</p>
               </div>
             </div>
           </div>

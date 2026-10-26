@@ -178,47 +178,50 @@ func _build() -> void:
 	_content.name = "InspectorContent"
 	_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(_content)
-	_content.add_child(_label("AEGIS / LIVE PREVIEW", "label", AegisTokens.ACCENT))
-	_content.add_child(_label("HUD LAYOUT", "heading", AegisTokens.INK))
+	_content.add_child(_label_key("editor.eyebrow", "label", AegisTokens.ACCENT))
+	_content.add_child(_label_key("editor.title", "heading", AegisTokens.INK))
 	_groups = OptionButton.new()
 	_groups.name = "HudGroupSelect"
 	_groups.focus_mode = Control.FOCUS_ALL
 	AegisTheme.set_button_variant(_groups, "ghost")
 	_groups.item_selected.connect(_on_group_selected)
 	_content.add_child(_groups)
-	_position_label = _label("OFFSET  0 / 0", "mono_s", AegisTokens.INK_2)
+	_position_label = _label("", "mono_s", AegisTokens.INK_2)
+	AegisText.apply(_position_label, "editor.offset_xy", [0, 0])
 	_content.add_child(_position_label)
 
 	var preset_row := HBoxContainer.new()
 	_content.add_child(preset_row)
 	for preset in ["MINIMAL", "STANDARD", "ADVANCED"]:
-		var button := _button(preset.substr(0, 3), "Preset%s" % preset, "ghost")
-		button.tooltip_text = "%s HUD preset" % preset.capitalize()
+		var button := _button_key(
+			"editor.preset_%s" % preset.to_lower(), "Preset%s" % preset, "ghost"
+		)
+		AegisText.apply_tip(button, "editor.preset_tip_%s" % preset.to_lower())
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.pressed.connect(_set_preset.bind(preset))
 		preset_row.add_child(button)
 		_presets[preset] = button
 
-	_opacity_label = _label("PANEL OPACITY", "body_s", AegisTokens.INK_2)
+	_opacity_label = _label_key("editor.panel_opacity", "body_s", AegisTokens.INK_2)
 	_content.add_child(_opacity_label)
 	_opacity_slider = _slider("EditorOpacity", 0.65, 1.0, 0.05)
 	_opacity_slider.value_changed.connect(_on_slider_changed.bind("hud_opacity"))
-	_scale_label = _label("HUD SCALE", "body_s", AegisTokens.INK_2)
+	_scale_label = _label_key("editor.hud_scale", "body_s", AegisTokens.INK_2)
 	_content.add_child(_scale_label)
 	_scale_slider = _slider("EditorScale", 0.8, 1.2, 0.05)
 	_scale_slider.value_changed.connect(_on_slider_changed.bind("hud_scale"))
 
 	var reset_row := HBoxContainer.new()
 	_content.add_child(reset_row)
-	var reset_group := _button("RESET GROUP", "ResetGroupButton", "ghost")
+	var reset_group := _button_key("editor.reset_group", "ResetGroupButton", "ghost")
 	reset_group.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	reset_group.pressed.connect(_reset_group)
 	reset_row.add_child(reset_group)
-	var reset_layout := _button("RESET ALL", "ResetLayoutButton", "ghost")
+	var reset_layout := _button_key("editor.reset_all", "ResetLayoutButton", "ghost")
 	reset_layout.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	reset_layout.pressed.connect(_reset_layout)
 	reset_row.add_child(reset_layout)
-	var finish := _button("DONE", "DoneHudEditorButton", "primary")
+	var finish := _button_key("editor.done", "DoneHudEditorButton", "primary")
 	finish.pressed.connect(done.emit)
 	_shell.add_child(finish)
 
@@ -325,7 +328,7 @@ func _set_offset(offset: Vector2) -> void:
 
 func _refresh_position() -> void:
 	var offset := _offset()
-	_position_label.text = "OFFSET  X %d  /  Y %d" % [roundi(offset.x), roundi(offset.y)]
+	AegisText.apply(_position_label, "editor.offset_xy", [roundi(offset.x), roundi(offset.y)])
 
 
 func _on_slider_changed(value: float, key: String) -> void:
@@ -377,6 +380,18 @@ func _slider(name_text: String, low: float, high: float, step: float) -> HSlider
 	slider.add_theme_stylebox_override("grabber_area", AegisTheme.flat_style(AegisTokens.ACCENT))
 	_content.add_child(slider)
 	return slider
+
+
+func _label_key(key: String, role: String, color: Color) -> Label:
+	var result := _label("", role, color)
+	AegisText.apply(result, key)
+	return result
+
+
+func _button_key(key: String, node_name: String, variant: String) -> AegisButton:
+	var result := _button("", node_name, variant)
+	AegisText.apply(result, key)
+	return result
 
 
 func _label(text: String, role: String, color: Color) -> Label:

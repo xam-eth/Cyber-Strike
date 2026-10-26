@@ -170,6 +170,26 @@ func make_label(text: String, role: String, color: Color, scale: float = 1.0) ->
 	return label
 
 
+## A label whose text is a catalog key. The key is kept on the control, so
+## `AegisText.refresh()` can rewrite this screen in place when the language
+## changes; nothing here reads a finished English string.
+func make_label_key(key: String, role: String, color: Color, args: Array = []) -> Label:
+	var label := make_label("", role, color)
+	AegisText.apply(label, key, args)
+	return label
+
+
+## Same for a button, tooltip included, so the hover text never lags the label.
+func make_button_key(
+	key: String, variant: String, tip_key: String = "", role: String = "title"
+) -> AegisButton:
+	var button := make_button("", variant, "", role)
+	AegisText.apply(button, key)
+	if not tip_key.is_empty():
+		AegisText.apply_tip(button, tip_key)
+	return button
+
+
 func make_button(
 	text: String, variant: String, tooltip: String = "", role: String = "title"
 ) -> AegisButton:

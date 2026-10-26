@@ -6,10 +6,10 @@
 ## dashboard takes input.
 extends MenuStage
 
-const CHAPTER := "CHAPTER 01"
-const TITLE := "FIRST LIGHT"
-const OBJECTIVE := "OBJECTIVE — SURVIVE THE WAVE"
-const DETAIL := "Defeat hostiles to bank Battle Points. Unlock weapons in the Armory."
+const CHAPTER_KEY := "chapter.number"
+const TITLE_KEY := "chapter.name"
+const OBJECTIVE_KEY := "chapter.objective"
+const DETAIL_KEY := "chapter.body"
 
 var _card: AegisPanel
 var _column: VBoxContainer
@@ -46,15 +46,15 @@ func _ready() -> void:
 	physical_separation(_column, 16)
 	_card.add_child(_column)
 
-	_column.add_child(_line(CHAPTER, "label", AegisTokens.ACCENT))
-	_column.add_child(_line(TITLE, "display_l", AegisTokens.INK))
-	_column.add_child(_line(OBJECTIVE, "body", AegisTokens.INFO))
-	var detail := _line(DETAIL, "body_s", AegisTokens.INK_2)
+	_column.add_child(_line(AegisText.t(CHAPTER_KEY), "label", AegisTokens.ACCENT))
+	_column.add_child(_line(AegisText.t(TITLE_KEY), "display_l", AegisTokens.INK))
+	_column.add_child(_line(AegisText.t(OBJECTIVE_KEY), "body", AegisTokens.INFO))
+	var detail := _line(AegisText.t(DETAIL_KEY), "body_s", AegisTokens.INK_2)
 	detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	physical_min_size(detail, 320.0, 0.0)
 	_column.add_child(detail)
 
-	var button := make_button("CONTINUE", "primary", "Continue to the dashboard")
+	var button := make_button_key("common.continue", "primary", "chapter.continue_tip")
 	physical_min_size(button, 280.0, AegisTokens.MIN_TOUCH_PX)
 	button.pressed.connect(_on_continue_pressed)
 	_column.add_child(button)

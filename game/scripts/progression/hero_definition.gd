@@ -55,6 +55,25 @@ const DEFAULT_HERO_ID := &"exo_operative"
 @export var showcase_clips: Array[String] = ["idle", "aim", "fire"]
 
 
+## The words on the card, not the words in the file.
+##
+## `display_name` ("Exo Operative") is a proper noun and never translated. The
+## role and the status are prose a player reads, so they come from the catalog
+## by id and fall back to the authored English when a language has not written
+## its own line yet. `IN DEVELOPMENT` is the one status that is not a resource
+## string at all -- it is the absence of a definition -- so it is keyed here.
+func display_role() -> String:
+	return AegisText.t_or("hero.%s.role" % hero_id, role_description)
+
+
+func display_status() -> String:
+	return AegisText.t_or("hero.%s.status" % hero_id, status_line)
+
+
+static func development_status() -> String:
+	return AegisText.t("common.in_development")
+
+
 func is_valid_definition() -> bool:
 	return (
 		hero_id != &""

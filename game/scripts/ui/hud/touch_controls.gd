@@ -51,9 +51,7 @@ const COMPACT_LINES: int = 4
 ## Two lines, because the plate it sits on is sized for two: the layout reserves
 ## `_help_block_height(2)` in the quiet lane between the thumb zones, and a third
 ## line is what pushed the plate past the lane and clipped its own last row.
-const HELP_TEXT := (
-	"STICK MOVE · DRAG LOOK · HOLD AIM\n" + "FIRE · EMP · SWAP · B DEFENSE · ESC PAUSE"
-)
+const HELP_KEY := "hud.help"
 const HELP_FADE_SECONDS: float = 1.5
 ## The browser toolbar now starts folded into a single chip. Keep the vitals
 ## below that chip, not below two rows of controls hidden during gameplay.
@@ -187,7 +185,7 @@ var _touch_ammo_chip: AegisAmmoChip
 var _results_panel: AegisPanel
 
 var _touch_buttons: Array[Button] = []
-var _compact_wave_text: String = "ENEMIES  0 ACTIVE  ·  0 LEFT"
+var _compact_wave_text: String = ""
 var _joystick_center: Vector2 = Vector2.ZERO
 var _joystick_radius: float = 64.0
 var _joystick_visual_radius: float = 64.0
@@ -218,6 +216,7 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_overlays = HudOverlayStack.new(self)
+	AegisText.watch(_on_locale_changed)
 	_touch = HudTouchInput.new()
 	_touch.hud = self
 	_touch.movement_changed.connect(movement_changed.emit)
@@ -326,7 +325,7 @@ func set_hud_health(current: float, maximum: float) -> void:
 		health_color = WARNING_HEALTH_COLOR
 	if _colorblind and health_ratio <= 0.3:
 		health_color = Color("ff8c42")
-	_health_heading.text = "VITALS !" if health_ratio <= 0.3 else "VITALS"
+	AegisText.apply(_health_heading, "hud.vitals_critical" if health_ratio <= 0.3 else "hud.vitals")
 	_health_bar.add_theme_stylebox_override("fill", AegisTheme.flat_style(health_color))
 	_health_bar.add_theme_stylebox_override(
 		"background", AegisTheme.flat_style(Color(AegisTokens.PANEL_3, 0.95))
@@ -360,7 +359,9 @@ func set_run_summary(score: int, bp: int, kos: int, time_text: String, shots: in
 func _refresh_score_chip() -> void:
 	if not is_instance_valid(_score_value_label):
 		return
-	_score_value_label.text = "SCORE %s  ·  %s" % [_format_number(_state.score), _state.run_time]
+	AegisText.apply(
+		_score_value_label, "hud.score_time", [_format_number(_state.score), _state.run_time]
+	)
 
 
 ## Reflects the audio state on the HUD button, wherever the change came from
@@ -531,13 +532,12 @@ func show_skill_feedback(targets_hit: int) -> void:
 	_skill_feedback_remaining = 1.1
 	_skill_button.text = ""
 	_skill_button.disabled = (_player_down or get_tree().paused or _skill_cooldown_remaining > 0.0)
-	_feedback_panel.show_message(
-		(
-			"EMP PULSE · %d TARGET%s" % [targets_hit, "" if targets_hit == 1 else "S"]
-			if targets_hit > 0
-			else "EMP PULSE · NO TARGETS"
-		)
-	)
+	if targets_hit == 1:
+		_feedback_panel.show_message(AegisText.t("hud.emp_hit_one", [targets_hit]))
+	elif targets_hit > 1:
+		_feedback_panel.show_message(AegisText.t("hud.emp_hit", [targets_hit]))
+	else:
+		_feedback_panel.show_message(AegisText.t("hud.emp_miss"))
 
 
 func _refresh_skill_button() -> void:
@@ -674,7 +674,7 @@ func _build_ui() -> void:
 	_build_system_row()
 	HudEncounterUi.build_run_data(self)
 	HudEncounterUi.build_legacy_score_widgets(self)
-	HudEncounterUi.build_help_panel(self, HELP_TEXT)
+	HudEncounterUi.build_help_panel(self, AegisText.t(HELP_KEY))
 	_build_combat_feedback()
 	_build_touch_buttons()
 	HudArmoryBridge.install_entry(self)
@@ -697,7 +697,7 @@ func _build_health_card() -> void:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
 	content.add_child(row)
-	_health_heading = _label("VITALS", "label", AegisTokens.INK_3)
+	_health_heading = _label_key("hud.vitals", "label", AegisTokens.INK_3)
 	row.add_child(_health_heading)
 	_health_value_label = _label("100 / 100", "mono_m", AegisTokens.INK)
 	_health_value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -838,6 +838,33 @@ func _label(
 	return label
 
 
+## A label whose text is a catalog key, rewritten in place when the language
+## changes. `_label()` still takes a finished string for anything built from
+## numbers at runtime; this is for the words.
+func _label_key(
+	key: String, role: String, color: Color, args: Array = [], multiplier: float = 1.0
+) -> Label:
+	var label := _label("", role, color, multiplier)
+	AegisText.apply(label, key, args)
+	return label
+
+
+## Re-applies every keyed label in the HUD and lets the screens that compose a
+## sentence from live numbers rebuild theirs.
+func _on_locale_changed(_code: String) -> void:
+	AegisText.refresh(self)
+	# Sentences assembled from live numbers cannot be rewritten by the tree walk
+	# above: those labels are rebuilt by the code that owns the number.
+	HudEncounterUi.apply_context(self)
+	HudArmoryBridge.refresh_entry_label(self)
+	if is_instance_valid(_armory_panel):
+		_armory_panel.refresh_language()
+	if is_instance_valid(_settings_menu) and _settings_menu.visible:
+		# `open()` re-builds the active tab, which is where the labels live.
+		_settings_menu.open()
+	queue_redraw()
+
+
 func _register_type(control: Control, role: String, _color: Color, multiplier: float = 1.0) -> void:
 	control.set_meta("aegis_role", role)
 	control.set_meta("aegis_scale", multiplier)
@@ -893,6 +920,19 @@ func _combat_button(
 	return button
 
 
+## The key-based form of `_text_button`: the words and the hover text both come
+## from the catalog and are remembered, so the plate re-reads in the new
+## language instead of keeping the one it was built with.
+func _text_button_key(
+	key: String, button_name: String, variant: String, icon_name: String, tip_key: String = ""
+) -> AegisButton:
+	var button := _text_button("", button_name, variant, icon_name, "")
+	AegisText.apply(button, key)
+	if not tip_key.is_empty():
+		AegisText.apply_tip(button, tip_key)
+	return button
+
+
 func _text_button(
 	label_text: String, button_name: String, variant: String, icon_name: String, tooltip: String
 ) -> AegisButton:
@@ -941,7 +981,7 @@ func _layout_controls(
 	UiLayout.resolve_safe_insets(self, physical)
 	_narrow = physical_width < NARROW_WIDTH
 	if is_instance_valid(_help_label):
-		_help_label.text = HELP_TEXT
+		AegisText.apply(_help_label, HELP_KEY)
 
 	_refresh_card_styles()
 	_apply_font_scale()

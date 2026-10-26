@@ -434,3 +434,38 @@ settings is an overlay that returns to the card it was opened from.
       Focus is now taken by `MenuStage.focus_primary()`, called by `FrontEnd`
       after the stage is shown, which is also what the skill asks for ("always
       focus something on open").
+46. **Two languages, written twice — never one language translated.** The product
+    ships English and Indonesian, and every player-facing word comes from a
+    catalog: `game/scripts/i18n/aegis_text_catalog.gd` for the engine,
+    `ui/i18n.js` for the HTML shell. The rule the catalog header states, and the
+    one `tools/check_localization.py` enforces, is that the two columns are
+    *authored*, not derived:
+    * A key is a **meaning** (`hud.finish_run` = "end this run and show me the
+      report"), and each language says it its own way. Spanish-style word-for-word
+      transposition of English word order reads as machine output in Indonesian,
+      which is why `pause.hint` and `results.ready_unlock` are longer in `id`.
+    * **Jargon stays.** Indonesian players say DEPLOY, HUD, BP, KO, ARSENAL and
+      DMG; translating those into dictionary Indonesian ("SEBARKAN", "KERUSAKAN")
+      produces copy no player in that audience uses. Those keys are listed in
+      `SHARED_VALUES` so the "not a copy" rule exempts them by name instead of by
+      accident.
+    * **The check is static and runs in `dev_check.sh`**, because the failure is
+      silent: a key present in one column shows up in play as an English line in
+      an Indonesian screen, and a `%d` that is `%s` in the other column is a crash
+      in `String % args`, not a typo.
+    * **Switching is live, in both halves.** `AegisText.apply()` stores its key on
+      the control, so `refresh()` rewrites a screen that is already built; the
+      shell rewrites its own tree from `data-i18n` and tells a running engine
+      through the `window.aegisSetLocale` callback `AegisText` registers with
+      `JavaScriptBridge`. The choice is stored once per side — `localStorage` for
+      the page, `AegisPreferences["locale"]` for the engine — and each side
+      mirrors its choice to the other, so HOME (which reloads the document) comes
+      back in the language the arena was just using.
+    * **The language row shows the language in its own name** (`BAHASA INDONESIA`,
+      `ENGLISH`). A player looking for their language should not have to read the
+      name of it in one they do not have.
+    * **Data resources keep their ids and names, not their prose.** A hero or
+      theatre is a proper noun plus a description; `display_role()` /
+      `display_status()` in `HeroDefinition` and `WorldDefinition` look the prose
+      up by id and fall back to the authored `.tres` sentence, so a new theatre
+      still works before anyone has written its Indonesian line.
