@@ -144,17 +144,17 @@ func refresh_profile(
 		var button := _weapon_buttons[index]
 		var variant := "round"
 		if String(id) == String(equipped):
-			button.text = "TERPASANG"
+			button.text = "EQUIPPED"
 			state.add_theme_color_override("font_color", AegisTokens.ACCENT)
 			_cards[index].accent_color = AegisTokens.ACCENT
 			variant = "round"
 		elif unlocked_ids.has(String(id)):
-			button.text = "PAKAI"
+			button.text = "EQUIP"
 			state.add_theme_color_override("font_color", AegisTokens.OK)
 			_cards[index].accent_color = AegisTokens.OK
 		else:
 			var cost: int = int(ProgressionService.COSTS[String(id)])
-			button.text = "BUKA · %d BP" % cost
+			button.text = "UNLOCK %d BP" % cost
 			state.add_theme_color_override("font_color", AegisTokens.INK_2)
 			_cards[index].accent_color = AegisTokens.LINE_HI
 			variant = "primary" if balance >= cost else "round"
