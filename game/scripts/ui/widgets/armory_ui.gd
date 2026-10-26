@@ -37,6 +37,7 @@ var _hint_label: Label
 var _weapon_buttons: Array[AegisButton] = []
 var _cards: Array[AegisPanel] = []
 var _states: Array[Label] = []
+var _arts: Array[TextureRect] = []
 var _close_button: AegisButton
 var _home_button: AegisButton
 var _column: VBoxContainer
@@ -130,6 +131,7 @@ func _build_card(index: int) -> AegisPanel:
 	shot.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	shot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(shot)
+	_arts.append(shot)
 
 	var name_label := _label(CARD_NAMES[index], "mono_m", AegisTokens.INK)
 	column.add_child(name_label)
@@ -206,12 +208,19 @@ func show_hint(text: String) -> void:
 
 func layout_for(hud) -> void:
 	var width := minf(hud._to_layout(720.0), hud.size.x * 0.94)
-	var height := minf(hud._to_layout(300.0), hud.size.y * 0.94)
+	# 340 px, not 300: the card is a photograph of a weapon, and at 300 the art
+	# collapsed to a 50 px strip once the three text lines and the action had
+	# taken their room. 340 still clears the 0.94 reserve on a 375 px-tall phone.
+	var height := minf(hud._to_layout(340.0), hud.size.y * 0.94)
 	custom_minimum_size = Vector2(width, height)
 	UiLayout.place(hud, self, 0.5, 0.5, 0.5, 0.5, Rect2(-width * 0.5, -height * 0.5, width, height))
 	_column.add_theme_constant_override("separation", roundi(hud._to_layout(4.0)))
 	for card in _cards:
 		card.custom_minimum_size = Vector2(hud._to_layout(180.0), 0)
+	# The art is the reason the modal exists; it gets a floor of its own instead
+	# of whatever the text left over.
+	for art in _arts:
+		art.custom_minimum_size = Vector2(0, hud._to_layout(104.0))
 	for button in _weapon_buttons:
 		button.custom_minimum_size = Vector2(0, hud._to_layout(38.0))
 	_close_button.custom_minimum_size = Vector2(0, hud._to_layout(40.0))
