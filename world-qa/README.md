@@ -32,7 +32,7 @@ Default is **CINEMATIC**: hands-free, frame-rate independent (`1 - exp(-rate*dt)
 
 ## World — ONE WORLD / MANY BATTLES
 
-Same 180×180 geometry for all 4 moods; only sky/fog/lights change (foto ref: Environment & Mood 4 panels).
+4 DISTINCT worlds — tiap world beda design & layout (bukan 1 geometry ganti warna). Tiap GLB 100% sama dengan game import.
 
 - **Metrics (level-design):** 180×180, 12 roads, 30 shared placements, tower hub 28m beam, 6 islands y+6-11, 4 bridges y+6, 4 canyon walls, 2 interior bases, 8 cover every 5-6m, 5 enemy gates, 4 turrets. Critical path: **canyon → tower → platform → interior** (golden path + secondary dashed + outer loop).
 - **Moods:**

@@ -51,23 +51,23 @@ alignment = 0
 
 [node name="World1" type="Button" parent="UI/WorldTabs"]
 custom_minimum_size = Vector2(96, 28)
-text = "WORLD 1"
-tooltip_text = "Frostline — DAYTIME (click to load, same as game 100%)"
+text = "1 — FROSTLINE"
+tooltip_text = "WORLD 1 — Frostline Relay (Polar Station) — DAYTIME, click to load. 100% same as game import"
 
 [node name="World2" type="Button" parent="UI/WorldTabs"]
 custom_minimum_size = Vector2(96, 28)
-text = "WORLD 2"
-tooltip_text = "Verdant — SUNSET"
+text = "2 — VERDANT"
+tooltip_text = "WORLD 2 — Verdant Bloom (Bio Station) — SUNSET, distinct design"
 
 [node name="World3" type="Button" parent="UI/WorldTabs"]
 custom_minimum_size = Vector2(96, 28)
-text = "WORLD 3"
-tooltip_text = "Emberfall — NIGHT"
+text = "3 — EMBERFALL"
+tooltip_text = "WORLD 3 — Emberfall Foundry (Industrial) — NIGHT, 21M powerplant"
 
 [node name="World4" type="Button" parent="UI/WorldTabs"]
 custom_minimum_size = Vector2(96, 28)
-text = "WORLD 4"
-tooltip_text = "Titans — STORM"
+text = "4 — HORIZON"
+tooltip_text = "WORLD 4 — Titans Horizon (Floating Islands) — STORM, adventure"
 
 [node name="Hint" type="Label" parent="UI"]
 offset_left = 16.0
@@ -79,7 +79,7 @@ theme_override_colors/font_color = Color(0.8, 0.85, 0.9, 0.9)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.7)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
-text = "Godot 4.7.2  |  Click WORLD 1-4 to switch (100% same as game)  |  SPACE cinematic/orbit  Right-drag orbit  Scroll zoom  WASD pan"
+text = "Godot 4.7.2  |  Click 1—FROSTLINE 2—VERDANT 3—EMBERFALL 4—HORIZON — distinct worlds, 100% same as game  |  SPACE cinematic/orbit  Right-drag orbit  Scroll zoom  WASD pan"
 horizontal_alignment = 1
 
 [node name="Crosshair" type="Label" parent="UI"]

@@ -25,10 +25,10 @@ var _current_world: Node3D
 # Per-world lighting — fixes "semua putih cahaya putih sama" (each world has distinct Sun/fog, not white)
 # Values from tools/asset-forge/src/worlds/themes.js (same data that builds GLB)
 const MOOD := {
-	"frostline": { "label": "WORLD 1 — Frostline DAYTIME", "sun": Color(1, 0.97, 0.88), "sun_energy": 1.65, "ambient": Color(0.55, 0.75, 1.0), "ambient_energy": 0.9, "fog": Color(0.61, 0.78, 0.91), "bg": Color(0.52, 0.77, 0.92) },
-	"verdant":   { "label": "WORLD 2 — Verdant SUNSET",  "sun": Color(1, 0.72, 0.42), "sun_energy": 1.45, "ambient": Color(1, 0.6, 0.35), "ambient_energy": 0.85, "fog": Color(0.62, 0.32, 0.25), "bg": Color(1, 0.55, 0.32) },
-	"emberfall": { "label": "WORLD 3 — Emberfall NIGHT", "sun": Color(0.56, 0.72, 1.0), "sun_energy": 1.05, "ambient": Color(0.16, 0.22, 0.35), "ambient_energy": 0.65, "fog": Color(0.04, 0.08, 0.16), "bg": Color(0.02, 0.05, 0.11) },
-	"titans":    { "label": "WORLD 4 — Titans STORM",    "sun": Color(0.75, 0.82, 0.91), "sun_energy": 1.20, "ambient": Color(0.35, 0.42, 0.48), "ambient_energy": 0.75, "fog": Color(0.10, 0.13, 0.18), "bg": Color(0.06, 0.09, 0.13) },
+	"frostline": { "label": "WORLD 1 — Frostline Relay [POLAR DEFENCE] — DAYTIME", "sun": Color(1, 0.97, 0.88), "sun_energy": 1.65, "ambient": Color(0.55, 0.75, 1.0), "ambient_energy": 0.9, "fog": Color(0.61, 0.78, 0.91), "bg": Color(0.52, 0.77, 0.92) },
+	"verdant":   { "label": "WORLD 2 — Verdant Bloom [BIO STATION] — SUNSET",  "sun": Color(1, 0.72, 0.42), "sun_energy": 1.45, "ambient": Color(1, 0.6, 0.35), "ambient_energy": 0.85, "fog": Color(0.62, 0.32, 0.25), "bg": Color(1, 0.55, 0.32) },
+	"emberfall": { "label": "WORLD 3 — Emberfall Foundry [EXTRACTION] — NIGHT", "sun": Color(0.56, 0.72, 1.0), "sun_energy": 1.05, "ambient": Color(0.16, 0.22, 0.35), "ambient_energy": 0.65, "fog": Color(0.04, 0.08, 0.16), "bg": Color(0.02, 0.05, 0.11) },
+	"titans":    { "label": "WORLD 4 — Titans Horizon [FLOATING ISLANDS] — STORM",    "sun": Color(0.75, 0.82, 0.91), "sun_energy": 1.20, "ambient": Color(0.35, 0.42, 0.48), "ambient_energy": 0.75, "fog": Color(0.10, 0.13, 0.18), "bg": Color(0.06, 0.09, 0.13) },
 }
 
 # Low ground-level tour — captures small details (bukan dari atas full 52,96). Adventure, not arena field.
