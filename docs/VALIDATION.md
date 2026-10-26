@@ -8,10 +8,10 @@ For intended behavior, read [`GAMEPLAY_DESIGN.md`](GAMEPLAY_DESIGN.md). For requ
 
 | Item | Checkpoint |
 |---|---|
-| Source validated by full CI | `b4f6d1b62d48a472938081c7e1a66621a898e382` |
-| Full CI run | [40245581197](https://github.com/xam-eth/Cyber-Strike/actions/runs/40245581197) — **SUCCESS** |
-| Committed Web payload after that gate | `15e594f47fe30c20e3fab119e81d5974cc6d28af` |
-| Evidence date | 2026-10-25/26 |
+| Source validated by full CI | `957858cc11e19c1daccfb221e5f14872f2a93a79` |
+| Full CI run | [40339588322](https://github.com/xam-eth/Cyber-Strike/actions/runs/40339588322) — **SUCCESS** |
+| Committed Web payload after that gate | `afc7b8fd53621a180373cfc793942d3cad32b544` |
+| Evidence date | 2026-10-26 |
 | Documentation consolidation | Separate source-only change; it does not revalidate gameplay or create a new runtime checkpoint |
 
 ### Documentation consolidation gate — 2026-10-26
@@ -28,7 +28,9 @@ For the dynamic World/Character visual-load and package-intake change:
 
 - **VERIFIED (local static):** `./scripts/dev_check.sh` completed with **0 failed steps and 2 skipped steps**: 77 GDScript files parsed/linted/formatted, 64 tooling tests, 18/18 canonical documents, 141 relative links, 77-script static-call scan, architecture boundaries, package validation, generated module map, and 29-test inventory.
 - **VERIFIED (local static):** importer tests cover self-contained GLTF dependencies, script/cache rejection, traversal/symlinks, deterministic bundle hashes, failed-stage preservation of active content, and committed-package checks.
-- **SKIPPED locally:** machine-local export preset and Godot binary/runtime. Engine execution of `module_isolation_smoke`, existing domain regressions, PCK inclusion, and browser behavior require the CI/export checkpoint; they are not claimed by the static result.
+- **VERIFIED (CI engine):** Godot `4.7.2.stable.official.ed1daf0bf` imported the project and passed **29/29 smoke tests**, including `module_isolation_smoke` and the existing domain regressions. The preceding `2683d60` run failed only because its new enemy fixture used `VisualRoot` instead of `Visuals`; `957858c` corrected that fixture and was fully rerun.
+- **VERIFIED (CI export/browser):** Web export, 793-file PCK audit, all five World assets plus dynamic hero/held-weapon/enemy visuals, static delivery, Chromium smoke, opening/interrupted-download recovery, Vanguard shell selection, and Titans selection/audio steps passed in [40339588322](https://github.com/xam-eth/Cyber-Strike/actions/runs/40339588322).
+- **SKIPPED locally:** machine-local export preset and Godot binary/runtime. CI supplies the engine/browser evidence above; it is not a local Godot run and not Android, physical-device, subjective visual/audio, or retention evidence.
 
 Older failed/partial gameplay, integration, loading, and World reports describe their own historical commits. They must not be used to override the full checkpoint above or to describe a later branch without a new run.
 
@@ -37,25 +39,27 @@ Older failed/partial gameplay, integration, loading, and World reports describe 
 | Gate | Result | Evidence level and boundary |
 |---|---|---|
 | Static source/tooling | **VERIFIED PASS in CI** | Static only; not runtime or human experience |
-| Godot import + smoke suite | **VERIFIED 28/28 PASS in CI** | Headless Godot 4.7.2; not rendered/device proof |
+| Godot import + smoke suite | **VERIFIED 29/29 PASS in CI** | Headless Godot 4.7.2; includes real World/Character/UI isolation fixtures; not rendered/device proof |
 | Web export and payload audit | **VERIFIED PASS in CI** | Export/content checks; not Android packaging |
 | Root/raw browser boot | **VERIFIED PASS in CI** | Automated Chromium/WebGL at configured viewports |
 | Initial opening preload and interrupted recovery | **VERIFIED PASS in CI** | Tested Web paths/network controls; not every proxy/network condition |
-| Theatre selection/DEPLOY | **VERIFIED for all five definitions across CI and local automated runs** | CI covered Vanguard/Titans; local automated checks covered Frostline/Verdant/Emberfall |
-| Rebuilt-world traversal | **VERIFIED for four rebuilt worlds in automated checks** | MainNorth route reached `z=25.30062`, `on_floor=true`; not free-roam coverage |
-| Frostline tour | **VERIFIED 8/8 distinct captured frames** | Automated visual captures; not final aesthetic acceptance |
+| Theatre selection/DEPLOY | **VERIFIED for automated Vanguard and Titans selection/build paths in this CI run** | Browser gestures and runtime logs; Frostline/Verdant/Emberfall were not given a new interactive pass in this run |
+| Rebuilt-world traversal | **HISTORICAL: four rebuilt worlds passed earlier automated checks** | MainNorth reached `z=25.30062`, `on_floor=true`; not rerun as a separate traversal gate for `957858c` |
+| Frostline tour | **HISTORICAL: 8/8 distinct captured frames** | Earlier automated captures; not a new visual capture or final aesthetic acceptance for this change |
 | Shell/gameplay audio gates | **VERIFIED for automated signal/state checks** | Does not establish human audibility or speaker/headphone quality |
 
 ### Published payload identity
 
 | Asset | Bytes | SHA-256 |
 |---|---:|---|
-| `web/index.pck` | 54,012,180 | `3ac7bff773b700edbc27a3c3709bbe47c8931431bd81b0b8a9fd9b555dc20a1d` |
+| `web/index.pck` | 54,018,072 | `35654f00bb47968dc6db3610546d6665376f37413afd53c62372d54730e0cfd3` |
 | `web/index.wasm` | 39,514,754 | `fc74679e3b97f76878947fcd4fbe1268cbfa6188182a2e33bbc3f5dc9bfa57d0` |
 
 These hashes identify the payload commit above. Recompute them after any later export rather than carrying the numbers forward.
 
-### Cache/delivery evidence
+### Earlier cache/delivery evidence
+
+These warm-cache measurements belong to the earlier `15e594f` payload and were not re-measured for `afc7b8f`. The current run independently passed its opening single-download and interrupted-recovery gates.
 
 - Cold requests returned full successful responses.
 - Warm unchanged WASM/PCK requests returned **304 with zero response body** using strong content ETags.
