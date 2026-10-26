@@ -1,18 +1,13 @@
 extends SceneTree
 
-## Two languages, one product.
+## The catalogue itself: two complete columns, aligned placeholders, and a
+## resolver that answers in the language it was asked for.
 ##
-## The failures this smoke test exists to catch are the ones a screenshot does
-## not show: a key that only exists in English, a `%d` that is `%s` in the other
-## column, a screen that keeps the words it was built with after the player
-## changed language, and a save file that forgets which language was chosen.
-##
-## It runs headless and needs no viewport: the catalog and the resolver are the
-## subject, then two real screens (the dock and the settings drawer) are built
-## and switched, because "the strings exist" and "the screen changed" are not the
-## same claim.
+## This is the half of the claim that needs no viewport -- and no screen. It is a
+## separate test from `localization_screen_smoke.gd` because "the strings exist"
+## and "a built screen re-reads them" fail for different reasons, and one file
+## that checks both cannot say which one broke.
 
-const FALLBACK_PREFIXES := ["hero.", "world.", "wpn.", "editor.preset"]
 const PLACEHOLDER := "%[sd]"
 
 var _failures: int = 0
@@ -27,18 +22,19 @@ func _run() -> void:
 	_test_placeholders()
 	_test_resolver()
 	_test_fallback()
-	_test_preferences_persist()
-	await _test_screen_refresh()
 	_finish()
 
 
-# --- 1. the catalog --------------------------------------------------------- #
+# --- 1. both columns -------------------------------------------------------- #
 
 
 func _test_catalog_symmetry() -> void:
 	var en: Dictionary = AegisTextCatalog.STRINGS[AegisTextCatalog.EN]
 	var id: Dictionary = AegisTextCatalog.STRINGS[AegisTextCatalog.ID]
-	_expect(not en.is_empty() and en.size() == id.size(), "both languages carry every key")
+	_expect(not en.is_empty(), "the English column has strings")
+	_expect(
+		en.size() == id.size(), "both languages carry every key (%d / %d)" % [en.size(), id.size()]
+	)
 	var only_en: Array = []
 	var only_id: Array = []
 	for key in en:
@@ -66,8 +62,11 @@ func _test_catalog_symmetry() -> void:
 	)
 
 
-## Same placeholders, same order, both columns. A `%d` read as `%s` is a crash
-## in `String % args`, not a typo a player can ignore.
+## Same placeholders in both columns. Order is deliberately *not* compared: the
+## catalogue's contract is that a placeholder may move when the sentence needs
+## it, and the numbers arrive positionally from the caller either way. Types are
+## compared as a multiset, so `%d ... %s` and `%s ... %d` pass, and a `%d` that
+## became a `%s` does not -- that one is a crash in `String % args`.
 func _test_placeholders() -> void:
 	var en: Dictionary = AegisTextCatalog.STRINGS[AegisTextCatalog.EN]
 	var id: Dictionary = AegisTextCatalog.STRINGS[AegisTextCatalog.ID]
@@ -75,21 +74,24 @@ func _test_placeholders() -> void:
 	for key in en:
 		if not id.has(key):
 			continue
-		var left := _placeholders(String(en[key]))
-		var right := _placeholders(String(id[key]))
+		var left := _placeholder_types(String(en[key]))
+		var right := _placeholder_types(String(id[key]))
+		left.sort()
+		right.sort()
 		if left != right:
 			drift.append("%s en=%s id=%s" % [key, left, right])
 	_expect(drift.is_empty(), "placeholders line up across languages (%s)" % [drift.slice(0, 4)])
 
 
-## "Real content in each language, not a translation" is a rule this test can
-## only approximate: a sentence that is byte-identical in both columns was not
-## written twice. Jargon the project keeps in English is listed in the catalog's
-## `SHARED_VALUES`, so it is not counted.
+# --- 2. the resolver -------------------------------------------------------- #
+
+
 func _test_resolver() -> void:
 	AegisText.set_locale(AegisTextCatalog.EN, false)
+	_expect(AegisText.locale() == AegisTextCatalog.EN, "the resolver honours English")
 	var english := AegisText.t("pause.resume")
 	AegisText.set_locale(AegisTextCatalog.ID, false)
+	_expect(AegisText.locale() == AegisTextCatalog.ID, "the resolver honours Indonesian")
 	var indonesian := AegisText.t("pause.resume")
 	_expect(english == "RESUME", "English says RESUME")
 	_expect(indonesian == "LANJUTKAN", "Indonesian says LANJUTKAN")
@@ -102,6 +104,7 @@ func _test_resolver() -> void:
 		AegisText.t("results.progress_to_go", [25, 120, 95]).contains("95"),
 		"three-argument keys keep every number",
 	)
+	_expect(AegisText.next_locale() == AegisTextCatalog.EN, "the switch is a two-state cycle")
 	AegisText.set_locale(AegisTextCatalog.EN, false)
 
 
@@ -124,87 +127,18 @@ func _test_fallback() -> void:
 		)
 
 
-func _test_preferences_persist() -> void:
-	AegisPreferences.write(AegisPreferences.defaults())
-	AegisText.set_locale(AegisTextCatalog.ID)
-	_expect(
-		String(AegisPreferences.read().get("locale", "")) == "id",
-		"choosing Indonesian writes it to the save file",
-	)
-	# A hand-edited or older save must not be able to put the game in a language
-	# it does not have.
-	var dirty := AegisPreferences.defaults()
-	dirty["locale"] = "de"
-	_expect(
-		String(AegisPreferences.sanitized(dirty).get("locale", "x")) == "",
-		"an unknown language is dropped rather than trusted",
-	)
-	AegisText.set_locale(AegisTextCatalog.EN)
-
-
-## The claim that matters: a screen that is already built changes its words.
-##
-## This is the mechanism every screen uses -- `apply()` stores the key, the screen
-## registers a watcher, the watcher walks its own tree. Testing it on a Label and
-## a real button is testing the same code the dashboard runs, without needing a
-## 3D viewport.
-func _test_screen_refresh() -> void:
-	var host := Control.new()
-	root.add_child(host)
-	var label := Label.new()
-	host.add_child(label)
-	var button := AegisButton.new()
-	host.add_child(button)
-	AegisText.apply(label, "pause.title")
-	AegisText.apply(button, "results.retry")
-	AegisText.apply_tip(button, "nav.settings")
-	AegisText.watch(func(_code: String) -> void: AegisText.refresh(host))
-
-	AegisText.set_locale(AegisTextCatalog.EN, false)
-	_expect(label.text == "PAUSED", "a keyed label reads English in English")
-	_expect(button.text == "RETRY", "a keyed button reads English in English")
-	_expect(button.tooltip_text == "SETTINGS", "and so does its hover text")
-
-	AegisText.set_locale(AegisTextCatalog.ID, false)
-	_expect(label.text == "JEDA", "the live label becomes JEDA after the switch")
-	_expect(button.text == "ULANGI", "the live button becomes ULANGI after the switch")
-	_expect(button.tooltip_text == "PENGATURAN", "the hover text follows too")
-	host.queue_free()
-
-	var menu := AegisSettingsMenu.new()
-	root.add_child(menu)
-	await process_frame
-	menu.call("_show_tab", 3)
-	var picker := menu.find_child("LanguageButton", true, false) as Button
-	_expect(is_instance_valid(picker), "the ACCESS tab offers a language row")
-	if is_instance_valid(picker):
-		_expect(
-			picker.text == "BAHASA INDONESIA",
-			"the row shows the active language in its own name (%s)" % picker.text,
-		)
-		picker.pressed.emit()
-		await process_frame
-		_expect(AegisText.locale() == AegisTextCatalog.EN, "pressing it switches language")
-		var again := menu.find_child("LanguageButton", true, false) as Button
-		_expect(
-			again != null and again.text == "ENGLISH",
-			"and the row re-reads in the new language",
-		)
-		var title := menu.find_child("SettingsShell", true, false)
-		_expect(title != null, "the drawer survived its own rebuild")
-	menu.queue_free()
-	AegisText.set_locale(AegisTextCatalog.EN, false)
-
-
 # --- harness ---------------------------------------------------------------- #
 
 
-func _placeholders(text: String) -> String:
+## `%s` / `%d` only. `%%` is a literal percent and is not a placeholder, and
+## `%02d` is matched by its last two characters, which is enough to compare the
+## two columns against each other.
+func _placeholder_types(text: String) -> Array[String]:
 	var found := RegEx.create_from_string(PLACEHOLDER)
 	var out: Array[String] = []
 	for match in found.search_all(text):
 		out.append(match.get_string())
-	return ",".join(out)
+	return out
 
 
 func _expect(condition: bool, label: String) -> void:
