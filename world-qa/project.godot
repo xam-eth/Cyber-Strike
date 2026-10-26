@@ -1,0 +1,32 @@
+; Stellar Horizon — WORLD QA (independent, no game)
+; Disciplines: level-design (metrics, blockout, critical path) + camera-systems (smooth follow, orbit, cinematic)
+; Open in Godot 4.6.2: `godot --path world-qa` or double-click project.godot
+; No gameplay required — cinematic camera tours world autonomously (tanpa controll)
+config_version=5
+
+[application]
+name="Stellar Horizon — World QA"
+run/main_scene="res://scenes/world_viewer.tscn"
+config/features=PackedStringArray("4.6")
+boot_splash/bg_color=Color(0.020, 0.035, 0.08, 1.0)
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+environment/defaults/default_environment="res://assets/world_env.tres"
+
+[display]
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/size/resizable=true
+window/stretch/mode="canvas_items"
+
+[input]
+
+[input_devices]
+pointing/emulate_touch_from_mouse=false
+
+[physics]
+common/physics_ticks_per_second=60
+
+[debug]
+gdscript/warnings/untyped_declaration=1

@@ -1,0 +1,20 @@
+# World-only branch — Godot QA visual
+# Godot generated (do not commit)
+.godot/
+**/.godot/
+*.import
+*.uid
+.import/
+
+# Tools cache / deps
+tools/.cache/
+tools/node_modules/
+node_modules/
+.cache/
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# External large cache
+export/

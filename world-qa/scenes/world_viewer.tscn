@@ -1,0 +1,67 @@
+[gd_scene load_steps=3 format=3 uid="uid://cxyv8q6w7j0a"]
+
+[ext_resource type="Script" path="res://scripts/world_viewer.gd" id="1_world"]
+[ext_resource type="Environment" path="res://assets/world_env.tres" id="2_env"]
+
+[node name="WorldViewer" type="Node3D"]
+script = ExtResource("1_world")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = ExtResource("2_env")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.642788, 0.383022, 0.663414, 0, 0.866026, -0.5, -0.766044, -0.321394, -0.55667, 0, 10, 0)
+light_energy = 1.8
+shadow_enabled = true
+shadow_bias = 0.02
+
+[node name="Camera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.5, 0.866025, 0, -0.866025, 0.5, 0, 52, 96)
+current = true
+fov = 54.0
+near = 0.1
+far = 800.0
+
+[node name="WorldHolder" type="Node3D" parent="."]
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="Info" type="Label" parent="UI"]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 1264.0
+offset_bottom = 88.0
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.92, 0.96, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.85)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+text = "STELLAR HORIZON — loading..."
+horizontal_alignment = 0
+vertical_alignment = 0
+autowrap_mode = 3
+
+[node name="Hint" type="Label" parent="UI"]
+offset_left = 16.0
+offset_top = 680.0
+offset_right = 1264.0
+offset_bottom = 704.0
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.8, 0.85, 0.9, 0.9)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.7)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+text = "Godot 4.6.2  |  Open: double-click project.godot or godot --path world-qa  |  SPACE cinematic/orbit  N/P next/prev  1-4 jump  R recenter"
+horizontal_alignment = 1
+
+[node name="Crosshair" type="Label" parent="UI"]
+offset_left = 628.0
+offset_top = 348.0
+offset_right = 652.0
+offset_bottom = 372.0
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(1, 1, 1, 0.35)
+text = "·"
+horizontal_alignment = 1
+vertical_alignment = 1
+visible = false
