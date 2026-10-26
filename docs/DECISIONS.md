@@ -326,3 +326,34 @@ only an opinion is not here.
       pose the rig can actually hold. A rig that cannot straighten an arm cannot
       salute, and pretending otherwise is how a "celebration" ends up looking
       like a shrug.
+
+43. **The HUD is framed by four docks, and the stage the hero stands on is
+    geometry.** Three corrections, one review.
+    * Every HUD element used to float: a vitals card here, a wave card under it,
+      a sound and a pause plate detached in the middle of the top edge, then six
+      action tiles loose in the bottom-right, next to a bare thumb stick. A screen
+      of widgets sprinkled over a game is what an app looks like. `hud_dock.gd`
+      frames them: a status strip along the top edge (vitals, wave, system), an
+      action rail around the fire/aim/skill/swap tiles, a movement bracket in the
+      bottom-left corner, and a weapon column on the trailing edge (ammo + swap).
+      The docks are *drawn*, not containers: each plate is the union of its live
+      widgets' rects, so the HUD editor's saved offsets and the platform safe
+      insets move the frame with the widgets, and nothing joins the hit-test
+      path. One vocabulary across all four: cut corner, hairline, one lit edge,
+      corner ticks -- the same machined set as the touch tiles.
+    * The armory is a modal of **cards with the weapon's own art**, not three text
+      rows. A row that says "ARC · CHAIN" asks the player to imagine a gun; the
+      card shows the gun, its role in one line, its numbers read from the weapon
+      definition (damage / rate / magazine) and one action. The action *words*
+      stay the interface's own (EQUIPPED / EQUIP / UNLOCK n BP) -- a redesign of
+      the surface is not a licence to rename what a button does.
+    * The hero's stage: the plate had a deploy pad **painted into it**, so the
+      operative stood on a picture of a platform -- no weight, no shadow, no
+      shared perspective, and the pad could not move while the rig did. The room
+      is now a photograph of an empty hangar floor with no pad in it, and the
+      deck is real geometry in `ui/hero_stage.js`: recessed base, plated top, lit
+      rim, inner ring, all in the same scene and camera as the rig. The rig is
+      seated on the deck's top face, the contact shadow is drawn on that surface,
+      and the camera tilts just enough to show the deck as an ellipse. Stage, rig
+      and light now share a space, which is the only version of "standing on a
+      stage" that is not a caption.

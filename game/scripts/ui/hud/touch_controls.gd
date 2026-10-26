@@ -1128,6 +1128,14 @@ func _draw() -> void:
 				]
 			)
 		)
+		# One column per thumb: movement on the left, and the trigger hand's
+		# business (what is in it, how much is left) on the right.
+		HudDock.left(
+			self,
+			_move_origin if _move_touch_id != -1 else _joystick_center,
+			_joystick_visual_radius
+		)
+		HudDock.right(self, [_touch_ammo_chip])
 	if (
 		_state.play_phase == "defense"
 		and not get_tree().paused

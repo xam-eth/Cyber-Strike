@@ -63,6 +63,61 @@ static func bottom(hud, controls: Array) -> void:
 	_plate(hud, union, false)
 
 
+## The movement zone. The thumb stick is drawn by the HUD itself, so the left
+## dock cannot frame it as a rectangle around a widget -- instead it marks the
+## zone: an open bracket in the bottom-left corner, one corner cut, one edge lit.
+## It says "your thumb lives here" without drawing a box over the floor.
+static func left(hud, center: Vector2, radius: float) -> void:
+	var pad: float = hud._to_layout(18.0)
+	var cut: float = hud._to_layout(CUT)
+	var left_edge: float = hud._safe_left + hud._to_layout(6.0)
+	var bottom_edge: float = hud.size.y - hud._safe_bottom - hud._to_layout(6.0)
+	var reach: float = radius + pad
+	var corner := Vector2(left_edge, bottom_edge)
+	var top := Vector2(left_edge, maxf(center.y - reach, hud._to_layout(70.0)))
+	var right := Vector2(minf(center.x + reach, hud.size.x * 0.42), bottom_edge)
+
+	var hair := Color(AegisTokens.LINE, 0.75)
+	var accent := Color(AegisTokens.LINE_HI, 0.8)
+	var width: float = maxf(hud._to_layout(1.0), 1.0)
+	hud.draw_line(top, Vector2(top.x, corner.y - cut), hair, width)
+	hud.draw_line(Vector2(top.x, corner.y - cut), Vector2(top.x + cut, corner.y), hair, width)
+	hud.draw_line(Vector2(top.x + cut, corner.y), right, hair, width)
+	# The lit edge runs along the bottom, inside the bracket.
+	hud.draw_rect(
+		Rect2(
+			top.x + cut,
+			corner.y - maxf(hud._to_layout(2.0), 1.0),
+			right.x - top.x - cut,
+			maxf(hud._to_layout(2.0), 1.0)
+		),
+		accent
+	)
+
+
+## The weapon stack on the trailing edge: the ammo chip and the swap tile share
+## one narrow column, framed, because they are one thought -- what is in my hands
+## and how much of it is left.
+static func right(hud, controls: Array) -> void:
+	var rects: Array[Rect2] = []
+	for control in controls:
+		if is_instance_valid(control) and control is Control and control.visible:
+			var rect: Rect2 = control.get_global_rect()
+			if rect.size.x > 1.0 and rect.size.y > 1.0:
+				rects.append(rect)
+	if rects.is_empty():
+		return
+	var pad: float = hud._to_layout(7.0)
+	var union := rects[0]
+	for rect in rects:
+		union = union.merge(rect)
+	union = union.grow(pad)
+	# Hug the trailing edge; the action rail already owns the bottom corner.
+	union.size.x = minf(union.size.x, hud.size.x * 0.34)
+	union.position.x = minf(union.end.x, hud.size.x - hud._safe_right) - union.size.x
+	_plate(hud, union, true)
+
+
 ## One machined plate: a filled body with the outer corners cut, a hairline all
 ## the way round, and a short lit edge on the side the dock faces.
 static func _plate(hud, rect: Rect2, facing_down: bool) -> void:
