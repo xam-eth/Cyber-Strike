@@ -1,4 +1,4 @@
-# Stellar Horizon — World QA (Godot 4.6.2)
+# Stellar Horizon — World QA (Godot 4.7.2)
 
 **Independent Godot project — no game, only world.** Open and explore the STELLAR HORIZON floating-archipelago without any player controls; the camera tours automatically.
 
@@ -6,14 +6,14 @@
 
 ## Quick Start (Godot)
 
-**Option A — GUI:** Install [Godot 4.6.2](https://godotengine.org/download) → **Import** → select `world-qa/project.godot` → **Play (F5)**
+**Option A — GUI:** Install [Godot 4.7.2](https://godotengine.org/download) → **Import** → select `world-qa/project.godot` → **Play (F5)**
 
 **Option B — Headless (sandbox):**
 ```bash
 tools/.cache/godot --path world-qa --import   # first time: imports 4 GLBs
 tools/.cache/godot --path world-qa            # runs cinematic tour
 # or bundled:
-./tools/.cache/godot --version  # 4.6.2.stable.official.71f334935
+./tools/.cache/godot --version  # 4.7.2.stable.official.71f334935
 ```
 
 Expected: `World QA: loaded frostline` + smooth cinematic tour through 8 viewpoints (overview → tower → platform → canyon → interior → bridge → island → rim). No input required.
@@ -47,7 +47,7 @@ Same 180×180 geometry for all 4 moods; only sky/fog/lights change (foto ref: En
 
 ```
 world-qa/
-  project.godot          # 4.6, gl_compatibility, Canvas stretch
+  project.godot          # 4.7, gl_compatibility, Canvas stretch
   assets/world_env.tres  # fog + glow + ambient (cinematic)
   assets/worlds/*.glb    # 4 moods, same graph
   scenes/world_viewer.tscn  # WorldHolder + Camera + UI
@@ -78,4 +78,4 @@ Import artifacts (`*.import`, `*.jpg`, `.godot/`, `*.uid`) are ignored via `.git
 
 - **World only:** no player, no weapons, no UI gameplay — just world + camera + light.
 - **Tanpa controll:** cinematic runs automatically; orbit is optional.
-- **Scary-Night Godot:** binary at `tools/.cache/godot` (133M, ignored) fetched via `codeload.github.com/xam-eth/Scary-Night` (contains `Godot_v4.6.2-stable_linux.x86_64.zip`). Sandbox rebuild: `unzip /tmp/scary-night.zip`.
+- **Scary-Night Godot:** binary at `tools/.cache/godot` (133M, ignored) fetched via `codeload.github.com/xam-eth/Scary-Night` (contains `Godot_v4.7.2-stable_linux.x86_64.zip`). Sandbox rebuild: `unzip /tmp/scary-night.zip`.

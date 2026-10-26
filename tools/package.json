@@ -1,0 +1,21 @@
+{
+  "name": "cyber-strike-tools",
+  "private": true,
+  "type": "module",
+  "description": "Browser QA for the WebAssembly preview (Chromium is a pinned package, never assumed to be installed).",
+  "scripts": {
+    "qa": "node web_qa.mjs",
+    "qa:json": "node web_qa.mjs --json"
+  },
+  "devDependencies": {
+    "@gltf-transform/core": "^4.2.0",
+    "@gltf-transform/functions": "^4.2.0",
+    "@sparticuz/chromium": "153.0.0",
+    "puppeteer-core": "24.31.0",
+    "sharp": "^0.34.0",
+    "three": "^0.170.0"
+  },
+  "dependencies": {
+    "gltf-validator": "^2.0.0-dev.3.10"
+  }
+}

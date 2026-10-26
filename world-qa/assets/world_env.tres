@@ -2,24 +2,24 @@
 
 [resource]
 background_mode = 1
-background_color = Color(0.06, 0.12, 0.22, 1)
+background_color = Color(0.07, 0.14, 0.24, 1)
 background_energy_multiplier = 1.0
 ambient_light_source = 1
-ambient_light_color = Color(0.72, 0.82, 1, 1)
-ambient_light_energy = 0.9
-ambient_light_sky_contribution = 0.35
+ambient_light_color = Color(0.75, 0.84, 1.0, 1)
+ambient_light_energy = 0.85
+ambient_light_sky_contribution = 0.4
 tonemap_mode = 2
-tonemap_exposure = 1.05
+tonemap_exposure = 1.0
 tonemap_white = 1.0
 glow_enabled = true
-glow_intensity = 0.32
-glow_strength = 0.9
-glow_bloom = 0.08
+glow_intensity = 0.35
+glow_strength = 0.95
+glow_bloom = 0.12
 glow_blend_mode = 2
 fog_enabled = true
-fog_light_color = Color(0.72, 0.82, 1, 1)
-fog_light_energy = 0.45
-fog_sun_amount = 0.28
+fog_light_color = Color(0.78, 0.88, 1.0, 1)
+fog_light_energy = 0.5
+fog_sun_amount = 0.32
 fog_transmit_enabled = true
-fog_transmit_curve = 1.2
+fog_transmit_curve = 1.4
 adjustment_enabled = false

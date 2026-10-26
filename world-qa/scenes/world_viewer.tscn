@@ -11,14 +11,15 @@ environment = ExtResource("2_env")
 
 [node name="Sun" type="DirectionalLight3D" parent="."]
 transform = Transform3D(-0.642788, 0.383022, 0.663414, 0, 0.866026, -0.5, -0.766044, -0.321394, -0.55667, 0, 10, 0)
-light_energy = 1.8
+light_color = Color(1, 0.97, 0.88, 1)
+light_energy = 1.6
 shadow_enabled = true
 shadow_bias = 0.02
 
 [node name="Camera" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.5, 0.866025, 0, -0.866025, 0.5, 0, 52, 96)
+transform = Transform3D(1, 0, 0, 0, 0.6, 0.8, 0, -0.8, 0.6, 0, 12, 28)
 current = true
-fov = 54.0
+fov = 62.0
 near = 0.1
 far = 800.0
 
@@ -30,8 +31,8 @@ far = 800.0
 offset_left = 16.0
 offset_top = 16.0
 offset_right = 1264.0
-offset_bottom = 88.0
-theme_override_font_sizes/font_size = 13
+offset_bottom = 64.0
+theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.92, 0.96, 1, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.85)
 theme_override_constants/shadow_offset_x = 1
@@ -40,6 +41,33 @@ text = "STELLAR HORIZON — loading..."
 horizontal_alignment = 0
 vertical_alignment = 0
 autowrap_mode = 3
+
+[node name="WorldTabs" type="HBoxContainer" parent="UI"]
+offset_left = 16.0
+offset_top = 70.0
+offset_right = 600.0
+offset_bottom = 104.0
+alignment = 0
+
+[node name="World1" type="Button" parent="UI/WorldTabs"]
+custom_minimum_size = Vector2(96, 28)
+text = "WORLD 1"
+tooltip_text = "Frostline — DAYTIME (click to load, same as game 100%)"
+
+[node name="World2" type="Button" parent="UI/WorldTabs"]
+custom_minimum_size = Vector2(96, 28)
+text = "WORLD 2"
+tooltip_text = "Verdant — SUNSET"
+
+[node name="World3" type="Button" parent="UI/WorldTabs"]
+custom_minimum_size = Vector2(96, 28)
+text = "WORLD 3"
+tooltip_text = "Emberfall — NIGHT"
+
+[node name="World4" type="Button" parent="UI/WorldTabs"]
+custom_minimum_size = Vector2(96, 28)
+text = "WORLD 4"
+tooltip_text = "Titans — STORM"
 
 [node name="Hint" type="Label" parent="UI"]
 offset_left = 16.0
@@ -51,7 +79,7 @@ theme_override_colors/font_color = Color(0.8, 0.85, 0.9, 0.9)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.7)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
-text = "Godot 4.6.2  |  Open: double-click project.godot or godot --path world-qa  |  SPACE cinematic/orbit  N/P next/prev  1-4 jump  R recenter"
+text = "Godot 4.7.2  |  Click WORLD 1-4 to switch (100% same as game)  |  SPACE cinematic/orbit  Right-drag orbit  Scroll zoom  WASD pan"
 horizontal_alignment = 1
 
 [node name="Crosshair" type="Label" parent="UI"]
