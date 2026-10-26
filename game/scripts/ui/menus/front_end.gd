@@ -83,6 +83,17 @@ func _ready() -> void:
 		stage.set_physics_process(false)
 		_stages[key] = stage
 	progression_service.profile_changed.connect(_on_profile_changed)
+	# A return from the world outranks the deep link: the deployed build keeps
+	# `?qa_stage=GAMEPLAY` in its URL, so reading the hand-off first would hand
+	# the player straight back into the arena they just asked to leave.
+	if resume_stage != &"" and STAGE_SCENES.has(resume_stage):
+		# Coming back from the world is a return, not a launch: no boot overlay,
+		# no load bar, no chapter card. The dashboard reads the profile itself.
+		var target := resume_stage
+		resume_stage = &""
+		_enter(target, {})
+		return
+
 	# The web shell has already played the opening, so the GAMEPLAY hand-off
 	# enters the world without entering BOOT first. Entering a stage and then
 	# changing the scene out from under it leaves that stage's awaited frames
@@ -93,13 +104,6 @@ func _ready() -> void:
 		# pressing Deploy, and the arena they land in has to be that card.
 		_enter_qa_world()
 		call_deferred("start_gameplay")
-		return
-	if resume_stage != &"" and STAGE_SCENES.has(resume_stage):
-		# Coming back from the world is a return, not a launch: no boot overlay,
-		# no load bar, no chapter card. The dashboard reads the profile itself.
-		var target := resume_stage
-		resume_stage = &""
-		_enter(target, {})
 		return
 	_enter(&"BOOT", {})
 	_enter_qa_stage()

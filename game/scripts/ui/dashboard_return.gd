@@ -28,6 +28,18 @@ static func request(tree: SceneTree) -> void:
 		# The shell replaces the document; nothing after this line runs.
 		JavaScriptBridge.eval("window.AegisShell.home()", true)
 		return
+	if OS.has_feature("web"):
+		# The deep link that put the engine in the world (`?qa_stage=GAMEPLAY`)
+		# would put it back there on the next reload. A return is allowed to
+		# edit the URL it was given.
+		JavaScriptBridge.eval(
+			(
+				"(() => { const u = new URL(location.href);"
+				+ " for (const k of ['qa_stage', 'weapon', 'qa_world']) u.searchParams.delete(k);"
+				+ " history.replaceState(null, '', u); })()"
+			),
+			true
+		)
 	FrontEnd.resume_stage = &"DASHBOARD"
 	var error := tree.change_scene_to_file(FRONT_END_SCENE)
 	if error != OK:
