@@ -6,8 +6,10 @@ channels is not retargeting. This baker transfers each bone's *global motion
 relative to its reference pose* onto the target rig's own idle/aim pose, derives
 new target-local rotations through the target hierarchy, and preserves each
 target's bone lengths. Root/Hip translation deltas are scaled by the measured
-model-height ratio. Missing ``neutral_bone`` on Rare is intentionally left at
-its target rest pose; every other source joint must map by name and parent.
+model-height ratio only when that joint actually moves in the source clip; a
+static Hip inherits BoneRoot motion rather than counteracting it. Missing
+``neutral_bone`` on Rare is intentionally left at its target rest pose; every
+other source joint must map by name and parent.
 
 Target-specific aim/fire and weapon socket transforms are solved with the same
 analytic two-bone IK used for Common. Aim-walk/run combine that target-specific
@@ -48,6 +50,7 @@ from rigmath import (  # noqa: E402
     read_glb,
     write_glb,
 )
+from strip_static_scale_tracks import strip_file  # noqa: E402
 
 SOURCE_ROBOT = ROOT / "game/assets/enemies/robot_common.glb"
 REQUIRED_CLIPS = ("idle", "walk", "run", "aim", "aim_walk", "aim_run", "fire", "reload", "hit", "death")
@@ -149,6 +152,7 @@ def _retarget_pose(
     target_base_local: tuple[dict, dict, dict],
     target_base_global: tuple[dict, dict],
     unit_ratio: float,
+    dynamic_translation_joints: set[str],
 ) -> dict[str, dict[int, np.ndarray]]:
     """Apply global source deltas to a target pose without changing bone lengths."""
     src_pose_rot, src_pose_tra, src_pose_scale = source_local
@@ -200,7 +204,7 @@ def _retarget_pose(
                 q_mul(desired_global_rot[parent], target_base_rot[index])
             )
 
-        if source_index is not None and name in TRANSLATION_JOINTS:
+        if source_index is not None and name in dynamic_translation_joints:
             local_delta = (
                 np.asarray(src_pose_tra[source_index], dtype=np.float64)
                 - np.asarray(src_base_tra[source_index], dtype=np.float64)
@@ -276,6 +280,7 @@ def _retarget_clip(
     source_reference_global = source.fk(*source_reference_local)
     target_reference_global = target.fk(*target_reference_local)
     raw_times, start = _animation_times(source, clip)
+    dynamic_translation_joints = _dynamic_translation_joints(source, clip)
     frames = []
     for raw_time in raw_times:
         local = source.local_pose(clip, float(raw_time))
@@ -291,6 +296,7 @@ def _retarget_clip(
                 target_reference_local,
                 target_reference_global,
                 unit_ratio,
+                dynamic_translation_joints,
             )
         )
     return raw_times - start, frames
@@ -313,6 +319,7 @@ def _mixed_aim_locomotion(
     composite_duration = max(float(composite_times[-1] - composite_start), 1e-8)
     locomotion_duration = max(float(locomotion_times[-1] - locomotion_start), 1e-8)
     output_times = composite_times - composite_start
+    dynamic_translation_joints = _dynamic_translation_joints(source, locomotion_clip)
     frames = []
 
     for output_time in output_times:
@@ -329,6 +336,7 @@ def _mixed_aim_locomotion(
             target_idle_local,
             target_reference_global,
             unit_ratio,
+            dynamic_translation_joints,
         )
         frame = {path: {} for path in ("rot", "tra", "sca")}
         for index in target.joints:
@@ -348,6 +356,111 @@ def _is_dynamic(sequence: np.ndarray, path: str) -> bool:
         angles = 2.0 * np.arccos(np.clip(dots, -1.0, 1.0))
         return float(np.max(angles)) > 1e-5
     return float(np.max(np.linalg.norm(sequence - sequence[0], axis=1))) > 1e-6
+
+
+def _dynamic_translation_joints(source: Skeleton, clip: str) -> set[str]:
+    """Return root/hip joints with real per-clip translation motion.
+
+    A static Hip offset in a death clip must remain part of the target rig's
+    rest hierarchy; applying it as a second root-motion track can counteract a
+    moving BoneRoot and leave the model floating.
+    """
+    animation = source.animations.get(clip)
+    if animation is None:
+        raise RuntimeError(f"missing source clip {clip!r}")
+    dynamic: set[str] = set()
+    for channel in animation.get("channels", []):
+        target = channel.get("target", {})
+        if target.get("path") != "translation":
+            continue
+        node = int(target.get("node", -1))
+        name = source.nodes[node].get("name", f"node{node}") if 0 <= node < len(source.nodes) else ""
+        if name not in TRANSLATION_JOINTS:
+            continue
+        sampler_index = int(channel.get("sampler", -1))
+        samplers = animation.get("samplers", [])
+        if sampler_index < 0 or sampler_index >= len(samplers):
+            raise RuntimeError(f"{clip}: invalid translation sampler for {name}")
+        sampler = samplers[sampler_index]
+        values = accessor_array(source.js, source.bin, int(sampler["output"])).reshape(-1, 3)
+        if _is_dynamic(values, "translation"):
+            dynamic.add(name)
+    return dynamic
+
+
+def _validate_aim_locomotion(skeleton: Skeleton, label: str) -> dict[str, dict[str, float]]:
+    """Ensure aim-locomotion is time-locked, keeps aim, and reuses the gait pose."""
+    reports: dict[str, dict[str, float]] = {}
+    for composite, movement in (("aim_walk", "walk"), ("aim_run", "run")):
+        composite_times, composite_start = _animation_times(skeleton, composite)
+        movement_times, movement_start = _animation_times(skeleton, movement)
+        composite_times = composite_times - composite_start
+        movement_times = movement_times - movement_start
+        if composite_times.shape != movement_times.shape or np.max(
+            np.abs(composite_times - movement_times), initial=0.0
+        ) > 1e-5:
+            raise RuntimeError(f"{label}: {composite} key times do not match {movement}")
+
+        duration = float(composite_times[-1])
+        sample_times = np.linspace(0.0, duration, 7)
+        aim_rot, aim_tra, aim_scale = skeleton.local_pose("aim", 0.0)
+        max_upper_rotation = 0.0
+        max_upper_translation = 0.0
+        max_lower_rotation = 0.0
+        max_lower_translation = 0.0
+        max_scale_delta = 0.0
+        foot_positions: dict[int, list[np.ndarray]] = {}
+        feet = [skeleton.name[name] for name in ("L_Foot", "R_Foot") if name in skeleton.name]
+
+        for sample_time in sample_times:
+            composite_pose = skeleton.local_pose(composite, float(sample_time))
+            movement_pose = skeleton.local_pose(movement, float(sample_time))
+            composite_global = skeleton.fk(*composite_pose)
+            for index in skeleton.joints:
+                name = skeleton.nodes[index].get("name", f"node{index}")
+                reference_pose = (aim_rot, aim_tra, aim_scale) if _upper_body(name) else movement_pose
+                max_scale_delta = max(
+                    max_scale_delta,
+                    float(np.linalg.norm(composite_pose[2][index] - reference_pose[2][index])),
+                )
+                dot = abs(float(np.dot(composite_pose[0][index], reference_pose[0][index])))
+                angle = 2.0 * math.acos(float(np.clip(dot, -1.0, 1.0)))
+                translation = float(
+                    np.linalg.norm(composite_pose[1][index] - reference_pose[1][index])
+                )
+                if _upper_body(name):
+                    max_upper_rotation = max(max_upper_rotation, angle)
+                    max_upper_translation = max(max_upper_translation, translation)
+                else:
+                    max_lower_rotation = max(max_lower_rotation, angle)
+                    max_lower_translation = max(max_lower_translation, translation)
+            for foot in feet:
+                foot_positions.setdefault(foot, []).append(composite_global[1][foot].copy())
+
+        if max_upper_rotation > math.radians(0.1) or max_upper_translation > 2e-4:
+            raise RuntimeError(
+                f"{label}: {composite} upper body drifts from aim "
+                f"({math.degrees(max_upper_rotation):.3f}°, {max_upper_translation:.6f} m)"
+            )
+        if max_lower_rotation > math.radians(0.1) or max_lower_translation > 2e-4:
+            raise RuntimeError(
+                f"{label}: {composite} lower body does not match {movement} "
+                f"({math.degrees(max_lower_rotation):.3f}°, {max_lower_translation:.6f} m)"
+            )
+        if max_scale_delta > 2e-4:
+            raise RuntimeError(f"{label}: {composite} changes joint scale")
+        if feet and max(
+            float(np.max(np.linalg.norm(np.stack(points) - points[0], axis=1)))
+            for points in foot_positions.values()
+        ) < 0.005:
+            raise RuntimeError(f"{label}: {composite} has no measurable foot motion")
+        reports[composite] = {
+            "duration_s": round(duration, 6),
+            "upper_rotation_deg": round(math.degrees(max_upper_rotation), 5),
+            "lower_rotation_deg": round(math.degrees(max_lower_rotation), 5),
+            "lower_translation_m": round(max_lower_translation, 7),
+        }
+    return reports
 
 
 def _write_clip(
@@ -379,6 +492,10 @@ def _write_clip(
         ):
             sequence = np.stack([frame[table][node] for frame in frames]).astype(np.float64)
             dynamic = _is_dynamic(sequence, path)
+            if path == "scale" and not dynamic and np.allclose(
+                sequence[0], skeleton.rest_s[node], rtol=0.0, atol=2e-5
+            ):
+                continue
             if path == "rotation":
                 sequence = sequence.copy()
                 for frame_index in range(1, len(sequence)):
@@ -546,6 +663,7 @@ def _build_variant(variant: dict, source: Skeleton) -> dict:
         by_name = {animation.get("name", ""): animation for animation in js["animations"]}
         js["animations"] = [by_name[name] for name in REQUIRED_CLIPS]
         write_glb(variant["model"], js, writer.bin)
+        strip_file(variant["model"])
     finally:
         build_clips.RIGHT_HAND, build_clips.RIGHT_POLE, build_clips.LEFT_POLE, build_clips.GUN_SCALE = old_aim
 
@@ -581,7 +699,8 @@ def _build_variant(variant: dict, source: Skeleton) -> dict:
         "retarget_method": (
             "Global source pose deltas relative to Robot Common idle/aim are applied to the target's own "
             "idle/IK aim reference. Target-local rotations are rebuilt through the matching hierarchy; "
-            "target bone lengths are preserved."
+            "target bone lengths are preserved. Root/Hip translation is transferred only when that joint "
+            "moves in the source clip."
         ),
         "units": "model height is measured in GLB space; the receiving character setup fits it to target height",
         "model_height_units": round(target_height, 6),
@@ -639,7 +758,7 @@ def _build_variant(variant: dict, source: Skeleton) -> dict:
     return rig
 
 
-def _validate_variant(variant: dict, common_sha: str) -> list[str]:
+def _validate_variant(variant: dict, common_sha: str, source: Skeleton) -> list[str]:
     errors = []
     if not variant["model"].exists():
         return [f"{variant['enemy_id']}: missing runtime GLB {variant['model']}"]
@@ -654,9 +773,30 @@ def _validate_variant(variant: dict, common_sha: str) -> list[str]:
         errors.append(f"{variant['enemy_id']}: unexpected joint count {len(skeleton.joints)}")
     if "R_Hand" not in skeleton.name or "BoneRoot" not in skeleton.name:
         errors.append(f"{variant['enemy_id']}: required hand/root bone missing")
+    if any(
+        channel.get("target", {}).get("path") == "scale"
+        and channel.get("target", {}).get("node") in set(skeleton.joints)
+        for animation in js.get("animations", [])
+        for channel in animation.get("channels", [])
+    ):
+        errors.append(f"{variant['enemy_id']}: bone-scale animation channels remain")
     for clip in REQUIRED_CLIPS:
         if clip in skeleton.animations and skeleton.clip_duration(clip) <= 0.0:
             errors.append(f"{variant['enemy_id']}: {clip} has no duration")
+
+    try:
+        _validate_aim_locomotion(skeleton, variant["enemy_id"])
+    except RuntimeError as error:
+        errors.append(str(error))
+    target_joint_names = _joint_names(skeleton)
+    for clip in ("walk", "run", "death"):
+        expected_translation = _dynamic_translation_joints(source, clip) & target_joint_names
+        actual_translation = _dynamic_translation_joints(skeleton, clip)
+        if actual_translation != expected_translation:
+            errors.append(
+                f"{variant['enemy_id']}: {clip} dynamic root/hip tracks "
+                f"{sorted(actual_translation)} != source {sorted(expected_translation)}"
+            )
 
     try:
         rig = json.loads(variant["rig"].read_text())
@@ -696,12 +836,12 @@ def main() -> int:
 
     for variant in VARIANTS:
         if CHECK_ONLY:
-            errors.extend(_validate_variant(variant, common_sha))
+            errors.extend(_validate_variant(variant, common_sha, source))
             if not errors:
-                print(f"{variant['enemy_id']}: GLB, 10 clips, rig profile and source hashes pass")
+                print(f"{variant['enemy_id']}: GLB, 10 clips, rig/profile hashes, gait and translation checks pass")
             continue
         rig = _build_variant(variant, source)
-        errors.extend(_validate_variant(variant, common_sha))
+        errors.extend(_validate_variant(variant, common_sha, source))
         report = rig["aim_pose"]
         print(
             f"{variant['enemy_id']}: {rig['retarget']['mapped_joint_count']}/"

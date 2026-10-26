@@ -34,6 +34,14 @@
       "seconds": 2.0,
       "loop": true
     },
+    "aim_walk": {
+      "seconds": 2.333,
+      "loop": true
+    },
+    "aim_run": {
+      "seconds": 1.233,
+      "loop": true
+    },
     "fire": {
       "seconds": 0.5,
       "loop": false

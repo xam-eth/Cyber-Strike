@@ -178,6 +178,8 @@ def _validate_animation_tracks(js: dict, bin_: bytes, skeleton: Skeleton) -> Non
             path = str(target.get("path", ""))
             if node not in joint_nodes or path not in {"rotation", "translation", "scale"}:
                 raise RuntimeError(f"{name}: channel targets a non-joint or unsupported path")
+            if path == "scale":
+                raise RuntimeError(f"{name}: bone-scale animation channel remains")
             if (node, path) in seen_targets:
                 raise RuntimeError(f"{name}: duplicate channel for joint {node}/{path}")
             seen_targets.add((node, path))
@@ -355,6 +357,7 @@ def _build_variant(variant: dict[str, Any], source: Skeleton) -> dict[str, Any]:
             raise RuntimeError(f"T{variant['tier']}: clip build mismatch: {sorted(by_name)}")
         js["animations"] = [by_name[name] for name in ANIMATION_NAMES]
         write_glb(variant["model"], js, writer.bin)
+        robot_retarget.strip_file(variant["model"])
     finally:
         (
             build_clips.RIGHT_HAND,
@@ -410,7 +413,8 @@ def _build_variant(variant: dict[str, Any], source: Skeleton) -> dict[str, Any]:
             "source_variant_sha256": _sha256(variant["source"]),
             "retarget_method": (
                 "Robot Common's idle/walk/run/aim/fire/reload/hit/death motion is transferred by named "
-                "joint and common-pose deltas onto the copied 79-joint rig. The human mesh keeps its own "
+                "joint and common-pose deltas onto the copied 79-joint rig. Root/Hip translation is "
+                "transferred only when the source joint moves in that clip. The human mesh keeps its own "
                 "per-tier vertex weights. Weapon raise/lower transitions are generated from idle and aim."
             ),
             "units": "source and target meshes use one-metre model units",
@@ -514,6 +518,16 @@ def _check_variant(
     for clip in ANIMATION_NAMES:
         if skeleton.clip_duration(clip) <= 0.0:
             raise RuntimeError(f"clip {clip!r} has no duration")
+    robot_retarget._validate_aim_locomotion(skeleton, f"T{variant['tier']}")
+    target_joint_names = robot_retarget._joint_names(skeleton)
+    for clip in ("walk", "run", "death"):
+        expected_translation = robot_retarget._dynamic_translation_joints(source, clip) & target_joint_names
+        actual_translation = robot_retarget._dynamic_translation_joints(skeleton, clip)
+        if actual_translation != expected_translation:
+            raise RuntimeError(
+                f"{clip} dynamic root/hip tracks {sorted(actual_translation)} "
+                f"!= Robot Common {sorted(expected_translation)}"
+            )
     skin_checks = hero_rigging._validate_variant(variant, template_js, template_skeleton)
     profile = json.loads(variant["rig"].read_text(encoding="utf-8"))
     if profile.get("source_robot_common_sha256") != _sha256(SOURCE_ROBOT):

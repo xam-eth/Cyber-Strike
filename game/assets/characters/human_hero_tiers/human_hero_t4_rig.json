@@ -5,7 +5,7 @@
   "source_model_sha256": "a9451c0835df19a308072e74c4028f9a7ee9932211cce712bc62d6a3e3a32766",
   "optimized_mesh_sha256": "c5d64a7488cee0bcecfeabd3b1bbe4de9ec8235ca6c41721ed16777684ed62d1",
   "rig_template": "game/assets/enemies/robot_common.glb",
-  "rig_template_sha256": "6e6df0d6b583ea3687cec482dae71ccf1ce1e3bdb09effdb26694a3b7c80eeb0",
+  "rig_template_sha256": "d97b07d1e634496e32fea04f8670c61eb608069632727ecf395618eecef2370b",
   "skeleton_root": "Armature",
   "joint_count": 79,
   "joint_names": [
@@ -193,7 +193,7 @@
         "max_radius_m": 0.975038
       },
       "aim": {
-        "p95_displacement_m": 0.255951,
+        "p95_displacement_m": 0.255949,
         "max_radius_m": 0.996209
       },
       "death": {
@@ -213,9 +213,9 @@
   "upgrade_track_id": "human_operative",
   "upgrade_tier": 4,
   "source_robot_common_model": "robot_common.glb",
-  "source_robot_common_sha256": "6e6df0d6b583ea3687cec482dae71ccf1ce1e3bdb09effdb26694a3b7c80eeb0",
+  "source_robot_common_sha256": "d97b07d1e634496e32fea04f8670c61eb608069632727ecf395618eecef2370b",
   "source_variant_sha256": "a9451c0835df19a308072e74c4028f9a7ee9932211cce712bc62d6a3e3a32766",
-  "retarget_method": "Robot Common's idle/walk/run/aim/fire/reload/hit/death motion is transferred by named joint and common-pose deltas onto the copied 79-joint rig. The human mesh keeps its own per-tier vertex weights. Weapon raise/lower transitions are generated from idle and aim.",
+  "retarget_method": "Robot Common's idle/walk/run/aim/fire/reload/hit/death motion is transferred by named joint and common-pose deltas onto the copied 79-joint rig. Root/Hip translation is transferred only when the source joint moves in that clip. The human mesh keeps its own per-tier vertex weights. Weapon raise/lower transitions are generated from idle and aim.",
   "units": "source and target meshes use one-metre model units",
   "model_height_units": 0.999969,
   "skeleton": "Armature",
@@ -398,17 +398,17 @@
     {
       "name": "idle",
       "seconds": 15.333333015441895,
-      "dynamic_channels": 63
+      "dynamic_channels": 53
     },
     {
       "name": "walk",
       "seconds": 2.3333332538604736,
-      "dynamic_channels": 35
+      "dynamic_channels": 34
     },
     {
       "name": "run",
       "seconds": 1.2333333492279053,
-      "dynamic_channels": 24
+      "dynamic_channels": 23
     },
     {
       "name": "raise_weapon",
@@ -422,12 +422,12 @@
     },
     {
       "name": "aim_walk",
-      "seconds": 2.333333220332861,
+      "seconds": 2.3333332538604736,
       "dynamic_channels": 9
     },
     {
       "name": "aim_run",
-      "seconds": 1.2333333157002926,
+      "seconds": 1.2333333492279053,
       "dynamic_channels": 8
     },
     {
@@ -448,7 +448,7 @@
     {
       "name": "death",
       "seconds": 1.4999999664723873,
-      "dynamic_channels": 8
+      "dynamic_channels": 7
     },
     {
       "name": "lower_weapon",

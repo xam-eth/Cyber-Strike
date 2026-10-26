@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
-"""Bake the Robot Common enemy's combat clips (aim, fire) into its rigged GLB.
+"""Refresh Robot Common weapon poses and phase-lock aimed locomotion.
 
-Why this exists
----------------
-The Robot Common source arrived with ``idle``, ``run`` and ``walk`` only — no aiming and
-no firing, which is exactly what a third-person shooter needs. There is no
-Blender in this environment (the bpy wheel needs native GL libraries this image
-does not ship), so the clips are authored here, in glTF space, with analytic
-two-bone IK on the real skeleton:
+The existing real GLB supplies the idle/walk/run cycles and skeleton. This
+script recalibrates its aim/fire poses with analytic two-bone IK, then rebuilds
+``aim_walk`` and ``aim_run`` from the exact walk/run key times while holding the
+upper body on the aim pose. It also removes only skin-joint scale tracks proven
+equal to rest scale:
 
-* ``aim``  holds the rifle up, both hands on the weapon, breathing, loops.
+* ``aim`` holds the rifle up, both hands on the weapon, breathing, and loops.
 * ``fire`` is the aim pose plus a recoil impulse that settles back into it.
+* aimed locomotion inherits the matching gait's zero-based timebase.
 
 The right hand is solved to a fixed point in the character's local space and the
 wrist keeps the forearm's natural orientation, so the pose does not depend on
@@ -32,6 +31,7 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from strip_static_scale_tracks import clean_scale_channels, strip_file  # noqa: E402
 from rigmath import (  # noqa: E402
     BinWriter,
     Skeleton,
@@ -269,10 +269,12 @@ def recenter_hips(js, sk, writer, clip, threshold=0.05):
     return 0.0
 
 
-def add_clip(sk, js, writer, name, keys, changed_bones):
-    """Write one animation: full channels, 1 key for untouched bones."""
+def add_clip(sk, js, writer, name, keys, changed_bones, times=None):
+    """Write one animation with full pose channels and sparse keys where safe."""
     n = len(keys["rot"])
-    times = np.arange(n, dtype=np.float64) / FPS
+    times = np.asarray(times if times is not None else np.arange(n, dtype=np.float64) / FPS)
+    if times.shape != (n,) or (n > 1 and np.any(np.diff(times) <= 0.0)):
+        raise RuntimeError(f"{name}: invalid key-time array")
     time_acc = writer.add(times.reshape(-1, 1), "SCALAR", 5126, minmax=True)
 
     changed = {sk.name[b] for b in changed_bones}
@@ -283,8 +285,12 @@ def add_clip(sk, js, writer, name, keys, changed_bones):
             ("translation", "tra", "VEC3"),
             ("scale", "sca", "VEC3"),
         ):
-            count = n if (path == "rotation" and node in changed) else 1
             seq = np.stack([keys[table][i][node] for i in range(n)])
+            if path == "scale":
+                if not np.allclose(seq, sk.rest_s[node], rtol=0.0, atol=2e-5):
+                    raise RuntimeError(f"{name}: meaningful scale animation on {sk.nodes[node].get('name', node)}")
+                continue
+            count = n if (path == "rotation" and node in changed) else 1
             if count == 1:
                 seq = seq[0:1]
                 inp = writer.add(np.array([[0.0]]), "SCALAR", 5126, minmax=True)
@@ -304,6 +310,92 @@ def add_clip(sk, js, writer, name, keys, changed_bones):
                 {"sampler": len(anim["samplers"]) - 1, "target": {"node": node, "path": path}}
             )
     js["animations"].append(anim)
+
+
+def _upper_body_joint(name: str) -> bool:
+    return name in {"Hip", "Waist", "Spine01", "Spine02"} or name.startswith(
+        (
+            "L_Upperarm", "L_Forearm", "L_Elbow", "L_Hand", "L_Clavicle",
+            "L_Pinky", "L_Ring", "L_Mid", "L_Index", "L_Thumb",
+            "R_Upperarm", "R_Forearm", "R_Elbow", "R_Hand", "R_Clavicle",
+            "R_Pinky", "R_Ring", "R_Mid", "R_Index", "R_Thumb",
+            "Neck", "Head", "Facial", "L_Eye", "R_Eye",
+        )
+    )
+
+
+def _clip_times(sk, clip: str) -> tuple[np.ndarray, float]:
+    animation = sk.animations.get(clip)
+    if animation is None:
+        raise RuntimeError(f"missing animation {clip!r}")
+    chunks = [
+        accessor_array(sk.js, sk.bin, sampler["input"]).reshape(-1)
+        for sampler in animation.get("samplers", [])
+    ]
+    chunks = [values for values in chunks if values.size]
+    if not chunks:
+        return np.array([0.0], dtype=np.float64), 0.0
+    times = np.unique(np.concatenate(chunks).astype(np.float64))
+    return times, float(times[0])
+
+
+def _compose_aim_locomotion(sk, movement_clip: str, aim_keys: dict):
+    raw_times, start = _clip_times(sk, movement_clip)
+    output_times = raw_times - start
+    aim_pose = {
+        path: {node: np.asarray(aim_keys[path][0][node], dtype=np.float64).copy() for node in sk.joints}
+        for path in ("rot", "tra", "sca")
+    }
+    tables = {"rot": 0, "tra": 1, "sca": 2}
+    keys = {path: [] for path in tables}
+    for raw_time in raw_times:
+        movement_pose = sk.local_pose(movement_clip, float(raw_time))
+        for path, table in tables.items():
+            keys[path].append(
+                {
+                    node: (
+                        aim_pose[path][node].copy()
+                        if _upper_body_joint(sk.nodes[node].get("name", f"node{node}"))
+                        else np.asarray(movement_pose[table][node], dtype=np.float64).copy()
+                    )
+                    for node in sk.joints
+                }
+            )
+
+    changed_bones = []
+    for node in sk.joints:
+        sequence = np.stack([frame[node] for frame in keys["rot"]])
+        if len(sequence) > 1:
+            dots = np.abs(sequence @ sequence[0])
+            angles = 2.0 * np.arccos(np.clip(dots, -1.0, 1.0))
+            if float(np.max(angles)) > 1e-5:
+                changed_bones.append(sk.nodes[node].get("name", f"node{node}"))
+    return output_times, keys, changed_bones
+
+
+def _validate_source_aim_locomotion(sk) -> None:
+    for composite, movement in (("aim_walk", "walk"), ("aim_run", "run")):
+        composite_times, composite_start = _clip_times(sk, composite)
+        movement_times, movement_start = _clip_times(sk, movement)
+        composite_normalized = composite_times - composite_start
+        movement_normalized = movement_times - movement_start
+        if composite_normalized.shape != movement_normalized.shape or np.max(
+            np.abs(composite_normalized - movement_normalized), initial=0.0
+        ) > 1e-5:
+            raise RuntimeError(f"{composite} key times do not match {movement}")
+        for phase in np.linspace(0.0, float(composite_normalized[-1]), 7):
+            composite_pose = sk.local_pose(composite, float(composite_start + phase))
+            movement_pose = sk.local_pose(movement, float(movement_start + phase))
+            aim_pose = sk.local_pose("aim", 0.0)
+            for node in sk.joints:
+                name = sk.nodes[node].get("name", f"node{node}")
+                reference = aim_pose if _upper_body_joint(name) else movement_pose
+                dot = abs(float(np.dot(composite_pose[0][node], reference[0][node])))
+                angle = 2.0 * math.acos(float(np.clip(dot, -1.0, 1.0)))
+                translation = float(np.linalg.norm(composite_pose[1][node] - reference[1][node]))
+                if angle > math.radians(0.1) or translation > 2e-4:
+                    area = "upper body/aim" if _upper_body_joint(name) else "lower-body gait"
+                    raise RuntimeError(f"{composite} {area} mismatch at {name}: {math.degrees(angle):.3f}°")
 
 
 def main():
@@ -329,15 +421,29 @@ def main():
     recentered = {}
     carry_rot, carry_before, carry_desired, carry_check = carry_socket_rotation(sk, sk.local_pose("idle", 0.0), attach)
 
-    if not check_only:
+    scale_report = None
+    if check_only:
+        _validate_source_aim_locomotion(sk)
+        _, scale_report = clean_scale_channels(ROBOT_COMMON.read_bytes())
+        if scale_report["removed_scale_channels"] or scale_report["remaining_bone_scale_channels"]:
+            raise RuntimeError("Robot Common still has redundant or unsafe skin-joint scale channels")
+    else:
         writer = BinWriter(js, bin_)
         recentered = {clip: recenter_hips(js, sk, writer, clip) for clip in ("idle", "walk", "run")}
-        js["animations"] = [a for a in js["animations"] if a.get("name") not in ("aim", "fire")]
+        js["animations"] = [
+            animation for animation in js["animations"]
+            if animation.get("name") not in ("aim", "fire", "aim_walk", "aim_run")
+        ]
         add_clip(sk, js, writer, "aim", aim_keys, ["R_Upperarm", "R_Forearm", "L_Upperarm", "L_Forearm",
                                                    "Spine01", "Spine02", "NeckTwist02"])
         add_clip(sk, js, writer, "fire", fire_keys, ["R_Upperarm", "R_Forearm", "R_Hand",
                                                      "L_Upperarm", "L_Forearm", "Spine01", "Spine02"])
+        for composite, movement in (("aim_walk", "walk"), ("aim_run", "run")):
+            times, gait_keys, changed_bones = _compose_aim_locomotion(sk, movement, aim_keys)
+            add_clip(sk, js, writer, composite, gait_keys, changed_bones, times=times)
         write_glb(ROBOT_COMMON, js, writer.bin)
+        scale_report = strip_file(ROBOT_COMMON)
+        _validate_source_aim_locomotion(Skeleton(*read_glb(ROBOT_COMMON)))
 
     RIG_JSON.parent.mkdir(parents=True, exist_ok=True)
     rig = {
@@ -355,6 +461,8 @@ def main():
         "weapon_muzzle_local": [round(float(v), 5) for v in GUN_MUZZLE],
         "clips": {
             "aim": {"seconds": AIM_SECONDS, "loop": True},
+            "aim_walk": {"seconds": round(float(_clip_times(sk, "walk")[0][-1] - _clip_times(sk, "walk")[1]), 3), "loop": True},
+            "aim_run": {"seconds": round(float(_clip_times(sk, "run")[0][-1] - _clip_times(sk, "run")[1]), 3), "loop": True},
             "fire": {"seconds": FIRE_SECONDS, "loop": False},
         },
         "aim_pose": {
@@ -377,7 +485,9 @@ def main():
             "barrel_after": [round(float(v), 3) for v in carry_check],
         },
     }
-    RIG_JSON.write_text(json.dumps(rig, indent=2) + "\n")
+    if not check_only:
+        RIG_JSON.parent.mkdir(parents=True, exist_ok=True)
+        RIG_JSON.write_text(json.dumps(rig, indent=2) + "\n")
 
     print(f"hand IK error {hand_err * 1000:.2f} mm · support error {left_err * 1000:.2f} mm "
           f"· reach {report['reach_right']:.2f}/{report['reach_left']:.2f}")
@@ -388,11 +498,20 @@ def main():
     print("recentered: " + ", ".join(f"{k} {v:.2f}" for k, v in recentered.items()))
     print(f"carry socket: barrel {np.round(carry_before, 2)} -> {np.round(carry_check, 2)} "
           f"(want {np.round(carry_desired, 2)})")
+    if scale_report is not None:
+        print(
+            f"bone-scale cleanup: removed={scale_report['removed_scale_channels']} · "
+            f"remaining={scale_report['remaining_bone_scale_channels']}"
+        )
     print(f"robot_common.glb {ROBOT_COMMON.stat().st_size / 1e6:.2f} MB")
 
-    ok = (hand_err < 0.002 and left_err < 0.01 and pitch < 1.5
+    scale_ok = scale_report is not None and scale_report["remaining_bone_scale_channels"] == 0
+    if check_only and scale_report is not None:
+        scale_ok = scale_ok and scale_report["removed_scale_channels"] == 0
+    ok = (hand_err < 0.002 and left_err < 0.01 and abs(pitch) < 1.5
           and muzzle_dz < -0.015 and muzzle_dy > 0.002
-          and float(np.linalg.norm(carry_check - carry_desired)) < 0.01)
+          and float(np.linalg.norm(carry_check - carry_desired)) < 0.01
+          and scale_ok)
     return 0 if ok else 1
 
 
