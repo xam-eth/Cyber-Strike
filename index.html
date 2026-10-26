@@ -223,288 +223,179 @@
         </section>
 
         <!-- ========================================================== HERO -->
-        <!-- The first screen after the opening is the roster, in the order a
-             player actually meets a game like this: who am I deploying as,
-             what can I do with them, and only then where am I going. The
-             reference is the character screen of a modern mobile shooter
+        <!-- ==================================================== OPERATIVE -->
+        <!-- The operative page answers two questions in one composition, and
+             separates them into two card groups so neither is a tab:
+
+               HEROES  who am I deploying as   -- choosing one slides the new
+                                               operative in from the right;
+               TIERS   what does this hero     -- choosing one lifts the same
+                       become at the next       operative in from the top under
+                       rank                     a celebration.
+
+             The reference is the character page of a shipped mobile shooter
              (CoD Mobile's Operator page, Free Fire's Character page): the
-             hero is the largest object on screen, the roster is a strip under
-             him, and everything else is a tab on a side rail -- Info,
-             Upgrade, Skin, Weapon. Each tab answers one question and nothing
-             is a dead end.
+             operative at the largest scale, the roster on a strip, one lit
+             action. What those pages do not do is show the upgrade ladder as
+             pictures of the same hero, which is the one thing a five-tier
+             costume ladder has to show -- so the tier strip is card art
+             rendered from each tier's own GLB (ui/art/web/hero/), not a list of
+             numbers.
 
-             The hero poses on a lit deck with a celebration beat: a spotlight
-             cone, an expanding floor ring, sparks and a name banner. It runs
-             once when the screen is entered (and honours "kurangi gerak"),
-             because the moment a player first sees their operative is the one
-             moment in a lobby that should feel like an event. -->
-        <section class="screen screen--hero" id="screen-hero" aria-labelledby="hero-name" data-celebrate="false">
-          <div class="hero">
-            <div class="hero__left">
-              <div class="hero__id">
-                <p class="eyebrow" data-i18n="hero.eyebrow">OPERATIVE · 01 / 03</p>
-                <h1 class="hero__name" id="hero-name">EXO Operative</h1>
-                <div class="hero__tags">
-                  <span class="chip chip--ok" id="hero-status" data-i18n="hero.status">Field ready</span>
-                  <span class="chip chip--quiet">E-07</span>
+             Every card in both strips is the same object: 3:4 art window,
+             a name line, a state line, one accent edge. Two groups, one card.
+
+             Motion is the meaning, not decoration:
+               * hero select  -> the operative enters from the RIGHT;
+               * tier select  -> the operative enters from the TOP, with the
+                                 spotlight, the ring, sparks and a tier banner.
+             Both are one-shot, both honour "kurangi gerak", and both are driven
+             by ui/hero_stage.js in the scene rather than by a CSS transform on
+             a picture of a character. -->
+        <section class="screen screen--hero" id="screen-hero" aria-labelledby="hero-name" data-celebrate="false" data-ready="false">
+          <div class="op">
+            <header class="op__head">
+              <div class="op__lead">
+                <!-- Every gameplay page returns the way it came: this one back to
+                     the opening (and to the hub when it was opened from there). -->
+                <button class="cbtn op__back" id="hero-back" type="button" aria-label="Back" data-i18n-aria="hero.back">
+                  <svg class="ico" aria-hidden="true"><use href="#i-chev-left" /></svg>
+                </button>
+                <div class="op__id">
+                  <p class="eyebrow" data-i18n="hero.eyebrow">OPERATIVE</p>
+                  <h1 class="op__name" id="hero-name">MARA VOSS</h1>
+                  <span class="op__callsign" id="hero-callsign">SABLE</span>
                 </div>
               </div>
+              <span class="chip chip--tier" id="hero-tier-chip">
+                <b data-i18n="hero.tier.word">TIER</b><i id="hero-tier-number">1</i>
+                <span id="hero-tier-name">FIELD RECRUIT</span>
+              </span>
+            </header>
 
-              <p class="hero__role" id="hero-role" data-i18n="hero.role">
-                AEGIS infantry out of the field training programme. One frame for every
-                operative; what changes is the livery and the weapon.
+            <!-- The stage. The art is the screen's subject, so it gets its own
+                 column rather than being a plate behind the panels: a hero
+                 half-covered by a detail card is not a hero screen. The plate
+                 behind the canvas is the room; the deck, the operative and the
+                 shadow are all in the scene (the room does not animate, the
+                 figure does). -->
+            <div class="op__stage" id="op-stage">
+              <img class="stage__plate" src="./ui/art/web/hero-stage.jpg" alt="" aria-hidden="true" />
+              <canvas
+                class="stage__view"
+                id="hero-canvas"
+                role="img"
+                data-i18n-aria="hero.stage_label"
+                aria-label="Mara Voss in SABLE tier 1, rendered live from her rig"
+              ></canvas>
+              <span class="stage__note" id="hero-stage-note" hidden></span>
+              <span class="stage__beam" aria-hidden="true"></span>
+              <span class="stage__ring" aria-hidden="true"></span>
+              <span class="stage__floor" aria-hidden="true"></span>
+              <span class="stage__flash" aria-hidden="true"></span>
+              <span class="stage__sparks" id="hero-sparks" aria-hidden="true"></span>
+              <span class="stage__banner" id="hero-banner" aria-hidden="true">
+                <b id="hero-banner-title">TIER 1</b><i id="hero-banner-note">FIELD RECRUIT</i>
+              </span>
+            </div>
+
+            <!-- The brief: one line about who this is, the two numbers the tier
+                 actually changes, and the loadout. Nothing here is decoration --
+                 vitals and armour reduction are read from the tier table and
+                 applied by the arena (?tier= -> ProgressionService -> the player
+                 controller), and "next tier" states the runs that unlock it. -->
+            <div class="op__brief">
+              <p class="op__role" id="hero-role" data-i18n="hero.sable.brief">
+                Raised on the frontier line, fielded as a strike lead. Her kit is the
+                rank: every tier is plate welded over the last one.
               </p>
-
-              <!-- The hero list. A card per operative, the way the roster of a
-                   character page reads: portrait, name, state. Three slots, one
-                   filled -- and the two empty ones are drawn as slots, not as
-                   silhouettes of heroes that do not exist. -->
-              <ul class="hcards" id="hero-roster" data-i18n-aria="hero.roster_label" aria-label="Operative list">
-                <li>
-                  <button class="hcard" type="button" data-hero="exo_operative" data-active="true" aria-pressed="true">
-                    <span class="hcard__thumb">
-                      <img src="./ui/art/web/hero-portrait.png" alt="" />
-                    </span>
-                    <span class="hcard__body">
-                      <span class="hcard__name">EXO Operative</span>
-                      <span class="hcard__state" data-i18n="hero.roster_state">Ready to deploy</span>
-                    </span>
-                    <span class="hcard__tick" aria-hidden="true"><svg class="ico"><use href="#i-check" /></svg></span>
-                  </button>
-                </li>
-                <li>
-                  <button class="hcard hcard--locked" type="button" disabled aria-disabled="true">
-                    <span class="hcard__thumb hcard__thumb--empty"></span>
-                    <span class="hcard__body">
-                      <span class="hcard__name">Slot 02</span>
-                      <span class="hcard__state" data-i18n="hero.slot_empty">Empty</span>
-                    </span>
-                  </button>
-                </li>
-                <li>
-                  <button class="hcard hcard--locked" type="button" disabled aria-disabled="true">
-                    <span class="hcard__thumb hcard__thumb--empty"></span>
-                    <span class="hcard__body">
-                      <span class="hcard__name">Slot 03</span>
-                      <span class="hcard__state" data-i18n="hero.slot_empty">Empty</span>
-                    </span>
-                  </button>
-                </li>
-              </ul>
-
-
-              <!-- What this operative deploys with. It is the left column's last
-                   row on purpose: the questions a character page answers run
-                   name -> who -> what do they carry, and the strip is the third
-                   answer, not decoration. -->
-              <div class="hero__kitted" data-i18n-aria="hero.kitted_label" aria-label="Issued for deployment">
-                <span class="kitted__row"><i data-i18n="hero.kit.livery">Livery</i><b id="hero-kit-skin">AEGIS</b></span>
-                <span class="kitted__row"><i data-i18n="hero.kit.weapon">Weapon</i><b id="hero-kit-weapon">PULSE RIFLE</b></span>
-                <span class="kitted__row"><i data-i18n="hero.kit.theatre">Theatre</i><b id="hero-kit-world">Neon Frontier</b></span>
-              </div>
-            </div>
-
-            <!-- The stage. The art is the screen's subject, so it is an image
-                 in its own column rather than a plate behind the panels: a
-                 hero half-covered by a detail card is not a hero screen. -->
-            <div class="hero__mid">
-              <div class="hero__stage">
-                <img class="stage__plate" src="./ui/art/web/hero-stage.jpg" alt="" aria-hidden="true" />
-                <canvas
-                  class="stage__view"
-                  id="hero-canvas"
-                  role="img"
-                  data-i18n-aria="hero.stage_label" aria-label="EXO Operative, rendered live from hero.glb"
-                ></canvas>
-                <span class="stage__note" id="hero-stage-note" hidden></span>
-                <span class="stage__ring" aria-hidden="true"></span>
-                <span class="stage__floor" aria-hidden="true"></span>
-                <span class="stage__flash" aria-hidden="true"></span>
-                <span class="stage__sparks" id="hero-sparks" aria-hidden="true"></span>
-                <span class="stage__banner" id="hero-banner" aria-hidden="true">
-                  <b data-i18n="hero.banner_name">OPERATIVE 01</b><i data-i18n="hero.status">Field ready</i>
-                </span>
+              <dl class="op__stats">
+                <div class="op__stat">
+                  <dt data-i18n="hero.stat.vitals">VITALS</dt>
+                  <dd><b id="hero-stat-vitals">100</b><i id="hero-stat-vitals-delta"></i></dd>
+                </div>
+                <div class="op__stat">
+                  <dt data-i18n="hero.stat.armour">ARMOUR</dt>
+                  <dd><b id="hero-stat-armour">0%</b><i id="hero-stat-armour-delta"></i></dd>
+                </div>
+                <div class="op__stat op__stat--next">
+                  <dt data-i18n="hero.stat.next">NEXT TIER</dt>
+                  <dd><b id="hero-stat-next">1 RUN</b></dd>
+                </div>
+              </dl>
+              <!-- The ladder as a rail: the card strip below says what each
+                   rank looks like, this says how far the next one is. It reads
+                   `aegis.runs`, the same number ProgressionService mirrors out
+                   of the arena, so the shell cannot promise a tier the arena
+                   would refuse. -->
+              <div class="op__ladder">
+                <div class="op__ladder-head">
+                  <span data-i18n="hero.ladder.label">TIER LADDER</span>
+                  <b id="hero-ladder-note">1 / 5</b>
+                </div>
+                <ol class="ladder" id="hero-ladder" aria-hidden="true"></ol>
               </div>
 
-              <div class="hero__tabs" role="tablist" data-i18n-aria="hero.tabs_label" aria-label="Operative detail">
-                <button class="htab" type="button" role="tab" id="tab-info" data-tab="info" aria-selected="true" aria-controls="hero-panel-info">
-                  <svg class="ico" aria-hidden="true"><use href="#i-info" /></svg>
-                  <span data-i18n="hero.tab.info">Info</span>
-                </button>
-                <button class="htab" type="button" role="tab" id="tab-upgrade" data-tab="upgrade" aria-selected="false" aria-controls="hero-panel-upgrade">
-                  <svg class="ico" aria-hidden="true"><use href="#i-upgrade" /></svg>
-                  <span data-i18n="hero.tab.upgrade">Upgrade</span>
-                </button>
-                <button class="htab" type="button" role="tab" id="tab-skin" data-tab="skin" aria-selected="false" aria-controls="hero-panel-skin">
-                  <svg class="ico" aria-hidden="true"><use href="#i-skin" /></svg>
-                  <span data-i18n="hero.tab.skin">Livery</span>
-                </button>
-                <button class="htab" type="button" role="tab" id="tab-weapon" data-tab="weapon" aria-selected="false" aria-controls="hero-panel-weapon">
+              <!-- Two actions, one row, at the bottom of the brief: the rack
+                   (secondary) and the one lit action (primary). They used to
+                   share the card row, which left the tier strip cut off against
+                   the button on a 667 px phone. -->
+              <div class="op__kit">
+                <button class="btn btn--loadout" id="hero-loadout" type="button">
                   <svg class="ico" aria-hidden="true"><use href="#i-rifle" /></svg>
-                  <span data-i18n="hero.tab.weapon">Weapon</span>
+                  <span class="btn__label" data-i18n="hero.loadout">LOADOUT</span>
+                  <span class="btn__meta" id="hero-loadout-weapon">PULSE RIFLE</span>
                 </button>
-              </div>
-            </div>
-
-            <div class="hero__right">
-              <!-- INFO: who this is, and the numbers that come out of the files
-                   the game loads (rig height, the model, the slot). -->
-              <div class="hpanel" id="hero-panel-info" role="tabpanel" aria-labelledby="tab-info">
-                <div class="hpanel__head">
-                  <p class="eyebrow" data-i18n="hero.info.eyebrow">PROFILE</p>
-                  <span class="chip chip--ok" data-i18n="hero.ready_chip">READY</span>
-                </div>
-                <p class="hpanel__text" data-i18n="hero.info.body">
-                  An E-07 frame with fabricated chest, shoulder and knee plates. One rig,
-                  one animation set. The choice lives in the livery and the weapon.
-                </p>
-                <div class="statusgrid hpanel__grid">
-                  <div><span class="metric__key" data-i18n="hero.info.chassis">Chassis</span><span class="metric__val">E-07</span></div>
-                  <div><span class="metric__key" data-i18n="hero.info.height">Height</span><span class="metric__val">1.78 m</span></div>
-                  <div><span class="metric__key" data-i18n="hero.info.slot">Slot</span><span class="metric__val" data-tone="accent">01 / 03</span></div>
-                  <div><span class="metric__key" data-i18n="hero.info.rig">Rig</span><span class="metric__val">hero.glb</span></div>
-                </div>
-                <ul class="hlist">
-                  <li><b>Idle</b><span data-i18n="hero.clip.idle">ready stance</span></li>
-                  <li><b>Aim</b><span data-i18n="hero.clip.aim">sights up</span></li>
-                  <li><b>Fire</b><span data-i18n="hero.clip.fire">recoil</span></li>
-                </ul>
-              </div>
-
-              <!-- UPGRADE: the ladder this game actually has. There is no
-                   per-hero stat block to level (HeroDefinition has none on
-                   purpose), so the thing a player upgrades here is the kit:
-                   the weapon tiers, priced in the currency the arena pays.
-                   Buying happens in the arena, never in this shell, so the
-                   action is stated and disabled instead of pretending. -->
-              <div class="hpanel" id="hero-panel-upgrade" role="tabpanel" aria-labelledby="tab-upgrade" hidden>
-                <div class="hpanel__head">
-                  <p class="eyebrow" data-i18n="hero.upgrade.eyebrow">KIT PATH</p>
-                  <span class="chip chip--quiet">BP</span>
-                </div>
-                <ol class="tiers" id="hero-tiers">
-                  <li class="tier tier--on">
-                    <span class="tier__no">01</span>
-                    <span class="tier__body">
-                      <b>Pulse Rifle</b>
-                      <i>18 dmg · 5.0/s · 24</i>
-                    </span>
-                    <span class="tier__state" data-i18n="hero.upgrade.state">open</span>
-                  </li>
-                  <li class="tier">
-                    <span class="tier__no">02</span>
-                    <span class="tier__body">
-                      <b>Nova Launcher</b>
-                      <i>34 dmg · 0.8/s · 6</i>
-                    </span>
-                    <span class="tier__state">120 BP</span>
-                  </li>
-                  <li class="tier">
-                    <span class="tier__no">03</span>
-                    <span class="tier__body">
-                      <b>Arc Shooter</b>
-                      <i>20 dmg · 2.0/s · 12</i>
-                    </span>
-                    <span class="tier__state">250 BP</span>
-                  </li>
-                </ol>
-                <div class="tier__meter" aria-hidden="true"><i></i><i></i><i></i></div>
-                <button class="btn btn--upgrade" type="button" disabled aria-describedby="upgrade-note">
-                  <svg class="ico" aria-hidden="true"><use href="#i-upgrade" /></svg>
-                  <span class="btn__label" data-i18n="hero.upgrade.button">UPGRADE</span>
-                  <span class="btn__meta" data-i18n="hero.upgrade.meta">arena</span>
-                </button>
-                <p class="hpanel__note" id="upgrade-note" data-i18n="hero.upgrade.note">
-                  Battle Points are earned and spent inside the arena, so nothing can be
-                  bought before Deploy.
-                </p>
-              </div>
-
-              <!-- SKIN: liveries. One is the livery the game actually renders;
-                   the other two are slots, labelled as not built. A skin shop
-                   with nothing behind it is the same lie as a playable card for
-                   a hero that does not exist. -->
-              <div class="hpanel" id="hero-panel-skin" role="tabpanel" aria-labelledby="tab-skin" hidden>
-                <div class="hpanel__head">
-                  <p class="eyebrow" data-i18n="hero.skin.eyebrow">LIVERY</p>
-                  <span class="chip chip--quiet">1 / 3</span>
-                </div>
-                <div class="skins" role="radiogroup" data-i18n-aria="hero.skin.group" aria-label="Operative livery">
-                  <button class="skin" type="button" role="radio" aria-checked="true" data-skin="aegis">
-                    <span class="skin__swatch skin__swatch--aegis" aria-hidden="true"></span>
-                    <span class="skin__name">AEGIS</span>
-                    <span class="skin__state" data-i18n="hero.skin.equipped">Equipped</span>
-                  </button>
-                  <button class="skin" type="button" role="radio" aria-checked="false" aria-disabled="true" data-skin="glacier">
-                    <span class="skin__swatch skin__swatch--glacier" aria-hidden="true"></span>
-                    <span class="skin__name">Glacier</span>
-                    <span class="skin__state" data-i18n="hero.skin.not_built">Not built</span>
-                  </button>
-                  <button class="skin" type="button" role="radio" aria-checked="false" aria-disabled="true" data-skin="ember">
-                    <span class="skin__swatch skin__swatch--ember" aria-hidden="true"></span>
-                    <span class="skin__name">Ember</span>
-                    <span class="skin__state" data-i18n="hero.skin.not_built">Not built</span>
-                  </button>
-                </div>
-                <p class="hpanel__note" data-i18n="hero.skin.note">
-                  A livery follows the rig: the equipped one is the one the arena renders.
-                  The other slots are labelled as they are, not sold.
-                </p>
-              </div>
-
-              <!-- WEAPON: the rack, moved here from the old OPERATIF page. This
-                   is the one choice on this screen that changes the run, and it
-                   still travels to the arena in the URL. -->
-              <div class="hpanel hpanel--rack" id="hero-panel-weapon" role="tabpanel" aria-labelledby="tab-weapon" hidden>
-                <div class="hpanel__head">
-                  <p class="eyebrow" data-i18n="hero.weapon.eyebrow">WEAPON RACK</p>
-                  <span class="chip chip--quiet" id="hero-weapon-chip">PULSE RIFLE</span>
-                </div>
-                <ul class="rack__list" id="hero-rack">
-                  <li>
-                    <button class="weapon" type="button" data-weapon="pulse_rifle" data-cost="0" aria-pressed="true">
-                      <span class="weapon__art"><img src="./game/assets/ui/weapon_pulse_rifle.png" alt="" /></span>
-                      <span class="weapon__body">
-                        <span class="weapon__name" data-i18n="wpn.pulse.name">PULSE RIFLE</span>
-                        <span class="weapon__spec"><b>18</b> <span data-i18n="wpn.unit_damage">dmg</span> · <b>5.0</b>/s · <b>24</b></span>
-                      </span>
-                      <span class="weapon__state" data-i18n="hero.weapon.equipped">Equipped</span>
-                    </button>
-                  </li>
-                  <li>
-                    <button class="weapon" type="button" data-weapon="nova_launcher" data-cost="120" aria-disabled="true">
-                      <span class="weapon__art"><img src="./game/assets/ui/weapon_nova_launcher.png" alt="" /></span>
-                      <span class="weapon__body">
-                        <span class="weapon__name" data-i18n="wpn.nova.name">NOVA LAUNCHER</span>
-                        <span class="weapon__spec"><b>34</b> <span data-i18n="wpn.unit_damage">dmg</span> · <b>0.8</b>/s · <b>6</b></span>
-                      </span>
-                      <span class="weapon__state">120 <span data-i18n="wpn.unit_bp">BP</span></span>
-                    </button>
-                  </li>
-                  <li>
-                    <button class="weapon" type="button" data-weapon="arc_shooter" data-cost="250" aria-disabled="true">
-                      <span class="weapon__art"><img src="./game/assets/ui/weapon_arc_shooter.png" alt="" /></span>
-                      <span class="weapon__body">
-                        <span class="weapon__name" data-i18n="wpn.arc.name">ARC SHOOTER</span>
-                        <span class="weapon__spec"><b>20</b> <span data-i18n="wpn.unit_damage">dmg</span> · <b>2.0</b>/s · <b>12</b></span>
-                      </span>
-                      <span class="weapon__state">250 <span data-i18n="wpn.unit_bp">BP</span></span>
-                    </button>
-                  </li>
-                </ul>
-                <p class="hpanel__note" data-i18n="hero.weapon.note">The selected weapon travels with you on Deploy.</p>
-              </div>
-
-              <div class="hero__actions">
                 <button class="btn btn--primary btn--deploy" id="hero-next" type="button">
                   <span class="btn__label" data-i18n="hero.next">CONTINUE TO MAP</span>
                   <svg class="ico" aria-hidden="true"><use href="#i-chev-right" /></svg>
                 </button>
-                <button class="btn btn--ghost" id="hero-back" type="button">
-                  <svg class="ico" aria-hidden="true"><use href="#i-back" /></svg>
-                  <span class="btn__label" data-i18n="hero.back">BACK</span>
-                </button>
               </div>
+            </div>
+
+            <!-- The two card groups, in one scrolling track so a narrow window
+                 moves them together instead of clipping the second one. Group 1
+                 is the hero options; group 2 is the tier ladder. -->
+            <div class="op__groups">
+              <div class="op__tracks">
+                <!-- Built from game/resources/heroes/roster.json so a card
+                     cannot promise a costume nobody rendered. -->
+                <section class="op__group" aria-labelledby="op-heroes-label">
+                  <h2 class="op__label" id="op-heroes-label" data-i18n="hero.group.heroes">OPERATIVES</h2>
+                  <ul class="cards" id="hero-roster"></ul>
+                </section>
+
+                <!-- Five cards of the same hero, each one a render of that
+                     tier's own model. -->
+                <section class="op__group op__group--tiers" aria-labelledby="op-tiers-label">
+                  <h2 class="op__label" id="op-tiers-label">
+                    <span data-i18n="hero.group.tiers">TIER</span>
+                    <b id="hero-tier-count">1 / 5</b>
+                  </h2>
+                  <ol class="cards cards--tiers" id="hero-tiers"></ol>
+                </section>
+              </div>
+            </div>
+          </div>
+
+          <!-- The weapon rack, as a modal with the weapons' own renders. Round 10
+               asked for this to stop being a label; it is one sheet over the page
+               with a photo, a name, three numbers and a price per weapon, and it
+               closes back to where it opened. -->
+          <div class="wmodal" id="weapon-modal" role="dialog" aria-modal="true" aria-labelledby="weapon-modal-title" hidden>
+            <div class="wmodal__panel">
+              <header class="wmodal__head">
+                <p class="eyebrow" data-i18n="hero.weapon.eyebrow">WEAPON RACK</p>
+                <h2 class="wmodal__title" id="weapon-modal-title" data-i18n="hero.weapon.title">CHOOSE A WEAPON</h2>
+                <button class="wmodal__close" id="weapon-modal-close" type="button" aria-label="Close" data-i18n-aria="common.close">
+                  <svg class="ico" aria-hidden="true"><use href="#i-back" /></svg>
+                </button>
+              </header>
+              <ul class="rack" id="hero-rack"></ul>
+              <p class="wmodal__note" data-i18n="hero.weapon.note">
+                The selected weapon travels with you on Deploy. Priced weapons are bought in
+                the arena, with the BP the arena pays.
+              </p>
             </div>
           </div>
         </section>

@@ -1,0 +1,167 @@
+{
+  "tag": "round-13-operative",
+  "frames": [
+    {
+      "name": "resting",
+      "viewport": "844x390",
+      "locale": "en",
+      "lang": "en",
+      "file": "qa-evidence/ui/round-13/operative/resting-844x390-en.png"
+    },
+    {
+      "name": "hero-right",
+      "viewport": "844x390",
+      "locale": "en",
+      "lang": "en",
+      "file": "qa-evidence/ui/round-13/operative/hero-right-844x390-en.png"
+    },
+    {
+      "name": "tier-top",
+      "viewport": "844x390",
+      "locale": "en",
+      "lang": "en",
+      "file": "qa-evidence/ui/round-13/operative/tier-top-844x390-en.png"
+    },
+    {
+      "name": "locked-refused",
+      "viewport": "844x390",
+      "locale": "en",
+      "before": {
+        "tier": "3"
+      },
+      "after": {
+        "tier": "3",
+        "name": "Mara Voss"
+      }
+    },
+    {
+      "name": "rack",
+      "viewport": "844x390",
+      "locale": "en",
+      "lang": "en",
+      "file": "qa-evidence/ui/round-13/operative/rack-844x390-en.png"
+    },
+    {
+      "name": "resting",
+      "viewport": "844x390",
+      "locale": "id",
+      "lang": "id",
+      "file": "qa-evidence/ui/round-13/operative/resting-844x390-id.png"
+    },
+    {
+      "name": "hero-right",
+      "viewport": "844x390",
+      "locale": "id",
+      "lang": "id",
+      "file": "qa-evidence/ui/round-13/operative/hero-right-844x390-id.png"
+    },
+    {
+      "name": "tier-top",
+      "viewport": "844x390",
+      "locale": "id",
+      "lang": "id",
+      "file": "qa-evidence/ui/round-13/operative/tier-top-844x390-id.png"
+    },
+    {
+      "name": "locked-refused",
+      "viewport": "844x390",
+      "locale": "id",
+      "before": {
+        "tier": "3"
+      },
+      "after": {
+        "tier": "3",
+        "name": "Mara Voss"
+      }
+    },
+    {
+      "name": "rack",
+      "viewport": "844x390",
+      "locale": "id",
+      "lang": "id",
+      "file": "qa-evidence/ui/round-13/operative/rack-844x390-id.png"
+    },
+    {
+      "name": "resting",
+      "viewport": "667x375",
+      "locale": "en",
+      "lang": "en",
+      "file": "qa-evidence/ui/round-13/operative/resting-667x375-en.png"
+    },
+    {
+      "name": "hero-right",
+      "viewport": "667x375",
+      "locale": "en",
+      "lang": "en",
+      "file": "qa-evidence/ui/round-13/operative/hero-right-667x375-en.png"
+    },
+    {
+      "name": "tier-top",
+      "viewport": "667x375",
+      "locale": "en",
+      "lang": "en",
+      "file": "qa-evidence/ui/round-13/operative/tier-top-667x375-en.png"
+    },
+    {
+      "name": "locked-refused",
+      "viewport": "667x375",
+      "locale": "en",
+      "before": {
+        "tier": "3"
+      },
+      "after": {
+        "tier": "3",
+        "name": "Mara Voss"
+      }
+    },
+    {
+      "name": "rack",
+      "viewport": "667x375",
+      "locale": "en",
+      "lang": "en",
+      "file": "qa-evidence/ui/round-13/operative/rack-667x375-en.png"
+    },
+    {
+      "name": "resting",
+      "viewport": "667x375",
+      "locale": "id",
+      "lang": "id",
+      "file": "qa-evidence/ui/round-13/operative/resting-667x375-id.png"
+    },
+    {
+      "name": "hero-right",
+      "viewport": "667x375",
+      "locale": "id",
+      "lang": "id",
+      "file": "qa-evidence/ui/round-13/operative/hero-right-667x375-id.png"
+    },
+    {
+      "name": "tier-top",
+      "viewport": "667x375",
+      "locale": "id",
+      "lang": "id",
+      "file": "qa-evidence/ui/round-13/operative/tier-top-667x375-id.png"
+    },
+    {
+      "name": "locked-refused",
+      "viewport": "667x375",
+      "locale": "id",
+      "before": {
+        "tier": "3"
+      },
+      "after": {
+        "tier": "3",
+        "name": "Mara Voss"
+      }
+    },
+    {
+      "name": "rack",
+      "viewport": "667x375",
+      "locale": "id",
+      "lang": "id",
+      "file": "qa-evidence/ui/round-13/operative/rack-667x375-id.png"
+    }
+  ],
+  "failures": 0,
+  "generatedAt": "2026-10-26T23:38:50.087Z"
+}

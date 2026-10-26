@@ -109,12 +109,20 @@ const STRINGS := {
 		"hero.confirm_tip": "Confirm %s",
 		"hero.equipped_tip": "%s is equipped",
 		"hero.continue_tip": "Choose a weapon",
-		"hero.exo_operative.role":
+		"hero.sable.role":
 		(
-			"The operative fielded by the AEGIS training programme. "
-			+ "The playable model is the rig on this stage, not a painting of it."
+			"Raised on the frontier line and fielded as a strike lead. "
+			+ "Her kit is the rank: every tier is plate welded over the last one."
 		),
-		"hero.exo_operative.status": "FIELD READY",
+		"hero.sable.status": "FIELD READY",
+		# The five ranks of SABLE. Names a player reads on the tier cards, so they
+		# live in the catalog like every other line of copy; the numbers beside
+		# them (runs, vitals, plate) live in resources/heroes/roster.json.
+		"hero.tier.1.name": "FIELD RECRUIT",
+		"hero.tier.2.name": "PLATED",
+		"hero.tier.3.name": "FRONT LINE",
+		"hero.tier.4.name": "SPEARHEAD",
+		"hero.tier.5.name": "WARPLATE",
 		# --- theatre ---------------------------------------------------------
 		"world.kicker": "DEPLOYMENT THEATRE",
 		"world.not_deployable": "NOT YET DEPLOYABLE",
@@ -339,12 +347,18 @@ const STRINGS := {
 		"hero.confirm_tip": "Konfirmasi %s",
 		"hero.equipped_tip": "%s sudah terpasang",
 		"hero.continue_tip": "Pilih senjata",
-		"hero.exo_operative.role":
+		"hero.sable.role":
 		(
-			"Operatif didikan program latihan AEGIS. Model yang bisa dimainkan "
-			+ "adalah rig di panggung ini, bukan sekadar gambarnya."
+			"Besar di garis perbatasan dan diterjunkan sebagai pemimpin serbu. "
+			+ "Perlengkapannya adalah pangkatnya: tiap tingkat adalah pelat yang "
+			+ "dilas menutup pelat sebelumnya."
 		),
-		"hero.exo_operative.status": "SIAP TURUN",
+		"hero.sable.status": "SIAP TURUN",
+		"hero.tier.1.name": "REKRUT LAPANGAN",
+		"hero.tier.2.name": "BERPELAT",
+		"hero.tier.3.name": "GARIS DEPAN",
+		"hero.tier.4.name": "UJUNG TOMBAK",
+		"hero.tier.5.name": "ZIRAH PERANG",
 		# --- theatre ---------------------------------------------------------
 		"world.kicker": "TEATER PENGERAHAN",
 		"world.not_deployable": "BELUM BISA DITURUNKAN",

@@ -7,7 +7,7 @@
 [ext_resource type="Resource" path="res://resources/weapons/nova_launcher.tres" id="5_nova_launcher"]
 [ext_resource type="Resource" path="res://resources/weapons/arc_shooter.tres" id="6_arc_shooter"]
 [ext_resource type="Script" path="res://scripts/player/character_visual.gd" id="7_character_visual"]
-[ext_resource type="PackedScene" path="res://assets/characters/hero/hero.glb" id="8_hero"]
+[ext_resource type="PackedScene" path="res://assets/characters/human_hero_tiers/hero_human_tier_1.glb" id="8_hero"]
 [ext_resource type="PackedScene" path="res://assets/weapons/futuristic_rifle/rifle.glb" id="9_rifle"]
 [ext_resource type="Script" path="res://scripts/effects/muzzle_flash.gd" id="10_muzzle_flash"]
 
@@ -36,6 +36,7 @@ shape = SubResource("CapsuleShape_player")
 [node name="VisualRoot" type="Node3D" parent="."]
 script = ExtResource("7_character_visual")
 model_scene = ExtResource("8_hero")
+rig_path = "res://assets/characters/human_hero_tiers/hero_human_tier_1_rig.json"
 weapon_scene = ExtResource("9_rifle")
 
 [node name="BodyMesh" type="MeshInstance3D" parent="VisualRoot"]

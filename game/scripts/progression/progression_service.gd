@@ -41,6 +41,11 @@ var unlocked_ids: Dictionary = {"pulse_rifle": true}
 ## cinematic has been played, and the loadout the player last launched with.
 var intro_seen: bool = false
 var selected_hero_id: StringName = DEFAULT_HERO_ID
+## The rank of the selected operative, 1..HeroTier.tier_count(). Never a value
+## the player has not earned: `select_tier()` and the URL intake both clamp it
+## to `owned_tier()`, and `load_profile()` re-clamps on every boot because runs
+## are not the only way a save can change.
+var selected_tier: int = 1
 var selected_weapon_id: StringName = DEFAULT_WEAPON_ID
 var selected_world_id: StringName = DEFAULT_WORLD_ID
 
@@ -56,6 +61,7 @@ func load_profile() -> void:
 	unlocked_ids = {"pulse_rifle": true}
 	intro_seen = false
 	selected_hero_id = DEFAULT_HERO_ID
+	selected_tier = 1
 	selected_weapon_id = DEFAULT_WEAPON_ID
 	selected_world_id = DEFAULT_WORLD_ID
 	if profile_path.is_empty():
@@ -76,6 +82,7 @@ func load_profile() -> void:
 		selected_hero_id = _known_id(
 			config.get_value(PROFILE_SECTION, "selected_hero", ""), HERO_IDS, DEFAULT_HERO_ID
 		)
+		selected_tier = _bounded_int(config.get_value(PROFILE_SECTION, "selected_tier", 1))
 		selected_world_id = _known_id(
 			config.get_value(PROFILE_SECTION, "selected_world", ""), WORLD_IDS, DEFAULT_WORLD_ID
 		)
@@ -85,7 +92,11 @@ func load_profile() -> void:
 	# A weapon can be selected and then lost to a reset save, so re-gate it.
 	if not is_unlocked(selected_weapon_id):
 		selected_weapon_id = DEFAULT_WEAPON_ID
+	# Same for a rank: a save that remembers tier 4 means nothing if the runs
+	# that opened it are gone.
+	selected_tier = clampi(selected_tier, 1, owned_tier())
 	_apply_web_loadout()
+	_mirror_runs_to_shell()
 	profile_changed.emit()
 
 
@@ -106,6 +117,21 @@ func _apply_web_loadout() -> void:
 	var weapon_id := _known_id(requested, WEAPON_IDS, &"")
 	if weapon_id != &"" and is_unlocked(weapon_id):
 		selected_weapon_id = weapon_id
+	# The operative page sends who and which rank. Both are checked against the
+	# content that exists and against the runs the player has finished, so a
+	# hand-edited `?hero=kestrel&tier=5` fields SABLE at the highest rank this
+	# player owns instead of a costume nobody has made.
+	var requested_hero := _known_id(
+		JavaScriptBridge.eval("new URLSearchParams(location.search).get('hero') || ''"),
+		HERO_IDS,
+		&""
+	)
+	if requested_hero != &"" and HeroTier.is_field_ready(requested_hero):
+		selected_hero_id = requested_hero
+	var requested_tier := _bounded_int(
+		JavaScriptBridge.eval("new URLSearchParams(location.search).get('tier') || '1'")
+	)
+	selected_tier = clampi(requested_tier, 1, owned_tier())
 
 
 ## An edited user:// file must not be able to invent a hero, weapon or world.
@@ -117,6 +143,50 @@ func _known_id(raw: Variant, known: Array[StringName], fallback: StringName) -> 
 
 func is_unlocked(weapon_id: StringName) -> bool:
 	return unlocked_ids.has(String(weapon_id))
+
+
+# --- the operative ladder ---------------------------------------------------
+
+
+## The highest rank this profile has earned. Tier 1 at zero runs; the rest come
+## from the roster's own run prices, not from a second table kept here.
+func owned_tier() -> int:
+	return HeroTier.owned_tier(completed_runs)
+
+
+## Ranks the player may field right now. `clampi` because every caller -- a URL,
+## a saved file, a card -- can be wrong, and the run this launches cannot.
+func fieldable_tier() -> int:
+	return clampi(selected_tier, 1, owned_tier())
+
+
+## Moves the selected rank. Returns false for anything the player has not
+## earned, so a screen can say why instead of silently ignoring the press.
+func select_tier(tier: int) -> bool:
+	var wanted := clampi(tier, 1, HeroTier.tier_count())
+	if wanted > owned_tier() or wanted == selected_tier:
+		return false
+	selected_tier = wanted
+	save_profile()
+	profile_changed.emit()
+	return true
+
+
+func tier_model_path() -> String:
+	return HeroTier.model_path(selected_hero_id, fieldable_tier())
+
+
+func tier_rig_path() -> String:
+	return HeroTier.rig_path(selected_hero_id, fieldable_tier())
+
+
+## The rank's health pool and plate, as the arena applies them.
+func tier_vitals() -> float:
+	return HeroTier.vitals(fieldable_tier())
+
+
+func tier_damage_reduction() -> float:
+	return HeroTier.reduction(fieldable_tier())
 
 
 func unlock_cost(weapon_id: StringName) -> int:
@@ -193,6 +263,18 @@ func bank_run(run_score: int, earned_bp: int) -> void:
 	profile_changed.emit()
 
 
+## The web shell's operative page lives outside the canvas, so it cannot read
+## this service -- and the tier ladder it draws is exactly this number of
+## finished runs. Rather than have two saved profiles, the run count is mirrored
+## one way into `localStorage['aegis.runs']`; the shell only ever reads it, and
+## every decision it feeds (which tier card is open) is re-clamped here when the
+## arena launches, so a hand-edited localStorage cannot field an unearned rank.
+func _mirror_runs_to_shell() -> void:
+	if not OS.has_feature("web"):
+		return
+	JavaScriptBridge.eval("try{localStorage.setItem('aegis.runs','%d')}catch(e){}" % completed_runs)
+
+
 func _bounded_int(value: Variant) -> int:
 	if value is int or value is float or value is String:
 		return clampi(int(value), 0, MAX_VALUE)
@@ -209,8 +291,10 @@ func _save_profile() -> void:
 	config.set_value(PROFILE_SECTION, "unlocked_ids", unlocked_ids.keys())
 	config.set_value(PROFILE_SECTION, "intro_seen", intro_seen)
 	config.set_value(PROFILE_SECTION, "selected_hero", String(selected_hero_id))
+	config.set_value(PROFILE_SECTION, "selected_tier", fieldable_tier())
 	config.set_value(PROFILE_SECTION, "selected_weapon", String(selected_weapon_id))
 	config.set_value(PROFILE_SECTION, "selected_world", String(selected_world_id))
 	var result := config.save(profile_path)
 	if result != OK:
 		push_warning("Could not save Battle Points and unlocks: %s" % error_string(result))
+	_mirror_runs_to_shell()

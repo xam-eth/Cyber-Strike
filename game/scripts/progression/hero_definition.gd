@@ -15,23 +15,29 @@ extends Resource
 ## quoting the wrong damage number. `data_source_smoke.gd` now reads all three
 ## and asserts they come from here.
 ##
-## There is no health, speed or ability block on purpose: heroes have no
-## per-hero gameplay model in this project. Every operative runs the same
-## `CharacterVisual` and the same controller, so a stat here would be
-## decoration -- a number a player can read that nothing in the game uses.
+## Tiers live beside this file, not inside it: `resources/heroes/roster.json`
+## is the one table of what each of a hero's five ranks looks like, what it is
+## worth and what it costs in runs, and `HeroTier` reads it for both the shell
+## and the engine. A hero definition therefore describes *the operative* (name,
+## role, portrait, the tier-1 rig the showcase opens on); the ladder is data.
+##
+## There is no speed or ability block on purpose: heroes have no per-hero
+## movement or skill model in this project, so such a field would be decoration.
+## Health and damage reduction *are* here, because a tier changes them and the
+## arena applies them (`PlayerController` reads `HeroTier.vitals/reduction`).
 const DEFINITION_PATHS := {
-	&"exo_operative": "res://resources/heroes/exo_operative.tres",
+	&"sable": "res://resources/heroes/sable.tres",
 }
 
 ## Stable iteration order for the registry (GDScript dictionaries keep
 ## insertion order, but a named list is what a screen should read).
 const DEFINITION_IDS: Array[StringName] = [
-	&"exo_operative",
+	&"sable",
 ]
 
 ## The operative the profile falls back to when a save names one that no longer
 ## exists, and the one selected on a fresh install.
-const DEFAULT_HERO_ID := &"exo_operative"
+const DEFAULT_HERO_ID := &"sable"
 
 @export var hero_id: StringName = &""
 @export var display_name: String = ""
@@ -57,7 +63,7 @@ const DEFAULT_HERO_ID := &"exo_operative"
 
 ## The words on the card, not the words in the file.
 ##
-## `display_name` ("Exo Operative") is a proper noun and never translated. The
+## `display_name` ("Mara Voss") is a proper noun and never translated. The
 ## role and the status are prose a player reads, so they come from the catalog
 ## by id and fall back to the authored English when a language has not written
 ## its own line yet. `IN DEVELOPMENT` is the one status that is not a resource

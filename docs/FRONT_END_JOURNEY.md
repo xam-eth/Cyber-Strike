@@ -164,7 +164,8 @@ the only stage allowed to change scene.
 | Key | Meaning | Fallback if edited to garbage |
 | --- | --- | --- |
 | `intro_seen` | CHAPTER 01 card cleared once | `false` |
-| `selected_hero` | last chosen hero | `exo_operative` |
+| `selected_hero` | last chosen hero | `sable` |
+| `selected_tier` | the earned rank the run fields | `1` |
 | `selected_weapon` | last chosen weapon | `pulse_rifle` |
 | `selected_world` | last chosen world | `neon_frontier` |
 

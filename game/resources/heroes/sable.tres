@@ -1,14 +1,14 @@
 [gd_resource type="Resource" script_class="HeroDefinition" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/progression/hero_definition.gd" id="1_definition"]
-[ext_resource type="PackedScene" path="res://assets/characters/hero/hero.glb" id="2_model"]
+[ext_resource type="PackedScene" path="res://assets/characters/human_hero_tiers/hero_human_tier_1.glb" id="2_model"]
 
 [resource]
 script = ExtResource("1_definition")
-hero_id = &"exo_operative"
-display_name = "Exo Operative"
-role_description = "The operative fielded by the AEGIS training programme. Concept art shown; the playable model is the rig measured in the hero visibility report."
-portrait_path = "res://assets/ui/portrait_hero.png"
+hero_id = &"sable"
+display_name = "Mara Voss"
+role_description = "Raised on the frontier line and fielded as a strike lead. Her kit is the rank: every tier is plate welded over the last one."
+portrait_path = "res://assets/ui/portrait_sable.png"
 status_line = "FIELD READY"
 field_ready = true
 model_scene = ExtResource("2_model")

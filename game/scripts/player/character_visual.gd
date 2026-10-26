@@ -98,6 +98,7 @@ var _last_speed_ratio: float = 0.0
 
 
 func _ready() -> void:
+	_apply_progression_tier()
 	_spawn_model()
 	_spawn_weapon()
 
@@ -420,6 +421,42 @@ func _spawn_model() -> void:
 			]
 		)
 	)
+
+
+## The body is the operative's *rank*, not a fixed file.
+##
+## `player.tscn` ships tier 1 as its default, so a fixture or a scene with no
+## ProgressionService in the tree still spawns a human operative rather than
+## nothing. When the arena is up, the profile's saved hero and earned rank win,
+## and both the GLB and the rig sidecar are read from the same roster the web
+## shell builds its cards from. This runs before `_spawn_model()`, so the tier is
+## chosen once -- there is no swap to unwind, no second pivot, no stale skeleton.
+func _apply_progression_tier() -> void:
+	var progression := _progression_service()
+	if progression == null:
+		return
+	var path := progression.tier_model_path()
+	if path.is_empty():
+		return
+	var packed := load(path) as PackedScene
+	if packed == null:
+		push_warning("CharacterVisual: %s is not a scene; keeping the scene's model." % path)
+		return
+	model_scene = packed
+	var rig := progression.tier_rig_path()
+	if not rig.is_empty():
+		rig_path = rig
+
+
+func _progression_service() -> ProgressionService:
+	if not is_inside_tree():
+		return null
+	var scene := get_tree().current_scene
+	if scene != null:
+		var node := scene.get_node_or_null("ProgressionService")
+		if node is ProgressionService:
+			return node
+	return get_node_or_null("/root/Main/ProgressionService") as ProgressionService
 
 
 func _setup_rig() -> void:

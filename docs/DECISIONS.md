@@ -469,3 +469,40 @@ settings is an overlay that returns to the card it was opened from.
       `display_status()` in `HeroDefinition` and `WorldDefinition` look the prose
       up by id and fall back to the authored `.tres` sentence, so a new theatre
       still works before anyone has written its Indonesian line.
+47. **A hero is a name with five ranks, and the ranks are data.** The operative
+    page was a hero *list* — three slots, one of them real — and it now has to
+    answer a second question: what does the operative I picked become. Both
+    answers come from one file, `game/resources/heroes/roster.json`, which the
+    web shell reads to build its cards and `HeroTier` reads to give the arena
+    the same ranks.
+    * **One hero, five tiers, one name.** SABLE is Mara Voss at every rank; the
+      ladder is costume and vitals, not five characters. `hero.tier.{1..5}.name`
+      names the rank, `hero.sable.role` / `.brief` describe the operative once.
+      A tier is `runs_required` + `vitals` + `reduction` + a model, a rig sidecar
+      and a card render — all three paths checked against the disk by
+      `tools/check_hero_roster.py`, so a card cannot promise a costume nobody
+      rendered (which is how the old "SLOT 02" placeholder became a lie).
+    * **The ranks are earned by runs, and the count is the arena's.** BP is spent
+      inside the arena and the shell never touches the wallet (DECISIONS 32), so
+      the ladder is driven by finished runs, mirrored one way into
+      `localStorage['aegis.runs']` by `ProgressionService`. It is a mirror, not a
+      second save: `?tier=` is clamped to `owned_tier()` on arrival, so editing
+      localStorage or the URL buys a look at the armour, never the armour.
+    * **Motion is the meaning, and the two beats do not swap.** Selecting a HERO
+      slides the body in from the **right** (the direction the roster strip
+      reads) and plays no ceremony. Selecting a TIER drops it from the **top**
+      under a beam, with a ring, sparks and a banner naming the rank. Both are in
+      the scene (`ui/hero_stage.js` moves the model, not the picture of one), both
+      are one-shot, and both keep their end state under "kurangi gerak" — the
+      reduced-motion path jumps to rest and shows the banner, because a
+      reduced-motion player still gets told what happened.
+    * **The tier is gameplay, not a label.** `PlayerController` reads the rank's
+      vitals as its health pool and its `reduction` as a share of every hit turned
+      away, and `CharacterVisual` loads that rank's GLB and rig sidecar *before*
+      the model is fitted — so the armour on the operative page is the armour that
+      takes the damage. A number a player can read that nothing in the game uses
+      is decoration, and this repository has a rule against that.
+    * **The page returns.** BACK sits on the operative page's own header (to the
+      opening, or to the hub when it was opened from there), the weapon rack is a
+      modal that hands focus back to LOADOUT, and every gameplay screen keeps the
+      dock's HOME. A menu with no way back is not a menu.

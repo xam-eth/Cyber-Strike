@@ -73,7 +73,7 @@ OPTIONAL_PREFIXES = ("Neck", "Head", "L_Clavicle", "R_Clavicle")
 
 # One entry per hero id from game/scripts/progression/hero_definition.gd.
 #
-# `exo_operative` -- "EXO: LOCKDOWN". The operative drops into a low, braced
+# `sable` -- "SABLE: LOCKDOWN". The operative drops into a low, braced
 # crouch as if the pad were magnetising his boots, then drives up and throws
 # both arms open with the chin lifted, holds the silhouette long enough to read,
 # and settles. Chosen because it is readable from the silhouette alone at 200 px
@@ -81,7 +81,7 @@ OPTIONAL_PREFIXES = ("Neck", "Head", "L_Clavicle", "R_Clavicle")
 # one thing this page is about. It is authored motion, not final hand-animated
 # polish; a human motion review still has to pass it.
 HEROES = {
-    "exo_operative": {
+    "sable": {
         "label": "Lockdown",
         "notes": "Braced drop, then a fists-up guard with the chest open and the chin up; settles back to idle.",
         "timeline": [

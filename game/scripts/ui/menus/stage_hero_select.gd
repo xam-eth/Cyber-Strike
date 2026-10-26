@@ -366,8 +366,20 @@ func _build_chip(definition: HeroDefinition) -> Control:
 	chip.focus_mode = Control.FOCUS_ALL
 	chip.mouse_filter = Control.MOUSE_FILTER_STOP
 	chip.set_meta("hero_id", String(definition.hero_id))
+	# The rank is named in the tooltip rather than in the 84 px chip: a tier name
+	# is two words, and it is already the caption of the tier cards on the
+	# operative page. The tooltip is where a screen-reader user meets it here.
+	var tier := 1
+	var progression := progression_service()
+	if progression != null and progression.selected_hero_id == definition.hero_id:
+		tier = progression.fieldable_tier()
 	chip.tooltip_text = (
-		"%s — %s" % [definition.display_name, definition.display_status().to_lower()]
+		"%s — %s — %s"
+		% [
+			definition.display_name,
+			definition.display_status().to_lower(),
+			AegisText.t("hero.tier.%s.name" % tier),
+		]
 	)
 	_size(chip, Vector2(84.0, 84.0))
 	AegisTheme.set_button_variant(chip, "round")
@@ -565,13 +577,27 @@ func _present_selected(reveal: bool) -> void:
 	if not is_instance_valid(definition.model_scene):
 		_showcase.clear_model()
 		return
-	var already := _showcase.model_path() == definition.model_scene.resource_path
+	var progression := progression_service()
+	# The stage shows the rank this profile would field, not always tier 1: the
+	# tier is the costume, so a stage that keeps showing the recruit while the
+	# card says WARPLATE is the same lie as a wrong damage number.
+	var showcase_scene: PackedScene = definition.model_scene
+	var showcase_clips: Array = definition.showcase_clips
+	var tier := 1
+	if progression != null and progression.selected_hero_id == definition.hero_id:
+		tier = progression.fieldable_tier()
+		var tier_path := HeroTier.model_path(definition.hero_id, tier)
+		if not tier_path.is_empty():
+			var tier_scene := load(tier_path) as PackedScene
+			if tier_scene != null:
+				showcase_scene = tier_scene
+	var already := _showcase.model_path() == showcase_scene.resource_path
 	if not already:
-		var clips: Array = definition.showcase_clips
+		var clips: Array = showcase_clips
 		(
 			_showcase
 			. present(
-				definition.model_scene,
+				showcase_scene,
 				{
 					"fit_axis": 1,
 					"height": SHOWCASE_HEIGHT,
@@ -591,7 +617,6 @@ func _present_selected(reveal: bool) -> void:
 	_status_label.text = definition.display_status().to_upper()
 	_status_label.add_theme_color_override("font_color", AegisTokens.OK)
 	_role_label.text = _first_sentence(definition.display_role())
-	var progression := progression_service()
 	if progression != null:
 		_loadout_label.text = (
 			"%s  ·  %s"
