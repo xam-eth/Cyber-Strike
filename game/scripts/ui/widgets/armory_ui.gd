@@ -218,9 +218,13 @@ func layout_for(hud) -> void:
 	for card in _cards:
 		card.custom_minimum_size = Vector2(hud._to_layout(180.0), 0)
 	# The art is the reason the modal exists; it gets a floor of its own instead
-	# of whatever the text left over.
+	# of whatever the text left over. On a 375 px-tall phone that floor has to
+	# give: at 104 the three cards, their text and the footer pushed the panel
+	# past the glass and the actions were drawn half off the screen.
+	var screen_height: float = hud.size.y * hud._stretch
+	var art_floor: float = 104.0 if screen_height >= 390.0 else 76.0
 	for art in _arts:
-		art.custom_minimum_size = Vector2(0, hud._to_layout(104.0))
+		art.custom_minimum_size = Vector2(0, hud._to_layout(art_floor))
 	for button in _weapon_buttons:
 		button.custom_minimum_size = Vector2(0, hud._to_layout(38.0))
 	_close_button.custom_minimum_size = Vector2(0, hud._to_layout(40.0))
