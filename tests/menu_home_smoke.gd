@@ -81,6 +81,7 @@ func _run_smoke_test() -> void:
 		)
 
 	await _check_touch_dispatch(hud)
+	await _check_overlay_stack(hud)
 
 	main.queue_free()
 	await process_frame
@@ -111,6 +112,68 @@ func _check_touch_dispatch(hud: Control) -> void:
 	_expect(_home_requests == before + 1, "a finger on pause HOME reaches Main")
 	hud.call("set_paused", false)
 	await process_frame
+
+
+## What the round-11 bug taught: the HUD's overlays used to be five booleans and
+## an if/elif ladder, so a new plate could be added in one place and forgotten in
+## another. `HudOverlayStack` is the single owner now, and this checks the three
+## things it promises -- one layer per overlay, ESC closes exactly one, and focus
+## cannot walk out of a modal into the buttons behind it.
+func _check_overlay_stack(hud: Control) -> void:
+	var stack: Object = hud.get("_overlays")
+	if stack == null:
+		_expect(false, "the HUD owns an overlay stack")
+		return
+	_expect(stack.call("is_empty"), "nothing owns the screen before a menu opens")
+
+	paused = true
+	hud.call("set_paused", true)
+	await process_frame
+	var pause_panel := hud.get("_pause_panel") as Control
+	_expect(
+		stack.call("size") == 1 and stack.call("top") == pause_panel,
+		"the pause card is the only layer while it is open",
+	)
+
+	var fire := hud.get("_fire_button") as Control
+	if "focus_behavior_recursive" in fire:
+		_expect(
+			(
+				fire.focus_behavior_recursive == Control.FOCUS_BEHAVIOR_DISABLED
+				and pause_panel.focus_behavior_recursive != Control.FOCUS_BEHAVIOR_DISABLED
+			),
+			"a modal traps focus: the fire tile is unreachable, the card is not",
+		)
+
+	hud.call("_open_settings")
+	await process_frame
+	var settings := hud.get("_settings_menu") as Control
+	_expect(
+		stack.call("size") == 2 and stack.call("top") == settings,
+		"settings stacks on top of pause instead of replacing it",
+	)
+
+	# ESC through the real handler, not by calling pop().
+	var escape := InputEventKey.new()
+	escape.keycode = KEY_ESCAPE
+	escape.physical_keycode = KEY_ESCAPE
+	escape.pressed = true
+	hud.call("_input", escape)
+	await process_frame
+	_expect(
+		stack.call("size") == 1 and not settings.visible and pause_panel.visible,
+		"ESC closes one layer and leaves the one under it up",
+	)
+
+	hud.call("set_paused", false)
+	paused = false
+	await process_frame
+	_expect(stack.call("is_empty"), "resuming empties the stack, trap and all")
+	if "focus_behavior_recursive" in fire:
+		_expect(
+			fire.focus_behavior_recursive == Control.FOCUS_BEHAVIOR_INHERITED,
+			"resuming hands focus back to the world",
+		)
 
 
 func _check_resume_stage() -> void:

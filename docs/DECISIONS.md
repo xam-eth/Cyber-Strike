@@ -405,3 +405,32 @@ inset from the glass by the same safe reserves the thumb controls use; and the
 shell already pads its chrome with `env(safe-area-inset-*)`. What it changed in
 the menus: HOME is the last item in every list, always with the same word, and
 settings is an overlay that returns to the card it was opened from.
+
+45. **Overlays are a stack, and a finger calls the button's own handler.** Two
+    lessons from `docs/skills/disciplines/game-ui-ux` (vendored; see that folder's
+    README for provenance), both paid for with a bug.
+    * **The stack.** Pause, results, settings, the armory and the HUD editor were
+      five booleans plus an ESC ladder in `_input`. `HudOverlayStack` replaces
+      them: it owns the order, so ESC closes exactly the top layer and the run
+      resumes only when nothing is left; it owns the **focus trap**
+      (`focus_behavior_recursive` / `mouse_behavior_recursive`, Godot 4.5+), so a
+      gamepad cannot walk into the buttons behind a modal; and it remembers the
+      control that opened the layer so closing it hands focus back instead of
+      leaving the player with none. Each overlay's own close path still runs —
+      the stack removes a layer, it does not reimplement what closing means.
+    * **The dispatcher.** `HudTouchInput.activate()` was a hand-written if/elif
+      naming every button in the HUD. A synthetic touch never reaches Godot's
+      Button GUI, so `pressed` only fires if that function emits it — and the
+      round-11 HOME plates were drawn, connected, and dead because the ladder did
+      not name them. It now emits `pressed` and lets each button's own
+      connection decide, with a `push_error` for a plate that has no handler at
+      all. FIRE and AIM keep their hold behaviour; nothing in the ladder was
+      load-bearing except the remembering.
+    * **The `grab_focus` error** seen in every capture was the other end of the
+      same problem: `make_button()` deferred a focus grab at *construction* time,
+      and every stage is constructed up front, so a launch that skipped the front
+      end (a deep link into the world) flushed those callbacks after the scene had
+      been replaced — `Condition "!is_inside_tree()" is true. at: grab_focus`.
+      Focus is now taken by `MenuStage.focus_primary()`, called by `FrontEnd`
+      after the stage is shown, which is also what the skill asks for ("always
+      focus something on open").

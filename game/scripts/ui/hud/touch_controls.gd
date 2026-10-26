@@ -70,6 +70,10 @@ const CRITICAL_HEALTH_COLOR: Color = AegisTokens.DANGER
 ## main.gd, hud_armory_bridge.gd and the smoke tests reach for the HUD's
 ## members by name and a rename would buy nothing.
 var _touch: HudTouchInput
+## Who owns the screen: pause, results, settings, armory or the HUD editor, in
+## the order they were opened. One object knows the order, the focus trap and
+## where ESC goes -- see hud_overlay_stack.gd for why five booleans failed.
+var _overlays: HudOverlayStack
 ## What the game has told this HUD: the run's numbers, the encounter phase and
 ## the weapon in hand. Rendering stays here; the data lives in hud_state.gd.
 var _state := HudState.new()
@@ -213,6 +217,7 @@ func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_overlays = HudOverlayStack.new(self)
 	_touch = HudTouchInput.new()
 	_touch.hud = self
 	_touch.movement_changed.connect(movement_changed.emit)
@@ -285,16 +290,11 @@ func _input(event: InputEvent) -> void:
 		_touch.update(event.index, event.position, event.relative)
 	elif event is InputEventKey and event.pressed and not event.echo:
 		if event.is_action_pressed("ui_cancel") and get_tree().paused:
-			# ESC closes a submenu first; only the next press resumes the run.
-			if is_instance_valid(_armory_panel) and _armory_panel.visible:
-				armory_close_requested.emit()
-			elif is_instance_valid(_hud_editor) and _hud_editor.visible:
-				HudEditorBridge.close(self)
-			elif is_instance_valid(_settings_menu) and _settings_menu.visible:
-				_settings_menu.close()
-			else:
-				_on_pause_pressed()
-			get_viewport().set_input_as_handled()
+			# ESC closes the top overlay only; the next press closes the one
+			# under it, and the run resumes when nothing is left. The order
+			# lives in the stack, not in a ladder every new overlay must join.
+			if _overlays.back():
+				get_viewport().set_input_as_handled()
 		elif event.keycode == KEY_R and get_tree().paused and _pause_panel.visible:
 			retry_requested.emit()
 			get_viewport().set_input_as_handled()
@@ -1283,6 +1283,13 @@ func _on_defense_pressed() -> void:
 func _on_home_pressed() -> void:
 	Sfx.play_ui(&"ui_click")
 	home_requested.emit()
+
+
+## ESC on the armory asks the owner to close it, exactly as the panel's own
+## close button does: the layer's back action and its button must not be two
+## different paths.
+func _close_armory_overlay() -> void:
+	armory_close_requested.emit()
 
 
 func _on_return_to_explore_pressed() -> void:

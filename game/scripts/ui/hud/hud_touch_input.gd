@@ -179,38 +179,33 @@ func find_button(position: Vector2) -> Button:
 	return best
 
 
+## A finger on a HUD button runs whatever that button was connected to when it
+## was built.
+##
+## This used to be a hand-written if/elif ladder naming every button in the HUD,
+## and the ladder is why the round-11 HOME plates shipped drawn, connected and
+## dead: a synthetic touch never reaches Godot's Button GUI, so `pressed` only
+## fires if this function emits it, and a button the ladder forgot did nothing
+## at all. Emitting `pressed` is the same call the button makes when the GUI does
+## handle it, so there is now one behaviour instead of two.
+##
+## The `push_error` is the guard the ladder could not give: a new plate with no
+## handler is reported the first time a finger lands on it, instead of looking
+## pressable forever.
 func activate(button: Button) -> void:
-	if button == hud._defense_button:
-		hud._on_defense_pressed()
-	elif button == hud._armory_button:
+	# Toggles carry their action on `toggled`, which flipping the state emits.
+	if button.toggle_mode:
+		button.button_pressed = not button.button_pressed
+		return
+	if not button.pressed.get_connections().is_empty():
 		button.pressed.emit()
-	elif is_instance_valid(hud._armory_panel) and hud._armory_panel.is_ancestor_of(button):
-		button.pressed.emit()
-	elif button == hud._results_explore_button:
-		hud._on_return_to_explore_pressed()
-	elif button == hud._weapon_button:
-		hud._on_weapon_switch_pressed()
-	elif button == hud._skill_button:
-		hud._on_skill_pressed()
-	elif button == hud._pause_button:
-		hud._on_pause_pressed()
-	elif button == hud._sound_button:
-		hud._on_sound_pressed()
-	elif button == hud._results_retry_button:
-		hud._on_results_retry_pressed()
-	elif button == hud._pause_resume_button:
-		hud._on_pause_pressed()
-	elif button == hud._pause_restart_button:
-		hud._on_restart_pressed()
-	elif button == hud._pause_settings_button:
-		hud._open_settings()
-	elif button == hud._pause_home_button or button == hud._results_home_button:
-		# Synthetic touches skip Godot's Button GUI, so a menu action that is
-		# not named in this chain is drawn, pressable-looking and dead. The two
-		# HOME plates were exactly that until a browser tap proved it.
-		hud._on_home_pressed()
-	elif is_instance_valid(hud._settings_menu) and hud._settings_menu.is_ancestor_of(button):
-		if button.toggle_mode:
-			button.button_pressed = not button.button_pressed
-		else:
-			button.pressed.emit()
+		return
+	# FIRE and AIM act while held (button_down / button_up) and have no release
+	# action, which is legitimate. A plate with neither a press nor a hold
+	# handler is the dead button, and it names itself here the first time a
+	# finger lands on it instead of looking pressable forever.
+	if (
+		button.button_down.get_connections().is_empty()
+		and button.button_up.get_connections().is_empty()
+	):
+		push_error("HUD: %s has no handler; a finger on it does nothing." % button.name)

@@ -320,6 +320,9 @@ static func show_results(
 		was_defeated,
 	)
 	hud._results_panel.visible = true
+	# The report is a layer like any other: ESC on it RETRYs (the path the pause
+	# card takes after a defeat), and it traps focus while it is up.
+	hud._overlays.push(hud._results_panel, hud._on_pause_pressed)
 	if is_instance_valid(hud._feedback_panel):
 		hud._feedback_panel.clear_message()
 	hud._results_retry_button.grab_focus()
@@ -355,6 +358,7 @@ static func show_results(
 static func hide_results(hud) -> void:
 	if not is_instance_valid(hud._results_panel):
 		return
+	hud._overlays.remove(hud._results_panel)
 	hud._results_panel.visible = false
 	if hud._results_retry_button.has_focus():
 		hud._results_retry_button.release_focus()
@@ -379,7 +383,11 @@ static func hide_results(hud) -> void:
 static func apply_paused(hud, paused: bool) -> void:
 	if paused:
 		hud._clear_touch_state()
-	elif is_instance_valid(hud._settings_menu):
+	else:
+		# Resuming ends every overlay, not just the pause card: a layer left in
+		# the stack would keep its focus trap switched on over live play.
+		hud._overlays.clear()
+	if not paused and is_instance_valid(hud._settings_menu):
 		hud._settings_menu.visible = false
 		if is_instance_valid(hud._hud_editor):
 			hud._hud_editor.close()
@@ -392,6 +400,10 @@ static func apply_paused(hud, paused: bool) -> void:
 		hud._pause_button.disabled = false
 	if is_instance_valid(hud._pause_panel):
 		hud._pause_panel.visible = paused and not hud._player_down
+		if hud._pause_panel.visible:
+			# The card owns the screen while it is up: focus is trapped inside
+			# it, and ESC on it brings the run back.
+			hud._overlays.push(hud._pause_panel, hud._on_pause_pressed)
 		if hud._pause_panel.visible and is_instance_valid(hud._pause_resume_button):
 			hud._pause_resume_button.grab_focus()
 		elif is_instance_valid(hud._pause_resume_button) and hud._pause_resume_button.has_focus():
@@ -428,6 +440,7 @@ static func open_settings(hud) -> void:
 		return
 	hud._pause_panel.visible = false
 	hud._top_bar.visible = false
+	hud._overlays.push(hud._settings_menu, hud._settings_menu.close)
 	hud._settings_menu.open()
 	print("HUD: settings opened")
 
@@ -435,6 +448,7 @@ static func open_settings(hud) -> void:
 static func close_settings(hud) -> void:
 	if not hud.get_tree().paused:
 		return
+	hud._overlays.remove(hud._settings_menu)
 	hud._pause_panel.visible = true
 	hud._top_bar.visible = true
 	hud._pause_resume_button.grab_focus()

@@ -228,6 +228,9 @@ func _enter(stage_name: StringName, stage_payload: Dictionary) -> void:
 	stage.payload = stage_payload
 	stage.visible = true
 	stage.enter(stage_payload)
+	# After enter(), because a stage builds and lays out in enter() and a control
+	# that is not in the tree yet cannot take focus.
+	stage.focus_primary()
 	print("FrontEnd: stage %s" % stage_name)
 	_report_menu_rects()
 

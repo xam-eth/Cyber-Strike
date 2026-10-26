@@ -48,6 +48,7 @@ static func show_panel(hud) -> void:
 	hud._clear_touch_state()
 	hud._armory_panel.show_home(true)
 	hud._armory_panel.visible = true
+	hud._overlays.push(hud._armory_panel, hud._close_armory_overlay)
 	hud._pause_panel.visible = false
 	hud._top_bar.visible = false
 	hud._scrim.visible = true
@@ -55,6 +56,7 @@ static func show_panel(hud) -> void:
 
 
 static func hide_panel(hud) -> void:
+	hud._overlays.remove(hud._armory_panel)
 	hud._armory_panel.visible = false
 	for button in hud._armory_panel.find_children("*", "Button", true, false):
 		if button.has_focus():

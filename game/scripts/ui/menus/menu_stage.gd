@@ -72,6 +72,22 @@ func enter(_stage_payload: Dictionary) -> void:
 	pass
 
 
+## Puts the keyboard/gamepad focus on this stage's primary action, called by
+## FrontEnd right after `enter()`. Opening a screen with nothing focused makes a
+## controller or a keyboard dead until the player clicks something, and the
+## stages that override `enter()` would each have to remember to do it.
+##
+## Best effort on purpose: `Control.grab_focus()` refuses when the OS window does
+## not own keyboard focus, which is the state of a freshly loaded web page. The
+## `ui_accept` fallback in `_unhandled_input` is what keeps those players moving.
+func focus_primary() -> void:
+	if not is_instance_valid(_primary_button):
+		return
+	if not _primary_button.is_inside_tree() or not _primary_button.is_visible_in_tree():
+		return
+	_primary_button.grab_focus()
+
+
 ## Called when the stage is hidden. Stages are kept alive and re-shown rather
 ## than freed, so this must leave the stage in a state `enter()` can restart
 ## from.
@@ -176,8 +192,12 @@ func make_button(
 		#     button's global rect reads 0,0 while it is inside the front-end
 		#     viewport — see docs/DECISIONS.md §12.3 for the three
 		#     approaches that were measured and did not work.
-		# Deferred: the button has to be in the tree before it can take focus.
-		button.grab_focus.call_deferred()
+		# NOT here. Focus is taken by `focus_primary()` when FrontEnd actually
+		# shows this stage. A deferred grab at construction time ran after the
+		# scene had already been replaced -- every stage is instantiated up
+		# front, including the ones a deep link never shows -- and Godot
+		# printed `Condition "!is_inside_tree()" is true. at: grab_focus` on
+		# every launch that skipped the front end.
 	if not tooltip.is_empty():
 		button.tooltip_text = tooltip
 	return button

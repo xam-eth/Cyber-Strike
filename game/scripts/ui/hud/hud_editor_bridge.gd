@@ -21,16 +21,20 @@ static func open(hud) -> void:
 	hud._pause_panel.visible = false
 	hud._top_bar.visible = true
 	hud._scrim.visible = false
+	hud._overlays.remove(hud._settings_menu)
 	hud._hud_editor.open(hud, hud._settings_menu.values)
+	hud._overlays.push(hud._hud_editor, close.bind(hud))
 	print("HUD: editor opened")
 
 
 static func close(hud) -> void:
 	hud._hud_editor.close()
+	hud._overlays.remove(hud._hud_editor)
 	if not hud.get_tree().paused:
 		return
 	hud._scrim.visible = true
 	hud._top_bar.visible = false
+	hud._overlays.push(hud._settings_menu, hud._settings_menu.close)
 	hud._settings_menu.open()
 	print("HUD: editor closed")
 
