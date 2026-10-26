@@ -554,8 +554,6 @@ func _inspect_instance() -> void:
 			_joint_count += skeleton.get_bone_count()
 
 	var player_nodes: Array[Node] = []
-	if _current_instance is AnimationPlayer:
-		player_nodes.append(_current_instance)
 	player_nodes.append_array(_current_instance.find_children("*", "AnimationPlayer", true, false))
 	for node in player_nodes:
 		var player := node as AnimationPlayer
@@ -631,7 +629,7 @@ func _update_structure_report() -> void:
 		if not _available_clip_names.has(str(clip_name)):
 			missing_clips.append(str(clip_name))
 	if not missing_clips.is_empty():
-		errors.append("missing clips: %s" % PackedStringArray(missing_clips).join(", "))
+		errors.append("missing clips: %s" % ", ".join(PackedStringArray(missing_clips)))
 
 	var source := str(_current_asset.get("source", ""))
 	var details := [
@@ -661,14 +659,14 @@ func _update_structure_report() -> void:
 	var rig_profile := str(_current_asset.get("rig_profile", ""))
 	if not rig_profile.is_empty():
 		details.append("Rig profile: %s" % rig_profile)
-	_asset_details.text = PackedStringArray(details).join("\n")
+	_asset_details.text = "\n".join(PackedStringArray(details))
 
 	if errors.is_empty():
 		_contract_status.text = "STRUCTURE CHECK: OK · visual review still required"
 		_contract_status.add_theme_color_override("font_color", Color("#86e0a5"))
 	else:
 		_contract_status.text = (
-			"STRUCTURE CHECK: CHECK\n• %s" % PackedStringArray(errors).join("\n• ")
+			"STRUCTURE CHECK: CHECK\n• %s" % "\n• ".join(PackedStringArray(errors))
 		)
 		_contract_status.add_theme_color_override("font_color", Color("#ff8a84"))
 
