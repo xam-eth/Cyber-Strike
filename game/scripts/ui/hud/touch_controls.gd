@@ -265,7 +265,12 @@ func _process(delta: float) -> void:
 			_help_panel.visible = false
 	if (_aiming or _state.play_phase == "defense") and not get_tree().paused:
 		needs_redraw = true
-	if needs_redraw:
+	# A paused tree cannot change anything this HUD draws: cooldowns do not tick,
+	# the reticle does not breathe, the thumb pockets are empty. The docks are the
+	# most expensive thing `_draw` builds and they were being rebuilt every frame
+	# behind a modal that covers them. One frame still lands when pausing, because
+	# the pause path clears the touch state and asks for it.
+	if needs_redraw and not get_tree().paused:
 		queue_redraw()
 
 

@@ -103,13 +103,53 @@ if (mode === 'calib') {
   await sleep(2500);
   await shot('01-explore');
   if (process.env.TAPS) {
-    // "x,y:name;x,y:name" -- tap, then shoot a frame named `name`.
+    // "x,y:name;key:Escape:name" -- tap (or press) then shoot a frame `name`.
     for (const step of process.env.TAPS.split(';')) {
-      const [coords, label] = step.split(':');
-      const [x, y] = coords.split(',').map(Number);
+      const [what, second, third] = step.split(':');
+      if (what === 'key') {
+        await page.keyboard.press(second);
+        await sleep(600);
+        if (third) await shot(third);
+        continue;
+      }
+      const [x, y] = what.split(',').map(Number);
       await tap(x, y);
-      if (label) await shot(label);
+      if (second) await shot(second);
     }
+  } else if (mode === 'perf') {
+    const sample = async (label) => {
+      const stats = await page.evaluate(
+        () =>
+          new Promise((resolve) => {
+            const frames = [];
+            let last = performance.now();
+            const tick = (now) => {
+              frames.push(now - last);
+              last = now;
+              if (now - frames.start > 6000 || frames.length > 400) {
+                const sorted = frames.slice(1).sort((a, b) => a - b);
+                const at = (q) => sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * q))];
+                resolve({
+                  frames: sorted.length,
+                  fps: 1000 / (sorted.reduce((a, b) => a + b, 0) / sorted.length),
+                  p50: at(0.5),
+                  p95: at(0.95),
+                  worst: sorted[sorted.length - 1],
+                });
+                return;
+              }
+              requestAnimationFrame(tick);
+            };
+            frames.start = last;
+            requestAnimationFrame(tick);
+          }),
+      );
+      console.log('PERF', label, JSON.stringify(stats));
+    };
+    await sample('explore');
+    await tap(120, 195); // START defense
+    await new Promise((r) => setTimeout(r, 3000));
+    await sample('defense');
   } else if (mode === 'armory') {
     await tap(437, 135); // ARMORY · n BP
     await shot('02-armory');
