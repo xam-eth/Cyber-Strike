@@ -357,19 +357,20 @@
     inset 0 0 0 1px rgba(78, 106, 126, 0.75);
 }
 
-/* The room is a photograph; the operative is not. `.stage__plate` is the empty
-   bay, and `.stage__view` is a WebGL canvas the size of the column the figure
-   occupies, framing game/assets/characters/hero/hero.glb by its own bounds
-   (ui/hero_stage.js). Nothing about the character is drawn here -- not the pose,
-   not the livery, not the silhouette -- so the screen cannot disagree with the
-   asset that goes into the match. */
+/* The room is a photograph and the deck is geometry. `.stage__plate` is the
+   empty hangar floor (no pad drawn in it), and `.stage__view` covers the whole
+   panel: ui/hero_stage.js draws the deploy deck the rig actually stands on --
+   in the same perspective as the room, with the contact shadow on its surface --
+   then frames rig + deck together by their own bounds. Nothing about the
+   character is drawn here: no pose, no livery, no silhouette, so the screen
+   cannot disagree with the asset that ships. */
 .stage__plate {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: 50% 56%;
+  object-position: 50% 42%;
   z-index: 0;
   /* The push-in is baked into the JPEG (tools/web_art.mjs --crop) rather than a
      CSS scale: a transformed plate reports an oversized box to the layout QA,
@@ -379,17 +380,14 @@
 }
 
 .stage__view {
+  /* The whole stage, not a slab in the middle: the deck is geometry and has to
+     reach the bottom of the panel, or the figure stands on a floating island. */
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 13%;
-  margin-inline: auto;
-  width: 64%;
-  height: 85%;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   z-index: 2;
   display: block;
-  /* Centred with auto margins rather than translateX: the celebration animates
-     `transform`, and a transform on this box would drop the centring with it. */
   transform-origin: 50% 100%;
 }
 

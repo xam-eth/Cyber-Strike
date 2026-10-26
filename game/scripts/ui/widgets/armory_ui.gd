@@ -1,6 +1,18 @@
-## Small in-game economy screen. No submenu maze: the three actual weapon
-## definitions are presented as buy/equip actions and the wallet is always in
-## view. Main/ProgressionService validate every purchase; the UI owns no BP.
+## The armory: a modal of weapon cards with the weapon's own art, not a list of
+## text rows.
+##
+## A row that says "ARC · CHAIN" asks the player to imagine a gun. The three
+## weapons in this game are three very different silhouettes, and the decision
+## being made here -- what am I carrying into the next wave -- is a visual one, so
+## every option is a card with a photograph of the weapon, its numbers, its price
+## and one action. The card is the same machined plate as the rest of the
+## interface (AegisPanel, cut corner, hairline), so the modal reads as part of the
+## HUD and not as a spreadsheet that wandered in.
+##
+## What the card says is only what exists: `damage`, `fire_rate`, `magazine_size`
+## come from the weapon definitions, and the price comes from
+## ProgressionService.COSTS. Main/ProgressionService still validate every
+## purchase; this screen owns no BP and grants nothing.
 class_name ArmoryUi
 extends AegisPanel
 
@@ -9,20 +21,27 @@ signal close_requested
 
 const ORDER := [&"pulse_rifle", &"nova_launcher", &"arc_shooter"]
 const SHORT_NAMES := ["PULSE · PRECISION", "NOVA · BLAST", "ARC · CHAIN"]
+const CARD_NAMES := ["PULSE RIFLE", "NOVA LAUNCHER", "ARC SHOOTER"]
+## One line per weapon: what it does in play, in the player's words. The full
+## `role_description` is a sentence in a resource; a card needs a verdict.
+const CARD_ROLES := ["Tembakan cepat, akurat", "Ledakan area, lambat", "Rantai listrik"]
+const ART := [
+	"res://assets/ui/weapon_pulse_rifle.png",
+	"res://assets/ui/weapon_nova_launcher.png",
+	"res://assets/ui/weapon_arc_shooter.png",
+]
 
 var _wallet_label: Label
 var _hint_label: Label
 var _weapon_buttons: Array[AegisButton] = []
+var _cards: Array[AegisPanel] = []
+var _states: Array[Label] = []
 var _close_button: AegisButton
 var _column: VBoxContainer
 
 
 func _ready() -> void:
 	interactive = true
-	# A sheet, not a dialog: cut deep on both ends of its leading edge.
-	bezel = true
-	cut_top_left = AegisBezel.CUT_LG
-	cut_bottom_right = AegisBezel.CUT_LG
 	accent_side = "top"
 	accent_color = AegisTokens.ACCENT
 	super._ready()
@@ -35,15 +54,15 @@ func _ready() -> void:
 	_column.add_child(_wallet_label)
 	_hint_label = _label("EARN BP BY DEFEATING WAVES", "label", AegisTokens.INK_2)
 	_column.add_child(_hint_label)
+
+	var row := HBoxContainer.new()
+	row.name = "WeaponCards"
+	row.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	row.add_theme_constant_override("separation", 8)
+	_column.add_child(row)
 	for index in range(ORDER.size()):
-		var button := AegisButton.new()
-		button.name = "%sWeaponButton" % SHORT_NAMES[index].get_slice(" ", 0).capitalize()
-		button.focus_mode = Control.FOCUS_ALL
-		button.mouse_filter = Control.MOUSE_FILTER_STOP
-		AegisTheme.set_button_variant(button, "round")
-		button.pressed.connect(_on_weapon_pressed.bind(ORDER[index]))
-		_column.add_child(button)
-		_weapon_buttons.append(button)
+		row.add_child(_build_card(index))
+
 	_close_button = AegisButton.new()
 	_close_button.name = "CloseArmoryButton"
 	_close_button.text = "RETURN TO FIELD"
@@ -55,26 +74,93 @@ func _ready() -> void:
 	visible = false
 
 
+## One weapon, one plate: art on top, identity under it, numbers in a ruled
+## block, and the action at the foot of the card. The action is a real Button so
+## keyboard/touch focus and the existing ArmoryUi contract keep working.
+func _build_card(index: int) -> AegisPanel:
+	var card := AegisPanel.new()
+	card.name = "%sCard" % CARD_NAMES[index].get_slice(" ", 0).capitalize()
+	card.bezel = true
+	card.interactive = false
+	card.cut_top_right = 12.0
+	card.accent_side = "top"
+	card.accent_color = AegisTokens.LINE_HI
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	card.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_cards.append(card)
+
+	var column := VBoxContainer.new()
+	column.add_theme_constant_override("separation", 4)
+	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card.add_child(column)
+
+	var shot := TextureRect.new()
+	shot.name = "Art"
+	shot.texture = load(ART[index])
+	shot.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	shot.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	shot.custom_minimum_size = Vector2(0, 64)
+	shot.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	shot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(shot)
+
+	var name_label := _label(CARD_NAMES[index], "mono_m", AegisTokens.INK)
+	column.add_child(name_label)
+	var role_label := _label(CARD_ROLES[index], "label", AegisTokens.INK_3)
+	column.add_child(role_label)
+
+	var state := _label("", "label", AegisTokens.INFO)
+	state.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_states.append(state)
+	column.add_child(state)
+
+	var button := AegisButton.new()
+	button.name = "%sWeaponButton" % SHORT_NAMES[index].get_slice(" ", 0).capitalize()
+	button.focus_mode = Control.FOCUS_ALL
+	button.mouse_filter = Control.MOUSE_FILTER_STOP
+	AegisTheme.set_button_variant(button, "round")
+	button.pressed.connect(_on_weapon_pressed.bind(ORDER[index]))
+	column.add_child(button)
+	_weapon_buttons.append(button)
+	return card
+
+
 func refresh_profile(
 	balance: int, best_score: int, unlocked_ids: Dictionary, equipped: StringName
 ) -> void:
 	_wallet_label.text = "BP  %d  ·  BEST  %d" % [balance, best_score]
 	for index in range(ORDER.size()):
 		var id: StringName = ORDER[index]
-		var name: String = SHORT_NAMES[index]
+		var definition := load("res://resources/weapons/%s.tres" % String(id)) as WeaponDefinition
+		var specs := ""
+		if definition != null:
+			specs = (
+				"%d DMG · %.1f/S · %d"
+				% [roundi(definition.damage), definition.fire_rate, definition.magazine_size]
+			)
+		var state := _states[index]
+		state.text = specs
 		var button := _weapon_buttons[index]
 		var variant := "round"
 		if String(id) == String(equipped):
-			button.text = "%s · EQUIPPED" % name
+			button.text = "TERPASANG"
+			state.add_theme_color_override("font_color", AegisTokens.ACCENT)
+			_cards[index].accent_color = AegisTokens.ACCENT
+			variant = "round"
 		elif unlocked_ids.has(String(id)):
-			button.text = "%s · EQUIP" % name
+			button.text = "PAKAI"
+			state.add_theme_color_override("font_color", AegisTokens.OK)
+			_cards[index].accent_color = AegisTokens.OK
 		else:
 			var cost: int = int(ProgressionService.COSTS[String(id)])
-			button.text = "%s · UNLOCK %d BP" % [name, cost]
+			button.text = "BUKA · %d BP" % cost
+			state.add_theme_color_override("font_color", AegisTokens.INK_2)
+			_cards[index].accent_color = AegisTokens.LINE_HI
 			variant = "primary" if balance >= cost else "round"
 		# set_button_variant() resets typography to 13 *logical* pixels. On a
 		# scaled WASM canvas that is a fraction of a physical pixel, making every
-		# purchase/equip action appear broken. Preserve the scaled HUD font.
+		# purchase/equip action look broken. Preserve the scaled HUD font.
 		if button.get_meta("armory_variant", "") != variant:
 			var scaled_font := button.get_theme_font_size("font_size")
 			AegisTheme.set_button_variant(button, variant)
@@ -87,14 +173,16 @@ func show_hint(text: String) -> void:
 
 
 func layout_for(hud) -> void:
-	var width := minf(hud._to_layout(540.0), hud.size.x * 0.92)
-	var height := minf(hud._to_layout(348.0), hud.size.y * 0.92)
+	var width := minf(hud._to_layout(720.0), hud.size.x * 0.94)
+	var height := minf(hud._to_layout(300.0), hud.size.y * 0.94)
 	custom_minimum_size = Vector2(width, height)
 	UiLayout.place(hud, self, 0.5, 0.5, 0.5, 0.5, Rect2(-width * 0.5, -height * 0.5, width, height))
-	_column.add_theme_constant_override("separation", roundi(hud._to_layout(5.0)))
+	_column.add_theme_constant_override("separation", roundi(hud._to_layout(4.0)))
+	for card in _cards:
+		card.custom_minimum_size = Vector2(hud._to_layout(180.0), 0)
 	for button in _weapon_buttons:
-		button.custom_minimum_size = Vector2(0, hud._to_layout(50.0))
-	_close_button.custom_minimum_size = Vector2(0, hud._to_layout(50.0))
+		button.custom_minimum_size = Vector2(0, hud._to_layout(38.0))
+	_close_button.custom_minimum_size = Vector2(0, hud._to_layout(40.0))
 	add_theme_stylebox_override(
 		"panel",
 		AegisTheme.panel_style(

@@ -18,6 +18,15 @@
  * canvas is roughly 180 x 210 CSS pixels on a 844 x 390 phone -- and the model
  * is 36 k triangles, so this is cheaper than the painted plate behind it.
  *
+ * The stage the figure stands on is geometry, not a photograph of one. A rig
+ * that animates over a painted pad can only look pasted onto a backdrop: the
+ * painted pad cannot take his weight, cannot take his shadow, and does not move
+ * when the camera does. So the room stays a photograph (it is far away and does
+ * not move) and the deck under his boots is a real cylinder with a lit rim,
+ * drawn in the same scene, in the same perspective, with the contact shadow on
+ * its own surface. Camera, deck and rig share one space -- the only way
+ * "standing on a stage" is true instead of claimed.
+ *
  * Lifecycle, because the engine needs the GPU back:
  *   play()   starts the frame loop (entering the hero screen)
  *   pause()  stops the loop but keeps the loaded scene (leaving and returning)
@@ -123,10 +132,83 @@ if (stage && canvas) {
      re-frames itself. */
   const FILL = 0.93;
   const FOV = 27;
+  /* Deck, in the rig's own units (hero.glb is 1.0 units tall and the engine
+     scales it to 1.78 m, so one unit is a body here, not a metre). */
+  const DECK_RADIUS = 0.62;
+  const DECK_HEIGHT = 0.085;
 
   let bounds = new THREE.Box3();
 
   let ground = null;
+  let deck = null;
+
+  /* The deploy deck: a machined ring the operative stands on, built from three
+     cylinders -- a recessed base, a plated top, a lit rim -- so the edge has real
+     thickness and a real highlight. Its top face is the rig's ground plane;
+     nothing about it is painted into the backdrop. */
+  function buildDeck() {
+    const group = new THREE.Group();
+    const metal = (colour, rough, metalness) =>
+      new THREE.MeshStandardMaterial({ color: colour, roughness: rough, metalness });
+
+    const radius = DECK_RADIUS;
+    const base = new THREE.Mesh(
+      new THREE.CylinderGeometry(radius * 1.04, radius * 1.12, DECK_HEIGHT * 0.45, 64, 1),
+      metal(0x2b3138, 0.72, 0.55),
+    );
+    base.position.y = -DECK_HEIGHT * 0.5 + DECK_HEIGHT * 0.225;
+    group.add(base);
+
+    const top = new THREE.Mesh(
+      new THREE.CylinderGeometry(radius, radius, DECK_HEIGHT * 0.55, 64, 1),
+      metal(0x4d5865, 0.42, 0.6),
+    );
+    top.position.y = DECK_HEIGHT * 0.5 - DECK_HEIGHT * 0.275;
+    group.add(top);
+
+    // Neutral white rim, sitting in a groove just inside the edge. Neutral
+    // because the stage is shared by every hero.
+    const rim = new THREE.Mesh(
+      new THREE.TorusGeometry(radius * 0.92, DECK_HEIGHT * 0.055, 10, 96),
+      new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        emissive: 0xdfe9f2,
+        emissiveIntensity: 2.6,
+        roughness: 0.35,
+        metalness: 0,
+      }),
+    );
+    rim.rotation.x = Math.PI / 2;
+    rim.position.y = DECK_HEIGHT * 0.5 + DECK_HEIGHT * 0.05;
+    group.add(rim);
+
+    // The standing surface: a lighter inset plate, so the top face reads as a
+    // floor with a lit border rather than as a hole in a hoop.
+    const plate = new THREE.Mesh(
+      new THREE.CylinderGeometry(radius * 0.88, radius * 0.88, DECK_HEIGHT * 0.06, 64, 1),
+      metal(0x5a6672, 0.55, 0.5),
+    );
+    plate.position.y = DECK_HEIGHT * 0.5;
+    group.add(plate);
+
+    // A dimmer inner ring: two concentric lights read as a pad, one reads as a
+    // hoop.
+    const inner = new THREE.Mesh(
+      new THREE.TorusGeometry(radius * 0.55, DECK_HEIGHT * 0.028, 8, 80),
+      new THREE.MeshStandardMaterial({
+        color: 0xcfdae4,
+        emissive: 0x9fb2c2,
+        emissiveIntensity: 1.1,
+        roughness: 0.5,
+        metalness: 0,
+      }),
+    );
+    inner.rotation.x = Math.PI / 2;
+    inner.position.y = DECK_HEIGHT * 0.5 + DECK_HEIGHT * 0.05;
+    group.add(inner);
+
+    return group;
+  }
 
   /* A soft patch of shadow where the boots meet the deck, in the scene rather
      than in CSS: only the renderer knows where the boots actually landed, and a
@@ -156,6 +238,10 @@ if (stage && canvas) {
 
   function fit() {
     if (!model || !camera) return;
+    // The rig stands ON the deck's top face, not at the origin: the difference
+    // between a character on a stage and a character near one.
+    model.position.y -= new THREE.Box3().setFromObject(model).min.y;
+    model.position.y += DECK_HEIGHT * 0.5;
     model.updateMatrixWorld(true);
     bounds = new THREE.Box3().setFromObject(model);
     const height = bounds.max.y - bounds.min.y;
@@ -168,16 +254,23 @@ if (stage && canvas) {
     );
 
     const tan = Math.tan(THREE.MathUtils.degToRad(FOV) / 2);
-    const visible = height / FILL;
+    // Frame the operative and his deck as one object, with the deck proud of the
+    // frame on both sides so it reads as something he is standing on.
+    const visible = (height + DECK_HEIGHT) / FILL;
     // Fit height, then make sure the shoulders and the rifle still clear the
     // sides of a tall, narrow canvas.
     const byHeight = visible / (2 * tan);
-    const byWidth = width / (2 * tan * Math.max(0.2, camera.aspect));
+    const byWidth =
+      Math.max(width, DECK_RADIUS * 2.35) / (2 * tan * Math.max(0.2, camera.aspect));
     const distance = Math.max(byHeight, byWidth) * 1.02;
 
+    // Look slightly down at the deck so its top face reads as an ellipse: a
+    // dead-on camera turns any disc into a line, and the point of a real stage
+    // is that the eye can see the surface the boots are on.
+    const eye = bounds.min.y + visible * 0.5;
     camera.fov = FOV;
-    camera.position.set(centre.x, bounds.min.y + visible / 2, centre.z + distance);
-    camera.lookAt(centre.x, bounds.min.y + visible / 2, centre.z);
+    camera.position.set(centre.x, eye + visible * 0.09, centre.z + distance);
+    camera.lookAt(centre.x, eye - visible * 0.02, centre.z);
     camera.updateProjectionMatrix();
 
     // Keep the near/far planes proportional to the model rather than to metres:
@@ -395,6 +488,9 @@ if (stage && canvas) {
         } else {
           console.warn('[hero_stage] hero.glb has no R_Hand bone; the operative is unarmed');
         }
+
+        deck = buildDeck();
+        scene.add(deck);
 
         ready = true;
         if (reduced()) mixer.update(0.001);

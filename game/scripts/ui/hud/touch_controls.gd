@@ -1101,6 +1101,33 @@ func _draw() -> void:
 		)
 	if _results_visible() or (is_instance_valid(_scrim) and _scrim.visible and _player_down):
 		return
+	# The docks are plates, not containers: they follow the live widgets, so the
+	# HUD editor's offsets and the platform's safe insets move the frame with
+	# them. Drawn before the crosshair so the reticle always stays on top.
+	if not get_tree().paused:
+		(
+			HudDock
+			. top(
+				self,
+				[
+					_health_card,
+					_wave_card,
+					_system_row,
+				]
+			)
+		)
+		(
+			HudDock
+			. bottom(
+				self,
+				[
+					_fire_button,
+					_aim_button,
+					_skill_button,
+					_weapon_button,
+				]
+			)
+		)
 	if (
 		_state.play_phase == "defense"
 		and not get_tree().paused

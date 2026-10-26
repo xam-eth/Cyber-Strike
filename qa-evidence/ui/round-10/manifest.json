@@ -1,0 +1,157 @@
+{
+  "tag": "round-10",
+  "viewports": [
+    "844x390",
+    "667x375"
+  ],
+  "screens": [
+    {
+      "screen": "opening",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/round-10/opening-844x390.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [],
+      "width": 844,
+      "height": 390,
+      "bytes": 397389,
+      "lumaMean": 36.30084106396796,
+      "lumaStdDev": 37.45951058746797,
+      "uniqueColors": 6507
+    },
+    {
+      "screen": "hub",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/round-10/hub-844x390.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [],
+      "width": 844,
+      "height": 390,
+      "bytes": 310418,
+      "lumaMean": 22.343834436146516,
+      "lumaStdDev": 34.69375730190856,
+      "uniqueColors": 3901
+    },
+    {
+      "screen": "hero",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/round-10/hero-844x390.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [],
+      "width": 844,
+      "height": 390,
+      "bytes": 345810,
+      "lumaMean": 37.487232996752276,
+      "lumaStdDev": 45.82047144047767,
+      "uniqueColors": 5512
+    },
+    {
+      "screen": "settings",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/round-10/settings-844x390.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [],
+      "width": 844,
+      "height": 390,
+      "bytes": 220096,
+      "lumaMean": 17.863233355826996,
+      "lumaStdDev": 22.201717316897227,
+      "uniqueColors": 1079
+    },
+    {
+      "screen": "launch",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/round-10/launch-844x390.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [
+        "ERROR: Condition \"!is_inside_tree()\" is true.",
+        "   at: grab_focus (scene/gui/control.cpp:3001)"
+      ],
+      "width": 844,
+      "height": 390,
+      "bytes": 389890,
+      "lumaMean": 31.301629925895934,
+      "lumaStdDev": 26.48017324042333,
+      "uniqueColors": 2780
+    },
+    {
+      "screen": "opening",
+      "viewport": "667x375",
+      "file": "qa-evidence/ui/round-10/opening-667x375.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [],
+      "width": 667,
+      "height": 375,
+      "bytes": 308347,
+      "lumaMean": 35.767663839313194,
+      "lumaStdDev": 37.56867899324219,
+      "uniqueColors": 4957
+    },
+    {
+      "screen": "hub",
+      "viewport": "667x375",
+      "file": "qa-evidence/ui/round-10/hub-667x375.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [],
+      "width": 667,
+      "height": 375,
+      "bytes": 220998,
+      "lumaMean": 21.557340800808156,
+      "lumaStdDev": 36.58450765016187,
+      "uniqueColors": 3403
+    },
+    {
+      "screen": "hero",
+      "viewport": "667x375",
+      "file": "qa-evidence/ui/round-10/hero-667x375.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [],
+      "width": 667,
+      "height": 375,
+      "bytes": 269726,
+      "lumaMean": 40.55286758543069,
+      "lumaStdDev": 48.774059102553466,
+      "uniqueColors": 5178
+    },
+    {
+      "screen": "settings",
+      "viewport": "667x375",
+      "file": "qa-evidence/ui/round-10/settings-667x375.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [],
+      "width": 667,
+      "height": 375,
+      "bytes": 172058,
+      "lumaMean": 18.593326914958144,
+      "lumaStdDev": 25.187780110088024,
+      "uniqueColors": 1066
+    },
+    {
+      "screen": "launch",
+      "viewport": "667x375",
+      "file": "qa-evidence/ui/round-10/launch-667x375.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [
+        "ERROR: Condition \"!is_inside_tree()\" is true.",
+        "   at: grab_focus (scene/gui/control.cpp:3001)"
+      ],
+      "width": 667,
+      "height": 375,
+      "bytes": 304737,
+      "lumaMean": 30.912474746653498,
+      "lumaStdDev": 28.14863530119473,
+      "uniqueColors": 2650
+    }
+  ],
+  "failures": 0,
+  "generatedAt": "2026-10-26T09:43:25.457Z"
+}
