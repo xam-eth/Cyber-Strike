@@ -63,7 +63,12 @@ const lines = [];
 page.on('console', (m) => lines.push(m.text()));
 page.on('pageerror', (e) => lines.push('PAGEERROR ' + String(e).split('\n')[0]));
 await page.setViewport({ width: vw, height: vh, hasTouch: true, isMobile: false, deviceScaleFactor: 1 });
-await page.goto(`http://127.0.0.1:8161/web/index.html?qa_stage=GAMEPLAY`, {
+// LANG_CODE=id captures the same stage in the other language. The engine reads
+// `?lang=` at boot (AegisText._url_language), so this is the real switch, not a
+// translation applied to the pixels afterwards.
+const lang = process.env.LANG_CODE || '';
+const url = `http://127.0.0.1:8161/web/index.html?qa_stage=GAMEPLAY${lang ? `&lang=${lang}` : ''}`;
+await page.goto(url, {
   waitUntil: 'domcontentloaded',
   timeout: 90000,
 });

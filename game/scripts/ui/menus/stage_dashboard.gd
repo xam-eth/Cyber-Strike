@@ -350,9 +350,10 @@ func _build_actions() -> void:
 	_deploy.pressed.connect(_on_deploy_pressed)
 	_actions.add_child(_deploy)
 
-	# The theatre is named under the amber tile rather than in a chip above it:
-	# this page already prints the theatre in row 02, and a second caption box
-	# was a third place to say it.
+	# The caption states the action's condition, not the theatre: row 02 and the
+	# dock both already name the theatre, and printing it a third time under the
+	# tile is what pushed `NEON FRONTIER · READY TO DEPLOY` past the label's width
+	# and cut it to `READY TO…` at 844 px (qa-evidence/ui/round-12/i18n/engine).
 	_deploy_caption = make_label("", "label_s", AegisTokens.INK_3)
 	_deploy_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_deploy_caption.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -415,7 +416,7 @@ func refresh_profile() -> void:
 	_hero_name_label.text = hero
 	_mission_name.text = world
 	_arsenal_name.text = weapon
-	AegisText.apply(_deploy_caption, "dash.ready_to_deploy", [world])
+	AegisText.apply(_deploy_caption, "dash.ready_to_deploy")
 
 	# Both status lines come from the definitions, not from literals: the card
 	# on OPERATIVE prints the same string, so the board cannot say an operative
