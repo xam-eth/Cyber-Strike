@@ -51,6 +51,9 @@ var selected_world_id: StringName = DEFAULT_WORLD_ID
 
 
 func _ready() -> void:
+	# One name for "the profile", so a lookup from inside a scene does not have to
+	# guess where in the tree it was parented (see ProgressionLookup).
+	add_to_group(ProgressionLookup.GROUP)
 	load_profile()
 
 

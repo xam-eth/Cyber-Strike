@@ -246,14 +246,7 @@ func _apply_progression_tier() -> void:
 
 
 func _progression_service() -> ProgressionService:
-	if not is_inside_tree():
-		return null
-	var scene := get_tree().current_scene
-	if scene != null:
-		var node := scene.get_node_or_null("ProgressionService")
-		if node is ProgressionService:
-			return node
-	return get_node_or_null("/root/Main/ProgressionService") as ProgressionService
+	return ProgressionLookup.find(self)
 
 
 func tier_damage_reduction() -> float:
