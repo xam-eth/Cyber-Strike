@@ -158,7 +158,11 @@ for test_path in "${TESTS[@]}"; do
   # Absolute path, not res:// — the test is outside the project on purpose.
   timeout "${TEST_TIMEOUT}" "$GODOT" --headless --path "$GAME_DIR" \
     --script "$test_path" >"$test_log" 2>&1 || test_status=$?
-  if (( test_status == 0 )); then
+  script_error=0
+  if grep -qE 'SCRIPT ERROR|Parse Error|ERROR: Condition' "$test_log"; then
+    script_error=1
+  fi
+  if (( test_status == 0 && script_error == 0 )); then
     printf 'PASS\n'
     PASSED=$((PASSED + 1))
   elif (( test_status == 124 )); then
@@ -168,12 +172,19 @@ for test_path in "${TESTS[@]}"; do
     if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
       printf '::error title=Smoke test timed out::%s exceeded %ss\n' "$test_name" "$TEST_TIMEOUT"
     fi
+  elif (( script_error != 0 )); then
+    # Godot can return exit 0 after a GDScript runtime error aborted only part
+    # of a SceneTree test. That is not a pass: assertions after the error never
+    # ran. Count the log contract as well as the process exit status.
+    printf 'FAIL (engine script errors)\n'
+    FAILED=$((FAILED + 1))
+    FAILED_NAMES+=("$test_name")
   else
     printf 'FAIL (exit %s)\n' "$test_status"
     FAILED=$((FAILED + 1))
     FAILED_NAMES+=("$test_name")
   fi
-  if grep -qE 'SCRIPT ERROR|Parse Error|ERROR: Condition' "$test_log"; then
+  if (( script_error != 0 )); then
     printf '    engine reported script errors; see %s\n' "${test_log#"$ROOT_DIR"/}"
     # The full job log is not downloadable from every environment; surface the
     # first error line as an annotation so the failing call site is never a guess.
@@ -192,11 +203,15 @@ for test_path in "${TESTS[@]}"; do
   # One annotation per test: the job log is not always retrievable (for example
   # from a restricted sandbox), and "which test hung" must never be a guess.
   if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
-    case "$test_status" in
-      0) test_verdict='PASS' ;;
-      124) test_verdict="FAIL (timeout ${TEST_TIMEOUT}s)" ;;
-      *) test_verdict="FAIL (exit $test_status)" ;;
-    esac
+    if (( test_status == 0 && script_error != 0 )); then
+      test_verdict='FAIL (engine script errors)'
+    else
+      case "$test_status" in
+        0) test_verdict='PASS' ;;
+        124) test_verdict="FAIL (timeout ${TEST_TIMEOUT}s)" ;;
+        *) test_verdict="FAIL (exit $test_status)" ;;
+      esac
+    fi
     ANNOTATIONS+=("::notice title=Smoke ${test_name%.gd}::$test_verdict")
   fi
 done

@@ -398,7 +398,7 @@ func _check_mission_deployment(world_id: String) -> void:
 	# before gravity or collision recovery can move the body.
 	var player := main_scene.get_node("Player") as CharacterBody3D
 	var initial_spawn := player.position
-	var expected_spawn: Vector3 = WorldDefinition.new().with_id(world_id).player_spawn
+	var expected_spawn: Vector3 = WorldDefinition.load_definition(StringName(world_id)).player_spawn
 	_passed = (
 		_expect(
 			initial_spawn.is_equal_approx(expected_spawn),
