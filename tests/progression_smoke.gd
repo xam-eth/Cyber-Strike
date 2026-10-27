@@ -90,17 +90,25 @@ func _run() -> void:
 		not HeroTier.is_field_ready(&"kestrel"),
 		"a hero with no rig cannot be fielded",
 	)
-	# A fresh profile has no runs, so the only fieldable rank is the first one --
-	# whatever the save says.
+	# The profile in this fixture has already banked two runs, so what it owns is
+	# the roster's answer for *its* count, and what it fields is the saved rank
+	# clamped into that range -- never a rank nobody earned.
 	_expect(
-		wallet.owned_tier() == 1 and wallet.fieldable_tier() == 1, "a new profile fields tier 1"
+		wallet.owned_tier() == HeroTier.owned_tier(wallet.completed_runs),
+		"the owned rank is the roster's answer for this profile's runs",
 	)
-	_expect(not wallet.select_tier(4), "an unearned rank cannot be selected")
+	_expect(wallet.fieldable_tier() <= wallet.owned_tier(), "a profile fields a rank it owns")
+	_expect(not wallet.select_tier(HeroTier.tier_count()), "an unearned rank cannot be selected")
 	wallet.completed_runs = 12
 	_expect(wallet.owned_tier() == 5, "runs earned in the arena open the ranks")
 	_expect(
 		wallet.select_tier(4) and wallet.fieldable_tier() == 4, "an earned rank can be selected"
 	)
+	# The body reads the rank before it is fitted (CharacterVisual) and before the
+	# first hit (PlayerController). Both go through ProgressionLookup, and the same
+	# read is driven here so the numbers are checked without a second arena.
+	_expect(player.call("_progression_service") != null, "the player can find the profile")
+	player.call("_apply_progression_tier")
 	_expect(
 		player.max_health == HeroTier.vitals(4),
 		"the arena's health pool is the selected rank's vitals",
@@ -109,13 +117,11 @@ func _run() -> void:
 		is_equal_approx(player.tier_damage_reduction(), HeroTier.reduction(4) / 100.0),
 		"the selected rank's plate is applied to incoming damage",
 	)
-	var reduced_before := 200.0
-	player.current_health = reduced_before
-	var dealt := 100.0
-	player.apply_damage(dealt)
+	player.current_health = 200.0
+	player.apply_damage(100.0)
 	_expect(
 		is_equal_approx(
-			player.current_health, reduced_before - dealt * (1.0 - player.tier_damage_reduction())
+			player.current_health, 200.0 - 100.0 * (1.0 - player.tier_damage_reduction())
 		),
 		"a hit is reduced by the rank's plate, not by nothing",
 	)
