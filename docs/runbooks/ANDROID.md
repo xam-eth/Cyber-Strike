@@ -2,7 +2,7 @@
 
 > **Tujuan:** membuat build Android debug yang benar-benar terpasang dan berjalan di perangkat, lalu mengukur performa serta kontrol sentuh sesuai quality gates di [`../DEVELOPMENT.md`](../DEVELOPMENT.md).
 >
-> **Status tooling:** siap dan sudah diuji sejauh mungkin tanpa perangkat. **Belum ada APK atau hasil perangkat** yang dihasilkan dari repo ini — dokumen ini adalah prosedur, bukan laporan hasil.
+> **Status tooling:** scaffold, export APK debug arm64, sparse payload audit, dan keberadaan profiler sudah lulus CI pada checkpoint di [`../VALIDATION.md`](../VALIDATION.md). **Belum ada instalasi, FPS, thermal, atau hasil perangkat fisik**; dokumen ini tetap merupakan prosedur pengujian perangkat.
 >
 > **Pin versi:** Godot 4.7.2-stable (`.godot-version`), GDScript. Versi SDK/JDK harus cocok dengan dokumentasi Godot versi tersebut.
 
@@ -80,7 +80,7 @@ python3 tools/android_preset.py check
 python3 tools/android_preset.py show
 ```
 
-Catatan penting tentang `scaffold`: berkas yang dihasilkan memakai set option yang Godot 4.x tulis untuk preset Android; Godot mengisi option yang tidak ada dengan nilai default platform dan menormalkan berkas saat preset disimpan dari Editor. Scaffold **belum divalidasi oleh export nyata** di repo ini — kalau `--export-debug` mengeluh soal preset, buka dialog Export sekali, simpan, lalu ulangi mode `patch`.
+Catatan penting tentang `scaffold`: berkas yang dihasilkan memakai set option yang Godot 4.x tulis untuk preset Android; Godot mengisi option yang tidak ada dengan nilai default platform dan menormalkan berkas saat preset disimpan dari Editor. Scaffold **sudah divalidasi oleh export Android CI** pada checkpoint di [`../VALIDATION.md`](../VALIDATION.md). Jika preset lokal lama berbeda dan `--export-debug` mengeluh, sinkronkan dengan mode `patch` atau buka/simpan dialog Export sekali lalu ulangi validasi.
 
 ## 5. Jalur cepat — build/install/reload via USB
 
@@ -230,6 +230,6 @@ Remote Godot Editor (`Debugger > Monitors`) tetap berguna saat development, teta
 
 ## 11. Batas kejujuran dokumen ini
 
-- Tidak ada APK, hasil perangkat, atau angka performa yang dihasilkan dari repo ini sampai langkah di atas benar-benar dijalankan pada mesin/perangkat Anda.
-- `tools/android_preset.py` dan `scripts/setup_android_sdk.sh` dapat diuji dengan layout SDK/JDK tiruan, tetapi hasil tiruan itu bukan bukti export/perangkat nyata.
-- Setelah selesai, catat keluaran `check_toolchain.sh`, keluaran `android_preset.py check`, log export, dan tabel §8 bersama commit/perangkat yang diuji. Ringkas hasilnya di [`../VALIDATION.md`](../VALIDATION.md) tanpa mengubah prosedur ini menjadi laporan checkpoint lama.
+- APK debug dan isi payload-nya sudah diverifikasi di CI pada checkpoint [`../VALIDATION.md`](../VALIDATION.md); instalasi, kompatibilitas renderer/GPU, touch, dan performa pada perangkat Anda tetap harus diuji secara terpisah.
+- Fake ADB dan APK sparse sintetis pada tooling tests hanya membuktikan kontrol alur/parser; hasil tiruan itu bukan bukti export, instalasi, atau FPS perangkat nyata.
+- Setelah pengujian lokal, catat keluaran `check_toolchain.sh`, keluaran `android_preset.py check`, log export, dan tabel §8 bersama commit/perangkat yang diuji. Ringkas hasilnya di [`../VALIDATION.md`](../VALIDATION.md) tanpa mengubah prosedur ini menjadi laporan checkpoint lama.

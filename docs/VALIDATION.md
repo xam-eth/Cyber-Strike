@@ -4,7 +4,25 @@ This document records the latest relevant evidence and its limits. It is not a d
 
 For intended behavior, read [`GAMEPLAY_DESIGN.md`](GAMEPLAY_DESIGN.md). For required gates, read [`DEVELOPMENT.md`](DEVELOPMENT.md).
 
-## 1. Latest recorded full product checkpoint
+## Current Android profiling and packaging checkpoint — 2026-10-27
+
+| Item | Checkpoint |
+|---|---|
+| Source validated by Godot/Web and Android CI | `d2eb9f70fa5b66be9c6107cda74577fa3e186556` |
+| Godot/Web CI | [40488126429](https://github.com/xam-eth/Cyber-Strike/actions/runs/40488126429) — **SUCCESS** |
+| Android debug APK CI | [40488126366](https://github.com/xam-eth/Cyber-Strike/actions/runs/40488126366) — **SUCCESS** |
+| Committed Web payload after that gate | `41ccd8e51d8ee8cfaaa191480ad991f796131a60` |
+| Documentation update | Separate source-only change; it adds no new runtime claim |
+
+- **VERIFIED (local static):** `./scripts/dev_check.sh` completed with **0 failed steps and 2 skipped steps**: 87 GDScript files parsed/linted/formatted, 81 tooling tests, 18/18 canonical documents, architecture boundaries, generated module map, and a 35-test inventory. The local Godot binary and machine-local export preset remained skipped.
+- **VERIFIED (CI engine/browser):** Godot 4.7.2 passed **35/35 smoke tests**, including profiler window/lifecycle coverage and the existing Recovery/Defense regressions. Web export, 965-file payload audit, static delivery, and the registered browser/loading/theatre/audio gates passed in the same Godot CI run. The resulting `web/index.pck` is 90,682,980 bytes with SHA-256 `bfd82c279b38fcf2f6c2a644527003815f36da1a409b876728437d683711c70d`.
+- **VERIFIED (CI Android packaging):** JDK/SDK setup, generated preset, required ETC2/ASTC import, **35/35 smoke tests**, arm64 debug APK export, Godot 4.7 sparse-bundle directory/asset-size audit, forbidden-content audit, and profiler-presence check passed. Artifact `android-debug-apk` was uploaded to the Android run. This proves packaging, not installation or device runtime.
+- **IMPLEMENTED (device harness):** `scripts/android_usb.sh --profile-seconds N` records raw logcat, five-second FPS/frame-time windows with gameplay context, APK/device metadata, gfxinfo, memory, thermal, and battery evidence, then generates Markdown/CSV/JSON reports. The parser preserves window percentiles and reports weighted FPS/worst-window values rather than inventing an exact whole-run percentile.
+- **UNKNOWN (physical device):** no USB installation, actual Android FPS/frame-time measurement, touch ergonomics, native-resolution behavior, thermal/throttling, battery, audiovisual quality, save preservation, or soak result has been obtained. Debug/profile output is diagnostic and is not final uninstrumented-release certification.
+
+Earlier failed Android setup attempts (runner packages, a floating-point test fixture, missing ETC2/ASTC, and the old monolithic-PCK audit assumption) are superseded by the final successful runs above; they are not current product failures.
+
+## 1. TECH HUNT 0 full product baseline
 
 | Item | Checkpoint |
 |---|---|
