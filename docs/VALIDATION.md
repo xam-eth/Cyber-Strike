@@ -4,6 +4,12 @@ This document records the latest relevant evidence and its limits. It is not a d
 
 For intended behavior, read [`GAMEPLAY_DESIGN.md`](GAMEPLAY_DESIGN.md). For required gates, read [`DEVELOPMENT.md`](DEVELOPMENT.md).
 
+## Active target decision and local Web incident — 2026-10-27
+
+- **USER DECISION (APK paused):** native APK/device work is **PAUSED** for now. Active development and testing target is the **Website**. The earlier APK's native presentation gap and force-close after DEPLOY remain unresolved and deferred; they are not accepted, fixed, or final-device evidence.
+- **INVESTIGATING (local Web DEPLOY):** sandbox Chromium reached real Frostline gameplay through the root shell at 800×360 with touch, and the user confirmed one successful DEPLOY through the branch preview URL. A subsequent attempt on the user's local path still fails. The exact local URL, served payload, and visible error detail are required before attributing this to the game, a stale checkout, a local server, or the preview proxy. Do not generalize the sandbox pass into a local-device pass.
+- **LIKELY (local environment mismatch, not yet closed):** the user reports the failing path as `localhost` served by `python3 -m http.server`, with a build byte count different from the sandbox payload's 90,682,996 bytes. That is not the same server/payload evidence. The corrective test is a clean checkout of this branch served by `tools/serve_preview.py`, followed by `/__build` and PCK-hash verification and a real DEPLOY. Until that succeeds, local gameplay remains unverified rather than declared fixed.
+
 ## Current Phase 1 visual-review checkpoint — 2026-10-27
 
 This checkpoint adds review tooling and hardens existing browser capture. It does not approve a golden, change gameplay, or replace the runtime CI evidence below.

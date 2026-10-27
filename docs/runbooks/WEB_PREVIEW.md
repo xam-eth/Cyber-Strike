@@ -55,7 +55,7 @@ This is a download/preinitialization contract. It does not claim every world GLB
 
 ## 3. Cache behavior
 
-Use `tools/serve_preview.py`, not a server that forces `Cache-Control: no-store`, when testing warm development reloads.
+Use `tools/serve_preview.py`, not a server that forces `Cache-Control: no-store`, when testing warm development reloads. Do not substitute `python3 -m http.server` for update diagnosis: it does not provide the `/__build` identity endpoint or this server's strong-content-ETag policy, so it cannot establish that the browser and repository are testing the same payload.
 
 - A cold opening downloads the full payload.
 - An unchanged file uses a strong content ETag and can complete revalidation with **304 Not Modified** and no large response body.
