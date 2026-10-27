@@ -34,6 +34,13 @@ class AndroidUsbTests(unittest.TestCase):
             encoding="utf-8",
         )
         adb = self.bin / "adb"
+        metric_start = '{"schema":1,"event":"profile_start","debug_build":true}'
+        metric_window = (
+            '{"schema":1,"event":"frame_window","phase":"defense","wave":3,"enemies":8,'
+            '"elapsed_s":5.0,"frames":300,"fps":60.0,"frame_p50_ms":16.667,'
+            '"frame_p95_ms":16.667,"frame_p99_ms":16.667,"frame_max_ms":16.667,'
+            '"over_33ms":0,"over_50ms":0}'
+        )
         adb.write_text(
             "#!/usr/bin/env bash\n"
             "set -euo pipefail\n"
@@ -41,6 +48,12 @@ class AndroidUsbTests(unittest.TestCase):
             'if [[ "${1:-}" == "devices" ]]; then cat "$FAKE_ADB_DEVICES"; exit 0; fi\n'
             'if [[ "${1:-}" == "-s" && "${3:-}" == "install" ]]; then echo Success; exit 0; fi\n'
             'if [[ "${1:-}" == "-s" && "${3:-}" == "shell" ]]; then echo "Events injected: 1"; exit 0; fi\n'
+            'if [[ "${1:-}" == "-s" && "${3:-}" == "logcat" && "${4:-}" == "-v" ]]; then\n'
+            '  trap "exit 0" TERM INT\n'
+            f"  echo 'I/Godot: EXOCOMPLICT_METRICS {metric_start}'\n"
+            f"  echo 'I/Godot: EXOCOMPLICT_METRICS {metric_window}'\n"
+            '  while :; do sleep 1; done\n'
+            'fi\n'
             'if [[ "${1:-}" == "-s" && "${3:-}" == "logcat" ]]; then exit 0; fi\n'
             'echo "unexpected adb args: $*" >&2; exit 2\n',
             encoding="utf-8",
@@ -107,6 +120,47 @@ class AndroidUsbTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("unauthorized", result.stderr)
         self.assertNotIn("install -r", self.adb_calls())
+
+    def test_timed_capture_writes_real_device_evidence_layout(self) -> None:
+        output = self.directory / "evidence"
+        result = self.run_usb("--profile-seconds", "1", "--profile-dir", str(output))
+        raw_log = (output / "logcat.txt").read_text(encoding="utf-8") if (output / "logcat.txt").exists() else "missing"
+        self.assertEqual(result.returncode, 0, result.stderr + result.stdout + raw_log)
+        calls = self.adb_calls()
+        self.assertIn("-s phone-1 logcat -c", calls)
+        self.assertIn("-s phone-1 shell am force-stop com.test.exocomplict", calls)
+        self.assertIn("shell dumpsys gfxinfo com.test.exocomplict framestats", calls)
+        self.assertIn("shell dumpsys thermalservice", calls)
+        for name in (
+            "report.md",
+            "summary.json",
+            "windows.csv",
+            "raw_windows.json",
+            "logcat.txt",
+            "device.json",
+            "gfxinfo.txt",
+            "meminfo-after.txt",
+            "thermal-after.txt",
+        ):
+            self.assertTrue((output / name).is_file(), name)
+        self.assertIn("final uninstrumented release", result.stdout)
+
+    def test_timed_capture_does_not_overwrite_existing_evidence(self) -> None:
+        output = self.directory / "evidence"
+        output.mkdir()
+        (output / "logcat.txt").write_text("keep this evidence", encoding="utf-8")
+        result = self.run_usb("--profile-seconds", "1", "--profile-dir", str(output))
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("already contains evidence", result.stderr)
+        self.assertEqual((output / "logcat.txt").read_text(encoding="utf-8"), "keep this evidence")
+
+    def test_timed_capture_requires_launch_and_rejects_interactive_logcat(self) -> None:
+        no_launch = self.run_usb("--profile-seconds", "1", "--no-launch")
+        self.assertEqual(no_launch.returncode, 1)
+        self.assertIn("cannot be combined", no_launch.stderr)
+        interactive = self.run_usb("--profile-seconds", "1", "--logcat")
+        self.assertEqual(interactive.returncode, 1)
+        self.assertIn("not both", interactive.stderr)
 
 
 if __name__ == "__main__":

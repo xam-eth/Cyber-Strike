@@ -53,7 +53,8 @@ build/
 # no artifact download. The web-preview CI job refreshes it. Same layout idea as
 # xam-eth/Scary-Night, which keeps its engine and web export templates in-tree.
 
-# Local exports and packages
+# Local exports, packages, and physical-device evidence (can contain serials/logcat)
+artifacts/android/
 exports/
 export/
 *.apk

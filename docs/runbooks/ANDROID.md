@@ -105,6 +105,8 @@ Setelah langkah A–C selesai dan USB debugging sudah diizinkan di HP:
 
 Helper mencari `adb` dari `PATH`, `ADB_BIN`, atau `ANDROID_SDK_ROOT`/`ANDROID_HOME`, membaca package id dari preset lokal, menolak perangkat `unauthorized`, dan meminta `--serial` bila ada beberapa perangkat. Override yang tersedia dapat dilihat dengan `./scripts/android_usb.sh --help`.
 
+Untuk membangun artifact APK di GitHub tanpa mengubah repository settings, sertakan tag literal `[android-build]` pada commit message perubahan Android yang memang perlu diuji. Workflow juga dapat dijalankan manual oleh akun yang memiliki akses `workflow_dispatch`. Artifact hanya membuktikan packaging; install tetap dilakukan pada HP dengan helper di atas.
+
 `adb install -r` mempertahankan data/save selama package id dan signing key sama. Jangan uninstall atau membersihkan data saat update. Ini adalah **reinstall + relaunch**, bukan hot reload GDScript dalam proses yang tetap berjalan. Setelah APK terpasang, game dan asset-nya berjalan tanpa server Web atau unduhan data runtime.
 
 ## 6. Langkah D — Build APK debug saja
@@ -142,26 +144,67 @@ Checklist uji manual yang harus dicatat hasilnya:
 | E11 | Stabilitas | Main 10–15 menit | Tidak ada crash/ANR; `adb logcat` tanpa error berulang |
 | E12 | Suhu/baterai | Setelah 15 menit | Catat suhu dan tingkat baterai; perhatikan throttle |
 
-## 8. Langkah F — Profiling terukur
+## 8. Langkah F — Profiling terukur pada perangkat nyata
 
-Dua cara, pakai keduanya:
+### 8.1 Capture yang dapat direproduksi — IMPLEMENTED
 
-1. **Remote debug dari Editor (paling informatif).** Jalankan project ke perangkat dari Godot Editor (“Run on device” / one-click deploy), lalu buka `Debugger > Monitors`. Catat: **FPS, frame time, draw calls, objects, video memory, static/dynamic memory**.
-2. **Build APK mandiri + `adb`.** Untuk angka kasar dan crash:
+Profiler internal hanya aktif di Android debug, preset dengan custom feature `device_profile`, atau bila argumen `--device-profile` memang dapat diberikan oleh launcher. Ia tidak mengubah quality, resolusi, timing, gameplay, atau save. Build release normal tidak membuat node profiler.
 
 ```bash
-adb shell dumpsys thermalservice | head -20      # suhu perangkat (best effort)
-adb logcat -d | grep -iE "godot|error|fatal|anr" | tail -50
-adb shell dumpsys meminfo "$PACKAGE_ID" | head -20
+# Build smoke-tested debug APK, install, launch, lalu rekam 120 detik.
+./scripts/android_usb.sh --serial SERIAL_HP --profile-seconds 120
+
+# Ulangi APK yang sama dengan nama evidence directory yang eksplisit.
+./scripts/android_usb.sh --skip-build --serial SERIAL_HP \
+  --profile-seconds 120 --profile-dir artifacts/android/DEVICE-defense-run1
 ```
 
-Baseline yang harus dicatat pada tabel ini (satu baris per perangkat/pengaturan):
+Selama capture, mainkan skenario yang disepakati dan jangan mengirim aplikasi ke background kecuali untuk skenario lifecycle. Fokus keluar/masuk mengosongkan window timing agar waktu suspend tidak dihitung sebagai satu frame raksasa. Durasi minimum praktis adalah 10 detik; gunakan 120 detik untuk skenario dan 15 menit untuk soak. Logcat mentah tetap disimpan bila report gagal.
 
-| Perangkat | Android | Renderer | FPS (idle / 3 musuh / 8 musuh) | Frame time p95 | Draw calls | Memori | Suhu setelah 15 mnt | Catatan |
-|---|---|---|---|---|---|---|---|---|
-| | | mobile | | | | | | |
+Setiap `artifacts/android/<capture>/` berisi:
 
-Jika HUD tidak menampilkan FPS/frame time pada build yang diuji, gunakan remote debug dari Editor dan catat keterbatasan pengukurannya. Tambahkan overlay internal hanya bila kebutuhan profiling membenarkannya; jangan menganggap angka browser sebagai pengganti pengukuran perangkat.
+| File | Isi dan batasnya |
+|---|---|
+| `logcat.txt` + `logcat-errors.txt` | Bukti mentah, crash/ANR, dan marker `EXOCOMPLICT_METRICS` |
+| `device.json` | Model, Android, ABI, resolusi, kandidat refresh rate, package, SHA-256 APK, waktu capture |
+| `raw_windows.json` / `windows.csv` | Semua window lima detik; fase, wave, jumlah musuh, FPS, p50/p95/p99/max, hitch, render/load/memory counters |
+| `summary.json` / `report.md` | Ringkasan per fase dan seluruh run, siap direview |
+| `gfxinfo.txt` | `dumpsys gfxinfo ... framestats`; pelengkap yang cakupannya bergantung Android/renderer |
+| `meminfo-before/after.txt` | PSS dan rincian memori proses dari Android |
+| `thermal-before/after.txt`, `battery-before/after.txt`, `display.txt` | Bukti sistem mentah; format/suhu yang tersedia berbeda menurut OEM |
+
+`FPS = jumlah frame / waktu window`. p50/p95/p99 adalah nearest-rank dari frame time **di dalam window itu**. Report menghitung weighted FPS dan **worst-window p95/p99**, bukan “overall p95” palsu dari rata-rata percentile. Exact whole-run percentile membutuhkan sample setiap frame yang tidak disimpan oleh transport ringan ini. Process/physics/render counters adalah snapshot pada akhir window, bukan rata-rata window.
+
+Folder `artifacts/android/` sengaja di-ignore Git karena log perangkat dapat memuat informasi sensitif. Review sebelum membagikannya.
+
+### 8.2 Protokol dan matriks perangkat
+
+1. Catat commit dan SHA-256 APK; jangan membandingkan build berbeda seolah-olah sama.
+2. Gunakan skenario, resolusi/refresh, renderer, 3D scale, vsync, koneksi USB/charging, dan kondisi awal suhu yang sama. Untuk pengukuran thermal, USB charging dapat mengubah hasil; catat atau gunakan ADB Wi-Fi secara konsisten.
+3. Jalankan tiga kali per skenario; simpan semua run, bukan hanya yang terbaik. Skenario minimum: cold open/shell, Explore idle, Defense awal, Defense dengan beban musuh tinggi, pause/Home/resume, lalu soak 15 menit. Jumlah musuh aktual harus berasal dari window, bukan dari nama skenario.
+4. Ukur minimal satu perangkat baseline kelas rendah/menengah dan satu pembanding. Tambahkan perangkat 60/90/120 Hz bila masuk target. Budget frame adalah `1000 / refresh Hz`; 60 Hz = 16,67 ms dan 120 Hz = 8,33 ms. Counter >33/>50 ms adalah hitch umum, bukan satu-satunya ukuran jank pada refresh tinggi.
+5. Tetapkan target lulus per tier hanya setelah baseline disetujui. Tanpa hasil perangkat, status FPS/full resolution/thermal tetap **UNKNOWN**; jangan menjanjikan “60 FPS penuh”.
+
+| Perangkat / SoC / GPU | Android | Resolusi @ Hz | Build + APK SHA | Skenario / run | Weighted FPS | Worst-window p95 / p99 | >33 / >50 ms | PSS / memori | Suhu + throttle | Evidence path |
+|---|---|---|---|---|---:|---|---|---|---|---|
+| | | | | | | | | | | |
+
+### 8.3 Debug, profiling release, dan release akhir
+
+- **Debug:** alat diagnosis default. Debug template, checking, dan logging dapat mengubah FPS; hasilnya bukan sertifikasi release.
+- **Profiling release candidate:** duplikat preset release, tambahkan custom feature `device_profile`, gunakan signing yang sesuai, lalu export variant khusus pengukuran. Install APK itu dengan `--skip-build --apk /path/profiling-release.apk --profile-seconds 120`. Simpan preset/signing lokal di luar Git dan **jangan mengaktifkan feature ini pada production release**.
+- **Release akhir tanpa instrumentasi:** ulangi skenario pada APK final. Gunakan Perfetto/Android Studio dan `gfxinfo` untuk CPU, frequency, thermal, memori, serta frame timeline pada Android/renderer yang mendukungnya. Bila frame timeline tidak tersedia, tandai batas pengukuran; jangan menggantinya dengan angka debug.
+
+Contoh trace sistem tambahan (Android/Perfetto yang mendukung; tambahkan `-s SERIAL` bila perlu):
+
+```bash
+adb shell perfetto -o /data/misc/perfetto-traces/cyber-strike.pftrace \
+  -t 30s sched freq idle am wm gfx view binder_driver hal dalvik input memory
+adb pull /data/misc/perfetto-traces/cyber-strike.pftrace \
+  artifacts/android/DEVICE-defense-run1/system.pftrace
+```
+
+Remote Godot Editor (`Debugger > Monitors`) tetap berguna saat development, tetapi bukan pengganti pengujian APK yang sama dengan yang akan dikirim. Browser/software rendering juga bukan bukti FPS Android.
 
 ## 9. Kalibrasi keputusan setelah data pertama
 

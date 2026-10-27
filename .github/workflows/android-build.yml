@@ -5,16 +5,17 @@ name: Android debug APK
 # real visual and frame-rate testing. The web pipeline already exists in
 # godot-ci.yml; this job is the one that was missing.
 #
-# It is deliberately its own workflow, and on `push` it only runs when the
-# repository sets the variable ANDROID_BUILD_ENABLED=true. An Android export
-# needs JDK 17, an Android SDK and export templates; if any of those move, a
-# red Android job should not stop a web preview from shipping. Manual runs
-# (`workflow_dispatch`) always run.
+# It is deliberately its own workflow. On `push` it runs when the repository
+# sets ANDROID_BUILD_ENABLED=true or the head commit opts in with the literal
+# tag [android-build]. The tag works on Arena branches without changing repo
+# settings. An Android export needs JDK 17, an SDK and export templates; if any
+# of those move, a red Android job does not stop the separate Web workflow.
+# Manual runs (`workflow_dispatch`) always run when the caller has that access.
 
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, "arena/**"]
 
 permissions:
   contents: read
@@ -23,7 +24,10 @@ jobs:
   android:
     name: Android debug APK (arm64)
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' || vars.ANDROID_BUILD_ENABLED == 'true'
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      vars.ANDROID_BUILD_ENABLED == 'true' ||
+      contains(github.event.head_commit.message, '[android-build]')
     env:
       ANDROID_SDK_ROOT: ${{ github.workspace }}/.android-sdk
     steps:
@@ -85,6 +89,16 @@ jobs:
         run: |
           ls -lh exports/exocomplict-debug.apk
           python3 tools/check_payload.py exports/exocomplict-debug.apk
+          python3 - <<'PY'
+          from tools.check_payload import parse_pck
+
+          entries, _, _ = parse_pck("exports/exocomplict-debug.apk")
+          paths = {path for path, _, _ in entries}
+          profiler = "scripts/integration/device_profiler"
+          if not any(path in paths for path in (profiler + ".gd", profiler + ".gdc")):
+              raise SystemExit("Android APK does not contain the device profiler implementation")
+          print("ok: Android APK contains the opt-in device profiler implementation")
+          PY
 
       - name: Report the build
         run: |
@@ -93,7 +107,7 @@ jobs:
             echo ""
             echo "- preset: Android (arm64-v8a, no Gradle build)"
             echo "- size: $(du -h exports/exocomplict-debug.apk | cut -f1)"
-            echo "- payload checked: no test or QA code packed (tools/check_payload.py)"
+            echo "- payload checked: forbidden content absent; device profiler implementation present"
             echo ""
             echo "Packaging only. Install it and measure before making any"
             echo "device, frame-rate or thermal claim (docs/runbooks/ANDROID.md)."

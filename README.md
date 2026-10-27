@@ -49,7 +49,9 @@ With Godot/JDK/SDK configured, build, install, and relaunch the self-contained A
 ./scripts/android_usb.sh
 ```
 
-For an unchanged existing APK, `./scripts/android_usb.sh --skip-build` skips the export. The helper uses `adb install -r`, preserves profile data when package/signatures match, and never requires the Web server on the phone. See [`docs/runbooks/ANDROID.md`](docs/runbooks/ANDROID.md) for device setup, logging, and performance measurement.
+For an unchanged existing APK, `./scripts/android_usb.sh --skip-build` skips the export. The helper uses `adb install -r`, preserves profile data when package/signatures match, and never requires the Web server on the phone.
+
+For a timed physical-device capture, run `./scripts/android_usb.sh --serial SERIAL_HP --profile-seconds 120`. It writes raw logcat, five-second FPS/frame-time windows, memory/thermal/gfxinfo snapshots, and a Markdown/CSV/JSON report under `artifacts/android/`; these are real measurements only when run with an actual phone. See [`docs/runbooks/ANDROID.md`](docs/runbooks/ANDROID.md) for the device matrix, release/profile distinction, and full protocol.
 
 ## Checks
 

@@ -43,6 +43,9 @@ var _recovery_choice_presented: bool = false
 var _recovery_return_mode: SessionMode = SessionMode.EXPLORE
 var _extracting: bool = false
 var _run_banked: bool = false
+var _device_profiler: Node
+var _profiler_context := ""
+var _profiler_context_seconds := 0.0
 
 @onready var player: PlayerControllerScript = $Player
 @onready var training_drone: TrainingDroneScript = $TrainingDrone
@@ -56,10 +59,11 @@ var _run_banked: bool = false
 ## The F10 review camera used to be a node inside main.tscn, so every player
 ## downloaded it and it sat in the shipped scene graph. It is built here
 ## instead, and only where QA actually runs: the browser preview (the
-## automated screenshot pass drives it over a keyboard) and any editor/debug
-## run. A release APK never builds it.
+## automated screenshot pass drives it over a keyboard) and desktop editor/debug
+## runs. Android profiling and release APKs do not build the review rig.
 func _add_qa_rig() -> void:
-	if not (OS.is_debug_build() or OS.has_feature("web")):
+	# Android profiling must not pay for the desktop/browser review camera.
+	if not ((OS.is_debug_build() and not OS.has_feature("android")) or OS.has_feature("web")):
 		return
 	# load(), not preload(): the script must not be resident in a build that
 	# never uses it.
@@ -71,8 +75,51 @@ func _add_qa_rig() -> void:
 	add_child(rig)
 
 
+func _add_device_profiler() -> void:
+	if not OS.has_feature("android"):
+		return
+	var profiling_enabled := (
+		OS.is_debug_build()
+		or OS.has_feature("device_profile")
+		or OS.get_cmdline_user_args().has("--device-profile")
+	)
+	if not profiling_enabled:
+		return
+	# Load on the profiling path only. A normal release never creates the node.
+	var profiler_script: GDScript = load("res://scripts/integration/device_profiler.gd")
+	if profiler_script == null:
+		return
+	_device_profiler = profiler_script.new()
+	_device_profiler.name = "DeviceProfiler"
+	add_child(_device_profiler)
+	_update_device_profiler_context()
+
+
+func _update_device_profiler_context() -> void:
+	if not is_instance_valid(_device_profiler):
+		return
+	var phase := "explore"
+	match session_mode:
+		SessionMode.PREPARING:
+			phase = "preparing"
+		SessionMode.DEFENSE:
+			phase = "defense"
+		SessionMode.RESULTS:
+			phase = "results"
+		SessionMode.MISSION_COMPLETE:
+			phase = "mission_complete"
+	var wave := wave_director.current_wave
+	var enemies := wave_director.active_enemy_count + wave_director.active_guard_count
+	var context := "%s/%d/%d" % [phase, wave, enemies]
+	if context == _profiler_context:
+		return
+	_profiler_context = context
+	_device_profiler.call("set_context", phase, wave, enemies)
+
+
 func _ready() -> void:
 	_add_qa_rig()
+	_add_device_profiler()
 	touch_controls.movement_changed.connect(player.set_touch_movement)
 	touch_controls.look_delta.connect(player.apply_touch_look)
 	touch_controls.fire_changed.connect(player.set_touch_fire_pressed)
@@ -200,6 +247,11 @@ func _process(delta: float) -> void:
 		_on_sound_mute_requested()
 	if Input.is_action_just_pressed("emp_pulse"):
 		player.activate_skill()
+	if is_instance_valid(_device_profiler):
+		_profiler_context_seconds += delta
+		if _profiler_context_seconds >= 0.25:
+			_profiler_context_seconds = 0.0
+			_update_device_profiler_context()
 
 
 func _unhandled_input(event: InputEvent) -> void:
