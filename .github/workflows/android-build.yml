@@ -108,7 +108,22 @@ jobs:
       - name: Check what actually shipped inside the APK
         run: |
           ls -lh exports/exocomplict-debug.apk
-          python3 tools/check_payload.py exports/exocomplict-debug.apk
+          if python3 tools/check_payload.py exports/exocomplict-debug.apk >/tmp/android-payload.log 2>&1; then
+            cat /tmp/android-payload.log
+          else
+            status=$?
+            cat /tmp/android-payload.log
+            python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          raw = Path("/tmp/android-payload.log").read_text(encoding="utf-8", errors="replace")
+          text = re.sub(r"\x1b\[[0-9;]*m", "", raw)[-2400:]
+          escaped = text.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+          print("::error::Android payload audit failed: " + escaped)
+          PY
+            exit "$status"
+          fi
           python3 - <<'PY'
           from tools.check_payload import parse_pck
 
@@ -116,7 +131,8 @@ jobs:
           paths = {path for path, _, _ in entries}
           profiler = "scripts/integration/device_profiler"
           if not any(path in paths for path in (profiler + ".gd", profiler + ".gdc")):
-              raise SystemExit("Android APK does not contain the device profiler implementation")
+              print("::error::Android APK does not contain the device profiler implementation")
+              raise SystemExit(1)
           print("ok: Android APK contains the opt-in device profiler implementation")
           PY
 
