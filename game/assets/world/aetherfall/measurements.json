@@ -1,0 +1,385 @@
+{
+  "assets": {
+    "access_gate": {
+      "center": [
+        0.0,
+        -0.0,
+        0.0
+      ],
+      "objects": 7,
+      "size": [
+        7.2,
+        5.4,
+        6.0
+      ],
+      "tris": 84
+    },
+    "background_silhouette": {
+      "center": [
+        0.0,
+        -0.0,
+        0.0
+      ],
+      "objects": 6,
+      "size": [
+        44.0,
+        38.1,
+        24.0
+      ],
+      "tris": 84
+    },
+    "beam": {
+      "center": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "objects": 6,
+      "size": [
+        1.0,
+        0.9,
+        8.0
+      ],
+      "tris": 72
+    },
+    "bridge_deck": {
+      "center": [
+        0.0,
+        -0.0,
+        0.0
+      ],
+      "objects": 17,
+      "size": [
+        6.2,
+        1.95,
+        8.0
+      ],
+      "tris": 204
+    },
+    "bridge_support": {
+      "center": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "objects": 11,
+      "size": [
+        6.6,
+        15.0,
+        7.0
+      ],
+      "tris": 132
+    },
+    "cable_bundle": {
+      "center": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "objects": 9,
+      "size": [
+        0.8,
+        6.0,
+        6.0
+      ],
+      "tris": 128
+    },
+    "cliff_face": {
+      "center": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "objects": 11,
+      "size": [
+        26.0,
+        16.811,
+        26.0
+      ],
+      "tris": 544
+    },
+    "cloud_puff": {
+      "center": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "objects": 7,
+      "size": [
+        11.17,
+        7.422,
+        16.007
+      ],
+      "tris": 840
+    },
+    "conduit": {
+      "center": [
+        0.0,
+        -0.0,
+        -0.0
+      ],
+      "objects": 8,
+      "size": [
+        0.83,
+        6.25,
+        0.93
+      ],
+      "tris": 128
+    },
+    "cooling_vent": {
+      "center": [
+        0.0,
+        -0.0,
+        0.0
+      ],
+      "objects": 10,
+      "size": [
+        4.4,
+        3.9,
+        4.4
+      ],
+      "tris": 208
+    },
+    "cover_barrier": {
+      "center": [
+        0.0,
+        -0.0,
+        0.0
+      ],
+      "objects": 5,
+      "size": [
+        2.6,
+        1.3,
+        0.7
+      ],
+      "tris": 60
+    },
+    "cover_machine": {
+      "center": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "objects": 5,
+      "size": [
+        4.6,
+        3.7,
+        3.2
+      ],
+      "tris": 72
+    },
+    "damaged_slab": {
+      "center": [
+        -0.0,
+        -0.0,
+        0.0
+      ],
+      "objects": 7,
+      "size": [
+        9.047,
+        3.137,
+        6.5
+      ],
+      "tris": 100
+    },
+    "debris_cluster": {
+      "center": [
+        -0.0,
+        0.0,
+        -0.0
+      ],
+      "objects": 6,
+      "size": [
+        6.354,
+        2.405,
+        6.084
+      ],
+      "tris": 84
+    },
+    "deck_6x6": {
+      "center": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "objects": 10,
+      "size": [
+        6.2,
+        0.7,
+        6.2
+      ],
+      "tris": 152
+    },
+    "deck_edge": {
+      "center": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "objects": 7,
+      "size": [
+        6.0,
+        0.7,
+        0.74
+      ],
+      "tris": 116
+    },
+    "energy_core": {
+      "center": [
+        0.0,
+        -0.0,
+        0.0
+      ],
+      "objects": 9,
+      "size": [
+        14.4,
+        8.3,
+        13.435
+      ],
+      "tris": 268
+    },
+    "machinery": {
+      "center": [
+        0.0,
+        -0.0,
+        0.0
+      ],
+      "objects": 9,
+      "size": [
+        4.6,
+        5.5,
+        4.263
+      ],
+      "tris": 176
+    },
+    "pillar": {
+      "center": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "objects": 5,
+      "size": [
+        1.8,
+        5.9,
+        1.8
+      ],
+      "tris": 60
+    },
+    "railing": {
+      "center": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "objects": 7,
+      "size": [
+        5.54,
+        1.35,
+        6.0
+      ],
+      "tris": 84
+    },
+    "rock_boulder": {
+      "center": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "objects": 3,
+      "size": [
+        6.6,
+        5.939,
+        7.533
+      ],
+      "tris": 304
+    },
+    "terrain_chunk": {
+      "center": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "objects": 5,
+      "size": [
+        46.0,
+        7.061,
+        53.62
+      ],
+      "tris": 696
+    },
+    "tower_foundation": {
+      "center": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "objects": 15,
+      "size": [
+        18.0,
+        8.1,
+        18.1
+      ],
+      "tris": 292
+    },
+    "tower_spire": {
+      "center": [
+        0.0,
+        -0.0,
+        0.0
+      ],
+      "objects": 8,
+      "size": [
+        7.6,
+        16.0,
+        7.6
+      ],
+      "tris": 136
+    },
+    "tower_tier": {
+      "center": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "objects": 15,
+      "size": [
+        13.0,
+        11.0,
+        17.485
+      ],
+      "tris": 228
+    },
+    "walkway_deck": {
+      "center": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "objects": 17,
+      "size": [
+        1.7,
+        6.0,
+        6.0
+      ],
+      "tris": 220
+    },
+    "wall_section": {
+      "center": [
+        0.0,
+        -0.0,
+        -0.0
+      ],
+      "objects": 9,
+      "size": [
+        4.2,
+        3.6,
+        0.52
+      ],
+      "tris": 132
+    }
+  },
+  "note": "Authored pivot = mesh centre (centred on its own AABB before export), so Godot box colliders derive from the same numbers.",
+  "schema": "aetherfall.measurements/1",
+  "unit": "meters"
+}

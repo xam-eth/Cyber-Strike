@@ -140,6 +140,45 @@ const MOODS := {
 		"contrast": 1.1,
 		"glow": 0.8,
 	},
+
+	"aetherfall":
+	{
+		"label": "Aetherfall",
+		"mood": "broken frontier: rusted steel, cyan energy, canyon haze",
+		"sky": Color(0.102, 0.216, 0.333),
+		"ambient": Color(0.412, 0.514, 0.596),
+		"ambient_energy": 0.8,
+		"fog": Color(0.443, 0.545, 0.612),
+		"fog_density": 0.0062,
+		"key":
+		{
+			"name": "MissionKeyLight",
+			"color": Color(1.0, 0.863, 0.678),
+			"energy": 1.2,
+			"position": Vector3(64.0, 78.0, 66.0),
+		},
+		"fill":
+		{
+			"name": "MissionFillLight",
+			"color": Color(0.302, 0.624, 0.922),
+			"energy": 0.3,
+			"position": Vector3(-80.0, 40.0, 44.0),
+		},
+		"rim":
+		{
+			"name": "MissionRimLight",
+			"color": Color(0.286, 0.851, 0.984),
+			"energy": 0.45,
+			"position": Vector3(-40.0, 30.0, -90.0),
+		},
+		"accent": Color(0.302, 0.949, 1.0),
+		"accent_energy": 1.4,
+		"accent_range": 26.0,
+		"exposure": 1.0,
+		"saturation": 0.95,
+		"contrast": 1.08,
+		"glow": 0.7,
+	},
 }
 
 ## Same order as `THEME_ORDER` in themes.js and `MISSION_WORLD.WORLD_ORDER`.

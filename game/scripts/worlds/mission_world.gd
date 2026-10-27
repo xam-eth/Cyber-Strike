@@ -34,9 +34,15 @@ const WORLD_SCENES := {
 	"frostline_relay": "res://assets/forge/worlds/frostline.glb",
 	"verdant_bloom": "res://assets/forge/worlds/verdant.glb",
 	"emberfall_foundry": "res://assets/forge/worlds/emberfall.glb",
+	"aetherfall": "res://scenes/worlds/aetherfall.tscn",
 }
 ## Mission order; the first is the default theatre.
-const WORLD_ORDER: Array[String] = ["frostline_relay", "verdant_bloom", "emberfall_foundry"]
+const WORLD_ORDER: Array[String] = [
+	"frostline_relay",
+	"verdant_bloom",
+	"emberfall_foundry",
+	"aetherfall",
+]
 ## The forge's theme ids, accepted as aliases for the world ids. The registry
 ## selects with the world id itself (they are the same strings), so the map is
 ## not a second list of ids to keep in sync — it only adds the short names the
@@ -74,6 +80,10 @@ const WORLD_FIELDS := {
 	"frostline_relay": {"size": Vector2(168.0, 156.0), "center": Vector2(0.0, -8.0)},
 	"verdant_bloom": {"size": Vector2(176.0, 164.0), "center": Vector2(0.0, -6.0)},
 	"emberfall_foundry": {"size": Vector2(200.0, 176.0), "center": Vector2(0.0, -10.0)},
+	# Aetherfall plays on the 76 x 36 deck that hangs over the south canyon rim. The
+	# canyon floor, the east bridge and the west catwalk sit beyond the fence:
+	# they are the world's vertical silhouette, not its floor.
+	"aetherfall": {"size": Vector2(76.0, 36.0), "center": Vector2(0.0, 0.0)},
 }
 ## Fallback field, used if a world id ever arrives without an entry above.
 const WORLD_WIDTH: float = 192.0

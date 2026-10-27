@@ -1,0 +1,4155 @@
+{
+ "schema": "aetherfall.layout/1",
+ "unit": "meters",
+ "up": "Y",
+ "tower": [
+  0.0,
+  0.0,
+  -26.0
+ ],
+ "tower_height_approx": 48.7,
+ "platform": {
+  "center": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "half": [
+   38.0,
+   0.0,
+   18.0
+  ]
+ },
+ "deck_top_y": 0.25,
+ "bridge_y": 5.0,
+ "walkway_y": 6.5,
+ "routes": [
+  {
+   "name": "central",
+   "from": [
+    -18.0,
+    0.0,
+    14.0
+   ],
+   "to": [
+    8.0,
+    0.0,
+    -12.0
+   ],
+   "width": 6.0,
+   "cover": "cover_barrier"
+  },
+  {
+   "name": "east_bridge",
+   "from": [
+    38.0,
+    0.0,
+    0.0
+   ],
+   "to": [
+    62.0,
+    5.0,
+    0.0
+   ],
+   "width": 6.0,
+   "cover": "railing"
+  },
+  {
+   "name": "west_catwalk",
+   "from": [
+    -38.0,
+    0.0,
+    6.0
+   ],
+   "to": [
+    -62.0,
+    6.5,
+    8.0
+   ],
+   "width": 1.6,
+   "cover": "cover_machine"
+  },
+  {
+   "name": "lower_approach",
+   "from": [
+    0.0,
+    0.0,
+    18.0
+   ],
+   "to": [
+    0.0,
+    -6.4,
+    35.0
+   ],
+   "width": 6.0,
+   "cover": "cliff_face"
+  }
+ ],
+ "spawn": {
+  "primary": [
+   -30.0,
+   1.2,
+   14.0
+  ],
+  "secondary": [
+   30.0,
+   1.2,
+   14.0
+  ]
+ },
+ "cover_spots": [
+  [
+   -30.0,
+   0.0,
+   -4.0
+  ],
+  [
+   30.0,
+   0.0,
+   4.0
+  ],
+  [
+   8.0,
+   0.0,
+   12.0
+  ],
+  [
+   -26.0,
+   0.0,
+   8.0
+  ],
+  [
+   -13.0,
+   0.0,
+   8.0
+  ],
+  [
+   13.0,
+   0.0,
+   8.0
+  ],
+  [
+   26.0,
+   0.0,
+   8.0
+  ]
+ ],
+ "placements": [
+  {
+   "asset": "tower_foundation",
+   "name": "tower_foundation_000",
+   "pos": [
+    0.0,
+    0.0,
+    -26.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 15
+  },
+  {
+   "asset": "tower_tier",
+   "name": "tower_tier_001",
+   "pos": [
+    0.0,
+    8.5,
+    -26.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 15
+  },
+  {
+   "asset": "tower_tier",
+   "name": "tower_tier_002",
+   "pos": [
+    0.0,
+    18.1,
+    -26.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 0.75,
+   "objects": 15
+  },
+  {
+   "asset": "tower_tier",
+   "name": "tower_tier_003",
+   "pos": [
+    0.0,
+    25.7,
+    -26.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 0.62,
+   "objects": 15
+  },
+  {
+   "asset": "tower_spire",
+   "name": "tower_spire_004",
+   "pos": [
+    0.0,
+    29.0,
+    -26.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 8
+  },
+  {
+   "asset": "energy_core",
+   "name": "energy_core_005",
+   "pos": [
+    0.0,
+    20.0,
+    -26.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 9
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_006",
+   "pos": [
+    -36.0,
+    0.0,
+    -15.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_007",
+   "pos": [
+    -36.0,
+    0.0,
+    -9.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_008",
+   "pos": [
+    -36.0,
+    0.0,
+    -3.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_009",
+   "pos": [
+    -36.0,
+    0.0,
+    3.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_010",
+   "pos": [
+    -36.0,
+    0.0,
+    9.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_011",
+   "pos": [
+    -36.0,
+    0.0,
+    15.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_012",
+   "pos": [
+    -30.0,
+    0.0,
+    -15.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_013",
+   "pos": [
+    -30.0,
+    0.0,
+    -9.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_014",
+   "pos": [
+    -30.0,
+    0.0,
+    -3.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_015",
+   "pos": [
+    -30.0,
+    0.0,
+    3.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_016",
+   "pos": [
+    -30.0,
+    0.0,
+    9.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_017",
+   "pos": [
+    -30.0,
+    0.0,
+    15.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_018",
+   "pos": [
+    -24.0,
+    0.0,
+    -15.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_019",
+   "pos": [
+    -24.0,
+    0.0,
+    -9.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_020",
+   "pos": [
+    -24.0,
+    0.0,
+    -3.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_021",
+   "pos": [
+    -24.0,
+    0.0,
+    3.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_022",
+   "pos": [
+    -24.0,
+    0.0,
+    9.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_023",
+   "pos": [
+    -24.0,
+    0.0,
+    15.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_024",
+   "pos": [
+    -18.0,
+    0.0,
+    -15.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_025",
+   "pos": [
+    -18.0,
+    0.0,
+    -9.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_026",
+   "pos": [
+    -18.0,
+    0.0,
+    -3.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_027",
+   "pos": [
+    -18.0,
+    0.0,
+    3.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_028",
+   "pos": [
+    -18.0,
+    0.0,
+    9.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_029",
+   "pos": [
+    -18.0,
+    0.0,
+    15.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_030",
+   "pos": [
+    -12.0,
+    0.0,
+    -15.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_031",
+   "pos": [
+    -12.0,
+    0.0,
+    -9.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_032",
+   "pos": [
+    -12.0,
+    0.0,
+    -3.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_033",
+   "pos": [
+    -12.0,
+    0.0,
+    3.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_034",
+   "pos": [
+    -12.0,
+    0.0,
+    9.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_035",
+   "pos": [
+    -12.0,
+    0.0,
+    15.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_036",
+   "pos": [
+    -6.0,
+    0.0,
+    -15.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_037",
+   "pos": [
+    -6.0,
+    0.0,
+    -9.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_038",
+   "pos": [
+    -6.0,
+    0.0,
+    -3.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_039",
+   "pos": [
+    -6.0,
+    0.0,
+    3.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_040",
+   "pos": [
+    -6.0,
+    0.0,
+    9.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_041",
+   "pos": [
+    -6.0,
+    0.0,
+    15.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_042",
+   "pos": [
+    0.0,
+    0.0,
+    -15.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_043",
+   "pos": [
+    0.0,
+    0.0,
+    -9.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_044",
+   "pos": [
+    0.0,
+    0.0,
+    -3.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_045",
+   "pos": [
+    0.0,
+    0.0,
+    3.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_046",
+   "pos": [
+    0.0,
+    0.0,
+    9.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_047",
+   "pos": [
+    0.0,
+    0.0,
+    15.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_048",
+   "pos": [
+    6.0,
+    0.0,
+    -15.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_049",
+   "pos": [
+    6.0,
+    0.0,
+    -9.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_050",
+   "pos": [
+    6.0,
+    0.0,
+    -3.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_051",
+   "pos": [
+    6.0,
+    0.0,
+    3.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_052",
+   "pos": [
+    6.0,
+    0.0,
+    9.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_053",
+   "pos": [
+    6.0,
+    0.0,
+    15.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_054",
+   "pos": [
+    12.0,
+    0.0,
+    -15.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_055",
+   "pos": [
+    12.0,
+    0.0,
+    -9.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_056",
+   "pos": [
+    12.0,
+    0.0,
+    -3.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_057",
+   "pos": [
+    12.0,
+    0.0,
+    3.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_058",
+   "pos": [
+    12.0,
+    0.0,
+    9.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_059",
+   "pos": [
+    12.0,
+    0.0,
+    15.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_060",
+   "pos": [
+    18.0,
+    0.0,
+    -15.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_061",
+   "pos": [
+    18.0,
+    0.0,
+    -9.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_062",
+   "pos": [
+    18.0,
+    0.0,
+    -3.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_063",
+   "pos": [
+    18.0,
+    0.0,
+    3.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_064",
+   "pos": [
+    18.0,
+    0.0,
+    9.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_065",
+   "pos": [
+    18.0,
+    0.0,
+    15.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_066",
+   "pos": [
+    24.0,
+    0.0,
+    -15.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_067",
+   "pos": [
+    24.0,
+    0.0,
+    -9.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_068",
+   "pos": [
+    24.0,
+    0.0,
+    -3.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_069",
+   "pos": [
+    24.0,
+    0.0,
+    3.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_070",
+   "pos": [
+    24.0,
+    0.0,
+    9.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_071",
+   "pos": [
+    24.0,
+    0.0,
+    15.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_072",
+   "pos": [
+    30.0,
+    0.0,
+    -15.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_073",
+   "pos": [
+    30.0,
+    0.0,
+    -9.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_074",
+   "pos": [
+    30.0,
+    0.0,
+    -3.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_075",
+   "pos": [
+    30.0,
+    0.0,
+    3.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_076",
+   "pos": [
+    30.0,
+    0.0,
+    9.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_077",
+   "pos": [
+    30.0,
+    0.0,
+    15.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_078",
+   "pos": [
+    36.0,
+    0.0,
+    -15.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_079",
+   "pos": [
+    36.0,
+    0.0,
+    -9.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_080",
+   "pos": [
+    36.0,
+    0.0,
+    -3.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_081",
+   "pos": [
+    36.0,
+    0.0,
+    3.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_082",
+   "pos": [
+    36.0,
+    0.0,
+    9.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_083",
+   "pos": [
+    36.0,
+    0.0,
+    15.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_edge",
+   "name": "deck_edge_084",
+   "pos": [
+    -36.0,
+    0.0,
+    -18.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "deck_edge",
+   "name": "deck_edge_085",
+   "pos": [
+    -36.0,
+    0.0,
+    18.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "deck_edge",
+   "name": "deck_edge_086",
+   "pos": [
+    -30.0,
+    0.0,
+    -18.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "deck_edge",
+   "name": "deck_edge_087",
+   "pos": [
+    -30.0,
+    0.0,
+    18.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "deck_edge",
+   "name": "deck_edge_088",
+   "pos": [
+    -24.0,
+    0.0,
+    -18.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "deck_edge",
+   "name": "deck_edge_089",
+   "pos": [
+    -24.0,
+    0.0,
+    18.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "deck_edge",
+   "name": "deck_edge_090",
+   "pos": [
+    -18.0,
+    0.0,
+    -18.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "deck_edge",
+   "name": "deck_edge_091",
+   "pos": [
+    -18.0,
+    0.0,
+    18.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "deck_edge",
+   "name": "deck_edge_092",
+   "pos": [
+    -12.0,
+    0.0,
+    -18.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "deck_edge",
+   "name": "deck_edge_093",
+   "pos": [
+    -12.0,
+    0.0,
+    18.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "deck_edge",
+   "name": "deck_edge_094",
+   "pos": [
+    -6.0,
+    0.0,
+    -18.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "deck_edge",
+   "name": "deck_edge_095",
+   "pos": [
+    -6.0,
+    0.0,
+    18.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "deck_edge",
+   "name": "deck_edge_096",
+   "pos": [
+    0.0,
+    0.0,
+    -18.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "deck_edge",
+   "name": "deck_edge_097",
+   "pos": [
+    0.0,
+    0.0,
+    18.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "deck_edge",
+   "name": "deck_edge_098",
+   "pos": [
+    6.0,
+    0.0,
+    -18.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "deck_edge",
+   "name": "deck_edge_099",
+   "pos": [
+    6.0,
+    0.0,
+    18.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "deck_edge",
+   "name": "deck_edge_100",
+   "pos": [
+    12.0,
+    0.0,
+    -18.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "deck_edge",
+   "name": "deck_edge_101",
+   "pos": [
+    12.0,
+    0.0,
+    18.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "deck_edge",
+   "name": "deck_edge_102",
+   "pos": [
+    18.0,
+    0.0,
+    -18.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "deck_edge",
+   "name": "deck_edge_103",
+   "pos": [
+    18.0,
+    0.0,
+    18.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "deck_edge",
+   "name": "deck_edge_104",
+   "pos": [
+    24.0,
+    0.0,
+    -18.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "deck_edge",
+   "name": "deck_edge_105",
+   "pos": [
+    24.0,
+    0.0,
+    18.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "deck_edge",
+   "name": "deck_edge_106",
+   "pos": [
+    30.0,
+    0.0,
+    -18.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "deck_edge",
+   "name": "deck_edge_107",
+   "pos": [
+    30.0,
+    0.0,
+    18.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "deck_edge",
+   "name": "deck_edge_108",
+   "pos": [
+    36.0,
+    0.0,
+    -18.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "deck_edge",
+   "name": "deck_edge_109",
+   "pos": [
+    36.0,
+    0.0,
+    18.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "deck_edge",
+   "name": "deck_edge_110",
+   "pos": [
+    38.0,
+    0.0,
+    -12.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "deck_edge",
+   "name": "deck_edge_111",
+   "pos": [
+    -38.0,
+    0.0,
+    -12.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "deck_edge",
+   "name": "deck_edge_112",
+   "pos": [
+    38.0,
+    0.0,
+    -6.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "deck_edge",
+   "name": "deck_edge_113",
+   "pos": [
+    -38.0,
+    0.0,
+    -6.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "deck_edge",
+   "name": "deck_edge_114",
+   "pos": [
+    38.0,
+    0.0,
+    0.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "deck_edge",
+   "name": "deck_edge_115",
+   "pos": [
+    -38.0,
+    0.0,
+    0.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "deck_edge",
+   "name": "deck_edge_116",
+   "pos": [
+    38.0,
+    0.0,
+    6.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "deck_edge",
+   "name": "deck_edge_117",
+   "pos": [
+    -38.0,
+    0.0,
+    6.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "deck_edge",
+   "name": "deck_edge_118",
+   "pos": [
+    38.0,
+    0.0,
+    12.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "deck_edge",
+   "name": "deck_edge_119",
+   "pos": [
+    -38.0,
+    0.0,
+    12.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "pillar",
+   "name": "pillar_120",
+   "pos": [
+    -30.0,
+    -6.1,
+    -12.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 5
+  },
+  {
+   "asset": "pillar",
+   "name": "pillar_121",
+   "pos": [
+    -30.0,
+    -6.1,
+    0.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 5
+  },
+  {
+   "asset": "pillar",
+   "name": "pillar_122",
+   "pos": [
+    -30.0,
+    -6.1,
+    12.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 5
+  },
+  {
+   "asset": "pillar",
+   "name": "pillar_123",
+   "pos": [
+    -18.0,
+    -6.1,
+    -12.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 5
+  },
+  {
+   "asset": "pillar",
+   "name": "pillar_124",
+   "pos": [
+    -18.0,
+    -6.1,
+    0.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 5
+  },
+  {
+   "asset": "pillar",
+   "name": "pillar_125",
+   "pos": [
+    -18.0,
+    -6.1,
+    12.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 5
+  },
+  {
+   "asset": "pillar",
+   "name": "pillar_126",
+   "pos": [
+    0.0,
+    -6.1,
+    -12.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 5
+  },
+  {
+   "asset": "pillar",
+   "name": "pillar_127",
+   "pos": [
+    0.0,
+    -6.1,
+    0.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 5
+  },
+  {
+   "asset": "pillar",
+   "name": "pillar_128",
+   "pos": [
+    0.0,
+    -6.1,
+    12.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 5
+  },
+  {
+   "asset": "pillar",
+   "name": "pillar_129",
+   "pos": [
+    18.0,
+    -6.1,
+    -12.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 5
+  },
+  {
+   "asset": "pillar",
+   "name": "pillar_130",
+   "pos": [
+    18.0,
+    -6.1,
+    0.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 5
+  },
+  {
+   "asset": "pillar",
+   "name": "pillar_131",
+   "pos": [
+    18.0,
+    -6.1,
+    12.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 5
+  },
+  {
+   "asset": "pillar",
+   "name": "pillar_132",
+   "pos": [
+    30.0,
+    -6.1,
+    -12.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 5
+  },
+  {
+   "asset": "pillar",
+   "name": "pillar_133",
+   "pos": [
+    30.0,
+    -6.1,
+    0.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 5
+  },
+  {
+   "asset": "pillar",
+   "name": "pillar_134",
+   "pos": [
+    30.0,
+    -6.1,
+    12.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 5
+  },
+  {
+   "asset": "beam",
+   "name": "beam_135",
+   "pos": [
+    38.0,
+    6.4,
+    -12.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 6
+  },
+  {
+   "asset": "beam",
+   "name": "beam_136",
+   "pos": [
+    -38.0,
+    6.4,
+    -12.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 6
+  },
+  {
+   "asset": "beam",
+   "name": "beam_137",
+   "pos": [
+    0.0,
+    6.6,
+    -12.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 6
+  },
+  {
+   "asset": "beam",
+   "name": "beam_138",
+   "pos": [
+    38.0,
+    6.4,
+    -4.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 6
+  },
+  {
+   "asset": "beam",
+   "name": "beam_139",
+   "pos": [
+    -38.0,
+    6.4,
+    -4.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 6
+  },
+  {
+   "asset": "beam",
+   "name": "beam_140",
+   "pos": [
+    0.0,
+    6.6,
+    -4.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 6
+  },
+  {
+   "asset": "beam",
+   "name": "beam_141",
+   "pos": [
+    38.0,
+    6.4,
+    4.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 6
+  },
+  {
+   "asset": "beam",
+   "name": "beam_142",
+   "pos": [
+    -38.0,
+    6.4,
+    4.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 6
+  },
+  {
+   "asset": "beam",
+   "name": "beam_143",
+   "pos": [
+    0.0,
+    6.6,
+    4.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 6
+  },
+  {
+   "asset": "beam",
+   "name": "beam_144",
+   "pos": [
+    38.0,
+    6.4,
+    12.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 6
+  },
+  {
+   "asset": "beam",
+   "name": "beam_145",
+   "pos": [
+    -38.0,
+    6.4,
+    12.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 6
+  },
+  {
+   "asset": "beam",
+   "name": "beam_146",
+   "pos": [
+    0.0,
+    6.6,
+    12.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 6
+  },
+  {
+   "asset": "cover_barrier",
+   "name": "cover_barrier_147",
+   "pos": [
+    -26.0,
+    0.0,
+    8.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 5
+  },
+  {
+   "asset": "cover_barrier",
+   "name": "cover_barrier_148",
+   "pos": [
+    -13.0,
+    0.0,
+    8.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 5
+  },
+  {
+   "asset": "cover_barrier",
+   "name": "cover_barrier_149",
+   "pos": [
+    13.0,
+    0.0,
+    8.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 5
+  },
+  {
+   "asset": "cover_barrier",
+   "name": "cover_barrier_150",
+   "pos": [
+    26.0,
+    0.0,
+    8.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 5
+  },
+  {
+   "asset": "cover_machine",
+   "name": "cover_machine_151",
+   "pos": [
+    -30.0,
+    0.0,
+    -4.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 5
+  },
+  {
+   "asset": "cover_machine",
+   "name": "cover_machine_152",
+   "pos": [
+    30.0,
+    0.0,
+    4.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 5
+  },
+  {
+   "asset": "cover_machine",
+   "name": "cover_machine_153",
+   "pos": [
+    8.0,
+    0.0,
+    12.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 5
+  },
+  {
+   "asset": "conduit",
+   "name": "conduit_154",
+   "pos": [
+    38.0,
+    4.4,
+    -12.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 8
+  },
+  {
+   "asset": "conduit",
+   "name": "conduit_155",
+   "pos": [
+    38.0,
+    4.4,
+    0.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 8
+  },
+  {
+   "asset": "conduit",
+   "name": "conduit_156",
+   "pos": [
+    38.0,
+    4.4,
+    12.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 8
+  },
+  {
+   "asset": "machinery",
+   "name": "machinery_157",
+   "pos": [
+    -24.0,
+    0.0,
+    -8.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 9
+  },
+  {
+   "asset": "machinery",
+   "name": "machinery_158",
+   "pos": [
+    22.0,
+    0.0,
+    14.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 9
+  },
+  {
+   "asset": "cooling_vent",
+   "name": "cooling_vent_159",
+   "pos": [
+    -16.0,
+    0.0,
+    14.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "access_gate",
+   "name": "access_gate_160",
+   "pos": [
+    0.0,
+    0.0,
+    21.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "wall_section",
+   "name": "wall_section_161",
+   "pos": [
+    -30.0,
+    0.0,
+    18.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 9
+  },
+  {
+   "asset": "wall_section",
+   "name": "wall_section_162",
+   "pos": [
+    30.0,
+    0.0,
+    18.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 9
+  },
+  {
+   "asset": "bridge_deck",
+   "name": "bridge_deck_163",
+   "pos": [
+    42.0,
+    5.0,
+    0.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 17
+  },
+  {
+   "asset": "bridge_deck",
+   "name": "bridge_deck_164",
+   "pos": [
+    50.0,
+    5.0,
+    0.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 17
+  },
+  {
+   "asset": "bridge_deck",
+   "name": "bridge_deck_165",
+   "pos": [
+    58.0,
+    5.0,
+    0.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 17
+  },
+  {
+   "asset": "bridge_support",
+   "name": "bridge_support_166",
+   "pos": [
+    44.0,
+    -10.0,
+    0.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 11
+  },
+  {
+   "asset": "bridge_support",
+   "name": "bridge_support_167",
+   "pos": [
+    60.0,
+    -10.0,
+    0.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 11
+  },
+  {
+   "asset": "railing",
+   "name": "railing_168",
+   "pos": [
+    42.0,
+    5.1,
+    3.1
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "railing",
+   "name": "railing_169",
+   "pos": [
+    50.0,
+    5.1,
+    3.1
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "railing",
+   "name": "railing_170",
+   "pos": [
+    58.0,
+    5.1,
+    3.1
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "damaged_slab",
+   "name": "damaged_slab_171",
+   "pos": [
+    64.0,
+    5.0,
+    0.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "walkway_deck",
+   "name": "walkway_deck_172",
+   "pos": [
+    -41.0,
+    6.5,
+    8.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 17
+  },
+  {
+   "asset": "cable_bundle",
+   "name": "cable_bundle_173",
+   "pos": [
+    -41.0,
+    7.3,
+    8.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 9
+  },
+  {
+   "asset": "walkway_deck",
+   "name": "walkway_deck_174",
+   "pos": [
+    -47.0,
+    6.5,
+    8.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 17
+  },
+  {
+   "asset": "cable_bundle",
+   "name": "cable_bundle_175",
+   "pos": [
+    -47.0,
+    7.3,
+    8.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 9
+  },
+  {
+   "asset": "walkway_deck",
+   "name": "walkway_deck_176",
+   "pos": [
+    -53.0,
+    6.5,
+    8.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 17
+  },
+  {
+   "asset": "cable_bundle",
+   "name": "cable_bundle_177",
+   "pos": [
+    -53.0,
+    7.3,
+    8.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 9
+  },
+  {
+   "asset": "walkway_deck",
+   "name": "walkway_deck_178",
+   "pos": [
+    -59.0,
+    6.5,
+    8.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 17
+  },
+  {
+   "asset": "cable_bundle",
+   "name": "cable_bundle_179",
+   "pos": [
+    -59.0,
+    7.3,
+    8.0
+   ],
+   "rot": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 9
+  },
+  {
+   "asset": "pillar",
+   "name": "pillar_180",
+   "pos": [
+    -44.0,
+    0.3,
+    8.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 5
+  },
+  {
+   "asset": "pillar",
+   "name": "pillar_181",
+   "pos": [
+    -56.0,
+    0.3,
+    8.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 5
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_182",
+   "pos": [
+    -55.0,
+    6.5,
+    6.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_183",
+   "pos": [
+    -55.0,
+    6.5,
+    12.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_184",
+   "pos": [
+    -61.0,
+    6.5,
+    6.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_185",
+   "pos": [
+    -61.0,
+    6.5,
+    12.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_186",
+   "pos": [
+    0.0,
+    0.0,
+    19.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_187",
+   "pos": [
+    0.0,
+    -1.6,
+    23.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_188",
+   "pos": [
+    0.0,
+    -3.2,
+    27.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_189",
+   "pos": [
+    0.0,
+    -4.8,
+    31.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "deck_6x6",
+   "name": "deck_6x6_190",
+   "pos": [
+    0.0,
+    -6.4,
+    35.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "terrain_chunk",
+   "name": "terrain_chunk_191",
+   "pos": [
+    -34.0,
+    -9.0,
+    24.0
+   ],
+   "rot": [
+    0.0,
+    15.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 5
+  },
+  {
+   "asset": "terrain_chunk",
+   "name": "terrain_chunk_192",
+   "pos": [
+    -22.0,
+    -13.0,
+    30.0
+   ],
+   "rot": [
+    0.0,
+    15.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 5
+  },
+  {
+   "asset": "terrain_chunk",
+   "name": "terrain_chunk_193",
+   "pos": [
+    -10.0,
+    -17.0,
+    36.0
+   ],
+   "rot": [
+    0.0,
+    15.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 5
+  },
+  {
+   "asset": "terrain_chunk",
+   "name": "terrain_chunk_194",
+   "pos": [
+    2.0,
+    -19.0,
+    40.0
+   ],
+   "rot": [
+    0.0,
+    27.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 5
+  },
+  {
+   "asset": "terrain_chunk",
+   "name": "terrain_chunk_195",
+   "pos": [
+    14.0,
+    -17.0,
+    36.0
+   ],
+   "rot": [
+    0.0,
+    15.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 5
+  },
+  {
+   "asset": "terrain_chunk",
+   "name": "terrain_chunk_196",
+   "pos": [
+    26.0,
+    -13.0,
+    30.0
+   ],
+   "rot": [
+    0.0,
+    15.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 5
+  },
+  {
+   "asset": "terrain_chunk",
+   "name": "terrain_chunk_197",
+   "pos": [
+    38.0,
+    -9.0,
+    24.0
+   ],
+   "rot": [
+    0.0,
+    15.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 5
+  },
+  {
+   "asset": "terrain_chunk",
+   "name": "terrain_chunk_198",
+   "pos": [
+    0.0,
+    -21.0,
+    44.0
+   ],
+   "rot": [
+    0.0,
+    39.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 5
+  },
+  {
+   "asset": "terrain_chunk",
+   "name": "terrain_chunk_199",
+   "pos": [
+    -26.0,
+    -14.0,
+    46.0
+   ],
+   "rot": [
+    0.0,
+    27.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 5
+  },
+  {
+   "asset": "terrain_chunk",
+   "name": "terrain_chunk_200",
+   "pos": [
+    26.0,
+    -14.0,
+    46.0
+   ],
+   "rot": [
+    0.0,
+    27.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 5
+  },
+  {
+   "asset": "cliff_face",
+   "name": "cliff_face_201",
+   "pos": [
+    -30.0,
+    -13.0,
+    19.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 11
+  },
+  {
+   "asset": "cliff_face",
+   "name": "cliff_face_202",
+   "pos": [
+    0.0,
+    -13.0,
+    19.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 11
+  },
+  {
+   "asset": "cliff_face",
+   "name": "cliff_face_203",
+   "pos": [
+    30.0,
+    -13.0,
+    19.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 11
+  },
+  {
+   "asset": "rock_boulder",
+   "name": "rock_boulder_204",
+   "pos": [
+    -36.0,
+    -4.0,
+    28.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 0.95,
+   "objects": 3
+  },
+  {
+   "asset": "rock_boulder",
+   "name": "rock_boulder_205",
+   "pos": [
+    -18.0,
+    -6.0,
+    34.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 0.95,
+   "objects": 3
+  },
+  {
+   "asset": "rock_boulder",
+   "name": "rock_boulder_206",
+   "pos": [
+    20.0,
+    -5.0,
+    32.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.15,
+   "objects": 3
+  },
+  {
+   "asset": "rock_boulder",
+   "name": "rock_boulder_207",
+   "pos": [
+    34.0,
+    -3.0,
+    28.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 0.95,
+   "objects": 3
+  },
+  {
+   "asset": "rock_boulder",
+   "name": "rock_boulder_208",
+   "pos": [
+    -2.0,
+    -9.0,
+    38.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.15,
+   "objects": 3
+  },
+  {
+   "asset": "rock_boulder",
+   "name": "rock_boulder_209",
+   "pos": [
+    28.0,
+    -8.0,
+    38.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.15,
+   "objects": 3
+  },
+  {
+   "asset": "machinery",
+   "name": "machinery_210",
+   "pos": [
+    -30.0,
+    -2.0,
+    32.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 9
+  },
+  {
+   "asset": "machinery",
+   "name": "machinery_211",
+   "pos": [
+    26.0,
+    -4.0,
+    36.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 9
+  },
+  {
+   "asset": "machinery",
+   "name": "machinery_212",
+   "pos": [
+    0.0,
+    -6.0,
+    30.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 9
+  },
+  {
+   "asset": "debris_cluster",
+   "name": "debris_cluster_213",
+   "pos": [
+    -22.0,
+    -3.0,
+    38.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 6
+  },
+  {
+   "asset": "debris_cluster",
+   "name": "debris_cluster_214",
+   "pos": [
+    22.0,
+    -5.0,
+    34.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 6
+  },
+  {
+   "asset": "debris_cluster",
+   "name": "debris_cluster_215",
+   "pos": [
+    -6.0,
+    -8.0,
+    42.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 6
+  },
+  {
+   "asset": "cooling_vent",
+   "name": "cooling_vent_216",
+   "pos": [
+    0.0,
+    -6.0,
+    36.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 10
+  },
+  {
+   "asset": "access_gate",
+   "name": "access_gate_217",
+   "pos": [
+    0.0,
+    -3.0,
+    40.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "cliff_face",
+   "name": "cliff_face_218",
+   "pos": [
+    -46.0,
+    -18.0,
+    -50.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 11
+  },
+  {
+   "asset": "cliff_face",
+   "name": "cliff_face_219",
+   "pos": [
+    46.0,
+    -18.0,
+    -50.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 11
+  },
+  {
+   "asset": "cliff_face",
+   "name": "cliff_face_220",
+   "pos": [
+    0.0,
+    -20.0,
+    -62.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 11
+  },
+  {
+   "asset": "terrain_chunk",
+   "name": "terrain_chunk_221",
+   "pos": [
+    -30.0,
+    -26.0,
+    -54.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 5
+  },
+  {
+   "asset": "terrain_chunk",
+   "name": "terrain_chunk_222",
+   "pos": [
+    30.0,
+    -26.0,
+    -54.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 5
+  },
+  {
+   "asset": "terrain_chunk",
+   "name": "terrain_chunk_223",
+   "pos": [
+    0.0,
+    -30.0,
+    -70.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 5
+  },
+  {
+   "asset": "rock_boulder",
+   "name": "rock_boulder_224",
+   "pos": [
+    -40.0,
+    -30.0,
+    -60.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.2,
+   "objects": 3
+  },
+  {
+   "asset": "rock_boulder",
+   "name": "rock_boulder_225",
+   "pos": [
+    40.0,
+    -30.0,
+    -60.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.2,
+   "objects": 3
+  },
+  {
+   "asset": "rock_boulder",
+   "name": "rock_boulder_226",
+   "pos": [
+    0.0,
+    -34.0,
+    -74.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.2,
+   "objects": 3
+  },
+  {
+   "asset": "rock_boulder",
+   "name": "rock_boulder_227",
+   "pos": [
+    -20.0,
+    -32.0,
+    -68.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.2,
+   "objects": 3
+  },
+  {
+   "asset": "rock_boulder",
+   "name": "rock_boulder_228",
+   "pos": [
+    20.0,
+    -32.0,
+    -68.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.2,
+   "objects": 3
+  },
+  {
+   "asset": "cloud_puff",
+   "name": "cloud_puff_229",
+   "pos": [
+    -70.0,
+    -38.0,
+    -58.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "cloud_puff",
+   "name": "cloud_puff_230",
+   "pos": [
+    -56.0,
+    -38.0,
+    -58.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "cloud_puff",
+   "name": "cloud_puff_231",
+   "pos": [
+    -42.0,
+    -38.0,
+    -58.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "cloud_puff",
+   "name": "cloud_puff_232",
+   "pos": [
+    -28.0,
+    -38.0,
+    -58.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "cloud_puff",
+   "name": "cloud_puff_233",
+   "pos": [
+    -14.0,
+    -38.0,
+    -58.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "cloud_puff",
+   "name": "cloud_puff_234",
+   "pos": [
+    0.0,
+    -38.0,
+    -58.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "cloud_puff",
+   "name": "cloud_puff_235",
+   "pos": [
+    14.0,
+    -38.0,
+    -58.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "cloud_puff",
+   "name": "cloud_puff_236",
+   "pos": [
+    28.0,
+    -38.0,
+    -58.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "cloud_puff",
+   "name": "cloud_puff_237",
+   "pos": [
+    42.0,
+    -38.0,
+    -58.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "cloud_puff",
+   "name": "cloud_puff_238",
+   "pos": [
+    56.0,
+    -38.0,
+    -58.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "cloud_puff",
+   "name": "cloud_puff_239",
+   "pos": [
+    70.0,
+    -38.0,
+    -58.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.0,
+   "objects": 7
+  },
+  {
+   "asset": "background_silhouette",
+   "name": "background_silhouette_240",
+   "pos": [
+    -120.0,
+    -4.0,
+    -150.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.6,
+   "objects": 6
+  },
+  {
+   "asset": "background_silhouette",
+   "name": "background_silhouette_241",
+   "pos": [
+    -40.0,
+    -4.0,
+    -170.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.2,
+   "objects": 6
+  },
+  {
+   "asset": "background_silhouette",
+   "name": "background_silhouette_242",
+   "pos": [
+    40.0,
+    -4.0,
+    -170.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.2,
+   "objects": 6
+  },
+  {
+   "asset": "background_silhouette",
+   "name": "background_silhouette_243",
+   "pos": [
+    120.0,
+    -4.0,
+    -150.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.6,
+   "objects": 6
+  },
+  {
+   "asset": "background_silhouette",
+   "name": "background_silhouette_244",
+   "pos": [
+    -150.0,
+    -10.0,
+    -70.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.4,
+   "objects": 6
+  },
+  {
+   "asset": "background_silhouette",
+   "name": "background_silhouette_245",
+   "pos": [
+    150.0,
+    -10.0,
+    -70.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.4,
+   "objects": 6
+  },
+  {
+   "asset": "background_silhouette",
+   "name": "background_silhouette_246",
+   "pos": [
+    0.0,
+    -8.0,
+    -190.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 2.0,
+   "objects": 6
+  },
+  {
+   "asset": "cliff_face",
+   "name": "cliff_face_247",
+   "pos": [
+    -90.0,
+    -12.0,
+    -90.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.8,
+   "objects": 11
+  },
+  {
+   "asset": "cliff_face",
+   "name": "cliff_face_248",
+   "pos": [
+    90.0,
+    -12.0,
+    -90.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.8,
+   "objects": 11
+  },
+  {
+   "asset": "cliff_face",
+   "name": "cliff_face_249",
+   "pos": [
+    -140.0,
+    -16.0,
+    -40.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.8,
+   "objects": 11
+  },
+  {
+   "asset": "cliff_face",
+   "name": "cliff_face_250",
+   "pos": [
+    140.0,
+    -16.0,
+    -40.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": 1.8,
+   "objects": 11
+  }
+ ]
+}
