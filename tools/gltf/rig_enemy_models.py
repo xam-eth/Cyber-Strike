@@ -279,13 +279,20 @@ def _build_variant(
     sorted_region = sorted(region)
     for offset, source_node in enumerate(sorted_region):
         mapping[source_node] = len(js["nodes"]) + offset
+    for node in js.get("nodes", []):
+        if not node.get("children"):
+            node.pop("children", None)
     for source_node in sorted_region:
         copied = copy.deepcopy(template_js["nodes"][source_node])
-        copied["children"] = [
+        children = [
             mapping[child]
             for child in copied.get("children", [])
             if child == source_mesh_node or child in region
         ]
+        if children:
+            copied["children"] = children
+        else:
+            copied.pop("children", None)
         js["nodes"].append(copied)
 
     armature_node = mapping[armature_root]
@@ -339,7 +346,9 @@ def _build_variant(
             }
         )
 
-    js["animations"] = []
+    # No enemy clips are embedded yet; omit the optional empty array rather than
+    # serializing an EMPTY_ENTITY rejected by strict glTF validators/importers.
+    js.pop("animations", None)
     variant["model"].parent.mkdir(parents=True, exist_ok=True)
     write_glb(variant["model"], js, writer.bin)
     output_js, output_bin = read_glb(variant["model"])

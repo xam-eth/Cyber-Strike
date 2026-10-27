@@ -13,6 +13,7 @@ import argparse
 import hashlib
 import json
 import shutil
+import struct
 import sys
 from pathlib import Path
 from typing import Any
@@ -21,6 +22,8 @@ ROOT = Path(__file__).resolve().parents[2]
 PROJECT = ROOT / "character_visual_qa"
 MANIFEST = PROJECT / "asset_manifest.json"
 STAGED_MANIFEST = PROJECT / "staged_assets.json"
+GLB_MAGIC = 0x46546C67
+JSON_CHUNK = 0x4E4F534A
 sys.path.insert(0, str(ROOT / "tools/gltf"))
 from asset_identity import ASSET_IDENTITIES, identity_for, validate_profile_identity  # noqa: E402
 
@@ -31,6 +34,116 @@ def sha256(path: Path) -> str:
         for block in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(block)
     return digest.hexdigest()
+
+
+def _read_glb_document(path: Path) -> dict[str, Any]:
+    data = path.read_bytes()
+    if len(data) < 20:
+        raise ValueError("file is too short to be a GLB 2.0 container")
+    magic, version, total_length = struct.unpack_from("<III", data, 0)
+    if magic != GLB_MAGIC:
+        raise ValueError("invalid GLB magic number")
+    if version != 2:
+        raise ValueError(f"expected GLB version 2, found {version}")
+    if total_length != len(data):
+        raise ValueError(f"GLB header length {total_length} differs from file length {len(data)}")
+
+    document: dict[str, Any] | None = None
+    offset = 12
+    while offset < len(data):
+        if offset + 8 > len(data):
+            raise ValueError("truncated GLB chunk header")
+        chunk_length, chunk_type = struct.unpack_from("<II", data, offset)
+        chunk_start = offset + 8
+        chunk_end = chunk_start + chunk_length
+        if chunk_end > len(data):
+            raise ValueError("GLB chunk extends beyond the end of the file")
+        if chunk_type == JSON_CHUNK:
+            if document is not None:
+                raise ValueError("GLB contains more than one JSON chunk")
+            try:
+                parsed = json.loads(
+                    data[chunk_start:chunk_end].decode("utf-8").rstrip("\x00 \t\r\n")
+                )
+            except (UnicodeDecodeError, json.JSONDecodeError) as error:
+                raise ValueError(f"invalid GLB JSON chunk: {error}") from error
+            if not isinstance(parsed, dict):
+                raise ValueError("GLB JSON root must be an object")
+            document = parsed
+        offset = chunk_end
+    if offset != len(data):
+        raise ValueError("GLB chunk table does not end at the file boundary")
+    if document is None:
+        raise ValueError("GLB has no JSON chunk")
+    asset = document.get("asset")
+    if not isinstance(asset, dict) or str(asset.get("version", "")) != "2.0":
+        raise ValueError("glTF asset.version must be 2.0")
+    return document
+
+
+def validate_glb_contract(entry: dict[str, Any], path: Path) -> None:
+    document = _read_glb_document(path)
+    nodes = document.get("nodes", [])
+    if not isinstance(nodes, list) or not nodes:
+        raise ValueError("GLB contains no nodes")
+    empty_children = [
+        index
+        for index, node in enumerate(nodes)
+        if isinstance(node, dict) and node.get("children") == []
+    ]
+    if empty_children:
+        raise ValueError(f"GLB nodes contain empty children arrays: {empty_children}")
+    if document.get("animations") == []:
+        raise ValueError("GLB contains an empty animations array; omit it when no clips exist")
+
+    meshes = document.get("meshes", [])
+    if not isinstance(meshes, list) or not meshes:
+        raise ValueError("GLB contains no meshes")
+    if any(
+        not isinstance(mesh, dict)
+        or not isinstance(mesh.get("primitives", []), list)
+        or not mesh.get("primitives")
+        for mesh in meshes
+    ):
+        raise ValueError("GLB contains a mesh with no primitives")
+
+    skins = document.get("skins", [])
+    if not isinstance(skins, list) or any(not isinstance(skin, dict) for skin in skins):
+        raise ValueError("GLB skins member must be an array of objects")
+    joint_counts = [len(skin.get("joints", [])) for skin in skins]
+    requires_skin = bool(entry.get("requires_skin", False))
+    expected_joints = int(entry.get("expected_joint_count", 0))
+    if requires_skin and not joint_counts:
+        raise ValueError("manifest requires a skin, but the GLB contains none")
+    if expected_joints > 0 and expected_joints not in joint_counts:
+        found = ", ".join(str(count) for count in joint_counts) or "none"
+        raise ValueError(f"expected a {expected_joints}-joint skin, found {found}")
+    if not requires_skin and any(joint_counts):
+        raise ValueError(
+            f"manifest expects an unskinned model, but found skin joint counts {joint_counts}"
+        )
+
+    animations = document.get("animations", [])
+    if not isinstance(animations, list) or any(not isinstance(item, dict) for item in animations):
+        raise ValueError("GLB animations member must be an array of objects")
+    available_clips = {str(animation.get("name", "")) for animation in animations}
+    missing_clips = sorted(
+        set(map(str, entry.get("expected_animation_names", []))) - available_clips
+    )
+    if missing_clips:
+        raise ValueError(f"GLB is missing required animation clips: {', '.join(missing_clips)}")
+
+
+def _resolve_repository_file(asset_id: str, field: str, raw_path: str) -> Path:
+    relative = Path(raw_path)
+    if relative.is_absolute() or ".." in relative.parts:
+        raise ValueError(f"{asset_id}: {field} must be a repository-relative path")
+    resolved = (ROOT / relative).resolve()
+    if ROOT.resolve() not in resolved.parents:
+        raise ValueError(f"{asset_id}: {field} resolves outside the repository")
+    if not resolved.is_file():
+        raise FileNotFoundError(f"{asset_id}: {field} is missing: {relative}")
+    return resolved
 
 
 def _repo_path(raw: str, asset_id: str, field: str) -> Path:
@@ -179,13 +292,18 @@ def _validate_asset_identity(entry: dict[str, Any], asset_id: str) -> None:
         )
     if original_source is not None:
         original_path = Path(str(original_source))
+        expected_original_name = str(
+            entry.get("original_source_name", f"{identity_id}_source.glb")
+        )
         if (
-            original_path.name != f"{identity_id}_source.glb"
+            original_path.name != expected_original_name
+            or Path(expected_original_name).name != expected_original_name
+            or Path(expected_original_name).suffix.lower() != ".glb"
             or not original_path.parts
             or original_path.parts[0] != "source-assets"
         ):
             raise ValueError(
-                f"{asset_id}: original_source does not match its canonical source identity"
+                f"{asset_id}: original_source does not match its declared source file identity"
             )
         resolved_original = _repo_path(str(original_source), asset_id, "original_source")
         if not resolved_original.is_file():
@@ -257,31 +375,53 @@ def load_manifest() -> list[dict[str, Any]]:
 
 def run(check_only: bool) -> int:
     assets = load_manifest()
-    report: dict[str, Any] = {"schema_version": 1, "assets": {}}
     problems: list[str] = []
-    expected_destinations = {(PROJECT / str(entry["qa_file"])).resolve() for entry in assets}
-    staged_dir = PROJECT / "assets"
-    for stale in staged_dir.glob("*.glb"):
-        if stale.resolve() in expected_destinations:
+    prepared: list[tuple[dict[str, Any], Path, Path, str]] = []
+
+    # Validate every dependency and source GLB before copying anything. This keeps
+    # a stale path or malformed model from leaving a partially refreshed QA set.
+    for entry in assets:
+        asset_id = str(entry["id"])
+        try:
+            source = _resolve_repository_file(asset_id, "source", str(entry["source"]))
+            for related_field in ("original_source", "rig_profile"):
+                related = str(entry.get(related_field, ""))
+                if related:
+                    _resolve_repository_file(asset_id, related_field, related)
+            validate_glb_contract(entry, source)
+        except (OSError, ValueError, json.JSONDecodeError) as error:
+            problems.append(str(error))
             continue
-        if check_only:
-            problems.append(f"stale staged GLB is not in the manifest: {stale.relative_to(PROJECT)}")
-        else:
+        destination = (PROJECT / str(entry["qa_file"])).resolve()
+        prepared.append((entry, source, destination, sha256(source)))
+
+    if problems:
+        for problem in problems:
+            print(f"ERROR: {problem}", file=sys.stderr)
+        return 1
+
+    staged_dir = PROJECT / "assets"
+    expected_destinations = {destination.resolve() for _, _, destination, _ in prepared}
+    stale_files: list[Path] = []
+    if staged_dir.exists():
+        stale_files = [
+            stale
+            for stale in staged_dir.glob("*.glb")
+            if stale.resolve() not in expected_destinations
+        ]
+    if check_only:
+        problems.extend(
+            f"stale staged GLB is not in the manifest: {stale.relative_to(PROJECT)}"
+            for stale in stale_files
+        )
+    else:
+        for stale in stale_files:
             stale.unlink()
             print(f"Removed stale staged GLB · {stale.name}")
 
-    for entry in assets:
+    report: dict[str, Any] = {"schema_version": 1, "assets": {}}
+    for entry, source, destination, source_hash in prepared:
         asset_id = str(entry["id"])
-        source = (ROOT / str(entry["source"])).resolve()
-        destination = (PROJECT / str(entry["qa_file"])).resolve()
-        if ROOT.resolve() not in source.parents:
-            problems.append(f"{asset_id}: source resolves outside the repository: {source}")
-            continue
-        if not source.is_file():
-            problems.append(f"{asset_id}: source GLB is missing: {source.relative_to(ROOT)}")
-            continue
-
-        source_hash = sha256(source)
         if check_only:
             if not destination.is_file():
                 problems.append(f"{asset_id}: staged GLB is missing; run sync_assets.py")
@@ -289,12 +429,23 @@ def run(check_only: bool) -> int:
             staged_hash = sha256(destination)
             if staged_hash != source_hash:
                 problems.append(f"{asset_id}: staged GLB is stale; run sync_assets.py")
+                continue
+            try:
+                validate_glb_contract(entry, destination)
+            except (OSError, ValueError) as error:
+                problems.append(f"{asset_id}: staged GLB failed validation: {error}")
+                continue
         else:
             destination.parent.mkdir(parents=True, exist_ok=True)
             temporary = destination.with_suffix(destination.suffix + ".tmp")
             shutil.copy2(source, temporary)
             temporary.replace(destination)
             staged_hash = sha256(destination)
+            try:
+                validate_glb_contract(entry, destination)
+            except (OSError, ValueError) as error:
+                problems.append(f"{asset_id}: staged GLB failed validation: {error}")
+                continue
 
         report["assets"][asset_id] = {
             "source": str(entry["source"]),
@@ -305,17 +456,18 @@ def run(check_only: bool) -> int:
             "source_sha256": source_hash,
             "staged_sha256": staged_hash,
         }
-        print(f"{asset_id}: {'current' if staged_hash == source_hash else 'STALE'} · {entry['glb_label']}")
+        print(f"{asset_id}: current · {entry['glb_label']}")
 
-    if not check_only and not problems:
+    if problems:
+        for problem in problems:
+            print(f"ERROR: {problem}", file=sys.stderr)
+        return 1
+    if not check_only:
         STAGED_MANIFEST.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
-        print(f"\nStaged {len(assets)} GLB(s) in character_visual_qa/assets/.")
-    elif check_only and not problems:
-        print(f"\nAll {len(assets)} staged GLB(s) match their manifest sources.")
-
-    for problem in problems:
-        print(f"ERROR: {problem}", file=sys.stderr)
-    return 1 if problems else 0
+        print(f"\nStaged {len(assets)} structurally valid GLB(s) in character_visual_qa/assets/.")
+    else:
+        print(f"\nAll {len(assets)} staged GLB(s) match their sources and pass structure checks.")
+    return 0
 
 
 def main() -> int:

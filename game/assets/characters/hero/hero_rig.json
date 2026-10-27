@@ -97,5 +97,19 @@
       -0.751,
       0.661
     ]
+  },
+  "character_role": "player_hero",
+  "upgrade_track_id": "human_operative",
+  "upgrade_tier": 1,
+  "asset_identity": {
+    "asset_id": "hero",
+    "role": "hero",
+    "species": "human",
+    "tier_number": 1,
+    "tier_label": "T1",
+    "rarity": "common",
+    "progression_track_id": "human_operative",
+    "enemy_class": null,
+    "animation_reference_for": null
   }
 }

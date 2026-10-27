@@ -159,10 +159,15 @@ func _load_manifest() -> void:
 		if entry is Dictionary:
 			_assets.append(entry)
 	for index in range(_assets.size()):
-		var identity: Dictionary = _assets[index].get("asset_identity", {})
+		var entry: Dictionary = _assets[index]
+		var identity: Dictionary = entry.get("asset_identity", {})
+		var is_game_runtime_preview := str(entry.get("qa_group", "")) == "game_runtime_preview"
 		if (
-			str(identity.get("role", "")) == "hero"
-			or str(_assets[index].get("upgrade_track_id", "")) == HUMAN_TRACK_ID
+			not is_game_runtime_preview
+			and (
+				str(identity.get("role", "")) == "hero"
+				or str(entry.get("upgrade_track_id", "")) == HUMAN_TRACK_ID
+			)
 		):
 			_tier_asset_indices.append(index)
 		else:
@@ -649,9 +654,7 @@ func _update_structure_report() -> void:
 		errors.append("missing canonical role/tier identity")
 	else:
 		var expected_glb_name := (
-			"%s.glb" % identity_id
-			if asset_kind == "runtime"
-			else "%s_source.glb" % identity_id
+			"%s.glb" % identity_id if asset_kind == "runtime" else "%s_source.glb" % identity_id
 		)
 		if str(_current_asset.get("glb_label", "")) != expected_glb_name:
 			errors.append("GLB name does not match canonical asset identity")
@@ -670,10 +673,16 @@ func _update_structure_report() -> void:
 		elif identity_role == "enemy":
 			if identity_species != "robot":
 				errors.append("robot character identity must remain an enemy")
-			if _current_asset.get("upgrade_track_id") != null or _current_asset.get("upgrade_tier") != null:
+			if (
+				_current_asset.get("upgrade_track_id") != null
+				or _current_asset.get("upgrade_tier") != null
+			):
 				errors.append("enemy model must not use the human hero progression track")
 			if identity_id == "enemy_robot_common":
-				if identity.get("tier_number") != null or str(identity.get("rarity", "")) != "common":
+				if (
+					identity.get("tier_number") != null
+					or str(identity.get("rarity", "")) != "common"
+				):
 					errors.append("Robot Common must stay Common; do not infer T1")
 		else:
 			errors.append("identity role must be hero or enemy")
@@ -689,14 +698,19 @@ func _update_structure_report() -> void:
 	]
 	if identity_role == "hero":
 		details.append(
-			"Progression: Human Operative · %s of 5" % str(identity.get("tier_label", "Unknown tier"))
+			(
+				"Progression: Human Operative · %s of 5"
+				% str(identity.get("tier_label", "Unknown tier"))
+			)
 		)
 	elif identity_role == "enemy":
 		var enemy_tier_label := str(identity.get("tier_label", ""))
 		if not enemy_tier_label.is_empty():
 			details.append("Enemy tier / rarity: %s" % enemy_tier_label)
 		else:
-			details.append("Enemy class: %s" % str(identity.get("enemy_class", "unspecified")).capitalize())
+			details.append(
+				"Enemy class: %s" % str(identity.get("enemy_class", "unspecified")).capitalize()
+			)
 		if str(identity.get("animation_reference_for", "")) == HUMAN_TRACK_ID:
 			details.append("Animation reference for: Human Operative player hero")
 	if expected_joints > 0:

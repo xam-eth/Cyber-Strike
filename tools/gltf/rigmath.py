@@ -34,7 +34,30 @@ def read_glb(path):
     return js, bin_
 
 
+def _without_empty_optional_entities(js):
+    """Omit semantically empty glTF arrays rejected by strict validators.
+
+    Empty node children and animation arrays mean the same thing as an absent
+    optional property, but some glTF consumers report them as EMPTY_ENTITY.
+    Copy only the affected container so callers' in-memory documents stay intact.
+    """
+    document = dict(js)
+    nodes = document.get("nodes")
+    if isinstance(nodes, list):
+        sanitized_nodes = []
+        for node in nodes:
+            if isinstance(node, dict) and node.get("children") == []:
+                node = dict(node)
+                node.pop("children", None)
+            sanitized_nodes.append(node)
+        document["nodes"] = sanitized_nodes
+    if document.get("animations") == []:
+        document.pop("animations", None)
+    return document
+
+
 def write_glb(path, js, bin_):
+    js = _without_empty_optional_entities(js)
     js_bytes = json.dumps(js, separators=(",", ":")).encode("utf-8")
     js_bytes += b" " * ((4 - len(js_bytes) % 4) % 4)
     bin_bytes = bin_ + b"\0" * ((4 - len(bin_) % 4) % 4)

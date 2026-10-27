@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "stage": "Human hero progression tiers and robot enemy rig/animation review",
+  "stage": "Human hero T1–T5 progression, game T1 runtime preview, and robot enemy review",
   "assets": [
     {
       "id": "hero_human_tier_1",
@@ -212,6 +212,49 @@
         "tier_number": 5,
         "tier_label": "T5",
         "rarity": null,
+        "progression_track_id": "human_operative",
+        "enemy_class": null,
+        "animation_reference_for": null
+      }
+    },
+    {
+      "id": "hero_game_runtime_preview",
+      "label": "Game Runtime Human Hero — Exo Operative · T1 snapshot",
+      "category": "PLAYER HERO · HUMAN · EXO OPERATIVE · TIER 1 · GAME RUNTIME PREVIEW",
+      "glb_label": "hero.glb",
+      "source": "game/assets/characters/hero/hero.glb",
+      "qa_file": "assets/hero_runtime.glb",
+      "expected_joint_count": 79,
+      "requires_skin": true,
+      "expected_animation_names": [
+        "idle",
+        "walk",
+        "run",
+        "aim",
+        "aim_walk",
+        "aim_run",
+        "fire",
+        "reload",
+        "hit",
+        "death"
+      ],
+      "preview_height_m": 1.78,
+      "preview_yaw_degrees": 180.0,
+      "review_only": true,
+      "upgrade_track_id": "human_operative",
+      "upgrade_tier": 1,
+      "original_source": "source-assets/characters/hero/hero_rigged_source.glb",
+      "original_source_name": "hero_rigged_source.glb",
+      "rig_profile": "game/assets/characters/hero/hero_rig.json",
+      "asset_kind": "runtime",
+      "qa_group": "game_runtime_preview",
+      "asset_identity": {
+        "asset_id": "hero",
+        "role": "hero",
+        "species": "human",
+        "tier_number": 1,
+        "tier_label": "T1",
+        "rarity": "common",
         "progression_track_id": "human_operative",
         "enemy_class": null,
         "animation_reference_for": null

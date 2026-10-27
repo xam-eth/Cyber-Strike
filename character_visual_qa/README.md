@@ -10,12 +10,14 @@ From the repository root, stage the manifest assets:
 python3 character_visual_qa/tools/sync_assets.py
 ```
 
+The staging command checks canonical hero/enemy identity, manifest paths and rig profiles, then preflights every GLB container, mesh, skin joint count, and expected clip before copying. It rejects empty glTF `children` or `animations` arrays that strict validators/importers flag.
+
 In Godot Project Manager, import `character_visual_qa/project.godot` and run the project. Godot will import the staged GLBs before the review scene loads them.
 
 ## Review controls
 
 - **T1–T5** switch between five visual progression tiers of the same human player hero.
-- **Other models** selects robot enemies and source comparisons. Robot Common has no inferred T1; Robot T2 Rare and T3 Epic are enemies that also serve as animation references for the Human Operative hero. The original Drive enemy GLBs remain separate, review-only entries.
+- **Other models** includes the current game’s Exo Operative T1 runtime snapshot, robot enemies, and source comparisons. The Exo snapshot is a comparison view, not an extra progression tier; **T1–T5** remain the five Drive human visuals for one Human Operative hero. Robot Common has no inferred T1; Robot T2 Rare and T3 Epic remain enemies that also serve as animation references for the human hero. The original Drive enemy GLBs remain separate, review-only entries.
 - The information panel reports canonical hero/enemy role, tier or rarity, GLB/profile identity, mesh and skin counts, skeleton joints, and expected clips. **STRUCTURE CHECK** is an automated import check, not a visual approval.
 - Choose an animation clip, then use **PLAY**, **PAUSE**, **STOP**, and the speed selector. Use **TEST SKIN POSE** and **RESET POSE** to inspect deformation.
 - Drag in the viewport to orbit; use the mouse wheel to zoom. **RESET VIEW** and **Rotate** are in the left panel. Keyboard: **Left/Right** changes model, **R** resets the view, **Space** plays the selected clip.

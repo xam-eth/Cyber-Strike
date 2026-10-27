@@ -11,6 +11,17 @@ from typing import Any
 
 
 ASSET_IDENTITIES: dict[str, dict[str, Any]] = {
+    "hero": {
+        "asset_id": "hero",
+        "role": "hero",
+        "species": "human",
+        "tier_number": 1,
+        "tier_label": "T1",
+        "rarity": "common",
+        "progression_track_id": "human_operative",
+        "enemy_class": None,
+        "animation_reference_for": None,
+    },
     **{
         f"hero_human_tier_{tier}": {
             "asset_id": f"hero_human_tier_{tier}",
