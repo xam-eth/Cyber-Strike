@@ -82,8 +82,25 @@ jobs:
 
       - name: Export the debug APK
         # The export script runs the whole headless smoke suite first and
-        # refuses to package a build that fails it.
-        run: ./scripts/export_android_debug.sh
+        # refuses to package a build that fails it. Preserve its actual error
+        # as an annotation too; an exit code alone does not identify SDK issues.
+        run: |
+          log=/tmp/android-export.log
+          if ./scripts/export_android_debug.sh >"$log" 2>&1; then
+            cat "$log"
+          else
+            status=$?
+            cat "$log"
+            python3 - "$log" <<'PY'
+          from pathlib import Path
+          import sys
+
+          text = Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace")[-12000:]
+          escaped = text.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+          print("::error::Android export failed; log tail: " + escaped)
+          PY
+            exit "$status"
+          fi
 
       - name: Check what actually shipped inside the APK
         run: |
