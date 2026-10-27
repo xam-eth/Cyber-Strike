@@ -156,6 +156,7 @@ negative controls, including the exact regression above.
 | [`FRONT_END_JOURNEY.md`](FRONT_END_JOURNEY.md) | Shell/engine journey and selection handoff |
 | [`world/README.md`](world/README.md) | World build policy and world-specific references |
 | [`runbooks/WEB_PREVIEW.md`](runbooks/WEB_PREVIEW.md) | Running, exporting, and validating the browser preview |
+| [`runbooks/VISUAL_REVIEW.md`](runbooks/VISUAL_REVIEW.md) | Reference/current/diff comparison and explicit golden approval across focused profiles |
 | [`runbooks/TOOLCHAIN.md`](runbooks/TOOLCHAIN.md) | Installing the pinned engine and related tools |
 | [`runbooks/HERO_RIG.md`](runbooks/HERO_RIG.md) | Hero/weapon rig, muzzle alignment, and animation work |
 | [`runbooks/AUDIO.md`](runbooks/AUDIO.md) | Frontier Signal music, shared audio, and runtime SFX |

@@ -98,6 +98,7 @@ docs/             Canonical design, development, domain docs and runbooks
 - [Toolchain setup](docs/runbooks/TOOLCHAIN.md)
 - [Web preview and recovery](docs/runbooks/WEB_PREVIEW.md)
 - [Android build/device/profiling](docs/runbooks/ANDROID.md)
+- [Visual comparison and golden approval](docs/runbooks/VISUAL_REVIEW.md)
 - [Frontier Signal audio](docs/runbooks/AUDIO.md)
 - [Hero/rifle rig pipeline](docs/runbooks/HERO_RIG.md)
 - [World asset build and design index](docs/world/README.md)

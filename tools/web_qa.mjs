@@ -542,6 +542,10 @@ async function checkPage(target, viewport) {
       // Enter first: a stage built while the window already had focus owns it.
       await page.keyboard.press('Enter');
       await new Promise((r) => setTimeout(r, 1000));
+      // A stage transition and its console line are asynchronous. Check before
+      // every fallback so a late Escape cannot pause newly reached gameplay
+      // and poison subsequent Explore/Defense screenshots.
+      if (reached()) break;
       if (stageLine() === before) {
         // Fall back to the focus ring. grab_focus() cannot take effect while
         // the Godot window has no keyboard focus, and headless Chromium only
@@ -550,6 +554,7 @@ async function checkPage(target, viewport) {
         await page.keyboard.press('Tab');
         await page.keyboard.press('Enter');
         await new Promise((r) => setTimeout(r, 1000));
+        if (reached()) break;
       }
       if (stageLine() === before) {
         // Still nothing: a panel may be open on top of the stage.
@@ -574,8 +579,10 @@ async function checkPage(target, viewport) {
   if (booted && encounterMode && inGameplay) {
     await new Promise((r) => setTimeout(r, exploreWaitMs));
     const transitions = consoleLines.filter((line) => line.includes('Encounter:'));
+    const pausedBeforeActivation = consoleLines.some((line) => line.includes('HUD: paused'));
     safeBeforeActivation = transitions.some((line) => line.includes('Explore safe'))
-      && !transitions.some((line) => line.includes('Defense started'));
+      && !transitions.some((line) => line.includes('Defense started'))
+      && !pausedBeforeActivation;
     const exploreFrame = path.join(outDir, `${slug}-${viewport.spec}-explore-idle.png`);
     await page.screenshot({ path: exploreFrame });
     encounterFrames.push(path.relative(ROOT, exploreFrame));
@@ -583,7 +590,7 @@ async function checkPage(target, viewport) {
       const rect = document.querySelector('canvas')?.getBoundingClientRect();
       return rect ? { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 } : null;
     });
-    if (centre) {
+    if (centre && safeBeforeActivation) {
       await page.mouse.click(centre.x, centre.y);
       await page.keyboard.press('KeyB');
       await new Promise((r) => setTimeout(r, 450));
@@ -604,6 +611,8 @@ async function checkPage(target, viewport) {
       const phaseFrame = path.join(outDir, `${slug}-${viewport.spec}-${phase}.png`);
       await page.screenshot({ path: phaseFrame });
       encounterFrames.push(path.relative(ROOT, phaseFrame));
+    } else if (!safeBeforeActivation) {
+      progress('  encounter: Defense input skipped because Explore was paused or no longer safe');
     }
   }
 

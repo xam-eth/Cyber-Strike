@@ -31,6 +31,7 @@ REQUIRED_FILES = {
     "docs/runbooks/HERO_RIG.md",
     "docs/runbooks/TOOLCHAIN.md",
     "docs/runbooks/WEB_PREVIEW.md",
+    "docs/runbooks/VISUAL_REVIEW.md",
     "docs/world/README.md",
     "docs/world/CONCEPT.md",
 }

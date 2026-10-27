@@ -1,2 +1,4 @@
-# Optional parser/linter/formatter for GDScript; Godot runtime checks are still required.
+# GDScript parser/linter/formatter; Godot runtime checks are still required.
 gdtoolkit==4.5.0
+# Pixel inspection and visual reference/current/diff reports.
+Pillow==13.0.0

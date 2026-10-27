@@ -140,7 +140,7 @@ Default output adalah `artifacts/android/visual/<UTC>-<label>/`:
 
 Checkout commit dalam report hanya konteks repository, **bukan bukti source yang membentuk APK terpasang**. Ukuran screenshot adalah output layar native, bukan bukti resolusi render 3D internal. Video tidak membuktikan kualitas animasi, audio, touch ergonomics, atau FPS; tinjau state dan transisi yang sebenarnya.
 
-Untuk perbandingan perubahan, gunakan state/kamera/perangkat yang sama dan label `before`/`after` yang jelas. Untuk animasi, review sequence/video idle/run/aim/fire/reload/hit dan transisinya, bukan satu frame saja. **Jangan menjalankan `screenrecord` bersamaan dengan profiling FPS.** Ulangi skenario pada build yang sama dengan §8 setelah visual run selesai.
+Untuk perbandingan perubahan, gunakan state/kamera/perangkat yang sama dan label `before`/`after` yang jelas. Golden/diff dan approval lintas profil mengikuti [`VISUAL_REVIEW.md`](VISUAL_REVIEW.md); jangan membandingkan Android dengan golden Web. Untuk animasi, review sequence/video idle/run/aim/fire/reload/hit dan transisinya, bukan satu frame saja. **Jangan menjalankan `screenrecord` bersamaan dengan profiling FPS.** Ulangi skenario pada build yang sama dengan §8 setelah visual run selesai.
 
 ### 5.3 Offline USB — build/install/relaunch
 

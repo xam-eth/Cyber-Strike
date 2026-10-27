@@ -4,7 +4,19 @@ This document records the latest relevant evidence and its limits. It is not a d
 
 For intended behavior, read [`GAMEPLAY_DESIGN.md`](GAMEPLAY_DESIGN.md). For required gates, read [`DEVELOPMENT.md`](DEVELOPMENT.md).
 
-## Current Phase 0 development-loop tooling checkpoint — 2026-10-27
+## Current Phase 1 visual-review checkpoint — 2026-10-27
+
+This checkpoint adds review tooling and hardens existing browser capture. It does not approve a golden, change gameplay, or replace the runtime CI evidence below.
+
+- **IMPLEMENTED (comparison and approval):** `tools/visual_review.py` and `tools/visual_review.json` provide reference/current/diff reports, per-case channel and pixel-ratio tolerances, explicit `MATCH` / `REVIEW_REQUIRED` / `BASELINE_PENDING` / missing/error states, and named-case approval from the exact reviewed report with report-digest and current-image hash verification. Compare never updates references. The reusable procedure is [`runbooks/VISUAL_REVIEW.md`](runbooks/VISUAL_REVIEW.md).
+- **VERIFIED (synthetic/local static):** all **10/10** comparator contract tests passed for real changes, tolerances, dimensions, corrupt current evidence, pending baselines, report/image tamper rejection, unsafe paths, and output overwrite protection. The full `./scripts/dev_check.sh` completed with **0 failed steps and 2 skipped steps**: 100 tooling tests, 19/19 canonical documents, and 87 GDScripts parsed/linted/formatted. The local preset and Godot binary remained skipped; synthetic images do not prove game appearance.
+- **VERIFIED (automated Web capture):** against unchanged payload commit `41ccd8e51d8ee8cfaaa191480ad991f796131a60` and PCK SHA-256 `bfd82c279b38fcf2f6c2a644527003815f36da1a409b876728437d683711c70d`, the final two shell runs produced **10/10 nonblank 844×390 frames with 0 failures**. Two final gameplay runs both passed actual journey, unpaused safe Explore, visible B-triggered Defense preparation, and WorldTour checks; each tour produced **8/8 distinct frames**. These are Chromium/SwiftShader results, not Android evidence.
+- **VERIFIED (repeat-capture stability, limited scope):** the final A/B comparison reports `MATCH` within each proposed tolerance for all eight registered cases. Diff ratios range from `0` to `0.002166`; this is run-to-run stability in one environment, not a golden comparison or proof on another GPU. Evidence: `exports/visual-review/web-stability-20261027/stability.md` and `stability.json`.
+- **FIXED (capture harness only):** repetition exposed two harness races: a late fallback Escape could pause newly reached gameplay, and a deep-linked shell screen could capture the dock before async readiness became `ok`. `web_qa.mjs` now rechecks arrival before fallbacks and refuses Defense input from paused/unsafe Explore; `ui_shots.mjs` waits for readiness. The failed paused run was rejected as a candidate, and the final A/B runs above passed after the fix. No gameplay/runtime source changed.
+- **BASELINE_PENDING (human review):** `exports/visual-review/web-candidates-final/index.html` contains eight unapproved candidates and its JSON report records **8 × BASELINE_PENDING**. No golden or approval ledger has been created. A human must inspect the exact report and explicitly name each accepted case; the agent's image inspection is not approval.
+- **UNKNOWN (remaining coverage):** TECH HUNT Secure/Extract/Results, high-load/damage/reward states, motion-sequence approval, and device variants remain incomplete. No physical Android capture, native visual/animation approval, touch/FPS/thermal/lifecycle/save/soak result, or Android baseline exists.
+
+## Phase 0 development-loop tooling checkpoint — 2026-10-27
 
 This is a source/tooling-only checkpoint. It does not replace the runtime payload identities or CI evidence below.
 

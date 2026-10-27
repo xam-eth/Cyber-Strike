@@ -127,6 +127,16 @@ for (const viewport of viewports) {
         errors.push(`${screen.id}: ${screen.waitFor} never appeared`);
       }
     }
+    // Deep-linked screens share the opening's asynchronous payload/engine
+    // checks. Without this gate the same Settings frame can contain either the
+    // amber "not ready" or green "ready" dock icon depending on HEAD timing.
+    const ready = await page
+      .waitForSelector('#dock-state[data-state="ok"]', { timeout: 45000 })
+      .catch(() => null);
+    if (!ready) {
+      failures += 1;
+      errors.push(`${screen.id}: console readiness never reached the ok state`);
+    }
     await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     await new Promise((resolve) => setTimeout(resolve, (screen.settle || 0) + 260));
 

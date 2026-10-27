@@ -1,0 +1,106 @@
+{
+  "schema": 1,
+  "approval_policy": "No reference is approved by compare or CI. Historical qa-evidence is not a golden baseline. Promote only named images after inspecting the exact report.",
+  "profiles": {
+    "web-chromium-swiftshader-844x390": {
+      "environment": {
+        "platform": "Web",
+        "browser": "Pinned Chromium",
+        "renderer": "SwiftShader / WebGL 2",
+        "viewport": [844, 390],
+        "device_scale_factor": 1
+      },
+      "current_root": "exports/visual-current/web-chromium-swiftshader-844x390",
+      "capture_commands": [
+        "node tools/ui_shots.mjs --viewport 844x390 --out exports/visual-current/web-chromium-swiftshader-844x390",
+        "node tools/web_qa.mjs --page /web/index.html --viewport 844x390 --encounter-prep --tour --out exports/visual-current/web-chromium-swiftshader-844x390"
+      ],
+      "cases": [
+        {
+          "id": "shell-opening",
+          "current": "opening-844x390.png",
+          "reference": "qa-evidence/visual-goldens/web-chromium-swiftshader-844x390/shell-opening.png",
+          "channel_tolerance": 0.02,
+          "max_diff_ratio": 0.001,
+          "notes": "Opening composition, Frontier Signal presentation, payload status, and edge clipping."
+        },
+        {
+          "id": "shell-hero",
+          "current": "hero-844x390.png",
+          "reference": "qa-evidence/visual-goldens/web-chromium-swiftshader-844x390/shell-hero.png",
+          "channel_tolerance": 0.03,
+          "max_diff_ratio": 0.005,
+          "notes": "Hero readability, stage, cards, and layout. This still is not animation approval."
+        },
+        {
+          "id": "shell-theatre-hub",
+          "current": "hub-844x390.png",
+          "reference": "qa-evidence/visual-goldens/web-chromium-swiftshader-844x390/shell-theatre-hub.png",
+          "channel_tolerance": 0.02,
+          "max_diff_ratio": 0.001,
+          "notes": "Theatre cards and direct selected-theatre DEPLOY presentation."
+        },
+        {
+          "id": "shell-settings",
+          "current": "settings-844x390.png",
+          "reference": "qa-evidence/visual-goldens/web-chromium-swiftshader-844x390/shell-settings.png",
+          "channel_tolerance": 0.02,
+          "max_diff_ratio": 0.001,
+          "notes": "Settings layout, typography, contrast, and bottom-edge visibility."
+        },
+        {
+          "id": "shell-launch",
+          "current": "launch-844x390.png",
+          "reference": "qa-evidence/visual-goldens/web-chromium-swiftshader-844x390/shell-launch.png",
+          "channel_tolerance": 0.02,
+          "max_diff_ratio": 0.001,
+          "notes": "Launch/handoff card and failure-free loading presentation."
+        },
+        {
+          "id": "gameplay-explore",
+          "current": "web-index-html-844x390-explore-idle.png",
+          "reference": "qa-evidence/visual-goldens/web-chromium-swiftshader-844x390/gameplay-explore.png",
+          "channel_tolerance": 0.03,
+          "max_diff_ratio": 0.005,
+          "notes": "Real safe Explore HUD and selected world rendering before explicit Defense."
+        },
+        {
+          "id": "defense-preparing",
+          "current": "web-index-html-844x390-defense-preparing.png",
+          "reference": "qa-evidence/visual-goldens/web-chromium-swiftshader-844x390/defense-preparing.png",
+          "channel_tolerance": 0.03,
+          "max_diff_ratio": 0.005,
+          "notes": "Preparation countdown and HUD transition after the real Defense action."
+        },
+        {
+          "id": "world-tour-relay",
+          "current": "web-index-html-844x390-tour-1.png",
+          "reference": "qa-evidence/visual-goldens/web-chromium-swiftshader-844x390/world-tour-relay.png",
+          "channel_tolerance": 0.03,
+          "max_diff_ratio": 0.005,
+          "notes": "Fixed WorldTour camera 1 for World/material/lighting comparison; not an Android substitute."
+        }
+      ]
+    }
+  },
+  "motion_review": {
+    "status": "HUMAN_REVIEW_REQUIRED",
+    "required_sequences": [
+      "idle to run to idle",
+      "aim and held fire",
+      "move and fire",
+      "reload start, motion, and return to aim/run",
+      "hit reaction and death where applicable",
+      "hero entrance and celebration transitions"
+    ],
+    "android_capture": "scripts/android_visual.sh record --seconds 30 --label animation-review",
+    "web_capture": "node tools/qa_motion_touch.mjs --record",
+    "policy": "Video/sequence review is required. A single still or a clip-name log does not approve animation quality. Recording is not FPS evidence."
+  },
+  "coverage_pending": [
+    "Android profile and references await named physical devices and real native captures.",
+    "Deterministic TECH HUNT Secure, Extract, Results, and Redeploy captures are not yet registered.",
+    "High-load Defense, damage, reward, pause/resume, and safe-area device variants need focused cases before full visual coverage is claimed.",
+    "Current tolerances are bootstrap settings and must be reviewed against repeated captures in the same environment."
+  ]
+}

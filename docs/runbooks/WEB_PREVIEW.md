@@ -112,6 +112,8 @@ node tools/web_loading_qa.mjs --throughput-mbps 100 --json
 
 Additional play/tour options exist in `tools/web_qa.mjs`; read the current source for exact flags and required server setup. A harness that only waits for a Godot banner may not traverse opening → HERO → theatre → DEPLOY. Diagnose harness mismatches instead of mislabeling them as game failures or passes.
 
+For visual candidates, `ui_shots.mjs` also waits for the shell dock's `ok` readiness state so deep-linked screens do not capture a random loading status. `web_qa.mjs --encounter-prep` requires unpaused safe Explore before B and fails rather than presenting paused output as Defense preparation. Repeat new captures before approving a baseline. For reference/current/diff comparison and explicit golden approval, use [`VISUAL_REVIEW.md`](VISUAL_REVIEW.md); never auto-approve a changed screenshot.
+
 For gameplay changes, require evidence of the actual intended state:
 
 - safe Explore before explicit Defense;

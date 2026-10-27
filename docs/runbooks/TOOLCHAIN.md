@@ -45,7 +45,7 @@ Tests live outside `game/` so they cannot be packed accidentally. Godot runs the
 
 ## 4. Python static tooling
 
-The core static scripts use Python's standard library. Optional GDScript lint/format uses the pinned development requirements:
+The core static scripts use Python's standard library. GDScript lint/format and Pillow-based visual image inspection use the pinned development requirements:
 
 ```bash
 python3 -m venv .venv

@@ -51,6 +51,7 @@ World documents describe environment and content. They do not independently crea
 | [`runbooks/TOOLCHAIN.md`](runbooks/TOOLCHAIN.md) | Pinned Godot, Android, Blender, and local setup |
 | [`runbooks/WEB_PREVIEW.md`](runbooks/WEB_PREVIEW.md) | Web export, initial preload, cache behavior, browser QA, troubleshooting |
 | [`runbooks/ANDROID.md`](runbooks/ANDROID.md) | APK, physical-device checklist, profiling, Android evidence boundary |
+| [`runbooks/VISUAL_REVIEW.md`](runbooks/VISUAL_REVIEW.md) | Cross-platform reference/current/diff reports, focused visual matrix, and explicit golden approval |
 | [`runbooks/AUDIO.md`](runbooks/AUDIO.md) | Frontier Signal music/SFX ownership and audio verification |
 | [`runbooks/HERO_RIG.md`](runbooks/HERO_RIG.md) | Hero/rifle source, sockets, clips, rebuild, rig verification |
 
