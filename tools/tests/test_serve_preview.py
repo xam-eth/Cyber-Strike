@@ -14,6 +14,7 @@ import unittest
 from pathlib import Path
 
 TOOLS_DIR = Path(__file__).resolve().parents[1]
+ROOT = TOOLS_DIR.parent
 sys.path.insert(0, str(TOOLS_DIR))
 
 import serve_preview  # noqa: E402
@@ -116,6 +117,15 @@ class PreviewCacheTests(unittest.TestCase):
         self.assertEqual(stamp_response.status, 200)
         self.assertIsNone(stamp_response.headers["ETag"])
         connection.close()
+
+    def test_human_export_instructions_use_the_revalidating_server(self) -> None:
+        export_script = (ROOT / "scripts" / "export_web_preview.sh").read_text(encoding="utf-8")
+        workflow = (ROOT / ".github" / "workflows" / "godot-ci.yml").read_text(encoding="utf-8")
+        self.assertIn("python3 tools/serve_preview.py --port 800", export_script)
+        self.assertNotIn("printf '  python -m http.server 800", export_script)
+        self.assertIn("python3 tools/serve_preview.py --port 800", workflow)
+        self.assertIn("docs/runbooks/WEB_PREVIEW.md", workflow)
+        self.assertNotIn("echo 'python -m http.server 800", workflow)
 
 
 if __name__ == "__main__":

@@ -41,7 +41,7 @@ Open the landing page at `http://localhost:800/` on the same development machine
 
 Full export, QA, cache, recovery, and troubleshooting instructions: [`docs/runbooks/WEB_PREVIEW.md`](docs/runbooks/WEB_PREVIEW.md). The Web path requires an initial WASM/PCK download; it is not a zero-download or fully offline PWA.
 
-## Offline Android + USB updates
+## Android development and offline USB
 
 With Godot/JDK/SDK configured, build, install, and relaunch the self-contained APK over USB:
 
@@ -51,7 +51,14 @@ With Godot/JDK/SDK configured, build, install, and relaunch the self-contained A
 
 For an unchanged existing APK, `./scripts/android_usb.sh --skip-build` skips the export. The helper uses `adb install -r`, preserves profile data when package/signatures match, and never requires the Web server on the phone.
 
-For a timed physical-device capture, run `./scripts/android_usb.sh --serial SERIAL_HP --profile-seconds 120`. It writes raw logcat, five-second FPS/frame-time windows, memory/thermal/gfxinfo snapshots, and a Markdown/CSV/JSON report under `artifacts/android/`; these are real measurements only when run with an actual phone. See [`docs/runbooks/ANDROID.md`](docs/runbooks/ANDROID.md) for the device matrix, release/profile distinction, and full protocol.
+For rapid development, use the Godot Remote Debug/Small Deploy workflow in the Android runbook. Native visual evidence can be captured from the installed app without reinstalling:
+
+```bash
+./scripts/android_visual.sh shot --label hud-after
+./scripts/android_visual.sh record --seconds 30 --label reload-animation
+```
+
+Visual captures remain human-review evidence and must be separate from performance runs. For a timed physical-device capture, run `./scripts/android_usb.sh --serial SERIAL_HP --profile-seconds 120`. It writes raw logcat, five-second FPS/frame-time windows, memory/thermal/gfxinfo snapshots, and a Markdown/CSV/JSON report under `artifacts/android/`; these are real measurements only when run with an actual phone. See [`docs/runbooks/ANDROID.md`](docs/runbooks/ANDROID.md) for the device matrix, release/profile distinction, and full protocol.
 
 ## Checks
 

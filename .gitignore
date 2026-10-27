@@ -49,8 +49,8 @@ build/
 **/build/
 
 # The exported web payload under web/ is committed on purpose: the served site
-# needs it, and a clone plus "python -m http.server 800" must play the game with
-# no artifact download. The web-preview CI job refreshes it. Same layout idea as
+# needs it, and a clone plus "python3 tools/serve_preview.py --port 800" must play
+# the game with no artifact download. The web-preview CI job refreshes it. Same layout idea as
 # xam-eth/Scary-Night, which keeps its engine and web export templates in-tree.
 
 # Local exports, packages, and physical-device evidence (can contain serials/logcat)

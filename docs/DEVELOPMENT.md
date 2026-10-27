@@ -297,7 +297,7 @@ These are separate gates:
 - **Physical Android device:** touch, safe areas, renderer, thermal/memory/frame-time behavior, save/reload, interruption handling.
 - **Listening/visual acceptance:** actual output and human review; asset generation or screenshot existence is not enough.
 
-See [`runbooks/ANDROID.md`](runbooks/ANDROID.md) and [`runbooks/WEB_PREVIEW.md`](runbooks/WEB_PREVIEW.md).
+For Android iteration, use Godot Remote Debug/Small Deploy rather than treating `adb install -r` as hot reload. Capture changed HUD/World/Character/animation states with `scripts/android_visual.sh`, review the actual native output, and run FPS/thermal capture separately because screen recording adds overhead. The canonical commands and evidence limits live in [`runbooks/ANDROID.md`](runbooks/ANDROID.md); browser-specific limits live in [`runbooks/WEB_PREVIEW.md`](runbooks/WEB_PREVIEW.md).
 
 ## 9. Evidence language
 

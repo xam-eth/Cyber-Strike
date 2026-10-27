@@ -4,6 +4,17 @@ This document records the latest relevant evidence and its limits. It is not a d
 
 For intended behavior, read [`GAMEPLAY_DESIGN.md`](GAMEPLAY_DESIGN.md). For required gates, read [`DEVELOPMENT.md`](DEVELOPMENT.md).
 
+## Current Phase 0 development-loop tooling checkpoint — 2026-10-27
+
+This is a source/tooling-only checkpoint. It does not replace the runtime payload identities or CI evidence below.
+
+- **IMPLEMENTED (native visual tooling):** `scripts/android_visual.sh shot` captures a validated native PNG; `record` adds timed MP4 and before/after PNGs. Both write `run.json` and `report.md` with device/package/display/source context and artifact hashes. Reports keep human visual review **PENDING** and performance evidence **NO**. The tool does not build/install, clear data, or pretend that checkout identity proves the installed build.
+- **IMPLEMENTED (workflow guidance):** [`runbooks/ANDROID.md`](runbooks/ANDROID.md) now distinguishes Godot One-click Deploy/Remote Debug/Small Deploy/scene-script synchronization, native visual capture, and the existing offline USB/profiling path. Visual recording and FPS capture are explicitly separate runs. Remote editor synchronization has not been executed in this environment.
+- **VERIFIED (local static):** `./scripts/dev_check.sh` completed with **0 failed steps and 3 skipped steps**: 90 tooling tests, 18/18 canonical documents with 148 relative links, an 87-script static-call scan, architecture/module-map checks, and a 35-test smoke inventory. The skips were gdtoolkit, the machine-local export preset, and the Godot binary; no GDScript parse/lint or engine pass is claimed from this run.
+- **VERIFIED (fake ADB/static fixtures):** the 90-test total includes eight visual-capture contracts for valid PNG/video artifact layout, pending-review metadata, unauthorized/ambiguous device handling, corrupt PNG rejection, recording failure, evidence overwrite protection, and Android's 180-second recording limit. Synthetic PNG/MP4/ADB results prove tooling control flow only.
+- **VERIFIED (preview guidance/static HTTP):** user-facing export/CI instructions now use `tools/serve_preview.py`; cache-contract tests still cover strong ETags, 304, changed-content invalidation, and keep-alive behavior. The runbook explicitly states that changed monolithic PCK bytes download again and that no automatic source watcher/browser reload exists. No new real-browser warm-cache measurement was performed.
+- **UNKNOWN (physical device and human review):** no Android Remote Debug session, native screenshot/video, installation, visual/animation approval, touch result, FPS, thermal, save, lifecycle, or soak result has been obtained. No gameplay/runtime source or committed Web/Android payload changed for this tooling checkpoint.
+
 ## Current Android profiling and packaging checkpoint — 2026-10-27
 
 | Item | Checkpoint |

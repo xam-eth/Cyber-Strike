@@ -2,7 +2,7 @@
 
 > **Tujuan:** membuat build Android debug yang benar-benar terpasang dan berjalan di perangkat, lalu mengukur performa serta kontrol sentuh sesuai quality gates di [`../DEVELOPMENT.md`](../DEVELOPMENT.md).
 >
-> **Status tooling:** scaffold, export APK debug arm64, sparse payload audit, dan keberadaan profiler sudah lulus CI pada checkpoint di [`../VALIDATION.md`](../VALIDATION.md). **Belum ada instalasi, FPS, thermal, atau hasil perangkat fisik**; dokumen ini tetap merupakan prosedur pengujian perangkat.
+> **Status tooling:** scaffold, export APK debug arm64, sparse payload audit, dan keberadaan profiler sudah lulus CI; native visual capture dan remote-loop guidance mempunyai static/fake-ADB gate pada checkpoint di [`../VALIDATION.md`](../VALIDATION.md). **Belum ada instalasi, screenshot/video, FPS, thermal, atau hasil perangkat fisik**; dokumen ini tetap merupakan prosedur pengujian perangkat.
 >
 > **Pin versi:** Godot 4.7.2-stable (`.godot-version`), GDScript. Versi SDK/JDK harus cocok dengan dokumentasi Godot versi tersebut.
 
@@ -19,8 +19,9 @@ Gate E dianggap lulus jika **semua** poin ini ada buktinya:
 5. Kontrol sentuh terverifikasi manual: joystick kiri menggerakkan, drag kanan mengubah kamera, FIRE/WEAPON/EMP/PAUSE merespons, orientasi landscape, tidak ada tombol yang tertutup area sistem.
 6. Pause/resume, kehilangan fokus (home), dan kembali ke aplikasi tidak merusak sesi; RETRY setelah defeat bekerja.
 7. Ada angka pertama untuk FPS/frame time, jumlah musuh aktif, memori, dan suhu perangkat pada build yang sama.
+8. Screenshot/video native untuk state visual yang berubah telah ditangkap melalui §5.2 dan direview manusia; capture saja bukan approval.
 
-Poin 1–3 bisa dilakukan tanpa perangkat. Poin 4–7 memerlukan perangkat.
+Poin 1–3 bisa dilakukan tanpa perangkat. Poin 4–8 memerlukan perangkat. Visual capture dan profiling dilakukan sebagai run terpisah pada build/skenario yang sama.
 
 ---
 
@@ -82,7 +83,66 @@ python3 tools/android_preset.py show
 
 Catatan penting tentang `scaffold`: berkas yang dihasilkan memakai set option yang Godot 4.x tulis untuk preset Android; Godot mengisi option yang tidak ada dengan nilai default platform dan menormalkan berkas saat preset disimpan dari Editor. Scaffold **sudah divalidasi oleh export Android CI** pada checkpoint di [`../VALIDATION.md`](../VALIDATION.md). Jika preset lokal lama berbeda dan `--export-debug` mengeluh, sinkronkan dengan mode `patch` atau buka/simpan dialog Export sekali lalu ulangi validasi.
 
-## 5. Jalur cepat — build/install/reload via USB
+## 5. Pilih loop development dan bukti perangkat
+
+Jangan memakai satu perintah untuk semua tujuan. Tiga jalur berikut mempunyai kontrak berbeda:
+
+| Tujuan | Jalur | Batas |
+|---|---|---|
+| Iterasi scene/script/visual yang cepat | Godot One-click Deploy + Remote Debug + Network Filesystem | Memerlukan Editor yang dapat dihubungi perangkat; bukan APK offline final |
+| Screenshot/video native dari state yang sedang dilihat | `scripts/android_visual.sh` | Human visual review tetap PENDING; bukan pengukuran FPS/audio |
+| Install offline, relaunch, log, dan performa terukur | `scripts/android_usb.sh` | Reinstall/relaunch, bukan hot reload; profiling harus menjadi run terpisah |
+
+### 5.1 Inner loop — Godot Remote Debug dan Small Deploy
+
+Scaffold `tools/android_preset.py` menulis `runnable=true`. Untuk preset buatan sendiri, pastikan preset Android juga ditandai **Runnable** di dialog Export. Setelah langkah A–C selesai:
+
+1. Sambungkan perangkat, izinkan USB debugging, lalu pastikan `adb devices` menampilkan state `device`.
+2. Buka `game/project.godot` dengan Godot 4.7.2. Pada menu **Debug**, aktifkan **Deploy with Remote Debug** dan **Small Deploy with Network Filesystem**.
+3. Untuk perubahan yang sedang dikerjakan, aktifkan **Synchronize Scene Changes** dan/atau **Synchronize Script Changes** pada menu yang sama.
+4. Klik tombol Android/Remote Deploy di kanan atas Editor. Godot mengekspor, memasang, dan menjalankan debug build pada perangkat yang dipilih. Network Filesystem membuat Editor menyediakan file proyek tanpa mengirim full game pada setiap iterasi.
+5. Gunakan Output/Debugger dan Remote scene inspector untuk memeriksa state yang benar. Jika koneksi remote gagal, periksa otorisasi ADB serta Editor Settings > Network > Debug dan jaringan yang dipakai sesuai dokumentasi Godot; jangan menggantinya dengan klaim bahwa reinstall adalah hot reload.
+
+Referensi resmi: [One-click Deploy](https://docs.godotengine.org/en/stable/tutorials/export/one-click_deploy.html) dan [Remote Debug/scene-script synchronization](https://docs.godotengine.org/en/stable/tutorials/scripting/debug/overview_of_debugging_tools.html).
+
+Sinkronisasi bukan clean process restart. Setelah mengubah initialization, lifecycle, save/reset, exported properties, atau alur yang bergantung pada state lama, relaunch dan ulangi skenario dari kondisi yang diketahui. Small Deploy bergantung pada Editor/network selama development; sebelum final, kembali uji APK self-contained dari §5.3 dan §8.
+
+### 5.2 Native screenshot dan video — IMPLEMENTED tooling
+
+Tool ini menangkap aplikasi **yang sudah terpasang** tanpa build, install, uninstall, `pm clear`, atau perubahan save. Jalankan dari repository root:
+
+```bash
+# Satu screenshot dari state yang sedang tampil.
+./scripts/android_visual.sh shot --label hud-safe-area
+
+# Video 30 detik + screenshot sebelum/sesudah untuk gerakan/transisi.
+./scripts/android_visual.sh record --seconds 30 --label reload-animation
+
+# Pilih perangkat dan buka package yang sudah terpasang sebelum capture.
+./scripts/android_visual.sh shot --serial SERIAL_HP --launch --label explore-opening
+
+# Evidence directory eksplisit; direktori nonempty tidak akan ditimpa.
+./scripts/android_visual.sh record --seconds 45 --label cache-secure \
+  --output artifacts/android/visual/DEVICE-cache-secure-after
+```
+
+Tanpa `--launch`, tool sengaja mempertahankan state yang sedang tampil. `--settle-seconds` hanya memberi waktu setelah launch, bukan bukti bahwa scene sudah siap. Package id dibaca dari preset lokal atau `--package-id`; `--adb`/`ADB_BIN` dan `--serial`/`ANDROID_SERIAL` mengikuti konvensi helper USB.
+
+Default output adalah `artifacts/android/visual/<UTC>-<label>/`:
+
+| File | Isi dan batas |
+|---|---|
+| `screen.png` | Mode `shot`; PNG divalidasi termasuk chunk/CRC dan ukuran piksel |
+| `before.png` / `after.png` | Mode `record`; keadaan layar sebelum dan sesudah recording |
+| `motion.mp4` + `screenrecord.log` | Video native dan log `screenrecord`; container diperiksa, tetapi playback/isi tetap harus dilihat |
+| `run.json` | Mode, waktu, model/Android/package/version, display/focus, checkout context, artifact hash, dan metadata warnings |
+| `report.md` | Ringkasan review; selalu menandai human visual review **PENDING** dan performance evidence **NO** |
+
+Checkout commit dalam report hanya konteks repository, **bukan bukti source yang membentuk APK terpasang**. Ukuran screenshot adalah output layar native, bukan bukti resolusi render 3D internal. Video tidak membuktikan kualitas animasi, audio, touch ergonomics, atau FPS; tinjau state dan transisi yang sebenarnya.
+
+Untuk perbandingan perubahan, gunakan state/kamera/perangkat yang sama dan label `before`/`after` yang jelas. Untuk animasi, review sequence/video idle/run/aim/fire/reload/hit dan transisinya, bukan satu frame saja. **Jangan menjalankan `screenrecord` bersamaan dengan profiling FPS.** Ulangi skenario pada build yang sama dengan §8 setelah visual run selesai.
+
+### 5.3 Offline USB — build/install/relaunch
 
 Setelah langkah A–C selesai dan USB debugging sudah diizinkan di HP:
 
@@ -159,7 +219,7 @@ Profiler internal hanya aktif di Android debug, preset dengan custom feature `de
   --profile-seconds 120 --profile-dir artifacts/android/DEVICE-defense-run1
 ```
 
-Selama capture, mainkan skenario yang disepakati dan jangan mengirim aplikasi ke background kecuali untuk skenario lifecycle. Fokus keluar/masuk mengosongkan window timing agar waktu suspend tidak dihitung sebagai satu frame raksasa. Durasi minimum praktis adalah 10 detik; gunakan 120 detik untuk skenario dan 15 menit untuk soak. Logcat mentah tetap disimpan bila report gagal.
+Selama capture, mainkan skenario yang disepakati dan jangan mengirim aplikasi ke background kecuali untuk skenario lifecycle. Jangan menjalankan `android_visual.sh record` atau screen recorder lain pada saat yang sama karena overhead recording dapat mengubah frame time. Fokus keluar/masuk mengosongkan window timing agar waktu suspend tidak dihitung sebagai satu frame raksasa. Durasi minimum praktis adalah 10 detik; gunakan 120 detik untuk skenario dan 15 menit untuk soak. Logcat mentah tetap disimpan bila report gagal.
 
 Setiap `artifacts/android/<capture>/` berisi:
 
@@ -226,10 +286,12 @@ Remote Godot Editor (`Debugger > Monitors`) tetap berguna saat development, teta
 | `ETC2/ASTC texture compression is required` | Format tekstur mobile belum diaktifkan | Pertahankan `rendering/textures/vram_compression/import_etc2_astc=true` di `game/project.godot`, import ulang, lalu export |
 | APK terpasang tetapi langsung tertutup | Package id/versi bentrok atau crash awal | `adb logcat -s godot:V`, cek `version/code` unik |
 | Sentuh tidak berfungsi | Konfigurasi emulasi mouse | `input_devices/pointing/emulate_mouse_from_touch=false` sudah diset; pastikan event sentuh tidak ditelan UI |
+| `android_visual.sh` menolak perangkat/direktori | Device unauthorized/ambiguous atau evidence sudah ada | Pilih `--serial`; gunakan `--output` baru agar evidence tidak tertimpa |
+| `screenrecord` gagal / MP4 tidak valid | Recorder lain aktif, batas Android/OEM, atau transfer terputus | Baca `screenrecord.log`, hentikan recorder lain, ulangi; jangan tandai run sebagai captured/approved |
 | CI hijau tetapi perangkat gagal | CI hanya menjalankan headless test | Perbedaan renderer/GPU/perangkat tidak terlihat di CI — inilah alasan gate E butuh perangkat |
 
 ## 11. Batas kejujuran dokumen ini
 
 - APK debug dan isi payload-nya sudah diverifikasi di CI pada checkpoint [`../VALIDATION.md`](../VALIDATION.md); instalasi, kompatibilitas renderer/GPU, touch, dan performa pada perangkat Anda tetap harus diuji secara terpisah.
-- Fake ADB dan APK sparse sintetis pada tooling tests hanya membuktikan kontrol alur/parser; hasil tiruan itu bukan bukti export, instalasi, atau FPS perangkat nyata.
+- Fake ADB, PNG/MP4 sintetis, dan APK sparse sintetis pada tooling tests hanya membuktikan kontrol alur/parser; hasil tiruan itu bukan bukti export, instalasi, tampilan, animasi, atau FPS perangkat nyata.
 - Setelah pengujian lokal, catat keluaran `check_toolchain.sh`, keluaran `android_preset.py check`, log export, dan tabel §8 bersama commit/perangkat yang diuji. Ringkas hasilnya di [`../VALIDATION.md`](../VALIDATION.md) tanpa mengubah prosedur ini menjadi laporan checkpoint lama.

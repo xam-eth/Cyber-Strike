@@ -3,8 +3,8 @@
 #
 # The web build is what lets the game be reviewed without installing Godot,
 # the Android SDK, or any device tooling: a single-threaded Web export runs on
-# WebGL 2 and needs no cross-origin isolation headers, so a plain
-# `python -m http.server` from the repository root is enough.
+# WebGL 2 and needs no cross-origin isolation headers. Any compatible static
+# server can deliver it; use tools/serve_preview.py for content-based cache revalidation.
 #
 # Usage:
 #   scripts/export_web_preview.sh                  # export into ./web
@@ -153,7 +153,7 @@ fi
 
 printf '\nWeb preview ready.\n'
 printf 'Serve the repository root and open the preview page:\n\n'
-printf '  python -m http.server 800 --bind 0.0.0.0\n'
+printf '  python3 tools/serve_preview.py --port 800\n'
 printf '  -> http://localhost:800/            (game page, loads ./web/)\n'
 # Only advertise the raw build when it actually sits under the repository root, so
 # an absolute --output does not print a nonsense URL.

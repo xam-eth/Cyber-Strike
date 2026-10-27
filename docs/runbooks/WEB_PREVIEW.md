@@ -59,9 +59,10 @@ Use `tools/serve_preview.py`, not a server that forces `Cache-Control: no-store`
 
 - A cold opening downloads the full payload.
 - An unchanged file uses a strong content ETag and can complete revalidation with **304 Not Modified** and no large response body.
-- A changed file gets a new ETag and must be downloaded again.
+- A changed file gets a new ETag and must be downloaded again. Because the game is one monolithic `index.pck`, changing any packed source/asset changes that HTTP object; unchanged assets inside it cannot be revalidated as separate browser-cache entries.
 - DEPLOY should not request the main PCK a second time after a successful opening preload.
 - DevTools **Disable cache**, a new/private profile, cleared storage, or a different origin intentionally changes the result.
+- The server has no source watcher or automatic browser reload. After a source change, export a new Web payload and reload the page; `/__build` only identifies the served pack.
 
 The exact transferred-byte evidence belongs to the checkpoint in `../VALIDATION.md`, not this reusable runbook.
 

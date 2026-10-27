@@ -253,9 +253,9 @@ jobs:
             "=============================================\n\n"
             "How to run:\n"
             "  1. Extract this archive into the repository root so that the folder 'web/' appears.\n"
-            "  2. From the repository root run:  python -m http.server 800 --bind 0.0.0.0\n"
+            "  2. From the repository root run:  python3 tools/serve_preview.py --port 800\n"
             "  3. Open http://localhost:800/  (landing page) or http://localhost:800/web/ (raw build).\n\n"
-            "Details, controls, and limitations: WEB_PREVIEW.md\n")'
+            "Details, controls, and limitations: docs/runbooks/WEB_PREVIEW.md\n")'
           du -sh exports/web-preview/web
           find exports/web-preview -maxdepth 2 -type f | sort
 
@@ -401,7 +401,7 @@ jobs:
 
       - name: Commit the payload and templates into the repository
         # Pushes only: PR runs from forks get a read-only token. The commit is
-        # what makes "git pull + python -m http.server 800" play the game.
+        # what makes "git pull + python3 tools/serve_preview.py --port 800" play the game.
         if: github.event_name == 'push' && !contains(github.event.head_commit.message, '[skip ci]')
         run: |
           pck_bytes="$(stat -c %s web/index.pck)"
@@ -457,9 +457,9 @@ jobs:
             echo '## Web preview (WebAssembly)'
             echo 'Download the `web-preview` artifact, extract it into the repository root, then run:'
             echo '```bash'
-            echo 'python -m http.server 800 --bind 0.0.0.0'
+            echo 'python3 tools/serve_preview.py --port 800'
             echo '```'
-            echo 'Open `http://localhost:800/`. See `WEB_PREVIEW.md` for details and limitations.'
+            echo 'Open `http://localhost:800/`. See `docs/runbooks/WEB_PREVIEW.md` for details and limitations.'
             if [[ -f exports/web-preview/web/index.pck ]]; then
               echo
               echo 'Build payload:'
