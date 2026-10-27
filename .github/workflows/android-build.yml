@@ -93,11 +93,14 @@ jobs:
             cat "$log"
             python3 - "$log" <<'PY'
           from pathlib import Path
+          import re
           import sys
 
-          text = Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace")[-12000:]
+          raw = Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace")
+          clean = re.sub(r"\x1b\[[0-9;]*m", "", raw)
+          text = clean[-2400:]
           escaped = text.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
-          print("::error::Android export failed; log tail: " + escaped)
+          print("::error::Android export failed; final log: " + escaped)
           PY
             exit "$status"
           fi
