@@ -82,7 +82,32 @@ python3 tools/android_preset.py show
 
 Catatan penting tentang `scaffold`: berkas yang dihasilkan memakai set option yang Godot 4.x tulis untuk preset Android; Godot mengisi option yang tidak ada dengan nilai default platform dan menormalkan berkas saat preset disimpan dari Editor. Scaffold **belum divalidasi oleh export nyata** di repo ini — kalau `--export-debug` mengeluh soal preset, buka dialog Export sekali, simpan, lalu ulangi mode `patch`.
 
-## 5. Langkah D — Build APK debug
+## 5. Jalur cepat — build/install/reload via USB
+
+Setelah langkah A–C selesai dan USB debugging sudah diizinkan di HP:
+
+```bash
+# Build source terbaru, jalankan smoke tests, install -r, lalu buka aplikasi.
+./scripts/android_usb.sh
+
+# Jika ada lebih dari satu perangkat.
+./scripts/android_usb.sh --serial SERIAL_HP
+
+# Install ulang APK yang memang belum berubah, tanpa export baru.
+./scripts/android_usb.sh --skip-build
+
+# Install APK hasil CI/unduhan tanpa memakai JDK/Godot pada langkah ini.
+./scripts/android_usb.sh --skip-build --apk /path/ke/exocomplict-debug.apk
+
+# Setelah launch, ikuti log engine dan AndroidRuntime.
+./scripts/android_usb.sh --skip-build --logcat
+```
+
+Helper mencari `adb` dari `PATH`, `ADB_BIN`, atau `ANDROID_SDK_ROOT`/`ANDROID_HOME`, membaca package id dari preset lokal, menolak perangkat `unauthorized`, dan meminta `--serial` bila ada beberapa perangkat. Override yang tersedia dapat dilihat dengan `./scripts/android_usb.sh --help`.
+
+`adb install -r` mempertahankan data/save selama package id dan signing key sama. Jangan uninstall atau membersihkan data saat update. Ini adalah **reinstall + relaunch**, bukan hot reload GDScript dalam proses yang tetap berjalan. Setelah APK terpasang, game dan asset-nya berjalan tanpa server Web atau unduhan data runtime.
+
+## 6. Langkah D — Build APK debug saja
 
 ```bash
 ./scripts/export_android_debug.sh
@@ -90,7 +115,7 @@ Catatan penting tentang `scaffold`: berkas yang dihasilkan memakai set option ya
 
 Skrip ini: menjalankan `check_toolchain.sh` → import Editor headless → menjalankan seluruh `tests/*_smoke.gd` → `--export-debug "Android" exports/exocomplict-debug.apk` → memeriksa arsip APK. Override dengan `ANDROID_EXPORT_PRESET`, `ANDROID_APK_PATH`, `GODOT_BIN`.
 
-## 6. Langkah E — Pasang dan uji di perangkat
+## 7. Langkah E — Pasang manual dan uji di perangkat
 
 ```bash
 adb devices                       # pastikan perangkat terdeteksi sebagai "device", bukan "unauthorized"
@@ -117,7 +142,7 @@ Checklist uji manual yang harus dicatat hasilnya:
 | E11 | Stabilitas | Main 10–15 menit | Tidak ada crash/ANR; `adb logcat` tanpa error berulang |
 | E12 | Suhu/baterai | Setelah 15 menit | Catat suhu dan tingkat baterai; perhatikan throttle |
 
-## 7. Langkah F — Profiling terukur
+## 8. Langkah F — Profiling terukur
 
 Dua cara, pakai keduanya:
 
@@ -138,14 +163,14 @@ Baseline yang harus dicatat pada tabel ini (satu baris per perangkat/pengaturan)
 
 Jika HUD tidak menampilkan FPS/frame time pada build yang diuji, gunakan remote debug dari Editor dan catat keterbatasan pengukurannya. Tambahkan overlay internal hanya bila kebutuhan profiling membenarkannya; jangan menganggap angka browser sebagai pengganti pengukuran perangkat.
 
-## 8. Kalibrasi keputusan setelah data pertama
+## 9. Kalibrasi keputusan setelah data pertama
 
 - **Renderer:** bandingkan `mobile` vs `compatibility` pada perangkat baseline sebelum mengunci pilihan dan mencatat keputusan teknis di [`../DECISIONS.md`](../DECISIONS.md).
 - **Batas musuh & efek:** nilai `max_active_enemies`, partikel, dan shadow ditetapkan dari frame time terukur, bukan tebakan.
-- **Resolusi:** pertimbangkan `rendering/scaling_3d/scale` bila perangkat baseline tertinggal; catat nilai yang dipakai.
+- **Resolusi/FPS:** untuk native 3D, pertahankan `rendering/scaling_3d/scale=1.0`; jangan menurunkannya sebelum ada data. Resolusi native tidak menjamin FPS. Pertimbangkan perubahan hanya setelah mengukur perangkat baseline, dan catat nilai yang dipakai.
 - **Perangkat minimum:** setelah angka pertama ada, tuliskan spesifikasi perangkat baseline sebagai keputusan resmi (saat ini masih “Not chosen yet”).
 
-## 9. Troubleshooting umum
+## 10. Troubleshooting umum
 
 | Gejala | Penyebab umum | Tindakan |
 |---|---|---|
@@ -153,12 +178,14 @@ Jika HUD tidak menampilkan FPS/frame time pada build yang diuji, gunakan remote 
 | Godot mengeluh keystore | Debug keystore belum dibuat | Buka preset di Editor sekali; Godot membuat debug keystore otomatis |
 | `Missing 'platform-tools'` / build-tools | Paket SDK kurang | `sdkmanager "platform-tools" "platforms;android-XX" "build-tools;XX.0.0"` |
 | `adb devices` menampilkan `unauthorized` | Belum menerima prompt USB debugging di perangkat | Terima prompt, cabut-pasang kabel |
+| `android_usb.sh` menolak beberapa perangkat | Serial tujuan ambigu | Ulangi dengan `--serial SERIAL_HP`; jangan menebak perangkat |
+| Aplikasi tidak muncul setelah `monkey` | Preset lama menyembunyikan launcher | Pastikan `package/show_as_launcher_app=true`; scaffold repo sekarang mengaktifkannya |
 | APK terpasang tetapi langsung tertutup | Package id/versi bentrok atau crash awal | `adb logcat -s godot:V`, cek `version/code` unik |
 | Sentuh tidak berfungsi | Konfigurasi emulasi mouse | `input_devices/pointing/emulate_mouse_from_touch=false` sudah diset; pastikan event sentuh tidak ditelan UI |
 | CI hijau tetapi perangkat gagal | CI hanya menjalankan headless test | Perbedaan renderer/GPU/perangkat tidak terlihat di CI — inilah alasan gate E butuh perangkat |
 
-## 10. Batas kejujuran dokumen ini
+## 11. Batas kejujuran dokumen ini
 
 - Tidak ada APK, hasil perangkat, atau angka performa yang dihasilkan dari repo ini sampai langkah di atas benar-benar dijalankan pada mesin/perangkat Anda.
 - `tools/android_preset.py` dan `scripts/setup_android_sdk.sh` dapat diuji dengan layout SDK/JDK tiruan, tetapi hasil tiruan itu bukan bukti export/perangkat nyata.
-- Setelah selesai, catat keluaran `check_toolchain.sh`, keluaran `android_preset.py check`, log export, dan tabel §7 bersama commit/perangkat yang diuji. Ringkas hasilnya di [`../VALIDATION.md`](../VALIDATION.md) tanpa mengubah prosedur ini menjadi laporan checkpoint lama.
+- Setelah selesai, catat keluaran `check_toolchain.sh`, keluaran `android_preset.py check`, log export, dan tabel §8 bersama commit/perangkat yang diuji. Ringkas hasilnya di [`../VALIDATION.md`](../VALIDATION.md) tanpa mengubah prosedur ini menjadi laporan checkpoint lama.

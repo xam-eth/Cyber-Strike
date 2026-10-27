@@ -65,6 +65,12 @@ Use `tools/serve_preview.py`, not a server that forces `Cache-Control: no-store`
 
 The exact transferred-byte evidence belongs to the checkpoint in `../VALIDATION.md`, not this reusable runbook.
 
+### Offline Web versus `Scary-Night`
+
+The reviewed `xam-eth/Scary-Night` runtime uses Three.js/Canvas plus `GLTFLoader`; its service worker caches same-origin static assets and uses network-first navigation for its PWA/TWA path. Cyber-Strike instead boots a Godot WASM engine and a large PCK through `Engine.init()`/`preloadFile()`. Copying that service worker would not prove an atomic or complete Godot offline boot.
+
+This repository currently provides warm HTTP revalidation, **not** a fully offline PWA. A first Web visit must download the engine and game data; subsequent visits can avoid unchanged response bodies as described above. For play without a Web server or repeated data transfer after installation, use the self-contained Android APK in [`ANDROID.md`](ANDROID.md). Do not describe either path as zero-initial-download.
+
 ## 4. Build the payload yourself
 
 Install the pinned Godot editor and matching Web templates, then run:
@@ -145,12 +151,12 @@ The current product layout is landscape-first/landscape-only for the tested shel
 | Fire | Left mouse | FIRE control |
 | Change weapon / Armory | Existing weapon/Armory bindings (`E` / `U` where applicable) | Weapon/Armory controls |
 | EMP | `F` | EMP control |
-| Start existing Defense | `B` from safe Explore | START DEFENSE |
+| Start Defense / Engage or Secure a nearby Recovery cache | `B` from the relevant field context | Context action on the HUD |
 | Pause/resume | Escape | PAUSE / RESUME |
 | Retry | `R` where applicable / Results action | Results retry action |
 | Mute | `M` / sound control | Sound control |
 
-The selected TECH HUNT mission/extract controls are not implemented by this table; their acceptance criteria live in [`../GAMEPLAY_DESIGN.md`](../GAMEPLAY_DESIGN.md).
+After the primary Seed Vault Secure, the existing Results surface presents explicit **Extract** and **Continue to Endless** actions. Their gameplay acceptance criteria live in [`../GAMEPLAY_DESIGN.md`](../GAMEPLAY_DESIGN.md).
 
 ## 9. Audio handoff
 

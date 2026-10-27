@@ -49,14 +49,9 @@ cd "$ROOT_DIR"
 printf '\nImporting Godot project and GLTF dependencies...\n'
 "$GODOT" --headless --editor --path "$GAME_DIR" --quit
 
-shopt -s nullglob
-SMOKE_TESTS=("$ROOT_DIR"/tests/*_smoke.gd)
-(( ${#SMOKE_TESTS[@]} > 0 )) || fail 'No *_smoke.gd tests found under tests/.'
-for test_path in "${SMOKE_TESTS[@]}"; do
-  test_name="${test_path##*/}"
-  printf '\nRunning %s...\n' "$test_name"
-  "$GODOT" --headless --path "$GAME_DIR" --script "$test_path"
-done
+# Reuse the strict inventory runner: a GDScript runtime error is a failure even
+# when Godot happens to exit 0 after aborting only part of a SceneTree test.
+GODOT_BIN="$GODOT" "$ROOT_DIR/scripts/run_smoke_tests.sh" --no-import
 
 mkdir -p "$(dirname "$OUTPUT_PATH")"
 printf '\nExporting debug APK with preset %s...\n' "$PRESET_NAME"

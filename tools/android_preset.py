@@ -34,7 +34,7 @@ from pathlib import Path
 
 DEFAULT_PRESET_FILE = "game/export_presets.cfg"
 DEFAULT_PRESET_NAME = "Android"
-DEFAULT_PACKAGE_ID = "com.example.exocomplict"
+DEFAULT_PACKAGE_ID = "com.xameth.exocomplict"
 PACKAGE_ID_RE = re.compile(r"^[a-zA-Z][a-zA-Z0-9_]*(\.[a-zA-Z][a-zA-Z0-9_]*)+$")
 ARCHITECTURES = ("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
 
@@ -64,7 +64,7 @@ SCAFFOLD_OPTIONS: list[tuple[str, str]] = [
     ("package/exclude_from_recents", "false"),
     ("package/show_in_android_tv", "false"),
     ("package/show_in_app_library", "true"),
-    ("package/show_as_launcher_app", "false"),
+    ("package/show_as_launcher_app", "true"),
     ("launcher_icons/main_192x192", '""'),
     ("launcher_icons/adaptive_foreground_432x432", '""'),
     ("launcher_icons/adaptive_background_432x432", '""'),

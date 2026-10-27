@@ -56,6 +56,13 @@ class AndroidPresetTests(unittest.TestCase):
         self.assertEqual(preset.option("architectures/armeabi-v7a"), "false")
         self.assertEqual(self.run_tool("check", "--preset-name", "Android"), 0)
 
+    def test_default_scaffold_is_launchable_and_passes_validation(self) -> None:
+        self.assertEqual(self.run_tool("scaffold"), 0)
+        preset = android_preset.parse_presets(self.read())[0]
+        self.assertEqual(preset.option("package/unique_name"), "com.xameth.exocomplict")
+        self.assertEqual(preset.option("package/show_as_launcher_app"), "true")
+        self.assertEqual(self.run_tool("check", "--preset-name", "Android"), 0)
+
     def test_scaffold_refuses_to_overwrite_without_force(self) -> None:
         self.run_tool("scaffold")
         original = self.read()

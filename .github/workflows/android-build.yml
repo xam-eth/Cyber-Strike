@@ -96,7 +96,7 @@ jobs:
             echo "- payload checked: no test or QA code packed (tools/check_payload.py)"
             echo ""
             echo "Packaging only. Install it and measure before making any"
-            echo "device, frame-rate or thermal claim (ANDROID_BASELINE.md)."
+            echo "device, frame-rate or thermal claim (docs/runbooks/ANDROID.md)."
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload the APK

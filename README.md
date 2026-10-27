@@ -2,7 +2,7 @@
 
 A mobile-first, single-player third-person sci-fi action/adventure-survival prototype built with Godot 4.7.2 and GDScript.
 
-The executable baseline includes safe Explore, explicit Defense, Pulse/Nova/Arc weapons, Runner/Shooter enemies, persistent BP weapon unlocks, five registered theatre definitions, and a painted shell with direct selected-theatre DEPLOY. **TECH HUNT 0**—guarded technology missions with permanently secured blueprints—is the selected next prototype direction, not an implemented-feature claim.
+The executable baseline includes safe Explore, explicit Defense, Verdant Seed Vault Recovery with Extract/Continue to Endless, Pulse/Nova/Arc weapons, Runner/Shooter enemies, persistent BP and blueprint unlocks, five registered theatre definitions, and a painted shell with direct selected-theatre DEPLOY. **TECH HUNT 0** is the active prototype path; executed evidence and its limits are recorded in `docs/VALIDATION.md`.
 
 ## Start here
 
@@ -39,7 +39,17 @@ python3 tools/serve_preview.py --port 800
 
 Open the landing page at `http://localhost:800/` on the same development machine. The opening preloads the WASM + main PCK before MASUK; DEPLOY reuses that pack for the selected theatre. A warm unchanged preview revalidates content instead of intentionally downloading every asset again.
 
-Full export, QA, cache, recovery, and troubleshooting instructions: [`docs/runbooks/WEB_PREVIEW.md`](docs/runbooks/WEB_PREVIEW.md).
+Full export, QA, cache, recovery, and troubleshooting instructions: [`docs/runbooks/WEB_PREVIEW.md`](docs/runbooks/WEB_PREVIEW.md). The Web path requires an initial WASM/PCK download; it is not a zero-download or fully offline PWA.
+
+## Offline Android + USB updates
+
+With Godot/JDK/SDK configured, build, install, and relaunch the self-contained APK over USB:
+
+```bash
+./scripts/android_usb.sh
+```
+
+For an unchanged existing APK, `./scripts/android_usb.sh --skip-build` skips the export. The helper uses `adb install -r`, preserves profile data when package/signatures match, and never requires the Web server on the phone. See [`docs/runbooks/ANDROID.md`](docs/runbooks/ANDROID.md) for device setup, logging, and performance measurement.
 
 ## Checks
 
