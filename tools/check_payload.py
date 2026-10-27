@@ -69,8 +69,10 @@ FORBIDDEN = {
 FORBIDDEN_SUFFIXES = (".uid",)
 
 
-def read_directory(data: bytes, start: int, count: int) -> list[tuple[str, int, int]]:
-    """Read `count` entries. Each is: u32 len, path, u64 ofs, u64 size, md5, u32 flags."""
+def read_directory(
+    data: bytes, start: int, count: int, validate_offsets: bool = True
+) -> list[tuple[str, int, int]]:
+    """Read `count` entries; sparse bundles keep payloads outside the metadata."""
     out: list[tuple[str, int, int]] = []
     pos = start
     size = len(data)
@@ -91,22 +93,24 @@ def read_directory(data: bytes, start: int, count: int) -> list[tuple[str, int, 
             path = raw.rstrip(b"\x00").decode("utf-8")
         except UnicodeDecodeError:
             return []
+        if path.startswith("res://"):
+            path = path[6:]
         if any(ord(ch) < 32 for ch in path):
             return []
-        # Offsets are relative to file_base in a self-contained pack, so they
-        # must land inside the file.
-        if offset > size or file_size > size:
+        # Offsets are relative to file_base in a self-contained pack. Sparse
+        # APK entries instead name separate assets and are checked below.
+        if validate_offsets and (offset > size or file_size > size):
             return []
         out.append((path, offset, file_size))
     return out
 
 
 def pck_bytes(path: str) -> tuple[bytes, str]:
-    """Return the raw PCK bytes for a .pck, or for the pack inside an APK.
+    """Return monolithic PCK bytes or an Android sparse-bundle directory.
 
-    A Godot Android APK is a zip; the non-Gradle export drops the pack in
-    `assets/`. Reading it out means the same check covers both build paths from
-    the same gate (docs/ARCHITECTURE.md §4).
+    Godot 4.7 Android exports use `assets/assets.sparsepck` plus separate
+    asset entries instead of a monolithic `.pck`. Both layouts contain the same
+    directory records and must pass the same forbidden-content audit.
     """
     if path.endswith(".pck"):
         with open(path, "rb") as handle:
@@ -114,24 +118,64 @@ def pck_bytes(path: str) -> tuple[bytes, str]:
     import zipfile
 
     with zipfile.ZipFile(path) as archive:
-        names = [n for n in archive.namelist() if n.endswith(".pck")]
+        archive_names = archive.namelist()
+        names = [name for name in archive_names if name.endswith(".pck")]
+        sparse = [name for name in archive_names if name.endswith(".sparsepck")]
+        if not names and len(sparse) == 1:
+            return archive.read(sparse[0]), "%s::%s" % (path, sparse[0])
+        if not names and len(sparse) > 1:
+            raise SystemExit("%s: multiple sparse PCK directories found" % path)
         if not names:
             raise SystemExit(
-                "%s: no .pck found inside the archive (%d entries, %d named "
-                "*.so/*.dex)" % (path, len(archive.namelist()),
-                                 sum(1 for n in archive.namelist() if n.endswith((".so", ".dex"))))
+                "%s: no .pck or .sparsepck found inside the archive (%d entries, %d named "
+                "*.so/*.dex)"
+                % (
+                    path,
+                    len(archive_names),
+                    sum(1 for name in archive_names if name.endswith((".so", ".dex"))),
+                )
             )
         names.sort()
         return archive.read(names[0]), "%s::%s" % (path, names[0])
 
 
+def validate_sparse_assets(
+    path: str, label: str, entries: list[tuple[str, int, int]]
+) -> None:
+    """Check that every sparse directory record has the matching ZIP asset."""
+    import zipfile
+
+    if "::" not in label:
+        raise SystemExit("%s: sparse PCK metadata requires its containing APK" % path)
+    metadata_name = label.split("::", 1)[1]
+    asset_root = metadata_name.rsplit("/", 1)[0] if "/" in metadata_name else ""
+    with zipfile.ZipFile(path) as archive:
+        infos = {info.filename: info for info in archive.infolist()}
+        for entry_path, _offset, file_size in entries:
+            if not entry_path or entry_path.startswith("/") or ".." in entry_path.split("/"):
+                raise SystemExit("%s: unsafe sparse asset path %r" % (path, entry_path))
+            asset_name = (asset_root + "/" if asset_root else "") + entry_path
+            info = infos.get(asset_name)
+            if info is None:
+                raise SystemExit("%s: missing sparse asset %s" % (path, asset_name))
+            if info.file_size != file_size:
+                raise SystemExit(
+                    "%s: sparse asset %s has %d bytes; directory declares %d"
+                    % (path, asset_name, info.file_size, file_size)
+                )
+
+
 def parse_pck(path: str) -> tuple[list[tuple[str, int, int]], int, str]:
-    data, _label = pck_bytes(path)
+    data, label = pck_bytes(path)
     if data[:4] != MAGIC:
         raise SystemExit("%s: not a Godot PCK (magic %r)" % (path, data[:4]))
     if len(data) < DIR_OFFSET_POS + 8:
         raise SystemExit("%s: truncated header" % path)
     version, major, minor, patch = struct.unpack_from("<IIII", data, 4)
+    (pack_flags,) = struct.unpack_from("<I", data, 20)
+    sparse = bool(pack_flags & 4)  # PACK_SPARSE_BUNDLE in core/io/file_access_pack.h.
+    if sparse and version != 4:
+        raise SystemExit("%s: sparse bundles require PCK format version 4" % path)
     engine = "%d.%d.%d" % (major, minor, patch)
     if version >= 3:
         (directory,) = struct.unpack_from("<Q", data, DIR_OFFSET_POS)
@@ -145,12 +189,14 @@ def parse_pck(path: str) -> tuple[list[tuple[str, int, int]], int, str]:
             % (path, directory, len(data))
         )
     (count,) = struct.unpack_from("<I", data, directory)
-    entries = read_directory(data, directory + 4, count)
+    entries = read_directory(data, directory + 4, count, validate_offsets=not sparse)
     if len(entries) != count:
         raise SystemExit(
             "%s: read %d of %d directory entries — the layout does not match "
             "pack format version %d" % (path, len(entries), count, version)
         )
+    if sparse:
+        validate_sparse_assets(path, label, entries)
     return entries, version, engine
 
 
