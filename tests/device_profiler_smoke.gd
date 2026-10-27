@@ -20,13 +20,15 @@ func _run() -> void:
 		"startup records the Android renderer contract",
 	)
 	profiler.call("set_context", "defense", 3, 8)
-	for _frame in 300:
+	# Floating-point accumulation of 300 * (1/60) can land just below 5.0.
+	# The next real frame must cross the threshold and flush the whole window.
+	for _frame in 301:
 		profiler.call("_process", 1.0 / 60.0)
 	var windows := _frame_windows()
 	_expect(windows.size() == 1, "one five-second window is emitted and reset")
 	if windows.size() == 1:
 		var window := windows[0]
-		_expect(int(window.get("frames", 0)) == 300, "all rendered frames are counted")
+		_expect(int(window.get("frames", 0)) == 301, "all rendered frames are counted")
 		_expect(is_equal_approx(float(window.get("fps", 0.0)), 60.0), "FPS follows frames/elapsed")
 		_expect(
 			is_equal_approx(float(window.get("frame_p50_ms", 0.0)), 16.667),
