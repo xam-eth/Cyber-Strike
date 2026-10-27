@@ -1,0 +1,133 @@
+{
+  "tag": "round13-regression",
+  "viewports": [
+    "844x390",
+    "667x375"
+  ],
+  "screens": [
+    {
+      "screen": "opening",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/round-13/regression/opening-844x390.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [],
+      "width": 844,
+      "height": 390,
+      "bytes": 396326,
+      "lumaMean": 36.032456985707825,
+      "lumaStdDev": 36.753354824532074,
+      "uniqueColors": 6450
+    },
+    {
+      "screen": "hub",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/round-13/regression/hub-844x390.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [],
+      "width": 844,
+      "height": 390,
+      "bytes": 309561,
+      "lumaMean": 22.809358113990825,
+      "lumaStdDev": 35.74185099631886,
+      "uniqueColors": 3845
+    },
+    {
+      "screen": "settings",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/round-13/regression/settings-844x390.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [],
+      "width": 844,
+      "height": 390,
+      "bytes": 189753,
+      "lumaMean": 18.262477106576995,
+      "lumaStdDev": 23.2629330859551,
+      "uniqueColors": 1054
+    },
+    {
+      "screen": "launch",
+      "viewport": "844x390",
+      "file": "qa-evidence/ui/round-13/regression/launch-844x390.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [
+        "ERROR: No loader found for resource: res://game/assets/characters/human_hero_tiers/hero_human_tier_1.glb (expected type: unknown)",
+        "   at: _load (core/io/resource_loader.cpp:332)",
+        "WARNING: CharacterVisual: game/assets/characters/human_hero_tiers/hero_human_tier_1.glb is not a scene; keeping the scene's model.",
+        "   at: push_warning (core/variant/variant_utility.cpp:1033)"
+      ],
+      "width": 844,
+      "height": 390,
+      "bytes": 390322,
+      "lumaMean": 30.931399338948683,
+      "lumaStdDev": 25.877898255805757,
+      "uniqueColors": 2662
+    },
+    {
+      "screen": "opening",
+      "viewport": "667x375",
+      "file": "qa-evidence/ui/round-13/regression/opening-667x375.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [],
+      "width": 667,
+      "height": 375,
+      "bytes": 306868,
+      "lumaMean": 35.47177130557905,
+      "lumaStdDev": 36.98377266858898,
+      "uniqueColors": 4929
+    },
+    {
+      "screen": "hub",
+      "viewport": "667x375",
+      "file": "qa-evidence/ui/round-13/regression/hub-667x375.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [],
+      "width": 667,
+      "height": 375,
+      "bytes": 221259,
+      "lumaMean": 22.145484894359733,
+      "lumaStdDev": 37.730538387067156,
+      "uniqueColors": 3336
+    },
+    {
+      "screen": "settings",
+      "viewport": "667x375",
+      "file": "qa-evidence/ui/round-13/regression/settings-667x375.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [],
+      "width": 667,
+      "height": 375,
+      "bytes": 148532,
+      "lumaMean": 19.091642027787763,
+      "lumaStdDev": 26.06310072874649,
+      "uniqueColors": 1000
+    },
+    {
+      "screen": "launch",
+      "viewport": "667x375",
+      "file": "qa-evidence/ui/round-13/regression/launch-667x375.png",
+      "blank": false,
+      "overflow": [],
+      "errors": [
+        "ERROR: No loader found for resource: res://game/assets/characters/human_hero_tiers/hero_human_tier_1.glb (expected type: unknown)",
+        "   at: _load (core/io/resource_loader.cpp:332)",
+        "WARNING: CharacterVisual: game/assets/characters/human_hero_tiers/hero_human_tier_1.glb is not a scene; keeping the scene's model.",
+        "   at: push_warning (core/variant/variant_utility.cpp:1033)"
+      ],
+      "width": 667,
+      "height": 375,
+      "bytes": 304797,
+      "lumaMean": 30.955547580636605,
+      "lumaStdDev": 28.19143366510591,
+      "uniqueColors": 2660
+    }
+  ],
+  "failures": 0,
+  "generatedAt": "2026-10-27T00:21:31.837Z"
+}

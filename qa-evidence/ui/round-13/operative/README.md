@@ -46,6 +46,14 @@ unchanged).
   key in the roster exists, in both language columns) and
   `tools/check_localization.py` (202 keys × 2).
 
+## The rest of the shell (unchanged screens, re-photographed)
+
+`../regression/` holds opening, hub, settings and launch at both viewports, taken
+in the same run of `tools/ui_shots.mjs` — the operative page shares the dock, the
+plates and the type scale with those screens, so a change here that broke one of
+them would show up in the same pass. All eight frames: no blank frame, no
+element outside the viewport.
+
 ## Not photographed here
 
 The arena itself (Godot) is headless in this environment: the in-engine half of
