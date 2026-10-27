@@ -212,32 +212,13 @@ func make_button(
 		#     button's global rect reads 0,0 while it is inside the front-end
 		#     viewport — see docs/DECISIONS.md §12.3 for the three
 		#     approaches that were measured and did not work.
-# NOT here. Focus is taken by `_focus_primary()` when FrontEnd actually
-	# shows this stage. A deferred grab at construction time ran after the
-	# scene had already been replaced -- every stage is instantiated up
-	# front, including the ones a deep link never shows -- and Godot
-	# printed `Condition "!is_inside_tree()" is true. at: grab_focus` on
-	# every launch that skipped the front end.
+		# Focus is NOT taken here. FrontEnd calls `_focus_primary()` after the
+		# stage is visible. Grabbing during construction was too early because
+		# every stage is instantiated up front, including deep-link stages that
+		# are never shown.
 	if not tooltip.is_empty():
 		button.tooltip_text = tooltip
 	return button
-
-
-## Gives an entered stage a reliable keyboard/gamepad default. FrontEnd calls
-## this after making the stage visible; the deferred construction-time call
-## uses the same guard because hidden stages are still built in the tree.
-func _focus_primary() -> void:
-	_focus_button_when_ready(_primary_button)
-
-
-func _focus_button_when_ready(button: AegisButton) -> void:
-	if (
-		not is_instance_valid(button)
-		or not button.is_inside_tree()
-		or not button.is_visible_in_tree()
-	):
-		return
-	button.grab_focus()
 
 
 ## Enter activates the primary action even when nothing holds GUI focus.

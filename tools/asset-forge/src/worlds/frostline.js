@@ -55,7 +55,9 @@ export default {
     // Runner down.
     { role: 'relay_mast', name: 'RelayMast_North', pos: [-20, 0, -17], yaw: 0, district: 'core' },
     { role: 'relay_mast', name: 'RelayMast_South', pos: [20, 0, -17], yaw: 0, district: 'core' },
-    { role: 'relay_mast', name: 'RelayMast_SouthFront', pos: [0, 0, 13], yaw: 0, district: 'core' },
+    // Keep the authored spawn → MainNorth route clear. At x = 0 this mast
+    // stopped the real-collision traversal at z ≈ 16.3 in Godot.
+    { role: 'relay_mast', name: 'RelayMast_SouthFront', pos: [-20, 0, 13], yaw: 0, district: 'core' },
     { role: 'cover_module', name: 'CoverWest', pos: [-8, 0, 3], yaw: -12, district: 'core' },
     { role: 'cover_module', name: 'CoverEast', pos: [8, 0, 4], yaw: 78, district: 'core' },
 

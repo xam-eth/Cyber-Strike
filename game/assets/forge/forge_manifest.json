@@ -1,11 +1,11 @@
 {
- "generated": "2026-10-27T06:15:59.159Z",
+ "generated": "2026-10-27T06:47:06.673Z",
  "note": "Mission worlds built from real licensed GLBs, with byte-identical images staged as shared runtime textures. Provenance: tools/asset-forge/real/real-manifest.json",
  "shared_textures": {
   "policy": "byte-identical images use content-addressed URIs shared by every mission GLB; pixels and JPEG encoding are not changed",
   "count": 69,
   "references": 128,
-  "bytes": 10215247,
+  "bytes": 5816805,
   "files": [
    {
     "path": "res://assets/forge/textures/00d5cd930bab2b1d5e7145fb8953721be962ef267c6f23a6a07ed2a10918e97c.jpg",
@@ -16,32 +16,8 @@
     ]
    },
    {
-    "path": "res://assets/forge/textures/02c2ad31883846a31a3f1f7ebb0bd52506948112c922a88133ba46a9b675b516.jpg",
-    "bytes": 360267,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/07c508fd85682a4e9cb2d312ecdad927b83caa64c8adce4d1d314bb099b8145a.jpg",
-    "bytes": 396512,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
     "path": "res://assets/forge/textures/092204b1525d7be96d6c9803e4672aef8971e1c786c148c15634d986c07f571d.jpg",
     "bytes": 79562,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/0c0b68fc67716e48bb6ae6441b298ea0d57cf88d8aafd2f4ae3c8c1c9b3b77b9.jpg",
-    "bytes": 201349,
     "references": 1,
     "worlds": [
      "emberfall"
@@ -59,16 +35,16 @@
     ]
    },
    {
-    "path": "res://assets/forge/textures/0cb616df225883265ac432f9e477792c0b01eec9640ca3407d8f34cd36bce61c.jpg",
-    "bytes": 151554,
+    "path": "res://assets/forge/textures/0f8b9262cbd00cf0c958b5e11aec06d45788c3caecd1992c90e3931fb3376046.jpg",
+    "bytes": 12059,
     "references": 1,
     "worlds": [
      "emberfall"
     ]
    },
    {
-    "path": "res://assets/forge/textures/0f8b9262cbd00cf0c958b5e11aec06d45788c3caecd1992c90e3931fb3376046.jpg",
-    "bytes": 12059,
+    "path": "res://assets/forge/textures/11f15d72483df621f887928fef47fc96a1b8f9b8f59384459072ae8d206d30c1.jpg",
+    "bytes": 65690,
     "references": 1,
     "worlds": [
      "emberfall"
@@ -91,6 +67,22 @@
     ]
    },
    {
+    "path": "res://assets/forge/textures/164f9e0907f280b5c49d6594281e3ba79df1a57db3070a6bf297351d6641d7e1.jpg",
+    "bytes": 88257,
+    "references": 1,
+    "worlds": [
+     "emberfall"
+    ]
+   },
+   {
+    "path": "res://assets/forge/textures/167194f2c0854a352d3b363b1de3f920f327ceca08495ecd889952e228150265.jpg",
+    "bytes": 62017,
+    "references": 1,
+    "worlds": [
+     "emberfall"
+    ]
+   },
+   {
     "path": "res://assets/forge/textures/19a8a1aedc00c5077cde3ffe689f4ac6bd53f9d1c5d0e3bcd361a6cb0b6a160a.jpg",
     "bytes": 16877,
     "references": 1,
@@ -101,14 +93,6 @@
    {
     "path": "res://assets/forge/textures/22380a27fed56be4c9f12fd9ab36c7093fe30cbfb4c65ff1333ee6671e819060.jpg",
     "bytes": 7246,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/26c7b2b55fe0fdf1ae628f553a3458b625378443b6e4bd94b4f26066673d67e8.jpg",
-    "bytes": 361193,
     "references": 1,
     "worlds": [
      "emberfall"
@@ -141,6 +125,14 @@
     ]
    },
    {
+    "path": "res://assets/forge/textures/328ed73aa60e044decbc8ecddd58ec382dfd0146b6511c0165b6887c189afcd8.jpg",
+    "bytes": 100839,
+    "references": 1,
+    "worlds": [
+     "emberfall"
+    ]
+   },
+   {
     "path": "res://assets/forge/textures/363afd8046ae750b8e92011ac46247edd06c087c4fb6e93355476f3833622160.jpg",
     "bytes": 38289,
     "references": 1,
@@ -149,16 +141,8 @@
     ]
    },
    {
-    "path": "res://assets/forge/textures/384b5e0c29266141ed52c9c61cd77a78fdf29c4f53e86ecdaf2513170181dc8d.jpg",
-    "bytes": 83163,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/38b4fa4870cb9a5defb98579287af7d27b073ef28cca1089bcfefaed11aac6c9.jpg",
-    "bytes": 388319,
+    "path": "res://assets/forge/textures/3724c36bf08590fed20b4628fc55f232111e54b413e89e03bc629874b413e8a9.jpg",
+    "bytes": 94850,
     "references": 1,
     "worlds": [
      "emberfall"
@@ -176,14 +160,6 @@
     ]
    },
    {
-    "path": "res://assets/forge/textures/39f9816e1de19b6d9208a2850b750f9d063e84a543de109eca862dd07d620f09.jpg",
-    "bytes": 390073,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
     "path": "res://assets/forge/textures/3e390be8f33492f27d2f7e71522dc20bde1a9d898988a8f7951844fb253147a0.jpg",
     "bytes": 164017,
     "references": 5,
@@ -192,6 +168,14 @@
      "frostline",
      "titans",
      "verdant"
+    ]
+   },
+   {
+    "path": "res://assets/forge/textures/41b1691db5c8acc0bf9996438b7eb44aa59c5d1f24d23d3fb0c1278f2ae439bd.jpg",
+    "bytes": 55997,
+    "references": 1,
+    "worlds": [
+     "emberfall"
     ]
    },
    {
@@ -205,14 +189,6 @@
    {
     "path": "res://assets/forge/textures/4e8c5aefb1b66b6df8fc053a53d26d4b09b63f829e24b42fc1cb6b96bdea996f.jpg",
     "bytes": 6684,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/59b7bd6c2f5e1a4ed7cc8a87b2e81c3e3adc3da1a1f409e5ac5b59cd9160f140.jpg",
-    "bytes": 152841,
     "references": 1,
     "worlds": [
      "emberfall"
@@ -238,17 +214,25 @@
     ]
    },
    {
-    "path": "res://assets/forge/textures/640945bc728e1c3912123728e951450b6af20798e0f47c01c00301464b442a7c.jpg",
-    "bytes": 190194,
+    "path": "res://assets/forge/textures/6514ea8f38c19909fec45d8587fe0beb92997adb27ad056d8b21606f0fb20f8e.jpg",
+    "bytes": 19524,
     "references": 1,
     "worlds": [
      "emberfall"
     ]
    },
    {
-    "path": "res://assets/forge/textures/6514ea8f38c19909fec45d8587fe0beb92997adb27ad056d8b21606f0fb20f8e.jpg",
-    "bytes": 19524,
+    "path": "res://assets/forge/textures/689fa440a19b32eaccdb93ede3301ed72a748baa082dff7abef66dede6068a6b.jpg",
+    "bytes": 88744,
     "references": 1,
+    "worlds": [
+     "emberfall"
+    ]
+   },
+   {
+    "path": "res://assets/forge/textures/68cac0fdc7e2dcf9070b1d82e07e218fd277625e014c1f2a53c94a92095555aa.jpg",
+    "bytes": 68924,
+    "references": 2,
     "worlds": [
      "emberfall"
     ]
@@ -262,22 +246,6 @@
      "frostline",
      "titans",
      "verdant"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/6e8a5c538b1182e89a7d75924f4905626377e540f7d339e53bf115d13ed95c4b.jpg",
-    "bytes": 302279,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/6ecb2388eac8b8e15c7feab2d8307c60919fc61feb5398d699f839112c6c7bdb.jpg",
-    "bytes": 345231,
-    "references": 1,
-    "worlds": [
-     "emberfall"
     ]
    },
    {
@@ -317,24 +285,8 @@
     ]
    },
    {
-    "path": "res://assets/forge/textures/8238a48e1527bc4e2b70f1dc45caa53d3bc91dfe125f898f36fd651a7f69390d.jpg",
-    "bytes": 350670,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
     "path": "res://assets/forge/textures/830274a581d9b82881aced12a120e646204e001a5ecdfeb2dde74ecc88db1dc1.jpg",
     "bytes": 33767,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/879d7f17970850bdf1fdeb1168555a6175a70efecff5e67903ded10cbae3496b.jpg",
-    "bytes": 414612,
     "references": 1,
     "worlds": [
      "emberfall"
@@ -357,8 +309,32 @@
     ]
    },
    {
+    "path": "res://assets/forge/textures/91eed1e7223ae6ee9561b13eafbd3ce09baf2d8e741b9f733ef089b92e3d9839.jpg",
+    "bytes": 64562,
+    "references": 1,
+    "worlds": [
+     "emberfall"
+    ]
+   },
+   {
+    "path": "res://assets/forge/textures/98804951219a777bf8aec0a76c7ec2be7a066c5608b34d265a14720025821f40.jpg",
+    "bytes": 100332,
+    "references": 1,
+    "worlds": [
+     "emberfall"
+    ]
+   },
+   {
     "path": "res://assets/forge/textures/9c353b6f97ae1a6d0058e85ca4896f67cf1acbabcf0fbcd91a2b851facd9cd09.jpg",
     "bytes": 68244,
+    "references": 1,
+    "worlds": [
+     "emberfall"
+    ]
+   },
+   {
+    "path": "res://assets/forge/textures/9c58f4c0c33fd616d89fa6489804b22f362887ab7e489a9770be6aabfb2ec9e2.jpg",
+    "bytes": 84166,
     "references": 1,
     "worlds": [
      "emberfall"
@@ -373,6 +349,14 @@
     ]
    },
    {
+    "path": "res://assets/forge/textures/a121201b9bf571d6d6bfd5ce0393ced9e7b193cfa114c75a240d966fcf363852.jpg",
+    "bytes": 106041,
+    "references": 1,
+    "worlds": [
+     "emberfall"
+    ]
+   },
+   {
     "path": "res://assets/forge/textures/a9e5a2f76c24988089f444b07ed1328c6c45f77e238173afbfdfea12a34e5588.jpg",
     "bytes": 8264,
     "references": 6,
@@ -381,6 +365,14 @@
      "frostline",
      "titans",
      "verdant"
+    ]
+   },
+   {
+    "path": "res://assets/forge/textures/a9ebc22575f2d2c818cc6c429737774a167e978702dc556fc74ba308c4dfc19a.jpg",
+    "bytes": 59271,
+    "references": 1,
+    "worlds": [
+     "emberfall"
     ]
    },
    {
@@ -394,6 +386,14 @@
    {
     "path": "res://assets/forge/textures/ab8e6903ebef4ded772a6b1ea5d646b4a16aa16b0ef02354c19413d750fa4753.jpg",
     "bytes": 32232,
+    "references": 1,
+    "worlds": [
+     "emberfall"
+    ]
+   },
+   {
+    "path": "res://assets/forge/textures/b17f14bc2d0b77f39b339b3b7216bc1d10ae1d28f433d00e7c91e12f88781904.jpg",
+    "bytes": 58872,
     "references": 1,
     "worlds": [
      "emberfall"
@@ -419,14 +419,6 @@
     ]
    },
    {
-    "path": "res://assets/forge/textures/b56656e6469880a0edb2118da21a1c85a7dfea1f5b7fda7a78ba24d23ffea7fd.jpg",
-    "bytes": 508577,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
     "path": "res://assets/forge/textures/b8f0e3d2d8f5cf321cd2bff272253519097d9b9beea63b51229ef2c0470d4e12.jpg",
     "bytes": 23695,
     "references": 1,
@@ -435,16 +427,8 @@
     ]
    },
    {
-    "path": "res://assets/forge/textures/ba23044972992f2d07729fb1caf91d545746b54cc7b9ff8bba82f72689f60426.jpg",
-    "bytes": 201132,
-    "references": 2,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/bcc1383ebd14bc08c4fbf1253877fdc2649a8d4e4b19a358a18f438886ceec33.jpg",
-    "bytes": 496907,
+    "path": "res://assets/forge/textures/bced0672d8d32d961e8728140d54a92363b1ee40902e439b9d8a1deaef2e8f32.jpg",
+    "bytes": 100222,
     "references": 1,
     "worlds": [
      "emberfall"
@@ -469,6 +453,14 @@
      "emberfall",
      "frostline",
      "titans"
+    ]
+   },
+   {
+    "path": "res://assets/forge/textures/c271a363b383479370dee7b79fabda6f8d3e04eb2335abf5c88cf0b6f9b20b9b.jpg",
+    "bytes": 106815,
+    "references": 1,
+    "worlds": [
+     "emberfall"
     ]
    },
    {
@@ -499,6 +491,22 @@
     ]
    },
    {
+    "path": "res://assets/forge/textures/d0c9268f02a6dd5a492b3b8d0ac8be108e44362e7b65a4adeff9c20bff0fb004.jpg",
+    "bytes": 101012,
+    "references": 1,
+    "worlds": [
+     "emberfall"
+    ]
+   },
+   {
+    "path": "res://assets/forge/textures/d2dca4e8fefd01f0a331e7061d5ea016107d28a7f13dfb96df9a758bb8638cdc.jpg",
+    "bytes": 43584,
+    "references": 1,
+    "worlds": [
+     "emberfall"
+    ]
+   },
+   {
     "path": "res://assets/forge/textures/d305a8673aa037891b584f17416b95af0ca04f34d98d9e85e4ad2507c4208af8.jpg",
     "bytes": 63610,
     "references": 1,
@@ -507,24 +515,16 @@
     ]
    },
    {
+    "path": "res://assets/forge/textures/dd874ea180de2c893e9a8e75bd8862ef683cfe2f634401133b237d9d63a92fe3.jpg",
+    "bytes": 40498,
+    "references": 1,
+    "worlds": [
+     "emberfall"
+    ]
+   },
+   {
     "path": "res://assets/forge/textures/e083539f0b0aa2035dbbd65112137c7b639b7ab463259ec5123b1c9ff373a651.jpg",
     "bytes": 21030,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/e2b464d53dae395dd547ece4e31d8b9fe880e09d0aceb1a1cc5a5e18ca3d8613.jpg",
-    "bytes": 352070,
-    "references": 1,
-    "worlds": [
-     "emberfall"
-    ]
-   },
-   {
-    "path": "res://assets/forge/textures/e476cee90243f4b6031acea10556c14aa1f69d0fdb8c4cd77523d54bf6410f52.jpg",
-    "bytes": 169814,
     "references": 1,
     "worlds": [
      "emberfall"
@@ -555,16 +555,16 @@
     ]
    },
    {
-    "path": "res://assets/forge/textures/f65a6ddc481b476149781a3f45b87041d53f18c3e3f1443c08f7b81dc2ea8886.jpg",
-    "bytes": 184383,
+    "path": "res://assets/forge/textures/f887dd6c577d0a681caf819eca38fc1dc3448f0ea249419abc8da519c25a5ab3.jpg",
+    "bytes": 39776,
     "references": 1,
     "worlds": [
      "emberfall"
     ]
    },
    {
-    "path": "res://assets/forge/textures/f887dd6c577d0a681caf819eca38fc1dc3448f0ea249419abc8da519c25a5ab3.jpg",
-    "bytes": 39776,
+    "path": "res://assets/forge/textures/f93c338bac525dbd016ddb35468430ca4dfd67124cdae8d1b9a8b78b324a90e3.jpg",
+    "bytes": 112005,
     "references": 1,
     "worlds": [
      "emberfall"

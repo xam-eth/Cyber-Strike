@@ -85,10 +85,14 @@ SCAFFOLD_OPTIONS: list[tuple[str, str]] = [
 
 # Files that must never reach a player. `tests/*` is the whole smoke suite.
 # `assets/world/real/*` is the asset-forge's 55 MB source library; gameplay
-# loads only the staged `assets/forge/world/world.glb`. Exporting both copies
-# pushed the Web PCK past GitHub's 100 MB file limit without adding runtime
-# content. `tools/check_payload.py` checks the exported pack, not just this list.
-EXCLUDE_FROM_EXPORT = "tests/*,assets/world/real/*"
+# loads only the staged `assets/forge/worlds/*.glb`. `assets/enemies/*` contains
+# reviewed but unactivated visual/rig candidates, while live Runner/Shooter
+# scenes still reference their licensed Kenney models elsewhere. Exporting both
+# source-only sets pushed the Web PCK past GitHub's 100 MB file limit without
+# adding runtime content. Remove the enemy exclusion only with an activation
+# change and a fresh payload-budget gate. `tools/check_payload.py` checks the
+# exported pack, not just this list.
+EXCLUDE_FROM_EXPORT = "tests/*,assets/world/real/*,assets/enemies/*"
 
 PRESET_HEADER_OPTIONS: list[tuple[str, str]] = [
     ("runnable", "true"),

@@ -79,6 +79,24 @@ const entries = [];
 const stagedBinaries = [];
 const sharedTextures = new Map();
 
+// Read the source set before encoding any image. A map used by several Worlds
+// must keep identical bytes everywhere; resizing it only for Emberfall would
+// defeat content-addressed sharing and add a second runtime copy. Only maps
+// owned exclusively by Emberfall are eligible for its compact 512 px budget.
+const sourceDocs = new Map();
+const sourceTextureWorlds = new Map();
+for (const worldId of Object.keys(report.worlds)) {
+  const src = path.join(BUILD, worldId, 'world.glb');
+  if (!fs.existsSync(src)) continue;
+  const doc = await io.read(src);
+  sourceDocs.set(worldId, doc);
+  for (const texture of doc.getRoot().listTextures()) {
+    const hash = crypto.createHash('sha256').update(texture.getImage()).digest('hex');
+    if (!sourceTextureWorlds.has(hash)) sourceTextureWorlds.set(hash, new Set());
+    sourceTextureWorlds.get(hash).add(worldId);
+  }
+}
+
 // Seed the exact previous content-addressed maps. New references are added by
 // externalizeSharedTextures(); old GLBs and their manifest entries stay untouched.
 for (const file of previousManifest?.shared_textures?.files ?? []) {
@@ -106,16 +124,37 @@ for (const [worldId, world] of Object.entries(report.worlds)) {
     continue;
   }
 
-  const doc = await io.read(src);
-  await doc.transform(textureCompress({
-    encoder: sharp,
-    targetFormat: 'jpeg',
-    quality: 92,
-    resize: [2048, 2048],
-  }));
+  const doc = sourceDocs.get(worldId);
+  if (!doc) throw new Error(`${worldId}: source document was not loaded`);
+  const root = doc.getRoot();
+  const originalNames = root.listTextures().map((texture) => texture.getName());
+  let compactCount = 0;
+  root.listTextures().forEach((texture, index) => {
+    const hash = crypto.createHash('sha256').update(texture.getImage()).digest('hex');
+    const owners = sourceTextureWorlds.get(hash);
+    const compact = worldId === 'emberfall' && owners?.size === 1 && owners.has(worldId);
+    if (compact) compactCount += 1;
+    texture.setName(`__forge_${compact ? 'compact' : 'standard'}_${index}`);
+  });
+  try {
+    const encoding = { encoder: sharp, targetFormat: 'jpeg', quality: 92 };
+    if (compactCount > 0) {
+      await doc.transform(textureCompress({
+        ...encoding,
+        resize: [512, 512],
+        pattern: /^__forge_compact_/,
+      }));
+    }
+    await doc.transform(textureCompress({
+      ...encoding,
+      resize: [2048, 2048],
+      pattern: /^__forge_standard_/,
+    }));
+  } finally {
+    root.listTextures().forEach((texture, index) => texture.setName(originalNames[index]));
+  }
   const embedded = await io.writeBinary(doc);
   const binary = externalizeSharedTextures(embedded, worldId, sharedTextures);
-  const root = doc.getRoot();
 
   // Khronos validation, on the exact bytes Godot will import. A GLB that only
   // three.js accepts is not a shipping asset, and a broken file caught here is

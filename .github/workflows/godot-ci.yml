@@ -208,6 +208,8 @@ jobs:
           if missing:
               raise SystemExit(f'Exported PCK is missing content resources: {missing}')
           size = Path('web/index.pck').stat().st_size
+          if size >= 100000000:
+              raise SystemExit(f'Exported PCK exceeds the 100000000-byte plain-clone budget: {size}')
           largest = sorted(entries, key=lambda entry: entry[2], reverse=True)[:5]
           detail = ', '.join(f'{path}={size}' for path, _, size in largest)
           print(f'::notice title=Exported content payload::PCK {size} bytes, {len(entries)} files; all five worlds and dynamic Character visuals present; largest: {detail}')

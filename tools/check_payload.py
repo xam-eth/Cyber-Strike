@@ -47,6 +47,7 @@ DIR_OFFSET_POS = 32
 FORBIDDEN = {
     "tests/": ("the smoke test suite", True),
     "assets/world/real/": ("asset-forge source library; only the staged runtime world should ship", True),
+    "assets/enemies/": ("unactivated enemy visual/rig review candidates", True),
     "scripts/qa/": ("QA-only code (keyboard review rig)", False),
 }
 # Extensions Godot should never pack: editor metadata.
