@@ -203,7 +203,7 @@ func _check_world(world_id: String) -> Variant:
 	if floor_shape != null:
 		# MissionWorld copies these measured bounds from WorldDefinition. Keeping
 		# the contract in one resource avoids a stale 180 m literal per theatre.
-		var expected_field: Vector2 = world.get("field_size")
+		var expected_field: Vector2 = world.call("_field_size")
 		_passed = (
 			_expect(
 				(

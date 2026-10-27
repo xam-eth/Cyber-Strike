@@ -1,6 +1,6 @@
 extends Node3D
 
-enum SessionMode { EXPLORE, PREPARING, DEFENSE, MISSION_COMPLETE, RESULTS }
+enum SessionMode { EXPLORE, PREPARING, DEFENSE, RESULTS, MISSION_COMPLETE }
 enum RecoveryState { UNDISCOVERED, GUARDED, READY, SECURED }
 
 const PlayerControllerScript = preload("res://scripts/player/player_controller.gd")

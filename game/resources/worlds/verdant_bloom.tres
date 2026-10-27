@@ -16,10 +16,10 @@ reward_id = &"arc_shooter_blueprint"
 blueprint_id = &"arc_shooter"
 guard_spawns = Array[Dictionary]([{
 "enemy_id": &"runner",
-"position": Vector3(-7, 0.1, -2)
+"position": Vector3(-6, 0.1, 8)
 }, {
 "enemy_id": &"shooter",
-"position": Vector3(7, 0.1, -2)
+"position": Vector3(6, 0.1, 8)
 }])
 
 [sub_resource type="Resource" id="Resource_crashed_lab"]
@@ -35,10 +35,10 @@ reward_id = &"verdant_lab_bp"
 bp_reward = 80
 guard_spawns = Array[Dictionary]([{
 "enemy_id": &"runner",
-"position": Vector3(-47, 0.1, 25)
+"position": Vector3(-44, 0.1, 42)
 }, {
 "enemy_id": &"shooter",
-"position": Vector3(-29, 0.1, 24)
+"position": Vector3(-32, 0.1, 42)
 }])
 
 [resource]

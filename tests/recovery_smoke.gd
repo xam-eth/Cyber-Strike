@@ -10,6 +10,7 @@ const CONTINUE_PROFILE := "user://recovery-continue-smoke.cfg"
 const EXTRACT_PROFILE := "user://recovery-extract-smoke.cfg"
 
 var _failures := 0
+var _last_guard_error := ""
 
 
 func _initialize() -> void:
@@ -69,7 +70,7 @@ func _exercise_continue_and_death() -> void:
 	]
 
 	var player := main.get_node("Player") as CharacterBody3D
-	player.global_position = Vector3(-38.0, 0.1, 34.0)
+	player.global_position = Vector3(-38.0, 0.1, 38.0)
 	player.set("velocity", Vector3.ZERO)
 	await physics_frame
 	await physics_frame
@@ -134,7 +135,7 @@ func _exercise_death_retry_and_extract() -> void:
 	var progression := main.get_node("ProgressionService") as ProgressionService
 	var player := main.get_node("Player") as CharacterBody3D
 	player.set_physics_process(false)
-	player.global_position = Vector3(0.0, 0.1, 4.0)
+	player.global_position = Vector3(0.0, 0.1, 7.0)
 	await physics_frame
 	await physics_frame
 	main.call("_update_recovery")
@@ -189,7 +190,7 @@ func _exercise_death_retry_and_extract() -> void:
 func _secure_primary(main: Node) -> void:
 	var player := main.get_node("Player") as CharacterBody3D
 	player.set_physics_process(false)
-	player.global_position = Vector3(0.0, 0.1, 4.0)
+	player.global_position = Vector3(0.0, 0.1, 7.0)
 	player.set("velocity", Vector3.ZERO)
 	await physics_frame
 	await physics_frame
@@ -199,9 +200,13 @@ func _secure_primary(main: Node) -> void:
 		(hud.get("_state") as HudState).recovery_action == "engage",
 		"nearby guarded cache offers explicit Engage",
 	)
+	_last_guard_error = ""
 	main.call("_on_recovery_action")
 	var wave: Node = main.get_node("WaveDirector")
-	_expect(wave.call("guard_group_size", PRIMARY) == 2, "Engage spawns two real primary guards")
+	_expect(
+		wave.call("guard_group_size", PRIMARY) == 2,
+		"Engage spawns two real primary guards · " + _last_guard_error,
+	)
 	_expect(
 		(
 			int(wave.get("current_wave_enemy_count")) == 0
@@ -239,6 +244,9 @@ func _make_main(profile_path: String) -> Node:
 	main.set("defense_preparation_seconds", 0.05)
 	main.get_node("ProgressionService").set("profile_path", profile_path)
 	root.add_child(main)
+	(main.get_node("WaveDirector") as Node).connect(
+		"guard_group_spawn_failed", _record_guard_spawn_failed
+	)
 	await process_frame
 	await physics_frame
 	await physics_frame
@@ -251,6 +259,10 @@ func _reload_profile(profile_path: String) -> ProgressionService:
 	root.add_child(profile)
 	await process_frame
 	return profile
+
+
+func _record_guard_spawn_failed(_group_id: StringName, reason: String) -> void:
+	_last_guard_error = reason
 
 
 func _wave_values(wave: Node) -> Array[int]:
