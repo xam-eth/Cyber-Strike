@@ -223,6 +223,7 @@ Remote Godot Editor (`Debugger > Monitors`) tetap berguna saat development, teta
 | `adb devices` menampilkan `unauthorized` | Belum menerima prompt USB debugging di perangkat | Terima prompt, cabut-pasang kabel |
 | `android_usb.sh` menolak beberapa perangkat | Serial tujuan ambigu | Ulangi dengan `--serial SERIAL_HP`; jangan menebak perangkat |
 | Aplikasi tidak muncul setelah `monkey` | Preset lama menyembunyikan launcher | Pastikan `package/show_as_launcher_app=true`; scaffold repo sekarang mengaktifkannya |
+| `ETC2/ASTC texture compression is required` | Format tekstur mobile belum diaktifkan | Pertahankan `rendering/textures/vram_compression/import_etc2_astc=true` di `game/project.godot`, import ulang, lalu export |
 | APK terpasang tetapi langsung tertutup | Package id/versi bentrok atau crash awal | `adb logcat -s godot:V`, cek `version/code` unik |
 | Sentuh tidak berfungsi | Konfigurasi emulasi mouse | `input_devices/pointing/emulate_mouse_from_touch=false` sudah diset; pastikan event sentuh tidak ditelan UI |
 | CI hijau tetapi perangkat gagal | CI hanya menjalankan headless test | Perbedaan renderer/GPU/perangkat tidak terlihat di CI — inilah alasan gate E butuh perangkat |

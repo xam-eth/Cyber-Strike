@@ -112,4 +112,6 @@ renderer/rendering_method="mobile"
 renderer/rendering_method.mobile="mobile"
 ; Web (WASM) preview build: Godot only supports the Compatibility renderer on the web platform.
 renderer/rendering_method.web="gl_compatibility"
+; Android export requires mobile VRAM textures; other platforms keep their own formats.
+textures/vram_compression/import_etc2_astc=true
 environment/defaults/default_clear_color=Color(0.48,0.76,0.89,1)
