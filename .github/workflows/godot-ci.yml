@@ -202,6 +202,7 @@ jobs:
               'runner': 'assets/world/kenney_space_kit/alien.glb',
               'shooter': 'assets/world/kenney_space_kit/astronauta.glb',
               'training_drone': 'assets/world/kenney_space_kit/craft-miner.glb',
+              'recovery_cache': 'assets/world/kenney_space_kit/station-computer-wide.glb',
           }
           missing = [name for name, resource in required.items()
                      if not any(resource in path for path in paths)]
@@ -212,12 +213,13 @@ jobs:
               raise SystemExit(f'Exported PCK exceeds the 100000000-byte plain-clone budget: {size}')
           largest = sorted(entries, key=lambda entry: entry[2], reverse=True)[:5]
           detail = ', '.join(f'{path}={size}' for path, _, size in largest)
-          print(f'::notice title=Exported content payload::PCK {size} bytes, {len(entries)} files; all five worlds and dynamic Character visuals present; largest: {detail}')
+          print(f'::notice title=Exported content payload::PCK {size} bytes, {len(entries)} files; all five worlds and dynamic Character/Recovery visuals present; largest: {detail}')
           Path('exports/web-payload-summary.json').write_text(json.dumps({
               'pck_bytes': size,
               'files': len(entries),
               'worlds': ['frostline_relay', 'verdant_bloom', 'emberfall_foundry', 'vanguard_station', 'titans'],
               'dynamic_character_visuals': ['hero', 'held_weapon', 'runner', 'shooter', 'training_drone'],
+              'dynamic_world_visuals': ['recovery_cache'],
               'largest': [{'path': path, 'bytes': size} for path, _, size in largest],
           }, indent=2) + '\n')
           PY

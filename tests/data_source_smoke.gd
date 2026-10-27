@@ -459,7 +459,18 @@ func _check_unlock_economics() -> void:
 			"%s: a refused unlock does not grant the weapon" % weapon_id
 		)
 
-		# Exactly the price: granted, and the price is what was quoted.
+		# Exactly the price: granted after any required blueprint is present.
+		if ProgressionService.BLUEPRINT_REQUIRED.has(weapon_id):
+			(
+				_profile
+				. call(
+					"secure_cache",
+					StringName("data_source_%s" % weapon_id),
+					StringName("%s_blueprint" % weapon_id),
+					weapon_id,
+					0,
+				)
+			)
 		_profile.set("balance", cost)
 		_expect(
 			bool(_profile.unlock_weapon(weapon_id)),

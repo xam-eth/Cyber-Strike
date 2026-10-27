@@ -18,6 +18,9 @@ signal skill_requested
 signal pause_requested
 signal retry_requested
 signal defense_start_requested
+signal recovery_action_requested
+signal extract_requested
+signal continue_endless_requested
 signal return_to_explore_requested
 signal finish_run_requested
 signal sound_mute_requested
@@ -170,6 +173,7 @@ var _results_reward_label: Label
 var _results_goal_label: Label
 var _results_goal_progress_label: Label
 var _results_goal_bar: ProgressBar
+var _results_hint_label: Label
 
 var _fire_button: AegisButton
 var _weapon_button: AegisButton
@@ -343,6 +347,23 @@ func set_wave_status(
 	HudEncounterUi.update_objective(
 		self, wave_number, active_enemies, remaining_enemies, state_text
 	)
+
+
+func set_recovery_status(title: String, detail: String, state_text: String, action: String) -> void:
+	if (
+		_state.recovery_title == title
+		and _state.recovery_detail == detail
+		and _state.recovery_state == state_text
+		and _state.recovery_action == action
+	):
+		return
+	_state.recovery_active = not title.is_empty()
+	_state.recovery_title = title
+	_state.recovery_detail = detail
+	_state.recovery_state = state_text
+	_state.recovery_action = action
+	_apply_context_visibility()
+	HudEncounterUi.refresh_recovery_objective(self)
 
 
 ## Explicit run numbers: the score chip needs the key figure, and parsing the
@@ -627,6 +648,7 @@ func show_results(
 	best_score: int,
 	unlocked_ids: Dictionary,
 	was_defeated: bool,
+	recovery_summary: String = "",
 ) -> void:
 	(
 		HudMenuUi
@@ -641,8 +663,13 @@ func show_results(
 			best_score,
 			unlocked_ids,
 			was_defeated,
+			recovery_summary,
 		)
 	)
+
+
+func show_extraction_choice(wallet_bp: int, arc_unlocked: bool) -> void:
+	HudMenuUi.show_extraction_choice(self, wallet_bp, arc_unlocked)
 
 
 func hide_results() -> void:
@@ -1282,6 +1309,8 @@ func _on_skill_pressed() -> void:
 
 func _on_pause_pressed() -> void:
 	Sfx.play_ui(&"ui_click")
+	if _results_visible() and _state.results_mode == "extraction":
+		return
 	if _player_down:
 		retry_requested.emit()
 	else:
@@ -1316,7 +1345,13 @@ func _apply_preferences(values: Dictionary) -> void:
 
 
 func _on_defense_pressed() -> void:
-	if _state.play_phase != "explore" or get_tree().paused or _player_down:
+	if get_tree().paused or _player_down:
+		return
+	if not _state.recovery_action.is_empty() and _state.play_phase in ["explore", "defense"]:
+		Sfx.play_ui(&"ui_click")
+		recovery_action_requested.emit()
+		return
+	if _state.play_phase != "explore":
 		return
 	Sfx.play_ui(&"ui_click")
 	defense_start_requested.emit()
@@ -1339,12 +1374,18 @@ func _close_armory_overlay() -> void:
 
 func _on_return_to_explore_pressed() -> void:
 	Sfx.play_ui(&"ui_click")
-	return_to_explore_requested.emit()
+	if _state.results_mode == "extraction":
+		continue_endless_requested.emit()
+	else:
+		return_to_explore_requested.emit()
 
 
 func _on_results_retry_pressed() -> void:
 	Sfx.play_ui(&"ui_click")
-	retry_requested.emit()
+	if _state.results_mode == "extraction":
+		extract_requested.emit()
+	else:
+		retry_requested.emit()
 
 
 func _on_restart_pressed() -> void:

@@ -30,6 +30,16 @@ var shots: int = 0
 var play_phase: String = "explore"
 ## Countdown shown while the phase is "preparing"; 0 everywhere else.
 var preparation_seconds: int = 0
+## Results is also the mission-complete choice surface. In "extraction" mode
+## its two actions mean Extract and Continue, never Retry or abandon the run.
+var results_mode: String = "results"
+## Main's current Recovery presentation. Empty action means no field interaction
+## is available; these values never authorize a spawn, secure, or reward.
+var recovery_active: bool = false
+var recovery_title: String = ""
+var recovery_detail: String = ""
+var recovery_state: String = ""
+var recovery_action: String = ""
 ## Display name of the equipped weapon, kept so a relayout can re-render the
 ## weapon chip without asking the weapon controller again.
 var weapon_display_name: String = ""

@@ -649,6 +649,12 @@ func _on_weapon_action(weapon_id: StringName) -> void:
 		progression.select_weapon(weapon_id)
 		_armory_ui.show_hint_key("armory.now_equipped", [String(weapon_id).to_upper()])
 		return
+	if (
+		ProgressionService.BLUEPRINT_REQUIRED.has(weapon_id)
+		and not progression.has_blueprint(weapon_id)
+	):
+		_armory_ui.show_hint_key("recovery.blueprint_required")
+		return
 	var missing := progression.unlock_cost(weapon_id) - progression.balance
 	if missing > 0:
 		_armory_ui.show_hint_key("armory.need_bp", [missing])

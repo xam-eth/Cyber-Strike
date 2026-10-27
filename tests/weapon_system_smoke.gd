@@ -25,6 +25,7 @@ func _run_smoke_test() -> void:
 	await process_frame
 	var progression := main_scene.get_node("ProgressionService") as ProgressionService
 	progression.balance = 500
+	progression.secure_cache(&"weapon_system_fixture", &"arc_blueprint", &"arc_shooter")
 	var nova_unlocked := progression.unlock_weapon(&"nova_launcher")
 	var arc_unlocked := progression.unlock_weapon(&"arc_shooter")
 
@@ -222,10 +223,7 @@ func _run_smoke_test() -> void:
 			break
 	test_passed = (
 		_expect(
-			(
-				int(weapon_controller.call("get_current_ammo")) == 22
-				and touch_ammo.text == "22/24"
-			),
+			int(weapon_controller.call("get_current_ammo")) == 22 and touch_ammo.text == "22/24",
 			"each successful Pulse shot spends a round and updates the HUD",
 		)
 		and test_passed

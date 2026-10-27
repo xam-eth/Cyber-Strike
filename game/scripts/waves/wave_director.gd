@@ -7,6 +7,8 @@ signal enemy_spawned(enemy: Node3D)
 signal enemy_defeated(enemy: Node3D)
 signal session_ended(wave_index: int, total_defeated: int)
 signal spawn_blocked(reason: String)
+signal guard_group_cleared(group_id: StringName)
+signal guard_group_spawn_failed(group_id: StringName, reason: String)
 
 enum WaveState { IDLE, SPAWNING, INTERMISSION, GAME_OVER, BLOCKED }
 
@@ -31,6 +33,7 @@ const EnemyDefinitionScript = preload("res://scripts/enemies/enemy_definition.gd
 @export_range(0.25, 10.0, 0.25) var intermission_duration: float = 3.0
 @export_range(1.0, 15.0, 0.5) var minimum_spawn_distance: float = 7.5
 @export var arena_half_extents: Vector2 = Vector2(15.0, 15.0)
+@export var arena_center: Vector2 = Vector2.ZERO
 @export_range(0.5, 3.0, 0.1) var spawn_edge_margin: float = 1.25
 @export_range(0.1, 1.0, 0.05) var spawn_clearance_radius: float = 0.36
 @export_range(0.4, 1.5, 0.05) var spawn_clearance_height: float = 0.9
@@ -50,6 +53,17 @@ var active_enemy_count: int:
 	get:
 		return _active_enemies.size()
 
+var active_guard_count: int:
+	get:
+		var count := 0
+		for members in _guard_groups.values():
+			count += (members as Array).size()
+		return count
+
+var session_running: bool:
+	get:
+		return _session_running
+
 var enemies_remaining: int:
 	get:
 		return maxi(current_wave_enemy_count - enemies_defeated_this_wave, 0)
@@ -59,6 +73,10 @@ var _player_camera: Camera3D
 var _enemy_container: Node3D
 var _spawn_points_root: Node3D
 var _active_enemies: Array[Node3D] = []
+## Explicit Recovery encounters live outside wave counts but share spawning,
+## damage signals, hostile indicators, and cleanup with this director.
+var _guard_groups: Dictionary = {}
+var _guard_enemy_groups: Dictionary = {}
 var _spawn_clearance_shape: SphereShape3D
 var _rng := RandomNumberGenerator.new()
 var _session_running: bool = false
@@ -130,6 +148,7 @@ func reset_session() -> void:
 	_intermission_timer = 0.0
 	_failed_spawn_attempts = 0
 	_clear_active_enemies()
+	_clear_guard_groups()
 	state = WaveState.IDLE
 	current_wave = 0
 	current_wave_enemy_count = 0
@@ -149,13 +168,33 @@ func end_session() -> void:
 	# Don't leave live AI attacking the player behind the Results panel when a
 	# run is finished voluntarily (or after a defeat).
 	_clear_active_enemies()
+	_clear_guard_groups()
 	state = WaveState.GAME_OVER
 	session_ended.emit(current_wave, session_defeated_count)
 	_emit_progress()
 
 
+## Hostile indicators and tests receive every live combatant. Wave counters
+## still read active_enemy_count, which deliberately excludes Recovery guards.
 func get_active_enemies() -> Array[Node3D]:
-	return _active_enemies.duplicate()
+	var enemies: Array[Node3D] = _active_enemies.duplicate()
+	for members in _guard_groups.values():
+		for enemy in members as Array:
+			if is_instance_valid(enemy):
+				enemies.append(enemy as Node3D)
+	return enemies
+
+
+func get_guard_group(group_id: StringName) -> Array[Node3D]:
+	var members: Array[Node3D] = []
+	for enemy in _guard_groups.get(group_id, []) as Array:
+		if is_instance_valid(enemy):
+			members.append(enemy as Node3D)
+	return members
+
+
+func guard_group_size(group_id: StringName) -> int:
+	return get_guard_group(group_id).size()
 
 
 func get_shooter_count_for_wave(wave_index: int, enemy_count: int) -> int:
@@ -222,6 +261,72 @@ func _get_enemy_definition(enemy_id: StringName) -> EnemyDefinition:
 	return null
 
 
+## Spawn one explicitly requested Recovery group. No wave counter, intermission,
+## or session-running flag is changed, so the same API works before and during
+## Endless. Validation is transactional: a bad entry spawns no partial patrol.
+func spawn_guard_group(group_id: StringName, spawns: Array[Dictionary]) -> bool:
+	if group_id == &"" or spawns.is_empty() or _guard_groups.has(group_id):
+		return _fail_guard_spawn(group_id, "Guard group is empty or already active.")
+	if not _dependencies_are_valid():
+		return _fail_guard_spawn(group_id, "Guard dependencies are not ready.")
+	var validated: Array[Dictionary] = []
+	for spawn in spawns:
+		var enemy_id := StringName(str(spawn.get("enemy_id", "")))
+		var definition := _get_enemy_definition(enemy_id)
+		var raw_position: Variant = spawn.get("position")
+		if (
+			definition == null
+			or not definition.is_valid_definition()
+			or not raw_position is Vector3
+		):
+			return _fail_guard_spawn(group_id, "Guard content is missing or invalid.")
+		var position := raw_position as Vector3
+		var player_offset := position - _player.global_position
+		player_offset.y = 0.0
+		if player_offset.length() < 2.0 or not is_spawn_position_valid(position, false):
+			return _fail_guard_spawn(group_id, "A guard position is blocked; reposition and retry.")
+		validated.append({"definition": definition, "position": position})
+
+	var members: Array[Node3D] = []
+	for entry in validated:
+		var definition := entry["definition"] as EnemyDefinition
+		var enemy := _spawn_enemy(
+			definition, "Guard_%s_%02d" % [group_id, members.size() + 1], entry["position"]
+		)
+		if enemy == null:
+			for member in members:
+				_guard_enemy_groups.erase(member)
+				member.queue_free()
+			return _fail_guard_spawn(group_id, "A guard actor could not be instantiated.")
+		members.append(enemy)
+		_guard_enemy_groups[enemy] = group_id
+		enemy.connect("eliminated", _on_guard_eliminated.bind(enemy), CONNECT_ONE_SHOT)
+		enemy_spawned.emit(enemy)
+	_guard_groups[group_id] = members
+	_emit_progress()
+	return true
+
+
+func _fail_guard_spawn(group_id: StringName, reason: String) -> bool:
+	guard_group_spawn_failed.emit(group_id, reason)
+	return false
+
+
+func _spawn_enemy(
+	definition: EnemyDefinition, enemy_name: String, world_position: Vector3
+) -> Node3D:
+	var enemy := definition.enemy_scene.instantiate() as Node3D
+	if enemy == null or not enemy.has_signal("eliminated"):
+		if enemy != null:
+			enemy.queue_free()
+		return null
+	enemy.name = enemy_name
+	enemy.set("target_path", enemy_target_path)
+	enemy.position = _enemy_container.to_local(world_position)
+	_enemy_container.add_child(enemy)
+	return enemy
+
+
 func _attempt_spawn_enemy() -> void:
 	var spawn_marker := _choose_valid_spawn_marker()
 	if spawn_marker == null:
@@ -239,21 +344,12 @@ func _attempt_spawn_enemy() -> void:
 	if definition == null or not definition.is_valid_definition():
 		_block_session("The configured %s enemy definition is missing or invalid." % enemy_id)
 		return
-	var enemy := definition.enemy_scene.instantiate() as Node3D
-	if enemy == null:
-		_block_session("The configured %s scene could not be instantiated." % enemy_id)
-		return
-
-	enemy.name = (
+	var enemy_name := (
 		"%s_Wave%d_%02d" % [definition.display_name, current_wave, enemies_spawned_this_wave + 1]
 	)
-	enemy.set("target_path", enemy_target_path)
-	enemy.position = _enemy_container.to_local(spawn_marker.global_position)
-	_enemy_container.add_child(enemy)
-	if not enemy.has_signal("eliminated"):
-		push_error("Wave enemy must expose an 'eliminated' signal.")
-		enemy.queue_free()
-		_block_session("The spawned enemy has no eliminated signal.")
+	var enemy := _spawn_enemy(definition, enemy_name, spawn_marker.global_position)
+	if enemy == null:
+		_block_session("The configured %s scene could not be instantiated safely." % enemy_id)
 		return
 
 	_active_enemies.append(enemy)
@@ -356,16 +452,16 @@ func _has_player_sight_line(position: Vector3) -> bool:
 	return _player.get_world_3d().direct_space_state.intersect_ray(query).is_empty()
 
 
-func is_spawn_position_valid(position: Vector3) -> bool:
+func is_spawn_position_valid(position: Vector3, enforce_player_distance: bool = true) -> bool:
 	if (
-		absf(position.x) > arena_half_extents.x - spawn_edge_margin
-		or absf(position.z) > arena_half_extents.y - spawn_edge_margin
+		absf(position.x - arena_center.x) > arena_half_extents.x - spawn_edge_margin
+		or absf(position.z - arena_center.y) > arena_half_extents.y - spawn_edge_margin
 	):
 		return false
 
 	var horizontal_offset := position - _player.global_position
 	horizontal_offset.y = 0.0
-	if horizontal_offset.length() < minimum_spawn_distance:
+	if enforce_player_distance and horizontal_offset.length() < minimum_spawn_distance:
 		return false
 
 	var query := PhysicsShapeQueryParameters3D.new()
@@ -388,6 +484,21 @@ func _is_in_camera_front_cone(position: Vector3) -> bool:
 	if camera_forward.length_squared() < 0.001 or to_spawn.length_squared() < 0.001:
 		return false
 	return camera_forward.normalized().dot(to_spawn.normalized()) > camera_front_dot_threshold
+
+
+func _on_guard_eliminated(enemy: Node3D) -> void:
+	if not _guard_enemy_groups.has(enemy):
+		return
+	var group_id := StringName(_guard_enemy_groups[enemy])
+	_guard_enemy_groups.erase(enemy)
+	var members: Array = _guard_groups.get(group_id, [])
+	members.erase(enemy)
+	enemy_defeated.emit(enemy)
+	enemy.queue_free()
+	if members.is_empty():
+		_guard_groups.erase(group_id)
+		guard_group_cleared.emit(group_id)
+	_emit_progress()
 
 
 func _on_enemy_eliminated(enemy: Node3D) -> void:
@@ -427,6 +538,15 @@ func _clear_active_enemies() -> void:
 		if is_instance_valid(enemy):
 			enemy.queue_free()
 	_active_enemies.clear()
+
+
+func _clear_guard_groups() -> void:
+	for members in _guard_groups.values():
+		for enemy in members:
+			if is_instance_valid(enemy):
+				enemy.queue_free()
+	_guard_groups.clear()
+	_guard_enemy_groups.clear()
 
 
 func _emit_progress() -> void:

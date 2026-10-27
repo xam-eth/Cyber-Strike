@@ -30,6 +30,7 @@ func _run_smoke_test() -> void:
 	await process_frame
 	var progression := main_scene.get_node("ProgressionService") as ProgressionService
 	progression.balance = 250
+	progression.secure_cache(&"arc_weapon_fixture", &"arc_blueprint", &"arc_shooter")
 	var arc_unlocked := progression.unlock_weapon(&"arc_shooter")
 
 	var player: Node3D = main_scene.get_node("Player")

@@ -67,6 +67,9 @@ const DEFAULT_WORLD_ID := &"frostline_relay"
 @export var zone_title: String = "EXPLORE THE FRONTIER"
 @export var zone_subtitle: String = "SAFE ZONE · MOVE FREELY"
 @export var field_ready: bool = true
+## Explicit Recovery content for the shared Main composition. Empty in theatres
+## without the reviewed TECH HUNT 0 mission; no mode is inferred from prose.
+@export var recovery_caches: Array[RecoveryCacheDefinition] = []
 ## Gameplay reads this World-owned spawn after the shell selection is resolved.
 ## The default is the legacy main.tscn position, so existing theatres and test
 ## fixtures keep their original start unless their definition opts into another.

@@ -2,7 +2,7 @@
 
 - **Document role:** canonical product/gameplay direction and gameplay-logic scope.
 - **Direction status:** **TECH HUNT selected for prototyping on 2026-10-26.**
-- **Implementation status:** the executable baseline remains safe Explore + explicit Defense + persistent BP weapon unlocks. TECH HUNT mission/cache behavior is **ABSENT** until implemented and verified.
+- **Implementation status:** **IMPLEMENTED IN SOURCE:** the canonical TECH HUNT 0 path is Verdant Bloom Seed Vault Recovery, with an optional crashed-lab cache, persistent Arc Shooter blueprint eligibility, and explicit Extract/Continue. Existing safe Explore, Defense, Endless, BP, and five-theatre behavior remain. Executed runtime evidence and its limits belong in `VALIDATION.md`.
 - **Evidence status:** combat mechanics have automated coverage; human hook, engagement, retention, and physical-device experience remain **UNKNOWN**.
 
 Read this document before changing gameplay or player-facing logic. Process and sequencing live in [`DEVELOPMENT.md`](DEVELOPMENT.md); module boundaries live in [`ARCHITECTURE.md`](ARCHITECTURE.md); executed evidence lives in [`VALIDATION.md`](VALIDATION.md).
@@ -448,7 +448,7 @@ Any TECH HUNT implementation must preserve:
 9. The secured capability creates a real loadout/armory option and a reason to test it.
 10. Existing wave/reward duplicate guards, safe deployment, profile behavior, and theatre selection still pass.
 
-These are criteria to implement and test, not current claims.
+These criteria now have integration-smoke coverage at the real Main/Profile/Wave/HUD boundary. That does not establish human comprehension, audiovisual quality, physical-device behavior, fun, or retention.
 
 ### 14.3 Human comprehension gates
 
@@ -479,10 +479,10 @@ Analytics event names and collection are not implemented by this design. Any mea
 
 | Decision | Current status | Required before |
 |---|---|---|
-| Exact world, mission id, cache location, and first blueprint reward for TECH HUNT 0 | **UNKNOWN** | Mission/content implementation |
+| Exact world, mission id, cache location, and first blueprint reward for TECH HUNT 0 | **IMPLEMENTED:** Verdant Bloom; `verdant_seed_vault`, optional `verdant_crashed_lab`; Arc Shooter blueprint | Keep ids stable through validation |
 | Energy Rifle ↔ `pulse_rifle` naming | **UNKNOWN** | Display-copy or save-id change; prefer no id rename |
-| Permanent blueprint schema and migration inside `ProgressionService` | **PROPOSED** | Secure/save implementation |
-| Guard activation and extraction UI details | **PROPOSED within TECH HUNT 0** | Shared UI/Core transition work |
+| Permanent blueprint schema and migration inside `ProgressionService` | **IMPLEMENTED:** existing profile v1 gains secured-cache/blueprint string arrays; absent legacy fields default empty | Persistence/reload regression |
+| Guard activation and extraction UI details | **IMPLEMENTED:** explicit Engage/Secure and mission-complete Extract/Continue | Browser and human comprehension review |
 | First run-upgrade milestones and actual three choices | **PROPOSED** | Any upgrade implementation |
 | Elite/post-cap escalation axis | **PROPOSED** | Long-run Endless work |
 | Boss/guardian production beyond existing guards | **DEFERRED** | After TECH HUNT 0 playtest |

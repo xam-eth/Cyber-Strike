@@ -1,6 +1,7 @@
 extends Node3D
 
-enum SessionMode { EXPLORE, PREPARING, DEFENSE, RESULTS }
+enum SessionMode { EXPLORE, PREPARING, DEFENSE, MISSION_COMPLETE, RESULTS }
+enum RecoveryState { UNDISCOVERED, GUARDED, READY, SECURED }
 
 const PlayerControllerScript = preload("res://scripts/player/player_controller.gd")
 const TrainingDroneScript = preload("res://scripts/enemies/training_drone.gd")
@@ -9,6 +10,7 @@ const TouchControlsScript = preload("res://scripts/ui/hud/touch_controls.gd")
 const RunStatsScript = preload("res://scripts/progression/run_stats.gd")
 const RewardServiceScript = preload("res://scripts/progression/reward_service.gd")
 const ProgressionServiceScript = preload("res://scripts/progression/progression_service.gd")
+const RecoveryCacheVisualScript = preload("res://scripts/worlds/recovery_cache_visual.gd")
 const DEFEAT_REVEAL_SECONDS := 1.55
 const DEFEAT_HOLD_DRAWN_FRAMES := 6
 
@@ -27,6 +29,20 @@ var _defeat_reveal_remaining: float = 0.0
 var _pending_defeat_wave: int = -1
 var _defeat_hold_drawn_at: int = -1
 var _defeat_hold_process_at: int = -1
+
+## TECH HUNT 0 is orchestrated here, at the existing composition root. World
+## resources provide cache content; WaveDirector and ProgressionService remain
+## the only encounter and persistent-reward owners.
+var _recovery_caches: Array[RecoveryCacheDefinition] = []
+var _recovery_states: Dictionary = {}
+var _recovery_visuals: Dictionary = {}
+var _recovery_root: Node3D
+var _recovery_action_cache: StringName = &""
+var _recovery_notices: Array[Dictionary] = []
+var _recovery_choice_presented: bool = false
+var _recovery_return_mode: SessionMode = SessionMode.EXPLORE
+var _extracting: bool = false
+var _run_banked: bool = false
 
 @onready var player: PlayerControllerScript = $Player
 @onready var training_drone: TrainingDroneScript = $TrainingDrone
@@ -83,6 +99,7 @@ func _ready() -> void:
 	_on_profile_changed()
 	_apply_saved_weapon()
 	_apply_selected_world_spawn()
+	_setup_recovery()
 	touch_controls._update_weapon_ammo(
 		player.weapon_controller.get_current_ammo(),
 		player.weapon_controller.get_current_magazine_size(),
@@ -91,6 +108,9 @@ func _ready() -> void:
 	touch_controls.set_skill_cooldown(0.0, player.emp_pulse_cooldown)
 	touch_controls.retry_requested.connect(_reset_session)
 	touch_controls.defense_start_requested.connect(_request_defense)
+	touch_controls.recovery_action_requested.connect(_on_recovery_action)
+	touch_controls.extract_requested.connect(_extract_from_recovery)
+	touch_controls.continue_endless_requested.connect(_continue_to_endless)
 	touch_controls.return_to_explore_requested.connect(_return_to_explore)
 	touch_controls.finish_run_requested.connect(_finish_run)
 	touch_controls.home_requested.connect(_exit_to_dashboard)
@@ -112,9 +132,12 @@ func _ready() -> void:
 	reward_service.enemy_rewarded.connect(_on_enemy_rewarded)
 	wave_director.session_ended.connect(_on_wave_session_ended)
 	wave_director.spawn_blocked.connect(_on_wave_spawn_blocked)
+	wave_director.guard_group_cleared.connect(_on_guard_group_cleared)
+	wave_director.guard_group_spawn_failed.connect(_on_guard_group_spawn_failed)
 	touch_controls._set_play_phase("explore")
 	Sfx.set_music_mode(&"explore")
 	_update_status()
+	_update_recovery()
 	print("Encounter: Explore safe; activate Start Defense when ready")
 	print(
 		(
@@ -132,6 +155,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	touch_controls.set_aim_state(player.is_aiming())
+	_update_recovery()
 	if _pending_defeat_wave >= 0:
 		_defeat_reveal_remaining = maxf(_defeat_reveal_remaining - delta, 0.0)
 		if _defeat_reveal_remaining <= 0.0:
@@ -161,7 +185,13 @@ func _process(delta: float) -> void:
 		elif ceili(_preparation_remaining) != before:
 			touch_controls._set_play_phase("preparing", ceili(_preparation_remaining))
 	if Input.is_action_just_pressed("start_defense"):
-		_request_defense()
+		if (
+			not _recovery_action_cache.is_empty()
+			and session_mode in [SessionMode.EXPLORE, SessionMode.DEFENSE]
+		):
+			_on_recovery_action()
+		else:
+			_request_defense()
 	if Input.is_action_just_pressed("open_armory"):
 		_open_armory()
 	if Input.is_action_just_pressed("reset_session"):
@@ -244,6 +274,8 @@ func _apply_selected_world_spawn() -> void:
 	var definition := WorldDefinition.load_definition(selected)
 	if definition != null:
 		player.position = definition.player_spawn
+		wave_director.arena_half_extents = definition.field_size * 0.5
+		wave_director.arena_center = definition.field_center
 
 
 func _on_weapon_equipped(_display_name: String) -> void:
@@ -286,6 +318,12 @@ func _on_armory_weapon_action(weapon_id: StringName) -> void:
 			"%s EQUIPPED · READY TO PLAY" % weapon_name.to_upper()
 		)
 		return
+	if (
+		ProgressionService.BLUEPRINT_REQUIRED.has(weapon_id)
+		and not progression_service.has_blueprint(weapon_id)
+	):
+		touch_controls._armory_panel.show_hint(AegisText.t("recovery.blueprint_required"))
+		return
 	var missing := progression_service.unlock_cost(weapon_id) - progression_service.balance
 	if missing > 0:
 		touch_controls._armory_panel.show_hint("NEED %d MORE BP · FIGHT WAVES" % missing)
@@ -298,6 +336,8 @@ func _on_armory_weapon_action(weapon_id: StringName) -> void:
 
 
 func _toggle_pause() -> void:
+	if session_mode == SessionMode.MISSION_COMPLETE:
+		return
 	if player.is_defeated():
 		_reset_session()
 		return
@@ -343,6 +383,9 @@ func _return_to_explore() -> void:
 	_defeat_hold_drawn_at = -1
 	_defeat_hold_process_at = -1
 	_retry_defense = false
+	_extracting = false
+	_run_banked = false
+	_recovery_return_mode = SessionMode.EXPLORE
 	wave_director.reset_session()
 	player.reset_player()
 	player.camera_rig.recenter_for_new_run()
@@ -352,6 +395,7 @@ func _return_to_explore() -> void:
 	run_stats.reset_run()
 	reward_service.reset_run()
 	session_mode = SessionMode.EXPLORE
+	_reset_recovery()
 	Sfx.set_music_mode(&"explore")
 	touch_controls.hide_results()
 	touch_controls.set_player_down(false)
@@ -383,6 +427,352 @@ func _finish_run() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	touch_controls.set_paused(false)
 	wave_director.end_session()
+
+
+# --- TECH HUNT 0: explicit Recovery inside this session ---------------------
+
+
+func _setup_recovery() -> void:
+	var selected := WorldSelection.selected(self)
+	var definition := WorldDefinition.load_definition(selected)
+	if definition == null or definition.recovery_caches.is_empty():
+		return
+	_recovery_root = Node3D.new()
+	_recovery_root.name = "RecoveryCaches"
+	add_child(_recovery_root)
+	for cache in definition.recovery_caches:
+		if cache == null or not cache.is_valid_definition():
+			push_warning("Recovery: invalid cache definition in %s" % selected)
+			continue
+		_recovery_caches.append(cache)
+		_recovery_states[cache.cache_id] = (
+			RecoveryState.SECURED
+			if progression_service.is_cache_secured(cache.cache_id)
+			else RecoveryState.UNDISCOVERED
+		)
+		var visual := RecoveryCacheVisualScript.new() as Node3D
+		visual.name = "Cache_%s" % cache.cache_id
+		visual.position = cache.position
+		visual.set("model_scene_path", cache.model_scene_path)
+		visual.set("cache_title", cache.display_name)
+		_recovery_root.add_child(visual)
+		_recovery_visuals[cache.cache_id] = visual
+		_refresh_recovery_visual(cache)
+
+
+func _reset_recovery() -> void:
+	_recovery_action_cache = &""
+	_recovery_choice_presented = false
+	_recovery_notices.clear()
+	for cache in _recovery_caches:
+		_recovery_states[cache.cache_id] = (
+			RecoveryState.SECURED
+			if progression_service.is_cache_secured(cache.cache_id)
+			else RecoveryState.UNDISCOVERED
+		)
+		_refresh_recovery_visual(cache)
+	_update_recovery()
+
+
+func _cache_by_id(cache_id: StringName) -> RecoveryCacheDefinition:
+	for cache in _recovery_caches:
+		if cache.cache_id == cache_id:
+			return cache
+	return null
+
+
+func _primary_cache() -> RecoveryCacheDefinition:
+	for cache in _recovery_caches:
+		if not cache.optional:
+			return cache
+	return null
+
+
+func _optional_cache() -> RecoveryCacheDefinition:
+	for cache in _recovery_caches:
+		if cache.optional:
+			return cache
+	return null
+
+
+func _cache_state(cache_id: StringName) -> int:
+	return int(_recovery_states.get(cache_id, RecoveryState.UNDISCOVERED))
+
+
+## String form for smoke tests and diagnostics; reward decisions use the enum.
+func recovery_cache_state(cache_id: StringName) -> String:
+	match _cache_state(cache_id):
+		RecoveryState.GUARDED:
+			return "guarded"
+		RecoveryState.READY:
+			return "ready"
+		RecoveryState.SECURED:
+			return "secured"
+	return "undiscovered"
+
+
+func _cache_distance(cache: RecoveryCacheDefinition) -> float:
+	return (
+		Vector2(
+			player.global_position.x - cache.position.x, player.global_position.z - cache.position.z
+		)
+		. length()
+	)
+
+
+func _update_recovery() -> void:
+	if (
+		_recovery_caches.is_empty()
+		or session_mode in [SessionMode.MISSION_COMPLETE, SessionMode.RESULTS]
+		or player.is_defeated()
+	):
+		return
+	var nearest: RecoveryCacheDefinition = null
+	var nearest_distance := INF
+	for cache in _recovery_caches:
+		if progression_service.is_cache_secured(cache.cache_id):
+			_recovery_states[cache.cache_id] = RecoveryState.SECURED
+		var distance := _cache_distance(cache)
+		if (
+			_cache_state(cache.cache_id) == RecoveryState.UNDISCOVERED
+			and distance <= cache.discovery_radius
+		):
+			_recovery_states[cache.cache_id] = RecoveryState.GUARDED
+			_refresh_recovery_visual(cache)
+		if (
+			_cache_state(cache.cache_id) != RecoveryState.SECURED
+			and distance <= cache.interaction_radius
+			and distance < nearest_distance
+		):
+			nearest = cache
+			nearest_distance = distance
+
+	_recovery_action_cache = &""
+	var action := ""
+	if nearest != null:
+		match _cache_state(nearest.cache_id):
+			RecoveryState.GUARDED:
+				if wave_director.guard_group_size(nearest.cache_id) == 0:
+					action = "engage"
+			RecoveryState.READY:
+				action = "secure"
+		if not action.is_empty():
+			_recovery_action_cache = nearest.cache_id
+	_update_recovery_hud(nearest, nearest_distance, action)
+
+
+func _update_recovery_hud(
+	nearest: RecoveryCacheDefinition, nearest_distance: float, action: String
+) -> void:
+	var title := ""
+	var detail := ""
+	var state_text := ""
+	if nearest != null:
+		title = nearest.display_name
+		var guards := wave_director.guard_group_size(nearest.cache_id)
+		state_text = (
+			AegisText.t("recovery.guards_remaining", [guards])
+			if guards > 0
+			else _recovery_state_text(nearest)
+		)
+		detail = "%s · %d m" % [_recovery_reward_text(nearest), roundi(nearest_distance)]
+	else:
+		var primary := _primary_cache()
+		var optional := _optional_cache()
+		var target: RecoveryCacheDefinition = null
+		if primary != null and _cache_state(primary.cache_id) != RecoveryState.SECURED:
+			target = primary
+			title = AegisText.t("recovery.primary_task", [primary.display_name])
+		elif optional != null and _cache_state(optional.cache_id) != RecoveryState.SECURED:
+			target = optional
+			title = AegisText.t("recovery.optional_task", [optional.display_name])
+		elif primary != null:
+			title = AegisText.t("recovery.complete_title")
+			detail = AegisText.t("recovery.all_secured")
+			state_text = AegisText.t("recovery.secured")
+		if target != null:
+			detail = "%s · %d m" % [_recovery_reward_text(target), roundi(_cache_distance(target))]
+			state_text = target.landmark_name
+	touch_controls.set_recovery_status(title, detail, state_text, action)
+
+
+func _recovery_state_text(cache: RecoveryCacheDefinition) -> String:
+	match _cache_state(cache.cache_id):
+		RecoveryState.READY:
+			return AegisText.t("recovery.ready")
+		RecoveryState.SECURED:
+			return AegisText.t("recovery.secured")
+		RecoveryState.GUARDED:
+			return AegisText.t("recovery.guarded")
+	return AegisText.t("recovery.signal")
+
+
+func _recovery_reward_text(cache: RecoveryCacheDefinition) -> String:
+	if cache.blueprint_id != &"":
+		var weapon := WeaponDefinition.load_definition(cache.blueprint_id)
+		var weapon_name := String(cache.blueprint_id) if weapon == null else weapon.display_name
+		return AegisText.t("recovery.blueprint_reward", [weapon_name])
+	return AegisText.t("recovery.bp_reward", [cache.bp_reward])
+
+
+func _refresh_recovery_visual(cache: RecoveryCacheDefinition) -> void:
+	var visual := _recovery_visuals.get(cache.cache_id) as Node3D
+	if visual == null:
+		return
+	var color: Color = AegisTokens.INK_2
+	match _cache_state(cache.cache_id):
+		RecoveryState.GUARDED:
+			color = AegisTokens.ACCENT
+		RecoveryState.READY:
+			color = AegisTokens.INFO
+		RecoveryState.SECURED:
+			color = AegisTokens.OK
+	visual.call("set_visual_state", _recovery_state_text(cache), color)
+
+
+func _on_recovery_action() -> void:
+	var cache := _cache_by_id(_recovery_action_cache)
+	if (
+		cache == null
+		or _cache_distance(cache) > cache.interaction_radius
+		or session_mode not in [SessionMode.EXPLORE, SessionMode.PREPARING, SessionMode.DEFENSE]
+		or player.is_defeated()
+		or _is_paused
+	):
+		return
+	match _cache_state(cache.cache_id):
+		RecoveryState.GUARDED:
+			if wave_director.guard_group_size(cache.cache_id) > 0:
+				return
+			wave_director.spawn_guard_group(cache.cache_id, cache.guard_spawns)
+		RecoveryState.READY:
+			_secure_cache(cache)
+	_update_recovery()
+	_update_status()
+
+
+func _secure_cache(cache: RecoveryCacheDefinition) -> bool:
+	if (
+		cache == null
+		or _cache_state(cache.cache_id) != RecoveryState.READY
+		or wave_director.guard_group_size(cache.cache_id) > 0
+		or _cache_distance(cache) > cache.interaction_radius
+		or session_mode not in [SessionMode.EXPLORE, SessionMode.PREPARING, SessionMode.DEFENSE]
+		or player.is_defeated()
+		or _is_paused
+	):
+		return false
+	if not progression_service.secure_cache(
+		cache.cache_id, cache.reward_id, cache.blueprint_id, cache.bp_reward
+	):
+		return false
+	_recovery_states[cache.cache_id] = RecoveryState.SECURED
+	if cache.blueprint_id != &"":
+		_recovery_notices.append({"kind": "blueprint", "weapon": cache.blueprint_id})
+	elif cache.bp_reward > 0:
+		_recovery_notices.append({"kind": "bp", "amount": cache.bp_reward})
+	_refresh_recovery_visual(cache)
+	Sfx.play_ui(&"session_clear")
+	touch_controls._feedback_panel.show_message(
+		AegisText.t("recovery.secured_feedback", [cache.display_name])
+	)
+	print("Recovery: secured %s · reward %s" % [cache.cache_id, cache.reward_id])
+	_update_recovery()
+	_update_status()
+	_present_recovery_choice()
+	return true
+
+
+func _on_guard_group_cleared(group_id: StringName) -> void:
+	var cache := _cache_by_id(group_id)
+	if cache == null or progression_service.is_cache_secured(group_id):
+		return
+	_recovery_states[group_id] = RecoveryState.READY
+	_refresh_recovery_visual(cache)
+	touch_controls._feedback_panel.show_message(
+		AegisText.t("recovery.ready_feedback", [cache.display_name])
+	)
+	_update_recovery()
+	_update_status()
+
+
+func _on_guard_group_spawn_failed(group_id: StringName, reason: String) -> void:
+	if _cache_by_id(group_id) == null:
+		return
+	push_warning("Recovery guards: " + reason)
+	touch_controls._feedback_panel.show_message(AegisText.t("recovery.spawn_blocked"))
+
+
+func _present_recovery_choice() -> void:
+	var primary := _primary_cache()
+	if (
+		primary == null
+		or _recovery_choice_presented
+		or not progression_service.is_cache_secured(primary.cache_id)
+	):
+		return
+	_recovery_choice_presented = true
+	_recovery_return_mode = session_mode
+	session_mode = SessionMode.MISSION_COMPLETE
+	_is_paused = true
+	get_tree().paused = true
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	Sfx.set_music_mode(&"results")
+	touch_controls._set_play_phase("results")
+	touch_controls.show_extraction_choice(
+		progression_service.balance, progression_service.is_unlocked(&"arc_shooter")
+	)
+
+
+func _continue_to_endless() -> void:
+	if session_mode != SessionMode.MISSION_COMPLETE:
+		return
+	var return_mode := _recovery_return_mode
+	touch_controls.hide_results()
+	_is_paused = false
+	get_tree().paused = false
+	touch_controls.set_paused(false)
+	if return_mode == SessionMode.DEFENSE and wave_director.session_running:
+		session_mode = SessionMode.DEFENSE
+		Sfx.set_music_mode(&"defense")
+		touch_controls._set_play_phase("defense")
+	elif return_mode == SessionMode.PREPARING:
+		session_mode = SessionMode.PREPARING
+		Sfx.set_music_mode(&"preparing")
+		touch_controls._set_play_phase("preparing", ceili(_preparation_remaining))
+	else:
+		session_mode = SessionMode.EXPLORE
+		Sfx.set_music_mode(&"explore")
+		touch_controls._set_play_phase("explore")
+		_request_defense()
+	_update_status()
+	_update_recovery()
+
+
+func _extract_from_recovery() -> void:
+	if session_mode != SessionMode.MISSION_COMPLETE:
+		return
+	_extracting = true
+	_is_paused = false
+	get_tree().paused = false
+	touch_controls.hide_results()
+	touch_controls.set_paused(false)
+	if wave_director.state == WaveDirectorScript.WaveState.GAME_OVER:
+		_on_wave_session_ended(wave_director.current_wave, wave_director.session_defeated_count)
+	else:
+		wave_director.end_session()
+
+
+func _recovery_result_summary() -> String:
+	var lines := PackedStringArray()
+	for notice in _recovery_notices:
+		if notice.get("kind", "") == "blueprint":
+			var weapon := WeaponDefinition.load_definition(StringName(notice["weapon"]))
+			if weapon != null:
+				lines.append(AegisText.t("results.recovery_blueprint", [weapon.display_name]))
+		elif notice.get("kind", "") == "bp":
+			lines.append(AegisText.t("results.recovery_bp", [int(notice["amount"])]))
+	return "\n".join(lines)
 
 
 func _on_shot_fired() -> void:
@@ -457,21 +847,26 @@ func _on_wave_enemy_spawned(enemy: Node3D) -> void:
 
 
 func _on_wave_session_ended(wave_index: int, _total_defeated: int) -> void:
-	var was_defense := session_mode == SessionMode.DEFENSE
+	var was_defense := (
+		session_mode == SessionMode.DEFENSE
+		or (_extracting and _recovery_return_mode == SessionMode.DEFENSE)
+	)
+	var should_bank := was_defense or _extracting
 	# Explore never spawns an automatic wave, but a test/manual damage event
 	# can still defeat the hero. Show recoverable Results instead of stranding
 	# a dead character with no session to finish or rewards to claim.
-	if not was_defense and not player.is_defeated():
+	if not should_bank and not player.is_defeated():
 		return
-	_retry_defense = was_defense
+	_retry_defense = was_defense and not _extracting
 	session_mode = SessionMode.RESULTS
 	Sfx.set_music_mode(&"results")
 	if not player.is_defeated():
 		Sfx.play_ui(&"session_clear")
 	run_stats.end_run()
-	if was_defense:
-		# Bank immediately. The player must not lose earned BP merely because
-		# they leave while the short death-reveal animation is still playing.
+	if should_bank and not _run_banked:
+		# Bank immediately, including Extract from a non-Defense Recovery. The
+		# guard covers duplicate end signals and all subsequent retry/reset paths.
+		_run_banked = true
 		progression_service.bank_run(run_stats.run_score, run_stats.bp_earned)
 		print(
 			(
@@ -505,6 +900,7 @@ func _present_results(wave_index: int) -> void:
 			progression_service.best_score,
 			progression_service.unlocked_ids,
 			player.is_defeated(),
+			_recovery_result_summary(),
 		)
 	)
 	_update_status()

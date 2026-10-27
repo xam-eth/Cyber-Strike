@@ -167,9 +167,9 @@ static func build_results(hud) -> void:
 	hud._results_summary = hud._label("", "mono_m", AegisTokens.INK_2)
 	hud._results_summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	report.add_child(hud._results_summary)
-	var hint: Label = hud._label_key("results.hint", "caption", AegisTokens.INK_3)
-	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	report.add_child(hint)
+	hud._results_hint_label = hud._label_key("results.hint", "caption", AegisTokens.INK_3)
+	hud._results_hint_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	report.add_child(hud._results_hint_label)
 
 	hud._results_retry_button = AegisButton.new()
 	hud._results_retry_button.name = "ResultsRetryButton"
@@ -222,7 +222,9 @@ static func update_results(
 	best_score: int,
 	unlocked_ids: Dictionary,
 	was_defeated: bool,
+	recovery_summary: String = "",
 ) -> void:
+	AegisText.apply(hud._results_hint_label, "results.hint")
 	AegisText.apply(
 		hud._results_eyebrow,
 		"results.eyebrow_ended" if was_defeated else "results.eyebrow_complete"
@@ -260,6 +262,8 @@ static func update_results(
 			)
 		)
 	)
+	if not recovery_summary.is_empty():
+		hud._results_summary.text += "\n" + recovery_summary
 
 	var next_cost := 0
 	var next_name := ""
@@ -333,9 +337,12 @@ static func show_results(
 	best_score: int,
 	unlocked_ids: Dictionary,
 	was_defeated: bool,
+	recovery_summary: String = "",
 ) -> void:
 	if not is_instance_valid(hud._results_panel):
 		return
+	hud._state.results_mode = "results"
+	hud._results_home_button.visible = true
 	hud._clear_touch_state()
 	update_results(
 		hud,
@@ -348,6 +355,7 @@ static func show_results(
 		best_score,
 		unlocked_ids,
 		was_defeated,
+		recovery_summary,
 	)
 	hud._results_panel.visible = true
 	# The report is a layer like any other: ESC on it RETRYs (the path the pause
@@ -385,9 +393,42 @@ static func show_results(
 	hud.queue_redraw()
 
 
+## The primary secure opens a choice inside the existing Results surface. No
+## banking happens until Extract; Continue keeps the current field and run.
+static func show_extraction_choice(hud, wallet_bp: int, arc_unlocked: bool) -> void:
+	var unlocked: Dictionary = {"arc_shooter": true} if arc_unlocked else {}
+	show_results(hud, 0, "00:00", 0, 0, 0, wallet_bp, 0, unlocked, false)
+	hud._state.results_mode = "extraction"
+	AegisText.apply(hud._results_eyebrow, "recovery.complete_eyebrow")
+	AegisText.apply(hud._results_title, "recovery.complete_title")
+	AegisText.apply(hud._results_reward_label, "recovery.primary_reward")
+	AegisText.apply(hud._results_summary, "recovery.choice_summary")
+	AegisText.apply(hud._results_hint_label, "recovery.choice_hint")
+	AegisText.apply(hud._results_retry_button, "recovery.extract")
+	AegisText.apply(hud._results_explore_button, "recovery.continue_endless")
+	hud._results_home_button.visible = false
+	if arc_unlocked:
+		AegisText.apply(hud._results_goal_label, "recovery.arc_owned")
+		AegisText.apply(hud._results_goal_progress_label, "recovery.arc_ready")
+	else:
+		AegisText.apply(hud._results_goal_label, "recovery.arc_blueprint")
+		(
+			AegisText
+			. apply(
+				hud._results_goal_progress_label,
+				"recovery.armory_cost",
+				[ProgressionService.COSTS["arc_shooter"]],
+			)
+		)
+	hud._results_goal_bar.max_value = ProgressionService.COSTS["arc_shooter"]
+	hud._results_goal_bar.value = mini(wallet_bp, int(hud._results_goal_bar.max_value))
+
+
 static func hide_results(hud) -> void:
 	if not is_instance_valid(hud._results_panel):
 		return
+	hud._state.results_mode = "results"
+	hud._results_home_button.visible = true
 	hud._overlays.remove(hud._results_panel)
 	hud._results_panel.visible = false
 	if hud._results_retry_button.has_focus():

@@ -13,14 +13,14 @@ This is the canonical guide for turning the selected game direction into verifie
 | Area | Current baseline | Next direction |
 |---|---|---|
 | Product | Mobile-first, single-player third-person sci-fi shooter | TECH HUNT action/adventure-survival prototype |
-| Session | Safe Explore, explicit preparation, Defense, Results, retry | Recovery mission → secure tech → Extract or Endless |
+| Session | Safe Explore, explicit Defense, Verdant Recovery, Extract/Continue, Endless, Results, retry | Validate the complete player path in browser, then observe human comprehension |
 | Combat | Pulse/Nova/Arc, Runner/Shooter, EMP, damage and feedback | Prove guarded tech encounters with existing content |
-| Progression | Persistent BP wallet, weapon unlock/equip, profile save | Add secured blueprint/milestone semantics without a new currency |
+| Progression | Persistent BP wallet, weapon unlock/equip, secured cache and Arc blueprint eligibility in the same profile | Preserve legacy profiles and prove death/retry/reload transactions |
 | Endless | Structurally endless waves with capped count/composition | Preserve mode; add meaningful escalation only after measurement |
 | Worlds/UI | Five registered theatre definitions, shell selection and direct DEPLOY, initial opening preload | Reuse current registries/adapters; receive external visual packages through the isolated import path |
 | Validation | Full automated gate recorded at the checkpoint in `VALIDATION.md` | TECH HUNT-specific engine/browser/human/device evidence still needed |
 
-The active prototype is **TECH HUNT 0**. Its inclusion and exclusion lists are normative. Do not substitute the retired arena-only roadmap or old monetization concept.
+The active prototype is **TECH HUNT 0**. Its inclusion and exclusion lists are normative. The locked first path is Verdant Bloom: Seed Vault primary Recovery, crashed-lab optional cache, and the existing Arc Shooter blueprint. Do not substitute the retired arena-only roadmap or old monetization concept.
 
 ## 2. Development principles
 
@@ -164,6 +164,8 @@ The phases below are dependency gates, not calendar promises.
 **Explicitly out of scope:** new gameplay/economy/save behavior, automatic roster or enemy-role activation, arbitrary runtime-code sandboxing, and IAP. **Exit:** static/package gates and module-isolation/domain smoke tests pass; export and browser evidence are recorded separately when run.
 
 ### Phase B — TECH HUNT 0 contract lock
+
+**Status:** **IMPLEMENTED IN SOURCE.** Runtime and browser evidence remain separate gates recorded in `VALIDATION.md`.
 
 **Goal:** resolve only the decisions needed for the first vertical path.
 

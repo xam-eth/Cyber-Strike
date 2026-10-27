@@ -1,7 +1,45 @@
-[gd_resource type="Resource" script_class="WorldDefinition" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="WorldDefinition" load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/progression/world_definition.gd" id="1_definition"]
 [ext_resource type="PackedScene" path="res://scenes/worlds/mission_world.tscn" id="2_world"]
+[ext_resource type="Script" path="res://scripts/progression/recovery_cache_definition.gd" id="3_cache"]
+
+[sub_resource type="Resource" id="Resource_seed_vault"]
+script = ExtResource("3_cache")
+cache_id = &"verdant_seed_vault"
+display_name = "SEED VAULT"
+landmark_name = "SHRINE"
+position = Vector3(0, 0.05, 3)
+interaction_radius = 5.0
+discovery_radius = 26.0
+reward_id = &"arc_shooter_blueprint"
+blueprint_id = &"arc_shooter"
+guard_spawns = Array[Dictionary]([{
+"enemy_id": &"runner",
+"position": Vector3(-7, 0.1, -2)
+}, {
+"enemy_id": &"shooter",
+"position": Vector3(7, 0.1, -2)
+}])
+
+[sub_resource type="Resource" id="Resource_crashed_lab"]
+script = ExtResource("3_cache")
+cache_id = &"verdant_crashed_lab"
+display_name = "LAB CACHE"
+landmark_name = "WEST LAB"
+position = Vector3(-38, 0.05, 34)
+optional = true
+interaction_radius = 6.0
+discovery_radius = 24.0
+reward_id = &"verdant_lab_bp"
+bp_reward = 80
+guard_spawns = Array[Dictionary]([{
+"enemy_id": &"runner",
+"position": Vector3(-47, 0.1, 25)
+}, {
+"enemy_id": &"shooter",
+"position": Vector3(-29, 0.1, 24)
+}])
 
 [resource]
 script = ExtResource("1_definition")
@@ -18,3 +56,4 @@ zone_title = "EXPLORE THE BLOOM"
 zone_subtitle = "RECOVERY · SEED VAULT SIGNAL"
 field_ready = true
 player_spawn = Vector3(0, 0.1, 12)
+recovery_caches = Array[RecoveryCacheDefinition]([SubResource("Resource_seed_vault"), SubResource("Resource_crashed_lab")])

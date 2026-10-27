@@ -14,6 +14,7 @@ extends RefCounted
 ## tooling is reviewed separately before an internal adapter is changed.
 const WORLD_ROOTS: Array[String] = [
 	"res://assets/forge/worlds/",
+	"res://assets/world/kenney_space_kit/",
 	"res://content/worlds/",
 ]
 const CHARACTER_ROOTS: Array[String] = [

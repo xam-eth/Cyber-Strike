@@ -34,6 +34,9 @@ static func update_objective(
 	if not is_instance_valid(hud._wave_title_label):
 		return
 	if hud._state.play_phase == "explore":
+		if hud._state.recovery_active:
+			refresh_recovery_objective(hud)
+			return
 		var copy: Array = zone_copy(hud)
 		hud._wave_title_label.text = copy[0]
 		hud._wave_enemy_label.text = copy[1]
@@ -71,6 +74,21 @@ static func update_objective(
 	hud._refresh_compact_label()
 
 
+static func refresh_recovery_objective(hud) -> void:
+	if (
+		not is_instance_valid(hud._wave_title_label)
+		or hud._state.play_phase != "explore"
+		or not hud._state.recovery_active
+	):
+		return
+	hud._wave_title_label.text = hud._state.recovery_title
+	hud._wave_enemy_label.text = hud._state.recovery_detail
+	hud._wave_state_label.text = hud._state.recovery_state
+	AegisText.apply(hud._wave_chip_label, "hud.chip_recovery")
+	hud._compact_wave_text = hud._wave_enemy_label.text
+	hud._refresh_compact_label()
+
+
 static func apply_context(hud) -> void:
 	if not is_instance_valid(hud._defense_button):
 		return
@@ -79,14 +97,25 @@ static func apply_context(hud) -> void:
 	)
 	var exploring: bool = hud._state.play_phase == "explore"
 	var preparing: bool = hud._state.play_phase == "preparing"
-	hud._defense_button.visible = active and (exploring or preparing)
+	var defending: bool = hud._state.play_phase == "defense"
+	var recovery_available: bool = (
+		not hud._state.recovery_action.is_empty() and (exploring or defending)
+	)
+	hud._defense_button.visible = active and (exploring or preparing or recovery_available)
 	if is_instance_valid(hud._armory_button):
 		# On a short landscape phone the expanded WEAPON plate occupies the
 		# old Armory slot. Its Explore action opens the same Armory instead;
 		# Defense retains the normal SWAP action.
 		hud._armory_button.visible = active and exploring and not weapon_acts_as_armory(hud)
-	hud._defense_button.disabled = not exploring
-	if preparing:
+	hud._defense_button.disabled = preparing
+	if recovery_available:
+		var action_key := ""
+		if hud._state.recovery_action == "engage":
+			action_key = "hud.engage_guards" if hud._touch_mode else "hud.engage_guards_key"
+		else:
+			action_key = "hud.secure_cache" if hud._touch_mode else "hud.secure_cache_key"
+		AegisText.apply(hud._defense_button, action_key)
+	elif preparing:
 		AegisText.apply(hud._defense_button, "hud.defense_in", [hud._state.preparation_seconds])
 	else:
 		(

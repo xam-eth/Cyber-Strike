@@ -29,6 +29,15 @@ func _run() -> void:
 	_expect(
 		profile.best_score == 120 and profile.balance == 310, "best score stays separate from BP"
 	)
+	_expect(not profile.unlock_weapon(&"arc_shooter"), "Arc also requires its recovered blueprint")
+	_expect(
+		profile.secure_cache(&"verdant_seed_vault", &"arc_shooter_blueprint", &"arc_shooter"),
+		"Seed Vault persists Arc blueprint eligibility",
+	)
+	_expect(
+		not profile.secure_cache(&"verdant_seed_vault", &"arc_shooter_blueprint", &"arc_shooter"),
+		"duplicate cache secure is a no-op",
+	)
 	_expect(profile.unlock_weapon(&"arc_shooter") and profile.balance == 60, "Arc costs 250 BP")
 	profile.queue_free()
 	await process_frame
@@ -46,6 +55,8 @@ func _run() -> void:
 		(
 			wallet.balance == 60
 			and wallet.is_unlocked(&"arc_shooter")
+			and wallet.is_cache_secured(&"verdant_seed_vault")
+			and wallet.has_blueprint(&"arc_shooter")
 			and open_button.text.contains("60 BP")
 		),
 		"restarting the game reloads BP and purchased weapons into the live HUD",

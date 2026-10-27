@@ -14,6 +14,15 @@ For intended behavior, read [`GAMEPLAY_DESIGN.md`](GAMEPLAY_DESIGN.md). For requ
 | Evidence date | 2026-10-26 |
 | Documentation consolidation | Separate source-only change; it does not revalidate gameplay or create a new runtime checkpoint |
 
+### TECH HUNT 0 source gate — 2026-10-27
+
+For the Verdant Recovery implementation and its integration repairs:
+
+- **VERIFIED (local static):** `./scripts/dev_check.sh` completed with **0 failed steps and 2 skipped steps**: 86 GDScript files parsed/linted/formatted, 64 tooling tests, 18/18 canonical documents, 142 relative links, 86-script static-call scan, architecture boundaries, generated module map, and a 34-test inventory including `recovery_smoke.gd`.
+- **VERIFIED (local static):** English and Indonesian catalogs each contain 246 keys with aligned placeholders; the cache GLB hash and provenance are recorded beside the asset.
+- **DIAGNOSED (previous CI, not a current pass):** [40464131772](https://github.com/xam-eth/Cyber-Strike/actions/runs/40464131772) for `f812196` passed 32/33 headless tests before one test-side type-inference parse failure; its opening-loading QA also waited for the pre-localization label `Masuk` instead of the enabled localized ENTER/MASUK action. Those two harness/source issues are repaired in this change, but require a fresh CI run.
+- **PENDING:** Godot import and execution of all 34 tests, Web export/payload audit, and Chromium opening/recovery/player-path checks for this Recovery source. Local engine and export preset remain unavailable; no runtime pass is inferred from static analysis.
+
 ### Documentation consolidation gate — 2026-10-26
 
 For the canonical-documentation/tooling consolidation itself:
@@ -68,19 +77,23 @@ These warm-cache measurements belong to the earlier `15e594f` payload and were n
 
 ## 3. Gameplay evidence interpretation
 
-The automated suite and browser paths support the existing combat/session/world baseline described in `GAMEPLAY_DESIGN.md`. They do **not** establish that TECH HUNT 0 is implemented.
+The old full checkpoint supports the pre-Recovery combat/session/world baseline only. The current source now implements Verdant Seed Vault Recovery, its optional crashed-lab cache, persistent Arc blueprint eligibility, and Extract/Continue; the registered Recovery smoke drives real Main/Profile/Wave/HUD objects through blocked Secure, real guard elimination, death/retry/reload, Endless coexistence, Extract, and exactly-once banking.
 
-The following remain **ABSENT or UNVERIFIED as a complete experience** until new checks exist:
+Until the fresh engine/browser run is recorded, the following are **IMPLEMENTED IN SOURCE BUT RUNTIME-UNVERIFIED for this change**:
 
-- mission card → guarded cache → secure → permanent blueprint → redeploy;
-- death-before/death-after secure for the new mission system;
-- Extract versus Continue to Endless after a mission objective;
+- mission card/tracker → guarded cache → Secure → permanent blueprint → redeploy;
+- death-before/death-after Secure and immediate profile persistence;
+- Extract versus Continue to Endless, optional-cache completion during waves, and run cleanup/banking;
+- the actual rendered cache model, interaction readability, and browser player path.
+
+The following remain **UNKNOWN** regardless of that automated run:
+
 - human understanding of the mission and optional risk;
 - human mastery/enjoyment of locked-shot dodge/punish;
 - long-run Endless decision quality and post-cap balance;
 - retention or engagement improvement.
 
-A selected design, a resource file, a UI card, or a passing static check must not be reported as completion of those paths.
+A selected design, a resource file, a UI card, or a passing static check must not be reported as completion of those human or device outcomes.
 
 ## 4. Explicitly unverified at the full checkpoint
 

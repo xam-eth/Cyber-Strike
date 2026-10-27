@@ -234,7 +234,7 @@ function expectByteProgress(result, state, requireIntermediate) {
   if (requireIntermediate) {
     result.expect(percentages.some((value) => value < 100), 'throttled download exposed no intermediate byte progress');
     result.expect(
-      state.trace.status.some((line) => line.includes('mengunduh mesin + dunia')),
+      state.trace.status.some((line) => /mengunduh mesin \+ dunia|downloading engine \+ world/i.test(line)),
       'combined byte/phase status was not rendered',
     );
   }
@@ -268,10 +268,13 @@ async function runOpeningContract() {
 
   try {
     await page.goto(`${baseUrl}/`, { waitUntil: 'domcontentloaded', timeout: 60000 });
-    await page.waitForFunction(() => (
-      document.getElementById('opening-enter')?.querySelector('.btn__label')?.textContent === 'Masuk'
-      && !document.getElementById('opening-enter')?.disabled
-    ), { timeout: timeoutMs });
+    await page.waitForFunction(() => {
+      const button = document.getElementById('opening-enter');
+      const label = button?.querySelector('.btn__label')?.textContent.trim().toUpperCase();
+      // The integrated shell is localized; readiness is the enabled ENTER /
+      // MASUK action, not one hard-coded language string.
+      return ['ENTER', 'MASUK'].includes(label) && !button?.disabled;
+    }, { timeout: timeoutMs });
 
     result.opening = await readState(page);
     result.openingRequests = [...assetRequests];
@@ -413,7 +416,9 @@ async function runRecoveryCase(asset) {
     result.recovered.trace = {
       percent: compactConsecutive(result.recovered.trace.percent),
       status: compactConsecutive(result.recovered.trace.status.map((line) => (
-        line.includes('mengunduh mesin + dunia') ? 'mengunduh mesin + dunia (aggregate bytes)' : line
+        /mengunduh mesin \+ dunia|downloading engine \+ world/i.test(line)
+          ? 'engine + world (aggregate bytes)'
+          : line
       ))),
     };
     delete result.recovered.progressEvents;

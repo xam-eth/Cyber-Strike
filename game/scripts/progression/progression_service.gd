@@ -10,6 +10,9 @@ signal profile_changed
 const PROFILE_PATH := "user://progression.cfg"
 const PROFILE_SECTION := "profile"
 const COSTS := {"pulse_rifle": 0, "nova_launcher": 120, "arc_shooter": 250}
+## Weapon ownership still costs BP; these recovered records make a purchase
+## eligible. Existing owners are migrated below and never lose their weapon.
+const BLUEPRINT_REQUIRED: Array[StringName] = [&"arc_shooter"]
 const MAX_VALUE := 99999999
 
 ## The only content that actually exists. The selection screens show these as
@@ -37,6 +40,10 @@ var balance: int = 0
 var best_score: int = 0
 var completed_runs: int = 0
 var unlocked_ids: Dictionary = {"pulse_rifle": true}
+## Permanent Recovery transactions. `secured_caches` maps cache id to its known
+## reward id; `blueprint_ids` is the eligibility record used by the Armory.
+var secured_caches: Dictionary = {}
+var blueprint_ids: Dictionary = {}
 ## Front-end state that has to outlive the session: whether the opening
 ## cinematic has been played, and the loadout the player last launched with.
 var intro_seen: bool = false
@@ -62,6 +69,8 @@ func load_profile() -> void:
 	best_score = 0
 	completed_runs = 0
 	unlocked_ids = {"pulse_rifle": true}
+	secured_caches.clear()
+	blueprint_ids.clear()
 	intro_seen = false
 	selected_hero_id = DEFAULT_HERO_ID
 	selected_tier = 1
@@ -81,6 +90,18 @@ func load_profile() -> void:
 				var key := str(id)
 				if COSTS.has(key):
 					unlocked_ids[key] = true
+		var saved_caches: Variant = config.get_value(PROFILE_SECTION, "secured_caches", {})
+		if saved_caches is Dictionary:
+			for cache_id in saved_caches:
+				var reward_id := str(saved_caches[cache_id])
+				if not str(cache_id).is_empty() and not reward_id.is_empty():
+					secured_caches[str(cache_id)] = reward_id
+		var saved_blueprints: Variant = config.get_value(PROFILE_SECTION, "blueprint_ids", [])
+		if saved_blueprints is Array or saved_blueprints is PackedStringArray:
+			for blueprint_id in saved_blueprints:
+				var key := str(blueprint_id)
+				if WEAPON_IDS.has(StringName(key)):
+					blueprint_ids[key] = true
 		intro_seen = bool(config.get_value(PROFILE_SECTION, "intro_seen", false))
 		var saved_hero := StringName(str(config.get_value(PROFILE_SECTION, "selected_hero", "")))
 		# SABLE replaces the former EXO presentation, not the player's profile.
@@ -96,6 +117,11 @@ func load_profile() -> void:
 		selected_weapon_id = _known_id(
 			config.get_value(PROFILE_SECTION, "selected_weapon", ""), WEAPON_IDS, DEFAULT_WEAPON_ID
 		)
+	# Profiles written before Recovery already could own Arc. Ownership remains
+	# valid and implies its blueprint so a legacy save never regresses.
+	for weapon_id in BLUEPRINT_REQUIRED:
+		if is_unlocked(weapon_id):
+			blueprint_ids[String(weapon_id)] = true
 	# A weapon can be selected and then lost to a reset save, so re-gate it.
 	if not is_unlocked(selected_weapon_id):
 		selected_weapon_id = DEFAULT_WEAPON_ID
@@ -200,6 +226,33 @@ func tier_damage_reduction() -> float:
 	return HeroTier.reduction(fieldable_tier())
 
 
+func is_cache_secured(cache_id: StringName) -> bool:
+	return secured_caches.has(String(cache_id))
+
+
+func has_blueprint(weapon_id: StringName) -> bool:
+	return blueprint_ids.has(String(weapon_id))
+
+
+## One permanent Recovery transaction. The caller still has to prove that the
+## guard is cleared and the player performed Secure; this service owns the
+## idempotency, immediate profile write, and any direct BP reward.
+func secure_cache(
+	cache_id: StringName, reward_id: StringName, blueprint_id: StringName = &"", bp_reward: int = 0
+) -> bool:
+	if cache_id == &"" or reward_id == &"" or bp_reward < 0 or is_cache_secured(cache_id):
+		return false
+	if blueprint_id != &"" and not WEAPON_IDS.has(blueprint_id):
+		return false
+	secured_caches[String(cache_id)] = String(reward_id)
+	if blueprint_id != &"":
+		blueprint_ids[String(blueprint_id)] = true
+	balance = mini(balance + _bounded_int(bp_reward), MAX_VALUE)
+	_save_profile()
+	profile_changed.emit()
+	return true
+
+
 func unlock_cost(weapon_id: StringName) -> int:
 	return int(COSTS.get(String(weapon_id), -1))
 
@@ -208,6 +261,8 @@ func unlock_cost(weapon_id: StringName) -> int:
 func unlock_weapon(weapon_id: StringName) -> bool:
 	var cost := unlock_cost(weapon_id)
 	if cost <= 0 or is_unlocked(weapon_id) or balance < cost:
+		return false
+	if BLUEPRINT_REQUIRED.has(weapon_id) and not has_blueprint(weapon_id):
 		return false
 	balance -= cost
 	unlocked_ids[String(weapon_id)] = true
@@ -300,6 +355,8 @@ func _save_profile() -> void:
 	config.set_value(PROFILE_SECTION, "best_score", best_score)
 	config.set_value(PROFILE_SECTION, "completed_runs", completed_runs)
 	config.set_value(PROFILE_SECTION, "unlocked_ids", unlocked_ids.keys())
+	config.set_value(PROFILE_SECTION, "secured_caches", secured_caches)
+	config.set_value(PROFILE_SECTION, "blueprint_ids", blueprint_ids.keys())
 	config.set_value(PROFILE_SECTION, "intro_seen", intro_seen)
 	config.set_value(PROFILE_SECTION, "selected_hero", String(selected_hero_id))
 	config.set_value(PROFILE_SECTION, "selected_tier", fieldable_tier())
