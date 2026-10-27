@@ -8,10 +8,10 @@ For intended behavior, read [`GAMEPLAY_DESIGN.md`](GAMEPLAY_DESIGN.md). For requ
 
 | Item | Checkpoint |
 |---|---|
-| Source validated by full CI | `957858cc11e19c1daccfb221e5f14872f2a93a79` |
-| Full CI run | [40339588322](https://github.com/xam-eth/Cyber-Strike/actions/runs/40339588322) — **SUCCESS** |
-| Committed Web payload after that gate | `afc7b8fd53621a180373cfc793942d3cad32b544` |
-| Evidence date | 2026-10-26 |
+| Source validated by full CI | `b3c907e4fe5ef09db7482ecd45506259e6a4a687` |
+| Full CI run | [40472922173](https://github.com/xam-eth/Cyber-Strike/actions/runs/40472922173) — **SUCCESS** |
+| Committed Web payload after that gate | `adcf89e580c53d09a43a64a07438e7538b517cec` |
+| Evidence date | 2026-10-27 |
 | Documentation consolidation | Separate source-only change; it does not revalidate gameplay or create a new runtime checkpoint |
 
 ### TECH HUNT 0 source gate — 2026-10-27
@@ -19,9 +19,11 @@ For intended behavior, read [`GAMEPLAY_DESIGN.md`](GAMEPLAY_DESIGN.md). For requ
 For the Verdant Recovery implementation and its integration repairs:
 
 - **VERIFIED (local static):** `./scripts/dev_check.sh` completed with **0 failed steps and 2 skipped steps**: 86 GDScript files parsed/linted/formatted, 64 tooling tests, 18/18 canonical documents, 142 relative links, 86-script static-call scan, architecture boundaries, generated module map, and a 34-test inventory including `recovery_smoke.gd`.
+- **VERIFIED (CI engine):** Godot `4.7.2.stable.official.ed1daf0bf` imported the project and passed **34/34 smoke tests** in [40472922173](https://github.com/xam-eth/Cyber-Strike/actions/runs/40472922173). The strict runner now fails on engine script errors even if Godot exits 0; its annotations contain no script-error failure. Recovery coverage includes real guard elimination, blocked/duplicate Secure, death/retry/reload, Endless coexistence, Extract, and exactly-once banking.
+- **VERIFIED (CI deployment/traversal):** the repaired fixture completed all four authored deployment walks. Verdant settled at its authored spawn and reached `z=28.09344` with `on_floor=true`; this is automated collision/traversal evidence, not a human mission playthrough.
+- **VERIFIED (CI export/browser):** Web export, 963-file PCK audit, all five Worlds plus dynamic Character/Recovery visuals, static delivery, four root/direct Chromium boots, opening/interrupted-download recovery, Vanguard selection, and Titans selection/audio steps passed in the same run.
 - **VERIFIED (local static):** English and Indonesian catalogs each contain 246 keys with aligned placeholders; the cache GLB hash and provenance are recorded beside the asset.
-- **DIAGNOSED (previous CI, not a current pass):** [40464131772](https://github.com/xam-eth/Cyber-Strike/actions/runs/40464131772) for `f812196` passed 32/33 headless tests before one test-side type-inference parse failure; its opening-loading QA also waited for the pre-localization label `Masuk` instead of the enabled localized ENTER/MASUK action. Those two harness/source issues are repaired in this change, but require a fresh CI run.
-- **PENDING:** Godot import and execution of all 34 tests, Web export/payload audit, and Chromium opening/recovery/player-path checks for this Recovery source. Local engine and export preset remain unavailable; no runtime pass is inferred from static analysis.
+- **SKIPPED locally:** machine-local export preset and Godot binary/runtime. CI supplies the engine/browser evidence above; it is not Android, physical-device, subjective visual/audio, human-comprehension, or retention evidence.
 
 ### Documentation consolidation gate — 2026-10-26
 
@@ -48,12 +50,12 @@ Older failed/partial gameplay, integration, loading, and World reports describe 
 | Gate | Result | Evidence level and boundary |
 |---|---|---|
 | Static source/tooling | **VERIFIED PASS in CI** | Static only; not runtime or human experience |
-| Godot import + smoke suite | **VERIFIED 29/29 PASS in CI** | Headless Godot 4.7.2; includes real World/Character/UI isolation fixtures; not rendered/device proof |
+| Godot import + smoke suite | **VERIFIED 34/34 PASS in CI** | Headless Godot 4.7.2; includes Recovery and real World/Character/UI fixtures; strict script-error gate; not rendered/device proof |
 | Web export and payload audit | **VERIFIED PASS in CI** | Export/content checks; not Android packaging |
 | Root/raw browser boot | **VERIFIED PASS in CI** | Automated Chromium/WebGL at configured viewports |
 | Initial opening preload and interrupted recovery | **VERIFIED PASS in CI** | Tested Web paths/network controls; not every proxy/network condition |
 | Theatre selection/DEPLOY | **VERIFIED for automated Vanguard and Titans selection/build paths in this CI run** | Browser gestures and runtime logs; Frostline/Verdant/Emberfall were not given a new interactive pass in this run |
-| Rebuilt-world traversal | **HISTORICAL: four rebuilt worlds passed earlier automated checks** | MainNorth reached `z=25.30062`, `on_floor=true`; not rerun as a separate traversal gate for `957858c` |
+| Rebuilt-world traversal | **VERIFIED: four authored deployment walks passed in this CI run** | Verdant reached `z=28.09344`, `on_floor=true`; automated route/collision evidence, not human navigation or mission completion |
 | Frostline tour | **HISTORICAL: 8/8 distinct captured frames** | Earlier automated captures; not a new visual capture or final aesthetic acceptance for this change |
 | Shell/gameplay audio gates | **VERIFIED for automated signal/state checks** | Does not establish human audibility or speaker/headphone quality |
 
@@ -61,7 +63,7 @@ Older failed/partial gameplay, integration, loading, and World reports describe 
 
 | Asset | Bytes | SHA-256 |
 |---|---:|---|
-| `web/index.pck` | 54,018,072 | `35654f00bb47968dc6db3610546d6665376f37413afd53c62372d54730e0cfd3` |
+| `web/index.pck` | 90,676,528 | `b5c88eaa7450d45497c625190864d20c2244c79900506d09757d7b7662c21c71` |
 | `web/index.wasm` | 39,514,754 | `fc74679e3b97f76878947fcd4fbe1268cbfa6188182a2e33bbc3f5dc9bfa57d0` |
 
 These hashes identify the payload commit above. Recompute them after any later export rather than carrying the numbers forward.
@@ -77,23 +79,18 @@ These warm-cache measurements belong to the earlier `15e594f` payload and were n
 
 ## 3. Gameplay evidence interpretation
 
-The old full checkpoint supports the pre-Recovery combat/session/world baseline only. The current source now implements Verdant Seed Vault Recovery, its optional crashed-lab cache, persistent Arc blueprint eligibility, and Extract/Continue; the registered Recovery smoke drives real Main/Profile/Wave/HUD objects through blocked Secure, real guard elimination, death/retry/reload, Endless coexistence, Extract, and exactly-once banking.
+The current checkpoint verifies the implemented Verdant Seed Vault Recovery contract at the automated Godot integration boundary: real Main/Profile/Wave/HUD objects cover blocked Secure, guard elimination, permanent Arc blueprint eligibility, optional cache BP, death/retry/reload, Endless coexistence, Extract, and exactly-once banking. Existing safe Explore, Defense, theatre deployments, and the Web shell also passed their registered regressions.
 
-Until the fresh engine/browser run is recorded, the following are **IMPLEMENTED IN SOURCE BUT RUNTIME-UNVERIFIED for this change**:
+This does **not** mean every presentation or human outcome is proven:
 
-- mission card/tracker → guarded cache → Secure → permanent blueprint → redeploy;
-- death-before/death-after Secure and immediate profile persistence;
-- Extract versus Continue to Endless, optional-cache completion during waves, and run cleanup/banking;
-- the actual rendered cache model, interaction readability, and browser player path.
+- the browser gates prove boot, preload/recovery, selection, and safe gameplay, but are not a complete interactive Recovery secure/extract playthrough;
+- cache-model appearance, interaction readability, combat feel, and audiovisual quality still need rendered human review;
+- human understanding of the mission and optional risk remains **UNKNOWN**;
+- human mastery/enjoyment of locked-shot dodge/punish remains **UNKNOWN**;
+- long-run Endless decision quality and post-cap balance remain **UNKNOWN**;
+- retention or engagement improvement remains **UNKNOWN**.
 
-The following remain **UNKNOWN** regardless of that automated run:
-
-- human understanding of the mission and optional risk;
-- human mastery/enjoyment of locked-shot dodge/punish;
-- long-run Endless decision quality and post-cap balance;
-- retention or engagement improvement.
-
-A selected design, a resource file, a UI card, or a passing static check must not be reported as completion of those human or device outcomes.
+A selected design, a resource file, a UI card, a headless transaction, or a passing static check must not be reported as completion of those human or device outcomes.
 
 ## 4. Explicitly unverified at the full checkpoint
 
