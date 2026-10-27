@@ -770,7 +770,8 @@ async function checkPage(target, viewport) {
     checks.push([
       'HERO shows the real rig and its authored celebration before the theatre map',
       shellHeroStage?.ready === true
-        && shellHeroStage?.model === './game/assets/characters/hero/hero.glb'
+        && shellHeroStage?.model === './game/assets/characters/human_hero_tiers/hero_human_tier_1.glb'
+        && shellHeroStage?.heroId === 'sable'
         && shellHeroStage?.clips?.includes('idle')
         && shellHeroStage?.celebration === 'celebration',
     ]);

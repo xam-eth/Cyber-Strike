@@ -373,6 +373,23 @@ func _add_character_fill() -> void:
 
 
 func _spawn_model() -> void:
+	# A tier/content retry may re-enter this loader after a healthy first spawn.
+	# Tear down the old rig before resolving the replacement so a failed load
+	# honestly returns to the capsule instead of reporting a stale attached model.
+	if is_instance_valid(_model):
+		var old_pivot := _model.get_parent()
+		_model = null
+		if is_instance_valid(old_pivot) and old_pivot != self:
+			old_pivot.queue_free()
+	_skeleton = null
+	_anim_player = null
+	_attachment = null
+	_rig.clear()
+	_model_height = 0.0
+	_model_bounds = AABB()
+	_current_clip = ""
+	if is_instance_valid(_fallback_body):
+		_fallback_body.visible = true
 	if is_instance_valid(_weapon_socket):
 		_weapon_socket_base_position = _weapon_socket.position
 		_weapon_socket_base_rotation = _weapon_socket.rotation
@@ -610,6 +627,11 @@ func _blend_socket(delta: float) -> void:
 func _spawn_weapon() -> void:
 	if not is_instance_valid(_weapon_socket):
 		return
+	# The fallback muzzle stays, but a previous visual must not survive a failed
+	# dynamic-content retry or be duplicated by a successful one.
+	var old_weapon := _weapon_socket.get_node_or_null("WeaponModel")
+	if old_weapon != null:
+		old_weapon.queue_free()
 	var selected_scene := weapon_scene
 	if selected_scene == null and not weapon_scene_path.is_empty():
 		var result := ContentModuleLoader.load_scene(

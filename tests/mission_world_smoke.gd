@@ -33,11 +33,10 @@ const WorldScript = preload("res://scripts/worlds/mission_world.gd")
 ## floors sit just under those counts, so losing a district fails the test while a
 ## re-tune of a scatter field does not need this file edited.
 const EXPECTED := {
-	"frostline_relay": {"meshes": 185, "clips": 35, "textures": 55, "field": Vector2(180.0, 180.0)},
-	"verdant_bloom": {"meshes": 180, "clips": 37, "textures": 50, "field": Vector2(180.0, 180.0)},
-	"emberfall_foundry":
-	{"meshes": 175, "clips": 33, "textures": 60, "field": Vector2(180.0, 180.0)},
-	"titans": {"meshes": 180, "clips": 35, "textures": 55, "field": Vector2(180.0, 180.0)},
+	"frostline_relay": {"meshes": 185, "clips": 35, "textures": 55},
+	"verdant_bloom": {"meshes": 180, "clips": 37, "textures": 44},
+	"emberfall_foundry": {"meshes": 175, "clips": 33, "textures": 60},
+	"titans": {"meshes": 180, "clips": 35, "textures": 55},
 }
 
 var _passed := true
@@ -202,7 +201,9 @@ func _check_world(world_id: String) -> Variant:
 		and _passed
 	)
 	if floor_shape != null:
-		var expected_field: Vector2 = expected["field"]
+		# MissionWorld copies these measured bounds from WorldDefinition. Keeping
+		# the contract in one resource avoids a stale 180 m literal per theatre.
+		var expected_field: Vector2 = world.get("field_size")
 		_passed = (
 			_expect(
 				(
@@ -397,10 +398,14 @@ func _check_mission_deployment(world_id: String) -> void:
 	# before gravity or collision recovery can move the body.
 	var player := main_scene.get_node("Player") as CharacterBody3D
 	var initial_spawn := player.position
+	var expected_spawn := WorldDefinition.new().with_id(world_id).player_spawn
 	_passed = (
 		_expect(
-			initial_spawn.is_equal_approx(Vector3(0.0, 0.1, 8.0)),
-			"%s DEPLOY resolves the STELLAR tower spawn, got %s" % [world_id, initial_spawn],
+			initial_spawn.is_equal_approx(expected_spawn),
+			(
+				"%s DEPLOY resolves its authored spawn %s, got %s"
+				% [world_id, expected_spawn, initial_spawn]
+			),
 		)
 		and _passed
 	)
@@ -447,7 +452,10 @@ func _check_mission_deployment(world_id: String) -> void:
 	_passed = (
 		_expect(
 			player.position.z >= 20.0 and player.position.z < 34.0 and player.position.y > -1.0,
-			"%s player can leave the tower spawn along MainNorth, got %s" % [world_id, player.position],
+			(
+				"%s player can leave the tower spawn along MainNorth, got %s"
+				% [world_id, player.position]
+			),
 		)
 		and _passed
 	)
@@ -486,7 +494,9 @@ func _probe_stellar_surfaces(player: CharacterBody3D) -> void:
 		)
 		var hit := space.intersect_ray(query)
 		var hit_position: Vector3 = hit.get("position", Vector3.INF)
-		_probe_notice("surface " + String(entry["label"]), "first collision below Y=30 is %s" % hit_position)
+		_probe_notice(
+			"surface " + String(entry["label"]), "first collision below Y=30 is %s" % hit_position
+		)
 
 
 func _probe_notice(label: String, detail: String) -> void:

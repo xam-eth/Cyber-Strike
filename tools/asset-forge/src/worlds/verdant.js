@@ -97,7 +97,9 @@ export default {
     { role: 'defense_turret', name: 'OvergrownTurret_D', pos: [-58, 0, -12], yaw: 95, district: 'security' },
     { role: 'defense_turret', name: 'OvergrownTurret_E', pos: [62, 0, 12], yaw: -120, district: 'security' },
     { role: 'cover_module', name: 'RootWall_North', pos: [0, 0, -16], yaw: 0, district: 'security' },
-    { role: 'cover_module', name: 'RootWall_South', pos: [0, 0, 18], yaw: 90, district: 'security' },
+    // Frame the shrine approach instead of closing the authored spawn →
+    // MainNorth route; at x = 0 this wall stopped traversal near z = 16.3.
+    { role: 'cover_module', name: 'RootWall_South', pos: [10, 0, 18], yaw: 90, district: 'security' },
     { role: 'cover_module', name: 'RootWall_East', pos: [18, 0, 4], yaw: 45, district: 'security' },
     { role: 'sensor_tower', name: 'MossSensor_A', pos: [-66, 0, 6], yaw: 22, scale: 0.9, district: 'security' },
     { role: 'sensor_tower', name: 'MossSensor_B', pos: [68, 0, -16], yaw: -40, scale: 0.85, district: 'security' },

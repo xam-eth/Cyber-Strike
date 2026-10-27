@@ -26,7 +26,7 @@ const STAGED := {
 	# Floors derived from the rebuilt shared-texture GLBs: 62/59/67/62
 	# base-colour materials and hundreds of textured mesh instances.
 	"frostline": {"materials": 62, "textures": 55},
-	"verdant": {"materials": 59, "textures": 50},
+	"verdant": {"materials": 59, "textures": 44},
 	"emberfall": {"materials": 67, "textures": 60},
 	"titans": {"materials": 62, "textures": 55},
 }

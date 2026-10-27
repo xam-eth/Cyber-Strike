@@ -40,11 +40,17 @@ func _run_smoke_test() -> void:
 	var camera_forward := -player_camera.global_basis.z
 	camera_forward.y = 0.0
 	camera_forward = camera_forward.normalized()
-	# Cover_A is authored at (12, 0, 8) in STELLAR HORIZON. The old (8, 0, 4)
-	# point is open floor in the rebuilt layout and is not a cover fixture.
-	var cover_position := Vector3(12.0, 0.0, 8.0)
-	var target_position := (main_scene.get_node("TrainingDrone") as Node3D).global_position
 	var test_passed := true
+	# Resolve the authored cover instead of freezing a coordinate from an older
+	# World layout. The collision assertion still proves that spawn clearance
+	# rejects the real prop, not an imagined box.
+	var cover_position := Vector3.ZERO
+	var real_world := main_scene.get_node("MissionWorld/RealFrontierWorld") as Node3D
+	var covers := real_world.find_children("*CoverEast", "Node3D", true, false)
+	test_passed = _expect(not covers.is_empty(), "the authored CoverEast fixture exists")
+	if not covers.is_empty():
+		cover_position = (covers[0] as Node3D).global_position
+	var target_position := (main_scene.get_node("TrainingDrone") as Node3D).global_position
 	test_passed = (
 		_expect(
 			(
