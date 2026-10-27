@@ -19,6 +19,8 @@ Then open:
 
 For another device on the same network, use the development machine's reachable address and bind the server appropriately. A remote browser must not be told to use its own localhost to reach the development service.
 
+Godot audio requires a **Secure Context** and AudioWorklet. `http://localhost:<port>/` is secure only in the browser on the same machine that runs the server. Plain HTTP through a PC's LAN IP is not a secure context on another device; use HTTPS for that remote-device path. The root shell checks these requirements before fetching the engine configuration, WASM, or PCK and shows URL/browser guidance instead of a later `audioWorklet.addModule` exception.
+
 The committed `web/` directory contains the generated HTML/JS/WASM/PCK payload. Do not hand-edit generated output. CI/export tooling refreshes it when a full Web gate runs; a documentation-only `[skip ci]` change does not produce a new payload.
 
 ## 2. Player and loading flow
@@ -43,6 +45,7 @@ DEPLOY:
   engine.start({ args: ["--main-pack", mainPack] })
 ```
 
+- Secure Context, AudioWorklet, WebGL 2, and Fetch support are checked before the exported config or payload is fetched.
 - `init()` initializes WASM; `preloadFile()` downloads the main PCK containing required world data/assets.
 - Neither opening operation starts hidden gameplay.
 - MASUK waits for the real preload promises.
@@ -105,10 +108,11 @@ Core gates:
 ```bash
 node tools/web_qa.mjs
 node tools/web_qa.mjs --json
+node tools/web_support_qa.mjs --json
 node tools/web_loading_qa.mjs --throughput-mbps 100 --json
 ```
 
-`web_qa.mjs` serves/opens the real pages and checks engine boot, WebGL context, canvas, failed requests, and error surfaces. Its gameplay/journey options exercise actual input and selected-theatre paths. `web_loading_qa.mjs` checks initial opening, interrupted asset recovery, real byte progress, retry, and selected-gameplay return.
+`web_qa.mjs` serves/opens the real pages and checks engine boot, WebGL context, canvas, failed requests, and error surfaces. Its gameplay/journey options exercise actual input and selected-theatre paths. `web_support_qa.mjs` uses a real non-loopback insecure HTTP context (opening and direct DEPLOY) plus a separate simulated missing-AudioWorklet localhost control; each must show actionable guidance without constructing Engine or fetching the payload. `web_loading_qa.mjs` checks initial opening, interrupted asset recovery, real byte progress, retry, and selected-gameplay return.
 
 Additional play/tour options exist in `tools/web_qa.mjs`; read the current source for exact flags and required server setup. A harness that only waits for a Godot banner may not traverse opening → HERO → theatre → DEPLOY. Diagnose harness mismatches instead of mislabeling them as game failures or passes.
 
@@ -136,6 +140,7 @@ A screenshot of a menu or an ammunition decrease alone does not prove a complete
 | `tools/verify_web_build.py` | Static exported-file verification |
 | `tools/check_payload.py` | Payload content/policy audit |
 | `tools/web_qa.mjs` | Browser boot/journey/gameplay/frame gates |
+| `tools/web_support_qa.mjs` | Secure Context and AudioWorklet preflight gates |
 | `tools/web_loading_qa.mjs` | Opening preload and interrupted-recovery gates |
 | `tools/serve_preview.py` | Local static server with content-based revalidation |
 

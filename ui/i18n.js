@@ -39,9 +39,15 @@ const STRINGS = {
     'opening.enter': 'ENTER',
     'opening.enter_wait': 'PREPARING',
     'opening.note.no_engine':
-      'Console did not load. Serve the page from the repository root: python -m http.server 800',
+      'Console did not load. From the repository root run: python3 tools/serve_preview.py --port 800',
     'opening.note.no_payload':
       'World package (web/index.pck) is missing. Re-export with ./scripts/export_web_preview.sh',
+    'opening.note.insecure_context':
+      'Godot audio needs a secure browser context. Use HTTPS, or open http://localhost:%s/ on the same computer that runs the server. Plain HTTP through a LAN IP is not secure; localhost on another device points to that device. Reload after changing the URL.',
+    'opening.note.no_audio_worklet':
+      'This browser does not provide AudioWorklet, which Godot audio requires. Open the page in an up-to-date Chrome, Edge, Firefox, or Safari browser (not an embedded/in-app browser), then reload.',
+    'opening.note.missing_features':
+      'This browser is missing required Web features: %s. Use an up-to-date browser and enable WebGL 2/hardware acceleration, then reload.',
     'opening.rail_label': 'Preparing console',
 
     'dock.ready': 'Console ready',
@@ -169,6 +175,8 @@ const STRINGS = {
     'launch.failed.payload': 'Payload could not be read',
     'launch.failed.config': 'Export configuration could not be read',
     'launch.failed.world': 'World failed to load',
+    'launch.failed.secure_context': 'Secure connection required',
+    'launch.failed.browser': 'Browser not supported',
   },
   id: {
     'rotate.title': 'PUTAR PERANGKAT',
@@ -184,9 +192,15 @@ const STRINGS = {
     'opening.enter': 'MASUK',
     'opening.enter_wait': 'MENYIAPKAN',
     'opening.note.no_engine':
-      'Konsol tidak termuat. Jalankan halaman dari akar repo: python -m http.server 800',
+      'Konsol tidak termuat. Dari akar repo jalankan: python3 tools/serve_preview.py --port 800',
     'opening.note.no_payload':
       'Paket dunia (web/index.pck) tidak ada. Ekspor ulang lewat ./scripts/export_web_preview.sh',
+    'opening.note.insecure_context':
+      'Audio Godot membutuhkan konteks aman. Gunakan HTTPS, atau buka http://localhost:%s/ di komputer yang menjalankan server. HTTP biasa melalui IP LAN tidak aman; localhost di HP/perangkat lain menunjuk perangkat itu sendiri. Muat ulang setelah mengganti URL.',
+    'opening.note.no_audio_worklet':
+      'Browser ini tidak menyediakan AudioWorklet yang dibutuhkan audio Godot. Buka halaman di Chrome, Edge, Firefox, atau Safari versi terbaru (bukan browser sematan/di dalam aplikasi), lalu muat ulang.',
+    'opening.note.missing_features':
+      'Browser ini kekurangan fitur Web yang dibutuhkan: %s. Gunakan browser versi terbaru dan aktifkan WebGL 2/akselerasi perangkat keras, lalu muat ulang.',
     'opening.rail_label': 'Menyiapkan konsol',
 
     'dock.ready': 'Konsol siap',
@@ -314,6 +328,8 @@ const STRINGS = {
     'launch.failed.payload': 'Payload tidak terbaca',
     'launch.failed.config': 'Konfigurasi ekspor tidak terbaca',
     'launch.failed.world': 'Dunia gagal dimuat',
+    'launch.failed.secure_context': 'Koneksi aman diperlukan',
+    'launch.failed.browser': 'Browser belum didukung',
   },
 };
 

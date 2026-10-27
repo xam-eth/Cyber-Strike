@@ -301,6 +301,26 @@ jobs:
           PY
           exit "$qa_status"
 
+      - name: Browser secure-context and AudioWorklet preflight
+        run: |
+          # A real non-loopback HTTP origin must fail before payload download
+          # with HTTPS/localhost guidance. A separate secure localhost control
+          # removes AudioWorklet and must produce browser guidance, not addModule.
+          qa_status=0
+          node tools/web_support_qa.mjs --timeout 30 \
+            --out exports/web-qa/support --json > exports/web-qa/support-report.json || qa_status=$?
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path("exports/web-qa/support-report.json").read_text())
+          for case in report["cases"]:
+              print(f'{case["name"]}: {"PASS" if case["ok"] else "FAIL"}')
+              for failure in case["failures"]:
+                  print(f"::error title=Browser support preflight::{failure}")
+          raise SystemExit(0 if report["ok"] else 1)
+          PY
+          exit "$qa_status"
+
       - name: Browser interrupted-download recovery
         run: |
           # Prove the opening downloads WASM+PCK once before MASUK and DEPLOY

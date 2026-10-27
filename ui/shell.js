@@ -241,6 +241,43 @@ function markCheck(key, ok) {
   paintOpening();
 }
 
+/*
+ * Godot's audio initialization dereferences AudioContext.audioWorklet. On an
+ * insecure HTTP origin that property can be absent, which otherwise surfaces
+ * only after the opening has downloaded the payload and DEPLOY has started the
+ * engine. Use the exported engine's own feature probe before any payload fetch,
+ * and keep the audio requirement explicit because getMissingFeatures treats
+ * audio as optional even though this build initializes its position worklet.
+ */
+function browserSupportIssue() {
+  if (window.isSecureContext !== true) {
+    return {
+      title: t('launch.failed.secure_context'),
+      detail: t('opening.note.insecure_context', location.port || '80'),
+    };
+  }
+
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass || !('audioWorklet' in AudioContextClass.prototype)) {
+    return {
+      title: t('launch.failed.browser'),
+      detail: t('opening.note.no_audio_worklet'),
+    };
+  }
+
+  const EngineClass = window.Engine || window.Godot;
+  if (typeof EngineClass?.getMissingFeatures === 'function') {
+    const missing = EngineClass.getMissingFeatures({ threads: false });
+    if (missing.length) {
+      return {
+        title: t('launch.failed.browser'),
+        detail: t('opening.note.missing_features', missing.join('; ')),
+      };
+    }
+  }
+  return null;
+}
+
 async function runOpeningChecks() {
   el('opening-note').hidden = true;
   markCheck('engine', typeof (window.Engine || window.Godot) === 'function');
@@ -979,6 +1016,12 @@ function applyMotionPref() {
  * it never starts an encounter on the player's behalf.
  */
 function deploy() {
+  // A direct ?ui=launch navigation must not erase an opening preflight failure
+  // and then strand the player on a connecting screen with no active boot.
+  if (bootState === 'failed') {
+    show('launch', { focus: false });
+    return;
+  }
   lockLandscape();
   savePrefs();
   paintWorld();
@@ -1031,7 +1074,9 @@ function formatMegabytes(bytes) {
 
 function failLaunchFrom(error) {
   const detail = String(error?.message || error || 'Kesalahan yang tidak dikenal.');
-  if (/failed to fetch|network\s*error|load failed|failed loading file|err_(?:failed|content_length_mismatch)/i.test(detail)) {
+  if (error?.launchTitle) {
+    launchFailed(error.launchTitle, detail);
+  } else if (/failed to fetch|network\s*error|load failed|failed loading file|err_(?:failed|content_length_mismatch)/i.test(detail)) {
     launchFailed(
       'Koneksi dunia terputus',
       `Unduhan mesin atau paket dunia tidak selesai. Periksa koneksi lalu coba lagi. Detail: ${detail}`,
@@ -1074,6 +1119,12 @@ function handleAssetProgress(loaded, total) {
 
 function prepareEngine() {
   if (enginePreparation) return enginePreparation;
+  const supportIssue = browserSupportIssue();
+  if (supportIssue) {
+    const error = new Error(supportIssue.detail);
+    error.launchTitle = supportIssue.title;
+    throw error;
+  }
   bootState = 'preparing';
   engineReady = false;
   assetsComplete = false;

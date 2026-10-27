@@ -6,7 +6,8 @@
   "scripts": {
     "qa": "node web_qa.mjs",
     "qa:json": "node web_qa.mjs --json",
-    "qa:loading": "node web_loading_qa.mjs --throughput-mbps 100 --json"
+    "qa:loading": "node web_loading_qa.mjs --throughput-mbps 100 --json",
+    "qa:support": "node web_support_qa.mjs --json"
   },
   "devDependencies": {
     "@sparticuz/chromium": "153.0.0",
