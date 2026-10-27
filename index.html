@@ -318,23 +318,51 @@
                   <dt data-i18n="hero.stat.armour">ARMOUR</dt>
                   <dd><b id="hero-stat-armour">0%</b><i id="hero-stat-armour-delta"></i></dd>
                 </div>
-                <div class="op__stat op__stat--next">
-                  <dt data-i18n="hero.stat.next">NEXT TIER</dt>
-                  <dd><b id="hero-stat-next">1 RUN</b></dd>
+                <!-- Runs finished, not "runs to the next rank": the panel below
+                     says what the next rank costs and the ladder rail shows the
+                     progress, so this tile carries the one number neither of
+                     them can state -- how many runs this profile has done. -->
+                <div class="op__stat op__stat--runs">
+                  <dt data-i18n="hero.stat.runs">RUNS</dt>
+                  <dd><b id="hero-stat-runs">0</b><i id="hero-stat-runs-note"></i></dd>
                 </div>
               </dl>
-              <!-- The ladder as a rail: the card strip below says what each
-                   rank looks like, this says how far the next one is. It reads
-                   `aegis.runs`, the same number ProgressionService mirrors out
-                   of the arena, so the shell cannot promise a tier the arena
-                   would refuse. -->
-              <div class="op__ladder">
-                <div class="op__ladder-head">
-                  <span data-i18n="hero.ladder.label">TIER LADDER</span>
-                  <b id="hero-ladder-note">1 / 5</b>
+              <!-- What the next rank actually buys.
+                   The strip below says which ranks exist and the ladder says how
+                   far the next one is; neither says what changes when you get
+                   there, and that number is the whole reason to play the run.
+                   The art is the next rank's own card render, so the panel and
+                   the card it points at cannot disagree. -->
+              <section class="op__next" id="hero-next-rank" aria-labelledby="hero-next-label">
+                <span class="op__next-art" aria-hidden="true">
+                  <img id="hero-next-art" alt="" />
+                </span>
+                <div class="op__next-copy">
+                  <p class="op__next-label" id="hero-next-label" data-i18n="hero.next_rank">NEXT RANK</p>
+                  <p class="op__next-name">
+                    <b id="hero-next-badge">TIER 4</b>
+                    <span id="hero-next-name">SPEARHEAD</span>
+                    <span class="op__next-state" id="hero-next-state"></span>
+                  </p>
                 </div>
-                <ol class="ladder" id="hero-ladder" aria-hidden="true"></ol>
-              </div>
+                <p class="op__next-gains" id="hero-next-gains"></p>
+                <!-- The ladder as a rail, inside the same band: the panel names
+                     the next rank, the rail says how far away it is. It reads
+                     `aegis.runs`, the number ProgressionService mirrors out of
+                     the arena, so the shell cannot promise a rank the arena
+                     would refuse. -->
+                <div class="op__ladder">
+                  <div class="op__ladder-head">
+                    <span data-i18n="hero.ladder.label">TIER LADDER</span>
+                    <b id="hero-ladder-note">1 / 5</b>
+                  </div>
+                  <ol class="ladder" id="hero-ladder" aria-hidden="true"></ol>
+                </div>
+                <p class="op__next-note" data-i18n="hero.tier.ladder">
+                  Runs unlock the rank: one run opens tier 2, three open tier 3, six
+                  open tier 4, ten open tier 5.
+                </p>
+              </section>
 
               <!-- Two actions, one row, at the bottom of the brief: the rack
                    (secondary) and the one lit action (primary). They used to

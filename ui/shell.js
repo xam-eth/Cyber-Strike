@@ -513,15 +513,10 @@ function paintOperative() {
   // The plate figure is already the big number, so its note says what the
   // figure *means* rather than repeating it.
   if (armourDelta) armourDelta.textContent = row.reduction > 0 ? t('hero.stat.armour_note') : '';
-  const next = el('hero-stat-next');
-  const upcoming = tierTable().find((item) => item.tier === row.tier + 1);
-  if (next) {
-    next.textContent = upcoming
-      ? upcoming.runs_required === 1
-        ? t('hero.tier.runs_one', upcoming.runs_required)
-        : t('hero.tier.runs', upcoming.runs_required)
-      : t('hero.tier.max');
-  }
+  const runs = el('hero-stat-runs');
+  if (runs) runs.textContent = String(completedRuns());
+  const runsNote = el('hero-stat-runs-note');
+  if (runsNote) runsNote.textContent = t('hero.stat.runs_note', owned);
   const banner = el('hero-banner-title');
   if (banner) banner.textContent = `${t('hero.tier.word')} ${row.tier}`;
   const bannerNote = el('hero-banner-note');
@@ -546,6 +541,75 @@ function paintOperative() {
   paintHeroCards();
   paintTierCards();
   paintLadder();
+  paintNextRank();
+}
+
+/* What the next rank is worth. The ladder above says how far away it is; this
+   says what changes when the player gets there, in the two numbers a tier
+   actually moves (health and plate) and with the rank's own card render beside
+   them. At the top of the ladder it says so instead of inventing a rank. */
+function paintNextRank() {
+  const host = el('hero-next-rank');
+  if (!host) return;
+  const hero = heroOf(heroState.heroId);
+  const current = tierRow(heroState.tier);
+  const next = tierTable().find((row) => row.tier === current.tier + 1);
+  const target = next || current;
+  const owned = target.tier <= ownedTier();
+  const art = tierArt(hero, target.tier);
+
+  const image = el('hero-next-art');
+  if (image) {
+    if (art) image.src = art;
+    image.alt = '';
+  }
+  const badge = el('hero-next-badge');
+  if (badge) badge.textContent = `${t('hero.tier.word')} ${target.tier}`;
+  const name = el('hero-next-name');
+  if (name) name.textContent = t(target.name_key);
+  const label = el('hero-next-label');
+  if (label) {
+    label.dataset.i18n = next ? 'hero.next_rank' : 'hero.next_rank.max';
+    label.textContent = t(next ? 'hero.next_rank' : 'hero.next_rank.max');
+  }
+  host.dataset.max = String(!next);
+  host.dataset.owned = String(owned);
+
+  const gains = el('hero-next-gains');
+  if (gains) {
+    gains.replaceChildren();
+    if (next) {
+      // Only what actually goes up: a rank that adds plate and no health shows
+      // one chip, not a second chip reading "+0".
+      const deltas = [
+        { amount: next.vitals - current.vitals, key: 'hero.stat.vitals', suffix: '' },
+        { amount: next.reduction - current.reduction, key: 'hero.stat.armour', suffix: '%' },
+      ];
+      for (const delta of deltas) {
+        if (delta.amount <= 0) continue;
+        const chip = document.createElement('span');
+        chip.className = 'gain';
+        const value = document.createElement('b');
+        value.textContent = `+${delta.amount}${delta.suffix}`;
+        const unit = document.createElement('i');
+        unit.textContent = t(delta.key);
+        chip.append(value, unit);
+        gains.appendChild(chip);
+      }
+    }
+  }
+
+  const state = el('hero-next-state');
+  if (state) {
+    state.replaceChildren();
+    const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    icon.setAttribute('class', 'ico');
+    icon.setAttribute('aria-hidden', 'true');
+    const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+    use.setAttribute('href', owned ? '#i-check' : '#i-lock');
+    icon.appendChild(use);
+    state.appendChild(icon);
+  }
 }
 
 /* The rail under the numbers. `aegis.runs` is the arena's own mirror of how

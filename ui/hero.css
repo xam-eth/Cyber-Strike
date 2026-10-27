@@ -40,6 +40,10 @@
     'groups groups';
   column-gap: clamp(9px, 1.4vw, 16px);
   row-gap: clamp(4px, 0.9vh, 8px);
+  /* One card height for both strips: the roster card and the tier card are the
+     same object, so the row they sit in has one height and the tier strip grows
+     in width only. */
+  --card-h: 86px;
   width: 100%;
   height: 100%;
   min-height: 0;
@@ -515,6 +519,10 @@
 }
 
 .op__role {
+  /* The band below is the one flexible item in the brief, so everything else
+     must refuse to shrink: a paragraph that gives way first disappears
+     entirely rather than getting shorter. */
+  flex: 0 0 auto;
   margin: 0;
   max-width: 100%;
   font-family: var(--font-ui);
@@ -528,6 +536,7 @@
 }
 
 .op__stats {
+  flex: 0 0 auto;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: clamp(4px, 0.8vw, 8px);
@@ -576,19 +585,12 @@
   letter-spacing: 0.06em;
   color: var(--accent);
   white-space: nowrap;
-  /* A delta that does not fit is clipped inside its own tile: spilling onto the
-     NEXT TIER value reads as one number ("6% ... 6 RUN"), which is exactly the
+  /* A note that does not fit is clipped inside its own tile: spilling onto the
+     figure beside it reads as one number ("6% ... 12"), which is exactly the
      misreading a stat panel must not allow. */
   overflow: hidden;
   text-overflow: ellipsis;
   min-width: 0;
-}
-
-.op__stat--next b {
-  font-size: clamp(9px, 1.9vh, 12px);
-  letter-spacing: 0.06em;
-  color: var(--ink-2);
-  text-transform: uppercase;
 }
 
 .btn--loadout {
@@ -630,6 +632,8 @@
 }
 
 .op__ladder {
+  grid-area: rail;
+  align-self: end;
   display: flex;
   flex-direction: column;
   gap: 3px;
@@ -637,6 +641,7 @@
 }
 
 .op__ladder-head {
+  white-space: nowrap;
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -710,6 +715,256 @@
   white-space: nowrap;
 }
 
+/* ------------------------------------------------------------ next rank -- */
+
+/* The one band in the brief that is allowed to grow: it fills whatever the
+   role line, the stats and the ladder leave above the actions, so the right-hand
+   column has no dead field in it at any window height. Everything inside is a
+   function of the roster (name, art, the two deltas), so the panel cannot say
+   something the tier card below does not back up. */
+.op__next {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, auto) minmax(0, 1fr) auto;
+  grid-template-areas:
+    'art copy gains'
+    'art rail rail'
+    'art note note';
+  align-items: center;
+  column-gap: clamp(8px, 1.1vw, 14px);
+  row-gap: 4px;
+  min-height: 68px;
+  /* Sizing rule for the band: it takes the height the brief has left, and on a
+     window tall enough to give it a lot, the portrait grows with it and the
+     words centre beside it (see the min-height block below) -- the alternative
+     was a small panel at the top of a tall empty column. */
+  max-height: clamp(96px, 40vh, 320px);
+  margin-top: clamp(4px, 0.9vh, 8px);
+  padding: 5px clamp(7px, 0.9vw, 11px) 5px 5px;
+  background:
+    linear-gradient(90deg, rgba(18, 30, 42, 0.92), rgba(8, 14, 20, 0.86) 62%, rgba(6, 11, 17, 0.9));
+  box-shadow:
+    inset 0 0 0 1px var(--hair),
+    inset 2px 0 0 0 rgba(255, 176, 32, 0.55);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
+}
+
+/* The art window takes its height from the band, not from a size of its own:
+   the band is the leftover space, which changes with the window. */
+.op__next-art {
+  grid-area: art;
+  display: block;
+  height: 100%;
+  /* A window in the card's own 3:4, not a thumbnail: the band's left edge is the
+     rank's own render, cropped the way the tier card crops it. */
+  aspect-ratio: 340 / 460;
+  width: auto;
+  max-width: 220px;
+  min-height: 0;
+  overflow: hidden;
+  background: rgba(4, 8, 12, 0.85);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%);
+}
+
+.op__next-art img {
+  /* The card renders are full-body with side margin, and the card crops them
+     landscape (so the figure fills it). This window is portrait, so it zooms
+     past the margin instead of showing a small figure in a tall frame: head and
+     shoulders down to the thigh, from the top of the render. */
+  width: 100%;
+  height: 138%;
+  object-fit: cover;
+  object-position: 50% 2%;
+}
+
+/* A rank nobody has earned yet is drawn as a locked slot, not as a photo: the
+   panel says "this is what you are working towards", and a full-brightness
+   portrait would read as "this is yours". */
+.op__next[data-owned='false'] .op__next-art img {
+  filter: grayscale(0.55) brightness(0.72);
+}
+
+.op__next-copy {
+  grid-area: copy;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.op__next-label {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: 7.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.op__next-name {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 0;
+  min-width: 0;
+}
+
+.op__next-name b {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(10px, 2.1vh, 13px);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.op__next-name span {
+  font-family: var(--font-ui);
+  font-size: clamp(8.5px, 1.5vh, 10.5px);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Two deltas, not two values: the current numbers are on the tiles above, and
+   repeating them here would make the panel a second stat block. */
+.op__next-gains {
+  grid-area: gains;
+  align-self: start;
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  min-width: 0;
+}
+
+.gain {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  padding: 2px 6px 3px;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(9px, 1.8vh, 11px);
+  letter-spacing: 0.06em;
+  color: var(--ink);
+  background: rgba(120, 200, 255, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(120, 200, 255, 0.34);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%);
+}
+
+.gain i {
+  font-style: normal;
+  font-family: var(--font-ui);
+  font-size: 7px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--info);
+}
+
+/* The lock rides the rank's own name line instead of owning a column: a 20 px
+   glyph in a 520 px row leaves a hole where a column used to be. */
+.op__next-state {
+  display: inline-grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  align-self: center;
+  color: var(--ink-3);
+}
+
+.op__next-state .ico {
+  width: 12px;
+  height: 12px;
+}
+
+.op__next[data-owned='true'] .op__next-state {
+  color: var(--ok, #6fd08c);
+}
+
+/* The long sentence only appears where there is room for it: at 390 px tall the
+   band is 71 px and the numbers are the message. */
+.op__next-note {
+  display: none;
+  grid-area: note;
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: 8.5px;
+  line-height: 1.35;
+  color: var(--ink-3);
+}
+
+@media (min-height: 560px) {
+  .op__next-note {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* A tall window gives the band room, so the band uses all of it: the rank's
+     own portrait at card scale down the left, and the name, the two gains, the
+     ladder and the sentence stacked beside it, centred. Nothing is pinned to a
+     corner, and the column has no leftover field. */
+  .op__next {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto auto auto auto;
+    grid-template-areas:
+      'art copy'
+      'art gains'
+      'art rail'
+      'art note';
+    /* The portrait spans all four rows, so the rows share out the height it
+       needs. */
+    align-content: center;
+    row-gap: 10px;
+    max-height: none;
+    padding: 9px 14px 9px 9px;
+  }
+
+  .op__next-gains {
+    align-self: start;
+    justify-self: start;
+  }
+
+  .op__next-label {
+    font-size: 8.5px;
+  }
+
+  .op__next-name b {
+    font-size: 16px;
+  }
+
+  .op__next-name span {
+    font-size: 12px;
+  }
+
+  .gain {
+    font-size: 12px;
+  }
+
+  .op__next-note {
+    font-size: 9.5px;
+  }
+}
+
+/* At the top of the ladder there is no next rank: the band says so and keeps
+   its shape, so the layout does not jump when the last tier is reached. */
+.op__next[data-max='true'] .op__next-gains {
+  display: none;
+}
+
+.op__next[data-max='true'] .op__next-name span {
+  color: var(--accent);
+}
+
 /* --------------------------------------------------------- the two groups */
 
 .op__groups {
@@ -721,8 +976,12 @@
    secondary first, primary last, so the eye lands on the thing that starts the
    run. */
 .op__kit {
+  flex: 0 0 auto;
   display: flex;
   align-items: flex-end;
+  /* On a tall window the leftover height belongs above the actions, not inside
+     the band: the primary button keeps the bottom edge of the column. */
+  margin-top: auto;
   gap: 8px;
   min-width: 0;
   margin-top: auto;
@@ -733,6 +992,7 @@
 }
 
 .op__tracks {
+  width: 100%;
   display: flex;
   align-items: flex-end;
   gap: clamp(10px, 1.6vw, 18px);
@@ -761,6 +1021,29 @@
   gap: 4px;
   flex: 0 0 auto;
   min-width: 0;
+}
+
+/* The tier strip is the part that grows: five cards of one hero are a ladder, and
+   a ladder that stops halfway across the page leaves the corner under the
+   primary action empty. The cards share the width evenly (grid), and the hero
+   strip keeps its fixed width because a roster grows by adding cards, not by
+   stretching two of them. */
+.op__group--tiers {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.cards--tiers {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  height: var(--card-h);
+}
+
+.cards--tiers .card {
+  width: 100%;
+  max-width: 118px;
+  height: var(--card-h);
 }
 
 .op__label {
@@ -803,8 +1086,8 @@
   flex-direction: column;
   justify-content: flex-end;
   gap: 1px;
-  width: 86px;
-  height: 86px;
+  width: var(--card-h);
+  height: var(--card-h);
   padding: 0;
   border: 0;
   overflow: hidden;
@@ -1201,9 +1484,8 @@
     font-size: clamp(17px, 4.4vh, 24px);
   }
 
-  .card {
-    width: 78px;
-    height: 78px;
+  .op {
+    --card-h: 78px;
   }
 
   .cards--heroes .card {

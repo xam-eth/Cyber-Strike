@@ -25,6 +25,18 @@ nothing happening. `manifest.json` records the measured offsets, the `lang` each
 frame rendered in, and the locked-slot check (`kestrel` pressed → operative
 unchanged).
 
+## The brief column
+
+The right-hand column of the page is role, vitals, **next rank**, then the action
+row. The next-rank band is the flexible item: it takes the height the column has
+left, so the action row sits on the floor and no dead field opens between them.
+It carries the next rank's own render, the two numbers that rank adds, the ladder
+rail and the sentence explaining the runs; at `min-height: 560px` the portrait
+grows to card width and the copy stacks beside it. The tier strip fills its row
+with five equal cards (`--card-h` shared with the roster strip), so the row ends
+at the page margin rather than mid-way. In every frame below, the gap between the
+ladder and the action row is gone at 844×390 and 667×375, in both languages.
+
 ## What was verified, and how
 
 * **Motion direction** — `entrance.offset[0] ≥ 0.12` for a hero press (X, from

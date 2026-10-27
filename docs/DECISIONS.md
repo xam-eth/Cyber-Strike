@@ -502,6 +502,19 @@ settings is an overlay that returns to the card it was opened from.
       the model is fitted — so the armour on the operative page is the armour that
       takes the damage. A number a player can read that nothing in the game uses
       is decoration, and this repository has a rule against that.
+    * **The brief column ends in a band, not in a hole.** The right half of the
+      page is three stacked blocks (role, vitals, next rank) and one row of
+      actions at the bottom; a column that stops halfway down the screen reads as
+      a page that failed to load its lower half. So the rank block is the one
+      flexible item: it carries the next rank's own render, what that rank adds
+      (`+6 VITALS`, `+3% ARMOUR`), the ladder rail and the sentence that explains
+      the runs — and it takes whatever height the brief has left, up to a cap, so
+      the action row stays on the floor. On a window tall enough for more
+      (`min-height: 560px`) the portrait grows to card width and the copy stacks
+      beside it; on the phone the same panel is one dense strip. The tier strip
+      likewise fills the width it is given (five equal cards) instead of ending
+      mid-row, and the RUNS tile states the two numbers no other element can: how
+      many runs this profile has, and which rank that opens.
     * **The page returns.** BACK sits on the operative page's own header (to the
       opening, or to the hub when it was opened from there), the weapon rack is a
       modal that hands focus back to LOADOUT, and every gameplay screen keeps the

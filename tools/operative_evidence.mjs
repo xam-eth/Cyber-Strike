@@ -72,6 +72,9 @@ const browser = await puppeteer.launch({
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const frames = [];
+/* A count tells you a run was bad; a reason tells you which beat was bad, and a
+   re-run that comes back clean with no note is a flake nobody can diagnose. */
+const failureNotes = [];
 let failures = 0;
 
 /* Wait for the stage to have a body on it. Every capture is taken from a state
@@ -145,10 +148,27 @@ for (const viewport of viewports) {
     await shot('hero-right');
     if (!(heroBeat.entrance.offset[0] >= 0.12)) {
       failures += 1;
+      failureNotes.push(`${viewport} ${locale}: hero press did not slide in`);
       console.error(`FAIL ${viewport} ${locale}: the hero press did not slide in (${JSON.stringify(heroBeat)})`);
     }
 
+    /* The scene refuses to restart a beat that is still in flight (a body in
+       the air is not free to start again), so a press during the hero slide is
+       dropped -- by design. Wait for the body to be at rest before the next
+       press, or the tier frame is a picture of the previous beat's end state. */
+    const atRest = () =>
+      page
+        .waitForFunction(
+          () => {
+            const offset = window.AegisHeroStage?.describe?.().entrance?.offset;
+            return !offset || (Math.abs(offset[0]) < 0.01 && Math.abs(offset[1]) < 0.01);
+          },
+          { timeout: 5000, polling: 16 },
+        )
+        .catch(() => null);
+
     // --- a tier press: drops from the TOP --------------------------------
+    await atRest();
     await page.click('#hero-tiers .card[data-tier="3"]');
     await inFlight(1, 0.2).catch(() => null);
     const tierBeat = await page.evaluate(() => ({
@@ -159,6 +179,7 @@ for (const viewport of viewports) {
     await shot('tier-top');
     if (!(tierBeat.entrance.offset[1] >= 0.2) || tierBeat.enter !== 'top') {
       failures += 1;
+      failureNotes.push(`${viewport} ${locale}: tier press did not drop from the top`);
       console.error(`FAIL ${viewport} ${locale}: the tier press did not drop from the top (${JSON.stringify(tierBeat)})`);
     }
     await sleep(2600);
@@ -167,6 +188,7 @@ for (const viewport of viewports) {
     const before = await page.evaluate(() => ({
       tier: document.querySelector('#hero-tier-number').textContent,
     }));
+    await atRest();
     await page.click('#hero-roster .card[data-hero="kestrel"]', { force: true }).catch(() => null);
     await sleep(160);
     const after = await page.evaluate(() => ({
@@ -175,6 +197,7 @@ for (const viewport of viewports) {
     }));
     if (after.name !== 'Mara Voss') {
       failures += 1;
+      failureNotes.push(`${viewport} ${locale}: locked slot changed the operative to ${after.name}`);
       console.error(`FAIL ${viewport} ${locale}: a locked slot changed the operative to ${after.name}`);
     }
     frames.push({ name: 'locked-refused', viewport, locale, before, after });
@@ -189,6 +212,7 @@ for (const viewport of viewports) {
 
     if (errors.length) {
       failures += 1;
+      failureNotes.push(`${viewport} ${locale}: console ${JSON.stringify(errors.slice(0, 3))}`);
       console.error(`FAIL ${viewport} ${locale}: ${JSON.stringify(errors.slice(0, 3))}`);
     }
     await page.close();
@@ -197,7 +221,17 @@ for (const viewport of viewports) {
 
 fs.writeFileSync(
   path.join(outDir, 'manifest.json'),
-  JSON.stringify({ tag: 'round-13-operative', frames, failures, generatedAt: new Date().toISOString() }, null, 2) + '\n',
+  JSON.stringify(
+    {
+      tag: 'round-13-operative',
+      frames,
+      failures,
+      failureNotes,
+      generatedAt: new Date().toISOString(),
+    },
+    null,
+    2,
+  ) + '\n',
 );
 
 await browser.close();
