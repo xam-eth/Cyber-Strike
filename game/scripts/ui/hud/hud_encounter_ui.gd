@@ -19,9 +19,12 @@ static func zone_copy(hud) -> Array:
 		_zone_copy_id = world_id
 		var definition := WorldDefinition.load_definition(world_id)
 		if definition != null:
-			_zone_copy = [definition.zone_title, definition.zone_subtitle]
+			_zone_copy = [definition.display_zone_title(), definition.display_zone_subtitle()]
 		else:
-			_zone_copy = ["EXPLORE THE FRONTIER", "SAFE ZONE · MOVE FREELY"]
+			_zone_copy = [
+				AegisText.t("hud.zone_title_fallback"),
+				AegisText.t("hud.zone_subtitle_fallback"),
+			]
 	return _zone_copy
 
 
@@ -34,29 +37,36 @@ static func update_objective(
 		var copy: Array = zone_copy(hud)
 		hud._wave_title_label.text = copy[0]
 		hud._wave_enemy_label.text = copy[1]
-		hud._wave_state_label.text = "NO HOSTILES"
-		hud._wave_chip_label.text = "EXPLORE\nSAFE"
+		AegisText.apply(hud._wave_state_label, "hud.no_hostiles")
+		AegisText.apply(hud._wave_chip_label, "hud.chip_explore")
 	elif hud._state.play_phase == "preparing":
-		hud._wave_title_label.text = "DEFENSE IN %d" % hud._state.preparation_seconds
+		AegisText.apply(hud._wave_title_label, "hud.defense_in", [hud._state.preparation_seconds])
 		# Keep the promise readable in a 294 px objective card.
-		hud._wave_enemy_label.text = "GET READY · SPAWNS MARKED"
-		hud._wave_state_label.text = "PREPARE"
-		hud._wave_chip_label.text = "DEFENSE\nIN %d" % hud._state.preparation_seconds
-	else:
-		hud._wave_title_label.text = (
-			"WAVE %02d" % wave_number if wave_number > 0 else "FRONTIER DEFENSE"
+		AegisText.apply(hud._wave_enemy_label, "hud.get_ready")
+		AegisText.apply(hud._wave_state_label, "hud.prepare")
+		AegisText.apply(
+			hud._wave_chip_label, "hud.chip_defense_in", [hud._state.preparation_seconds]
 		)
+	else:
+		if wave_number > 0:
+			AegisText.apply(hud._wave_title_label, "hud.wave", [wave_number])
+		else:
+			AegisText.apply(hud._wave_title_label, "hud.frontier_defense")
 		hud._wave_state_label.text = state_text.to_upper()
 		# The action earns visible currency now; the full accounting stays in
 		# Results. Active count remains in the wave state (ACTIVE n/max).
-		hud._wave_enemy_label.text = (
-			"%d LEFT · %d KO · +%d BP" % [remaining_enemies, hud._state.kos, hud._state.bp]
+		(
+			AegisText
+			. apply(
+				hud._wave_enemy_label,
+				"hud.left_ko_bp",
+				[remaining_enemies, hud._state.kos, hud._state.bp],
+			)
 		)
-		hud._wave_chip_label.text = (
-			"WAVE %02d\n%d LEFT" % [wave_number, remaining_enemies]
-			if wave_number > 0
-			else "READY\n%d LEFT" % remaining_enemies
-		)
+		if wave_number > 0:
+			AegisText.apply(hud._wave_chip_label, "hud.chip_wave", [wave_number, remaining_enemies])
+		else:
+			AegisText.apply(hud._wave_chip_label, "hud.chip_ready", [remaining_enemies])
 	hud._compact_wave_text = hud._wave_enemy_label.text
 	hud._refresh_compact_label()
 
@@ -76,11 +86,16 @@ static func apply_context(hud) -> void:
 		# Defense retains the normal SWAP action.
 		hud._armory_button.visible = active and exploring and not weapon_acts_as_armory(hud)
 	hud._defense_button.disabled = not exploring
-	hud._defense_button.text = (
-		"DEFENSE IN %d" % hud._state.preparation_seconds
-		if preparing
-		else ("START DEFENSE" if hud._touch_mode else "START DEFENSE  [B]")
-	)
+	if preparing:
+		AegisText.apply(hud._defense_button, "hud.defense_in", [hud._state.preparation_seconds])
+	else:
+		(
+			AegisText
+			. apply(
+				hud._defense_button,
+				"hud.start_defense" if hud._touch_mode else "hud.start_defense_key",
+			)
+		)
 	hud._wave_card.visible = not hud._results_visible() and hud._state.play_phase != "results"
 	# The old three-line run panel competed with the horizon. Detailed score,
 	# BP and shots remain available in pause and results.
@@ -88,15 +103,22 @@ static func apply_context(hud) -> void:
 	hud._score_chip.visible = false
 	hud._compact_card.visible = false
 	if is_instance_valid(hud._pause_restart_button):
-		hud._pause_restart_button.text = (
-			"RESET EXPLORATION"
-			if exploring
-			else (
-				"FINISH RUN · RESULTS" if hud._state.play_phase == "defense" else "CANCEL DEFENSE"
+		if exploring:
+			AegisText.apply(hud._pause_restart_button, "pause.reset")
+		else:
+			(
+				AegisText
+				. apply(
+					hud._pause_restart_button,
+					(
+						"pause.finish_run"
+						if hud._state.play_phase == "defense"
+						else "pause.cancel_defense"
+					),
+				)
 			)
-		)
 	if is_instance_valid(hud._pause_stats_label) and exploring:
-		hud._pause_stats_label.text = "SAFE ZONE · NO WAVES UNTIL YOU START"
+		AegisText.apply(hud._pause_stats_label, "hud.pause_safe")
 	# The short status chip shares START's slot only after Defense begins.
 	# Re-anchor when the encounter changes phase, not only on window resize.
 	if is_instance_valid(hud._feedback_panel):
@@ -115,9 +137,13 @@ static func refresh_weapon_action(hud) -> void:
 	hud._weapon_button.text = ""
 	hud._weapon_button.icon = AegisTheme.hud_icon("hud-weapon" if compact_armory else "hud-swap")
 	hud._weapon_button.set_meta("aegis_state", "swap" if can_swap else "armory")
-	hud._weapon_button.tooltip_text = (
-		("Tap to swap · Equipped: " if can_swap else "Open Armory · Equipped: ")
-		+ hud._state.weapon_display_name
+	(
+		AegisText
+		. apply_tip(
+			hud._weapon_button,
+			"hud.swap_tip" if can_swap else "hud.armory_tip",
+			[hud._state.weapon_display_name],
+		)
 	)
 
 
@@ -237,15 +263,17 @@ static func build_objective(hud) -> void:
 	text_col.add_theme_constant_override("separation", 0)
 	text_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(text_col)
-	hud._wave_title_label = hud._label("EXPLORE THE FRONTIER", "heading_s", AegisTokens.INK)
+	hud._wave_title_label = hud._label_key("hud.zone_title_fallback", "heading_s", AegisTokens.INK)
 	text_col.add_child(hud._wave_title_label)
-	hud._wave_enemy_label = hud._label("SAFE ZONE · MOVE FREELY", "label_s", AegisTokens.INK_2)
+	hud._wave_enemy_label = hud._label_key(
+		"hud.zone_subtitle_fallback", "label_s", AegisTokens.INK_2
+	)
 	text_col.add_child(hud._wave_enemy_label)
-	hud._wave_chip_label = hud._label("EXPLORE\nSAFE", "label_s", AegisTokens.INK_2)
+	hud._wave_chip_label = hud._label_key("hud.chip_explore", "label_s", AegisTokens.INK_2)
 	hud._wave_chip_label.visible = false
 	text_col.add_child(hud._wave_chip_label)
 
-	hud._wave_state_label = hud._label("NO HOSTILES", "label_s", AegisTokens.ACCENT)
+	hud._wave_state_label = hud._label_key("hud.no_hostiles", "label_s", AegisTokens.ACCENT)
 	hud._wave_state_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	hud._wave_state_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(hud._wave_state_label)
@@ -254,12 +282,12 @@ static func build_objective(hud) -> void:
 static func build_start_action(hud) -> void:
 	hud._defense_button = (
 		hud
-		. _text_button(
-			"START DEFENSE  [B]",
+		. _text_button_key(
+			"hud.start_defense_key",
 			"DefenseStartButton",
 			"tactical_start",
 			"play",
-			"Prepare for Defense (B). No enemies spawn until you start.",
+			"hud.start_defense_tip",
 		)
 	)
 	hud._defense_button.pressed.connect(hud._on_defense_pressed)
@@ -272,7 +300,7 @@ static func build_legacy_score_widgets(hud) -> void:
 	hud._score_chip.name = "ScoreChip"
 	hud._score_chip.show_brackets = false
 	hud.add_child(hud._score_chip)
-	hud._score_value_label = hud._label("SCORE 0  ·  00:00", "mono_m", AegisTokens.INK)
+	hud._score_value_label = hud._label("", "mono_m", AegisTokens.INK)
 	hud._score_value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hud._score_value_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	hud._score_value_label.autowrap_mode = TextServer.AUTOWRAP_OFF
@@ -300,7 +328,7 @@ static func build_run_data(hud) -> void:
 	var content := VBoxContainer.new()
 	content.add_theme_constant_override("separation", 3)
 	hud._run_card.add_child(content)
-	content.add_child(hud._label("RUN DATA", "label_s", AegisTokens.INK_3))
+	content.add_child(hud._label_key("hud.run_data", "label_s", AegisTokens.INK_3))
 	hud._status_label = hud._label(
 		"Score: 0 · BP earned: 0\nKOs: 0 · Time: 00:00\nTarget 54 / 54 · Shots 0",
 		"mono_s",

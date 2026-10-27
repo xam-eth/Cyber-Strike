@@ -73,6 +73,26 @@ const DEFAULT_WORLD_ID := &"frostline_relay"
 @export var player_spawn: Vector3 = Vector3(0.0, 0.0, 8.0)
 
 
+## The theatre's prose, in the active language. Same rule as the hero card: the
+## name is a proper noun, everything a player reads as a sentence is keyed.
+func display_role() -> String:
+	return AegisText.t_or("world.%s.role" % world_id, role_description)
+
+
+func display_status() -> String:
+	if not field_ready:
+		return AegisText.t("common.in_development")
+	return AegisText.t_or("world.%s.status" % world_id, status_line)
+
+
+func display_zone_title() -> String:
+	return AegisText.t_or("world.%s.zone_title" % world_id, zone_title)
+
+
+func display_zone_subtitle() -> String:
+	return AegisText.t_or("world.%s.zone_subtitle" % world_id, zone_subtitle)
+
+
 func is_valid_definition() -> bool:
 	return (
 		world_id != &""

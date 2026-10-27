@@ -33,7 +33,8 @@ shape = SubResource("CapsuleShape_player")
 
 [node name="VisualRoot" type="Node3D" parent="."]
 script = ExtResource("7_character_visual")
-model_scene_path = "res://assets/characters/hero/hero.glb"
+model_scene_path = "res://assets/characters/human_hero_tiers/hero_human_tier_1.glb"
+rig_path = "res://assets/characters/human_hero_tiers/hero_human_tier_1_rig.json"
 weapon_scene_path = "res://assets/weapons/futuristic_rifle/rifle.glb"
 
 [node name="BodyMesh" type="MeshInstance3D" parent="VisualRoot"]

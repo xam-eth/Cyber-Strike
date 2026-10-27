@@ -33,7 +33,15 @@
  * selling something that does not exist, and the upgrade ladder is the weapon
  * tiers priced in the currency the arena pays.
  */
-'use strict';
+import {
+  apply as applyLocale,
+  init as initLocale,
+  locale,
+  nativeName,
+  nextLocale,
+  setLocale,
+  t,
+} from './i18n.js';
 
 import { ShellAudio } from './audio.js';
 
@@ -50,7 +58,9 @@ const prefs = Object.assign(
     motion: false,
     fullscreen: false,
     weapon: 'pulse_rifle',
-    world: 'frostline_relay',
+world: 'frostline_relay',
+    hero: 'sable',
+    tier: 1,
     muted: false,
   },
   readPrefs(),
@@ -134,7 +144,10 @@ function show(name, options = {}) {
   }
   if (name === 'hero') {
     if (options.from) fromHero = options.from;
-    celebrate();
+    // Every arrival on the page is the same beat: the operative comes in from
+    // the right, once. Re-entering is a new arrival, not a resume.
+    stageShow('right');
+    celebrate('right');
   }
   if (name === 'settings') fromSettings = options.from === 'hero' ? 'hero' : 'hub';
   if (options.focus !== false) {
@@ -202,21 +215,25 @@ function paintOpening() {
   const rail = el('opening-progress');
   rail.dataset.indeterminate = hasByteTotal || done || failed ? 'false' : 'true';
   rail.setAttribute('aria-valuenow', String(Math.round(ratio * 100)));
-  el('opening-fill').style.width = `${(ratio * 100).toFixed(1)}%`;
+el('opening-fill').style.width = `${(ratio * 100).toFixed(1)}%`;
 
   el('opening-status').textContent = failed
-    ? 'Unduhan dunia terhenti'
+    ? t('opening.status.failed')
     : done
-      ? 'Mesin + dunia siap'
+      ? t('opening.status.ready')
       : assetsComplete
-        ? 'Aset lengkap · menyiapkan konsol'
+        ? t('opening.status.assets_ready')
         : hasByteTotal
-          ? `Mengunduh mesin + dunia · ${formatMegabytes(downloadedBytes)}/${formatMegabytes(expectedBytes)} MB`
-          : 'Menyiapkan konsol';
+          ? `${t('opening.status.downloading')} · ${formatMegabytes(downloadedBytes)}/${formatMegabytes(expectedBytes)} MB`
+          : t('opening.status.checking');
 
   const button = el('opening-enter');
   button.disabled = !(done || failed);
-  button.querySelector('.btn__label').textContent = failed ? 'Coba lagi' : done ? 'Masuk' : 'Menyiapkan';
+  button.querySelector('.btn__label').textContent = failed
+    ? t('opening.retry')
+    : done
+      ? t('opening.enter')
+      : t('opening.enter_wait');
 }
 
 function markCheck(key, ok) {
@@ -229,7 +246,7 @@ async function runOpeningChecks() {
   markCheck('engine', typeof (window.Engine || window.Godot) === 'function');
   markCheck('display', window.innerWidth > 0 && window.innerHeight > 0);
   if (!checks.engine) {
-    showNote('Konsol tidak termuat. Jalankan halaman dari root repo: python -m http.server 800');
+showNote(t('opening.note.no_engine'));
     return;
   }
 
@@ -258,11 +275,11 @@ function showNote(text) {
  * theatre the player selected.
  */
 const WORLDS = [
-  { id: 'frostline_relay', name: 'Frostline Relay', line: 'Stellar Horizon · daytime' },
-  { id: 'verdant_bloom', name: 'Verdant Bloom', line: 'Stellar Horizon · sunset' },
-  { id: 'emberfall_foundry', name: 'Emberfall Foundry', line: 'Stellar Horizon · night' },
-  { id: 'vanguard_station', name: 'Vanguard Station', line: 'Vanguard Station · hanggar 02' },
-  { id: 'titans', name: 'THE TITANS', line: 'Stellar Horizon · storm' },
+{ id: 'frostline_relay', name: 'Frostline Relay', lineKey: 'world.frostline_relay.line' },
+  { id: 'verdant_bloom', name: 'Verdant Bloom', lineKey: 'world.verdant_bloom.line' },
+  { id: 'emberfall_foundry', name: 'Emberfall Foundry', lineKey: 'world.emberfall_foundry.line' },
+  { id: 'vanguard_station', name: 'Vanguard Station', lineKey: 'world.vanguard_station.line' },
+  { id: 'titans', name: 'THE TITANS', lineKey: 'world.titans.line' },
 ];
 
 // A saved Neon selection predates the new registry. Migrate it explicitly so
@@ -285,11 +302,9 @@ function paintWorld() {
     });
   }
   const line = el('hub-world-line');
-  if (line) line.textContent = WORLDS[worldIndex()].line;
-  const kitWorld = el('hero-kit-world');
-  if (kitWorld) kitWorld.textContent = WORLDS[worldIndex()].name;
+  if (line) line.textContent = t(WORLDS[worldIndex()].lineKey);
   const eyebrow = el('launch-eyebrow');
-  if (eyebrow) eyebrow.textContent = `Deploy · ${WORLDS[worldIndex()].name}`;
+  if (eyebrow) eyebrow.textContent = t('launch.eyebrow', WORLDS[worldIndex()].name);
 }
 
 function selectWorld(id) {
@@ -310,56 +325,346 @@ for (const card of document.querySelectorAll('.wcard[data-world]')) {
 el('world-prev').addEventListener('click', () => stepWorld(-1));
 el('world-next').addEventListener('click', () => stepWorld(1));
 
-/* ------------------------------------------------------------------ hero */
+/* ------------------------------------------------------------- operative */
 
 /*
- * The first lobby screen: who the player deploys as.
+ * The operative page: who the player deploys as, and what that operative
+ * becomes. Two card groups, one card.
  *
- * The composition is the one a modern mobile shooter's character page uses
- * (CoD Mobile's Operator page, Free Fire's Character page): the hero as the
- * largest object, a roster strip under him, a rail of tabs that each answer one
- * question, and exactly one lit action. The research that shaped it:
+ * The composition follows the character page of a shipped mobile shooter (CoD
+ * Mobile's Operator page, Free Fire's Character page) — the operative at the
+ * largest scale, the roster on a strip, one lit action — and adds the half
+ * those pages do not show: the upgrade ladder as five pictures of the same
+ * body. A costume ladder expressed as a text row ("Lv. 12 → Lv. 13") is a
+ * costume ladder the player cannot see, which is the whole reason the tier
+ * strip is card art rendered from each tier's own GLB.
  *
- *   - a character page is a stage, not a form: identity first, detail on demand;
- *   - the roster belongs on the page, because choosing a hero is the same act as
- *     reviewing one;
- *   - every tab must have something true in it, or it should not exist. So this
- *     hero has three tabs that describe the game as it is today -- his rig, the
- *     kit ladder the arena pays for, and the one livery the rig actually wears --
- *     plus the rack, which is the only choice here that changes the run.
+ * The data is game/resources/heroes/roster.json, not markup: a card exists
+ * because a model, a rig and a render exist. `tools/check_hero_roster.py` fails
+ * the build if a path in that file is missing, so a card cannot promise a
+ * costume nobody made.
+ *
+ * Motion is meaning here, and both beats are in the scene (ui/hero_stage.js),
+ * not a CSS transform on a picture:
+ *
+ *   selecting a HERO  -> the operative enters from the RIGHT
+ *   selecting a TIER  -> the operative enters from the TOP, under a beam, with
+ *                        the ring, sparks and a banner naming the rank
+ *
+ * Every one of them honours "kurangi gerak".
  */
-const HERO_TABS = ['info', 'upgrade', 'skin', 'weapon'];
 
-function paintTab(name) {
-  if (!HERO_TABS.includes(name)) return;
-  for (const tab of document.querySelectorAll('.htab')) {
-    const on = tab.dataset.tab === name;
-    tab.setAttribute('aria-selected', String(on));
-    tab.tabIndex = on ? 0 : -1;
+/* The tiers the player owns come from the arena, which mirrors its saved
+   profile into localStorage (ProgressionService -> `aegis.runs`). Runs, not
+   currency: BP is spent inside the arena (DECISIONS 32) and the shell never
+   touches the wallet, while completed runs are a number the shell can read
+   without becoming a second save file. */
+const RUNS_KEY = 'aegis.runs';
+
+function completedRuns() {
+  const raw = window.localStorage ? window.localStorage.getItem(RUNS_KEY) : null;
+  const value = Number.parseInt(raw ?? '0', 10);
+  return Number.isFinite(value) && value > 0 ? value : 0;
+}
+
+let roster = null;
+let heroState = { heroId: '', tier: 1, ownedTier: 1 };
+
+function rosterUrl() {
+  // Cache-busted: a stale roster next to a fresh render is the one way these
+  // two can disagree.
+  return './game/resources/heroes/roster.json?v=3';
+}
+
+async function loadRoster() {
+  if (roster) return roster;
+  const response = await fetch(rosterUrl(), { cache: 'no-cache' });
+  if (!response.ok) throw new Error(`roster ${response.status}`);
+  roster = await response.json();
+  return roster;
+}
+
+function heroOf(id) {
+  if (!roster) return null;
+  return roster.heroes.find((hero) => hero.id === id) || roster.heroes[0];
+}
+
+function tierTable() {
+  return roster ? roster.tiers : [];
+}
+
+function tierRow(tier) {
+  return tierTable().find((row) => row.tier === tier) || tierTable()[0];
+}
+
+/** The highest tier the player's completed runs unlock. */
+function ownedTier() {
+  const runs = completedRuns();
+  let owned = 1;
+  for (const row of tierTable()) {
+    if (runs >= row.runs_required) owned = Math.max(owned, row.tier);
   }
-  for (const panel of document.querySelectorAll('.hpanel')) {
-    panel.hidden = panel.id !== `hero-panel-${name}`;
+  return owned;
+}
+
+function tierArt(hero, tier) {
+  const entry = hero && hero.tiers ? hero.tiers.find((item) => item.tier === tier) : null;
+  return entry && entry.art ? entry.art : null;
+}
+
+function tierModel(hero, tier) {
+  const entry = hero && hero.tiers ? hero.tiers.find((item) => item.tier === tier) : null;
+  return entry && entry.model ? entry.model : null;
+}
+
+/* The rig sidecar is where the rifle socket lives, so the stage hangs the
+   weapon exactly the way the engine does -- per tier, not per guess. */
+function tierRig(hero, tier) {
+  const entry = hero && hero.tiers ? hero.tiers.find((item) => item.tier === tier) : null;
+  return entry && entry.rig ? entry.rig : null;
+}
+
+/* One card component, two groups. The difference between them is what the name
+   line says (a callsign or a rank) and whether the art window is a portrait or
+   a costume — not how the card is built. */
+function buildCard({ art, badge, name, state, locked, empty, lock }) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'card';
+  if (art) {
+    const image = document.createElement('img');
+    image.className = 'card__art';
+    image.src = art;
+    image.alt = '';
+    button.appendChild(image);
+  }
+  if (badge) {
+    const chip = document.createElement('span');
+    chip.className = 'card__badge';
+    chip.textContent = badge;
+    button.appendChild(chip);
+  }
+  if (lock) {
+    const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    icon.setAttribute('class', 'ico card__lock');
+    icon.setAttribute('aria-hidden', 'true');
+    const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+    use.setAttribute('href', '#i-lock');
+    icon.appendChild(use);
+    button.appendChild(icon);
+  }
+  const body = document.createElement('span');
+  body.className = 'card__body';
+  const nameNode = document.createElement('span');
+  nameNode.className = 'card__name';
+  nameNode.textContent = name;
+  const stateNode = document.createElement('span');
+  stateNode.className = 'card__state';
+  stateNode.textContent = state;
+  body.append(nameNode, stateNode);
+  button.appendChild(body);
+  if (locked) button.dataset.locked = 'true';
+  if (empty) button.dataset.empty = 'true';
+  return button;
+}
+
+function paintHeroCards() {
+  const host = el('hero-roster');
+  if (!host || !roster) return;
+  host.replaceChildren();
+  for (const hero of roster.heroes) {
+    const playable = hero.status === 'field_ready';
+    const tier = playable ? Math.min(heroState.tier, ownedTier()) || 1 : 1;
+    const card = buildCard({
+      art: playable ? tierArt(hero, Math.max(1, tier)) : null,
+      name: hero.callsign,
+      state: playable ? hero.name : t('common.in_development'),
+      locked: !playable,
+      empty: !playable,
+      lock: !playable,
+    });
+    card.dataset.hero = hero.id;
+    card.setAttribute('aria-pressed', String(hero.id === heroState.heroId));
+    // A hero without a rig is a slot with a name, not a button that pretends:
+    // `aria-disabled` keeps it reachable by a screen reader (so the player
+    // learns it exists) and the click handler refuses it.
+    if (!playable) card.setAttribute('aria-disabled', 'true');
+    host.appendChild(card);
   }
 }
 
-for (const tab of document.querySelectorAll('.htab')) {
-  tab.addEventListener('click', () => paintTab(tab.dataset.tab));
+function paintTierCards() {
+  const host = el('hero-tiers');
+  if (!host || !roster) return;
+  const hero = heroOf(heroState.heroId);
+  const owned = ownedTier();
+  host.replaceChildren();
+  for (const row of tierTable()) {
+    const art = tierArt(hero, row.tier);
+    const isOwned = row.tier <= owned;
+    const selected = row.tier === heroState.tier;
+    const card = buildCard({
+      art,
+      badge: String(row.tier),
+      name: t(row.name_key),
+      state: isOwned
+        ? selected
+          ? t('hero.tier.equipped')
+          : t('hero.tier.owned')
+        : row.runs_required === 1
+          ? t('hero.tier.runs_one', row.runs_required)
+          : t('hero.tier.runs', row.runs_required),
+      locked: !isOwned,
+      empty: !art,
+      lock: !isOwned,
+    });
+    card.dataset.tier = String(row.tier);
+    card.setAttribute('role', 'radio');
+    card.setAttribute('aria-checked', String(selected));
+    if (!isOwned) {
+      // Reachable and previewable: looking at the armour is the reason to play
+      // the next run. It is not deployable, and the state line says why.
+      card.dataset.preview = String(selected);
+    }
+    host.appendChild(card);
+  }
+  const count = el('hero-tier-count');
+  if (count) count.textContent = `${heroState.tier} / ${roster.tier_count}`;
 }
 
-/*
- * The celebration. Sparks are generated rather than typed into the markup: the
- * pattern wants variety (angle, distance, colour, duration) and fifteen spans of
- * hand-authored CSS custom properties is not a design, it is a transcription.
- *
- * It runs on entry, once per entry, and it is a no-op under "kurangi gerak" --
- * the banner simply sits there. Nothing in it is data: it is the one flourish in
- * the lobby, and it exists because the moment a player first sees their operative
- * is the moment a lobby is supposed to feel like an event.
- */
-/* Whites only. The stage is shared by every hero, so a burst tinted with this
-   hero's palette would be the one thing in the room that does not belong to the
-   next hero. */
-const SPARK_COLORS = ['#ffffff', '#e2eaf2', '#b6c2cf', '#f6fafd'];
+function paintOperative() {
+  if (!roster) return;
+  const hero = heroOf(heroState.heroId || roster.heroes[0].id);
+  const row = tierRow(heroState.tier);
+  const owned = ownedTier();
+  const nameNode = el('hero-name');
+  if (nameNode) nameNode.textContent = hero.name;
+  const callsign = el('hero-callsign');
+  if (callsign) callsign.textContent = hero.callsign;
+  const tierNumber = el('hero-tier-number');
+  if (tierNumber) tierNumber.textContent = String(row.tier);
+  const tierName = el('hero-tier-name');
+  if (tierName) tierName.textContent = t(row.name_key);
+  const role = el('hero-role');
+  if (role) {
+    role.dataset.i18n = hero.brief_key;
+    role.textContent = t(hero.brief_key);
+  }
+  const vitals = el('hero-stat-vitals');
+  if (vitals) vitals.textContent = String(row.vitals);
+  const armour = el('hero-stat-armour');
+  if (armour) armour.textContent = `${row.reduction}%`;
+  const vitalsDelta = el('hero-stat-vitals-delta');
+  if (vitalsDelta) vitalsDelta.textContent = row.tier > 1 ? t('hero.stat.from_base', row.vitals - 100) : '';
+  const armourDelta = el('hero-stat-armour-delta');
+  // The plate figure is already the big number, so its note says what the
+  // figure *means* rather than repeating it.
+  if (armourDelta) armourDelta.textContent = row.reduction > 0 ? t('hero.stat.armour_note') : '';
+  const next = el('hero-stat-next');
+  const upcoming = tierTable().find((item) => item.tier === row.tier + 1);
+  if (next) {
+    next.textContent = upcoming
+      ? upcoming.runs_required === 1
+        ? t('hero.tier.runs_one', upcoming.runs_required)
+        : t('hero.tier.runs', upcoming.runs_required)
+      : t('hero.tier.max');
+  }
+  const banner = el('hero-banner-title');
+  if (banner) banner.textContent = `${t('hero.tier.word')} ${row.tier}`;
+  const bannerNote = el('hero-banner-note');
+  if (bannerNote) bannerNote.textContent = t(row.name_key);
+  const canvas = el('hero-canvas');
+  if (canvas) {
+    canvas.dataset.tier = String(row.tier);
+    canvas.dataset.hero = hero.id;
+    canvas.setAttribute(
+      'aria-label',
+      t('hero.stage_label', hero.callsign, row.tier, t(row.name_key)),
+    );
+  }
+  // The tier badge on the header says whether what is selected is what the
+  // player owns, because a preview that looks identical to an equipped tier is
+  // a screen lying about the run.
+  const chip = el('hero-tier-chip');
+  if (chip) {
+    chip.dataset.owned = String(row.tier <= owned);
+    chip.dataset.preview = String(row.tier > owned);
+  }
+  paintHeroCards();
+  paintTierCards();
+  paintLadder();
+}
+
+/* The rail under the numbers. `aegis.runs` is the arena's own mirror of how
+   many runs are finished, so the fill is the player's real progress and the
+   sentence is the real distance to the next rank. */
+function paintLadder() {
+  const host = el('hero-ladder');
+  if (!host) return;
+  const rows = tierTable();
+  const owned = ownedTier();
+  const runs = completedRuns();
+  if (host.childElementCount !== rows.length) {
+    host.replaceChildren();
+    for (const row of rows) {
+      const item = document.createElement('li');
+      item.dataset.tier = String(row.tier);
+      host.appendChild(item);
+    }
+  }
+  for (const item of host.children) {
+    const row = tierRow(Number(item.dataset.tier));
+    const isOwned = row.tier <= owned;
+    const previous = tierRow(row.tier - 1);
+    const floor = previous ? previous.runs_required : 0;
+    const span = Math.max(1, row.runs_required - floor);
+    item.dataset.state = isOwned ? 'owned' : 'locked';
+    // The bar is the fraction of this tier's price already paid, so the ladder
+    // grows with every run instead of jumping at the unlock.
+    item.style.setProperty(
+      '--fill',
+      String(isOwned ? 1 : Math.max(0, Math.min(1, (runs - floor) / span))),
+    );
+    item.dataset.current = String(row.tier === heroState.tier);
+  }
+  const note = el('hero-ladder-note');
+  if (note) {
+    const next = rows.find((row) => row.tier === heroState.tier + 1);
+    note.textContent = next
+      ? t(
+          next.runs_required === 1 ? 'hero.ladder.to_next_one' : 'hero.ladder.to_next',
+          runs,
+          next.runs_required,
+          next.tier,
+        )
+      : t('hero.ladder.max');
+  }
+}
+
+/* The stage. `ui/hero_stage.js` owns the rig, the deck, the light and the
+   entrance; this owns the decision of what to show and from where. */
+/* The beat the page is currently playing. It is remembered because the stage
+   announces itself twice -- when it mounts and when a model finishes loading --
+   and a tier press must still arrive from the TOP after its GLB has landed,
+   not restart as a hero selection. */
+let lastEntry = 'right';
+
+function stageShow(entry) {
+  const stage = window.AegisHeroStage;
+  if (entry) lastEntry = entry;
+  // Before the roster answers there is no operative to set, and after a failed
+  // fetch there never will be: either way the stage keeps its own default.
+  if (typeof stage === 'undefined' || !roster) return;
+  const hero = heroOf(heroState.heroId);
+  if (!hero) return;
+  stage.setLoadout({
+    heroId: hero.id,
+    tier: heroState.tier,
+    model: tierModel(hero, heroState.tier),
+    rig: tierRig(hero, heroState.tier),
+    entry: lastEntry,
+  });
+}
 
 function buildSparks() {
   const host = el('hero-sparks');
@@ -381,53 +686,210 @@ function buildSparks() {
 
 let celebrateTimer = 0;
 
-function celebrate() {
+/*
+ * The celebration: chrome for the one beat the page owns. `direction` is what
+ * the player did — a hero selection enters from the right, an upgrade from the
+ * top — and the scene is told separately (stageShow). Reduced motion keeps the
+ * end state (banner up, ring lit) and drops every traveller.
+ */
+function celebrate(direction) {
   const screen = screens.hero;
   if (!screen) return;
   buildSparks();
   const reduced = document.documentElement.dataset.motion === 'reduced';
   screen.dataset.celebrate = 'false';
+  screen.dataset.enter = direction;
   void screen.offsetWidth; // restart the animations rather than resuming them
   screen.dataset.celebrate = 'true';
-  // The rig answers too: the beat is not only DOM effects over a still frame.
-  if (typeof window.AegisHeroStage !== 'undefined') window.AegisHeroStage.pulse();
+  if (typeof window.AegisHeroStage !== 'undefined') window.AegisHeroStage.pulse(direction);
   window.clearTimeout(celebrateTimer);
-  celebrateTimer = window.setTimeout(() => {
-    screen.dataset.celebrate = reduced ? 'true' : 'false';
-  }, reduced ? 100000 : 2800);
+  celebrateTimer = window.setTimeout(
+    () => {
+      screen.dataset.celebrate = 'false';
+      screen.dataset.enter = '';
+    },
+    reduced ? 100000 : 2800,
+  );
 }
 
-/* A module script and a classic deferred script have no guaranteed order, so the
-   stage announces itself instead of assuming the shell got there first. */
-window.addEventListener('aegis:hero-stage-ready', () => {
-  if (current === 'hero' && typeof window.AegisHeroStage !== 'undefined') {
-    window.AegisHeroStage.play();
+/* Sparks are generated rather than typed into the markup: the pattern wants
+   variety (angle, distance, colour, duration) and eighteen spans of
+   hand-authored custom properties is a transcription, not a design. Whites
+   only: the stage is shared by every hero, so a burst in this hero's palette
+   would be the one thing in the room that does not belong to the next one. */
+const SPARK_COLORS = ['#ffffff', '#e2eaf2', '#b6c2cf', '#f6fafd'];
+
+function selectHero(id) {
+  const hero = heroOf(id);
+  if (!hero || hero.status !== 'field_ready') return;
+  heroState.heroId = hero.id;
+  heroState.tier = Math.min(heroState.tier, ownedTier()) || 1;
+  prefs.hero = hero.id;
+  prefs.tier = heroState.tier;
+  savePrefs();
+  paintOperative();
+  stageShow('right');
+  // A card that is already selected still answers: pressing the thing you
+  // already have is how a player says "show me again". The beat never includes
+  // the upgrade ceremony -- that belongs to the tier strip alone.
+  celebrate('right');
+}
+
+function selectTier(tier) {
+  const row = tierRow(tier);
+  if (!row) return;
+  heroState.tier = row.tier;
+  prefs.tier = row.tier;
+  savePrefs();
+  paintOperative();
+  // Owned or not, the picture is the point; what changes is whether the run
+  // can deploy at that tier (see deploy()).
+  stageShow('top');
+  celebrate('top');
+}
+
+document.addEventListener('click', (event) => {
+  const heroCard = event.target.closest('#hero-roster .card[data-hero]');
+  if (heroCard) {
+    selectHero(heroCard.dataset.hero);
+    return;
+  }
+  const tierCard = event.target.closest('#hero-tiers .card[data-tier]');
+  if (tierCard) {
+    selectTier(Number(tierCard.dataset.tier));
   }
 });
 
-/* The roster: one hero card and two slots. Selecting a card re-plays the short
-   beat, because a tap on a character card is a confirmation and a confirmation
-   with no response reads as a missed input. A card that is already active still
-   answers -- pressing the thing you already have is how a player says "show me
-   again". */
-for (const card of document.querySelectorAll('#hero-roster .hcard[data-hero]')) {
-  card.addEventListener('click', () => {
-    for (const other of document.querySelectorAll('#hero-roster .hcard[data-hero]')) {
-      other.dataset.active = String(other === card);
-      other.setAttribute('aria-pressed', String(other === card));
-    }
-    celebrate();
-  });
+/* The stage announces itself instead of assuming the shell got there first: a
+   module script and a classic deferred script have no guaranteed order. */
+window.addEventListener('aegis:hero-stage-ready', () => {
+  if (current !== 'hero') return;
+  stageShow();
+  if (typeof window.AegisHeroStage !== 'undefined') window.AegisHeroStage.play();
+});
+
+window.addEventListener('aegis:hero-stage-mounted', () => {
+  if (current === 'hero') stageShow();
+});
+
+/* --------------------------------------------------------- weapon modal */
+
+/*
+ * The rack, as a sheet with the weapons' own renders. Round 10 asked for the
+ * weapon choice to stop being a label; this is one modal over the operative
+ * page with a picture, a name, three numbers and a price per weapon, opening
+ * from the loadout chip and closing back to it.
+ *
+ * It does not unlock anything. BP is earned and spent inside the arena, so a
+ * priced weapon is listed, priced and refused here — the same rule the in-game
+ * armory follows, and the reason the shell cannot become a shop.
+ */
+function buildRack() {
+  const host = el('hero-rack');
+  if (!host) return;
+  host.replaceChildren();
+  for (const [id, weapon] of Object.entries(WEAPONS)) {
+    const item = document.createElement('li');
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'rackcard';
+    button.dataset.weapon = id;
+    button.dataset.cost = String(weapon.cost);
+    const locked = weapon.cost > 0;
+    button.setAttribute('aria-pressed', String(!locked && id === prefs.weapon));
+    if (locked) button.setAttribute('aria-disabled', 'true');
+    button.innerHTML = `
+      <span class="rackcard__art"><img src="${weapon.art}" alt="" /></span>
+      <span class="rackcard__row">
+        <span class="rackcard__name">${t(weapon.nameKey)}</span>
+        <span class="rackcard__state">${
+          locked ? t('hero.weapon.cost', weapon.cost) : t('hero.weapon.equipped')
+        }</span>
+      </span>
+      <span class="rackcard__spec">${weapon.spec}</span>`;
+    item.appendChild(button);
+    host.appendChild(item);
+  }
 }
 
-for (const skin of document.querySelectorAll('.skin')) {
-  skin.addEventListener('click', () => {
-    if (skin.getAttribute('aria-disabled') === 'true') return;
-    for (const other of document.querySelectorAll('.skin')) {
-      other.setAttribute('aria-checked', String(other === skin));
-    }
-  });
+function openWeaponModal() {
+  const modal = el('weapon-modal');
+  if (!modal) return;
+  buildRack();
+  modal.hidden = false;
+  const first = modal.querySelector('.rackcard:not([aria-disabled="true"])');
+  if (first) first.focus();
+  document.addEventListener('keydown', trapWeaponModal);
 }
+
+function closeWeaponModal() {
+  const modal = el('weapon-modal');
+  if (!modal || modal.hidden) return;
+  modal.hidden = true;
+  document.removeEventListener('keydown', trapWeaponModal);
+  el('hero-loadout')?.focus();
+}
+
+/* A modal that lets Tab walk into the page behind it is not a modal
+   (docs/skills/disciplines/game-ui-ux: trap focus, hand it back on close). */
+function trapWeaponModal(event) {
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    closeWeaponModal();
+    return;
+  }
+  if (event.key !== 'Tab') return;
+  const modal = el('weapon-modal');
+  const focusable = [...modal.querySelectorAll('button')].filter((node) => !node.hidden);
+  if (!focusable.length) return;
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault();
+    first.focus();
+  }
+}
+
+el('hero-loadout')?.addEventListener('click', openWeaponModal);
+el('weapon-modal-close')?.addEventListener('click', closeWeaponModal);
+el('weapon-modal')?.addEventListener('click', (event) => {
+  if (event.target === el('weapon-modal')) closeWeaponModal();
+});
+el('hero-rack')?.addEventListener('click', (event) => {
+  const card = event.target.closest('.rackcard');
+  if (!card || card.getAttribute('aria-disabled') === 'true') return;
+  prefs.weapon = card.dataset.weapon;
+  savePrefs();
+  paintLoadout();
+  buildRack();
+  closeWeaponModal();
+});
+
+/* Boot: the roster is one fetch, and the screen waits for it rather than
+   painting cards that might name a costume the file does not have. */
+loadRoster()
+  .then(() => {
+    heroState.heroId = heroOf(prefs.hero)?.id || roster.heroes[0].id;
+    heroState.tier = Math.min(Math.max(1, Number(prefs.tier) || 1), roster.tier_count);
+    heroState.tier = Math.min(heroState.tier, ownedTier()) || 1;
+    paintOperative();
+    const screen = screens.hero;
+    if (screen) screen.dataset.ready = 'true';
+    if (current === 'hero') {
+      stageShow('right');
+      celebrate('right');
+    }
+  })
+  .catch((error) => {
+    // A roster that will not load is a shell problem, not a player problem:
+    // say it where the cards would be rather than showing an empty strip.
+    const host = el('hero-roster');
+    if (host) host.textContent = `roster unavailable · ${error.message}`;
+    console.warn('[operative]', error);
+  });
 
 /* --------------------------------------------------------------- loadout */
 
@@ -440,13 +902,33 @@ for (const skin of document.querySelectorAll('.skin')) {
  * armory follows.
  */
 const WEAPONS = {
-  pulse_rifle: { name: 'Pulse Rifle', cost: 0 },
-  nova_launcher: { name: 'Nova Launcher', cost: 120 },
-  arc_shooter: { name: 'Arc Shooter', cost: 250 },
+  pulse_rifle: {
+    nameKey: 'wpn.pulse.name',
+    cost: 0,
+    art: './game/assets/ui/weapon_pulse_rifle.png',
+    spec: '18 dmg · 5.0/s · 24',
+  },
+  nova_launcher: {
+    nameKey: 'wpn.nova.name',
+    cost: 120,
+    art: './game/assets/ui/weapon_nova_launcher.png',
+    spec: '34 dmg · 0.8/s · 6',
+  },
+  arc_shooter: {
+    nameKey: 'wpn.arc.name',
+    cost: 250,
+    art: './game/assets/ui/weapon_arc_shooter.png',
+    spec: '20 dmg · 2.0/s · 12',
+  },
 };
 
+function weaponName(id) {
+  const weapon = WEAPONS[id] || WEAPONS.pulse_rifle;
+  return t(weapon.nameKey);
+}
+
 function paintLoadout() {
-  for (const button of document.querySelectorAll('.weapon')) {
+  for (const button of document.querySelectorAll('.rackcard')) {
     const locked = Number(button.dataset.cost) > 0;
     // A priced weapon is not "selected", it is "available later": pressing it
     // moves the focus ring and nothing else, so the screen never claims a
@@ -455,15 +937,16 @@ function paintLoadout() {
     button.setAttribute('aria-pressed', String(!locked && button.dataset.weapon === prefs.weapon));
     button.setAttribute('aria-disabled', String(locked));
   }
-  const weapon = WEAPONS[prefs.weapon] || WEAPONS.pulse_rifle;
-  const chip = el('hero-weapon-chip');
-  if (chip) chip.textContent = weapon.name;
+  // Resolved through the catalogue, not stored: a weapon's name is the player's
+  // word for it, and painting it from a literal left three English chips on an
+  // Indonesian page (qa-evidence/ui/round-12/i18n).
+  const weapon = weaponName(prefs.weapon);
+  const chip = el('hero-loadout-weapon');
+  if (chip) chip.textContent = weapon;
   const hub = el('hub-operative-meta');
-  if (hub) hub.textContent = weapon.name;
+  if (hub) hub.textContent = weapon;
   const deployMeta = el('hub-deploy-meta');
-  if (deployMeta) deployMeta.textContent = weapon.name;
-  const kitWeapon = el('hero-kit-weapon');
-  if (kitWeapon) kitWeapon.textContent = weapon.name;
+  if (deployMeta) deployMeta.textContent = weapon;
 }
 
 /* --------------------------------------------------------------- deploy */
@@ -499,10 +982,10 @@ function deploy() {
   lockLandscape();
   savePrefs();
   paintWorld();
-  void audio.play('deploy');
-  el('launch-title').textContent = 'Menyiapkan dunia';
-  el('launch-status').textContent = 'menghubungkan paket dunia';
-  el('launch-hint').textContent = 'Paket dunia diunduh sekali saat opening. DEPLOY menyiapkan teater yang dipilih.';
+void audio.play('deploy');
+  el('launch-title').textContent = t('launch.title');
+  el('launch-status').textContent = t('launch.status.connecting');
+  el('launch-hint').textContent = t('launch.hint.preloaded');
   el('launch-retry').hidden = true;
   show('launch', { focus: false });
   el('canvas').dataset.hidden = 'true';
@@ -519,6 +1002,11 @@ function deploy() {
   // FrontEnd._enter_qa_world(): the shell's choices are the run's loadout and
   // theatre, not a picture of them.
   url.searchParams.set('weapon', prefs.weapon);
+  // The operative and the tier the player is looking at, clamped to what they
+  // own: ProgressionService re-checks both and refuses anything else, so a
+  // hand-edited URL cannot field a tier nobody unlocked.
+  url.searchParams.set('hero', prefs.hero || 'sable');
+  url.searchParams.set('tier', String(Math.min(Number(prefs.tier) || 1, ownedTier())));
   url.searchParams.set('qa_world', prefs.world);
   history.replaceState(null, '', url);
 
@@ -687,7 +1175,7 @@ async function bootEngine() {
     el('launch-hint').textContent = 'Masuk ke dunia…';
     revealCanvas();
   } catch (error) {
-    failLaunchFrom(error);
+failLaunchFrom(error);
   }
 }
 
@@ -698,12 +1186,12 @@ function launchFailed(title, detail) {
   window.clearTimeout(bootWatchdog);
   audio.setScene('launch');
   el('launch-title').textContent = title;
-  el('launch-status').textContent = 'berhenti — muat ulang untuk mencoba lagi';
+el('launch-status').textContent = t('launch.status.stopped');
   el('launch-percent').textContent = '';
   el('launch-hint').textContent = String(detail);
   el('launch-progress').dataset.indeterminate = 'false';
-  el('launch-retry').hidden = false;
-  paintDock('bad', 'Konsol gagal dimuat');
+el('launch-retry').hidden = false;
+  paintDock('bad', t('dock.failed'));
   // The same failure is visible where the opening download actually happened.
   showNote(String(detail));
 }
@@ -761,18 +1249,10 @@ el('opening-enter').addEventListener('click', () => {
   if (checks.assets) show('hero', { from: 'opening' });
 });
 el('hero-next').addEventListener('click', () => show('hub'));
-el('hero-back').addEventListener('click', () => show(fromHero, { focus: false }));
+el('hero-back')?.addEventListener('click', () => show(fromHero, { focus: false }));
 el('hub-deploy').addEventListener('click', () => deploy());
 el('launch-retry').addEventListener('click', () => window.location.reload());
 el('hub-card-operative').addEventListener('click', () => show('hero', { from: 'hub' }));
-for (const button of document.querySelectorAll('.weapon')) {
-  button.addEventListener('click', () => {
-    if (Number(button.dataset.cost) > 0) return;
-    prefs.weapon = button.dataset.weapon;
-    savePrefs();
-    paintLoadout();
-  });
-}
 el('hub-card-controls').addEventListener('click', () => show('settings'));
 el('hub-card-display').addEventListener('click', () => show('settings'));
 el('settings-close').addEventListener('click', () => show(fromSettings));
@@ -800,6 +1280,39 @@ setSwitch('opt-motion', prefs.motion, (value) => {
 });
 setSwitch('opt-fullscreen', false, (value) => toggleFullscreen(value));
 
+/*
+ * The language row: one press, the whole document re-reads, and the engine is
+ * told through `window.aegisSetLocale` if it is already running. The value is
+ * shown in the language's own name -- a player looking for Indonesian should not
+ * have to find the word "Indonesian" in English first.
+ */
+function paintLanguage() {
+  const value = el('opt-language-value');
+  if (value) value.textContent = nativeName(locale());
+}
+
+el('opt-language')?.addEventListener('click', () => {
+  // `setLocale` re-reads the static tree, writes `?lang=` into the URL so a
+  // reload agrees, and calls the running engine's callback if it registered one.
+  setLocale(nextLocale());
+  paintLanguage();
+  // The dynamic lines (opening status, dock state, launch title, the theatre
+  // line) are painted by their owners, so the switch repaints them by hand.
+  paintOpening();
+  paintWorld();
+  paintDock(engineReady ? 'ok' : 'warn', engineReady ? t('dock.ready') : t('dock.not_ready'));
+  if (current === 'launch') el('launch-title').textContent = t('launch.title');
+});
+
+document.addEventListener('aegis:locale', () => {
+  paintLanguage();
+  // The cards are built in JavaScript, so their words are not in the tree the
+  // catalogue walks: they are repainted here, by the function that knows how.
+  paintOperative();
+  paintLoadout();
+  if (!el('weapon-modal')?.hidden) buildRack();
+});
+
 document.addEventListener('keydown', (event) => {
   if (event.defaultPrevented) return;
   if (event.key === 'Escape') {
@@ -807,13 +1320,18 @@ document.addEventListener('keydown', (event) => {
     back();
     return;
   }
-  if (current === 'hero' && (event.key === 'ArrowDown' || event.key === 'ArrowUp')) {
+  // Arrows walk the tier ladder: up is the next rank, down is the previous one,
+  // and the same beat plays, because a keyboard player gets the same screen.
+  if (
+    current === 'hero' &&
+    (event.key === 'ArrowUp' || event.key === 'ArrowDown' || event.key === 'ArrowRight' || event.key === 'ArrowLeft') &&
+    document.body.dataset.mode !== 'playing'
+  ) {
     event.preventDefault();
-    const step = event.key === 'ArrowDown' ? 1 : -1;
-    const index = HERO_TABS.indexOf(document.querySelector('.htab[aria-selected="true"]')?.dataset.tab || 'info');
-    const next = HERO_TABS[(index + step + HERO_TABS.length) % HERO_TABS.length];
-    paintTab(next);
-    document.querySelector(`.htab[data-tab="${next}"]`)?.focus();
+    const max = roster ? roster.tier_count : 5;
+    const step = event.key === 'ArrowUp' || event.key === 'ArrowRight' ? 1 : -1;
+    selectTier(Math.min(max, Math.max(1, heroState.tier + step)));
+    document.querySelector(`#hero-tiers .card[data-tier="${heroState.tier}"]`)?.focus();
     return;
   }
   if (current === 'hub' && (event.key === 'ArrowRight' || event.key === 'ArrowLeft')) {
@@ -822,7 +1340,9 @@ document.addEventListener('keydown', (event) => {
     return;
   }
   if (event.key === 'Enter') {
-    const active = screens[current].querySelector('.btn--primary, .wcard[aria-selected="true"], .wcard');
+    const active = screens[current].querySelector(
+      '.btn--primary, .wcard[aria-selected="true"], .wcard, .card[aria-pressed="true"], .card',
+    );
     if (active && document.body.dataset.mode !== 'playing') {
       event.preventDefault();
       active.click();
@@ -860,16 +1380,42 @@ function lockLandscape() {
   }
 }
 
+/* ------------------------------------------------------------------- home */
+
+/*
+ * HOME is the lobby, and the engine asks for it by name: an in-game HOME button
+ * calls `window.AegisShell.home()` through
+ * game/scripts/ui/dashboard_return.gd. The world is a WebGL context the page
+ * cannot unload in place, so the honest way back is a fresh document: the
+ * hand-off parameters are dropped and `ui=hub` puts the lobby up -- loadout,
+ * world and progress all survive because they live in storage, not in the tab.
+ */
+function home() {
+  const url = new URL(location.href);
+  url.searchParams.delete('qa_stage');
+  url.searchParams.delete('weapon');
+  url.searchParams.delete('qa_world');
+  url.searchParams.set('ui', 'hub');
+  location.replace(url.toString());
+}
+
+/* Read by the engine's HOME affordances and by the shell's own QA harness. */
+window.AegisShell = { home, screen: () => current };
+
 /* ------------------------------------------------------------------ boot */
 
+// Language first: every painter below reads its words from the catalog, so the
+// active language has to be resolved before the first frame is painted.
+initLocale();
+applyLocale();
 applyMotionPref();
 applyPrefsToUrl();
 paintAudioControl();
-paintDock(engineReady ? 'ok' : 'warn', engineReady ? 'Konsol siap' : 'Konsol belum siap');
+paintLanguage();
+paintDock(engineReady ? 'ok' : 'warn', engineReady ? t('dock.ready') : t('dock.not_ready'));
 paintLoadout();
 paintWorld();
 paintOpening();
-paintTab('info');
 runOpeningChecks();
 
 // QA and deep links: a page that asks for an engine stage still performs the

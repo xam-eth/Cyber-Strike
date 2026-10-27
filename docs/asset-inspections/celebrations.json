@@ -4,9 +4,9 @@
   "frame_rate": 30,
   "clip": "celebration",
   "heroes": {
-    "exo_operative": {
+    "sable": {
       "label": "Lockdown",
-      "file": "game/assets/characters/hero/celebrations/exo_operative.glb",
+      "file": "game/assets/characters/hero/celebrations/sable.glb",
       "clip": "celebration",
       "frames": [
         1.0,

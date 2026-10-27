@@ -7,12 +7,12 @@ extends RefCounted
 static func install_entry(hud) -> void:
 	hud._armory_button = (
 		hud
-		. _text_button(
-			"ARMORY · 0 BP",
+		. _text_button_key(
+			"armory.chip",
 			"ArmoryButton",
 			"round",
 			"",
-			"Open Armory: unlock and equip weapons with Battle Points",
+			"armory.chip_tip",
 		)
 	)
 	hud._armory_button.pressed.connect(_request_open.bind(hud))
@@ -24,6 +24,7 @@ static func install_panel(hud) -> void:
 	hud.add_child(hud._armory_panel)
 	hud._armory_panel.weapon_action_requested.connect(hud.armory_weapon_action_requested.emit)
 	hud._armory_panel.close_requested.connect(hud.armory_close_requested.emit)
+	hud._armory_panel.home_requested.connect(hud._on_home_pressed)
 
 
 static func refresh(
@@ -40,12 +41,14 @@ static func refresh_entry_label(hud) -> void:
 		return
 	# The only armory action is the 186 px landscape plate, which fits the
 	# balance; the Armory and Results panels still carry the full figure.
-	hud._armory_button.text = "ARMORY · %d BP" % hud._state.wallet_bp
+	AegisText.apply(hud._armory_button, "armory.chip_bp", [hud._state.wallet_bp])
 
 
 static func show_panel(hud) -> void:
 	hud._clear_touch_state()
+	hud._armory_panel.show_home(true)
 	hud._armory_panel.visible = true
+	hud._overlays.push(hud._armory_panel, hud._close_armory_overlay)
 	hud._pause_panel.visible = false
 	hud._top_bar.visible = false
 	hud._scrim.visible = true
@@ -53,6 +56,7 @@ static func show_panel(hud) -> void:
 
 
 static func hide_panel(hud) -> void:
+	hud._overlays.remove(hud._armory_panel)
 	hud._armory_panel.visible = false
 	for button in hud._armory_panel.find_children("*", "Button", true, false):
 		if button.has_focus():

@@ -81,6 +81,10 @@ var _numerals: Array[Label] = []
 var _ribbon: AegisPanel
 var _best: Label
 var _runs: Label
+## Catalog keys behind the two figures. The numbers change every run, so the
+## label is rebuilt from `key + value` instead of being parked in the tree walk.
+var _best_key := "dash.best_score"
+var _runs_key := "dash.runs_completed"
 var _loadout: Label
 var _loadout_items: Array[Label] = []
 var _armory: AegisButton
@@ -122,6 +126,16 @@ func _ready() -> void:
 	relayout()
 	_apply_orientation()
 	_apply_density()
+	# A language change on this page is a re-read of the figures and the status
+	# lines, both of which are built from the save file.
+	AegisText.watch(_on_language)
+
+
+## Everything on this page that says a word: the keyed tree first, then the two
+## figures and the status lines, which are built from the save file.
+func _on_language(_code: String) -> void:
+	AegisText.refresh(self)
+	refresh_profile()
 
 
 # --- construction ----------------------------------------------------------- #
@@ -160,7 +174,7 @@ func _build_intro() -> void:
 	physical_separation(_intro, 16)
 	_root.add_child(_intro)
 
-	_heading = make_label("DEPLOYMENT", "display_l", AegisTokens.INK)
+	_heading = make_label_key("dash.title", "display_l", AegisTokens.INK)
 	_heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_intro.add_child(_heading)
 
@@ -195,7 +209,7 @@ func _build_bands() -> void:
 
 
 func _build_rows() -> void:
-	var hero := _make_row("01", "OPERATIVE", AegisTokens.INFO)
+	var hero := _make_row("01", "dash.row_operative", AegisTokens.INFO)
 	_hero_row = hero["panel"]
 	_hero_plate = hero["plate"]
 	_hero_caption = hero["caption"]
@@ -203,7 +217,7 @@ func _build_rows() -> void:
 	_hero_status = hero["detail"]
 	_rows.add_child(_hero_row)
 
-	var mission := _make_row("02", "DEPLOYMENT THEATRE", AegisTokens.ACCENT)
+	var mission := _make_row("02", "dash.row_theatre", AegisTokens.ACCENT)
 	_mission_row = mission["panel"]
 	_mission_plate = mission["plate"]
 	_mission_caption = mission["caption"]
@@ -211,7 +225,7 @@ func _build_rows() -> void:
 	_mission_brief = mission["detail"]
 	_rows.add_child(_mission_row)
 
-	var arsenal := _make_row("03", "ARSENAL", AegisTokens.INK_2)
+	var arsenal := _make_row("03", "dash.row_arsenal", AegisTokens.INK_2)
 	_arsenal_row = arsenal["panel"]
 	_arsenal_plate = arsenal["plate"]
 	_arsenal_caption = arsenal["caption"]
@@ -224,7 +238,7 @@ func _build_rows() -> void:
 ## reports is a choice already made, and the two ways to change that choice are
 ## the OPERATIVE and THEATRE tabs in the dock above it. A row that looked
 ## tappable and did nothing would be worse than a row that reads as a receipt.
-func _make_row(number: String, caption: String, accent: Color) -> Dictionary:
+func _make_row(number: String, caption_key: String, accent: Color) -> Dictionary:
 	var panel := AegisPanel.new()
 	panel.name = &"Step" + number
 	panel.interactive = false
@@ -259,7 +273,7 @@ func _make_row(number: String, caption: String, accent: Color) -> Dictionary:
 	physical_separation(column, 4)
 	row.add_child(column)
 
-	var caption_label := make_label(caption, "label", AegisTokens.INK_3)
+	var caption_label := make_label_key(caption_key, "label", AegisTokens.INK_3)
 	column.add_child(caption_label)
 
 	var name_label := make_label("", "title", AegisTokens.INK)
@@ -302,16 +316,18 @@ func _build_ribbon() -> void:
 	physical_separation(column, 6)
 	_ribbon.add_child(column)
 
-	_best = make_label("BEST SCORE  0", "label_s", AegisTokens.INK)
+	_best = make_label("", "label_s", AegisTokens.INK)
+	_best_key = "dash.best_score"
 	_best.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(_best)
-	_runs = make_label("RUNS COMPLETED  0", "label_s", AegisTokens.INK)
+	_runs = make_label("", "label_s", AegisTokens.INK)
+	_runs_key = "dash.runs_completed"
 	_runs.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(_runs)
 	# "LOADOUT  hero / weapon / theatre" was one line that ran out of a 340 px
 	# rail mid-word ("PULSE…"). The receipt names the three things on three
 	# lines instead, each short enough to print whole.
-	_loadout = make_label("LOADOUT", "label_s", AegisTokens.ACCENT)
+	_loadout = make_label_key("dash.loadout", "label_s", AegisTokens.ACCENT)
 	_loadout.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(_loadout)
 	for _slot in [0, 1, 2]:
@@ -322,21 +338,23 @@ func _build_ribbon() -> void:
 
 
 func _build_actions() -> void:
-	_armory = make_button("ARMORY", "card", "Unlock and equip weapons with Battle Points")
+	_armory = make_button_key("nav.armory", "card", "nav.armory_tip")
 	_armory.clip_text = true
 	_armory.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_armory.pressed.connect(_on_armory_pressed)
 	_actions.add_child(_armory)
 
-	_deploy = make_button("DEPLOY", "primary", "Choose your loadout and start a run")
+	_deploy = make_button_key("nav.deploy", "primary", "nav.deploy_tip")
 	_deploy.clip_text = true
 	_deploy.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_deploy.pressed.connect(_on_deploy_pressed)
 	_actions.add_child(_deploy)
 
-	# The theatre is named under the amber tile rather than in a chip above it:
-	# this page already prints the theatre in row 02, and a second caption box
-	# was a third place to say it.
+	# The caption states the action's condition, not the theatre: row 02 and the
+	# dock both already name the theatre, and printing it a third time under the
+	# tile is what pushed the caption past its label's width and cut it to
+	# `READY TO…` at 844 px -- in both languages
+	# (qa-evidence/ui/round-12/i18n/engine).
 	_deploy_caption = make_label("", "label_s", AegisTokens.INK_3)
 	_deploy_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_deploy_caption.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -383,39 +401,39 @@ func refresh_profile() -> void:
 	var weapon := _weapon_name(progression.selected_weapon_id)
 	var world := _world_name(progression.selected_world_id)
 
-	_best.text = "BEST SCORE  %d" % progression.best_score
-	_runs.text = "RUNS COMPLETED  %d" % progression.completed_runs
-	_loadout.text = "LOADOUT"
+	_set_figure(_best, _best_key, progression.best_score)
+	_set_figure(_runs, _runs_key, progression.completed_runs)
 	_loadout_items[0].text = hero
 	_loadout_items[1].text = weapon
 	_loadout_items[2].text = world
 	# The profile line is the record, not a rank: the save file stores no level,
 	# so "NO RUNS" on a fresh profile is true and "SQUAD LEADER Lv 4" would not
 	# be.
-	_profile_line.text = (
-		"PROFILE  ·  FIELD READY"
-		if progression.completed_runs == 0
-		else "PROFILE  ·  %d RUNS" % progression.completed_runs
-	)
+	if progression.completed_runs == 0:
+		AegisText.apply(_profile_line, "dash.profile_fresh")
+	else:
+		AegisText.apply(_profile_line, "dash.profile_runs", [progression.completed_runs])
 
 	_hero_name_label.text = hero
 	_mission_name.text = world
 	_arsenal_name.text = weapon
-	_deploy_caption.text = "%s  ·  READY TO DEPLOY" % world
+	AegisText.apply(_deploy_caption, "dash.ready_to_deploy")
 
 	# Both status lines come from the definitions, not from literals: the card
 	# on OPERATIVE prints the same string, so the board cannot say an operative
 	# is ready when their card says otherwise.
 	var hero_definition := HeroDefinition.load_definition(progression.selected_hero_id)
 	_hero_status.text = (
-		hero_definition.status_line.to_upper() if hero_definition != null else "FIELD READY"
+		hero_definition.display_status().to_upper()
+		if hero_definition != null
+		else AegisText.t("common.field_ready")
 	)
 	_hero_plate.texture = (
 		try_texture(hero_definition.portrait_path) if hero_definition != null else null
 	)
 	var world_definition := WorldDefinition.load_definition(progression.selected_world_id)
 	if world_definition != null:
-		_mission_brief.text = _first_sentence(world_definition.role_description)
+		_mission_brief.text = _first_sentence(world_definition.display_role())
 		_mission_plate.texture = try_texture(world_definition.plate_path)
 	else:
 		_mission_brief.text = ""
@@ -423,11 +441,17 @@ func refresh_profile() -> void:
 	_arsenal_plate.texture = try_texture(
 		WEAPON_PLATE_DIR + "weapon_%s.png" % String(progression.selected_weapon_id)
 	)
-	_arsenal_state.text = (
-		"SELECTED  ·  %d BP" % progression.unlock_cost(progression.selected_weapon_id)
-		if not progression.is_unlocked(progression.selected_weapon_id)
-		else "EQUIPPED FOR DEPLOYMENT"
-	)
+	if progression.is_unlocked(progression.selected_weapon_id):
+		AegisText.apply(_arsenal_state, "dash.equipped")
+	else:
+		(
+			AegisText
+			. apply(
+				_arsenal_state,
+				"dash.selected_cost",
+				[progression.unlock_cost(progression.selected_weapon_id)],
+			)
+		)
 	if _armory_ui.visible:
 		_armory_ui.refresh_profile(
 			progression.balance,
@@ -435,6 +459,12 @@ func refresh_profile() -> void:
 			progression.unlocked_ids,
 			progression.selected_weapon_id
 		)
+
+
+## A figure is "CAPTION  number" in one label: the caption from the catalog, the
+## number from the save file.
+func _set_figure(label: Label, key: String, value: int) -> void:
+	label.text = AegisText.t(key, [value])
 
 
 # --- arrangement ------------------------------------------------------------ #
@@ -617,16 +647,16 @@ func _on_weapon_action(weapon_id: StringName) -> void:
 		return
 	if progression.is_unlocked(weapon_id):
 		progression.select_weapon(weapon_id)
-		_armory_ui.show_hint("%s EQUIPPED" % String(weapon_id).to_upper())
+		_armory_ui.show_hint_key("armory.now_equipped", [String(weapon_id).to_upper()])
 		return
 	var missing := progression.unlock_cost(weapon_id) - progression.balance
 	if missing > 0:
-		_armory_ui.show_hint("NEED %d MORE BP · FIGHT WAVES" % missing)
+		_armory_ui.show_hint_key("armory.need_bp", [missing])
 		return
 	if progression.unlock_weapon(weapon_id):
 		progression.select_weapon(weapon_id)
 		Sfx.play_ui(&"session_clear")
-		_armory_ui.show_hint("%s UNLOCKED & EQUIPPED" % String(weapon_id).to_upper())
+		_armory_ui.show_hint_key("armory.now_unlocked", [String(weapon_id).to_upper()])
 	refresh_profile()
 
 

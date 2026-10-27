@@ -93,6 +93,7 @@ func _ready() -> void:
 	touch_controls.defense_start_requested.connect(_request_defense)
 	touch_controls.return_to_explore_requested.connect(_return_to_explore)
 	touch_controls.finish_run_requested.connect(_finish_run)
+	touch_controls.home_requested.connect(_exit_to_dashboard)
 	player.aim_changed.connect(touch_controls.set_aim_state)
 	player.shot_fired.connect(_on_shot_fired)
 	player.health_changed.connect(_on_combatant_health_changed)
@@ -358,6 +359,18 @@ func _return_to_explore() -> void:
 	touch_controls._set_play_phase("explore")
 	_update_status()
 	print("Encounter: Returned to Explore")
+
+
+## Every in-game HOME lands here. DashboardReturn owns where "home" is -- the web
+## shell's lobby when the engine is embedded, the front end's DASHBOARD stage when
+## it is not -- so the scene never has to know which build it is running in.
+func _exit_to_dashboard() -> void:
+	_is_paused = false
+	_pending_defeat_wave = -1
+	_retry_defense = false
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	touch_controls.set_paused(false)
+	DashboardReturn.request(get_tree())
 
 
 ## Pause offers a deliberate cash-out path; a player need not die or leave

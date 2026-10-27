@@ -199,17 +199,20 @@ func _refresh_weapons(progression: ProgressionService) -> void:
 	var selected := WeaponDefinition.load_definition(progression.selected_weapon_id)
 	if selected == null or not is_instance_valid(_weapon_stat):
 		return
+	# The abbreviations are catalog keys, not literals: "RATE" and "RNG" are
+	# English shorthand, and the Indonesian column says "TEMBAK" and "JANGKAUAN"
+	# without changing what any number means.
 	var parts: Array[String] = [
-		"DMG %d" % roundi(selected.damage),
-		"RATE %s/s" % _numeral(selected.fire_rate),
-		"MAG %d" % selected.magazine_size,
-		"RELOAD %ss" % _numeral(selected.reload_seconds),
-		"RNG %d" % roundi(selected.max_range),
+		AegisText.t("wpn.stat_damage", [roundi(selected.damage)]),
+		AegisText.t("wpn.stat_rate", [_numeral(selected.fire_rate)]),
+		AegisText.t("wpn.stat_magazine", [selected.magazine_size]),
+		AegisText.t("wpn.stat_reload", [_numeral(selected.reload_seconds)]),
+		AegisText.t("wpn.stat_range", [roundi(selected.max_range)]),
 	]
 	if selected.splash_damage > 0.0:
-		parts.append("SPLASH %d" % roundi(selected.splash_damage))
+		parts.append(AegisText.t("wpn.stat_splash", [roundi(selected.splash_damage)]))
 	if selected.chain_count > 0:
-		parts.append("CHAIN %d" % selected.chain_count)
+		parts.append(AegisText.t("wpn.stat_chain", [selected.chain_count]))
 	_weapon_stat.text = "  ·  ".join(parts)
 
 
@@ -247,6 +250,7 @@ func enter(_stage_payload: Dictionary) -> void:
 	# the hero arriving, and a screen that is already fully composed when the
 	# transition ends has no reveal at all.
 	_present_selected(true)
+	AegisText.watch(_on_language)
 
 
 func exit() -> void:
@@ -258,6 +262,14 @@ func refresh_profile() -> void:
 	_refresh()
 	if _chrome != null:
 		_chrome.refresh(progression_service())
+
+
+## A language change re-reads the keyed tree, then the three lines that are
+## built from a hero or weapon definition, then the dock that sits above them.
+func _on_language(_code: String) -> void:
+	AegisText.refresh(self)
+	refresh_profile()
+	_present_selected(false)
 
 
 # --- construction ----------------------------------------------------------- #
@@ -272,12 +284,12 @@ func _build_header() -> void:
 	physical_separation(_header, 16)
 	_stack.add_child(_header)
 
-	var back := make_button("BACK", "ghost", "Return to the dashboard")
+	var back := make_button_key("common.back", "ghost", "common.back_tip")
 	physical_min_size(back, 110.0, AegisTokens.MIN_TOUCH_PX)
 	back.pressed.connect(func() -> void: completed.emit(&"DASHBOARD", {}))
 	_header.add_child(back)
 
-	_heading = make_label("SELECT OPERATIVE", "display_m", AegisTokens.INK)
+	_heading = make_label_key("hero.title", "display_m", AegisTokens.INK)
 	_heading.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_heading.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -354,7 +366,21 @@ func _build_chip(definition: HeroDefinition) -> Control:
 	chip.focus_mode = Control.FOCUS_ALL
 	chip.mouse_filter = Control.MOUSE_FILTER_STOP
 	chip.set_meta("hero_id", String(definition.hero_id))
-	chip.tooltip_text = "%s — %s" % [definition.display_name, definition.status_line.to_lower()]
+	# The rank is named in the tooltip rather than in the 84 px chip: a tier name
+	# is two words, and it is already the caption of the tier cards on the
+	# operative page. The tooltip is where a screen-reader user meets it here.
+	var tier := 1
+	var progression := progression_service()
+	if progression != null and progression.selected_hero_id == definition.hero_id:
+		tier = progression.fieldable_tier()
+	chip.tooltip_text = (
+		"%s — %s — %s"
+		% [
+			definition.display_name,
+			definition.display_status().to_lower(),
+			AegisText.t("hero.tier.%s.name" % tier),
+		]
+	)
 	_size(chip, Vector2(84.0, 84.0))
 	AegisTheme.set_button_variant(chip, "round")
 	chip.pressed.connect(_on_chip_pressed.bind(definition.hero_id))
@@ -377,7 +403,7 @@ func _build_locked_chip(index: int) -> Control:
 	chip.disabled = true
 	chip.focus_mode = Control.FOCUS_NONE
 	chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	chip.tooltip_text = "No rig and no definition in this build"
+	AegisText.apply_tip(chip, "hero.locked_tip")
 	_size(chip, Vector2(68.0, 68.0))
 	AegisTheme.set_button_variant(chip, "round")
 	_locked.append(chip)
@@ -392,7 +418,7 @@ func _build_locked_chip(index: int) -> Control:
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	chip.add_child(column)
 	var slot := make_label(
-		"SLOT %02d" % (HeroDefinition.DEFINITION_IDS.size() + index + 1),
+		AegisText.t("hero.slot", [HeroDefinition.DEFINITION_IDS.size() + index + 1]),
 		"label_s",
 		AegisTokens.LINE_HI
 	)
@@ -448,11 +474,8 @@ func _build_panel() -> void:
 	# was the widest single-line text on the screen (334 px at 13 px with 10 px
 	# tracking) and, with autowrap off, its width was the *minimum width* of the
 	# whole column -- 370 px of panel on a 360 px phone.
-	_development_label = make_label(
-		"%d OPERATIVE SLOT%s IN DEVELOPMENT" % [LOCKED_SLOTS, "" if LOCKED_SLOTS == 1 else "S"],
-		"label_s",
-		AegisTokens.INK_3
-	)
+	_development_label = make_label("", "label_s", AegisTokens.INK_3)
+	AegisText.apply(_development_label, "hero.slots_development", [LOCKED_SLOTS])
 	_development_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_limit_lines(_development_label, 1)
 	column.add_child(_development_label)
@@ -504,13 +527,13 @@ func _build_actions() -> void:
 	# not depend on it to put anything in the tree.
 	_col_right.add_child(_actions)
 
-	_select_button = make_button("EQUIPPED", "round", "Keep this operative selected")
+	_select_button = make_button_key("hero.equipped", "round")
 	_select_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	physical_min_size(_select_button, 0.0, AegisTokens.MIN_TOUCH_PX)
 	_select_button.pressed.connect(_on_select_pressed)
 	_actions.add_child(_select_button)
 
-	_continue = make_button("CONTINUE", "primary", "Choose a weapon")
+	_continue = make_button_key("common.continue", "primary", "hero.continue_tip")
 	_continue.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	physical_min_size(_continue, 0.0, AegisTokens.MIN_TOUCH_PX)
 	_continue.pressed.connect(_on_continue_pressed)
@@ -533,13 +556,12 @@ func _refresh() -> void:
 	var saved := progression.selected_hero_id if progression != null else _selected
 	_select_requested = StringName(saved) != _selected
 	_continue.disabled = not ProgressionService.HERO_IDS.has(_selected)
-	_select_button.text = "SELECT" if _select_requested else "EQUIPPED"
+	AegisText.apply(_select_button, "hero.select" if _select_requested else "hero.equipped")
 	_select_button.disabled = not _select_requested
-	_select_button.tooltip_text = (
-		"Confirm %s" % _hero_name(_selected)
-		if _select_requested
-		else "%s is equipped" % _hero_name(_selected)
-	)
+	if _select_requested:
+		AegisText.apply_tip(_select_button, "hero.confirm_tip", [_hero_name(_selected)])
+	else:
+		AegisText.apply_tip(_select_button, "hero.equipped_tip", [_hero_name(_selected)])
 	_refresh_weapons(progression)
 
 
@@ -555,9 +577,9 @@ func _present_selected(reveal: bool) -> void:
 	# Metadata and navigation do not depend on the 3D package. Keep them live
 	# even when the model is unavailable, then report the visual fallback.
 	_name_label.text = definition.display_name.to_upper()
-	_status_label.text = definition.status_line.to_upper()
+	_status_label.text = definition.display_status().to_upper()
 	_status_label.add_theme_color_override("font_color", AegisTokens.OK)
-	_role_label.text = _first_sentence(definition.role_description)
+	_role_label.text = _first_sentence(definition.display_role())
 	var progression := progression_service()
 	if progression != null:
 		_loadout_label.text = (
@@ -567,13 +589,27 @@ func _present_selected(reveal: bool) -> void:
 				_world_name(progression.selected_world_id),
 			]
 		)
-	var selected_model := definition.load_model_scene()
+
+	# The stage shows the rank this profile would field, not always tier 1. Keep
+	# the path beside the PackedScene: the showcase uses it to avoid rebuilding
+	# an unchanged rig, and ContentModuleLoader preserves Character isolation.
+	var selected_path := definition.resolved_model_path()
+	if progression != null and progression.selected_hero_id == definition.hero_id:
+		var tier_path := HeroTier.model_path(definition.hero_id, progression.fieldable_tier())
+		if not tier_path.is_empty():
+			selected_path = tier_path
+	var load_result := ContentModuleLoader.load_scene(
+		selected_path, ContentModuleLoader.CHARACTER_ROOTS
+	)
+	var selected_model: PackedScene = null
+	if bool(load_result["ok"]):
+		selected_model = load_result["scene"] as PackedScene
 	if not is_instance_valid(selected_model):
 		_showcase.clear_model()
 		_status_label.text = "VISUAL OFFLINE · GAMEPLAY FALLBACK"
 		_status_label.add_theme_color_override("font_color", AegisTokens.DANGER)
 		return
-	var already := _showcase.model_path() == definition.resolved_model_path()
+	var already := _showcase.model_path() == selected_path
 	if not already:
 		var clips: Array = definition.showcase_clips
 		(
@@ -584,9 +620,7 @@ func _present_selected(reveal: bool) -> void:
 					"fit_axis": 1,
 					"height": SHOWCASE_HEIGHT,
 					# The rig faces +Z; the camera sits on +Z looking at the origin,
-					# so no yaw is what turns the hero towards the viewer. 180 was
-					# inherited from ModelFitter's kit-model default and showed the
-					# back of the operative in the first capture.
+					# so no yaw is what turns the hero towards the viewer.
 					"yaw": 0.0,
 					"clips": clips,
 				}
@@ -788,7 +822,7 @@ func _apply_density() -> void:
 	_loadout_label.visible = not short_screen
 	physical_separation(_actions, 8.0 if short_screen else 14.0)
 	physical_min_size(_continue, 0.0, AegisTokens.MIN_TOUCH_PX)
-	_heading.text = "SELECT OPERATIVE"
+	AegisText.apply(_heading, "hero.title")
 	# BACK + heading + status have to share the header. "OPERATIVE" set in
 	# `display_m` is 208 px at the smallest width the suite measures, which is
 	# what pushed the heading past the right edge once. It steps down one role on

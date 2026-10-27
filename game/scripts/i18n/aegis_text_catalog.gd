@@ -1,0 +1,595 @@
+## Every word the player can read, written twice.
+##
+## The two columns are **not** translations of each other. Each one is written in
+## its own language for its own reader. English copy is short, verb-first and
+## reads like a field order. Indonesian copy uses the words Indonesian players
+## actually use -- DEPLOY, HUD, BP, KO, ARSENAL, OPERATIF, TEATER -- instead of
+## translating them, and it is allowed to be longer where Indonesian needs the
+## clause (see `pause.hint` and `results.ready_unlock`).
+##
+## A key is a *meaning*, never a sentence: `hud.finish_run` means "end this run
+## and show me the report", and each language says that its own way. `%s` / `%d`
+## placeholders may move; the tests check that both columns carry the same
+## number of them.
+##
+## Adding a string: add the key to **both** maps in the same commit.
+## `tests/localization_smoke.gd` fails if the key sets differ, if a placeholder
+## count disagrees, or if a value is still identical in both languages for a key
+## that is not a proper noun.
+class_name AegisTextCatalog
+extends RefCounted
+
+const EN := "en"
+const ID := "id"
+## Order matters: the settings row lists them in this order.
+const LOCALES: Array[String] = [EN, ID]
+## What each language calls itself. Never translated.
+const NATIVE_NAMES := {"en": "ENGLISH", "id": "BAHASA INDONESIA"}
+
+## Keys whose value is a proper noun or a technical token, and is therefore
+## *supposed* to read the same in both languages. Anything not listed here and
+## identical in both columns is a translation that was never written.
+## The rule behind it: jargon a player already says in English stays English in
+## Indonesian, because "PASANG" is not what an Indonesian player calls EQUIPPED
+## and "DMG" is not a word anyone translates. Copy that is a *sentence* is
+## always written twice.
+const SHARED_VALUES := [
+	"common.equipped",
+	"hero.equipped",
+	"wpn.pulse.name",
+	"wpn.nova.name",
+	"wpn.arc.name",
+	"nav.deploy",
+	"dash.row_arsenal",
+	"settings.tab_audio",
+	"settings.tab_hud",
+	"wpn.stat_damage",
+	"hero.slot",
+	"loading.progress",
+	"editor.preset_minimal",
+	"editor.preset_standard",
+	"editor.group_run",
+	"editor.preset_advanced",
+]
+
+const STRINGS := {
+	"en":
+	{
+		# --- shell / boot ---------------------------------------------------
+		"boot.reading_profile": "READING PROFILE",
+		"loading.title": "LOADING",
+		"loading.preparing": "PREPARING",
+		"loading.progress": "%d / %d",
+		"loading.ready": "READY",
+		"chapter.number": "CHAPTER 01",
+		"chapter.name": "FIRST LIGHT",
+		"chapter.objective": "OBJECTIVE — SURVIVE THE WAVE",
+		"chapter.body": "Defeat hostiles to bank Battle Points. Unlock weapons in the Armory.",
+		"chapter.continue_tip": "Continue to the dashboard",
+		# --- shared words ----------------------------------------------------
+		"common.back": "BACK",
+		"common.back_tip": "Return to the dashboard",
+		"common.continue": "CONTINUE",
+		"common.equipped": "EQUIPPED",
+		"common.in_development": "IN DEVELOPMENT",
+		"common.field_ready": "FIELD READY",
+		"common.offline": "OFFLINE",
+		"common.on": "ON",
+		"common.off": "OFF",
+		# --- dock ------------------------------------------------------------
+		"nav.home": "HOME",
+		"nav.operative": "OPERATIVE",
+		"nav.theatre": "THEATRE",
+		"nav.settings": "SETTINGS",
+		"nav.armory": "ARMORY",
+		"nav.armory_tip": "Unlock and equip weapons with Battle Points",
+		"nav.deploy": "DEPLOY",
+		"nav.deploy_tip": "Choose your loadout and start a run",
+		# --- dashboard -------------------------------------------------------
+		"dash.title": "DEPLOYMENT",
+		"dash.row_operative": "OPERATIVE",
+		"dash.row_theatre": "DEPLOYMENT THEATRE",
+		"dash.row_arsenal": "ARSENAL",
+		"dash.best_score": "BEST SCORE  %d",
+		"dash.runs_completed": "RUNS COMPLETED  %d",
+		"dash.loadout": "LOADOUT",
+		"dash.profile_fresh": "PROFILE  ·  FIELD READY",
+		"dash.profile_runs": "PROFILE  ·  %d RUNS",
+		"dash.ready_to_deploy": "READY TO DEPLOY",
+		"dash.equipped": "EQUIPPED FOR DEPLOYMENT",
+		"dash.selected_cost": "SELECTED  ·  %d BP",
+		"dash.battle_points": "BATTLE POINTS",
+		"dash.runs": "RUNS",
+		# --- operative -------------------------------------------------------
+		"hero.title": "SELECT OPERATIVE",
+		"hero.slot": "SLOT %02d",
+		"hero.locked_tip": "No rig and no definition in this build",
+		"hero.select": "SELECT",
+		"hero.equipped": "EQUIPPED",
+		"hero.confirm_tip": "Confirm %s",
+		"hero.equipped_tip": "%s is equipped",
+		"hero.continue_tip": "Choose a weapon",
+		"hero.sable.role":
+		(
+			"Raised on the frontier line and fielded as a strike lead. "
+			+ "Her kit is the rank: every tier is plate welded over the last one."
+		),
+		"hero.sable.status": "FIELD READY",
+		# The five ranks of SABLE. Names a player reads on the tier cards, so they
+		# live in the catalog like every other line of copy; the numbers beside
+		# them (runs, vitals, plate) live in resources/heroes/roster.json.
+		"hero.tier.1.name": "FIELD RECRUIT",
+		"hero.tier.2.name": "PLATED",
+		"hero.tier.3.name": "FRONT LINE",
+		"hero.tier.4.name": "SPEARHEAD",
+		"hero.tier.5.name": "WARPLATE",
+		# --- theatre ---------------------------------------------------------
+		"world.kicker": "DEPLOYMENT THEATRE",
+		"world.not_deployable": "NOT YET DEPLOYABLE",
+		"world.locked_pin": "THEATRE %02d  ·  IN DEVELOPMENT",
+		"world.launch": "LAUNCH",
+		"world.launch_tip": "Drop into the selected theatre",
+		"world.preparing_drop": "PREPARING DROP",
+		"world.neon_frontier.role":
+		(
+			"An open training theatre: reactor, command centre, research lab, "
+			+ "depot and generator bank, with a boss gate that opens once the "
+			+ "generators are down."
+		),
+		"world.neon_frontier.status": "OPEN",
+		"world.neon_frontier.zone_title": "EXPLORE THE FRONTIER",
+		"world.neon_frontier.zone_subtitle": "SAFE ZONE · MOVE FREELY",
+		"world.frostline_relay.role":
+		(
+			"Defend the primary uplink across a frozen relay field, with causeways, "
+			+ "sentry towers, cryo condensers and four marked breach approaches."
+		),
+		"world.frostline_relay.status": "OPEN",
+		"world.frostline_relay.zone_title": "EXPLORE THE RELAY",
+		"world.frostline_relay.zone_subtitle": "SAFE ZONE · DAYTIME ROUTE",
+		"world.verdant_bloom.role":
+		(
+			"Enter an overgrown bio-research station, recover the Seed Vault blueprint "
+			+ "and search the crashed laboratory modules before security closes in."
+		),
+		"world.verdant_bloom.status": "OPEN",
+		"world.verdant_bloom.zone_title": "EXPLORE THE BLOOM",
+		"world.verdant_bloom.zone_subtitle": "RECOVERY · SEED VAULT SIGNAL",
+		"world.emberfall_foundry.role":
+		(
+			"Cross a cinder yard of smelters, ore silos, crane gantries and slag pools, "
+			+ "with marked haul routes and foundry cover supporting Defense."
+		),
+		"world.emberfall_foundry.status": "OPEN",
+		"world.emberfall_foundry.zone_title": "EXPLORE THE FOUNDRY",
+		"world.emberfall_foundry.zone_subtitle": "SAFE ZONE · NIGHT ROUTE",
+		"world.titans.role":
+		(
+			"The canyon, central tower, sky bridges and interior bases beneath low storm "
+			+ "cloud, with Titans wreckage and lightning-rim dressing."
+		),
+		"world.titans.status": "OPEN",
+		"world.titans.zone_title": "EXPLORE THE TITANS",
+		"world.titans.zone_subtitle": "SAFE ZONE · STORM ROUTE",
+		"world.vanguard_station.role":
+		(
+			"Dock 07 of a dead orbital station: a gantry hall under a glass roof, "
+			+ "a reactor hall behind a pressure door, a cargo bay and a corridor "
+			+ "that runs out of light."
+		),
+		"world.vanguard_station.status": "OPEN",
+		"world.vanguard_station.zone_title": "DOCK 07 · STATION",
+		"world.vanguard_station.zone_subtitle": "SAFE ZONE · SEALS OPEN",
+		# --- in-run HUD ------------------------------------------------------
+		"hud.help": "STICK MOVE · DRAG LOOK · HOLD AIM\nFIRE · EMP · SWAP · B DEFENSE · ESC PAUSE",
+		"hud.vitals": "VITALS",
+		"hud.reloading": "RELOAD",
+		"hero.slots_development": "%d OPERATIVE SLOTS IN DEVELOPMENT",
+		"hud.vitals_critical": "VITALS !",
+		"hud.run_data": "RUN DATA",
+		"hud.wave": "WAVE %02d",
+		"hud.frontier_defense": "FRONTIER DEFENSE",
+		"hud.zone_title_fallback": "EXPLORE THE FRONTIER",
+		"hud.zone_subtitle_fallback": "SAFE ZONE · MOVE FREELY",
+		"hud.no_hostiles": "NO HOSTILES",
+		"hud.chip_explore": "EXPLORE\nSAFE",
+		"hud.chip_defense_in": "DEFENSE\nIN %d",
+		"hud.chip_wave": "WAVE %02d\n%d LEFT",
+		"hud.chip_ready": "READY\n%d LEFT",
+		"hud.defense_in": "DEFENSE IN %d",
+		"hud.get_ready": "GET READY · SPAWNS MARKED",
+		"hud.prepare": "PREPARE",
+		"hud.start_defense": "START DEFENSE",
+		"hud.start_defense_key": "START DEFENSE  [B]",
+		"hud.start_defense_tip": "Prepare for Defense (B). No enemies spawn until you start.",
+		"hud.left_ko_bp": "%d LEFT · %d KO · +%d BP",
+		"hud.pause_safe": "SAFE ZONE · NO WAVES UNTIL YOU START",
+		"hud.score_time": "SCORE %s  ·  %s",
+		"hud.swap_tip": "Tap to swap · Equipped: %s",
+		"hud.armory_tip": "Open Armory · Equipped: %s",
+		"hud.emp_hit": "EMP PULSE · %d TARGETS",
+		"hud.emp_hit_one": "EMP PULSE · %d TARGET",
+		"hud.emp_miss": "EMP PULSE · NO TARGETS",
+		"hud.pause_tip": "Pause (Esc)",
+		"hud.resume_tip": "Resume (Esc)",
+		# --- pause -----------------------------------------------------------
+		"pause.eyebrow": "RUN SUSPENDED",
+		"pause.title": "PAUSED",
+		"pause.resume": "RESUME",
+		"pause.restart": "RESTART",
+		"pause.settings": "SETTINGS",
+		"pause.home": "HOME",
+		"pause.hint": "SETTINGS → CONTROLS · ESC RESUME",
+		"pause.reset": "RESET EXPLORATION",
+		"pause.finish_run": "FINISH RUN · RESULTS",
+		"pause.cancel_defense": "CANCEL DEFENSE",
+		# --- results ---------------------------------------------------------
+		"results.eyebrow": "RUN COMPLETE",
+		"results.eyebrow_ended": "RUN ENDED",
+		"results.eyebrow_complete": "RUN COMPLETE",
+		"results.title": "RUN RESULTS",
+		"results.recover": "RECOVER",
+		"results.banked": "+%d BP BANKED",
+		"results.no_bp": "NO BP · NO RUN STARTED",
+		"results.hint": "10 BP PER KO · 100 BP PER CLEARED WAVE",
+		"results.retry": "RETRY",
+		"results.retry_explore": "RETRY EXPLORE",
+		"results.retry_defense": "RETRY DEFENSE",
+		"results.explore": "RETURN TO EXPLORE",
+		"results.home": "HOME",
+		"results.next": "NEXT LOADOUT · %s",
+		"results.ready_unlock": "READY TO UNLOCK · OPEN ARMORY IN EXPLORE",
+		"results.progress_to_go": "%d / %d BP  ·  %d TO GO",
+		"results.arsenal_complete": "ARSENAL COMPLETE",
+		"results.all_ready": "ALL LOADOUTS READY · EQUIP IN ARMORY",
+		"results.summary_wave": "WAVE %02d  ·  SURVIVED %s",
+		"results.summary_run": "ELIMINATIONS %d  ·  SCORE %s",
+		"results.summary_best": "BEST SCORE %s  ·  WALLET %d BP",
+		# --- armory ----------------------------------------------------------
+		"armory.title": "ARMORY / FIELD LOADOUT",
+		"armory.hint": "EARN BP BY DEFEATING WAVES",
+		"armory.wallet": "BP  %d  ·  BEST  %d",
+		"armory.chip": "ARMORY · 0 BP",
+		"armory.chip_bp": "ARMORY · %d BP",
+		"armory.chip_tip": "Open Armory: unlock and equip weapons with Battle Points",
+		"armory.return_field": "RETURN TO FIELD",
+		"armory.home": "HOME",
+		"armory.equip": "EQUIP",
+		"armory.unlock": "UNLOCK %d BP",
+		"armory.specs": "%d DMG · %s/S · %d",
+		"armory.need_bp": "NEED %d MORE BP · FIGHT WAVES",
+		"armory.now_equipped": "%s EQUIPPED",
+		"armory.now_unlocked": "%s UNLOCKED & EQUIPPED",
+		# --- weapons ---------------------------------------------------------
+		"wpn.pulse.name": "PULSE RIFLE",
+		"wpn.pulse.role": "Fast, accurate rounds",
+		"wpn.nova.name": "NOVA LAUNCHER",
+		"wpn.nova.role": "Wide blast, slow reload",
+		"wpn.arc.name": "ARC SHOOTER",
+		"wpn.arc.role": "Chains between targets",
+		"wpn.stat_damage": "DMG %d",
+		"wpn.stat_rate": "RATE %s/s",
+		"wpn.stat_magazine": "MAG %d",
+		"wpn.stat_reload": "RELOAD %ss",
+		"wpn.stat_range": "RNG %d",
+		"wpn.stat_splash": "SPLASH %d",
+		"wpn.stat_chain": "CHAIN %d",
+		# --- settings --------------------------------------------------------
+		"settings.eyebrow": "AEGIS / SYSTEM",
+		"settings.title": "SETTINGS",
+		"settings.tab_audio": "AUDIO",
+		"settings.tab_controls": "CONTROLS",
+		"settings.tab_hud": "HUD",
+		"settings.tab_access": "ACCESS",
+		"settings.audio_title": "AUDIO OUTPUT",
+		"settings.controls_title": "AIM & CONTROLS",
+		"settings.hud_title": "HEADS-UP DISPLAY",
+		"settings.access_title": "ACCESSIBILITY",
+		"settings.sound": "SOUND",
+		"settings.look": "LOOK SENSITIVITY",
+		"settings.left_handed": "LEFT-HANDED HUD",
+		"settings.hud_scale": "HUD SCALE",
+		"settings.panel_opacity": "PANEL OPACITY",
+		"settings.edit_hud": "EDIT HUD LAYOUT",
+		"settings.text_scale": "TEXT SCALE",
+		"settings.colorblind": "COLORBLIND SAFE",
+		"settings.reduce_motion": "REDUCE MOTION",
+		"settings.reduce_flash": "REDUCE FLASH",
+		"settings.language": "LANGUAGE",
+		"settings.reset": "RESET DEFAULTS",
+		"settings.done": "DONE",
+		"settings.home": "HOME",
+		# --- HUD editor ------------------------------------------------------
+		"editor.eyebrow": "AEGIS / LIVE PREVIEW",
+		"editor.title": "HUD LAYOUT",
+		"editor.offset_xy": "OFFSET  X %d  /  Y %d",
+		"editor.panel_opacity_value": "PANEL OPACITY  %d%%",
+		"editor.hud_scale_value": "HUD SCALE  %d%%",
+		"editor.group_vitals": "VITALS",
+		"editor.group_wave": "WAVE",
+		"editor.group_system": "SYSTEM",
+		"editor.group_run": "RUN",
+		"editor.group_score": "SCORE",
+		"editor.group_compact": "COMPACT",
+		"editor.panel_opacity": "PANEL OPACITY",
+		"editor.hud_scale": "HUD SCALE",
+		"editor.reset_group": "RESET GROUP",
+		"editor.reset_all": "RESET ALL",
+		"editor.done": "DONE",
+		"editor.preset_minimal": "MIN",
+		"editor.preset_standard": "STA",
+		"editor.preset_advanced": "ADV",
+		"editor.preset_tip_minimal": "Minimal HUD preset",
+		"editor.preset_tip_standard": "Standard HUD preset",
+		"editor.preset_tip_advanced": "Advanced HUD preset",
+	},
+	"id":
+	{
+		# --- shell / boot ---------------------------------------------------
+		"boot.reading_profile": "MEMBACA PROFIL",
+		"loading.title": "MEMUAT",
+		"loading.preparing": "MENYIAPKAN",
+		"loading.progress": "%d / %d",
+		"loading.ready": "SIAP",
+		"chapter.number": "BAB 01",
+		"chapter.name": "CAHAYA PERTAMA",
+		"chapter.objective": "MISI — BERTAHAN DARI GELOMBANG",
+		"chapter.body": "Kalahkan musuh untuk mengumpulkan Battle Point. Buka senjata di Arsenal.",
+		"chapter.continue_tip": "Lanjut ke dasbor",
+		# --- shared words ----------------------------------------------------
+		"common.back": "KEMBALI",
+		"common.back_tip": "Kembali ke dasbor",
+		"common.continue": "LANJUT",
+		"common.equipped": "EQUIPPED",
+		"common.in_development": "SEDANG DIBUAT",
+		"common.field_ready": "SIAP TURUN",
+		"common.offline": "LUAR JARINGAN",
+		"common.on": "AKTIF",
+		"common.off": "MATI",
+		# --- dock ------------------------------------------------------------
+		"nav.home": "BERANDA",
+		"nav.operative": "OPERATIF",
+		"nav.theatre": "TEATER",
+		"nav.settings": "PENGATURAN",
+		"nav.armory": "ARSENAL",
+		"nav.armory_tip": "Buka dan pasang senjata pakai BP",
+		"nav.deploy": "DEPLOY",
+		"nav.deploy_tip": "Pilih perlengkapan lalu mulai sesi",
+		# --- dashboard -------------------------------------------------------
+		"dash.title": "DEPLOY",
+		"dash.row_operative": "OPERATIF",
+		"dash.row_theatre": "TEATER",
+		"dash.row_arsenal": "ARSENAL",
+		"dash.best_score": "SKOR TERBAIK  %d",
+		"dash.runs_completed": "SESI TUNTAS  %d",
+		"dash.loadout": "PERLENGKAPAN",
+		"dash.profile_fresh": "PROFIL  ·  SIAP TURUN",
+		"dash.profile_runs": "PROFIL  ·  %d SESI",
+		"dash.ready_to_deploy": "SIAP TURUN",
+		"dash.equipped": "TERPASANG · SIAP DEPLOY",
+		"dash.selected_cost": "DIPILIH  ·  %d BP",
+		"dash.battle_points": "BATTLE POINT",
+		"dash.runs": "SESI",
+		# --- operative -------------------------------------------------------
+		"hero.title": "PILIH OPERATIF",
+		"hero.slot": "SLOT %02d",
+		"hero.locked_tip": "Belum ada rig dan data di versi ini",
+		"hero.select": "PILIH",
+		"hero.equipped": "EQUIPPED",
+		"hero.confirm_tip": "Konfirmasi %s",
+		"hero.equipped_tip": "%s sudah terpasang",
+		"hero.continue_tip": "Pilih senjata",
+		"hero.sable.role":
+		(
+			"Besar di garis perbatasan dan diterjunkan sebagai pemimpin serbu. "
+			+ "Perlengkapannya adalah pangkatnya: tiap tingkat adalah pelat yang "
+			+ "dilas menutup pelat sebelumnya."
+		),
+		"hero.sable.status": "SIAP TURUN",
+		"hero.tier.1.name": "REKRUT LAPANGAN",
+		"hero.tier.2.name": "BERPELAT",
+		"hero.tier.3.name": "GARIS DEPAN",
+		"hero.tier.4.name": "UJUNG TOMBAK",
+		"hero.tier.5.name": "ZIRAH PERANG",
+		# --- theatre ---------------------------------------------------------
+		"world.kicker": "TEATER PENGERAHAN",
+		"world.not_deployable": "BELUM BISA DITURUNKAN",
+		"world.locked_pin": "TEATER %02d  ·  SEDANG DIBUAT",
+		"world.launch": "MULAI",
+		"world.launch_tip": "Turun ke teater yang dipilih",
+		"world.preparing_drop": "MENYIAPKAN PENERJUNAN",
+		"world.neon_frontier.role":
+		(
+			"Teater latihan terbuka: reaktor, pusat komando, laboratorium riset, "
+			+ "depo, dan deret generator, dengan gerbang bos yang terbuka "
+			+ "setelah semua generator jatuh."
+		),
+		"world.neon_frontier.status": "TERBUKA",
+		"world.neon_frontier.zone_title": "JELAJAHI FRONTIER",
+		"world.neon_frontier.zone_subtitle": "ZONA AMAN · BEBAS BERGERAK",
+		"world.frostline_relay.role":
+		(
+			"Pertahankan uplink utama di ladang relai beku, dengan jalan lintas, "
+			+ "menara pengawas, kondensor cryo, dan empat jalur terobosan."
+		),
+		"world.frostline_relay.status": "TERBUKA",
+		"world.frostline_relay.zone_title": "JELAJAHI RELAY",
+		"world.frostline_relay.zone_subtitle": "ZONA AMAN · JALUR SIANG",
+		"world.verdant_bloom.role":
+		(
+			"Masuki stasiun bio-riset yang ditumbuhi, pulihkan blueprint Seed Vault, "
+			+ "dan periksa modul laboratorium jatuh sebelum keamanan mendekat."
+		),
+		"world.verdant_bloom.status": "TERBUKA",
+		"world.verdant_bloom.zone_title": "JELAJAHI BLOOM",
+		"world.verdant_bloom.zone_subtitle": "PEMULIHAN · SINYAL SEED VAULT",
+		"world.emberfall_foundry.role":
+		(
+			"Lintasi halaman bara berisi pelebur, silo bijih, gantry derek, dan kolam "
+			+ "slag, dengan jalur angkut serta perlindungan untuk Defense."
+		),
+		"world.emberfall_foundry.status": "TERBUKA",
+		"world.emberfall_foundry.zone_title": "JELAJAHI FOUNDRY",
+		"world.emberfall_foundry.zone_subtitle": "ZONA AMAN · JALUR MALAM",
+		"world.titans.role":
+		(
+			"Ngarai, menara pusat, jembatan langit, dan basis interior di bawah awan "
+			+ "badai, dengan reruntuhan Titans dan cahaya petir."
+		),
+		"world.titans.status": "TERBUKA",
+		"world.titans.zone_title": "JELAJAHI TITANS",
+		"world.titans.zone_subtitle": "ZONA AMAN · JALUR BADAI",
+		"world.vanguard_station.role":
+		(
+			"Dermaga 07 di stasiun orbit yang sudah mati: lorong gantry di bawah "
+			+ "atap kaca, aula reaktor di balik pintu tekan, ruang kargo, dan "
+			+ "koridor yang kehabisan cahaya."
+		),
+		"world.vanguard_station.status": "TERBUKA",
+		"world.vanguard_station.zone_title": "DERMAGA 07 · STASIUN",
+		"world.vanguard_station.zone_subtitle": "ZONA AMAN · SEGEL TERBUKA",
+		# --- in-run HUD ------------------------------------------------------
+		"hud.help":
+		"STIK GERAK · GESER PANDANG · TAHAN BIDIK\nTEMBAK · EMP · GANTI · B BERTAHAN · ESC JEDA",
+		"hud.vitals": "VITAL",
+		"hud.reloading": "ISI ULANG",
+		"hero.slots_development": "%d SLOT OPERATIF DALAM PENGEMBANGAN",
+		"hud.vitals_critical": "VITAL !",
+		"hud.run_data": "DATA SESI",
+		"hud.wave": "GELOMBANG %02d",
+		"hud.frontier_defense": "PERTAHANAN FRONTIER",
+		"hud.zone_title_fallback": "JELAJAHI FRONTIER",
+		"hud.zone_subtitle_fallback": "ZONA AMAN · BEBAS BERGERAK",
+		"hud.no_hostiles": "TIDAK ADA MUSUH",
+		"hud.chip_explore": "JELAJAH\nAMAN",
+		"hud.chip_defense_in": "BERTAHAN\n%d DETIK",
+		"hud.chip_wave": "GEL %02d\nSISA %d",
+		"hud.chip_ready": "SIAP\nSISA %d",
+		"hud.defense_in": "BERTAHAN DALAM %d",
+		"hud.get_ready": "BERSIAP · TITIK MUSUH DITANDAI",
+		"hud.prepare": "BERSIAP",
+		"hud.start_defense": "MULAI BERTAHAN",
+		"hud.start_defense_key": "MULAI BERTAHAN  [B]",
+		"hud.start_defense_tip": "Siapkan Pertahanan (B). Musuh baru muncul setelah kamu mulai.",
+		"hud.left_ko_bp": "SISA %d · %d KO · +%d BP",
+		"hud.pause_safe": "ZONA AMAN · BELUM ADA GELOMBANG",
+		"hud.score_time": "SKOR %s  ·  %s",
+		"hud.swap_tip": "Ketuk untuk ganti · Terpasang: %s",
+		"hud.armory_tip": "Buka Arsenal · Terpasang: %s",
+		"hud.emp_hit": "DENYUT EMP · %d SASARAN",
+		"hud.emp_hit_one": "DENYUT EMP · %d SASARAN",
+		"hud.emp_miss": "DENYUT EMP · TANPA SASARAN",
+		"hud.pause_tip": "Jeda (Esc)",
+		"hud.resume_tip": "Lanjutkan (Esc)",
+		# --- pause -----------------------------------------------------------
+		"pause.eyebrow": "SESI DIJEDA",
+		"pause.title": "JEDA",
+		"pause.resume": "LANJUTKAN",
+		"pause.restart": "ULANGI",
+		"pause.settings": "PENGATURAN",
+		"pause.home": "BERANDA",
+		"pause.hint": "PENGATURAN → KONTROL · ESC UNTUK LANJUT",
+		"pause.reset": "ULANG JELAJAH",
+		"pause.finish_run": "AKHIRI SESI · HASIL",
+		"pause.cancel_defense": "BATALKAN PERTAHANAN",
+		# --- results ---------------------------------------------------------
+		"results.eyebrow": "SESI SELESAI",
+		"results.eyebrow_ended": "SESI BERAKHIR",
+		"results.eyebrow_complete": "SESI SELESAI",
+		"results.title": "HASIL SESI",
+		"results.recover": "PULIHKAN",
+		"results.banked": "+%d BP MASUK DOMPET",
+		"results.no_bp": "TANPA BP · SESI BELUM DIMULAI",
+		"results.hint": "10 BP PER KO · 100 BP PER GELOMBANG TUNTAS",
+		"results.retry": "ULANGI",
+		"results.retry_explore": "ULANG JELAJAH",
+		"results.retry_defense": "ULANG PERTAHANAN",
+		"results.explore": "KEMBALI JELAJAH",
+		"results.home": "BERANDA",
+		"results.next": "PERLENGKAPAN BERIKUT · %s",
+		"results.ready_unlock": "SIAP DIBUKA · BUKA ARSENAL SAAT JELAJAH",
+		"results.progress_to_go": "%d / %d BP  ·  KURANG %d",
+		"results.arsenal_complete": "ARSENAL LENGKAP",
+		"results.all_ready": "SEMUA PERLENGKAPAN SIAP · PASANG DI ARSENAL",
+		"results.summary_wave": "GELOMBANG %02d  ·  BERTAHAN %s",
+		"results.summary_run": "ELIMINASI %d  ·  SKOR %s",
+		"results.summary_best": "SKOR TERBAIK %s  ·  DOMPET %d BP",
+		# --- armory ----------------------------------------------------------
+		"armory.title": "ARSENAL / PERLENGKAPAN LAPANGAN",
+		"armory.hint": "KUMPULKAN BP DENGAN MENGALAHKAN GELOMBANG",
+		"armory.wallet": "BP  %d  ·  TERBAIK  %d",
+		"armory.chip": "ARSENAL · 0 BP",
+		"armory.chip_bp": "ARSENAL · %d BP",
+		"armory.chip_tip": "Buka Arsenal: beli lalu pasang senjata pakai BP",
+		"armory.return_field": "KEMBALI KE LAPANGAN",
+		"armory.home": "BERANDA",
+		"armory.equip": "PASANG",
+		"armory.unlock": "BUKA %d BP",
+		"armory.specs": "%d DMG · %s/DETIK · %d",
+		"armory.need_bp": "KURANG %d BP · HADAPI GELOMBANG",
+		"armory.now_equipped": "%s TERPASANG",
+		"armory.now_unlocked": "%s TERBUKA & TERPASANG",
+		# --- weapons ---------------------------------------------------------
+		"wpn.pulse.name": "PULSE RIFLE",
+		"wpn.pulse.role": "Tembakan cepat dan akurat",
+		"wpn.nova.name": "NOVA LAUNCHER",
+		"wpn.nova.role": "Ledakan luas, isi ulang lambat",
+		"wpn.arc.name": "ARC SHOOTER",
+		"wpn.arc.role": "Merambat antar sasaran",
+		"wpn.stat_damage": "DMG %d",
+		"wpn.stat_rate": "TEMBAK %s/dtk",
+		"wpn.stat_magazine": "ISI %d",
+		"wpn.stat_reload": "RELOAD %s dtk",
+		"wpn.stat_range": "JANGKAU %d",
+		"wpn.stat_splash": "LEDAK %d",
+		"wpn.stat_chain": "RANTAI %d",
+		# --- settings --------------------------------------------------------
+		"settings.eyebrow": "AEGIS / SISTEM",
+		"settings.title": "PENGATURAN",
+		"settings.tab_audio": "AUDIO",
+		"settings.tab_controls": "KONTROL",
+		"settings.tab_hud": "HUD",
+		"settings.tab_access": "AKSES",
+		"settings.audio_title": "KELUARAN AUDIO",
+		"settings.controls_title": "BIDIK & KONTROL",
+		"settings.hud_title": "TAMPILAN HUD",
+		"settings.access_title": "AKSESIBILITAS",
+		"settings.sound": "SUARA",
+		"settings.look": "SENSITIVITAS PANDANG",
+		"settings.left_handed": "HUD TANGAN KIRI",
+		"settings.hud_scale": "UKURAN HUD",
+		"settings.panel_opacity": "KEGELAPAN PANEL",
+		"settings.edit_hud": "ATUR TATA LETAK HUD",
+		"settings.text_scale": "UKURAN TEKS",
+		"settings.colorblind": "RAMAH BUTA WARNA",
+		"settings.reduce_motion": "KURANGI GERAKAN",
+		"settings.reduce_flash": "KURANGI KILAT",
+		"settings.language": "BAHASA",
+		"settings.reset": "ATUR ULANG",
+		"settings.done": "SELESAI",
+		"settings.home": "BERANDA",
+		# --- HUD editor ------------------------------------------------------
+		"editor.eyebrow": "AEGIS / PRATINJAU LANGSUNG",
+		"editor.title": "TATA LETAK HUD",
+		"editor.offset_xy": "GESER  X %d  /  Y %d",
+		"editor.panel_opacity_value": "OPASITAS PANEL  %d%%",
+		"editor.hud_scale_value": "SKALA HUD  %d%%",
+		"editor.group_vitals": "VITAL",
+		"editor.group_wave": "GELOMBANG",
+		"editor.group_system": "SISTEM",
+		"editor.group_run": "RUN",
+		"editor.group_score": "SKOR",
+		"editor.group_compact": "RINGKAS",
+		"editor.panel_opacity": "KEGELAPAN PANEL",
+		"editor.hud_scale": "UKURAN HUD",
+		"editor.reset_group": "ATUR ULANG GRUP",
+		"editor.reset_all": "ATUR ULANG SEMUA",
+		"editor.done": "SELESAI",
+		"editor.preset_minimal": "MIN",
+		"editor.preset_standard": "STA",
+		"editor.preset_advanced": "ADV",
+		"editor.preset_tip_minimal": "Preset HUD minimal",
+		"editor.preset_tip_standard": "Preset HUD standar",
+		"editor.preset_tip_advanced": "Preset HUD lengkap",
+	},
+}

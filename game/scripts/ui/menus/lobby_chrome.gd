@@ -30,11 +30,13 @@ const TAB_HOME := &"HOME"
 const TAB_OPERATIVE := &"OPERATIVE"
 const TAB_WORLD := &"WORLD"
 
-## tab id -> [label, icon]
+## tab id -> [catalog key, icon]. The key, not the word: the dock is drawn on
+## all three lobby pages, and a language change while the player is standing on
+## OPERATIVE must not leave a HOME tab in the old language.
 const TABS := {
-	TAB_HOME: ["HOME", "house"],
-	TAB_OPERATIVE: ["OPERATIVE", "shield"],
-	TAB_WORLD: ["THEATRE", "target"],
+	TAB_HOME: ["nav.home", "house"],
+	TAB_OPERATIVE: ["nav.operative", "shield"],
+	TAB_WORLD: ["nav.theatre", "target"],
 }
 
 ## Compressed below this physical width the tabs keep their icons and lose
@@ -82,6 +84,10 @@ var _level := -1
 var _gear: AegisButton
 var _mark: TextureRect
 var _plate_text: VBoxContainer
+## The last progression read into this dock, so a language change can re-print
+## the two chip figures (which mix a caption and a number) without asking the
+## stage again.
+var _progression: ProgressionService
 
 
 ## `with_settings` is false on pages that do not own the settings overlay: a
@@ -123,6 +129,7 @@ func _build() -> void:
 	_build_plate()
 	_build_settings()
 	_apply_density()
+	AegisText.watch(_on_language)
 
 
 func _build_wordmark() -> void:
@@ -155,7 +162,7 @@ func _build_nav() -> void:
 		button.name = "DockTab%s" % String(tab_id).capitalize()
 		button.text = ""
 		button.focus_mode = Control.FOCUS_ALL
-		button.tooltip_text = spec[0]
+		AegisText.apply_tip(button, str(spec[0]))
 		button.set_meta("tab_id", tab_id)
 		var glyph := TextureRect.new()
 		glyph.name = &"DockTabGlyph"
@@ -179,9 +186,9 @@ func _build_nav() -> void:
 
 
 func _build_resources() -> void:
-	_balance_chip = _make_chip(&"DockBalance", "trophy", AegisTokens.ACCENT, "BATTLE POINTS")
+	_balance_chip = _make_chip(&"DockBalance", "trophy", AegisTokens.ACCENT, "dash.battle_points")
 	_balance_value = _balance_chip.get_meta("value_label")
-	_runs_chip = _make_chip(&"DockRuns", "chart-bar", AegisTokens.INFO, "RUNS")
+	_runs_chip = _make_chip(&"DockRuns", "chart-bar", AegisTokens.INFO, "dash.runs")
 	_runs_value = _runs_chip.get_meta("value_label")
 	row.add_child(_balance_chip)
 	row.add_child(_runs_chip)
@@ -189,7 +196,7 @@ func _build_resources() -> void:
 
 
 func _make_chip(
-	node_name: StringName, icon_name: String, tint: Color, caption: String
+	node_name: StringName, icon_name: String, tint: Color, caption_key: String
 ) -> AegisPanel:
 	var chip := AegisPanel.new()
 	chip.name = node_name
@@ -214,7 +221,7 @@ func _make_chip(
 	value.add_theme_constant_override("outline_size", 0)
 	line.add_child(value)
 	chip.set_meta("value_label", value)
-	chip.set_meta("caption", caption)
+	chip.set_meta("caption_key", caption_key)
 	return chip
 
 
@@ -251,8 +258,11 @@ func _build_plate() -> void:
 	var text := VBoxContainer.new()
 	text.add_theme_constant_override("separation", 0)
 	text.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	var name_label := _stage.make_label("OPERATIVE", "label", AegisTokens.INK)
-	_plate_state = _stage.make_label("FIELD READY", "label_s", AegisTokens.OK)
+	var name_label := _stage.make_label("", "label", AegisTokens.INK)
+	# The operative's own name is filled in by `refresh()`; until then the
+	# generic word, so a dock drawn before the save file loaded is not blank.
+	AegisText.apply(name_label, "nav.operative")
+	_plate_state = _stage.make_label_key("common.field_ready", "label_s", AegisTokens.OK)
 	text.add_child(name_label)
 	text.add_child(_plate_state)
 	_plate_text = text
@@ -269,7 +279,7 @@ func _build_settings() -> void:
 	gear.icon = AegisTheme.icon("gear-six", true)
 	gear.expand_icon = true
 	gear.focus_mode = Control.FOCUS_ALL
-	gear.tooltip_text = "SETTINGS"
+	AegisText.apply_tip(gear, "nav.settings")
 	gear.add_theme_constant_override("icon_max_width", 20)
 	gear.pressed.connect(func() -> void: settings_requested.emit())
 	AegisTheme.set_button_variant(gear, "ghost")
@@ -399,7 +409,7 @@ func _apply_level(level: int) -> void:
 	# and a 40 px one failed the layout probe at every width that showed words.
 	var icon_size := 32.0 if compact else 64.0
 	for tab in _tabs:
-		tab.text = str(TABS[tab.get_meta("tab_id")][0]) if named else ""
+		tab.text = AegisText.t(str(TABS[tab.get_meta("tab_id")][0])) if named else ""
 		tab.add_theme_font_override("font", AegisTheme.font(AegisTokens.FAMILY_UI_M))
 		tab.add_theme_font_size_override("font_size", 15)
 		_stage.physical_min_size(tab, tab_width, icon_size)
@@ -450,24 +460,44 @@ func set_active(tab_id: StringName) -> void:
 		tab.queue_redraw()
 
 
+## Language changed: the words on this dock come from three places -- the tab
+## labels (set by `_apply_density` because the compact dock drops them), the
+## chip captions (baked into one label with a number), and two labels the tree
+## walk can handle. So the dock re-runs all three rather than only the last.
+func _on_language(_code: String) -> void:
+	AegisText.refresh(bar)
+	_apply_density()
+	if _progression != null:
+		refresh(_progression)
+
+
 func refresh(progression: ProgressionService) -> void:
 	if progression == null:
 		return
 	# The word is part of the value, not a second label: on a wide screen a chip
 	# reads "BATTLE POINTS  1234", and on a phone it reads "1234" next to the
 	# trophy. One label, so the number can never disagree with its own caption.
+	_progression = progression
 	_balance_value.text = _figure(
-		str(_balance_chip.get_meta("caption", "")), progression.balance, _wide
+		str(_balance_chip.get_meta("caption_key", "")), progression.balance, _wide
 	)
 	_runs_value.text = _figure(
-		str(_runs_chip.get_meta("caption", "")), progression.completed_runs, _wide
+		str(_runs_chip.get_meta("caption_key", "")), progression.completed_runs, _wide
 	)
 	var hero := HeroDefinition.load_definition(progression.selected_hero_id)
 	if hero != null and not hero.display_name.is_empty():
 		var label := _plate.get_child(1).get_child(0) as Label
 		if label != null:
+			# A name is not a catalog key: it is data from the hero definition.
+			# Dropping the key keeps the language walk from overwriting it with
+			# the generic word.
+			if label.has_meta("i18n_key"):
+				label.remove_meta("i18n_key")
 			label.text = hero.display_name.to_upper()
-	_plate_state.text = "FIELD READY" if (hero == null or hero.field_ready) else "OFFLINE"
+	AegisText.apply(
+		_plate_state,
+		"common.field_ready" if (hero == null or hero.field_ready) else "common.offline"
+	)
 	_plate_state.add_theme_color_override(
 		"font_color", AegisTokens.OK if (hero == null or hero.field_ready) else AegisTokens.INK_3
 	)
@@ -476,9 +506,9 @@ func refresh(progression: ProgressionService) -> void:
 ## `wide` decides whether the caption is part of the string. Digits are not
 ## grouped: the save file stores an integer and "1,234" is a locale decision a
 ## HUD should not make on a player's behalf.
-func _figure(caption: String, value: int, wide: bool) -> String:
+func _figure(caption_key: String, value: int, wide: bool) -> String:
 	var digits := str(maxi(value, 0))
-	return "%s  %s" % [caption, digits] if wide else digits
+	return "%s  %s" % [AegisText.t(caption_key), digits] if wide else digits
 
 
 static func _thousands(value: int) -> String:

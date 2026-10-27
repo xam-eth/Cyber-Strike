@@ -6,6 +6,9 @@ extends AegisPanel
 
 signal changed(values: Dictionary)
 signal close_requested
+## HOME leaves the world from the settings page too: a player who opened settings
+## to fix the controls should not have to close two plates to reach the lobby.
+signal home_requested
 signal editor_requested
 
 var preference_path: String = AegisPreferences.PATH
@@ -33,6 +36,7 @@ func _ready() -> void:
 	values = AegisPreferences.read(preference_path)
 	_build()
 	_show_tab(0)
+	AegisText.watch(_on_language)
 
 
 func open() -> void:
@@ -88,15 +92,22 @@ func _build() -> void:
 	_shell.name = "SettingsShell"
 	_shell.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	add_child(_shell)
-	_shell.add_child(_label("AEGIS / SYSTEM", "label", AegisTokens.ACCENT))
-	_shell.add_child(_label("SETTINGS", "display_l", AegisTokens.INK))
+	_shell.add_child(_label_key("settings.eyebrow", "label", AegisTokens.ACCENT))
+	_shell.add_child(_label_key("settings.title", "display_l", AegisTokens.INK))
 
 	_tab_row = HBoxContainer.new()
 	_tab_row.name = "SettingsTabs"
 	_shell.add_child(_tab_row)
+	# Tab ids are stable (`TabAUDIO` ...) so a smoke test can find one; the words
+	# on them come from the catalog, because "ACCESS" is not what Indonesian
+	# players read.
 	for index in 4:
-		var name_text: String = ["AUDIO", "CONTROLS", "HUD", "ACCESS"][index]
-		var tab := _button(name_text, "Tab%s" % name_text, "ghost")
+		var tab_key: String = [
+			"settings.tab_audio", "settings.tab_controls", "settings.tab_hud", "settings.tab_access"
+		][index]
+		var tab := _button_key(
+			tab_key, "Tab%s" % String(tab_key).to_upper().replace("SETTINGS_TAB_", ""), "ghost"
+		)
 		tab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		tab.pressed.connect(_show_tab.bind(index))
 		_tab_row.add_child(tab)
@@ -116,14 +127,24 @@ func _build() -> void:
 	_footer = HBoxContainer.new()
 	_footer.name = "SettingsFooter"
 	_shell.add_child(_footer)
-	var reset := _button("RESET DEFAULTS", "ResetSettingsButton", "ghost")
+	var reset := _button_key("settings.reset", "ResetSettingsButton", "ghost")
 	reset.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	reset.pressed.connect(_reset_defaults)
 	_footer.add_child(reset)
-	var done := _button("DONE", "DoneSettingsButton", "primary")
+	var home := _button_key("settings.home", "HomeSettingsButton", "ghost")
+	home.icon = AegisTheme.icon("house")
+	home.add_theme_constant_override("icon_max_width", 18)
+	home.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	home.pressed.connect(_on_home_pressed)
+	_footer.add_child(home)
+	var done := _button_key("settings.done", "DoneSettingsButton", "primary")
 	done.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	done.pressed.connect(close)
 	_footer.add_child(done)
+
+
+func _on_home_pressed() -> void:
+	home_requested.emit()
 
 
 func _show_tab(index: int) -> void:
@@ -138,33 +159,36 @@ func _show_tab(index: int) -> void:
 		child.queue_free()
 	match _active_tab:
 		0:
-			_page.add_child(_label("AUDIO OUTPUT", "heading_s", AegisTokens.INK))
-			_add_toggle("muted", "SOUND", true)
+			_page.add_child(_label_key("settings.audio_title", "heading_s", AegisTokens.INK))
+			_add_toggle("muted", "settings.sound", true)
 		1:
-			_page.add_child(_label("AIM & CONTROLS", "heading_s", AegisTokens.INK))
-			_add_slider("sensitivity", "LOOK SENSITIVITY", 0.5, 1.5, 0.05)
-			_add_toggle("left_handed", "LEFT-HANDED HUD")
+			_page.add_child(_label_key("settings.controls_title", "heading_s", AegisTokens.INK))
+			_add_slider("sensitivity", "settings.look", 0.5, 1.5, 0.05)
+			_add_toggle("left_handed", "settings.left_handed")
 		2:
-			_page.add_child(_label("HEADS-UP DISPLAY", "heading_s", AegisTokens.INK))
-			_add_slider("hud_scale", "HUD SCALE", 0.8, 1.2, 0.05)
-			_add_slider("hud_opacity", "PANEL OPACITY", 0.65, 1.0, 0.05)
-			var edit := _button("EDIT HUD LAYOUT", "EditHudButton", "ghost")
+			_page.add_child(_label_key("settings.hud_title", "heading_s", AegisTokens.INK))
+			_add_slider("hud_scale", "settings.hud_scale", 0.8, 1.2, 0.05)
+			_add_slider("hud_opacity", "settings.panel_opacity", 0.65, 1.0, 0.05)
+			var edit := _button_key("settings.edit_hud", "EditHudButton", "ghost")
 			edit.pressed.connect(editor_requested.emit)
 			_page.add_child(edit)
 		3:
-			_page.add_child(_label("ACCESSIBILITY", "heading_s", AegisTokens.INK))
-			_add_slider("text_scale", "TEXT SCALE", 1.0, 1.3, 0.05)
-			_add_toggle("colorblind", "COLORBLIND SAFE")
-			_add_toggle("reduce_motion", "REDUCE MOTION")
-			_add_toggle("reduce_flash", "REDUCE FLASH")
+			_page.add_child(_label_key("settings.access_title", "heading_s", AegisTokens.INK))
+			# Language sits first in ACCESS: it is the row a player who cannot
+			# read the rest of this page is looking for.
+			_add_language()
+			_add_slider("text_scale", "settings.text_scale", 1.0, 1.3, 0.05)
+			_add_toggle("colorblind", "settings.colorblind")
+			_add_toggle("reduce_motion", "settings.reduce_motion")
+			_add_toggle("reduce_flash", "settings.reduce_flash")
 	apply_layout(_stretch, _font_scale)
 
 
-func _add_slider(key: String, caption: String, low: float, high: float, step: float) -> void:
+func _add_slider(key: String, caption_key: String, low: float, high: float, step: float) -> void:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", roundi(10.0 / _stretch))
 	_page.add_child(row)
-	var caption_label := _label(caption, "body_s", AegisTokens.INK_2)
+	var caption_label := _label_key(caption_key, "body_s", AegisTokens.INK_2)
 	caption_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(caption_label)
 	var slider := HSlider.new()
@@ -183,11 +207,11 @@ func _add_slider(key: String, caption: String, low: float, high: float, step: fl
 	slider.value_changed.connect(_on_slider_changed.bind(key, value_label))
 
 
-func _add_toggle(key: String, caption: String, inverse: bool = false) -> void:
+func _add_toggle(key: String, caption_key: String, inverse: bool = false) -> void:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", roundi(10.0 / _stretch))
 	_page.add_child(row)
-	var caption_label := _label(caption, "body_s", AegisTokens.INK_2)
+	var caption_label := _label_key(caption_key, "body_s", AegisTokens.INK_2)
 	caption_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(caption_label)
 	var toggle := _button("", "%sToggle" % key, "ghost")
@@ -211,7 +235,7 @@ func _on_toggle_changed(pressed: bool, key: String, inverse: bool, button: Butto
 
 
 func _refresh_toggle(button: Button) -> void:
-	button.text = "ON" if button.button_pressed else "OFF"
+	AegisText.apply(button, "common.on" if button.button_pressed else "common.off")
 	AegisTheme.set_button_variant(button, "primary" if button.button_pressed else "ghost")
 
 
@@ -233,6 +257,45 @@ func _percent(value: float) -> String:
 	return "%d%%" % roundi(value * 100.0)
 
 
+## The language row: the current language in its own name ("BAHASA INDONESIA"),
+## and a switch that cycles the list in `AegisTextCatalog.LOCALES`. It shows the
+## *native* name on purpose -- a player looking for their language should not
+## have to read the name of it in a language they do not have.
+func _add_language() -> void:
+	var row := HBoxContainer.new()
+	row.name = "LanguageRow"
+	row.add_theme_constant_override("separation", roundi(10.0 / _stretch))
+	_page.add_child(row)
+	var caption := _label_key("settings.language", "body_s", AegisTokens.INK_2)
+	caption.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(caption)
+	var picker := _button(AegisText.native_name(AegisText.locale()), "LanguageButton", "ghost")
+	picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	picker.custom_minimum_size.x = 150.0 / _stretch
+	picker.pressed.connect(_on_language_pressed.bind(picker))
+	row.add_child(picker)
+
+
+func _on_language_pressed(_picker: Button) -> void:
+	# One call, one page rebuild: `set_locale` tells every watcher, including
+	# this menu's `_on_language`. Setting the picker's own text here as well
+	# would be a second write to a control that is about to be replaced.
+	AegisText.set_locale(AegisText.next_locale())
+
+
+## Rebuilds the tab and the footer in the new language. Called through
+## `AegisText.watch()` and directly by the picker.
+func _on_language(_code: String) -> void:
+	AegisText.refresh(self)
+	if is_instance_valid(_shell):
+		var title: Label = _shell.get_child(1) as Label
+		if title != null:
+			AegisText.apply(title, "settings.title")
+	# The tab and footer labels keep their keys; only the page is rebuilt,
+	# because it is the part that owns sliders mid-drag.
+	_show_tab(_active_tab)
+
+
 func _label(text: String, role: String, color: Color) -> Label:
 	var result := Label.new()
 	result.text = text
@@ -240,6 +303,18 @@ func _label(text: String, role: String, color: Color) -> Label:
 	result.set_meta("aegis_role", role)
 	result.set_meta("aegis_scale", 1.0)
 	AegisTheme.style_label(result, role, color)
+	return result
+
+
+func _label_key(key: String, role: String, color: Color) -> Label:
+	var result := _label("", role, color)
+	AegisText.apply(result, key)
+	return result
+
+
+func _button_key(key: String, node_name: String, variant: String) -> AegisButton:
+	var result := _button("", node_name, variant)
+	AegisText.apply(result, key)
 	return result
 
 

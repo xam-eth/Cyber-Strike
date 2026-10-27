@@ -7,7 +7,7 @@
 script = ExtResource("1_definition")
 world_id = &"verdant_bloom"
 display_name = "Verdant Bloom"
-role_description = "STELLAR HORIZON — Sunset. The shared canyon, tower, sky-bridge and interior route at golden hour, dressed with living canopy, giant flora and research-bloom structures."
+role_description = "STELLAR HORIZON — Recovery. Enter an overgrown bio-research station, recover the Seed Vault blueprint and search the crashed laboratory modules before the security detail closes in."
 world_scene = ExtResource("2_world")
 environment_scene_path = "res://assets/forge/worlds/verdant.glb"
 field_size = Vector2(180, 180)
@@ -15,6 +15,6 @@ field_center = Vector2(0, 0)
 plate_path = "res://assets/ui/world_verdant_bloom.jpg"
 status_line = "OPEN"
 zone_title = "EXPLORE THE BLOOM"
-zone_subtitle = "SAFE ZONE · SUNSET ROUTE"
+zone_subtitle = "RECOVERY · SEED VAULT SIGNAL"
 field_ready = true
-player_spawn = Vector3(0, 0.1, 8)
+player_spawn = Vector3(0, 0.1, 12)

@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "note": "The operative roster, one file for both halves of the product. The shell reads it to build the hero cards and the tier ladder; the engine's HeroDefinition reads the same ids. Every model, rig and card-art path here is a file that exists -- tools/check_hero_roster.py fails the build otherwise, which is what stops a card promising a costume nobody rendered.",
+  "tier_count": 5,
+  "tier_ladder_key": "hero.tier.ladder",
+  "tiers": [
+    {
+      "tier": 1,
+      "name_key": "hero.tier.1.name",
+      "runs_required": 0,
+      "vitals": 100,
+      "reduction": 0
+    },
+    {
+      "tier": 2,
+      "name_key": "hero.tier.2.name",
+      "runs_required": 1,
+      "vitals": 106,
+      "reduction": 3
+    },
+    {
+      "tier": 3,
+      "name_key": "hero.tier.3.name",
+      "runs_required": 3,
+      "vitals": 112,
+      "reduction": 6
+    },
+    {
+      "tier": 4,
+      "name_key": "hero.tier.4.name",
+      "runs_required": 6,
+      "vitals": 118,
+      "reduction": 9
+    },
+    {
+      "tier": 5,
+      "name_key": "hero.tier.5.name",
+      "runs_required": 10,
+      "vitals": 126,
+      "reduction": 12
+    }
+  ],
+  "heroes": [
+    {
+      "id": "sable",
+      "callsign": "SABLE",
+      "name": "Mara Voss",
+      "status": "field_ready",
+      "role_key": "hero.sable.role",
+      "brief_key": "hero.sable.brief",
+      "portrait": "ui/art/web/hero/sable-tier-1.png",
+      "tiers": [
+        {
+          "tier": 1,
+          "model": "game/assets/characters/human_hero_tiers/hero_human_tier_1.glb",
+          "rig": "game/assets/characters/human_hero_tiers/hero_human_tier_1_rig.json",
+          "art": "ui/art/web/hero/sable-tier-1.png"
+        },
+        {
+          "tier": 2,
+          "model": "game/assets/characters/human_hero_tiers/hero_human_tier_2.glb",
+          "rig": "game/assets/characters/human_hero_tiers/hero_human_tier_2_rig.json",
+          "art": "ui/art/web/hero/sable-tier-2.png"
+        },
+        {
+          "tier": 3,
+          "model": "game/assets/characters/human_hero_tiers/hero_human_tier_3.glb",
+          "rig": "game/assets/characters/human_hero_tiers/hero_human_tier_3_rig.json",
+          "art": "ui/art/web/hero/sable-tier-3.png"
+        },
+        {
+          "tier": 4,
+          "model": "game/assets/characters/human_hero_tiers/hero_human_tier_4.glb",
+          "rig": "game/assets/characters/human_hero_tiers/hero_human_tier_4_rig.json",
+          "art": "ui/art/web/hero/sable-tier-4.png"
+        },
+        {
+          "tier": 5,
+          "model": "game/assets/characters/human_hero_tiers/hero_human_tier_5.glb",
+          "rig": "game/assets/characters/human_hero_tiers/hero_human_tier_5_rig.json",
+          "art": "ui/art/web/hero/sable-tier-5.png"
+        }
+      ]
+    },
+    {
+      "id": "kestrel",
+      "callsign": "KESTREL",
+      "name": "Dian Prameswari",
+      "status": "in_development",
+      "role_key": "hero.kestrel.role",
+      "brief_key": "hero.kestrel.brief",
+      "portrait": null,
+      "tiers": [
+        {
+          "tier": 1,
+          "model": null,
+          "rig": null,
+          "art": null
+        },
+        {
+          "tier": 2,
+          "model": null,
+          "rig": null,
+          "art": null
+        },
+        {
+          "tier": 3,
+          "model": null,
+          "rig": null,
+          "art": null
+        },
+        {
+          "tier": 4,
+          "model": null,
+          "rig": null,
+          "art": null
+        },
+        {
+          "tier": 5,
+          "model": null,
+          "rig": null,
+          "art": null
+        }
+      ]
+    }
+  ]
+}

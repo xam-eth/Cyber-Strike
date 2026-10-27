@@ -7,7 +7,7 @@
 script = ExtResource("1_definition")
 world_id = &"frostline_relay"
 display_name = "Frostline Relay"
-role_description = "STELLAR HORIZON — Daytime. A bright archipelago route linking canyon approaches, the central relay tower, upper platforms and interior bases, with ice formations and relay equipment as dressing."
+role_description = "STELLAR HORIZON — Daytime. Defend the primary uplink across a frozen relay field, with causeways, sentry towers, cryo condensers and four marked breach approaches."
 world_scene = ExtResource("2_world")
 environment_scene_path = "res://assets/forge/worlds/frostline.glb"
 field_size = Vector2(180, 180)

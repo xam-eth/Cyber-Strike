@@ -24,6 +24,9 @@ signal sound_mute_requested
 signal armory_requested
 signal armory_weapon_action_requested(weapon_id: StringName)
 signal armory_close_requested
+## One signal for every HOME in the HUD: pause, results, armory and settings all
+## mean "leave the world for the dashboard", and main.gd answers it once.
+signal home_requested
 signal settings_changed(values: Dictionary)
 
 const HIT_CONFIRM_DURATION: float = AegisTokens.HIT_MARKER
@@ -48,9 +51,7 @@ const COMPACT_LINES: int = 4
 ## Two lines, because the plate it sits on is sized for two: the layout reserves
 ## `_help_block_height(2)` in the quiet lane between the thumb zones, and a third
 ## line is what pushed the plate past the lane and clipped its own last row.
-const HELP_TEXT := (
-	"STICK MOVE · DRAG LOOK · HOLD AIM\n" + "FIRE · EMP · SWAP · B DEFENSE · ESC PAUSE"
-)
+const HELP_KEY := "hud.help"
 const HELP_FADE_SECONDS: float = 1.5
 ## The browser toolbar now starts folded into a single chip. Keep the vitals
 ## below that chip, not below two rows of controls hidden during gameplay.
@@ -67,6 +68,10 @@ const CRITICAL_HEALTH_COLOR: Color = AegisTokens.DANGER
 ## main.gd, hud_armory_bridge.gd and the smoke tests reach for the HUD's
 ## members by name and a rename would buy nothing.
 var _touch: HudTouchInput
+## Who owns the screen: pause, results, settings, armory or the HUD editor, in
+## the order they were opened. One object knows the order, the focus trap and
+## where ESC goes -- see hud_overlay_stack.gd for why five booleans failed.
+var _overlays: HudOverlayStack
 ## What the game has told this HUD: the run's numbers, the encounter phase and
 ## the weapon in hand. Rendering stays here; the data lives in hud_state.gd.
 var _state := HudState.new()
@@ -132,6 +137,8 @@ var _score_chip: AegisPanel
 var _compact_card: AegisPanel
 var _help_panel: AegisPanel
 var _feedback_panel: HudCombatFeedbackUi
+var _pause_home_button: AegisButton
+var _results_home_button: AegisButton
 var _armory_panel: ArmoryUi
 var _armory_button: AegisButton
 var _scrim: ColorRect
@@ -178,7 +185,7 @@ var _touch_ammo_chip: AegisAmmoChip
 var _results_panel: AegisPanel
 
 var _touch_buttons: Array[Button] = []
-var _compact_wave_text: String = "ENEMIES  0 ACTIVE  ·  0 LEFT"
+var _compact_wave_text: String = ""
 var _joystick_center: Vector2 = Vector2.ZERO
 var _joystick_radius: float = 64.0
 var _joystick_visual_radius: float = 64.0
@@ -208,6 +215,8 @@ func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_overlays = HudOverlayStack.new(self)
+	AegisText.watch(_on_locale_changed)
 	_touch = HudTouchInput.new()
 	_touch.hud = self
 	_touch.movement_changed.connect(movement_changed.emit)
@@ -255,7 +264,12 @@ func _process(delta: float) -> void:
 			_help_panel.visible = false
 	if (_aiming or _state.play_phase == "defense") and not get_tree().paused:
 		needs_redraw = true
-	if needs_redraw:
+	# A paused tree cannot change anything this HUD draws: cooldowns do not tick,
+	# the reticle does not breathe, the thumb pockets are empty. The docks are the
+	# most expensive thing `_draw` builds and they were being rebuilt every frame
+	# behind a modal that covers them. One frame still lands when pausing, because
+	# the pause path clears the touch state and asks for it.
+	if needs_redraw and not get_tree().paused:
 		queue_redraw()
 
 
@@ -280,16 +294,11 @@ func _input(event: InputEvent) -> void:
 		_touch.update(event.index, event.position, event.relative)
 	elif event is InputEventKey and event.pressed and not event.echo:
 		if event.is_action_pressed("ui_cancel") and get_tree().paused:
-			# ESC closes a submenu first; only the next press resumes the run.
-			if is_instance_valid(_armory_panel) and _armory_panel.visible:
-				armory_close_requested.emit()
-			elif is_instance_valid(_hud_editor) and _hud_editor.visible:
-				HudEditorBridge.close(self)
-			elif is_instance_valid(_settings_menu) and _settings_menu.visible:
-				_settings_menu.close()
-			else:
-				_on_pause_pressed()
-			get_viewport().set_input_as_handled()
+			# ESC closes the top overlay only; the next press closes the one
+			# under it, and the run resumes when nothing is left. The order
+			# lives in the stack, not in a ladder every new overlay must join.
+			if _overlays.back():
+				get_viewport().set_input_as_handled()
 		elif event.keycode == KEY_R and get_tree().paused and _pause_panel.visible:
 			retry_requested.emit()
 			get_viewport().set_input_as_handled()
@@ -316,7 +325,7 @@ func set_hud_health(current: float, maximum: float) -> void:
 		health_color = WARNING_HEALTH_COLOR
 	if _colorblind and health_ratio <= 0.3:
 		health_color = Color("ff8c42")
-	_health_heading.text = "VITALS !" if health_ratio <= 0.3 else "VITALS"
+	AegisText.apply(_health_heading, "hud.vitals_critical" if health_ratio <= 0.3 else "hud.vitals")
 	_health_bar.add_theme_stylebox_override("fill", AegisTheme.flat_style(health_color))
 	_health_bar.add_theme_stylebox_override(
 		"background", AegisTheme.flat_style(Color(AegisTokens.PANEL_3, 0.95))
@@ -350,7 +359,9 @@ func set_run_summary(score: int, bp: int, kos: int, time_text: String, shots: in
 func _refresh_score_chip() -> void:
 	if not is_instance_valid(_score_value_label):
 		return
-	_score_value_label.text = "SCORE %s  ·  %s" % [_format_number(_state.score), _state.run_time]
+	AegisText.apply(
+		_score_value_label, "hud.score_time", [_format_number(_state.score), _state.run_time]
+	)
 
 
 ## Reflects the audio state on the HUD button, wherever the change came from
@@ -521,13 +532,12 @@ func show_skill_feedback(targets_hit: int) -> void:
 	_skill_feedback_remaining = 1.1
 	_skill_button.text = ""
 	_skill_button.disabled = (_player_down or get_tree().paused or _skill_cooldown_remaining > 0.0)
-	_feedback_panel.show_message(
-		(
-			"EMP PULSE · %d TARGET%s" % [targets_hit, "" if targets_hit == 1 else "S"]
-			if targets_hit > 0
-			else "EMP PULSE · NO TARGETS"
-		)
-	)
+	if targets_hit == 1:
+		_feedback_panel.show_message(AegisText.t("hud.emp_hit_one", [targets_hit]))
+	elif targets_hit > 1:
+		_feedback_panel.show_message(AegisText.t("hud.emp_hit", [targets_hit]))
+	else:
+		_feedback_panel.show_message(AegisText.t("hud.emp_miss"))
 
 
 func _refresh_skill_button() -> void:
@@ -664,7 +674,7 @@ func _build_ui() -> void:
 	_build_system_row()
 	HudEncounterUi.build_run_data(self)
 	HudEncounterUi.build_legacy_score_widgets(self)
-	HudEncounterUi.build_help_panel(self, HELP_TEXT)
+	HudEncounterUi.build_help_panel(self, AegisText.t(HELP_KEY))
 	_build_combat_feedback()
 	_build_touch_buttons()
 	HudArmoryBridge.install_entry(self)
@@ -687,7 +697,7 @@ func _build_health_card() -> void:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
 	content.add_child(row)
-	_health_heading = _label("VITALS", "label", AegisTokens.INK_3)
+	_health_heading = _label_key("hud.vitals", "label", AegisTokens.INK_3)
 	row.add_child(_health_heading)
 	_health_value_label = _label("100 / 100", "mono_m", AegisTokens.INK)
 	_health_value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -804,6 +814,7 @@ func _build_overlays() -> void:
 	_settings_menu.visible = false
 	_settings_menu.changed.connect(_apply_preferences)
 	_settings_menu.close_requested.connect(_close_settings)
+	_settings_menu.home_requested.connect(_on_home_pressed)
 	add_child(_settings_menu)
 	HudEditorBridge.install(self)
 
@@ -825,6 +836,33 @@ func _label(
 	label.set_meta("aegis_scale", multiplier)
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return label
+
+
+## A label whose text is a catalog key, rewritten in place when the language
+## changes. `_label()` still takes a finished string for anything built from
+## numbers at runtime; this is for the words.
+func _label_key(
+	key: String, role: String, color: Color, args: Array = [], multiplier: float = 1.0
+) -> Label:
+	var label := _label("", role, color, multiplier)
+	AegisText.apply(label, key, args)
+	return label
+
+
+## Re-applies every keyed label in the HUD and lets the screens that compose a
+## sentence from live numbers rebuild theirs.
+func _on_locale_changed(_code: String) -> void:
+	AegisText.refresh(self)
+	# Sentences assembled from live numbers cannot be rewritten by the tree walk
+	# above: those labels are rebuilt by the code that owns the number.
+	HudEncounterUi.apply_context(self)
+	HudArmoryBridge.refresh_entry_label(self)
+	if is_instance_valid(_armory_panel):
+		_armory_panel.refresh_language()
+	if is_instance_valid(_settings_menu) and _settings_menu.visible:
+		# `open()` re-builds the active tab, which is where the labels live.
+		_settings_menu.open()
+	queue_redraw()
 
 
 func _register_type(control: Control, role: String, _color: Color, multiplier: float = 1.0) -> void:
@@ -882,6 +920,19 @@ func _combat_button(
 	return button
 
 
+## The key-based form of `_text_button`: the words and the hover text both come
+## from the catalog and are remembered, so the plate re-reads in the new
+## language instead of keeping the one it was built with.
+func _text_button_key(
+	key: String, button_name: String, variant: String, icon_name: String, tip_key: String = ""
+) -> AegisButton:
+	var button := _text_button("", button_name, variant, icon_name, "")
+	AegisText.apply(button, key)
+	if not tip_key.is_empty():
+		AegisText.apply_tip(button, tip_key)
+	return button
+
+
 func _text_button(
 	label_text: String, button_name: String, variant: String, icon_name: String, tooltip: String
 ) -> AegisButton:
@@ -930,7 +981,7 @@ func _layout_controls(
 	UiLayout.resolve_safe_insets(self, physical)
 	_narrow = physical_width < NARROW_WIDTH
 	if is_instance_valid(_help_label):
-		_help_label.text = HELP_TEXT
+		AegisText.apply(_help_label, HELP_KEY)
 
 	_refresh_card_styles()
 	_apply_font_scale()
@@ -1101,6 +1152,41 @@ func _draw() -> void:
 		)
 	if _results_visible() or (is_instance_valid(_scrim) and _scrim.visible and _player_down):
 		return
+	# The docks are plates, not containers: they follow the live widgets, so the
+	# HUD editor's offsets and the platform's safe insets move the frame with
+	# them. Drawn before the crosshair so the reticle always stays on top.
+	if not get_tree().paused:
+		(
+			HudDock
+			. top(
+				self,
+				[
+					_health_card,
+					_wave_card,
+					_system_row,
+				]
+			)
+		)
+		(
+			HudDock
+			. bottom(
+				self,
+				[
+					_fire_button,
+					_aim_button,
+					_skill_button,
+					_weapon_button,
+				]
+			)
+		)
+		# One column per thumb: movement on the left, and the trigger hand's
+		# business (what is in it, how much is left) on the right.
+		HudDock.left(
+			self,
+			_move_origin if _move_touch_id != -1 else _joystick_center,
+			_joystick_visual_radius
+		)
+		HudDock.right(self, [_touch_ammo_chip])
 	if (
 		_state.play_phase == "defense"
 		and not get_tree().paused
@@ -1234,6 +1320,21 @@ func _on_defense_pressed() -> void:
 		return
 	Sfx.play_ui(&"ui_click")
 	defense_start_requested.emit()
+
+
+## HOME is answered by main.gd, which owns the scene: the HUD only knows that the
+## player asked to leave. The overlay stays up until the scene actually changes,
+## so a failed hand-off cannot look like a dead button.
+func _on_home_pressed() -> void:
+	Sfx.play_ui(&"ui_click")
+	home_requested.emit()
+
+
+## ESC on the armory asks the owner to close it, exactly as the panel's own
+## close button does: the layer's back action and its button must not be two
+## different paths.
+func _close_armory_overlay() -> void:
+	armory_close_requested.emit()
 
 
 func _on_return_to_explore_pressed() -> void:

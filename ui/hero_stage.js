@@ -18,6 +18,15 @@
  * canvas is roughly 180 x 210 CSS pixels on a 844 x 390 phone -- and the model
  * is 36 k triangles, so this is cheaper than the painted plate behind it.
  *
+ * The stage the figure stands on is geometry, not a photograph of one. A rig
+ * that animates over a painted pad can only look pasted onto a backdrop: the
+ * painted pad cannot take his weight, cannot take his shadow, and does not move
+ * when the camera does. So the room stays a photograph (it is far away and does
+ * not move) and the deck under his boots is a real cylinder with a lit rim,
+ * drawn in the same scene, in the same perspective, with the contact shadow on
+ * its own surface. Camera, deck and rig share one space -- the only way
+ * "standing on a stage" is true instead of claimed.
+ *
  * Lifecycle, because the engine needs the GPU back:
  *   play()   starts the frame loop (entering the hero screen)
  *   pause()  stops the loop but keeps the loaded scene (leaving and returning)
@@ -30,7 +39,12 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
-const MODEL = './game/assets/characters/hero/hero.glb';
+/* The operative shown here is the tier the player picked: five GLBs, one per
+   rank (game/assets/characters/human_hero_tiers/). The path arrives from the
+   roster through `setLoadout()`; DEFAULT_MODEL is what the page shows before
+   the roster answers, so the stage is never empty. */
+const DEFAULT_MODEL = './game/assets/characters/human_hero_tiers/hero_human_tier_1.glb';
+const MODEL = DEFAULT_MODEL;
 const RIFLE = './game/assets/weapons/futuristic_rifle/rifle.glb';
 const IDLE = 'idle';
 const SALUTE = 'aim';
@@ -49,13 +63,18 @@ const CELEBRATIONS = './game/assets/characters/hero/celebrations/manifest.json';
    the lobby means the rifle in the hero's hands is the rifle in the match, held
    the same way -- and it is what makes the `aim` celebration read as a weapon
    coming up instead of a figure folding its arms. */
-const SOCKET = {
+/* Defaults from hero_rig.json. `setLoadout()` replaces them with the selected
+   tier's own sidecar (human_hero_tiers/*_rig.json), whose socket differs in the
+   fourth decimal -- small, but it is the same numbers the engine uses. */
+let SOCKET = {
   rotationXYZW: [0.727734, 0.229505, -0.429349, 0.483105],
   offset: [0, 0.018, 0],
   scale: 0.4,
 };
 
-const stage = document.querySelector('.hero__stage');
+/* The plate the canvas sits in. Named by id because the operative page's stage
+   is one column of a grid, not a full-bleed hero band. */
+const stage = document.getElementById('op-stage') || document.querySelector('.hero__stage');
 const canvas = document.getElementById('hero-canvas');
 const note = document.getElementById('hero-stage-note');
 
@@ -84,9 +103,29 @@ if (stage && canvas) {
   let disposed = false;
   let rifleAttached = false;
   let celebration = null;
-  const heroId =
-    document.querySelector('#hero-roster .hcard[data-active="true"]')?.dataset.hero || 'exo_operative';
+  let heroId =
+    document.querySelector('#hero-roster .card[aria-pressed="true"]')?.dataset.hero || 'sable';
+  let tierNumber = 1;
+  /* The model cache. Each tier GLB is ~4 MB and switching tiers re-loads one, so
+     an already-seen tier is kept as a scene graph rather than fetched again: a
+     player walking the ladder with the arrow keys would otherwise download the
+     same five files repeatedly. */
+  const modelCache = new Map();
+  let loadToken = 0;
+  /* Entrance state: the body's own travel, in the scene, so the figure moves
+     rather than the frame it is drawn in. */
+  const entrance = {
+    mode: '',
+    start: 0,
+    duration: 0.78,
+    from: { x: 0, y: 0 },
+    restX: 0,
+    restY: 0,
+  };
   let rifleRef = null;
+  let loadedUrl = '';
+  let socketUrl = '';
+  let socketNode = null;
   let handFound = false;
   let saluteTimer = 0;
   const clock = new THREE.Clock();
@@ -123,10 +162,83 @@ if (stage && canvas) {
      re-frames itself. */
   const FILL = 0.93;
   const FOV = 27;
+  /* Deck, in the rig's own units (hero.glb is 1.0 units tall and the engine
+     scales it to 1.78 m, so one unit is a body here, not a metre). */
+  const DECK_RADIUS = 0.62;
+  const DECK_HEIGHT = 0.085;
 
   let bounds = new THREE.Box3();
 
   let ground = null;
+  let deck = null;
+
+  /* The deploy deck: a machined ring the operative stands on, built from three
+     cylinders -- a recessed base, a plated top, a lit rim -- so the edge has real
+     thickness and a real highlight. Its top face is the rig's ground plane;
+     nothing about it is painted into the backdrop. */
+  function buildDeck() {
+    const group = new THREE.Group();
+    const metal = (colour, rough, metalness) =>
+      new THREE.MeshStandardMaterial({ color: colour, roughness: rough, metalness });
+
+    const radius = DECK_RADIUS;
+    const base = new THREE.Mesh(
+      new THREE.CylinderGeometry(radius * 1.04, radius * 1.12, DECK_HEIGHT * 0.45, 64, 1),
+      metal(0x2b3138, 0.72, 0.55),
+    );
+    base.position.y = -DECK_HEIGHT * 0.5 + DECK_HEIGHT * 0.225;
+    group.add(base);
+
+    const top = new THREE.Mesh(
+      new THREE.CylinderGeometry(radius, radius, DECK_HEIGHT * 0.55, 64, 1),
+      metal(0x4d5865, 0.42, 0.6),
+    );
+    top.position.y = DECK_HEIGHT * 0.5 - DECK_HEIGHT * 0.275;
+    group.add(top);
+
+    // Neutral white rim, sitting in a groove just inside the edge. Neutral
+    // because the stage is shared by every hero.
+    const rim = new THREE.Mesh(
+      new THREE.TorusGeometry(radius * 0.92, DECK_HEIGHT * 0.055, 10, 96),
+      new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        emissive: 0xdfe9f2,
+        emissiveIntensity: 2.6,
+        roughness: 0.35,
+        metalness: 0,
+      }),
+    );
+    rim.rotation.x = Math.PI / 2;
+    rim.position.y = DECK_HEIGHT * 0.5 + DECK_HEIGHT * 0.05;
+    group.add(rim);
+
+    // The standing surface: a lighter inset plate, so the top face reads as a
+    // floor with a lit border rather than as a hole in a hoop.
+    const plate = new THREE.Mesh(
+      new THREE.CylinderGeometry(radius * 0.88, radius * 0.88, DECK_HEIGHT * 0.06, 64, 1),
+      metal(0x5a6672, 0.55, 0.5),
+    );
+    plate.position.y = DECK_HEIGHT * 0.5;
+    group.add(plate);
+
+    // A dimmer inner ring: two concentric lights read as a pad, one reads as a
+    // hoop.
+    const inner = new THREE.Mesh(
+      new THREE.TorusGeometry(radius * 0.55, DECK_HEIGHT * 0.028, 8, 80),
+      new THREE.MeshStandardMaterial({
+        color: 0xcfdae4,
+        emissive: 0x9fb2c2,
+        emissiveIntensity: 1.1,
+        roughness: 0.5,
+        metalness: 0,
+      }),
+    );
+    inner.rotation.x = Math.PI / 2;
+    inner.position.y = DECK_HEIGHT * 0.5 + DECK_HEIGHT * 0.05;
+    group.add(inner);
+
+    return group;
+  }
 
   /* A soft patch of shadow where the boots meet the deck, in the scene rather
      than in CSS: only the renderer knows where the boots actually landed, and a
@@ -156,6 +268,10 @@ if (stage && canvas) {
 
   function fit() {
     if (!model || !camera) return;
+    // The rig stands ON the deck's top face, not at the origin: the difference
+    // between a character on a stage and a character near one.
+    model.position.y -= new THREE.Box3().setFromObject(model).min.y;
+    model.position.y += DECK_HEIGHT * 0.5;
     model.updateMatrixWorld(true);
     bounds = new THREE.Box3().setFromObject(model);
     const height = bounds.max.y - bounds.min.y;
@@ -168,16 +284,23 @@ if (stage && canvas) {
     );
 
     const tan = Math.tan(THREE.MathUtils.degToRad(FOV) / 2);
-    const visible = height / FILL;
+    // Frame the operative and his deck as one object, with the deck proud of the
+    // frame on both sides so it reads as something he is standing on.
+    const visible = (height + DECK_HEIGHT) / FILL;
     // Fit height, then make sure the shoulders and the rifle still clear the
     // sides of a tall, narrow canvas.
     const byHeight = visible / (2 * tan);
-    const byWidth = width / (2 * tan * Math.max(0.2, camera.aspect));
+    const byWidth =
+      Math.max(width, DECK_RADIUS * 2.35) / (2 * tan * Math.max(0.2, camera.aspect));
     const distance = Math.max(byHeight, byWidth) * 1.02;
 
+    // Look slightly down at the deck so its top face reads as an ellipse: a
+    // dead-on camera turns any disc into a line, and the point of a real stage
+    // is that the eye can see the surface the boots are on.
+    const eye = bounds.min.y + visible * 0.5;
     camera.fov = FOV;
-    camera.position.set(centre.x, bounds.min.y + visible / 2, centre.z + distance);
-    camera.lookAt(centre.x, bounds.min.y + visible / 2, centre.z);
+    camera.position.set(centre.x, eye + visible * 0.09, centre.z + distance);
+    camera.lookAt(centre.x, eye - visible * 0.02, centre.z);
     camera.updateProjectionMatrix();
 
     // Keep the near/far planes proportional to the model rather than to metres:
@@ -252,10 +375,63 @@ if (stage && canvas) {
       });
   }
 
+  /* The body's own entrance, in the scene.
+     'top'  -- an upgrade: the operative drops in from above the frame, which is
+               where a rank is earned from;
+     'right'-- a hero selection: the incoming operative slides in from the right,
+               the direction the roster strip reads.
+     The travel is in model units (the rig is 1.0 tall), so it re-scales with the
+     model instead of depending on the canvas size. */
+  function applyEntrance(restart) {
+    if (!model) return;
+    const mode = entrance.mode;
+    if (!mode) return;
+    if (reduced()) {
+      entrance.mode = '';
+      model.position.x = entrance.restX;
+      model.position.y = entrance.restY;
+      return;
+    }
+    // A beat that is already travelling is not restarted: the stage announces
+    // itself more than once (mount, model ready, a second `setLoadout` from the
+    // shell), and restarting from a mid-flight position would both cut the
+    // animation short and leave the body standing off its mark.
+    const elapsed = performance.now() / 1000 - entrance.start;
+    if (entrance.mode === mode && elapsed < entrance.duration) return;
+    // The mark is where `fit()` put the body, never where it happens to be:
+    // the travel is always rest -> (rest + from) -> rest.
+    entrance.start = performance.now() / 1000;
+    entrance.baseX = entrance.restX;
+    entrance.baseY = entrance.restY;
+    const depth = bounds.max.y - bounds.min.y || 1;
+    entrance.from =
+      mode === 'top' ? { x: 0, y: depth * 0.62 } : { x: depth * 0.5, y: depth * 0.04 };
+    if (restart) {
+      model.position.x = entrance.baseX + entrance.from.x;
+      model.position.y = entrance.baseY + entrance.from.y;
+    }
+  }
+
+  function stepEntrance() {
+    if (!entrance.mode || !model) return;
+    const elapsed = performance.now() / 1000 - entrance.start;
+    const t = Math.min(1, elapsed / entrance.duration);
+    // easeOutCubic: fast arrival, long settle -- the "landing" reads as weight.
+    const eased = 1 - Math.pow(1 - t, 3);
+    model.position.x = entrance.baseX + entrance.from.x * (1 - eased);
+    model.position.y = entrance.baseY + entrance.from.y * (1 - eased);
+    if (t >= 1) {
+      model.position.x = entrance.baseX;
+      model.position.y = entrance.baseY;
+      entrance.mode = '';
+    }
+  }
+
   function tick() {
     frame = requestAnimationFrame(tick);
     const delta = Math.min(clock.getDelta(), 0.05);
     if (mixer && !reduced()) mixer.update(delta);
+    stepEntrance();
     renderer.render(scene, camera);
   }
 
@@ -276,6 +452,145 @@ if (stage && canvas) {
     cancelAnimationFrame(frame);
     frame = 0;
   }
+
+/* The rifle socket is per tier, and it is data, not a constant: the sidecar
+   beside the model says where the hand is. A tier whose sidecar will not load
+   keeps the previous socket rather than dropping the weapon. */
+function loadSocket(url) {
+  socketUrl = url;
+  fetch(`./${url}`)
+    .then((response) => (response.ok ? response.json() : null))
+    .then((data) => {
+      const spec = data && data.weapon_socket;
+      if (!spec || socketUrl !== url) return;
+      SOCKET = {
+        rotationXYZW: spec.carry_rotation_xyzw || SOCKET.rotationXYZW,
+        offset: spec.offset || SOCKET.offset,
+        scale: Number(spec.scale_model_units) || SOCKET.scale,
+      };
+    })
+    .catch(() => {});
+}
+
+/* Loads one tier of one hero. Every call is token-guarded: walking the ladder
+   quickly starts several loads, and the last request is the one that must win --
+   otherwise the stage settles on whichever file happened to arrive last. */
+function loadModel(url) {
+  const token = ++loadToken;
+  if (model) {
+    scene.remove(model);
+    model = null;
+    mixer = null;
+    actions = {};
+    current = null;
+    celebration = null;
+    ready = false;
+    canvas.dataset.state = 'loading';
+  }
+  if (rifleRef) {
+    rifleRef = null;
+    rifleAttached = false;
+  }
+    new GLTFLoader().load(
+      url,
+      (gltf) => {
+        if (disposed || token !== loadToken) return;
+        model = gltf.scene;
+        model.traverse((node) => {
+          if (node.isMesh) {
+            node.frustumCulled = false; // skinned bounds lie; the stage is tiny
+            node.castShadow = false;
+            node.receiveShadow = false;
+            for (const material of [].concat(node.material)) {
+              if (!material) continue;
+              material.envMapIntensity = 0.9;
+              // The rig ships as a single scanned material; give it the little
+              // bit of specular response that reads as armour under the beams.
+              if (material.isMeshStandardMaterial) {
+                material.roughness = Math.min(material.roughness ?? 0.7, 0.55);
+                material.metalness = Math.max(material.metalness ?? 0.1, 0.35);
+              }
+            }
+          }
+        });
+        scene.add(model);
+
+        mixer = new THREE.AnimationMixer(model);
+        actions = {};
+        for (const clip of gltf.animations) {
+          const action = mixer.clipAction(clip);
+          action.setLoop(THREE.LoopRepeat, Infinity);
+          actions[clip.name] = action;
+        }
+        if (!actions[IDLE]) {
+          fail('hero.glb tidak memuat klip "idle"');
+          return;
+        }
+
+        // Fit on the body before the rifle attaches: the weapon hangs past the
+        // hip, and letting it into the bounding box would shrink the operative
+        // to make room for a prop.
+        size();
+        fit();
+        entrance.restX = model.position.x;
+        entrance.restY = model.position.y;
+        play(IDLE, 0);
+
+        const hand = model.getObjectByName('R_Hand');
+        handFound = Boolean(hand);
+        if (hand) {
+          new GLTFLoader().load(RIFLE, (weaponGltf) => {
+            if (disposed) return;
+            const rifle = weaponGltf.scene;
+            rifle.scale.setScalar(SOCKET.scale);
+            rifle.traverse((node) => {
+              if (node.isMesh) {
+                node.frustumCulled = false;
+                for (const material of [].concat(node.material)) {
+                  if (material && material.isMeshStandardMaterial) {
+                    material.envMapIntensity = 0.9;
+                  }
+                }
+              }
+            });
+            const socket = new THREE.Group();
+            socketNode = socket;
+            socket.position.set(...SOCKET.offset);
+            socket.quaternion.set(...SOCKET.rotationXYZW);
+            // Held down the leg at ease the rifle reads as a brace strapped to
+            // the thigh, so the lobby keeps it in hand but out of sight and
+            // brings it up with the `aim` beat: the celebration is the weapon
+            // coming up, drawn by the rig's own clip and the game's own socket.
+            rifle.visible = false;
+            socket.add(rifle);
+            hand.add(socket);
+            rifleRef = rifle;
+            rifleAttached = true;
+          });
+        } else {
+          console.warn('[hero_stage] hero.glb has no R_Hand bone; the operative is unarmed');
+        }
+
+        if (deck == null) {
+          deck = buildDeck();
+          scene.add(deck);
+        }
+
+        ready = true;
+        if (reduced()) mixer.update(0.001);
+        applyEntrance(true);
+        start();
+        canvas.dataset.state = 'ready';
+        if (!celebration) loadCelebration();
+        window.dispatchEvent(new CustomEvent('aegis:hero-stage-ready'));
+      },
+      undefined,
+      (error) => {
+        if (token !== loadToken) return;
+        fail(String(error && error.message ? error.message : error));
+      },
+    );
+}
 
   function init() {
     renderer = new THREE.WebGLRenderer({
@@ -319,93 +634,8 @@ if (stage && canvas) {
     fill.position.set(-2.8, 1.4, 2.4);
     scene.add(fill);
 
-    new GLTFLoader().load(
-      MODEL,
-      (gltf) => {
-        if (disposed) return;
-        model = gltf.scene;
-        model.traverse((node) => {
-          if (node.isMesh) {
-            node.frustumCulled = false; // skinned bounds lie; the stage is tiny
-            node.castShadow = false;
-            node.receiveShadow = false;
-            for (const material of [].concat(node.material)) {
-              if (!material) continue;
-              material.envMapIntensity = 0.9;
-              // The rig ships as a single scanned material; give it the little
-              // bit of specular response that reads as armour under the beams.
-              if (material.isMeshStandardMaterial) {
-                material.roughness = Math.min(material.roughness ?? 0.7, 0.55);
-                material.metalness = Math.max(material.metalness ?? 0.1, 0.35);
-              }
-            }
-          }
-        });
-        scene.add(model);
-
-        mixer = new THREE.AnimationMixer(model);
-        actions = {};
-        for (const clip of gltf.animations) {
-          const action = mixer.clipAction(clip);
-          action.setLoop(THREE.LoopRepeat, Infinity);
-          actions[clip.name] = action;
-        }
-        if (!actions[IDLE]) {
-          fail('hero.glb tidak memuat klip "idle"');
-          return;
-        }
-
-        // Fit on the body before the rifle attaches: the weapon hangs past the
-        // hip, and letting it into the bounding box would shrink the operative
-        // to make room for a prop.
-        size();
-        fit();
-        play(IDLE, 0);
-
-        const hand = model.getObjectByName('R_Hand');
-        handFound = Boolean(hand);
-        if (hand) {
-          new GLTFLoader().load(RIFLE, (weaponGltf) => {
-            if (disposed) return;
-            const rifle = weaponGltf.scene;
-            rifle.scale.setScalar(SOCKET.scale);
-            rifle.traverse((node) => {
-              if (node.isMesh) {
-                node.frustumCulled = false;
-                for (const material of [].concat(node.material)) {
-                  if (material && material.isMeshStandardMaterial) {
-                    material.envMapIntensity = 0.9;
-                  }
-                }
-              }
-            });
-            const socket = new THREE.Group();
-            socket.position.set(...SOCKET.offset);
-            socket.quaternion.set(...SOCKET.rotationXYZW);
-            // Held down the leg at ease the rifle reads as a brace strapped to
-            // the thigh, so the lobby keeps it in hand but out of sight and
-            // brings it up with the `aim` beat: the celebration is the weapon
-            // coming up, drawn by the rig's own clip and the game's own socket.
-            rifle.visible = false;
-            socket.add(rifle);
-            hand.add(socket);
-            rifleRef = rifle;
-            rifleAttached = true;
-          });
-        } else {
-          console.warn('[hero_stage] hero.glb has no R_Hand bone; the operative is unarmed');
-        }
-
-        ready = true;
-        if (reduced()) mixer.update(0.001);
-        start();
-        canvas.dataset.state = 'ready';
-        loadCelebration();
-        window.dispatchEvent(new CustomEvent('aegis:hero-stage-ready'));
-      },
-      undefined,
-      (error) => fail(String(error && error.message ? error.message : error)),
-    );
+    loadedUrl = MODEL;
+    loadModel(MODEL);
 
     if (typeof ResizeObserver === 'function') {
       new ResizeObserver(() => size()).observe(stage);
@@ -416,6 +646,27 @@ if (stage && canvas) {
   const api = {
     play() {
       if (!renderer) init();
+      start();
+    },
+    /* What the operative page asks for: one hero, one tier, one entrance. The
+       roster decides the paths; the stage decides how a body arrives. */
+    setLoadout({ heroId: hero, tier, model: url, rig, entry } = {}) {
+      if (typeof hero === 'string' && hero) heroId = hero;
+      if (Number.isFinite(tier)) tierNumber = tier;
+      entrance.mode = entry === 'top' ? 'top' : entry === 'right' ? 'right' : entrance.mode;
+      if (typeof rig === 'string' && rig && rig !== socketUrl) loadSocket(rig);
+      if (!renderer) {
+        init();
+        return;
+      }
+      if (url && url !== loadedUrl) {
+        loadedUrl = url;
+        loadModel(url);
+        return;
+      }
+      // Same model, new beat: replay the entrance on the body already standing
+      // there, so an upgrade does not re-download a file to celebrate.
+      if (entry) applyEntrance(true);
       start();
     },
     pause: stop,
@@ -490,6 +741,19 @@ if (stage && canvas) {
         model: MODEL,
         clips: Object.keys(actions),
         bone: handFound ? 'R_Hand' : null,
+        tier: tierNumber,
+        modelUrl: loadedUrl,
+        /* The entrance, while it is in flight: the QA tools assert the body is
+           actually moving, so a still frame cannot pass for motion. */
+        entrance: {
+          mode: entrance.mode,
+          offset: model
+            ? [
+                Number((model.position.x - (entrance.baseX ?? 0)).toFixed(3)),
+                Number((model.position.y - (entrance.baseY ?? 0)).toFixed(3)),
+              ]
+            : null,
+        },
         celebration: celebration ? celebration.getClip().name : null,
         celebrationSeconds: celebration ? Number(celebration.getClip().duration.toFixed(2)) : null,
         heroId,

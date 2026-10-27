@@ -4,11 +4,11 @@
 
 [resource]
 script = ExtResource("1_definition")
-hero_id = &"exo_operative"
-display_name = "Exo Operative"
-role_description = "The operative fielded by the AEGIS training programme. Concept art shown; the playable model is the rig measured in the hero visibility report."
-portrait_path = "res://assets/ui/portrait_hero.png"
+hero_id = &"sable"
+display_name = "Mara Voss"
+role_description = "Raised on the frontier line and fielded as a strike lead. Her kit is the rank: every tier is plate welded over the last one."
+portrait_path = "res://assets/ui/portrait_sable.png"
 status_line = "FIELD READY"
 field_ready = true
-model_scene_path = "res://assets/characters/hero/hero.glb"
+model_scene_path = "res://assets/characters/human_hero_tiers/hero_human_tier_1.glb"
 showcase_clips = Array[String](["idle", "aim", "fire"])

@@ -21,9 +21,7 @@ func _run_smoke_test() -> void:
 	var frostline := WorldDefinition.load_definition(&"frostline_relay")
 	var original_world_path := frostline.environment_scene_path
 	frostline.environment_scene_path = "res://content/worlds/missing/runtime/world.glb"
-	var broken_world: Node = await _make_main(
-		"frostline_relay", "res://assets/characters/hero/hero.glb"
-	)
+	var broken_world: Node = await _make_main("frostline_relay")
 	frostline.environment_scene_path = original_world_path
 	var world := broken_world.get_node("MissionWorld")
 	var hero := broken_world.get_node("Player/VisualRoot")
@@ -83,9 +81,7 @@ func _run_smoke_test() -> void:
 	await process_frame
 
 	var broken_weapon: Node = await _make_main(
-		"frostline_relay",
-		"res://assets/characters/hero/hero.glb",
-		"res://content/characters/missing/runtime/rifle.glb"
+		"frostline_relay", "", "res://content/characters/missing/runtime/rifle.glb"
 	)
 	world = broken_weapon.get_node("MissionWorld")
 	hero = broken_weapon.get_node("Player/VisualRoot")
@@ -120,11 +116,14 @@ func _check_shell_character_fallback() -> void:
 	root.add_child(front_end)
 	await process_frame
 	await process_frame
-	var definition := HeroDefinition.load_definition(&"exo_operative")
+	var definition := HeroDefinition.load_definition(HeroDefinition.DEFAULT_HERO_ID)
 	var original_path := definition.model_scene_path
 	var original_scene := definition.model_scene
 	definition.model_scene = null
 	definition.model_scene_path = "res://content/characters/missing/runtime/hero.glb"
+	var progression := front_end.get_node("ProgressionService")
+	var saved_hero: StringName = progression.get("selected_hero_id")
+	progression.set("selected_hero_id", &"fixture_without_a_tier")
 	front_end.go_to(&"HERO", {})
 	await process_frame
 	await process_frame
@@ -133,7 +132,7 @@ func _check_shell_character_fallback() -> void:
 		var name_label := stage.get("_name_label") as Label
 		var status_label := stage.get("_status_label") as Label
 		_expect(
-			name_label != null and name_label.text == "EXO OPERATIVE",
+			name_label != null and name_label.text == "MARA VOSS",
 			"hero metadata remains visible"
 		)
 		_expect(
@@ -153,26 +152,35 @@ func _check_shell_character_fallback() -> void:
 	)
 	definition.model_scene_path = original_path
 	definition.model_scene = original_scene
+	progression.set("selected_hero_id", saved_hero)
 	front_end.queue_free()
 	await process_frame
 
 
 func _make_main(
 	world_override: String,
-	hero_path: String,
-	weapon_path: String = "res://assets/weapons/futuristic_rifle/rifle.glb"
+	hero_path: String = "",
+	weapon_path: String = ""
 ) -> Node:
 	var main := MainScene.instantiate()
 	main.set("start_wave_session_on_ready", false)
 	main.get_node("ProgressionService").set("profile_path", "")
 	main.get_node("MissionWorld").set("world_override", world_override)
 	var hero := main.get_node("Player/VisualRoot")
-	hero.set("model_scene", null)
-	hero.set("model_scene_path", hero_path)
-	hero.set("weapon_scene", null)
-	hero.set("weapon_scene_path", weapon_path)
 	root.add_child(main)
 	await process_frame
+	await process_frame
+	# Progression selects the earned tier during the initial _ready(). Apply a
+	# fault after that boot and re-enter the same visual loader; no production
+	# test-only switch is needed to exercise failure containment.
+	if not hero_path.is_empty():
+		hero.set("model_scene", null)
+		hero.set("model_scene_path", hero_path)
+		hero.call("_spawn_model")
+	if not weapon_path.is_empty():
+		hero.set("weapon_scene", null)
+		hero.set("weapon_scene_path", weapon_path)
+		hero.call("_spawn_weapon")
 	await process_frame
 	return main
 
@@ -183,13 +191,14 @@ func _check_loader_results() -> void:
 	)
 	_expect(not bool(missing["ok"]), "a missing package returns failure instead of a scene")
 	_expect(missing["code"] == "missing", "the missing-package result has a stable reason")
+	var character_path := HeroTier.model_path(HeroDefinition.DEFAULT_HERO_ID, 1)
 	var outside := ContentModuleLoader.load_scene(
-		"res://assets/characters/hero/hero.glb", ContentModuleLoader.WORLD_ROOTS
+		character_path, ContentModuleLoader.WORLD_ROOTS
 	)
 	_expect(not bool(outside["ok"]), "a World loader cannot load a Character path")
 	_expect(outside["code"] == "outside_allowed_roots", "the domain boundary is explicit")
 	var healthy_character := ContentModuleLoader.load_scene(
-		"res://assets/characters/hero/hero.glb", ContentModuleLoader.CHARACTER_ROOTS
+		character_path, ContentModuleLoader.CHARACTER_ROOTS
 	)
 	var healthy_world := ContentModuleLoader.load_scene(
 		"res://assets/forge/worlds/frostline.glb", ContentModuleLoader.WORLD_ROOTS

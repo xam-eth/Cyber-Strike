@@ -285,6 +285,46 @@ fi
 printf '\n'
 
 # --------------------------------------------------------------------------- #
+# 6b. Player-facing text
+# --------------------------------------------------------------------------- #
+# Two languages are a product promise, and the failure mode is silent: a key that
+# exists in one column, a `%d` that is `%s` in the other, or an English sentence
+# copied into the Indonesian column. The check is static, so it runs here rather
+# than only under Godot.
+LOC_CHECK="$ROOT_DIR/tools/check_localization.py"
+if [[ -z "$PYTHON_BIN" ]]; then
+  step_skipped 'no python3 interpreter available for the localization check'
+elif [[ ! -f "$LOC_CHECK" ]]; then
+  step_failed 'tools/check_localization.py is missing'
+elif loc_output="$("$PYTHON_BIN" "$LOC_CHECK" 2>&1)"; then
+  step_passed "$(printf '%s\n' "$loc_output" | head -n 1)"
+else
+  step_failed 'localization catalog is incomplete (see above)'
+  printf '%s\n' "$loc_output" | sed 's/^/         /' | head -20
+fi
+printf '\n'
+
+# --------------------------------------------------------------------------- #
+# 6c. Operative roster
+# --------------------------------------------------------------------------- #
+# The roster is one file for both halves: the shell draws its cards from it and
+# the engine fields its ranks from it. A path in that file is a promise, so this
+# is where the promise is checked against the disk, the two language columns and
+# the shape of the card art.
+ROSTER_CHECK="$ROOT_DIR/tools/check_hero_roster.py"
+if [[ -z "$PYTHON_BIN" ]]; then
+  step_skipped 'no python3 interpreter available for the roster check'
+elif [[ ! -f "$ROSTER_CHECK" ]]; then
+  step_failed 'tools/check_hero_roster.py is missing'
+elif roster_output="$("$PYTHON_BIN" "$ROSTER_CHECK" 2>&1)"; then
+  step_passed "$(printf '%s\n' "$roster_output" | tail -n 1)"
+else
+  step_failed 'the operative roster promises an asset that is not there'
+  printf '%s\n' "$roster_output" | sed 's/^/         /' | head -20
+fi
+printf '\n'
+
+# --------------------------------------------------------------------------- #
 # 7. Handover map
 # --------------------------------------------------------------------------- #
 printf '[7/7] Handover map\n'

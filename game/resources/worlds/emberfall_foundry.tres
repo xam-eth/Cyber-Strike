@@ -7,7 +7,7 @@
 script = ExtResource("1_definition")
 world_id = &"emberfall_foundry"
 display_name = "Emberfall Foundry"
-role_description = "STELLAR HORIZON — Night. The common tower-and-islands route under a deep navy sky, with foundry silhouettes, city light and cyan interior bases keeping the path readable."
+role_description = "STELLAR HORIZON — Night. Cross a cinder yard of smelters, ore silos, crane gantries and slag pools, with marked haul routes and foundry cover supporting the existing Defense encounter."
 world_scene = ExtResource("2_world")
 environment_scene_path = "res://assets/forge/worlds/emberfall.glb"
 field_size = Vector2(180, 180)
@@ -17,4 +17,4 @@ status_line = "OPEN"
 zone_title = "EXPLORE THE FOUNDRY"
 zone_subtitle = "SAFE ZONE · NIGHT ROUTE"
 field_ready = true
-player_spawn = Vector3(0, 0.1, 8)
+player_spawn = Vector3(0, 0.1, 10)

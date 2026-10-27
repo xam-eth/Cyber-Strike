@@ -7,6 +7,18 @@ extends Control
 signal changed(values: Dictionary)
 signal done
 
+## AegisPreferences.HUD_GROUPS is a list of control ids, not of words. This maps
+## the id to the catalogue key that names it on screen, so the picker speaks the
+## player's language and still selects by id.
+const GROUP_KEYS := {
+	"VITALS": "editor.group_vitals",
+	"WAVE": "editor.group_wave",
+	"SYSTEM": "editor.group_system",
+	"RUN": "editor.group_run",
+	"SCORE": "editor.group_score",
+	"COMPACT": "editor.group_compact",
+}
+
 var _hud
 var _values: Dictionary = {}
 var _selected: String = ""
@@ -31,6 +43,7 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_build()
+	AegisText.watch(_on_language)
 
 
 func open(hud, values: Dictionary) -> void:
@@ -178,47 +191,50 @@ func _build() -> void:
 	_content.name = "InspectorContent"
 	_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(_content)
-	_content.add_child(_label("AEGIS / LIVE PREVIEW", "label", AegisTokens.ACCENT))
-	_content.add_child(_label("HUD LAYOUT", "heading", AegisTokens.INK))
+	_content.add_child(_label_key("editor.eyebrow", "label", AegisTokens.ACCENT))
+	_content.add_child(_label_key("editor.title", "heading", AegisTokens.INK))
 	_groups = OptionButton.new()
 	_groups.name = "HudGroupSelect"
 	_groups.focus_mode = Control.FOCUS_ALL
 	AegisTheme.set_button_variant(_groups, "ghost")
 	_groups.item_selected.connect(_on_group_selected)
 	_content.add_child(_groups)
-	_position_label = _label("OFFSET  0 / 0", "mono_s", AegisTokens.INK_2)
+	_position_label = _label("", "mono_s", AegisTokens.INK_2)
+	AegisText.apply(_position_label, "editor.offset_xy", [0, 0])
 	_content.add_child(_position_label)
 
 	var preset_row := HBoxContainer.new()
 	_content.add_child(preset_row)
 	for preset in ["MINIMAL", "STANDARD", "ADVANCED"]:
-		var button := _button(preset.substr(0, 3), "Preset%s" % preset, "ghost")
-		button.tooltip_text = "%s HUD preset" % preset.capitalize()
+		var button := _button_key(
+			"editor.preset_%s" % preset.to_lower(), "Preset%s" % preset, "ghost"
+		)
+		AegisText.apply_tip(button, "editor.preset_tip_%s" % preset.to_lower())
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.pressed.connect(_set_preset.bind(preset))
 		preset_row.add_child(button)
 		_presets[preset] = button
 
-	_opacity_label = _label("PANEL OPACITY", "body_s", AegisTokens.INK_2)
+	_opacity_label = _label_key("editor.panel_opacity", "body_s", AegisTokens.INK_2)
 	_content.add_child(_opacity_label)
 	_opacity_slider = _slider("EditorOpacity", 0.65, 1.0, 0.05)
 	_opacity_slider.value_changed.connect(_on_slider_changed.bind("hud_opacity"))
-	_scale_label = _label("HUD SCALE", "body_s", AegisTokens.INK_2)
+	_scale_label = _label_key("editor.hud_scale", "body_s", AegisTokens.INK_2)
 	_content.add_child(_scale_label)
 	_scale_slider = _slider("EditorScale", 0.8, 1.2, 0.05)
 	_scale_slider.value_changed.connect(_on_slider_changed.bind("hud_scale"))
 
 	var reset_row := HBoxContainer.new()
 	_content.add_child(reset_row)
-	var reset_group := _button("RESET GROUP", "ResetGroupButton", "ghost")
+	var reset_group := _button_key("editor.reset_group", "ResetGroupButton", "ghost")
 	reset_group.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	reset_group.pressed.connect(_reset_group)
 	reset_row.add_child(reset_group)
-	var reset_layout := _button("RESET ALL", "ResetLayoutButton", "ghost")
+	var reset_layout := _button_key("editor.reset_all", "ResetLayoutButton", "ghost")
 	reset_layout.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	reset_layout.pressed.connect(_reset_layout)
 	reset_row.add_child(reset_layout)
-	var finish := _button("DONE", "DoneHudEditorButton", "primary")
+	var finish := _button_key("editor.done", "DoneHudEditorButton", "primary")
 	finish.pressed.connect(done.emit)
 	_shell.add_child(finish)
 
@@ -229,12 +245,16 @@ func _refresh_groups() -> void:
 	for key in AegisPreferences.HUD_GROUPS:
 		var target := _target(key)
 		if target != null and target.is_visible_in_tree():
-			_groups.add_item(key)
+			# The row shows the player's word for the group; the id it selects by
+			# is the metadata, so switching language renames the rows without
+			# renumbering them.
+			_groups.add_item(AegisText.t(GROUP_KEYS.get(key, key)))
+			_groups.set_item_metadata(_groups.item_count - 1, key)
 	if _groups.item_count == 0:
 		return
-	_selected = keep if _has_group(keep) else _groups.get_item_text(0)
+	_selected = keep if _has_group(keep) else String(_groups.get_item_metadata(0))
 	for index in _groups.item_count:
-		if _groups.get_item_text(index) == _selected:
+		if String(_groups.get_item_metadata(index)) == _selected:
 			_groups.select(index)
 			break
 	_refresh_position()
@@ -243,8 +263,10 @@ func _refresh_groups() -> void:
 func _refresh_values() -> void:
 	_opacity_slider.set_value_no_signal(float(_values.get("hud_opacity", 1.0)))
 	_scale_slider.set_value_no_signal(float(_values.get("hud_scale", 1.0)))
-	_opacity_label.text = "PANEL OPACITY  %d%%" % roundi(_opacity_slider.value * 100.0)
-	_scale_label.text = "HUD SCALE  %d%%" % roundi(_scale_slider.value * 100.0)
+	AegisText.apply(
+		_opacity_label, "editor.panel_opacity_value", [roundi(_opacity_slider.value * 100.0)]
+	)
+	AegisText.apply(_scale_label, "editor.hud_scale_value", [roundi(_scale_slider.value * 100.0)])
 	for preset in _presets:
 		AegisTheme.set_button_variant(
 			_presets[preset],
@@ -252,9 +274,20 @@ func _refresh_values() -> void:
 		)
 
 
+## A built screen, rewritten in place: the group rows are already numbered, so
+## the ids are re-painted from the same metadata rather than rebuilt.
+func _on_language(_code: String) -> void:
+	for index in _groups.item_count:
+		_groups.set_item_text(
+			index, AegisText.t(GROUP_KEYS.get(String(_groups.get_item_metadata(index)), ""))
+		)
+	AegisText.refresh(self)
+	_refresh_values()
+
+
 func _has_group(key: String) -> bool:
 	for index in _groups.item_count:
-		if _groups.get_item_text(index) == key:
+		if String(_groups.get_item_metadata(index)) == key:
 			return true
 	return false
 
@@ -268,7 +301,7 @@ func _target(key: String) -> Control:
 func _on_group_selected(index: int) -> void:
 	if index < 0 or index >= _groups.item_count:
 		return
-	_selected = _groups.get_item_text(index)
+	_selected = String(_groups.get_item_metadata(index))
 	_refresh_position()
 	queue_redraw()
 
@@ -288,7 +321,7 @@ func _start_drag(point: Vector2) -> void:
 	if best == INF:
 		return
 	for index in _groups.item_count:
-		if _groups.get_item_text(index) == _selected:
+		if String(_groups.get_item_metadata(index)) == _selected:
 			_groups.select(index)
 			break
 	_dragging = true
@@ -325,7 +358,7 @@ func _set_offset(offset: Vector2) -> void:
 
 func _refresh_position() -> void:
 	var offset := _offset()
-	_position_label.text = "OFFSET  X %d  /  Y %d" % [roundi(offset.x), roundi(offset.y)]
+	AegisText.apply(_position_label, "editor.offset_xy", [roundi(offset.x), roundi(offset.y)])
 
 
 func _on_slider_changed(value: float, key: String) -> void:
@@ -377,6 +410,18 @@ func _slider(name_text: String, low: float, high: float, step: float) -> HSlider
 	slider.add_theme_stylebox_override("grabber_area", AegisTheme.flat_style(AegisTokens.ACCENT))
 	_content.add_child(slider)
 	return slider
+
+
+func _label_key(key: String, role: String, color: Color) -> Label:
+	var result := _label("", role, color)
+	AegisText.apply(result, key)
+	return result
+
+
+func _button_key(key: String, node_name: String, variant: String) -> AegisButton:
+	var result := _button("", node_name, variant)
+	AegisText.apply(result, key)
+	return result
 
 
 func _label(text: String, role: String, color: Color) -> Label:

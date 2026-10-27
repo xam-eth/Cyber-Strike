@@ -45,6 +45,11 @@ const BACK_TARGET := {
 	&"PRELOAD": &"WORLD",
 }
 
+## Set by `DashboardReturn` when the player leaves the world: the next front end
+## opens on that stage instead of replaying the boot and the chapter card, and
+## clears itself so a later BOOT is a BOOT again.
+static var resume_stage := StringName()
+
 ## Read-only view of the active stage, for tests and for QA logging.
 var current_stage_name := StringName()
 
@@ -78,6 +83,17 @@ func _ready() -> void:
 		stage.set_physics_process(false)
 		_stages[key] = stage
 	progression_service.profile_changed.connect(_on_profile_changed)
+# A return from the world outranks the deep link: the deployed build keeps
+	# `?qa_stage=GAMEPLAY` in its URL, so reading the hand-off first would hand
+	# the player straight back into the arena they just asked to leave.
+	if resume_stage != &"" and STAGE_SCENES.has(resume_stage):
+		# Coming back from the world is a return, not a launch: no boot overlay,
+		# no load bar, no chapter card. The dashboard reads the profile itself.
+		var target := resume_stage
+		resume_stage = &""
+		_enter(target, {})
+		return
+
 	# GAMEPLAY remains an explicit raw-engine QA hand-off. The player shell uses
 	# WORLD instead, preserving theatre/loadout selection. Entering a stage and
 	# then changing the scene out from under it leaves that stage's awaited frames
@@ -212,7 +228,9 @@ func _enter(stage_name: StringName, stage_payload: Dictionary) -> void:
 	stage.payload = stage_payload
 	stage.visible = true
 	stage.enter(stage_payload)
-	stage.focus_primary()
+# After enter(), because a stage builds and lays out in enter() and a control
+	# that is not in the tree yet cannot take focus.
+	stage._focus_primary()
 	print("FrontEnd: stage %s" % stage_name)
 	_report_menu_rects()
 

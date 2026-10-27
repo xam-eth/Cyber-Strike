@@ -142,3 +142,19 @@ python3 tools/check_payload.py web/index.pck
 ```
 
 Run the relevant browser journey after exporting an updated payload. Visual composition, animation quality, touch, performance, and Android behavior still need their separate rendered/human/device gates. No IAP or monetization concept is part of this import contract; monetization remains deferred until gameplay design explicitly calls for it.
+
+## 8. Current contributor intake
+
+**Status:** REVIEWED SOURCE INTEGRATION, pending the runtime gates for the commit that contains it. This section records provenance, not a claim of subjective visual approval or device validation.
+
+| Source | Reviewed commit | Integrated content | Deliberate boundary |
+| --- | --- | --- | --- |
+| UI/UX | `arena/c08beb55-cyber-strike` at `2741263` | Two-language shell/engine catalog, HOME/navigation and overlay work, SABLE operative presentation, five tier cards, roster/tooling and relevant smoke tests | Generated QA evidence, agent skill documents and committed Web payloads were not copied. Shared files were three-way merged to retain five theatres, preload/cache/retry and dynamic content loading. |
+| Character | `arena/0b00d4dd-cyber-strike` at `be3fe7a` | Five SABLE runtime tiers and rig sidecars, Runner/Shooter/Heavy/review-only boss visual candidates, four reference images, reusable GLB authoring tools and the isolated visual QA project | The standalone branch's framework/scene deletions were not applied. Its 194.16 MiB high-poly source GLBs remain on the contributor branch rather than being duplicated into the game repository. New enemy visuals do not register new enemy behavior. |
+| World | `arena/3a7253a1-cyber-strike` at `5155b9a` | Latest Frostline, Verdant and Emberfall data layouts, rebuilt through the existing real-asset Forge and shared-texture staging pipeline | No unrelated-history merge and no standalone QA project import. Titans source and staged GLB remain unchanged; the older orphan-branch Titans artifact was not used. |
+
+SABLE replaces the retired `exo_operative` presentation id. The profile loader migrates that one saved id to `sable`; unknown ids still fall back through the validated registry. Roster model/rig paths remain repository-relative for the HTML shell and are normalized to `res://` only at the engine accessor.
+
+The five tiers are not presentation-only: their roster changes maximum health and incoming-damage reduction. That behavior belongs to the existing `ProgressionService` → `PlayerController` path and requires the normal gameplay tests. It is not a second health registry. Tier changes select a visual path; `ContentModuleLoader` still performs the domain-restricted load and preserves fallbacks.
+
+The World build ran the real-asset policy and Khronos validation on the staged bytes. These are static/build gates only. Godot import, PCK inclusion/budget, browser composition, animation quality and interactive gameplay must be recorded separately in [`VALIDATION.md`](VALIDATION.md).

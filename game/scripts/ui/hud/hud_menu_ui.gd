@@ -16,6 +16,9 @@ static func build_pause(hud) -> void:
 	hud._pause_panel.bezel = true
 	hud._pause_panel.cut_top_left = AegisBezel.CUT_LG
 	hud._pause_panel.cut_bottom_right = AegisBezel.CUT_LG
+	# A modal is read, not seen through: at the soft fill the thumb stick and the
+	# fire tile drew a faint ring and a faint corner across the card's actions.
+	hud._pause_panel.surface_alpha = AegisTokens.PANEL_ALPHA
 	hud._pause_panel.visible = false
 	hud.add_child(hud._pause_panel)
 
@@ -23,11 +26,11 @@ static func build_pause(hud) -> void:
 	content.add_theme_constant_override("separation", 12)
 	hud._pause_panel.add_child(content)
 
-	var eyebrow: Label = hud._label("RUN SUSPENDED", "label", AegisTokens.ACCENT)
+	var eyebrow: Label = hud._label_key("pause.eyebrow", "label", AegisTokens.ACCENT)
 	content.add_child(eyebrow)
-	hud._pause_label = hud._label("PAUSED", "display_l", AegisTokens.INK)
+	hud._pause_label = hud._label_key("pause.title", "display_l", AegisTokens.INK)
 	content.add_child(hud._pause_label)
-	hud._pause_stats_label = hud._label("SCORE 0  ·  00:00", "mono_m", AegisTokens.INK_2)
+	hud._pause_stats_label = hud._label("", "mono_m", AegisTokens.INK_2)
 	content.add_child(hud._pause_stats_label)
 
 	var rule := ColorRect.new()
@@ -37,7 +40,7 @@ static func build_pause(hud) -> void:
 
 	hud._pause_resume_button = AegisButton.new()
 	hud._pause_resume_button.name = "ResumeButton"
-	hud._pause_resume_button.text = "RESUME"
+	AegisText.apply(hud._pause_resume_button, "pause.resume")
 	hud._pause_resume_button.focus_mode = Control.FOCUS_ALL
 	hud._pause_resume_button.mouse_filter = Control.MOUSE_FILTER_STOP
 	hud._pause_resume_button.icon = AegisTheme.icon("play", true)
@@ -47,11 +50,17 @@ static func build_pause(hud) -> void:
 	content.add_child(hud._pause_resume_button)
 	hud._touch_buttons.append(hud._pause_resume_button)
 
+	# RESUME, then the run decision, then the pair of ways out. That is three
+	# 52 px rows plus the header, which is what a 375 px-tall phone can hold; the
+	# old four stacked plates overflowed it and the last action fell off the card.
+	# The two exits share a row because they are the same rank: one goes back to
+	# the field's settings, the other leaves the world entirely.
 	hud._pause_restart_button = AegisButton.new()
 	hud._pause_restart_button.name = "RestartButton"
-	hud._pause_restart_button.text = "RESTART RUN"
+	AegisText.apply(hud._pause_restart_button, "pause.restart")
 	hud._pause_restart_button.focus_mode = Control.FOCUS_ALL
 	hud._pause_restart_button.mouse_filter = Control.MOUSE_FILTER_STOP
+	hud._pause_restart_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hud._pause_restart_button.icon = AegisTheme.icon("arrow-counter-clockwise")
 	hud._pause_restart_button.add_theme_constant_override("icon_max_width", 18)
 	AegisTheme.set_button_variant(hud._pause_restart_button, "round")
@@ -59,17 +68,37 @@ static func build_pause(hud) -> void:
 	content.add_child(hud._pause_restart_button)
 	hud._touch_buttons.append(hud._pause_restart_button)
 
+	var actions := HBoxContainer.new()
+	actions.name = "PauseActions"
+	actions.add_theme_constant_override("separation", 8)
+	content.add_child(actions)
+
 	hud._pause_settings_button = AegisButton.new()
 	hud._pause_settings_button.name = "SettingsButton"
-	hud._pause_settings_button.text = "SETTINGS"
+	AegisText.apply(hud._pause_settings_button, "pause.settings")
 	hud._pause_settings_button.icon = AegisTheme.icon("gear-six")
 	hud._pause_settings_button.focus_mode = Control.FOCUS_ALL
+	hud._pause_settings_button.mouse_filter = Control.MOUSE_FILTER_STOP
+	hud._pause_settings_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	AegisTheme.set_button_variant(hud._pause_settings_button, "ghost")
 	hud._pause_settings_button.pressed.connect(hud._open_settings)
-	content.add_child(hud._pause_settings_button)
+	actions.add_child(hud._pause_settings_button)
 	hud._touch_buttons.append(hud._pause_settings_button)
 
-	var hint: Label = hud._label("SETTINGS → CONTROLS · ESC RESUME", "label_s", AegisTokens.INK_3)
+	hud._pause_home_button = AegisButton.new()
+	hud._pause_home_button.name = "PauseHomeButton"
+	AegisText.apply(hud._pause_home_button, "pause.home")
+	hud._pause_home_button.icon = AegisTheme.icon("house")
+	hud._pause_home_button.add_theme_constant_override("icon_max_width", 18)
+	hud._pause_home_button.focus_mode = Control.FOCUS_ALL
+	hud._pause_home_button.mouse_filter = Control.MOUSE_FILTER_STOP
+	hud._pause_home_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	AegisTheme.set_button_variant(hud._pause_home_button, "ghost")
+	hud._pause_home_button.pressed.connect(hud._on_home_pressed)
+	actions.add_child(hud._pause_home_button)
+	hud._touch_buttons.append(hud._pause_home_button)
+
+	var hint: Label = hud._label_key("pause.hint", "label_s", AegisTokens.INK_3)
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	content.add_child(hint)
 
@@ -88,9 +117,9 @@ static func build_results(hud) -> void:
 	content.add_theme_constant_override("separation", 12)
 	hud._results_panel.add_child(content)
 
-	hud._results_eyebrow = hud._label("RUN COMPLETE", "label", AegisTokens.ACCENT)
+	hud._results_eyebrow = hud._label_key("results.eyebrow", "label", AegisTokens.ACCENT)
 	content.add_child(hud._results_eyebrow)
-	hud._results_title = hud._label("RUN RESULTS", "display_xl", AegisTokens.INK)
+	hud._results_title = hud._label_key("results.title", "display_xl", AegisTokens.INK)
 	content.add_child(hud._results_title)
 
 	var rule := ColorRect.new()
@@ -111,13 +140,13 @@ static func build_results(hud) -> void:
 	report.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	report_scroll.add_child(report)
 
-	hud._results_reward_label = hud._label("+0 BP BANKED", "mono_l", AegisTokens.ACCENT)
+	hud._results_reward_label = hud._label("", "mono_l", AegisTokens.ACCENT)
 	hud._results_reward_label.set_meta("aegis_scale", 1.4)
 	report.add_child(hud._results_reward_label)
-	hud._results_goal_label = hud._label("NEXT LOADOUT · NOVA LAUNCHER", "label", AegisTokens.INK)
+	hud._results_goal_label = hud._label("", "label", AegisTokens.INK)
 	hud._results_goal_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	report.add_child(hud._results_goal_label)
-	hud._results_goal_progress_label = hud._label("0 / 120 BP", "mono_m", AegisTokens.INK_2)
+	hud._results_goal_progress_label = hud._label("", "mono_m", AegisTokens.INK_2)
 	report.add_child(hud._results_goal_progress_label)
 	hud._results_goal_bar = ProgressBar.new()
 	hud._results_goal_bar.name = "NextUnlockProgress"
@@ -138,15 +167,13 @@ static func build_results(hud) -> void:
 	hud._results_summary = hud._label("", "mono_m", AegisTokens.INK_2)
 	hud._results_summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	report.add_child(hud._results_summary)
-	var hint: Label = hud._label(
-		"10 BP PER KO · 100 BP PER CLEARED WAVE", "caption", AegisTokens.INK_3
-	)
+	var hint: Label = hud._label_key("results.hint", "caption", AegisTokens.INK_3)
 	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	report.add_child(hint)
 
 	hud._results_retry_button = AegisButton.new()
 	hud._results_retry_button.name = "ResultsRetryButton"
-	hud._results_retry_button.text = "RETRY"
+	AegisText.apply(hud._results_retry_button, "results.retry")
 	hud._results_retry_button.focus_mode = Control.FOCUS_ALL
 	hud._results_retry_button.mouse_filter = Control.MOUSE_FILTER_STOP
 	hud._results_retry_button.icon = AegisTheme.icon("arrow-counter-clockwise")
@@ -158,7 +185,7 @@ static func build_results(hud) -> void:
 
 	hud._results_explore_button = AegisButton.new()
 	hud._results_explore_button.name = "ResultsExploreButton"
-	hud._results_explore_button.text = "RETURN TO EXPLORE"
+	AegisText.apply(hud._results_explore_button, "results.explore")
 	hud._results_explore_button.focus_mode = Control.FOCUS_ALL
 	hud._results_explore_button.mouse_filter = Control.MOUSE_FILTER_STOP
 	hud._results_explore_button.icon = AegisTheme.icon("caret-right")
@@ -166,6 +193,20 @@ static func build_results(hud) -> void:
 	hud._results_explore_button.pressed.connect(hud._on_return_to_explore_pressed)
 	content.add_child(hud._results_explore_button)
 	hud._touch_buttons.append(hud._results_explore_button)
+
+	# A run ends where the player came from: the results card is the one screen
+	# that can name the dashboard without leaving the report behind.
+	hud._results_home_button = AegisButton.new()
+	hud._results_home_button.name = "ResultsHomeButton"
+	AegisText.apply(hud._results_home_button, "results.home")
+	hud._results_home_button.focus_mode = Control.FOCUS_ALL
+	hud._results_home_button.mouse_filter = Control.MOUSE_FILTER_STOP
+	hud._results_home_button.icon = AegisTheme.icon("house")
+	hud._results_home_button.add_theme_constant_override("icon_max_width", 18)
+	AegisTheme.set_button_variant(hud._results_home_button, "ghost")
+	hud._results_home_button.pressed.connect(hud._on_home_pressed)
+	content.add_child(hud._results_home_button)
+	hud._touch_buttons.append(hud._results_home_button)
 
 
 ## Results makes the objective -> earned reward -> next loadout relationship
@@ -182,38 +223,70 @@ static func update_results(
 	unlocked_ids: Dictionary,
 	was_defeated: bool,
 ) -> void:
-	hud._results_eyebrow.text = "RUN ENDED" if was_defeated else "RUN COMPLETE"
-	hud._results_title.text = "RECOVER" if wave_reached <= 0 else "WAVE %02d" % wave_reached
-	hud._results_retry_button.text = "RETRY EXPLORE" if wave_reached <= 0 else "RETRY DEFENSE"
-	hud._results_reward_label.text = (
-		"NO BP · NO RUN STARTED" if wave_reached <= 0 else "+%d BP BANKED" % bp_earned
+	AegisText.apply(
+		hud._results_eyebrow,
+		"results.eyebrow_ended" if was_defeated else "results.eyebrow_complete"
 	)
+	(
+		AegisText
+		. apply(
+			hud._results_title,
+			"results.recover" if wave_reached <= 0 else "hud.wave",
+			[] if wave_reached <= 0 else [wave_reached],
+		)
+	)
+	(
+		AegisText
+		. apply(
+			hud._results_retry_button,
+			"results.retry_explore" if wave_reached <= 0 else "results.retry_defense",
+		)
+	)
+	if wave_reached <= 0:
+		AegisText.apply(hud._results_reward_label, "results.no_bp")
+	else:
+		AegisText.apply(hud._results_reward_label, "results.banked", [bp_earned])
+	hud._results_summary.set_meta("i18n_skip", true)
 	hud._results_summary.text = (
-		"WAVE %02d  ·  SURVIVED %s\n" % [maxi(wave_reached, 0), survival_time]
-		+ "ELIMINATIONS %d  ·  SCORE %s\n" % [eliminations, hud._format_number(run_score)]
-		+ "BEST SCORE %s  ·  WALLET %d BP" % [hud._format_number(best_score), wallet_bp]
+		AegisText.t("results.summary_wave", [maxi(wave_reached, 0), survival_time])
+		+ "\n"
+		+ AegisText.t("results.summary_run", [eliminations, hud._format_number(run_score)])
+		+ "\n"
+		+ (
+			AegisText
+			. t(
+				"results.summary_best",
+				[hud._format_number(best_score), wallet_bp],
+			)
+		)
 	)
 
 	var next_cost := 0
 	var next_name := ""
 	if not unlocked_ids.has("nova_launcher"):
 		next_cost = int(ProgressionService.COSTS["nova_launcher"])
-		next_name = "NOVA LAUNCHER"
+		next_name = AegisText.t("wpn.nova.name")
 	elif not unlocked_ids.has("arc_shooter"):
 		next_cost = int(ProgressionService.COSTS["arc_shooter"])
-		next_name = "ARC SHOOTER"
+		next_name = AegisText.t("wpn.arc.name")
 	if next_cost > 0:
-		hud._results_goal_label.text = "NEXT LOADOUT · " + next_name
-		hud._results_goal_progress_label.text = (
-			"READY TO UNLOCK · OPEN ARMORY IN EXPLORE"
-			if wallet_bp >= next_cost
-			else "%d / %d BP  ·  %d TO GO" % [wallet_bp, next_cost, next_cost - wallet_bp]
-		)
+		AegisText.apply(hud._results_goal_label, "results.next", [next_name])
+		if wallet_bp >= next_cost:
+			AegisText.apply(hud._results_goal_progress_label, "results.ready_unlock")
+		else:
+			(
+				AegisText
+				. apply(
+					hud._results_goal_progress_label,
+					"results.progress_to_go",
+					[wallet_bp, next_cost, next_cost - wallet_bp],
+				)
+			)
 		hud._results_goal_bar.max_value = next_cost
 		hud._results_goal_bar.value = mini(wallet_bp, next_cost)
 	else:
-		hud._results_goal_label.text = "ARSENAL COMPLETE"
-		hud._results_goal_progress_label.text = "ALL LOADOUTS READY · EQUIP IN ARMORY"
+		AegisText.apply(hud._results_goal_label, "results.arsenal_complete")
+		AegisText.apply(hud._results_goal_progress_label, "results.all_ready")
 		hud._results_goal_bar.max_value = 1
 		hud._results_goal_bar.value = 1
 
@@ -277,6 +350,9 @@ static func show_results(
 		was_defeated,
 	)
 	hud._results_panel.visible = true
+	# The report is a layer like any other: ESC on it RETRYs (the path the pause
+	# card takes after a defeat), and it traps focus while it is up.
+	hud._overlays.push(hud._results_panel, hud._on_pause_pressed)
 	if is_instance_valid(hud._feedback_panel):
 		hud._feedback_panel.clear_message()
 	hud._results_retry_button.grab_focus()
@@ -312,6 +388,7 @@ static func show_results(
 static func hide_results(hud) -> void:
 	if not is_instance_valid(hud._results_panel):
 		return
+	hud._overlays.remove(hud._results_panel)
 	hud._results_panel.visible = false
 	if hud._results_retry_button.has_focus():
 		hud._results_retry_button.release_focus()
@@ -333,10 +410,32 @@ static func hide_results(hud) -> void:
 ## panels it drives, not on the facade.
 
 
+## The pause card's status line: a sentence about state, so it is rebuilt by the
+## code that owns that state rather than by the language walk.
+static func apply_pause_stats(hud) -> void:
+	if not is_instance_valid(hud._pause_stats_label):
+		return
+	if hud._state.play_phase == "explore":
+		AegisText.apply(hud._pause_stats_label, "hud.pause_safe")
+	else:
+		(
+			AegisText
+			. apply(
+				hud._pause_stats_label,
+				"hud.score_time",
+				[hud._format_number(hud._state.score), hud._state.run_time],
+			)
+		)
+
+
 static func apply_paused(hud, paused: bool) -> void:
 	if paused:
 		hud._clear_touch_state()
-	elif is_instance_valid(hud._settings_menu):
+	else:
+		# Resuming ends every overlay, not just the pause card: a layer left in
+		# the stack would keep its focus trap switched on over live play.
+		hud._overlays.clear()
+	if not paused and is_instance_valid(hud._settings_menu):
 		hud._settings_menu.visible = false
 		if is_instance_valid(hud._hud_editor):
 			hud._hud_editor.close()
@@ -345,20 +444,19 @@ static func apply_paused(hud, paused: bool) -> void:
 		hud._pause_button.icon = AegisTheme.icon("play" if paused else "pause", true)
 		hud._pause_button.text = ""
 		hud._pause_button.set_meta("aegis_state", "resume" if paused else "pause")
-		hud._pause_button.tooltip_text = "Resume (Esc)" if paused else "Pause (Esc)"
+		AegisText.apply_tip(hud._pause_button, "hud.resume_tip" if paused else "hud.pause_tip")
 		hud._pause_button.disabled = false
 	if is_instance_valid(hud._pause_panel):
 		hud._pause_panel.visible = paused and not hud._player_down
+		if hud._pause_panel.visible:
+			# The card owns the screen while it is up: focus is trapped inside
+			# it, and ESC on it brings the run back.
+			hud._overlays.push(hud._pause_panel, hud._on_pause_pressed)
 		if hud._pause_panel.visible and is_instance_valid(hud._pause_resume_button):
 			hud._pause_resume_button.grab_focus()
 		elif is_instance_valid(hud._pause_resume_button) and hud._pause_resume_button.has_focus():
 			hud._pause_resume_button.release_focus()
-	if is_instance_valid(hud._pause_stats_label):
-		hud._pause_stats_label.text = (
-			"SAFE ZONE · NO WAVES UNTIL YOU START"
-			if hud._state.play_phase == "explore"
-			else "SCORE %s  ·  %s" % [hud._format_number(hud._state.score), hud._state.run_time]
-		)
+	apply_pause_stats(hud)
 	if is_instance_valid(hud._scrim):
 		hud._scrim.visible = (paused or hud._player_down) and not hud._results_visible()
 	if is_instance_valid(hud._help_panel):
@@ -385,6 +483,7 @@ static func open_settings(hud) -> void:
 		return
 	hud._pause_panel.visible = false
 	hud._top_bar.visible = false
+	hud._overlays.push(hud._settings_menu, hud._settings_menu.close)
 	hud._settings_menu.open()
 	print("HUD: settings opened")
 
@@ -392,6 +491,7 @@ static func open_settings(hud) -> void:
 static func close_settings(hud) -> void:
 	if not hud.get_tree().paused:
 		return
+	hud._overlays.remove(hud._settings_menu)
 	hud._pause_panel.visible = true
 	hud._top_bar.visible = true
 	hud._pause_resume_button.grab_focus()

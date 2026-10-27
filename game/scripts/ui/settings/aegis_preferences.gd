@@ -18,6 +18,10 @@ const DEFAULTS := {
 	"muted": false,
 	"hud_preset": "STANDARD",
 	"hud_offsets": {},
+	# "en" or "id". Empty means "not chosen yet": AegisText then follows the
+	# device language. Stored anyway, because a player who picked Indonesian on
+	# an English phone must not be flipped back on the next launch.
+	"locale": "",
 }
 const HUD_GROUPS := [
 	"VITALS",
@@ -55,6 +59,8 @@ static func sanitized(source: Dictionary) -> Dictionary:
 	values["text_scale"] = clampf(float(source.get("text_scale", 1.0)), 1.0, 1.3)
 	for key in ["left_handed", "colorblind", "reduce_motion", "reduce_flash", "muted"]:
 		values[key] = bool(source.get(key, false))
+	var locale := String(source.get("locale", "")).strip_edges().to_lower()
+	values["locale"] = locale if locale in ["en", "id"] else ""
 	var preset := String(source.get("hud_preset", "STANDARD"))
 	values["hud_preset"] = preset if preset in ["MINIMAL", "STANDARD", "ADVANCED"] else "STANDARD"
 	var offsets: Dictionary = {}

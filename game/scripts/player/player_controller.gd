@@ -31,6 +31,9 @@ const WeaponControllerScript = preload("res://scripts/weapons/weapon_controller.
 @export_range(8.0, 48.0, 1.0) var touch_soft_lock_pixels: float = 32.0
 
 var current_health: float = 0.0
+## Fraction of incoming damage the selected tier's plate absorbs (0..1). Set
+## once, from the roster, before the first hit -- see `_apply_progression_tier`.
+var _damage_reduction: float = 0.0
 var _skill_cooldown_remaining: float = 0.0
 var _is_defeated: bool = false
 var _touch_movement: Vector2 = Vector2.ZERO
@@ -49,6 +52,7 @@ var _reload_was_active: bool = false
 
 
 func _ready() -> void:
+	_apply_progression_tier()
 	current_health = max_health
 	weapon_controller.weapon_changed.connect(_on_weapon_changed)
 	weapon_controller.ammo_changed.connect(_on_ammo_changed)
@@ -226,11 +230,36 @@ func can_take_damage() -> bool:
 	return not _is_defeated
 
 
+## The operative's rank is gameplay, not a label: a heavier tier has a bigger
+## pool and turns some of every hit away. Both numbers come from the roster
+## (`HeroTier`), so the figure on the operative page and the figure the arena
+## uses are one value. An isolated fixture with no ProgressionService in the
+## tree keeps the scene's own 100 HP and takes full damage.
+func _apply_progression_tier() -> void:
+	var progression := _progression_service()
+	if progression == null:
+		return
+	var vitals := progression.tier_vitals()
+	if vitals > 0.0:
+		max_health = vitals
+	_damage_reduction = clampf(progression.tier_damage_reduction() / 100.0, 0.0, 0.9)
+
+
+func _progression_service() -> ProgressionService:
+	return ProgressionLookup.find(self)
+
+
+func tier_damage_reduction() -> float:
+	return _damage_reduction
+
+
 func apply_damage(amount: float, _source: Node = null) -> void:
 	if _is_defeated or amount <= 0.0:
 		return
 
-	var applied_damage := minf(amount, current_health)
+	# The plate turns a share of the hit away before the pool is touched, so a
+	# tier reads in the damage numbers and not only in the health bar.
+	var applied_damage := minf(amount * (1.0 - _damage_reduction), current_health)
 	current_health = maxf(current_health - applied_damage, 0.0)
 	damage_received.emit(applied_damage, current_health, max_health)
 	health_changed.emit(current_health, max_health)
