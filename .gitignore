@@ -12,6 +12,11 @@ tools/gltf/build/
 # Standalone Godot character QA caches/imports
 .godot/
 **/.godot/
+# Character Visual QA uses local staged copies of GLBs; source files remain in
+# game/assets or source-assets and are copied by character_visual_qa/tools/sync_assets.py.
+character_visual_qa/assets/*
+!character_visual_qa/assets/.gitkeep
+character_visual_qa/staged_assets.json
 .import/
 *.import
 *.uid
