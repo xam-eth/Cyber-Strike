@@ -976,6 +976,33 @@ func _run_smoke_test() -> void:
 		),
 		"desktop rail is at most 140x190 and restores distinct Armory/SWAP: %s" % desktop_rail,
 	)
+	var caption_overflow := ""
+	var weapon_caption := controls.get("_weapon_caption") as Label
+	for caption in [
+		controls.get("_fire_caption"),
+		weapon_caption,
+		controls.get("_aim_caption"),
+		controls.get("_skill_caption")
+	]:
+		var copies := [(caption as Label).text]
+		if caption == weapon_caption:
+			# This end state owns two weapons and says SWAP. Measure both real
+			# one-weapon Armory translations as well; they are the longest captions.
+			copies.append("ARMORY")
+			copies.append("ARSENAL")
+		var label := caption as Label
+		var font := label.get_theme_font("font")
+		var font_size := label.get_theme_font_size("font_size")
+		var available := label.get_global_rect().size.x - 6.0
+		for copy in copies:
+			var measured := (
+				font.get_string_size(String(copy), HORIZONTAL_ALIGNMENT_LEFT, -1.0, font_size).x
+			)
+			if measured > available + 0.5:
+				caption_overflow += "%s/%s=%.1f>%.1f " % [label.name, copy, measured, available]
+	_expect(
+		caption_overflow.is_empty(), "desktop action captions fit their plates: " + caption_overflow
+	)
 	print("Playability/HUD smoke test: %d failure(s)" % _failures)
 	main_scene.queue_free()
 	await process_frame

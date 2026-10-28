@@ -76,6 +76,17 @@ static func apply_fonts(hud) -> void:
 			continue
 		var role := String(label.get_meta("aegis_role"))
 		var multiplier := float(label.get_meta("aegis_scale", 1.0))
+		# The 1280x720 screenshot showed 14 px ARMORY copy crossing a 56 px
+		# desktop button. Compact mouse density needs 11 px captions; touch keeps
+		# its existing physical-size floor and full-size action labels.
+		if (
+			not hud._touch_mode
+			and (
+				label
+				in [hud._fire_caption, hud._weapon_caption, hud._aim_caption, hud._skill_caption]
+			)
+		):
+			multiplier *= 0.8
 		var text_size := maxi(
 			roundi(float(AegisTheme.type_size(role)) * unit * multiplier), floor_size
 		)
