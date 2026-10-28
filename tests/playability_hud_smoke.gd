@@ -239,11 +239,11 @@ func _run_smoke_test() -> void:
 	)
 	_expect(
 		(
-			weapon_button.get_global_rect().size.x * LANDSCAPE_STRETCH >= 87.0
-			and fire_button.get_global_rect().size.x * LANDSCAPE_STRETCH >= 111.0
-			and fire_button.get_global_rect().size.y * LANDSCAPE_STRETCH >= 111.0
-			and aim_button.get_global_rect().size.x * LANDSCAPE_STRETCH >= 87.0
-			and skill_button.get_global_rect().size.x * LANDSCAPE_STRETCH >= 87.0
+			weapon_button.get_global_rect().size.x * LANDSCAPE_STRETCH >= 79.0
+			and fire_button.get_global_rect().size.x * LANDSCAPE_STRETCH >= 95.0
+			and fire_button.get_global_rect().size.y * LANDSCAPE_STRETCH >= 95.0
+			and aim_button.get_global_rect().size.x * LANDSCAPE_STRETCH >= 79.0
+			and skill_button.get_global_rect().size.x * LANDSCAPE_STRETCH >= 79.0
 			and not weapon_button.get_global_rect().grow(landscape_gap).intersects(
 				aim_button.get_global_rect()
 			)
@@ -254,7 +254,15 @@ func _run_smoke_test() -> void:
 				skill_button.get_global_rect()
 			)
 		),
-		"FIRE 112, AIM/EMP/SWAP 88 finger targets clear each other and the SWAP dock",
+		"FIRE 96, AIM/EMP/SWAP 80 finger targets clear each other and the SWAP dock",
+	)
+	_expect(
+		(
+			not (controls.get("_armory_button") as Control).visible
+			and String(weapon_button.get_meta("aegis_state", "")) == "armory"
+			and (controls.get("_weapon_caption") as Label).text == "ARMORY"
+		),
+		"one-weapon Explore exposes only the weapon-tile Armory at 844x390",
 	)
 	# Press the left rim of the face, not its centre: rect-size assertions alone
 	# would miss a stale dispatcher/hitbox.
@@ -291,12 +299,12 @@ func _run_smoke_test() -> void:
 	var emp_center: Vector2 = skill_button.get_global_rect().get_center()
 	_expect(
 		(
-			weapon_button.get_global_rect().size.y * 0.541667 >= 87.0
-			and weapon_button.get_global_rect().size.x * 0.541667 >= 87.0
-			and fire_button.get_global_rect().size.x * 0.541667 >= 111.0
-			and fire_button.get_global_rect().size.y * 0.541667 >= 111.0
-			and aim_button.get_global_rect().size.x * 0.541667 >= 87.0
-			and skill_button.get_global_rect().size.x * 0.541667 >= 87.0
+			weapon_button.get_global_rect().size.y * 0.541667 >= 79.0
+			and weapon_button.get_global_rect().size.x * 0.541667 >= 79.0
+			and fire_button.get_global_rect().size.x * 0.541667 >= 95.0
+			and fire_button.get_global_rect().size.y * 0.541667 >= 95.0
+			and aim_button.get_global_rect().size.x * 0.541667 >= 79.0
+			and skill_button.get_global_rect().size.x * 0.541667 >= 79.0
 			and emp_center.distance_to(ring.get_global_rect().get_center()) * 0.541667 < 2.0
 			and not system_row.get_global_rect().intersects(aim_button.get_global_rect())
 			and not system_row.get_global_rect().intersects(weapon_button.get_global_rect())
@@ -310,7 +318,7 @@ func _run_smoke_test() -> void:
 				aim_button.get_global_rect()
 			)
 		),
-		"landscape FIRE 112, AIM/EMP/SWAP 88px hit rects; ring frames EMP",
+		"landscape FIRE 96, AIM/EMP/SWAP 80px hit rects; ring frames EMP",
 	)
 	var landscape_fire_edge := (
 		fire_button.get_global_rect().position
@@ -384,7 +392,7 @@ func _run_smoke_test() -> void:
 			and weapon_button.visible
 			and String(weapon_button.get_meta("aegis_state", "")) == "armory"
 			and weapon_button.tooltip_text.contains("Open Armory")
-			and fire_button.get_global_rect().size.x * COMPACT_STRETCH >= 111.0
+			and fire_button.get_global_rect().size.x * COMPACT_STRETCH >= 95.0
 			and not feedback_panel.get_global_rect().intersects(skill_button.get_global_rect())
 			and not feedback_panel.get_global_rect().intersects(weapon_button.get_global_rect())
 			and ((controls.get("_feedback_panel").get("_message_label") as Label).text.contains(
@@ -949,6 +957,24 @@ func _run_smoke_test() -> void:
 				controls.get("_last_touch_debug"),
 			]
 		),
+	)
+	# The same landscape owner uses a compact density for keyboard/mouse. Keep
+	# this check after CANCEL DEFENSE: Explore is active and two weapons are
+	# owned, so Armory and SWAP must be separate again.
+	controls.call("set_touch_mode", false)
+	controls.call("apply_layout_for_size", Vector2(1280.0, 720.0), 1.0)
+	await process_frame
+	var desktop_rail := (controls.get("_touch_ammo_chip") as Control).get_global_rect()
+	for control in [weapon_button, aim_button, skill_button, fire_button]:
+		desktop_rail = desktop_rail.merge((control as Control).get_global_rect())
+	_expect(
+		(
+			desktop_rail.size.x <= 140.0
+			and desktop_rail.size.y <= 190.0
+			and armory_entry.visible
+			and String(weapon_button.get_meta("aegis_state", "")) == "swap"
+		),
+		"desktop rail is at most 140x190 and restores distinct Armory/SWAP: %s" % desktop_rail,
 	)
 	print("Playability/HUD smoke test: %d failure(s)" % _failures)
 	main_scene.queue_free()

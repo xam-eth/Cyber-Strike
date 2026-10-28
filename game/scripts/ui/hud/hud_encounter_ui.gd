@@ -103,9 +103,9 @@ static func apply_context(hud) -> void:
 	)
 	hud._defense_button.visible = active and (exploring or preparing or recovery_available)
 	if is_instance_valid(hud._armory_button):
-		# On a short landscape phone the expanded WEAPON plate occupies the
-		# old Armory slot. Its Explore action opens the same Armory instead;
-		# Defense retains the normal SWAP action.
+		# The expanded WEAPON plate owns Armory on a short phone and whenever
+		# one-weapon Explore has no SWAP to offer. Multiple owned weapons make
+		# these distinct actions again; Defense retains the normal SWAP action.
 		hud._armory_button.visible = active and exploring and not weapon_acts_as_armory(hud)
 	hud._defense_button.disabled = preparing
 	if recovery_available:
@@ -155,7 +155,12 @@ static func apply_context(hud) -> void:
 
 
 static func weapon_acts_as_armory(hud) -> bool:
-	return hud._touch_mode and hud._narrow and hud._state.play_phase == "explore"
+	if hud._state.play_phase != "explore":
+		return false
+	# One owned weapon cannot be swapped: Main already routes that case to the
+	# Armory. Make the same fact drive the caption, signal, and top-button
+	# visibility so Explore never presents two identical Armory actions.
+	return (hud._touch_mode and hud._narrow) or hud._state.available_weapons <= 1
 
 
 static func refresh_weapon_action(hud) -> void:

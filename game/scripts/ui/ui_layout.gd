@@ -1,12 +1,11 @@
-## Geometry for the one HUD layout: a phone held sideways.
+## Geometry for the one landscape HUD, with touch and desktop densities.
 ##
-## There is no desktop layout and no portrait layout. The reference device is
-## 844x390 and every number here is authored for it, in physical pixels, then
-## converted by `hud._to_layout()` -- so a 1280x720 laptop gets the same
-## composition, larger, and a portrait window is handled by the rotation notice
-## rather than by a second arrangement. Kept out of touch_controls.gd so the
-## runtime facade stays readable and the layout can be reviewed (and tuned on a
-## device) on its own.
+## There is no portrait layout. The touch reference device is 844x390 and every
+## number is authored in physical pixels, then converted by `hud._to_layout()`.
+## A keyboard/mouse viewport keeps the same composition but uses a compact
+## action rail instead of magnifying thumb controls. A portrait window is
+## handled by the rotation notice. Kept out of touch_controls.gd so the runtime
+## facade stays readable and the layout can be reviewed against screenshots.
 ##
 ## Every function takes the live HUD as an untyped host: typing it as
 ## TouchControls would create a cyclic script reference, and the HUD is the only
@@ -151,13 +150,15 @@ static func landscape(hud) -> void:
 		)
 	)
 
-	# One compact two-by-two thumb cluster. FIRE is primary; the other verbs
-	# keep generous 88 px faces without competing with the playfield. Ammo is
-	# the same width as the cluster and sits directly above SWAP/ARMORY, so
-	# equipped weapon, magazine and weapon action read as one column.
-	var fire_px := 112.0
-	var action_px := 88.0
-	var gap_px := 8.0
+	# One compact two-by-two action cluster. FIRE is primary; ammo is the same
+	# width as the cluster and sits directly above SWAP/ARMORY, so equipped
+	# weapon, magazine and weapon action read as one column. Screenshots showed
+	# the old 208x284 px thumb rail on a 1280x720 mouse view, so density now
+	# follows input while geometry and ownership stay unchanged.
+	var fire_px := 96.0 if hud._touch_mode else 64.0
+	var action_px := 80.0 if hud._touch_mode else 56.0
+	var gap_px := 8.0 if hud._touch_mode else 6.0
+	var ammo_height_px := 48.0 if hud._touch_mode else 42.0
 	var fire_right := 16.0
 	var fire_bottom := 16.0
 	var aim_bottom := fire_bottom + fire_px + gap_px
@@ -169,7 +170,12 @@ static func landscape(hud) -> void:
 	_place_button(hud, hud._weapon_button, weapon_right, aim_bottom, action_px, action_px)
 	var ammo_bottom := aim_bottom + action_px + gap_px
 	_place_button(
-		hud, hud._touch_ammo_chip, fire_right, ammo_bottom, fire_px + action_px + gap_px, 52.0
+		hud,
+		hud._touch_ammo_chip,
+		fire_right,
+		ammo_bottom,
+		fire_px + action_px + gap_px,
+		ammo_height_px
 	)
 	_place_button(
 		hud, hud._skill_ring, skill_right - 4.0, fire_bottom - 4.0, action_px + 8.0, action_px + 8.0

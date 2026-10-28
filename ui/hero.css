@@ -518,7 +518,7 @@
   margin: 0;
   max-width: 100%;
   font-family: var(--font-ui);
-  font-size: clamp(8.6px, 1.45vh, 10.5px);
+  font-size: clamp(10px, 1.6vh, 13px);
   line-height: 1.45;
   color: var(--ink-3);
   display: -webkit-box;
@@ -544,7 +544,7 @@
 
 .op__stat dt {
   font-family: var(--font-ui);
-  font-size: 7.5px;
+  font-size: 9px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--ink-3);
@@ -1045,7 +1045,7 @@
 .wmodal__head .eyebrow {
   grid-column: 1;
   color: var(--accent);
-  font-size: 8px;
+  font-size: 9px;
 }
 
 .wmodal__title {
@@ -1136,7 +1136,7 @@
 
 .rackcard__spec {
   font-family: var(--font-ui);
-  font-size: 8px;
+  font-size: 9px;
   letter-spacing: 0.05em;
   color: var(--ink-3);
 }
@@ -1154,7 +1154,7 @@
 }
 .rackcard__state {
   font-family: var(--font-ui);
-  font-size: 8px;
+  font-size: 9px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--accent);
@@ -1178,7 +1178,7 @@
 .wmodal__note {
   margin: 0;
   font-family: var(--font-ui);
-  font-size: 8px;
+  font-size: 9px;
   line-height: 1.4;
   color: var(--ink-3);
 }
@@ -1259,7 +1259,7 @@
 .op__section-label {
   margin: 0;
   font-family: var(--font-ui);
-  font-size: 8px;
+  font-size: 9px;
   font-weight: 600;
   line-height: 1.2;
   letter-spacing: 0.18em;
@@ -1270,12 +1270,14 @@
 .op__brief {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(190px, 0.9fr);
-  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  align-content: start;
   gap: 6px 9px;
 }
 
 .op__progress {
   display: flex;
+  align-self: start;
   flex-direction: column;
   gap: clamp(4px, 0.9vh, 8px);
   min-width: 0;
@@ -1286,6 +1288,7 @@
 
 .op__weapon {
   display: flex;
+  align-self: start;
   flex-direction: column;
   gap: 5px;
   min-width: 0;
@@ -1319,8 +1322,9 @@
 
 .weapon-loadout {
   display: flex;
-  flex: 1 1 auto;
+  flex: 0 0 140px;
   align-items: center;
+  height: 140px;
   gap: 5px;
   min-width: 0;
   min-height: 58px;
@@ -1367,7 +1371,7 @@
 .weapon-loadout__body > span:last-child,
 .weapon-loadout__change {
   font-family: var(--font-ui);
-  font-size: 7.5px;
+  font-size: 9px;
   letter-spacing: 0.08em;
   color: var(--ink-3);
   white-space: nowrap;
@@ -1394,7 +1398,7 @@
 
 .weapon-tier-progress__head {
   font-family: var(--font-ui);
-  font-size: 7px;
+  font-size: 8.5px;
   letter-spacing: 0.07em;
   color: var(--ink-3);
   text-transform: uppercase;
@@ -1476,18 +1480,18 @@
 .card.tierstep .card__name {
   display: block;
   overflow: hidden;
-  font-size: 8px;
+  font-size: 9px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .card.tierstep .card__state {
-  font-size: 6.8px;
+  font-size: 8px;
 }
 
 .card.tierstep .card__badge {
   padding: 2px 5px;
-  font-size: 8px;
+  font-size: 9px;
   color: var(--ink-2);
   background: rgba(120, 200, 255, 0.12);
 }
@@ -1515,7 +1519,7 @@
 
 .rackcard__tier {
   font-family: var(--font-ui);
-  font-size: 8px;
+  font-size: 9px;
   letter-spacing: 0.1em;
   color: var(--info);
 }
@@ -1536,6 +1540,12 @@
 }
 
 @media (min-height: 500px) {
+  .op__role {
+    display: block;
+    overflow: visible;
+    -webkit-line-clamp: unset;
+  }
+
   .cards--heroes .card {
     height: 96px;
   }
@@ -1546,5 +1556,81 @@
 
   .weapon-loadout__art {
     height: 104px;
+  }
+}
+
+/* Screenshot-led short-landscape composition. At 800x360 the measured brief
+   is 172 px high: 72 + 52 + 40 + two 4 px gaps fits exactly. Weapon identity,
+   the loadout action, and weapon-tier state share one full-width row; hero
+   stats use the row below. The tier cards already at the foot replace the
+   duplicated ladder, and the formerly clipped 8.6 px role paragraph is not
+   shown on these short screens. */
+@media (max-height: 499px) {
+  .op__brief {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 72px minmax(0, 1fr) 40px;
+    gap: 4px;
+  }
+
+  .op__weapon {
+    display: grid;
+    grid-row: 1;
+    grid-template-columns: minmax(78px, 0.55fr) minmax(0, 1.35fr) minmax(96px, 0.7fr);
+    align-items: center;
+    align-self: stretch;
+    gap: 6px;
+    height: 72px;
+    padding: 5px 6px;
+  }
+
+  .op__weapon-head {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 4px;
+  }
+
+  .weapon-loadout {
+    flex: none;
+    height: 54px;
+    min-height: 0;
+  }
+
+  .weapon-loadout__art {
+    flex-basis: 42%;
+    width: 42%;
+    height: 46px;
+  }
+
+  .weapon-tier-progress__head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .weapon-tier-progress__head b {
+    max-width: 100%;
+  }
+
+  .op__progress {
+    grid-row: 2;
+    align-self: stretch;
+    gap: 3px;
+    padding-top: 4px;
+  }
+
+  .op__role,
+  .op__ladder {
+    display: none;
+  }
+
+  .op__stat {
+    padding: 2px 6px 3px;
+  }
+
+  .op__kit {
+    grid-row: 3;
+    align-self: end;
+    margin-top: 0;
   }
 }
