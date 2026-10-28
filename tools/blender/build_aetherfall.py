@@ -867,8 +867,10 @@ def export_asset(key, coll):
     for o in objs:
         o.select_set(True)
     path = os.path.join(MODEL_DIR, key + ".glb")
+    # The kit is authored in Y-up coordinates already; Blender's default
+    # Z-up to Y-up conversion would rotate the world a second time.
     bpy.ops.export_scene.gltf(
-        filepath=path, export_format="GLB", export_yup=True,
+        filepath=path, export_format="GLB", export_yup=False,
         export_apply=True, use_selection=True, export_materials="EXPORT")
     for o in objs:
         o.select_set(False)

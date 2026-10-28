@@ -13,9 +13,9 @@ Kamera ini adalah kamera inspeksi bebas, bukan karakter/gameplay. Material dan l
 ## Struktur
 
 - `scenes/aetherfall.tscn`, `scripts/`: scene, builder independen, dan kamera review.
-- `assets/world/aetherfall/`: layout dalam meter, 27 modul kit GLB, 7 tekstur procedural, dan satu GLB animasi orbit tower.
-- `source/*.blend`: sumber Blender editable (tekstur kit dikemas dalam file).
-- `tools/blender/build_aetherfall.py` dan `build_orbit.py`: produksi ulang kit dan animasi menggunakan Blender `bpy` + numpy/Pillow. `assemble_aetherfall.py` adalah alat assembly/render Blender lama; output gambar bukan screenshot Godot.
+- `assets/world/aetherfall/`: layout dalam meter, 27 modul kit GLB, 7 tekstur procedural, satu GLB animasi orbit tower dan connector ramp.
+- `source/*.blend`: sumber Blender editable (tekstur kit dikemas dalam file). Kit ditulis dalam koordinat **Y-up** untuk mengikuti layout Godot, sehingga tampil menyamping relatif terhadap grid Z-up Blender; ekspor kit sengaja tidak mengonversi sumbu lagi.
+- `tools/blender/build_aetherfall.py`, `build_orbit.py`, dan `build_connector.py`: produksi ulang kit dan animasi menggunakan Blender `bpy` + numpy/Pillow.
 - `tests/`: kontrak statis dan smoke test scene Godot.
 
 ## Validasi
@@ -24,6 +24,7 @@ Kamera ini adalah kamera inspeksi bebas, bukan karakter/gameplay. Material dan l
 python3 tests/check_assets.py
 godot --headless --editor --path . --quit
 godot --headless --path . --script res://tests/world_smoke.gd
+godot --headless --path . --script res://tests/surface_collision.gd
 ```
 
 Lihat `docs/STATUS.md` untuk hasil nyata dan keterbatasan. Proyek review ini bukan klaim game-ready: collider menggunakan kotak proxy dan route belum diuji dengan karakter; belum ada navmesh, profil mobile, atau screenshot Godot. Asset procedural ini masih membutuhkan penilaian visual dan penyempurnaan artistik.

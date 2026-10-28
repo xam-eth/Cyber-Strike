@@ -12,7 +12,7 @@ assert len(layout['placements']) == 251
 assert {p['asset'] for p in layout['placements']} == set(measures)
 for p in layout['placements']:
     assert len(p['pos']) == len(p['rot']) == 3 and p['scale'] > 0
-for name in [*measures, 'energy_orbit']:
+for name in [*measures, 'energy_orbit', 'connector_ramp']:
     data = (base / 'models' / (name + '.glb')).read_bytes()
     magic, version, length = struct.unpack_from('<4sII', data)
     assert (magic, version, length) == (b'glTF', 2, len(data)), name
@@ -24,4 +24,7 @@ for name in [*measures, 'energy_orbit']:
         assert payload.get('materials'), name
 assert (root / 'source/aetherfall_kit.blend').is_file()
 assert (root / 'source/energy_orbit.blend').is_file()
-print(f'PASS: {len(layout["placements"])} placement, {len(measures)} modul, GLB orbit beranimasi, 2 sumber Blender')
+assert (root / 'source/connector_ramp.blend').is_file()
+connectors = json.loads((base / 'connectors.json').read_text())['connectors']
+assert {x['name'] for x in connectors} == {'east_bridge_approach', 'west_catwalk_approach'}
+print(f'PASS: {len(layout["placements"])} placement, {len(measures)} modul, GLB orbit beranimasi, 2 connector, 3 sumber Blender')

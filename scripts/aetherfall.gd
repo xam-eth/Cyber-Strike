@@ -1,8 +1,12 @@
 extends Node3D
 ## Independent Aetherfall assembly. All dimensions and placements are in metres.
 const BASE := "res://assets/world/aetherfall/"
-const NO_COLLISION := ["terrain_chunk", "cliff_face", "rock_boulder", "background_silhouette", "cloud_puff", "debris_cluster", "cable_bundle", "energy_core"]
-const WALKABLE := ["deck_6x6", "deck_edge", "bridge_deck", "walkway_deck", "damaged_slab"]
+const NO_COLLISION := ["terrain_chunk", "cliff_face", "rock_boulder", "background_silhouette", "cloud_puff", "debris_cluster", "cable_bundle", "energy_core", "railing"]
+# Surface meshes, not the enclosing AABB of railings or dangling cables.
+const WALKABLE_MESH := {
+	"deck_6x6": "DeckPlate", "deck_edge": "DeckEdgePlate",
+	"bridge_deck": "BridgeDeck", "walkway_deck": "WalkwayDeck",
+}
 var placement_count := 0
 var collider_count := 0
 
@@ -60,14 +64,21 @@ func _ready() -> void:
 		body.rotation = rot
 		var shape := BoxShape3D.new()
 		var offset := Vector3.ZERO
-		if key in WALKABLE:
-			# Deck bounding boxes include rails/supports. This is a conservative
-			# proxy, not proof that the visual deck surface matches the collision.
-			var thickness := minf(size.y, 0.5)
-			offset.y = size.y * 0.5 - thickness * 0.5
-			size.y = thickness
+		if WALKABLE_MESH.has(key):
+			var surface := instance.find_child(WALKABLE_MESH[key], true, false) as MeshInstance3D
+			if surface == null or surface.mesh == null:
+				push_error("Aetherfall: missing walking mesh for " + key)
+				body.free()
+				continue
+			# Transform the authored surface bounds to module-local coordinates.
+			# The AABB of the entire asset includes railings and is not a floor.
+			var relative := instance.global_transform.affine_inverse() * surface.global_transform
+			var bounds: AABB = relative * surface.get_aabb()
+			size = bounds.size * scale_factor
+			offset = bounds.get_center() * scale_factor
 		shape.size = size
 		var node := CollisionShape3D.new()
+		node.name = "Shape"
 		node.position = offset
 		node.shape = shape
 		body.add_child(node)
@@ -93,9 +104,52 @@ func _ready() -> void:
 		marker.name = str(key)
 		marker.position = v3(layout["spawn"][key])
 		spawn.add_child(marker)
+	add_connectors()
 	add_atmosphere()
 	add_animation()
 	print("Aetherfall: %d placements; %d proxy colliders" % [placement_count, collider_count])
+
+
+func add_connectors() -> void:
+	var data := read_json(BASE + "connectors.json")
+	var packed := load(BASE + "models/connector_ramp.glb") as PackedScene
+	if packed == null:
+		push_error("Aetherfall: missing connector ramp")
+		return
+	var group := Node3D.new()
+	group.name = "Connectors"
+	add_child(group)
+	for connector: Dictionary in data.get("connectors", []):
+		var start := v3(connector.get("from", []))
+		var end := v3(connector.get("to", []))
+		var delta := end - start
+		# Current connectors run in X; enforce ordered endpoints so the top
+		# surface remains upward-facing. Future arbitrary routes need a basis.
+		if delta.x <= 0.0 or absf(delta.z) > 0.001:
+			push_error("Aetherfall: invalid connector endpoints")
+			continue
+		var length := delta.length()
+		var width := float(connector.get("width", 1.6))
+		var root := Node3D.new()
+		root.name = str(connector.get("name", "connector"))
+		root.position = (start + end) * 0.5
+		root.rotation.z = atan2(delta.y, delta.x)
+		group.add_child(root)
+		var visual := packed.instantiate() as Node3D
+		visual.name = "Visual"
+		visual.scale = Vector3(length, 1.0, width)
+		root.add_child(visual)
+		var body := StaticBody3D.new()
+		body.name = "DeckCollision"
+		root.add_child(body)
+		var shape := BoxShape3D.new()
+		shape.size = Vector3(length, 0.2, width)
+		var node := CollisionShape3D.new()
+		node.name = "Shape"
+		node.position.y = -0.1
+		node.shape = shape
+		body.add_child(node)
+
 
 func add_atmosphere() -> void:
 	var environment := Environment.new()
