@@ -243,7 +243,7 @@ Weapon tiers are permanent, bounded upgrades owned by the existing `ProgressionS
 - An upgrade requires an unlocked weapon, the exact next tier, and sufficient BP. Unknown, locked, unaffordable, and max-tier requests are no-ops; each accepted transaction saves immediately.
 - `WeaponController` duplicates a definition only above tier 1. Base `.tres` resources and `get_current_definition()` registry identity stay immutable; gameplay reads the effective definition.
 - Armory owns purchase/equip. Operator separates hero rank from equipped-weapon tier and links upgrades to Armory rather than creating a second shop.
-- AIM/ADS keeps the three existing weapon ids and their normal input paths. Right-mouse hold does not depend on successful pointer lock; touch AIM hold and second-finger look remain independent.
+- AIM/ADS keeps the three existing weapon ids and their normal input paths. Right-mouse hold does not depend on successful pointer lock. The first relative event after capture is consumed because Web browsers can report the pre-lock cursor position as a large warp; subsequent real motion must still rotate the camera. Leaving or denying pointer lock cannot cancel the held ADS state. Touch AIM hold and second-finger look remain independent.
 
 Executed validation and remaining limits are recorded in `VALIDATION.md`; this section defines the source contract, not a claim of physical-device approval.
 
@@ -455,7 +455,7 @@ Any TECH HUNT implementation must preserve:
 - retry clearing run state without clearing persistent unlocks/wallet/best results;
 - selected-theatre DEPLOY and existing shell/engine handoff;
 - legacy weapon-tier migration, exact BP debit, max/locked rejection, and immutable base definitions (`tests/weapon_tier_smoke.gd`);
-- right-mouse ADS without pointer lock and touch hold/look for all three weapon ids (`tests/ads_input_smoke.gd`);
+- initial pointer-lock-warp rejection, subsequent right-mouse look without pointer lock, and touch hold/look for all three weapon ids (`tests/ads_input_smoke.gd`);
 - no new architecture violations.
 
 ### 14.2 TECH HUNT 0 functional acceptance
