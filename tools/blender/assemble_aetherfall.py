@@ -15,10 +15,10 @@ import math
 import bpy
 from mathutils import Vector as MV, Euler
 
-ROOT = "/home/user/Cyber-Strike"
-WORLD_DIR = os.path.join(ROOT, "game/assets/world/aetherfall")
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+WORLD_DIR = os.path.join(ROOT, "assets/world/aetherfall")
 MODEL_DIR = os.path.join(WORLD_DIR, "models")
-SHOT_DIR = os.path.join(ROOT, "docs/world/aetherfall/shots")
+SHOT_DIR = os.path.join(ROOT, "docs/aetherfall/shots")
 os.makedirs(SHOT_DIR, exist_ok=True)
 
 KEYS = ["terrain_chunk", "cliff_face", "rock_boulder", "deck_6x6", "deck_edge",

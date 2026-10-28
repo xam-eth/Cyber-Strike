@@ -6,10 +6,10 @@ Generates the custom Aetherfall architectural kit (GLB) with Blender 4.5 LTS
 (runs headless through the `bpy` module), assembles the world, bakes the
 procedural surface textures, and writes:
 
-    game/assets/world/aetherfall/models/<asset>.glb      one GLB per module
-    game/assets/world/aetherfall/materials/*.png         baked surface maps
-    game/assets/world/aetherfall/layout.json             every placement
-    game/assets/world/aetherfall/measurements.json        per-asset bounds
+    assets/world/aetherfall/models/<asset>.glb      one GLB per module
+    assets/world/aetherfall/materials/*.png         baked surface maps
+    assets/world/aetherfall/layout.json             every placement
+    assets/world/aetherfall/measurements.json        per-asset bounds
 
 Every module is authored on a documented pivot so the Godot builder can place
 it by its own centre, and every collider in Godot is derived from the same
@@ -36,12 +36,12 @@ Vector3 = V3
 
 random.seed(20260101)
 
-ROOT = "/home/user/Cyber-Strike"
-MODEL_DIR = os.path.join(ROOT, "game/assets/world/aetherfall/models")
-MAT_DIR = os.path.join(ROOT, "game/assets/world/aetherfall/materials")
-WORLD_DIR = os.path.join(ROOT, "game/assets/world/aetherfall")
-LAYOUT_PATH = os.path.join(ROOT, "game/assets/world/aetherfall/layout.json")
-MEASURE_PATH = os.path.join(ROOT, "game/assets/world/aetherfall/measurements.json")
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+MODEL_DIR = os.path.join(ROOT, "assets/world/aetherfall/models")
+MAT_DIR = os.path.join(ROOT, "assets/world/aetherfall/materials")
+WORLD_DIR = os.path.join(ROOT, "assets/world/aetherfall")
+LAYOUT_PATH = os.path.join(ROOT, "assets/world/aetherfall/layout.json")
+MEASURE_PATH = os.path.join(ROOT, "assets/world/aetherfall/measurements.json")
 
 os.makedirs(MODEL_DIR, exist_ok=True)
 os.makedirs(MAT_DIR, exist_ok=True)
@@ -278,7 +278,7 @@ def get_mat(name, base=(0.5, 0.5, 0.5, 1.0), rough=0.62, metal=0.25,
             texnode.extension = 'REPEAT'
         except Exception:
             pass
-        img.colorspace_settings.name = 'Non-Color'
+        img.colorspace_settings.name = 'sRGB'
         m.node_tree.links.new(texnode.outputs["Color"], b.inputs["Base Color"])
         if emission is not None:
             b.inputs["Emission Color"].default_value = (emission[0], emission[1], emission[2], 1.0)
@@ -304,6 +304,8 @@ def palette_materials():
     get_mat("Hazard", base=(0.85, 0.55, 0.12, 1.0), rough=0.5, metal=0.1)
     get_mat("WarningRed", base=(0.8, 0.2, 0.2, 1.0), rough=0.5, metal=0.1)
     print("  materials:", len(MATS))
+
+palette_materials()
 
 # ---------------------------------------------------------------------------
 # Primitive helpers. UVs come with the primitives; boxes keep their 0..1
@@ -887,6 +889,8 @@ for key, coll in ASSETS.items():
     print("  %-22s %s  %d meshes %d tris" % (key, MEASUREMENTS[key]["size"],
                                               MEASUREMENTS[key]["objects"], MEASUREMENTS[key]["tris"]))
 
+bpy.ops.file.pack_all()
+bpy.ops.wm.save_as_mainfile(filepath=os.path.join(ROOT, "source", "aetherfall_kit.blend"))
 print("== Aetherfall build: stage 5b export ==")
 for key, coll in ASSETS.items():
     m = export_asset(key, coll)
