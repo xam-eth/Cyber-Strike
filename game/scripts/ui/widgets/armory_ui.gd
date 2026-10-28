@@ -17,6 +17,7 @@ class_name ArmoryUi
 extends AegisPanel
 
 signal weapon_action_requested(weapon_id: StringName)
+signal weapon_upgrade_requested(weapon_id: StringName)
 signal close_requested
 signal home_requested
 
@@ -42,8 +43,10 @@ const ART := [
 var _wallet_label: Label
 var _hint_label: Label
 var _weapon_buttons: Array[AegisButton] = []
+var _upgrade_buttons: Array[AegisButton] = []
 var _cards: Array[AegisPanel] = []
 var _states: Array[Label] = []
+var _tier_labels: Array[Label] = []
 var _arts: Array[TextureRect] = []
 var _close_button: AegisButton
 var _home_button: AegisButton
@@ -54,6 +57,7 @@ var _last_balance := 0
 var _last_best := 0
 var _last_unlocked: Dictionary = {}
 var _last_equipped := &""
+var _last_tiers: Dictionary = {}
 var _hint_key := ""
 var _hint_args: Array = []
 
@@ -157,38 +161,68 @@ func _build_card(index: int) -> AegisPanel:
 	state.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_states.append(state)
 	column.add_child(state)
+	var tier_label := _label("", "label_s", AegisTokens.INK_2)
+	_tier_labels.append(tier_label)
+	column.add_child(tier_label)
 
+	var actions := HBoxContainer.new()
+	actions.add_theme_constant_override("separation", 4)
+	actions.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(actions)
 	var button := AegisButton.new()
 	button.name = "%sWeaponButton" % SHORT_NAMES[index].get_slice(" ", 0).capitalize()
 	button.focus_mode = Control.FOCUS_ALL
 	button.mouse_filter = Control.MOUSE_FILTER_STOP
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	AegisTheme.set_button_variant(button, "round")
 	button.pressed.connect(_on_weapon_pressed.bind(ORDER[index]))
-	column.add_child(button)
+	actions.add_child(button)
 	_weapon_buttons.append(button)
+
+	var upgrade := AegisButton.new()
+	upgrade.name = "%sUpgradeButton" % SHORT_NAMES[index].get_slice(" ", 0).capitalize()
+	upgrade.tooltip_text = "Upgrade weapon tier with Battle Points"
+	upgrade.focus_mode = Control.FOCUS_ALL
+	upgrade.mouse_filter = Control.MOUSE_FILTER_STOP
+	upgrade.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	AegisTheme.set_button_variant(upgrade, "ghost")
+	upgrade.pressed.connect(_on_upgrade_pressed.bind(ORDER[index]))
+	actions.add_child(upgrade)
+	_upgrade_buttons.append(upgrade)
 	return card
 
 
 func refresh_profile(
-	balance: int, best_score: int, unlocked_ids: Dictionary, equipped: StringName
+	balance: int,
+	best_score: int,
+	unlocked_ids: Dictionary,
+	equipped: StringName,
+	tiers: Dictionary = {}
 ) -> void:
 	_last_balance = balance
 	_last_best = best_score
 	_last_unlocked = unlocked_ids
 	_last_equipped = equipped
+	_last_tiers = tiers.duplicate()
 	_wallet_label.text = AegisText.t("armory.wallet", [balance, best_score])
 	for index in range(ORDER.size()):
 		var id: StringName = ORDER[index]
-		var definition := load("res://resources/weapons/%s.tres" % String(id)) as WeaponDefinition
+		var definition := WeaponDefinition.load_definition(id)
+		var owned := unlocked_ids.has(String(id))
+		var tier := clampi(int(tiers.get(String(id), 1)), 1, WeaponTier.tier_count())
 		var specs := ""
 		if definition != null:
 			specs = AegisText.t(
 				"armory.specs",
 				[
-					roundi(definition.damage),
+					roundi(definition.damage * WeaponTier.damage_multiplier(tier)),
 					_numeral(definition.fire_rate),
 					definition.magazine_size
 				]
+			)
+			_tier_labels[index].text = AegisText.t(
+				"armory.tier_reload",
+				[tier, _numeral(definition.reload_seconds * WeaponTier.reload_multiplier(tier))]
 			)
 		var state := _states[index]
 		state.text = specs
@@ -198,8 +232,7 @@ func refresh_profile(
 			AegisText.apply(button, "common.equipped")
 			state.add_theme_color_override("font_color", AegisTokens.ACCENT)
 			_cards[index].accent_color = AegisTokens.ACCENT
-			variant = "round"
-		elif unlocked_ids.has(String(id)):
+		elif owned:
 			AegisText.apply(button, "armory.equip")
 			state.add_theme_color_override("font_color", AegisTokens.OK)
 			_cards[index].accent_color = AegisTokens.OK
@@ -209,14 +242,31 @@ func refresh_profile(
 			state.add_theme_color_override("font_color", AegisTokens.INK_2)
 			_cards[index].accent_color = AegisTokens.LINE_HI
 			variant = "primary" if balance >= cost else "round"
-		# set_button_variant() resets typography to 13 *logical* pixels. On a
-		# scaled WASM canvas that is a fraction of a physical pixel, making every
-		# purchase/equip action look broken. Preserve the scaled HUD font.
+		# set_button_variant() resets typography to logical pixels. Preserve the
+		# scaled HUD font after changing the visual state.
 		if button.get_meta("armory_variant", "") != variant:
 			var scaled_font := button.get_theme_font_size("font_size")
 			AegisTheme.set_button_variant(button, variant)
 			AegisTheme.resize_button_font(button, "title", scaled_font)
 			button.set_meta("armory_variant", variant)
+
+		var upgrade := _upgrade_buttons[index]
+		upgrade.disabled = not owned or tier >= WeaponTier.tier_count()
+		if tier >= WeaponTier.tier_count():
+			AegisText.apply(upgrade, "armory.upgrade_max_short", [tier])
+		else:
+			AegisText.apply(
+				upgrade, "armory.upgrade_short", [tier + 1, WeaponTier.cost(id, tier + 1)]
+			)
+		var can_afford := balance >= WeaponTier.cost(id, tier + 1)
+		var upgrade_variant := (
+			"primary" if owned and can_afford and tier < WeaponTier.tier_count() else "ghost"
+		)
+		if upgrade.get_meta("armory_variant", "") != upgrade_variant:
+			var scaled_font := upgrade.get_theme_font_size("font_size")
+			AegisTheme.set_button_variant(upgrade, upgrade_variant)
+			AegisTheme.resize_button_font(upgrade, "title", scaled_font)
+			upgrade.set_meta("armory_variant", upgrade_variant)
 
 
 ## The in-world HUD is the only context where leaving for the dashboard is a
@@ -247,7 +297,9 @@ func show_hint(text: String) -> void:
 func refresh_language() -> void:
 	AegisText.refresh(self)
 	if not _last_equipped.is_empty():
-		refresh_profile(int(_last_balance), int(_last_best), _last_unlocked, _last_equipped)
+		refresh_profile(
+			int(_last_balance), int(_last_best), _last_unlocked, _last_equipped, _last_tiers
+		)
 	if not _hint_key.is_empty():
 		AegisText.apply(_hint_label, _hint_key, _hint_args)
 
@@ -272,7 +324,9 @@ func layout_for(hud) -> void:
 	for art in _arts:
 		art.custom_minimum_size = Vector2(0, hud._to_layout(art_floor))
 	for button in _weapon_buttons:
-		button.custom_minimum_size = Vector2(0, hud._to_layout(38.0))
+		button.custom_minimum_size = Vector2(0, hud._to_layout(36.0))
+	for button in _upgrade_buttons:
+		button.custom_minimum_size = Vector2(0, hud._to_layout(36.0))
 	_close_button.custom_minimum_size = Vector2(0, hud._to_layout(40.0))
 	_home_button.custom_minimum_size = Vector2(hud._to_layout(120.0), hud._to_layout(40.0))
 	add_theme_stylebox_override(
@@ -297,6 +351,10 @@ func _on_home_pressed() -> void:
 
 func _on_weapon_pressed(id: StringName) -> void:
 	weapon_action_requested.emit(id)
+
+
+func _on_upgrade_pressed(id: StringName) -> void:
+	weapon_upgrade_requested.emit(id)
 
 
 func _on_close_pressed() -> void:

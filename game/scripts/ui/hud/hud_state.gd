@@ -43,3 +43,6 @@ var recovery_action: String = ""
 ## Display name of the equipped weapon, kept so a relayout can re-render the
 ## weapon chip without asking the weapon controller again.
 var weapon_display_name: String = ""
+## Persistent rank of that equipped weapon; presentation only, never an upgrade
+## authority. ProgressionService/WeaponController own the value and its effects.
+var weapon_tier: int = 1

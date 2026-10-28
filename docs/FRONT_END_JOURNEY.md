@@ -43,7 +43,9 @@ HERO is the operative showcase, not a duplicate HOME dashboard.
 
 - Present only heroes, weapons, skins, tiers, and actions that actually exist or are explicitly disabled as unavailable.
 - Read names, descriptions, prices, models, and selection ids from the relevant definitions/registries rather than duplicating literals.
-- The live Web hero stage uses the shipped hero GLB and rifle/socket data where available; a painted portrait cannot substitute for verifying the actual rig.
+- The live Web hero stage uses the shipped hero GLB and equipped weapon/socket data where available; a painted portrait cannot substitute for verifying the actual rig.
+- Hero selection, hero-tier progress, equipped weapon, and weapon-tier progress are separate regions. The weapon rack previews only the shared three-weapon registry, reports owned/locked state, and leaves purchases/upgrades to Armory.
+- Celebration, entrance, and settled idle keep the equipped rifle visible on the authored `R_Hand` attachment; the sidecar carry/aim socket pose is blended rather than replaced by an unrelated prop.
 - The stage owns its GPU resources only while visible and releases/pauses them before gameplay needs the engine context.
 - Reduced-motion preferences apply to celebration and nonessential motion.
 - A locked or unknown weapon id handed through a URL must not bypass ownership validation.
@@ -93,8 +95,8 @@ Current selection/profile concerns include:
 
 - intro seen state;
 - selected hero, weapon, and world ids;
-- BP wallet, weapon ownership/equip, best results, and run counts;
-- validated fallback for unknown or locked selections;
+- BP wallet, weapon ownership/equip, persistent per-weapon tiers, best results, and run counts;
+- legacy/missing tier fallback to 1 and validated fallback for unknown or locked selections;
 - future TECH HUNT secured blueprint/cache/milestone records through the same reviewed profile path.
 
 A shell selection is not a second persistent profile. URL parameters are a handoff validated after the saved profile is read, not a mechanism to unlock content.
@@ -143,6 +145,8 @@ Relevant automated coverage includes:
 - `tests/menu_layout_smoke.gd` and related UI tests for current landscape layouts;
 - data-source tests for registry-backed text/content;
 - `tools/ui_shots.mjs` / `tools/ui_flow_shots.mjs` for real shell frames where applicable;
+- `tools/operative_evidence.mjs` for EN/ID resting, entrance, settled-tier, rack, overflow, and equipped-rifle evidence;
+- `tests/ads_input_smoke.gd` and `tests/weapon_tier_smoke.gd` for real engine input/profile/controller boundaries;
 - `tools/web_qa.mjs` for browser boot, journey, selected-theatre, and gameplay handoff;
 - `tools/web_loading_qa.mjs` for initial preload and interrupted recovery.
 

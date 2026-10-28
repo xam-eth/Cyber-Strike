@@ -330,47 +330,59 @@
                  applied by the arena (?tier= -> ProgressionService -> the player
                  controller), and "next tier" states the runs that unlock it. -->
             <div class="op__brief">
-              <p class="op__role" id="hero-role" data-i18n="hero.sable.brief">
-                Raised on the frontier line, fielded as a strike lead. Her kit is the
-                rank: every tier is plate welded over the last one.
-              </p>
-              <dl class="op__stats">
-                <div class="op__stat">
-                  <dt data-i18n="hero.stat.vitals">VITALS</dt>
-                  <dd><b id="hero-stat-vitals">100</b><i id="hero-stat-vitals-delta"></i></dd>
+              <section class="op__progress" aria-labelledby="op-progress-label">
+                <h2 class="op__section-label" id="op-progress-label" data-i18n="hero.progress">HERO PROGRESSION</h2>
+                <p class="op__role" id="hero-role" data-i18n="hero.sable.brief">
+                  Raised on the frontier line, fielded as a strike lead. Her kit is the
+                  rank: every tier is plate welded over the last one.
+                </p>
+                <dl class="op__stats">
+                  <div class="op__stat">
+                    <dt data-i18n="hero.stat.vitals">VITALS</dt>
+                    <dd><b id="hero-stat-vitals">100</b><i id="hero-stat-vitals-delta"></i></dd>
+                  </div>
+                  <div class="op__stat">
+                    <dt data-i18n="hero.stat.armour">ARMOUR</dt>
+                    <dd><b id="hero-stat-armour">0%</b><i id="hero-stat-armour-delta"></i></dd>
+                  </div>
+                  <div class="op__stat op__stat--next">
+                    <dt data-i18n="hero.stat.next">NEXT TIER</dt>
+                    <dd><b id="hero-stat-next">1 RUN</b></dd>
+                  </div>
+                </dl>
+                <div class="op__ladder">
+                  <div class="op__ladder-head">
+                    <span data-i18n="hero.ladder.label">TIER LADDER</span>
+                    <b id="hero-ladder-note">1 / 5</b>
+                  </div>
+                  <ol class="ladder" id="hero-ladder" aria-hidden="true"></ol>
                 </div>
-                <div class="op__stat">
-                  <dt data-i18n="hero.stat.armour">ARMOUR</dt>
-                  <dd><b id="hero-stat-armour">0%</b><i id="hero-stat-armour-delta"></i></dd>
-                </div>
-                <div class="op__stat op__stat--next">
-                  <dt data-i18n="hero.stat.next">NEXT TIER</dt>
-                  <dd><b id="hero-stat-next">1 RUN</b></dd>
-                </div>
-              </dl>
-              <!-- The ladder as a rail: the card strip below says what each
-                   rank looks like, this says how far the next one is. It reads
-                   `aegis.runs`, the same number ProgressionService mirrors out
-                   of the arena, so the shell cannot promise a tier the arena
-                   would refuse. -->
-              <div class="op__ladder">
-                <div class="op__ladder-head">
-                  <span data-i18n="hero.ladder.label">TIER LADDER</span>
-                  <b id="hero-ladder-note">1 / 5</b>
-                </div>
-                <ol class="ladder" id="hero-ladder" aria-hidden="true"></ol>
-              </div>
+              </section>
 
-              <!-- Two actions, one row, at the bottom of the brief: the rack
-                   (secondary) and the one lit action (primary). They used to
-                   share the card row, which left the tier strip cut off against
-                   the button on a 667 px phone. -->
-              <div class="op__kit">
-                <button class="btn btn--loadout" id="hero-loadout" type="button">
-                  <svg class="ico" aria-hidden="true"><use href="#i-rifle" /></svg>
-                  <span class="btn__label" data-i18n="hero.loadout">LOADOUT</span>
-                  <span class="btn__meta" id="hero-loadout-weapon">PULSE RIFLE</span>
+              <section class="op__weapon" aria-labelledby="op-weapon-label">
+                <div class="op__weapon-head">
+                  <h2 class="op__section-label" id="op-weapon-label" data-i18n="hero.weapon.equipped_weapon">EQUIPPED WEAPON</h2>
+                  <b id="hero-weapon-tier">T1</b>
+                </div>
+                <button class="weapon-loadout" id="hero-loadout" type="button" aria-label="Choose equipped weapon" data-i18n-aria="hero.weapon.choose">
+                  <img class="weapon-loadout__art" id="hero-weapon-art" src="./game/assets/ui/weapon_pulse_rifle.png" alt="" />
+                  <span class="weapon-loadout__body">
+                    <span class="weapon-loadout__change" data-i18n="hero.loadout">LOADOUT</span>
+                    <strong id="hero-loadout-weapon">PULSE RIFLE</strong>
+                    <span id="hero-weapon-stats">18 DMG · 1.35s</span>
+                  </span>
+                  <svg class="ico" aria-hidden="true"><use href="#i-chev-right" /></svg>
                 </button>
+                <div class="weapon-tier-progress">
+                  <div class="weapon-tier-progress__head">
+                    <span data-i18n="hero.weapon.tier">WEAPON TIER</span>
+                    <b id="hero-weapon-next">T2 · 90 BP · ARMORY</b>
+                  </div>
+                  <ol class="weapon-tier-track" id="hero-weapon-tiers" aria-hidden="true"></ol>
+                </div>
+              </section>
+
+              <div class="op__kit">
                 <button class="btn btn--primary btn--deploy" id="hero-next" type="button">
                   <span class="btn__label" data-i18n="hero.next">CONTINUE TO MAP</span>
                   <svg class="ico" aria-hidden="true"><use href="#i-chev-right" /></svg>

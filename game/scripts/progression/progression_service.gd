@@ -40,6 +40,9 @@ var balance: int = 0
 var best_score: int = 0
 var completed_runs: int = 0
 var unlocked_ids: Dictionary = {"pulse_rifle": true}
+## Saved weapon ranks, keyed by the stable String id. Missing/legacy entries
+## migrate to tier 1 on read; only upgrade_weapon() spends BP to advance one.
+var weapon_tiers: Dictionary = {}
 ## Permanent Recovery transactions. `secured_caches` maps cache id to its known
 ## reward id; `blueprint_ids` is the eligibility record used by the Armory.
 var secured_caches: Dictionary = {}
@@ -69,6 +72,7 @@ func load_profile() -> void:
 	best_score = 0
 	completed_runs = 0
 	unlocked_ids = {"pulse_rifle": true}
+	weapon_tiers = _default_weapon_tiers()
 	secured_caches.clear()
 	blueprint_ids.clear()
 	intro_seen = false
@@ -90,6 +94,13 @@ func load_profile() -> void:
 				var key := str(id)
 				if COSTS.has(key):
 					unlocked_ids[key] = true
+		var saved_tiers: Variant = config.get_value(PROFILE_SECTION, "weapon_tiers", {})
+		if saved_tiers is Dictionary:
+			for weapon_id in WEAPON_IDS:
+				var key := String(weapon_id)
+				weapon_tiers[key] = clampi(
+					_bounded_int(saved_tiers.get(key, 1)), 1, WeaponTier.tier_count()
+				)
 		var saved_caches: Variant = config.get_value(PROFILE_SECTION, "secured_caches", {})
 		if saved_caches is Dictionary:
 			for cache_id in saved_caches:
@@ -180,6 +191,42 @@ func _known_id(raw: Variant, known: Array[StringName], fallback: StringName) -> 
 
 func is_unlocked(weapon_id: StringName) -> bool:
 	return unlocked_ids.has(String(weapon_id))
+
+
+func _default_weapon_tiers() -> Dictionary:
+	var result: Dictionary = {}
+	for weapon_id in WEAPON_IDS:
+		result[String(weapon_id)] = 1
+	return result
+
+
+## Unknown/corrupt ids cannot manufacture a rank. The UI may preview this
+## accessor, but only upgrade_weapon() can change the saved value.
+func weapon_tier(weapon_id: StringName) -> int:
+	if not WEAPON_IDS.has(weapon_id):
+		return 1
+	return clampi(int(weapon_tiers.get(String(weapon_id), 1)), 1, WeaponTier.tier_count())
+
+
+func weapon_upgrade_cost(weapon_id: StringName) -> int:
+	return WeaponTier.cost(weapon_id, weapon_tier(weapon_id) + 1)
+
+
+## A permanent, exactly-once BP transaction. Locked, unknown, maxed and
+## unaffordable requests have no side effects, including on disk.
+func upgrade_weapon(weapon_id: StringName) -> bool:
+	if not WEAPON_IDS.has(weapon_id) or not is_unlocked(weapon_id):
+		return false
+	var current := weapon_tier(weapon_id)
+	var next := current + 1
+	var cost := WeaponTier.cost(weapon_id, next)
+	if next <= current or cost <= 0 or balance < cost:
+		return false
+	balance -= cost
+	weapon_tiers[String(weapon_id)] = next
+	_save_profile()
+	profile_changed.emit()
+	return true
 
 
 # --- the operative ladder ---------------------------------------------------
@@ -329,16 +376,34 @@ func bank_run(run_score: int, earned_bp: int) -> void:
 	profile_changed.emit()
 
 
-## The web shell's operative page lives outside the canvas, so it cannot read
-## this service -- and the tier ladder it draws is exactly this number of
-## finished runs. Rather than have two saved profiles, the run count is mirrored
-## one way into `localStorage['aegis.runs']`; the shell only ever reads it, and
-## every decision it feeds (which tier card is open) is re-clamped here when the
-## arena launches, so a hand-edited localStorage cannot field an unearned rank.
+## The Web shell is outside the canvas, so this is a one-way presentation
+## snapshot, not a second save manager. The legacy `aegis.runs` key remains for
+## compatibility. Every URL/handoff decision is revalidated by this service;
+## editing localStorage cannot grant BP, ownership, a hero rank or weapon tier.
 func _mirror_runs_to_shell() -> void:
 	if not OS.has_feature("web"):
 		return
-	JavaScriptBridge.eval("try{localStorage.setItem('aegis.runs','%d')}catch(e){}" % completed_runs)
+	var snapshot := (
+		JSON
+		. stringify(
+			{
+				"runs": completed_runs,
+				"balance": balance,
+				"unlocked": unlocked_ids.keys(),
+				"equipped": String(selected_weapon_id),
+				"weapon_tiers": weapon_tiers,
+			}
+		)
+	)
+	JavaScriptBridge.eval(
+		(
+			(
+				"try{localStorage.setItem('aegis.runs','%d');"
+				+ "localStorage.setItem('aegis.progress',JSON.stringify(%s))}catch(e){}"
+			)
+			% [completed_runs, JSON.stringify(snapshot)]
+		)
+	)
 
 
 func _bounded_int(value: Variant) -> int:
@@ -355,6 +420,7 @@ func _save_profile() -> void:
 	config.set_value(PROFILE_SECTION, "best_score", best_score)
 	config.set_value(PROFILE_SECTION, "completed_runs", completed_runs)
 	config.set_value(PROFILE_SECTION, "unlocked_ids", unlocked_ids.keys())
+	config.set_value(PROFILE_SECTION, "weapon_tiers", weapon_tiers)
 	config.set_value(PROFILE_SECTION, "secured_caches", secured_caches)
 	config.set_value(PROFILE_SECTION, "blueprint_ids", blueprint_ids.keys())
 	config.set_value(PROFILE_SECTION, "intro_seen", intro_seen)

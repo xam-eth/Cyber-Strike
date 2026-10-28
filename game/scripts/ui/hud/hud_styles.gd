@@ -137,18 +137,26 @@ static func apply_fonts(hud) -> void:
 		if is_instance_valid(button):
 			var button_icon_px := icon_px
 			if button == hud._fire_button:
-				button_icon_px = roundi(hud._to_layout(170.0))
+				button_icon_px = roundi(hud._to_layout(68.0))
 			elif button == hud._aim_button:
-				button_icon_px = roundi(hud._to_layout(104.0))
+				button_icon_px = roundi(hud._to_layout(50.0))
 			elif button == hud._skill_button:
-				button_icon_px = roundi(hud._to_layout(104.0))
+				button_icon_px = roundi(hud._to_layout(50.0))
 			elif button == hud._weapon_button:
-				button_icon_px = roundi(hud._to_layout(104.0))
+				button_icon_px = roundi(hud._to_layout(50.0))
 			elif button == hud._pause_button:
 				button_icon_px = roundi(hud._to_layout(48.0 if hud._touch_mode else 40.0))
 			elif button == hud._sound_button:
 				button_icon_px = roundi(hud._to_layout(32.0 if hud._touch_mode else 24.0))
 			button.add_theme_constant_override("icon_max_width", button_icon_px)
+	for caption in [hud._fire_caption, hud._weapon_caption, hud._aim_caption, hud._skill_caption]:
+		if not is_instance_valid(caption):
+			continue
+		var at_top: bool = caption == hud._skill_caption
+		caption.offset_left = hud._to_layout(3.0)
+		caption.offset_right = -hud._to_layout(3.0)
+		caption.offset_top = hud._to_layout(3.0 if at_top else -19.0)
+		caption.offset_bottom = hud._to_layout(18.0 if at_top else -3.0)
 	if is_instance_valid(hud._skill_ring):
 		hud._skill_ring.stroke = hud._to_layout(2.2)
 	if is_instance_valid(hud._skill_cooldown_label):

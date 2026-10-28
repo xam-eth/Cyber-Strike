@@ -40,6 +40,7 @@ var _touch_movement: Vector2 = Vector2.ZERO
 var _touch_fire_pressed: bool = false
 var _aiming: bool = false
 var _touch_aim_hold: bool = false
+var _mouse_aim_hold: bool = false
 var _walk_time: float = 0.0
 var _reload_was_active: bool = false
 
@@ -106,15 +107,21 @@ func _physics_process(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
+			_mouse_aim_hold = true
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 			set_aiming(true)
 			get_viewport().set_input_as_handled()
 		elif event.button_index == MOUSE_BUTTON_RIGHT and not event.pressed:
+			_mouse_aim_hold = false
 			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 			set_aiming(false)
-	elif event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+			get_viewport().set_input_as_handled()
+	elif event is InputEventMouseMotion and _mouse_aim_hold:
+		# Pointer lock improves desktop look, but browser/iframe denial must not
+		# cancel ADS. Relative mouse motion remains usable without the lock.
 		camera_rig.apply_look_delta(event.relative)
 	elif event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+		_mouse_aim_hold = false
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 
@@ -134,7 +141,10 @@ func set_touch_fire_pressed(pressed: bool) -> void:
 ## toggle. Zooming the camera and stilling the avatar is what makes aiming read
 ## on a small screen.
 func set_aiming(value: bool) -> void:
+	if _aiming == value:
+		return
 	_aiming = value
+	aim_changed.emit(_aiming)
 
 
 func is_aiming() -> bool:
@@ -160,17 +170,14 @@ func _current_flash_color() -> Color:
 	return Color(1.0, 0.74, 0.4)
 
 
-## The HUD AIM button holds aiming for as long as it is held; desktop right
-## mouse aims through MOUSE_MODE_CAPTURED.
+## The HUD AIM button holds aiming for as long as it is held; desktop uses an
+## explicit right-mouse hold so denied pointer lock cannot cancel the state.
 func set_touch_aim_held(pressed: bool) -> void:
 	_touch_aim_hold = pressed
 
 
 func _update_aiming() -> void:
-	var previous := _aiming
-	_aiming = _touch_aim_hold or Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
-	if _aiming != previous:
-		aim_changed.emit(_aiming)
+	set_aiming(_touch_aim_hold or _mouse_aim_hold)
 
 
 func activate_skill() -> bool:
@@ -280,8 +287,10 @@ func is_defeated() -> bool:
 
 func reset_player() -> void:
 	_is_defeated = false
-	_aiming = false
+	set_aiming(false)
 	_touch_aim_hold = false
+	_mouse_aim_hold = false
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	current_health = max_health
 	_skill_cooldown_remaining = 0.0
 	velocity = Vector3.ZERO

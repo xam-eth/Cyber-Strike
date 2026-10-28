@@ -227,6 +227,26 @@ World metadata never implements these templates by itself.
 
 TECH HUNT 0 should prove its loop with these capabilities before adding another weapon. “Energy Rifle” has no separate executable id; its mapping to Pulse Rifle remains an open naming decision, not permission to rename saves or create a fourth weapon.
 
+#### 7.1.1 Weapon tiers — IMPLEMENTED source contract
+
+Weapon tiers are permanent, bounded upgrades owned by the existing `ProgressionService`; they are not an in-run draft, a second currency, or a new save system. `WeaponTier` reads the shared `game/resources/weapons/tiers.json` table for both the engine Armory and the read-only Web loadout mirror.
+
+| Weapon id | Tier 2 BP cost | Tier 3 BP cost |
+|---|---:|---:|
+| `pulse_rifle` | 90 | 180 |
+| `nova_launcher` | 150 | 240 |
+| `arc_shooter` | 220 | 320 |
+
+- Tier 1 is the free baseline and the migration fallback for legacy, missing, or malformed save entries.
+- Tiers 2 and 3 multiply direct and splash damage by **1.08 / 1.16** and reload duration by **0.96 / 0.92**. Tier 1 uses **1.0 / 1.0**.
+- Fire rate, magazine size, projectile range/speed, blast radius, and Arc chain count do not grow with tier.
+- An upgrade requires an unlocked weapon, the exact next tier, and sufficient BP. Unknown, locked, unaffordable, and max-tier requests are no-ops; each accepted transaction saves immediately.
+- `WeaponController` duplicates a definition only above tier 1. Base `.tres` resources and `get_current_definition()` registry identity stay immutable; gameplay reads the effective definition.
+- Armory owns purchase/equip. Operator separates hero rank from equipped-weapon tier and links upgrades to Armory rather than creating a second shop.
+- AIM/ADS keeps the three existing weapon ids and their normal input paths. Right-mouse hold does not depend on successful pointer lock; touch AIM hold and second-finger look remain independent.
+
+Executed validation and remaining limits are recorded in `VALIDATION.md`; this section defines the source contract, not a claim of physical-device approval.
+
 ### 7.2 Existing enemy roles — IMPLEMENTED content baseline
 
 | Enemy | Role | Decision created |
@@ -372,8 +392,9 @@ A new boss is **DEFERRED** until TECH HUNT 0 proves mission, cache, persistence,
 | `WaveDirector` / `WaveState { IDLE, SPAWNING, INTERMISSION, GAME_OVER, BLOCKED }` | Wave scheduling, spawning, completion, blocked recovery |
 | `RunStats` | Active-run score/BP/time and run-active guard |
 | `RewardService` | Validated exactly-once enemy/wave run rewards |
-| `ProgressionService` | Persistent wallet, unlock/equip, best/profile fields, save/load |
-| `WeaponController` | Fire validation, cadence, ammo/reload, switching, projectile launch |
+| `ProgressionService` | Persistent wallet, unlock/equip, weapon tiers, best/profile fields, save/load |
+| `WeaponTier` | Shared bounded tier table, costs, multipliers, and legacy-safe accessors |
+| `WeaponController` | Fire validation, cadence, ammo/reload, switching, effective tier definitions, projectile launch |
 | Weapon projectile strategies | Content-specific direct/splash/chain execution |
 | HUD/menus | Presentation and user intent, not reward/save authority |
 
@@ -433,6 +454,8 @@ Any TECH HUNT implementation must preserve:
 - one session-end/banking transition;
 - retry clearing run state without clearing persistent unlocks/wallet/best results;
 - selected-theatre DEPLOY and existing shell/engine handoff;
+- legacy weapon-tier migration, exact BP debit, max/locked rejection, and immutable base definitions (`tests/weapon_tier_smoke.gd`);
+- right-mouse ADS without pointer lock and touch hold/look for all three weapon ids (`tests/ads_input_smoke.gd`);
 - no new architecture violations.
 
 ### 14.2 TECH HUNT 0 functional acceptance
@@ -507,4 +530,5 @@ The design inference is: preserve permanent secured tech and clear mission purpo
 
 ## 17. Change record
 
+- **2026-10-28:** Website-only UI/UX scope records real three-tier weapon progression, separated Operator hero/weapon state, and ADS repair for the three existing weapon ids. APK/native work remains paused; no fourth weapon, currency, save manager, IAP, or in-run draft was added.
 - **2026-10-26:** TECH HUNT selected as the prototype direction; locked-shot dodge/punish retained as the combat-mastery hypothesis. TECH HUNT 0 scope, death/save semantics, Endless integration, ownership, and acceptance gates consolidated into this canonical document. No gameplay implementation or human-validation claim is attached to this documentation decision.

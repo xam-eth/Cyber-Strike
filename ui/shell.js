@@ -537,12 +537,11 @@ function paintTierCards() {
   const owned = ownedTier();
   host.replaceChildren();
   for (const row of tierTable()) {
-    const art = tierArt(hero, row.tier);
     const isOwned = row.tier <= owned;
     const selected = row.tier === heroState.tier;
     const card = buildCard({
-      art,
-      badge: String(row.tier),
+      art: null,
+      badge: `T${row.tier}`,
       name: t(row.name_key),
       state: isOwned
         ? selected
@@ -552,9 +551,10 @@ function paintTierCards() {
           ? t('hero.tier.runs_one', row.runs_required)
           : t('hero.tier.runs', row.runs_required),
       locked: !isOwned,
-      empty: !art,
+      empty: false,
       lock: !isOwned,
     });
+    card.classList.add('tierstep');
     card.dataset.tier = String(row.tier);
     card.setAttribute('role', 'radio');
     card.setAttribute('aria-checked', String(selected));
@@ -694,11 +694,15 @@ function stageShow(entry) {
   if (typeof stage === 'undefined' || !roster) return;
   const hero = heroOf(heroState.heroId);
   if (!hero) return;
+  const weapon = WEAPONS[prefs.weapon] || WEAPONS.pulse_rifle;
   stage.setLoadout({
     heroId: hero.id,
     tier: heroState.tier,
     model: tierModel(hero, heroState.tier),
     rig: tierRig(hero, heroState.tier),
+    weaponId: prefs.weapon,
+    weaponTier: weaponTierFor(prefs.weapon),
+    weaponModel: weapon.model,
     entry: lastEntry,
   });
 }
@@ -832,18 +836,26 @@ function buildRack() {
     button.className = 'rackcard';
     button.dataset.weapon = id;
     button.dataset.cost = String(weapon.cost);
-    const locked = weapon.cost > 0;
-    button.setAttribute('aria-pressed', String(!locked && id === prefs.weapon));
-    if (locked) button.setAttribute('aria-disabled', 'true');
+    const owned = weaponOwned(id);
+    const equipped = owned && id === prefs.weapon;
+    const tier = weaponTierFor(id);
+    const numbers = weaponNumbers(id, tier);
+    button.setAttribute('aria-pressed', String(equipped));
+    if (!owned) button.setAttribute('aria-disabled', 'true');
     button.innerHTML = `
       <span class="rackcard__art"><img src="${weapon.art}" alt="" /></span>
       <span class="rackcard__row">
         <span class="rackcard__name">${t(weapon.nameKey)}</span>
-        <span class="rackcard__state">${
-          locked ? t('hero.weapon.cost', weapon.cost) : t('hero.weapon.equipped')
-        }</span>
+        <span class="rackcard__tier">T${tier}</span>
       </span>
-      <span class="rackcard__spec">${weapon.spec}</span>`;
+      <span class="rackcard__state">${
+        !owned
+          ? t('hero.weapon.cost', weapon.cost)
+          : equipped
+            ? t('hero.weapon.equipped')
+            : t('hero.weapon.owned')
+      }</span>
+      <span class="rackcard__spec">${numbers.damage} dmg · ${numbers.rate}/s · ${numbers.magazine} · ${numbers.reload}s</span>`;
     item.appendChild(button);
     host.appendChild(item);
   }
@@ -943,47 +955,145 @@ const WEAPONS = {
     nameKey: 'wpn.pulse.name',
     cost: 0,
     art: './game/assets/ui/weapon_pulse_rifle.png',
-    spec: '18 dmg · 5.0/s · 24',
+    model: './game/assets/weapons/futuristic_rifle/rifle.glb',
+    definition: { damage: 18, fire_rate: 5, magazine_size: 24, reload_seconds: 1.35 },
   },
   nova_launcher: {
     nameKey: 'wpn.nova.name',
     cost: 120,
     art: './game/assets/ui/weapon_nova_launcher.png',
-    spec: '34 dmg · 0.8/s · 6',
+    model: './game/assets/weapons/futuristic_rifle/rifle.glb',
+    definition: { damage: 34, fire_rate: 0.8, magazine_size: 6, reload_seconds: 2.2 },
   },
   arc_shooter: {
     nameKey: 'wpn.arc.name',
     cost: 250,
     art: './game/assets/ui/weapon_arc_shooter.png',
-    spec: '20 dmg · 2.0/s · 12',
+    model: './game/assets/weapons/futuristic_rifle/rifle.glb',
+    definition: { damage: 20, fire_rate: 2, magazine_size: 12, reload_seconds: 1.7 },
   },
 };
+
+/* This is a read-only mirror of ProgressionService, never a shell save. The
+   shared JSON supplies ranks/costs; the .tres files refresh base stats below. */
+let weaponTierData = {
+  tier_count: 1,
+  tiers: [{ tier: 1, damage_multiplier: 1, reload_multiplier: 1, costs: {} }],
+};
+
+function profileSnapshot() {
+  try {
+    return JSON.parse(window.localStorage?.getItem('aegis.progress') || 'null') || {};
+  } catch {
+    return {};
+  }
+}
+
+function weaponOwned(id) {
+  if (id === 'pulse_rifle') return true;
+  const unlocked = profileSnapshot().unlocked;
+  return Array.isArray(unlocked) && unlocked.includes(id);
+}
+
+function weaponTierFor(id) {
+  const saved = profileSnapshot().weapon_tiers;
+  const raw = saved && typeof saved === 'object' ? Number(saved[id]) : 1;
+  return Math.min(weaponTierData.tier_count, Math.max(1, Number.isFinite(raw) ? Math.floor(raw) : 1));
+}
+
+function weaponTierRow(tier) {
+  return weaponTierData.tiers.find((row) => row.tier === tier) || weaponTierData.tiers[0];
+}
+
+function weaponNumbers(id, tier = weaponTierFor(id)) {
+  const weapon = WEAPONS[id] || WEAPONS.pulse_rifle;
+  const row = weaponTierRow(tier);
+  const damageScale = Number(row?.damage_multiplier) || 1;
+  const reloadScale = Number(row?.reload_multiplier) || 1;
+  const base = weapon.definition;
+  return {
+    damage: Math.round(base.damage * damageScale),
+    rate: base.fire_rate.toFixed(1),
+    magazine: base.magazine_size,
+    reload: Number((base.reload_seconds * reloadScale).toFixed(2)).toString(),
+  };
+}
 
 function weaponName(id) {
   const weapon = WEAPONS[id] || WEAPONS.pulse_rifle;
   return t(weapon.nameKey);
 }
 
+async function loadWeaponData() {
+  const response = await fetch('./game/resources/weapons/tiers.json', { cache: 'no-cache' });
+  if (!response.ok) throw new Error(`weapon tiers ${response.status}`);
+  const table = await response.json();
+  if (!Array.isArray(table.tiers) || !table.tiers.length) throw new Error('weapon tiers empty');
+  weaponTierData = table;
+  await Promise.all(
+    Object.entries(WEAPONS).map(async ([id, weapon]) => {
+      const reply = await fetch(`./game/resources/weapons/${id}.tres`, { cache: 'no-cache' });
+      if (!reply.ok) throw new Error(`${id} ${reply.status}`);
+      const source = await reply.text();
+      for (const key of ['damage', 'fire_rate', 'magazine_size', 'reload_seconds']) {
+        const match = source.match(new RegExp(`^${key}\\s*=\\s*([0-9.]+)`, 'm'));
+        if (match) weapon.definition[key] = Number(match[1]);
+      }
+    }),
+  );
+  paintLoadout();
+  if (!el('weapon-modal')?.hidden) buildRack();
+  stageShow();
+}
+
 function paintLoadout() {
+  if (!weaponOwned(prefs.weapon)) prefs.weapon = 'pulse_rifle';
   for (const button of document.querySelectorAll('.rackcard')) {
-    const locked = Number(button.dataset.cost) > 0;
-    // A priced weapon is not "selected", it is "available later": pressing it
-    // moves the focus ring and nothing else, so the screen never claims a
-    // loadout the game would refuse. `aria-disabled` is how that is said, and
-    // it is the same attribute the CSS colours the price from.
-    button.setAttribute('aria-pressed', String(!locked && button.dataset.weapon === prefs.weapon));
-    button.setAttribute('aria-disabled', String(locked));
+    const owned = weaponOwned(button.dataset.weapon);
+    button.setAttribute('aria-pressed', String(owned && button.dataset.weapon === prefs.weapon));
+    button.setAttribute('aria-disabled', String(!owned));
   }
-  // Resolved through the catalogue, not stored: a weapon's name is the player's
-  // word for it, and painting it from a literal left three English chips on an
-  // Indonesian page (qa-evidence/ui/round-12/i18n).
-  const weapon = weaponName(prefs.weapon);
+  const id = prefs.weapon;
+  const weapon = WEAPONS[id];
+  const tier = weaponTierFor(id);
+  const numbers = weaponNumbers(id, tier);
+  const name = weaponName(id);
   const chip = el('hero-loadout-weapon');
-  if (chip) chip.textContent = weapon;
+  if (chip) chip.textContent = name;
+  const tierNode = el('hero-weapon-tier');
+  if (tierNode) tierNode.textContent = `T${tier}`;
+  const art = el('hero-weapon-art');
+  if (art) art.src = weapon.art;
+  const stats = el('hero-weapon-stats');
+  if (stats) stats.textContent = `${numbers.damage} DMG · ${numbers.reload}s`;
+  const next = el('hero-weapon-next');
+  if (next) {
+    const cost = Number(weaponTierRow(tier + 1)?.costs?.[id]);
+    next.textContent = tier >= weaponTierData.tier_count
+      ? t('hero.weapon.tier_max')
+      : t('hero.weapon.next_tier', tier + 1, cost, t('hero.weapon.armory'));
+  }
+  const track = el('hero-weapon-tiers');
+  if (track) {
+    if (track.childElementCount !== weaponTierData.tier_count) {
+      track.replaceChildren();
+      for (let rank = 1; rank <= weaponTierData.tier_count; rank += 1) {
+        const item = document.createElement('li');
+        item.dataset.tier = String(rank);
+        track.appendChild(item);
+      }
+    }
+    for (const item of track.children) {
+      const rank = Number(item.dataset.tier);
+      item.dataset.owned = String(rank <= tier);
+      item.dataset.current = String(rank === tier);
+    }
+  }
   const hub = el('hub-operative-meta');
-  if (hub) hub.textContent = weapon;
+  if (hub) hub.textContent = `${name} · T${tier}`;
   const deployMeta = el('hub-deploy-meta');
-  if (deployMeta) deployMeta.textContent = weapon;
+  if (deployMeta) deployMeta.textContent = `${name} · T${tier}`;
+  stageShow();
 }
 
 /* --------------------------------------------------------------- deploy */
@@ -1465,6 +1575,7 @@ paintAudioControl();
 paintLanguage();
 paintDock(engineReady ? 'ok' : 'warn', engineReady ? t('dock.ready') : t('dock.not_ready'));
 paintLoadout();
+loadWeaponData().catch((error) => console.warn('[operative] weapon data', error));
 paintWorld();
 paintOpening();
 runOpeningChecks();

@@ -110,6 +110,9 @@ const journeyMode = has('--journey') || selectWorld;
 // Optional real-gesture Web Audio checks on the root shell. This is separate
 // from Godot's first-voice/mute checks and never claims human mix acceptance.
 const audioShellMode = has('--audio-shell');
+// Measured ADS on the equipped Web weapon. All three ids are covered by the
+// engine input smoke; this pass proves real browser mouse/touch delivery.
+const adsMode = has('--ads');
 const port = Number(flag('--port', '8126'));
 
 let chromium;
@@ -187,6 +190,10 @@ async function checkPage(target, viewport) {
   // WORLD selection uses the engine's measured Control rectangles, never a
   // second set of guessed layout coordinates in the browser harness.
   if (selectWorld) url.searchParams.set('qa_menu', '1');
+  if (adsMode) {
+    url.searchParams.set('qa_touch', '1');
+    url.searchParams.set('qa_camera', '1');
+  }
   const page = await browser.newPage();
   // A narrow viewport alone is not a phone: without touch emulation Godot
   // correctly hides the thumb controls, so mobile screenshots used to QA the
@@ -207,7 +214,8 @@ async function checkPage(target, viewport) {
     const text = m.text();
     // Menu QA is a single line carrying every rendered Control rect. Keep it
     // intact; truncating it at the normal 220 characters hides the pin/launch.
-    const limit = text.startsWith('Menu QA:') ? 12000 : 220;
+    const detailed = text.startsWith('Menu QA:') || text.startsWith('Touch QA:') || text.startsWith('Camera QA:');
+    const limit = detailed ? 12000 : 220;
     consoleLines.push(`${m.type()}: ${text.slice(0, limit)}`);
   });
   page.on('pageerror', (e) => pageErrors.push(String(e).slice(0, 300)));
@@ -348,6 +356,16 @@ async function checkPage(target, viewport) {
       bodyText: (document.body.innerText || '').replace(/\s+/g, ' ').slice(0, 160),
     };
   });
+
+  const shellProgressMirror = isFrontEnd
+    ? await page.evaluate(() => {
+        try {
+          return JSON.parse(localStorage.getItem('aegis.progress') || 'null');
+        } catch {
+          return null;
+        }
+      })
+    : null;
 
   const slug = target.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '') || 'root';
   const shot = path.join(outDir, `${slug}-${viewport.spec}.png`);
@@ -569,8 +587,156 @@ async function checkPage(target, viewport) {
   // Reach gameplay before any encounter input or screenshots. Running this
   // after the encounter block photographed menus and sent B to the front end.
   let inGameplay = false;
-  if (booted && (journeyMode || tourMode || encounterMode || playSeconds > 0)) {
+  if (booted && (journeyMode || tourMode || encounterMode || playSeconds > 0 || adsMode)) {
     inGameplay = await advanceToGameplay();
+  }
+
+  /* ---------- measured mouse / multi-touch ADS on the equipped weapon ---------- */
+  const adsFrames = [];
+  let adsEvidence = null;
+  if (booted && adsMode && inGameplay && state.canvasHittable) {
+    const canvasBox = await page.evaluate(() => {
+      const canvas = document.querySelector('canvas');
+      const rect = canvas?.getBoundingClientRect();
+      return rect
+        ? {
+            x: rect.x,
+            y: rect.y,
+            width: rect.width,
+            height: rect.height,
+            bufferWidth: canvas.width,
+            bufferHeight: canvas.height,
+          }
+        : null;
+    });
+    const parseCamera = (line) => {
+      const match = line.match(
+        /Camera QA: aim=(true|false) blend=([\d.]+) fov=([\d.]+).*weapon=([a-z_]+) yaw=(-?[\d.]+) pitch=(-?[\d.]+)/,
+      );
+      return match
+        ? {
+            aim: match[1] === 'true',
+            blend: Number(match[2]),
+            fov: Number(match[3]),
+            weapon: match[4],
+            yaw: Number(match[5]),
+            pitch: Number(match[6]),
+          }
+        : null;
+    };
+    const waitCamera = async (mark, predicate, timeout = 60000) => {
+      const deadline = Date.now() + timeout;
+      while (Date.now() < deadline) {
+        const states = consoleLines.slice(mark).map(parseCamera).filter(Boolean);
+        if (states.length && predicate(states.at(-1))) return states.at(-1);
+        await new Promise((resolve) => setTimeout(resolve, 250));
+      }
+      return null;
+    };
+    const captureAds = async (name) => {
+      const file = path.join(outDir, `${slug}-${viewport.spec}-ads-${name}.png`);
+      await page.screenshot({ path: file });
+      adsFrames.push(path.relative(ROOT, file));
+    };
+    if (canvasBox) {
+      // Focus/audio gesture on the real canvas before either input family.
+      await page.mouse.click(canvasBox.x + canvasBox.width * 0.5, canvasBox.y + canvasBox.height * 0.5);
+      if (has('--touch')) {
+        const deadline = Date.now() + 45000;
+        let aimRect = null;
+        while (Date.now() < deadline && !aimRect) {
+          const line = consoleLines.filter((item) => item.includes('Touch QA:') && item.includes('AIM rect=')).at(-1);
+          const match = line?.match(/AIM rect=\(([-\d.,\s]+)\)/);
+          if (match) {
+            const [x, y, width, height] = match[1].split(',').map((value) => Number(value.trim()));
+            aimRect = { x, y, width, height };
+          } else {
+            await new Promise((resolve) => setTimeout(resolve, 250));
+          }
+        }
+        if (!aimRect) throw new Error('ADS touch: no measured AIM rect in Touch QA');
+        const scaleX = canvasBox.width / canvasBox.bufferWidth;
+        const scaleY = canvasBox.height / canvasBox.bufferHeight;
+        const aimPoint = {
+          x: canvasBox.x + (aimRect.x + aimRect.width / 2) * scaleX,
+          y: canvasBox.y + (aimRect.y + aimRect.height / 2) * scaleY,
+          id: 11,
+        };
+        const lookPoint = {
+          x: canvasBox.x + canvasBox.width * 0.5,
+          y: canvasBox.y + canvasBox.height * 0.6,
+          id: 12,
+        };
+        const cdp = await page.target().createCDPSession();
+        let mark = consoleLines.length;
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [aimPoint] });
+        const aimed = await waitCamera(mark, (camera) => camera.aim && camera.blend >= 0.95);
+        await captureAds('touch-hold');
+        let moved = null;
+        if (aimed) {
+          await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [aimPoint, lookPoint] });
+          mark = consoleLines.length;
+          await cdp.send('Input.dispatchTouchEvent', {
+            type: 'touchMove',
+            touchPoints: [aimPoint, { ...lookPoint, x: lookPoint.x + 36, y: lookPoint.y - 18 }],
+          });
+          moved = await waitCamera(
+            mark,
+            (camera) => Math.abs(camera.yaw - aimed.yaw) > 0.001 || Math.abs(camera.pitch - aimed.pitch) > 0.001,
+          );
+          await captureAds('touch-look');
+        }
+        mark = consoleLines.length;
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+        const released = await waitCamera(mark, (camera) => !camera.aim);
+        await captureAds('touch-release');
+        await cdp.detach();
+        adsEvidence = {
+          input: 'touch',
+          weapon: aimed?.weapon || null,
+          aimRect,
+          aimed: Boolean(aimed),
+          settledBlend: aimed?.blend || 0,
+          lookChanged: Boolean(moved),
+          released: Boolean(released),
+          before: aimed,
+          after: moved,
+        };
+      } else {
+        const centre = { x: canvasBox.x + canvasBox.width / 2, y: canvasBox.y + canvasBox.height / 2 };
+        let mark = consoleLines.length;
+        await page.mouse.move(centre.x, centre.y);
+        await page.mouse.down({ button: 'right' });
+        const aimed = await waitCamera(mark, (camera) => camera.aim && camera.blend >= 0.95);
+        const pointerLock = await page.evaluate(() => document.pointerLockElement?.tagName || 'none');
+        await captureAds('mouse-hold');
+        let moved = null;
+        if (aimed) {
+          mark = consoleLines.length;
+          await page.mouse.move(centre.x + 48, centre.y - 24);
+          moved = await waitCamera(
+            mark,
+            (camera) => Math.abs(camera.yaw - aimed.yaw) > 0.001 || Math.abs(camera.pitch - aimed.pitch) > 0.001,
+          );
+          await captureAds('mouse-look');
+        }
+        mark = consoleLines.length;
+        await page.mouse.up({ button: 'right' });
+        const released = await waitCamera(mark, (camera) => !camera.aim);
+        await captureAds('mouse-release');
+        adsEvidence = {
+          input: 'mouse',
+          weapon: aimed?.weapon || null,
+          pointerLock,
+          aimed: Boolean(aimed),
+          settledBlend: aimed?.blend || 0,
+          lookChanged: Boolean(moved),
+          released: Boolean(released),
+          before: aimed,
+          after: moved,
+        };
+      }
+    }
   }
 
   /* ---------- explicit Explore → Preparing → Defense check ---------- */
@@ -784,6 +950,14 @@ async function checkPage(target, viewport) {
         && shellHeroStage?.clips?.includes('idle')
         && shellHeroStage?.celebration === 'celebration',
     ]);
+    checks.push([
+      'engine profile mirror is a readable object with weapon ownership and tiers',
+      shellProgressMirror
+        && Array.isArray(shellProgressMirror.unlocked)
+        && shellProgressMirror.weapon_tiers
+        && typeof shellProgressMirror.weapon_tiers === 'object'
+        && !Array.isArray(shellProgressMirror.weapon_tiers),
+    ]);
   }
   if (audioShellMode && isFrontEnd) {
     checks.push([
@@ -854,6 +1028,13 @@ async function checkPage(target, viewport) {
   }
   if (journeyMode) {
     checks.push(['front-end handoff reached the gameplay scene', inGameplay]);
+  }
+  if (adsMode) {
+    checks.push(['ADS pass reached live gameplay', inGameplay]);
+    checks.push(['ADS entered and settled on the equipped weapon', adsEvidence?.aimed === true]);
+    checks.push(['ADS mouse/touch look changed camera yaw or pitch', adsEvidence?.lookChanged === true]);
+    checks.push(['ADS release restored the unaimed state', adsEvidence?.released === true]);
+    checks.push(['ADS hold/look/release frames were captured', adsFrames.length === 3]);
   }
   if (selectWorld) {
     if (isFrontEnd) {
@@ -964,6 +1145,9 @@ async function checkPage(target, viewport) {
     encounterTransitions: consoleLines.filter((line) => line.includes('Encounter:')),
     audio: audioLines,
     heroStage: shellHeroStage,
+    profileMirror: shellProgressMirror,
+    ads: adsEvidence,
+    adsFrames,
     shellAudio: {
       hero: shellAudioHero,
       before: shellAudioBefore,

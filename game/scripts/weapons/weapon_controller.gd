@@ -15,6 +15,10 @@ var _reload_remaining: Array[float] = []
 ## Main supplies the validated profile on boot/unlock. Direct slot keys and
 ## touch SWAP share this same gate, so a locked weapon cannot be fired via E/1-3.
 var _available_ids: Dictionary = {"pulse_rifle": true}
+## Runtime-only effective resources. Authored entries in weapon_definitions
+## remain immutable registry data, including when a tier is upgraded mid-run.
+var _weapon_tiers: Dictionary = {}
+var _effective_definitions: Array[WeaponDefinition] = []
 
 
 func _ready() -> void:
@@ -32,6 +36,7 @@ func _ready() -> void:
 			push_error("WeaponController has an invalid definition at index %d." % index)
 		else:
 			_magazines[index] = definition.magazine_size
+		_effective_definitions.append(definition)
 	_current_weapon_index = clampi(initial_weapon_index, 0, weapon_definitions.size() - 1)
 	_emit_ammo()
 
@@ -63,6 +68,15 @@ func get_current_definition() -> WeaponDefinition:
 	return weapon_definitions[_current_weapon_index]
 
 
+## The definition given to a projectile/reload. Base identity and content stay
+## available through get_current_definition(); this is the bounded combat view.
+func get_effective_definition(index: int = -1) -> WeaponDefinition:
+	var wanted := _current_weapon_index if index < 0 else index
+	if wanted < 0 or wanted >= _effective_definitions.size():
+		return null
+	return _effective_definitions[wanted]
+
+
 func get_current_ammo() -> int:
 	return _magazines[_current_weapon_index] if _current_weapon_index < _magazines.size() else 0
 
@@ -88,7 +102,7 @@ func current_reload_remaining() -> float:
 ## A fixed magazine provides the reload rhythm without a finite reserve that
 ## could strand a survival run. Touch players auto-reload at zero; G reloads early.
 func request_reload() -> bool:
-	var definition := get_current_definition()
+	var definition := get_effective_definition()
 	if definition == null or is_reloading() or get_current_ammo() >= definition.magazine_size:
 		return false
 	_reload_remaining[_current_weapon_index] = definition.reload_seconds
@@ -115,6 +129,26 @@ func set_available_weapon_ids(ids: Dictionary) -> void:
 	_available_ids["pulse_rifle"] = true
 	if not is_weapon_available(_current_weapon_index):
 		select_weapon(0)
+
+
+func set_weapon_tiers(tiers: Dictionary) -> void:
+	_weapon_tiers.clear()
+	_effective_definitions.clear()
+	for base in weapon_definitions:
+		if base == null:
+			_effective_definitions.append(null)
+			continue
+		var id := String(base.weapon_id)
+		var tier := clampi(int(tiers.get(id, 1)), 1, WeaponTier.tier_count())
+		_weapon_tiers[id] = tier
+		var effective := base
+		if tier > 1:
+			effective = base.duplicate(true) as WeaponDefinition
+			var damage_scale := WeaponTier.damage_multiplier(tier)
+			effective.damage = base.damage * damage_scale
+			effective.splash_damage = base.splash_damage * damage_scale
+			effective.reload_seconds = base.reload_seconds * WeaponTier.reload_multiplier(tier)
+		_effective_definitions.append(effective)
 
 
 func is_weapon_available(index: int) -> bool:
@@ -161,7 +195,7 @@ func _cycle_weapon(direction: int) -> bool:
 
 
 func try_fire(shooter: CollisionObject3D, muzzle: Marker3D, aim_point: Vector3) -> bool:
-	var definition := get_current_definition()
+	var definition := get_effective_definition()
 	if (
 		definition == null
 		or not definition.is_valid_definition()

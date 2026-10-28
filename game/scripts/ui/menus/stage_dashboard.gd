@@ -457,7 +457,8 @@ func refresh_profile() -> void:
 			progression.balance,
 			progression.best_score,
 			progression.unlocked_ids,
-			progression.selected_weapon_id
+			progression.selected_weapon_id,
+			progression.weapon_tiers
 		)
 
 

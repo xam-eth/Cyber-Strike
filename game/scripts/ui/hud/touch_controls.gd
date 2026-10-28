@@ -26,6 +26,7 @@ signal finish_run_requested
 signal sound_mute_requested
 signal armory_requested
 signal armory_weapon_action_requested(weapon_id: StringName)
+signal armory_weapon_upgrade_requested(weapon_id: StringName)
 signal armory_close_requested
 ## One signal for every HOME in the HUD: pause, results, armory and settings all
 ## mean "leave the world for the dashboard", and main.gd answers it once.
@@ -185,6 +186,10 @@ var _results_retry_button: AegisButton
 var _results_explore_button: AegisButton
 var _skill_ring: CooldownRing
 var _skill_cooldown_label: Label
+var _fire_caption: Label
+var _weapon_caption: Label
+var _aim_caption: Label
+var _skill_caption: Label
 var _touch_ammo_chip: AegisAmmoChip
 var _results_panel: AegisPanel
 
@@ -534,6 +539,12 @@ func set_weapon_label(display_name: String) -> void:
 		_touch_ammo_chip.set_weapon(display_name.get_slice(" ", 0).to_upper())
 
 
+func set_weapon_tier(tier: int) -> void:
+	_state.weapon_tier = clampi(tier, 1, WeaponTier.tier_count())
+	if is_instance_valid(_touch_ammo_chip):
+		_touch_ammo_chip.set_tier(tier)
+
+
 func _update_weapon_ammo(remaining: int, capacity: int, reloading: bool) -> void:
 	if is_instance_valid(_touch_ammo_chip):
 		_touch_ammo_chip.set_ammo(remaining, capacity, reloading)
@@ -607,6 +618,8 @@ func _apply_aim_visual(aiming: bool) -> void:
 		_aim_button.add_theme_stylebox_override("normal", active_face)
 	AegisTheme.tint_icon(_aim_button, AegisTokens.INFO if aiming else AegisTokens.INK)
 	_aim_button.icon = AegisTheme.hud_icon("hud-aim")
+	if is_instance_valid(_aim_caption):
+		AegisText.apply(_aim_caption, "hud.aim_active" if aiming else "hud.aim")
 	_aim_button.set_meta("aegis_state", "active" if aiming else "idle")
 
 
@@ -781,18 +794,21 @@ func _build_touch_buttons() -> void:
 	)
 	_fire_button.button_down.connect(_on_fire_down)
 	_fire_button.button_up.connect(_on_fire_up)
+	_fire_caption = _action_caption(_fire_button, "hud.fire", AegisTokens.ACCENT)
 
 	_weapon_button = _combat_button(
 		"hud-weapon", "WeaponSwitchButton", "combat_weapon", "Swap / Armory", AegisTokens.INFO
 	)
 	_weapon_button.set_meta("aegis_state", "armory")
 	_weapon_button.pressed.connect(_on_weapon_switch_pressed)
+	_weapon_caption = _action_caption(_weapon_button, "hud.armory_short", AegisTokens.INFO)
 
 	_aim_button = _combat_button(
 		"hud-aim", "AimButton", "combat_aim", "Hold to aim down sights", AegisTokens.INFO
 	)
 	_aim_button.button_down.connect(_on_aim_down)
 	_aim_button.button_up.connect(_on_aim_up)
+	_aim_caption = _action_caption(_aim_button, "hud.aim", AegisTokens.INFO)
 
 	_skill_button = _combat_button(
 		"hud-emp",
@@ -803,6 +819,7 @@ func _build_touch_buttons() -> void:
 	)
 	_skill_button.pressed.connect(_on_skill_pressed)
 	_skill_button.set_meta("aegis_state", "ready")
+	_skill_caption = _action_caption(_skill_button, "hud.emp", AegisTokens.ABILITY, true)
 	_skill_cooldown_label = _label("", "mono_s", AegisTokens.ABILITY)
 	_skill_cooldown_label.name = "EmpSeconds"
 	_skill_cooldown_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -895,6 +912,23 @@ func _on_locale_changed(_code: String) -> void:
 func _register_type(control: Control, role: String, _color: Color, multiplier: float = 1.0) -> void:
 	control.set_meta("aegis_role", role)
 	control.set_meta("aegis_scale", multiplier)
+
+
+func _action_caption(button: AegisButton, key: String, color: Color, at_top: bool = false) -> Label:
+	var caption := _label_key(key, "label_s", color, [], 1.0, true)
+	caption.name = "%sCaption" % button.name
+	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	caption.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	caption.anchor_left = 0.0
+	caption.anchor_right = 1.0
+	caption.anchor_top = 0.0 if at_top else 1.0
+	caption.anchor_bottom = 0.0 if at_top else 1.0
+	caption.offset_left = 3.0
+	caption.offset_right = -3.0
+	caption.offset_top = 3.0 if at_top else -20.0
+	caption.offset_bottom = 18.0 if at_top else -3.0
+	button.add_child(caption)
+	return caption
 
 
 func _icon_button(button_name: String, icon_name: String, tooltip: String) -> AegisButton:
@@ -1188,8 +1222,6 @@ func _draw() -> void:
 			. top(
 				self,
 				[
-					_health_card,
-					_wave_card,
 					_system_row,
 				]
 			)

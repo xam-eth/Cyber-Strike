@@ -127,6 +127,7 @@ func _ready() -> void:
 	touch_controls.weapon_switch_requested.connect(_on_weapon_switch_requested)
 	touch_controls.armory_requested.connect(_open_armory)
 	touch_controls.armory_weapon_action_requested.connect(_on_armory_weapon_action)
+	touch_controls.armory_weapon_upgrade_requested.connect(_on_armory_weapon_upgrade)
 	touch_controls.armory_close_requested.connect(_close_armory)
 	touch_controls.skill_requested.connect(player.activate_skill)
 	touch_controls.pause_requested.connect(_toggle_pause)
@@ -287,14 +288,19 @@ func _on_settings_changed(values: Dictionary) -> void:
 
 func _on_profile_changed() -> void:
 	player.weapon_controller.set_available_weapon_ids(progression_service.unlocked_ids)
+	player.weapon_controller.set_weapon_tiers(progression_service.weapon_tiers)
 	HudArmoryBridge.refresh(
 		touch_controls,
 		progression_service.balance,
 		progression_service.best_score,
 		progression_service.unlocked_ids,
-		player.weapon_controller.get_current_definition().weapon_id
+		player.weapon_controller.get_current_definition().weapon_id,
+		progression_service.weapon_tiers
 	)
 	touch_controls.set_weapon_label(player.get_current_weapon_name())
+	touch_controls.set_weapon_tier(
+		progression_service.weapon_tier(player.weapon_controller.get_current_definition().weapon_id)
+	)
 	touch_controls._update_weapon_ammo(
 		player.weapon_controller.get_current_ammo(),
 		player.weapon_controller.get_current_magazine_size(),
@@ -385,6 +391,25 @@ func _on_armory_weapon_action(weapon_id: StringName) -> void:
 		print("Armory: unlocked " + String(weapon_id))
 		Sfx.play_ui(&"session_clear")
 		touch_controls._armory_panel.show_hint("%s UNLOCKED & EQUIPPED" % weapon_name.to_upper())
+
+
+func _on_armory_weapon_upgrade(weapon_id: StringName) -> void:
+	if not touch_controls._armory_panel.visible or not progression_service.is_unlocked(weapon_id):
+		return
+	var current := progression_service.weapon_tier(weapon_id)
+	if current >= WeaponTier.tier_count():
+		touch_controls._armory_panel.show_hint_key("armory.upgrade_max")
+		return
+	var cost := progression_service.weapon_upgrade_cost(weapon_id)
+	var missing := cost - progression_service.balance
+	if missing > 0:
+		touch_controls._armory_panel.show_hint_key("armory.upgrade_need", [missing])
+		return
+	if progression_service.upgrade_weapon(weapon_id):
+		var next := progression_service.weapon_tier(weapon_id)
+		print("Armory: upgraded %s to tier %d" % [String(weapon_id), next])
+		Sfx.play_ui(&"session_clear")
+		touch_controls._armory_panel.show_hint_key("armory.upgraded", [next])
 
 
 func _toggle_pause() -> void:

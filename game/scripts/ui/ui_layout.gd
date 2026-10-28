@@ -151,27 +151,26 @@ static func landscape(hud) -> void:
 		)
 	)
 
-	# 844x390: enlarge the actual FIRE/ADS/EMP/SWAP touch faces as a two-row
-	# right-thumb cluster. Keep an 8px gap and move ammo into the open seam.
-	# Landscape used to dock the whole right-thumb cluster 8 px from the right
-	# and the bottom of an 844x390 screen. Raise the authored edge margin; the
-	# device safe area is added on top by _place_button.
-	var fire_px := 180.0
-	var action_px := 112.0
+	# One compact two-by-two thumb cluster. FIRE is primary; the other verbs
+	# keep generous 88 px faces without competing with the playfield. Ammo is
+	# the same width as the cluster and sits directly above SWAP/ARMORY, so
+	# equipped weapon, magazine and weapon action read as one column.
+	var fire_px := 112.0
+	var action_px := 88.0
 	var gap_px := 8.0
-	var fire_right := 20.0
-	var fire_bottom := 20.0
+	var fire_right := 16.0
+	var fire_bottom := 16.0
 	var aim_bottom := fire_bottom + fire_px + gap_px
-	var weapon_right := fire_right + action_px + gap_px
-	var skill_right := fire_right + fire_px + gap_px
+	var weapon_right := fire_right + fire_px + gap_px
+	var skill_right := weapon_right
 	_place_button(hud, hud._fire_button, fire_right, fire_bottom, fire_px, fire_px)
 	_place_button(hud, hud._aim_button, fire_right, aim_bottom, action_px, action_px)
 	_place_button(hud, hud._skill_button, skill_right, fire_bottom, action_px, action_px)
 	_place_button(hud, hud._weapon_button, weapon_right, aim_bottom, action_px, action_px)
-	# The magazine sits in the seam between the top-left rail and the raised
-	# EMP plate: the old (224, 136) corner ended up under the Armory row once
-	# the gesture reserve lifted it off the bottom edge.
-	_place_button(hud, hud._touch_ammo_chip, 340.0, 80.0, 112.0, 54.0)
+	var ammo_bottom := aim_bottom + action_px + gap_px
+	_place_button(
+		hud, hud._touch_ammo_chip, fire_right, ammo_bottom, fire_px + action_px + gap_px, 52.0
+	)
 	_place_button(
 		hud, hud._skill_ring, skill_right - 4.0, fire_bottom - 4.0, action_px + 8.0, action_px + 8.0
 	)

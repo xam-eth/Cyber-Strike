@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "tier_count": 3,
+  "tiers": [
+    {
+      "tier": 1,
+      "damage_multiplier": 1.0,
+      "reload_multiplier": 1.0,
+      "costs": {}
+    },
+    {
+      "tier": 2,
+      "damage_multiplier": 1.08,
+      "reload_multiplier": 0.96,
+      "costs": {
+        "pulse_rifle": 90,
+        "nova_launcher": 150,
+        "arc_shooter": 220
+      }
+    },
+    {
+      "tier": 3,
+      "damage_multiplier": 1.16,
+      "reload_multiplier": 0.92,
+      "costs": {
+        "pulse_rifle": 180,
+        "nova_launcher": 240,
+        "arc_shooter": 320
+      }
+    }
+  ]
+}

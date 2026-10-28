@@ -239,11 +239,11 @@ func _run_smoke_test() -> void:
 	)
 	_expect(
 		(
-			weapon_button.get_global_rect().size.x * LANDSCAPE_STRETCH >= 110.0
-			and fire_button.get_global_rect().size.x * LANDSCAPE_STRETCH >= 178.0
-			and fire_button.get_global_rect().size.y * LANDSCAPE_STRETCH >= 178.0
-			and aim_button.get_global_rect().size.x * LANDSCAPE_STRETCH >= 110.0
-			and skill_button.get_global_rect().size.x * LANDSCAPE_STRETCH >= 110.0
+			weapon_button.get_global_rect().size.x * LANDSCAPE_STRETCH >= 87.0
+			and fire_button.get_global_rect().size.x * LANDSCAPE_STRETCH >= 111.0
+			and fire_button.get_global_rect().size.y * LANDSCAPE_STRETCH >= 111.0
+			and aim_button.get_global_rect().size.x * LANDSCAPE_STRETCH >= 87.0
+			and skill_button.get_global_rect().size.x * LANDSCAPE_STRETCH >= 87.0
 			and not weapon_button.get_global_rect().grow(landscape_gap).intersects(
 				aim_button.get_global_rect()
 			)
@@ -254,7 +254,7 @@ func _run_smoke_test() -> void:
 				skill_button.get_global_rect()
 			)
 		),
-		"FIRE 180, AIM/EMP/SWAP 112 finger targets clear each other and the SWAP dock",
+		"FIRE 112, AIM/EMP/SWAP 88 finger targets clear each other and the SWAP dock",
 	)
 	# Press the left rim of the face, not its centre: rect-size assertions alone
 	# would miss a stale dispatcher/hitbox.
@@ -291,12 +291,12 @@ func _run_smoke_test() -> void:
 	var emp_center: Vector2 = skill_button.get_global_rect().get_center()
 	_expect(
 		(
-			weapon_button.get_global_rect().size.y * 0.541667 >= 110.0
-			and weapon_button.get_global_rect().size.x * 0.541667 >= 110.0
-			and fire_button.get_global_rect().size.x * 0.541667 >= 178.0
-			and fire_button.get_global_rect().size.y * 0.541667 >= 178.0
-			and aim_button.get_global_rect().size.x * 0.541667 >= 110.0
-			and skill_button.get_global_rect().size.x * 0.541667 >= 110.0
+			weapon_button.get_global_rect().size.y * 0.541667 >= 87.0
+			and weapon_button.get_global_rect().size.x * 0.541667 >= 87.0
+			and fire_button.get_global_rect().size.x * 0.541667 >= 111.0
+			and fire_button.get_global_rect().size.y * 0.541667 >= 111.0
+			and aim_button.get_global_rect().size.x * 0.541667 >= 87.0
+			and skill_button.get_global_rect().size.x * 0.541667 >= 87.0
 			and emp_center.distance_to(ring.get_global_rect().get_center()) * 0.541667 < 2.0
 			and not system_row.get_global_rect().intersects(aim_button.get_global_rect())
 			and not system_row.get_global_rect().intersects(weapon_button.get_global_rect())
@@ -310,7 +310,7 @@ func _run_smoke_test() -> void:
 				aim_button.get_global_rect()
 			)
 		),
-		"landscape FIRE 180, AIM/EMP/SWAP 112px hit rects; ring frames EMP",
+		"landscape FIRE 112, AIM/EMP/SWAP 88px hit rects; ring frames EMP",
 	)
 	var landscape_fire_edge := (
 		fire_button.get_global_rect().position
@@ -348,12 +348,9 @@ func _run_smoke_test() -> void:
 			and not ammo_chip.get_global_rect().grow(landscape_gap).intersects(
 				skill_button.get_global_rect()
 			)
-			and (
-				(
-					(ammo_chip.get_global_rect().position.y - armory_entry.get_global_rect().end.y)
-					* 0.541667
-				)
-				>= 10.0
+			and not ammo_chip.get_global_rect().intersects(armory_entry.get_global_rect())
+			and is_equal_approx(
+				ammo_chip.get_global_rect().position.x, weapon_button.get_global_rect().position.x
 			)
 			and not (controls.get("_wave_state_label") as Label).visible
 			and not controls.get("_run_card").visible
@@ -387,7 +384,7 @@ func _run_smoke_test() -> void:
 			and weapon_button.visible
 			and String(weapon_button.get_meta("aegis_state", "")) == "armory"
 			and weapon_button.tooltip_text.contains("Open Armory")
-			and fire_button.get_global_rect().size.x * COMPACT_STRETCH >= 178.0
+			and fire_button.get_global_rect().size.x * COMPACT_STRETCH >= 111.0
 			and not feedback_panel.get_global_rect().intersects(skill_button.get_global_rect())
 			and not feedback_panel.get_global_rect().intersects(weapon_button.get_global_rect())
 			and ((controls.get("_feedback_panel").get("_message_label") as Label).text.contains(
@@ -908,7 +905,8 @@ func _run_smoke_test() -> void:
 		(
 			(
 				"retried preparation opens an actionable pause panel "
-				+ "(paused=%s panel=%s restart=%s pause_visible=%s pause_disabled=%s rect=%s top=%s down=%s hit=%s)"
+				+ "(paused=%s panel=%s restart=%s pause_visible=%s pause_disabled=%s "
+				+ "rect=%s top=%s down=%s hit=%s)"
 			)
 			% [
 				paused,

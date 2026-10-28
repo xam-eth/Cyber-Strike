@@ -23,17 +23,18 @@ static func install_panel(hud) -> void:
 	hud._armory_panel.name = "ArmoryPanel"
 	hud.add_child(hud._armory_panel)
 	hud._armory_panel.weapon_action_requested.connect(hud.armory_weapon_action_requested.emit)
+	hud._armory_panel.weapon_upgrade_requested.connect(hud.armory_weapon_upgrade_requested.emit)
 	hud._armory_panel.close_requested.connect(hud.armory_close_requested.emit)
 	hud._armory_panel.home_requested.connect(hud._on_home_pressed)
 
 
 static func refresh(
-	hud, balance: int, best: int, unlocked: Dictionary, equipped: StringName
+	hud, balance: int, best: int, unlocked: Dictionary, equipped: StringName, tiers: Dictionary = {}
 ) -> void:
 	hud._state.wallet_bp = balance
 	hud._state.available_weapons = unlocked.size()
 	refresh_entry_label(hud)
-	hud._armory_panel.refresh_profile(balance, best, unlocked, equipped)
+	hud._armory_panel.refresh_profile(balance, best, unlocked, equipped, tiers)
 
 
 static func refresh_entry_label(hud) -> void:

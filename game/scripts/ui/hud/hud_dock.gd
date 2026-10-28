@@ -37,9 +37,8 @@ static func top(hud, controls: Array) -> void:
 	for rect in rects:
 		union = union.merge(rect)
 	union = union.grow_individual(pad_x, pad_y, pad_x + hud._safe_left, pad_y)
-	# The strip runs to the trailing edge of the screen: a dock that stops in
-	# mid-air is a card, and this is not a card.
-	union.size.x = maxf(union.size.x, hud.size.x - union.position.x)
+	# Frame the controls that actually exist. Stretching this union to the
+	# trailing edge created a large empty plate and implied false navigation.
 	_plate(hud, union, true)
 
 

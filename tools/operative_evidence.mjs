@@ -78,9 +78,18 @@ let failures = 0;
    the page reports, never from a guessed delay. */
 async function stageReady(page) {
   await page
-    .waitForFunction(() => document.querySelector('#hero-canvas')?.dataset.state === 'ready', {
-      timeout: 60000,
-    })
+    .waitForFunction(
+      () => {
+        const stage = window.AegisHeroStage?.describe?.();
+        return (
+          document.querySelector('#hero-canvas')?.dataset.state === 'ready' &&
+          stage?.ready &&
+          stage?.rifleVisible &&
+          stage?.socketParent === 'R_Hand'
+        );
+      },
+      { timeout: 60000 },
+    )
     .catch(() => null);
 }
 
@@ -110,9 +119,19 @@ for (const viewport of viewports) {
     const shot = async (name) => {
       const file = path.join(outDir, `${name}-${viewport}-${locale}.png`);
       await page.screenshot({ path: file });
-      const lang = await page.evaluate(() => document.documentElement.lang);
-      frames.push({ name, viewport, locale, lang, file: path.relative(root, file) });
-      console.log(`FRAME ${name.padEnd(9)} ${viewport} lang=${lang}`);
+      const evidence = await page.evaluate(() => ({
+        lang: document.documentElement.lang,
+        stage: window.AegisHeroStage?.describe?.() || null,
+        horizontalOverflow: document.documentElement.scrollWidth > window.innerWidth,
+        weaponTier: document.querySelector('#hero-weapon-tier')?.textContent || '',
+        weaponNext: document.querySelector('#hero-weapon-next')?.textContent || '',
+      }));
+      if (evidence.horizontalOverflow || (name !== 'tier-top' && !evidence.stage?.rifleVisible)) {
+        failures += 1;
+        console.error(`FAIL ${name} ${viewport} ${locale}: ${JSON.stringify(evidence)}`);
+      }
+      frames.push({ name, viewport, locale, ...evidence, file: path.relative(root, file) });
+      console.log(`FRAME ${name.padEnd(9)} ${viewport} lang=${locale}`);
     };
 
     await shot('resting');
@@ -162,6 +181,13 @@ for (const viewport of viewports) {
       console.error(`FAIL ${viewport} ${locale}: the tier press did not drop from the top (${JSON.stringify(tierBeat)})`);
     }
     await sleep(2600);
+    await stageReady(page);
+    await shot('tier-settled');
+    const settled = await page.evaluate(() => window.AegisHeroStage.describe());
+    if (settled.tier !== 3 || !settled.modelUrl.includes('tier_3') || !settled.rifleVisible) {
+      failures += 1;
+      console.error(`FAIL ${viewport} ${locale}: tier/weapon did not settle (${JSON.stringify(settled)})`);
+    }
 
     // --- a locked slot is refused ----------------------------------------
     const before = await page.evaluate(() => ({

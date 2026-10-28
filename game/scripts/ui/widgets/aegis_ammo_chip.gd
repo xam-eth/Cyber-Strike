@@ -5,6 +5,7 @@ class_name AegisAmmoChip
 extends AegisPanel
 
 var weapon_label: Label
+var tier_label: Label
 var value_label: Label
 
 
@@ -34,7 +35,22 @@ func _ready() -> void:
 	weapon_label.set_meta("aegis_role", "label_s")
 	weapon_label.set_meta("aegis_scale", 1.0)
 	AegisTheme.style_label(weapon_label, "label_s", AegisTokens.INFO)
-	readout.add_child(weapon_label)
+	var header := HBoxContainer.new()
+	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	header.add_theme_constant_override("separation", 4)
+	readout.add_child(header)
+	weapon_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	weapon_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	header.add_child(weapon_label)
+	tier_label = Label.new()
+	tier_label.name = "WeaponTier"
+	tier_label.text = "T1"
+	tier_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	tier_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tier_label.set_meta("aegis_role", "mono_s")
+	tier_label.set_meta("aegis_scale", 1.0)
+	AegisTheme.style_label(tier_label, "mono_s", AegisTokens.ACCENT)
+	header.add_child(tier_label)
 	value_label = Label.new()
 	value_label.name = "AmmoValue"
 	value_label.text = "24/24"
@@ -50,6 +66,11 @@ func _ready() -> void:
 func set_weapon(short_name: String) -> void:
 	if is_instance_valid(weapon_label):
 		weapon_label.text = short_name
+
+
+func set_tier(tier: int) -> void:
+	if is_instance_valid(tier_label):
+		tier_label.text = "T%d" % clampi(tier, 1, WeaponTier.tier_count())
 
 
 func set_ammo(remaining: int, capacity: int, reloading: bool) -> void:

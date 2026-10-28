@@ -84,20 +84,28 @@ func _process(delta: float) -> void:
 		if _qa_trace_elapsed >= 0.5:
 			_qa_trace_elapsed = 0.0
 			var avatar := get_parent().get_node_or_null("VisualRoot")
+			var weapons: WeaponController = get_parent().get("weapon_controller")
+			var definition := weapons.get_current_definition()
 			print(
 				(
-					"Camera QA: aim=%s blend=%.2f fov=%.1f arm=%.2f hit=%.2f cam=%s player=%s fire=%s clip=%s"
-					% [
-						_aiming,
-						_aim_blend,
-						spring_camera.fov,
-						spring_arm.spring_length,
-						spring_arm.get_hit_length(),
-						spring_camera.global_position,
-						get_parent().global_position,
-						get_parent().get("_touch_fire_pressed"),
-						avatar.call("current_clip") if is_instance_valid(avatar) else "none",
-					]
+					"Camera QA: aim=%s blend=%.2f fov=%.1f arm=%.2f hit=%.2f "
+					+ (
+						"cam=%s player=%s fire=%s clip=%s weapon=%s yaw=%.3f pitch=%.3f"
+						% [
+							_aiming,
+							_aim_blend,
+							spring_camera.fov,
+							spring_arm.spring_length,
+							spring_arm.get_hit_length(),
+							spring_camera.global_position,
+							get_parent().global_position,
+							get_parent().get("_touch_fire_pressed"),
+							avatar.call("current_clip") if is_instance_valid(avatar) else "none",
+							definition.weapon_id,
+							yaw_pivot.rotation.y,
+							pitch_pivot.rotation.x,
+						]
+					)
 				)
 			)
 			# A clip name alone does not prove the imported Blender bones moved.

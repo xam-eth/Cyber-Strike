@@ -166,6 +166,8 @@ static func refresh_weapon_action(hud) -> void:
 	hud._weapon_button.text = ""
 	hud._weapon_button.icon = AegisTheme.hud_icon("hud-weapon" if compact_armory else "hud-swap")
 	hud._weapon_button.set_meta("aegis_state", "swap" if can_swap else "armory")
+	if is_instance_valid(hud._weapon_caption):
+		AegisText.apply(hud._weapon_caption, "hud.swap" if can_swap else "hud.armory_short")
 	(
 		AegisText
 		. apply_tip(

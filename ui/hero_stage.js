@@ -68,6 +68,7 @@ const CELEBRATIONS = './game/assets/characters/hero/celebrations/manifest.json';
    fourth decimal -- small, but it is the same numbers the engine uses. */
 let SOCKET = {
   rotationXYZW: [0.727734, 0.229505, -0.429349, 0.483105],
+  aimRotationXYZW: [0.17042, 0.090197, -0.620581, 0.760066],
   offset: [0, 0.018, 0],
   scale: 0.4,
 };
@@ -124,6 +125,9 @@ if (stage && canvas) {
   };
   let rifleRef = null;
   let loadedUrl = '';
+  let weaponUrl = RIFLE;
+  let weaponId = 'pulse_rifle';
+  let weaponTier = 1;
   let socketUrl = '';
   let socketNode = null;
   let handFound = false;
@@ -427,11 +431,26 @@ if (stage && canvas) {
     }
   }
 
+  function updateSocket(delta = 1, immediate = false) {
+    if (!socketNode) return;
+    socketNode.position.set(...SOCKET.offset);
+    if (rifleRef) {
+      rifleRef.visible = true;
+      rifleRef.scale.setScalar(SOCKET.scale);
+    }
+    const aiming = current === actions[SALUTE];
+    const rotation = aiming ? SOCKET.aimRotationXYZW : SOCKET.rotationXYZW;
+    const target = new THREE.Quaternion(...rotation);
+    const alpha = immediate ? 1 : 1 - Math.exp(-Math.max(0, delta) / 0.16);
+    socketNode.quaternion.slerp(target, alpha);
+  }
+
   function tick() {
     frame = requestAnimationFrame(tick);
     const delta = Math.min(clock.getDelta(), 0.05);
     if (mixer && !reduced()) mixer.update(delta);
     stepEntrance();
+    updateSocket(delta);
     renderer.render(scene, camera);
   }
 
@@ -465,9 +484,11 @@ function loadSocket(url) {
       if (!spec || socketUrl !== url) return;
       SOCKET = {
         rotationXYZW: spec.carry_rotation_xyzw || SOCKET.rotationXYZW,
+        aimRotationXYZW: spec.aim_rotation_xyzw || SOCKET.aimRotationXYZW,
         offset: spec.offset || SOCKET.offset,
         scale: Number(spec.scale_model_units) || SOCKET.scale,
       };
+      updateSocket(1, true);
     })
     .catch(() => {});
 }
@@ -539,8 +560,8 @@ function loadModel(url) {
         const hand = model.getObjectByName('R_Hand');
         handFound = Boolean(hand);
         if (hand) {
-          new GLTFLoader().load(RIFLE, (weaponGltf) => {
-            if (disposed) return;
+          new GLTFLoader().load(weaponUrl, (weaponGltf) => {
+            if (disposed || token !== loadToken) return;
             const rifle = weaponGltf.scene;
             rifle.scale.setScalar(SOCKET.scale);
             rifle.traverse((node) => {
@@ -557,11 +578,10 @@ function loadModel(url) {
             socketNode = socket;
             socket.position.set(...SOCKET.offset);
             socket.quaternion.set(...SOCKET.rotationXYZW);
-            // Held down the leg at ease the rifle reads as a brace strapped to
-            // the thigh, so the lobby keeps it in hand but out of sight and
-            // brings it up with the `aim` beat: the celebration is the weapon
-            // coming up, drawn by the rig's own clip and the game's own socket.
-            rifle.visible = false;
+            // The equipped weapon is part of the operative, including during
+            // the authored celebration. The socket follows R_Hand on every
+            // frame; updateSocket chooses the sidecar's carry or aim rotation.
+            rifle.visible = true;
             socket.add(rifle);
             hand.add(socket);
             rifleRef = rifle;
@@ -634,8 +654,8 @@ function loadModel(url) {
     fill.position.set(-2.8, 1.4, 2.4);
     scene.add(fill);
 
-    loadedUrl = MODEL;
-    loadModel(MODEL);
+    if (!loadedUrl) loadedUrl = MODEL;
+    loadModel(loadedUrl);
 
     if (typeof ResizeObserver === 'function') {
       new ResizeObserver(() => size()).observe(stage);
@@ -650,22 +670,40 @@ function loadModel(url) {
     },
     /* What the operative page asks for: one hero, one tier, one entrance. The
        roster decides the paths; the stage decides how a body arrives. */
-    setLoadout({ heroId: hero, tier, model: url, rig, entry } = {}) {
+    setLoadout({
+      heroId: hero,
+      tier,
+      model: url,
+      rig,
+      weaponId: id,
+      weaponTier: rank,
+      weaponModel,
+      entry,
+    } = {}) {
       if (typeof hero === 'string' && hero) heroId = hero;
       if (Number.isFinite(tier)) tierNumber = tier;
+      if (typeof id === 'string' && id) weaponId = id;
+      if (Number.isFinite(rank)) weaponTier = Math.max(1, Math.floor(rank));
       entrance.mode = entry === 'top' ? 'top' : entry === 'right' ? 'right' : entrance.mode;
       if (typeof rig === 'string' && rig && rig !== socketUrl) loadSocket(rig);
+      let reload = false;
+      if (url && url !== loadedUrl) {
+        loadedUrl = url;
+        reload = true;
+      }
+      if (typeof weaponModel === 'string' && weaponModel && weaponModel !== weaponUrl) {
+        weaponUrl = weaponModel;
+        reload = true;
+      }
       if (!renderer) {
         init();
         return;
       }
-      if (url && url !== loadedUrl) {
-        loadedUrl = url;
-        loadModel(url);
+      if (reload) {
+        loadModel(loadedUrl);
         return;
       }
-      // Same model, new beat: replay the entrance on the body already standing
-      // there, so an upgrade does not re-download a file to celebrate.
+      // Same assets, new beat: replay the entrance without another download.
       if (entry) applyEntrance(true);
       start();
     },
@@ -673,24 +711,16 @@ function loadModel(url) {
     pulse() {
       if (!ready || reduced()) return;
       window.clearTimeout(saluteTimer);
-      // The hero's own move, not a weapon drill: the rifle stays holstered out
-      // of sight unless the rig has no authored celebration to play.
-      if (rifleRef) rifleRef.visible = false;
+      if (rifleRef) rifleRef.visible = true;
       if (celebration) {
         playCelebration();
         return;
       }
-      // No authored celebration for this hero yet: the rig's aim pose is the
-      // honest stand-in, and it is the only beat hero.glb can actually play.
-      if (rifleRef) rifleRef.visible = true;
+      // A hero without an authored signature uses the rig's real aim clip and
+      // the aim socket, then returns to carry without hiding the weapon.
       play(SALUTE, 0.18);
       saluteTimer = window.setTimeout(() => {
         play(IDLE, 0.35);
-        if (rifleRef) {
-          window.setTimeout(() => {
-            if (rifleRef) rifleRef.visible = false;
-          }, 380);
-        }
       }, 950);
     },
     /* QA only: freeze the celebration at a given second and draw one frame. The
@@ -705,7 +735,9 @@ function loadModel(url) {
       celebration.play();
       celebration.paused = true;
       celebration.time = Math.max(0, Math.min(seconds, celebration.getClip().duration));
+      current = celebration;
       mixer.update(0);
+      updateSocket(1, true);
       renderer.render(scene, camera);
       return Number(celebration.time.toFixed(3));
     },
@@ -757,7 +789,13 @@ function loadModel(url) {
         celebration: celebration ? celebration.getClip().name : null,
         celebrationSeconds: celebration ? Number(celebration.getClip().duration.toFixed(2)) : null,
         heroId,
+        weaponId,
+        weaponTier,
+        weaponModel: weaponUrl,
         rifle: rifleAttached,
+        rifleVisible: Boolean(rifleRef?.visible),
+        socketParent: socketNode?.parent?.name || null,
+        socketPose: current === actions[SALUTE] ? 'aim' : 'carry',
         rifleWorld: rifleRef
           ? new THREE.Box3().setFromObject(rifleRef).getCenter(new THREE.Vector3()).toArray().map((n) => Number(n.toFixed(3)))
           : null,
