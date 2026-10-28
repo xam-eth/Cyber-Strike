@@ -401,7 +401,7 @@ func _mirror_runs_to_shell() -> void:
 				"try{localStorage.setItem('aegis.runs','%d');"
 				+ "localStorage.setItem('aegis.progress',JSON.stringify(%s))}catch(e){}"
 			)
-			% [completed_runs, JSON.stringify(snapshot)]
+			% [completed_runs, snapshot]
 		)
 	)
 

@@ -54,10 +54,12 @@ func _run() -> void:
 			String((controls.get("_aim_button") as Button).get_meta("aegis_state")) == "active",
 			"%s right-mouse ADS updates the HUD state" % id
 		)
+		rig.yaw_pivot.rotation.y = 0.0
+		rig.pitch_pivot.rotation.x = 0.0
 		var yaw_before: float = rig.yaw_pivot.rotation.y
 		var pitch_before: float = rig.pitch_pivot.rotation.x
 		var motion := InputEventMouseMotion.new()
-		motion.position = Vector2(420, 190)
+		motion.position = root.get_visible_rect().get_center()
 		motion.relative = Vector2(28, -12)
 		Input.parse_input_event(motion)
 		await physics_frame
@@ -66,7 +68,10 @@ func _run() -> void:
 				not is_equal_approx(yaw_before, rig.yaw_pivot.rotation.y)
 				and not is_equal_approx(pitch_before, rig.pitch_pivot.rotation.x)
 			),
-			"%s right-mouse motion changes yaw and pitch while aiming" % id
+			(
+				"%s right-mouse motion changes yaw and pitch while aiming "
+				+ "(yaw %.4f -> %.4f, pitch %.4f -> %.4f)"
+			) % [id, yaw_before, rig.yaw_pivot.rotation.y, pitch_before, rig.pitch_pivot.rotation.x]
 		)
 		_mouse_button(false)
 		for frame in 20:
@@ -86,6 +91,8 @@ func _run() -> void:
 		_expect(
 			player.is_aiming() and camera.fov < rest_fov - 5.0, "%s touch AIM hold enters ADS" % id
 		)
+		rig.yaw_pivot.rotation.y = 0.0
+		rig.pitch_pivot.rotation.x = 0.0
 		yaw_before = rig.yaw_pivot.rotation.y
 		pitch_before = rig.pitch_pivot.rotation.x
 		var look := Vector2(controls.size.x * 0.52, controls.size.y * 0.62)
@@ -97,7 +104,18 @@ func _run() -> void:
 				not is_equal_approx(yaw_before, rig.yaw_pivot.rotation.y)
 				and not is_equal_approx(pitch_before, rig.pitch_pivot.rotation.x)
 			),
-			"%s second-finger touch drag changes ADS yaw and pitch" % id
+			(
+				"%s second-finger touch drag changes ADS yaw and pitch "
+				+ "(yaw %.4f -> %.4f, pitch %.4f -> %.4f, touch=%s)"
+			)
+			% [
+				id,
+				yaw_before,
+				rig.yaw_pivot.rotation.y,
+				pitch_before,
+				rig.pitch_pivot.rotation.x,
+				(controls.get("_touch") as HudTouchInput).last_touch_debug,
+			]
 		)
 		_touch(91, look + Vector2(30, -12), false)
 		_touch(90, aim.get_global_rect().get_center(), false)
@@ -122,7 +140,7 @@ func _mouse_button(pressed: bool) -> void:
 	var event := InputEventMouseButton.new()
 	event.button_index = MOUSE_BUTTON_RIGHT
 	event.button_mask = MOUSE_BUTTON_MASK_RIGHT if pressed else 0
-	event.position = Vector2(420, 190)
+	event.position = root.get_visible_rect().get_center()
 	event.global_position = event.position
 	event.pressed = pressed
 	Input.parse_input_event(event)
