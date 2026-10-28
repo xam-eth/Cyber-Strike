@@ -645,63 +645,75 @@ async function checkPage(target, viewport) {
         const deadline = Date.now() + 45000;
         let aimRect = null;
         while (Date.now() < deadline && !aimRect) {
-          const line = consoleLines.filter((item) => item.includes('Touch QA:') && item.includes('AIM rect=')).at(-1);
-          const match = line?.match(/AIM rect=\(([-\d.,\s]+)\)/);
+          const line = consoleLines.filter((item) => item.includes('Touch QA:') && item.includes(' ADS=')).at(-1);
+          const match = line?.match(/\bADS=(-?\d+),(-?\d+),(-?\d+)x(-?\d+)\b/);
           if (match) {
-            const [x, y, width, height] = match[1].split(',').map((value) => Number(value.trim()));
-            aimRect = { x, y, width, height };
+            aimRect = { x: Number(match[1]), y: Number(match[2]), width: Number(match[3]), height: Number(match[4]) };
           } else {
             await new Promise((resolve) => setTimeout(resolve, 250));
           }
         }
-        if (!aimRect) throw new Error('ADS touch: no measured AIM rect in Touch QA');
-        const scaleX = canvasBox.width / canvasBox.bufferWidth;
-        const scaleY = canvasBox.height / canvasBox.bufferHeight;
-        const aimPoint = {
-          x: canvasBox.x + (aimRect.x + aimRect.width / 2) * scaleX,
-          y: canvasBox.y + (aimRect.y + aimRect.height / 2) * scaleY,
-          id: 11,
-        };
-        const lookPoint = {
-          x: canvasBox.x + canvasBox.width * 0.5,
-          y: canvasBox.y + canvasBox.height * 0.6,
-          id: 12,
-        };
-        const cdp = await page.target().createCDPSession();
-        let mark = consoleLines.length;
-        await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [aimPoint] });
-        const aimed = await waitCamera(mark, (camera) => camera.aim && camera.blend >= 0.95);
-        await captureAds('touch-hold');
-        let moved = null;
-        if (aimed) {
-          await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [aimPoint, lookPoint] });
-          mark = consoleLines.length;
-          await cdp.send('Input.dispatchTouchEvent', {
-            type: 'touchMove',
-            touchPoints: [aimPoint, { ...lookPoint, x: lookPoint.x + 36, y: lookPoint.y - 18 }],
-          });
-          moved = await waitCamera(
-            mark,
-            (camera) => Math.abs(camera.yaw - aimed.yaw) > 0.001 || Math.abs(camera.pitch - aimed.pitch) > 0.001,
-          );
-          await captureAds('touch-look');
+        if (!aimRect) {
+          adsEvidence = {
+            input: 'touch',
+            weapon: null,
+            aimRect: null,
+            aimed: false,
+            settledBlend: 0,
+            lookChanged: false,
+            released: false,
+            error: 'No measured ADS rect in Touch QA',
+          };
         }
-        mark = consoleLines.length;
-        await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
-        const released = await waitCamera(mark, (camera) => !camera.aim);
-        await captureAds('touch-release');
-        await cdp.detach();
-        adsEvidence = {
-          input: 'touch',
-          weapon: aimed?.weapon || null,
-          aimRect,
-          aimed: Boolean(aimed),
-          settledBlend: aimed?.blend || 0,
-          lookChanged: Boolean(moved),
-          released: Boolean(released),
-          before: aimed,
-          after: moved,
-        };
+        if (aimRect) {
+          const scaleX = canvasBox.width / canvasBox.bufferWidth;
+          const scaleY = canvasBox.height / canvasBox.bufferHeight;
+          const aimPoint = {
+            x: canvasBox.x + (aimRect.x + aimRect.width / 2) * scaleX,
+            y: canvasBox.y + (aimRect.y + aimRect.height / 2) * scaleY,
+            id: 11,
+          };
+          const lookPoint = {
+            x: canvasBox.x + canvasBox.width * 0.5,
+            y: canvasBox.y + canvasBox.height * 0.6,
+            id: 12,
+          };
+          const cdp = await page.target().createCDPSession();
+          let mark = consoleLines.length;
+          await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [aimPoint] });
+          const aimed = await waitCamera(mark, (camera) => camera.aim && camera.blend >= 0.95);
+          await captureAds('touch-hold');
+          let moved = null;
+          if (aimed) {
+            await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [aimPoint, lookPoint] });
+            mark = consoleLines.length;
+            await cdp.send('Input.dispatchTouchEvent', {
+              type: 'touchMove',
+              touchPoints: [aimPoint, { ...lookPoint, x: lookPoint.x + 36, y: lookPoint.y - 18 }],
+            });
+            moved = await waitCamera(
+              mark,
+              (camera) => Math.abs(camera.yaw - aimed.yaw) > 0.001 || Math.abs(camera.pitch - aimed.pitch) > 0.001,
+            );
+            await captureAds('touch-look');
+          }
+          mark = consoleLines.length;
+          await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+          const released = await waitCamera(mark, (camera) => !camera.aim);
+          await captureAds('touch-release');
+          await cdp.detach();
+          adsEvidence = {
+            input: 'touch',
+            weapon: aimed?.weapon || null,
+            aimRect,
+            aimed: Boolean(aimed),
+            settledBlend: aimed?.blend || 0,
+            lookChanged: Boolean(moved),
+            released: Boolean(released),
+            before: aimed,
+            after: moved,
+          };
+        }
       } else {
         const centre = { x: canvasBox.x + canvasBox.width / 2, y: canvasBox.y + canvasBox.height / 2 };
         let mark = consoleLines.length;

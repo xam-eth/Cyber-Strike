@@ -391,6 +391,41 @@ jobs:
           PY
           exit "$qa_status"
 
+      - name: Browser ADS mouse and touch contracts
+        run: |
+          # Pulse is the owned weapon in a fresh profile. Exercise its real
+          # right-mouse and two-finger ADS paths without granting locked weapons
+          # or bypassing WeaponController ownership. Engine ADS smoke covers
+          # Pulse, Nova and Arc separately; do not mislabel this as all-three
+          # browser coverage.
+          qa_status=0
+          node tools/web_qa.mjs --page / --viewport 1280x720 --timeout 120 \
+            --ads --out exports/web-qa/ads-mouse --json \
+            > exports/web-qa/ads-mouse-report.json || qa_status=1
+          node tools/web_qa.mjs --page / --viewport 844x390 --touch --timeout 120 \
+            --ads --out exports/web-qa/ads-touch --json \
+            > exports/web-qa/ads-touch-report.json || qa_status=1
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          ok = True
+          for mode in ("mouse", "touch"):
+              report = json.loads(Path(f"exports/web-qa/ads-{mode}-report.json").read_text())
+              ok = ok and report["ok"]
+              for page in report["pages"]:
+                  ads = page.get("ads") or {}
+                  print(
+                      f'Browser ADS {mode}: {"PASS" if not page["failed"] else "FAIL"} | '
+                      f'weapon={ads.get("weapon")} aimed={ads.get("aimed")} '
+                      f'look={ads.get("lookChanged")} released={ads.get("released")}'
+                  )
+                  for failure in page["failed"]:
+                      print(f"::error title=Browser ADS {mode} QA::{failure}")
+          print(f'::notice title=Browser ADS::Pulse mouse + touch {"PASS" if ok else "FAIL"}')
+          raise SystemExit(0 if ok else 1)
+          PY
+          exit "$qa_status"
+
       - name: Upload the web QA screenshots
         if: always()
         uses: actions/upload-artifact@v4

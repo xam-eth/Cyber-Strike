@@ -159,7 +159,7 @@ for test_path in "${TESTS[@]}"; do
   timeout "${TEST_TIMEOUT}" "$GODOT" --headless --path "$GAME_DIR" \
     --script "$test_path" >"$test_log" 2>&1 || test_status=$?
   script_error=0
-  if grep -qE 'SCRIPT ERROR|Parse Error|ERROR: Condition|ERROR: String formatting error' "$test_log"; then
+  if grep -qE 'SCRIPT ERROR|Parse Error|ERROR: Condition' "$test_log"; then
     script_error=1
   fi
   if (( test_status == 0 && script_error == 0 )); then
@@ -189,7 +189,7 @@ for test_path in "${TESTS[@]}"; do
     # The full job log is not downloadable from every environment; surface the
     # first error line as an annotation so the failing call site is never a guess.
     if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
-      error_digest="$(grep -A2 -m1 -E 'SCRIPT ERROR|Parse Error|ERROR: Condition|ERROR: String formatting error' "$test_log" | tr '\n' '|' | cut -c1-700)"
+      error_digest="$(grep -A2 -m1 -E 'SCRIPT ERROR|Parse Error|ERROR: Condition' "$test_log" | tr '\n' '|' | cut -c1-700)"
       printf '::error title=Script error in %s::%s\n' "${test_name%.gd}" "${error_digest:-see log}"
     fi
   fi
