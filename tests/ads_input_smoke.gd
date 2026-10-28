@@ -59,6 +59,18 @@ func _run() -> void:
 		rig.pitch_pivot.rotation.x = 0.0
 		var yaw_before: float = rig.yaw_pivot.rotation.y
 		var pitch_before: float = rig.pitch_pivot.rotation.x
+		var capture_warp := InputEventMouseMotion.new()
+		capture_warp.position = root.get_visible_rect().get_center()
+		capture_warp.relative = Vector2(640, 360)
+		Input.parse_input_event(capture_warp)
+		await physics_frame
+		_expect(
+			(
+				is_equal_approx(yaw_before, rig.yaw_pivot.rotation.y)
+				and is_equal_approx(pitch_before, rig.pitch_pivot.rotation.x)
+			),
+			"%s ignores the initial pointer-lock capture warp" % id
+		)
 		var motion := InputEventMouseMotion.new()
 		motion.position = root.get_visible_rect().get_center()
 		motion.relative = Vector2(28, -12)

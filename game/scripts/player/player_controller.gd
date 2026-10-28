@@ -41,6 +41,9 @@ var _touch_fire_pressed: bool = false
 var _aiming: bool = false
 var _touch_aim_hold: bool = false
 var _mouse_aim_hold: bool = false
+## Browsers can report the pre-lock cursor position as one large relative
+## motion while entering pointer lock. Consume that first event, not real look.
+var _ignore_initial_aim_motion: bool = false
 var _walk_time: float = 0.0
 var _reload_was_active: bool = false
 
@@ -108,20 +111,27 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
 			_mouse_aim_hold = true
+			_ignore_initial_aim_motion = true
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 			set_aiming(true)
 			get_viewport().set_input_as_handled()
 		elif event.button_index == MOUSE_BUTTON_RIGHT and not event.pressed:
 			_mouse_aim_hold = false
+			_ignore_initial_aim_motion = false
 			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 			set_aiming(false)
 			get_viewport().set_input_as_handled()
 	elif event is InputEventMouseMotion and _mouse_aim_hold:
+		if _ignore_initial_aim_motion:
+			_ignore_initial_aim_motion = false
+			get_viewport().set_input_as_handled()
+			return
 		# Pointer lock improves desktop look, but browser/iframe denial must not
 		# cancel ADS. Relative mouse motion remains usable without the lock.
 		camera_rig.apply_look_delta(event.relative)
 	elif event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
 		_mouse_aim_hold = false
+		_ignore_initial_aim_motion = false
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 
@@ -290,6 +300,7 @@ func reset_player() -> void:
 	set_aiming(false)
 	_touch_aim_hold = false
 	_mouse_aim_hold = false
+	_ignore_initial_aim_motion = false
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	current_health = max_health
 	_skill_cooldown_remaining = 0.0

@@ -723,12 +723,35 @@ async function checkPage(target, viewport) {
         const pointerLock = await page.evaluate(() => document.pointerLockElement?.tagName || 'none');
         await captureAds('mouse-hold');
         let moved = null;
+        let lookOrigin = null;
+        let lookPointerLock = null;
+        let aimAfterUnlock = false;
         if (aimed) {
+          // CDP mouse events do not carry Web movementX/Y while pointer lock is
+          // active. Verify hold under the browser's chosen lock state, then
+          // explicitly exercise the supported no-lock fallback without letting
+          // go of right mouse. ADS must remain active across that transition.
+          await page.evaluate(() => document.exitPointerLock?.());
+          await page
+            .waitForFunction(() => document.pointerLockElement === null, { timeout: 5000 })
+            .catch(() => {});
+          lookPointerLock = await page.evaluate(() => document.pointerLockElement?.tagName || 'none');
+          const fallbackMark = consoleLines.length;
+          lookOrigin = await waitCamera(fallbackMark, (camera) => camera.aim && camera.blend >= 0.95, 10000);
+          aimAfterUnlock = Boolean(lookOrigin) && lookPointerLock === 'none';
           mark = consoleLines.length;
-          await page.mouse.move(centre.x + 48, centre.y - 24);
+          if (aimAfterUnlock) {
+            for (let step = 1; step <= 6; step += 1) {
+              await page.mouse.move(centre.x + step * 8, centre.y - step * 4);
+              await new Promise((resolve) => setTimeout(resolve, 60));
+            }
+          }
           moved = await waitCamera(
             mark,
-            (camera) => Math.abs(camera.yaw - aimed.yaw) > 0.001 || Math.abs(camera.pitch - aimed.pitch) > 0.001,
+            (camera) =>
+              lookOrigin &&
+              (Math.abs(camera.yaw - lookOrigin.yaw) > 0.001 ||
+                Math.abs(camera.pitch - lookOrigin.pitch) > 0.001),
           );
           await captureAds('mouse-look');
         }
@@ -740,11 +763,14 @@ async function checkPage(target, viewport) {
           input: 'mouse',
           weapon: aimed?.weapon || null,
           pointerLock,
+          lookPointerLock,
+          lookMode: 'relative-mouse-without-pointer-lock',
+          aimAfterUnlock,
           aimed: Boolean(aimed),
           settledBlend: aimed?.blend || 0,
           lookChanged: Boolean(moved),
           released: Boolean(released),
-          before: aimed,
+          before: lookOrigin || aimed,
           after: moved,
         };
       }
@@ -1045,6 +1071,9 @@ async function checkPage(target, viewport) {
     checks.push(['ADS pass reached live gameplay', inGameplay]);
     checks.push(['ADS entered and settled on the equipped weapon', adsEvidence?.aimed === true]);
     checks.push(['ADS mouse/touch look changed camera yaw or pitch', adsEvidence?.lookChanged === true]);
+    if (adsEvidence?.input === 'mouse') {
+      checks.push(['ADS right-mouse hold survives pointer-lock exit', adsEvidence?.aimAfterUnlock === true]);
+    }
     checks.push(['ADS release restored the unaimed state', adsEvidence?.released === true]);
     checks.push(['ADS hold/look/release frames were captured', adsFrames.length === 3]);
   }

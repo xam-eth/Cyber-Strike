@@ -393,11 +393,11 @@ jobs:
 
       - name: Browser ADS mouse and touch contracts
         run: |
-          # Pulse is the owned weapon in a fresh profile. Exercise its real
-          # right-mouse and two-finger ADS paths without granting locked weapons
-          # or bypassing WeaponController ownership. Engine ADS smoke covers
-          # Pulse, Nova and Arc separately; do not mislabel this as all-three
-          # browser coverage.
+          # Pulse is the owned weapon in a fresh profile. Exercise right-mouse
+          # hold plus no-lock relative look and two-finger ADS without granting
+          # locked weapons or bypassing WeaponController ownership. Engine ADS
+          # smoke covers Pulse, Nova and Arc separately; neither that suite nor
+          # this no-lock browser look is all-three locked-pointer coverage.
           qa_status=0
           node tools/web_qa.mjs --page / --viewport 1280x720 --timeout 120 \
             --ads --out exports/web-qa/ads-mouse --json \
@@ -419,9 +419,13 @@ jobs:
                       f'weapon={ads.get("weapon")} aimed={ads.get("aimed")} '
                       f'look={ads.get("lookChanged")} released={ads.get("released")}'
                   )
+                  print(
+                      f"::notice title=Browser ADS {mode} evidence::"
+                      + json.dumps(ads, separators=(",", ":"))
+                  )
                   for failure in page["failed"]:
                       print(f"::error title=Browser ADS {mode} QA::{failure}")
-          print(f'::notice title=Browser ADS::Pulse mouse + touch {"PASS" if ok else "FAIL"}')
+          print(f'::notice title=Browser ADS::Pulse mouse hold/no-lock look + touch {"PASS" if ok else "FAIL"}')
           raise SystemExit(0 if ok else 1)
           PY
           exit "$qa_status"
