@@ -464,7 +464,7 @@ function tierRig(hero, tier) {
 /* One card component, two groups. The difference between them is what the name
    line says (a callsign or a rank) and whether the art window is a portrait or
    a costume — not how the card is built. */
-function buildCard({ art, badge, name, state, locked, empty, lock }) {
+function buildCard({ art, badge, name, role, state, meta, locked, empty, lock }) {
   const button = document.createElement('button');
   button.type = 'button';
   button.className = 'card';
@@ -495,10 +495,23 @@ function buildCard({ art, badge, name, state, locked, empty, lock }) {
   const nameNode = document.createElement('span');
   nameNode.className = 'card__name';
   nameNode.textContent = name;
+  body.appendChild(nameNode);
+  if (role) {
+    const roleNode = document.createElement('span');
+    roleNode.className = 'card__role';
+    roleNode.textContent = role;
+    body.appendChild(roleNode);
+  }
   const stateNode = document.createElement('span');
   stateNode.className = 'card__state';
   stateNode.textContent = state;
-  body.append(nameNode, stateNode);
+  body.appendChild(stateNode);
+  if (meta) {
+    const metaNode = document.createElement('span');
+    metaNode.className = 'card__meta';
+    metaNode.textContent = meta;
+    body.appendChild(metaNode);
+  }
   button.appendChild(body);
   if (locked) button.dataset.locked = 'true';
   if (empty) button.dataset.empty = 'true';
@@ -515,11 +528,14 @@ function paintHeroCards() {
     const card = buildCard({
       art: playable ? tierArt(hero, Math.max(1, tier)) : null,
       name: hero.callsign,
-      state: playable ? hero.name : t('common.in_development'),
+      role: t(hero.role_key),
+      state: hero.name,
+      meta: playable ? t('hero.status') : t('common.in_development'),
       locked: !playable,
       empty: !playable,
       lock: !playable,
     });
+    card.classList.add('herocard');
     card.dataset.hero = hero.id;
     card.setAttribute('aria-pressed', String(hero.id === heroState.heroId));
     // A hero without a rig is a slot with a name, not a button that pretends:
@@ -582,6 +598,12 @@ function paintOperative() {
   if (tierNumber) tierNumber.textContent = String(row.tier);
   const tierName = el('hero-tier-name');
   if (tierName) tierName.textContent = t(row.name_key);
+  const roleTitle = el('hero-role-title');
+  if (roleTitle) roleTitle.textContent = t(hero.role_key);
+  const status = el('hero-status');
+  if (status) {
+    status.textContent = hero.status === 'field_ready' ? t('hero.status') : t('common.in_development');
+  }
   const role = el('hero-role');
   if (role) {
     role.dataset.i18n = hero.brief_key;

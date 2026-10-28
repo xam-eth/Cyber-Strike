@@ -332,6 +332,11 @@
             <div class="op__brief">
               <section class="op__progress" aria-labelledby="op-progress-label">
                 <h2 class="op__section-label" id="op-progress-label" data-i18n="hero.progress">HERO PROGRESSION</h2>
+                <div class="op__identity">
+                  <span data-i18n="hero.combat_role">COMBAT ROLE</span>
+                  <strong id="hero-role-title">STRIKE LEAD</strong>
+                  <b id="hero-status">FIELD READY</b>
+                </div>
                 <p class="op__role" id="hero-role" data-i18n="hero.sable.brief">
                   Raised on the frontier line, fielded as a strike lead. Her kit is the
                   rank: every tier is plate welded over the last one.
@@ -390,20 +395,20 @@
               </div>
             </div>
 
-            <!-- The two card groups, in one scrolling track so a narrow window
-                 moves them together instead of clipping the second one. Group 1
-                 is the hero options; group 2 is the tier ladder. -->
+            <!-- Hero choice is the dominant bottom panel. The compact tier
+                 stepper is a separate entity on its left; weapon loadout stays
+                 in the upper brief instead of becoming a third roster. -->
             <div class="op__groups">
               <div class="op__tracks">
                 <!-- Built from game/resources/heroes/roster.json so a card
-                     cannot promise a costume nobody rendered. -->
-                <section class="op__group" aria-labelledby="op-heroes-label">
+                     cannot promise a hero or rig that does not exist. -->
+                <section class="op__group op__group--heroes" aria-labelledby="op-heroes-label">
                   <h2 class="op__label" id="op-heroes-label" data-i18n="hero.group.heroes">OPERATIVES</h2>
-                  <ul class="cards" id="hero-roster"></ul>
+                  <ul class="cards cards--heroes" id="hero-roster"></ul>
                 </section>
 
-                <!-- Five cards of the same hero, each one a render of that
-                     tier's own model. -->
+                <!-- Five compact steps for the selected hero's actual tier
+                     ladder. They are progression navigation, not hero cards. -->
                 <section class="op__group op__group--tiers" aria-labelledby="op-tiers-label">
                   <h2 class="op__label" id="op-tiers-label">
                     <span data-i18n="hero.group.tiers">TIER</span>

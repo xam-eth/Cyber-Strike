@@ -1,18 +1,17 @@
 /* ==========================================================================
    OPERATIVE — the page where the player chooses who they deploy as
 
-   Two card groups, one card. The reference is the character page of a shipped
-   mobile shooter (CoD Mobile's Operator page, Free Fire's Character page): the
-   operative at the largest scale, the roster on a strip under them, one lit
-   action. The difference is the second group — CoD and Free Fire express an
-   upgrade as a level up on a text row, and a costume ladder is the one thing
-   that has to be shown as pictures of the same body. So the tier strip is card
-   art rendered from each tier's own GLB (ui/art/web/hero/, produced by
-   tools/hero_tier_sheet.mjs), five cards, one hero, five costumes.
+   Three distinct decisions: operative, hero tier and weapon loadout. The
+   reference is the character page of a shipped mobile shooter (CoD Mobile's
+   Operator page, Free Fire's Character page): the operative at the largest
+   scale and one lit action. The playable hero option is the dominant bottom
+   panel; its actual five-rank ladder is a compact stepper on the left, while
+   weapon choice stays in a separate loadout region and modal. Hero cards use
+   the roster's real role/name/status, not invented abilities or progression.
 
-   Both strips are the same component (.card): a 3:4 art window, a name line, a
-   state line, one accent edge. Two groups, one card, which is what "consistent"
-   means when it is written down instead of intended.
+   The shared .card base owns focus/selection treatment only. .herocard owns
+   the wide roster composition and .tierstep owns progression navigation, so
+   consistency does not collapse different entities into equivalent cards.
 
    Motion is meaning:
      hero  -> the operative enters from the RIGHT   (.enter--right)
@@ -1632,5 +1631,233 @@
     grid-row: 3;
     align-self: end;
     margin-top: 0;
+  }
+}
+
+/* ==========================================================================
+   OPERATIVE HIERARCHY — measured against 1280x720 and short landscape DOMs
+   The playable hero is the dominant bottom decision. Tier is a compact rail
+   on its left, and the blue weapon loadout remains a separate upper region.
+   Hero copy is limited to roster facts: name, role, status and real tier data.
+   ========================================================================== */
+
+.op__identity {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  padding: 5px 0 2px;
+  border-top: 1px solid rgba(120, 200, 255, 0.12);
+}
+
+.op__identity > span {
+  flex: 0 0 auto;
+  font-family: var(--font-ui);
+  font-size: 8px;
+  letter-spacing: 0.14em;
+  color: var(--ink-3);
+}
+
+.op__identity > strong {
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink);
+}
+
+.op__identity > b {
+  flex: 0 0 auto;
+  margin-left: auto;
+  font-family: var(--font-ui);
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+  color: var(--accent);
+}
+
+.op__tracks {
+  grid-template-columns: minmax(260px, 32%) minmax(0, 1fr);
+  align-items: end;
+  gap: 12px;
+  overflow: visible;
+}
+
+.op__group--tiers {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.op__group--heroes {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.cards--heroes {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(112px, 0.8fr);
+  gap: 8px;
+  width: 100%;
+  height: 140px;
+}
+
+.cards--heroes .card.herocard {
+  display: grid;
+  grid-template-columns: clamp(82px, 9vw, 118px) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  gap: 0;
+  width: 100%;
+  height: 140px;
+  justify-content: stretch;
+}
+
+.card.herocard .card__art {
+  position: relative;
+  inset: auto;
+  grid-column: 1;
+  grid-row: 1;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  object-fit: cover;
+  object-position: 50% 8%;
+}
+
+.card.herocard::after {
+  background: linear-gradient(90deg, rgba(4, 8, 12, 0.04), rgba(4, 8, 12, 0.9) 58%);
+}
+
+.card.herocard .card__body {
+  grid-column: 2;
+  grid-row: 1;
+  justify-content: center;
+  gap: 3px;
+  min-width: 0;
+  min-height: 0;
+  padding: 12px;
+}
+
+.card.herocard .card__name {
+  display: block;
+  overflow: hidden;
+  font-size: clamp(18px, 2.8vh, 26px);
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card.herocard .card__role {
+  overflow: hidden;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--info);
+}
+
+.card.herocard .card__state {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  white-space: normal;
+}
+
+.card.herocard .card__meta {
+  font-family: var(--font-ui);
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.card.herocard[data-empty='true'] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.card.herocard[data-empty='true'] .card__body {
+  grid-column: 1;
+}
+
+.cards--tiers {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(3, 44px);
+  gap: 4px 6px;
+  width: 100%;
+  height: 140px;
+}
+
+.card.tierstep {
+  width: 100%;
+  height: 44px;
+  min-height: 44px;
+}
+
+.card.tierstep .card__body {
+  padding: 17px 5px 3px;
+}
+
+@media (max-height: 499px) {
+  .op__identity {
+    display: none;
+  }
+
+  .op__tracks {
+    grid-template-columns: minmax(190px, 32%) minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .cards--heroes {
+    grid-template-columns: minmax(0, 2fr) minmax(104px, 0.8fr);
+    gap: 6px;
+    height: 92px;
+  }
+
+  .cards--heroes .card.herocard {
+    grid-template-columns: 68px minmax(0, 1fr);
+    height: 92px;
+  }
+
+  .cards--heroes .card.herocard[data-empty='true'] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .card.herocard .card__body {
+    gap: 2px;
+    padding: 7px 8px;
+  }
+
+  .card.herocard .card__name {
+    font-size: 16px;
+  }
+
+  .card.herocard .card__role {
+    font-size: 8.5px;
+  }
+
+  .card.herocard .card__state,
+  .card.herocard .card__meta {
+    font-size: 8px;
+  }
+
+  .cards--tiers {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: repeat(2, 44px);
+    gap: 4px;
+    height: 92px;
+  }
+
+  .card.tierstep .card__body {
+    padding: 16px 4px 2px;
+  }
+
+  .card.tierstep .card__name,
+  .card.tierstep .card__state {
+    font-size: 8px;
   }
 }

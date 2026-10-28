@@ -119,13 +119,53 @@ for (const viewport of viewports) {
     const shot = async (name) => {
       const file = path.join(outDir, `${name}-${viewport}-${locale}.png`);
       await page.screenshot({ path: file });
-      const evidence = await page.evaluate(() => ({
-        lang: document.documentElement.lang,
-        stage: window.AegisHeroStage?.describe?.() || null,
-        horizontalOverflow: document.documentElement.scrollWidth > window.innerWidth,
-        weaponTier: document.querySelector('#hero-weapon-tier')?.textContent || '',
-        weaponNext: document.querySelector('#hero-weapon-next')?.textContent || '',
-      }));
+      const evidence = await page.evaluate(() => {
+        const rect = (selector) => {
+          const element = document.querySelector(selector);
+          if (!element) return null;
+          const box = element.getBoundingClientRect();
+          return {
+            x: box.x,
+            y: box.y,
+            width: box.width,
+            height: box.height,
+            right: box.right,
+            bottom: box.bottom,
+          };
+        };
+        return {
+          lang: document.documentElement.lang,
+          stage: window.AegisHeroStage?.describe?.() || null,
+          horizontalOverflow: document.documentElement.scrollWidth > window.innerWidth,
+          weaponTier: document.querySelector('#hero-weapon-tier')?.textContent || '',
+          weaponNext: document.querySelector('#hero-weapon-next')?.textContent || '',
+          layout: {
+            sable: rect('#hero-roster .card[data-hero="sable"]'),
+            tier: rect('#hero-tiers .card[data-tier="1"]'),
+            heroGroup: rect('.op__group--heroes'),
+            tierGroup: rect('.op__group--tiers'),
+            weapon: rect('.op__weapon'),
+            groups: rect('.op__groups'),
+            role: document.querySelector('#hero-roster .card[data-hero="sable"] .card__role')?.textContent || '',
+          },
+        };
+      });
+      if (name === 'resting') {
+        const layout = evidence.layout;
+        const valid = layout.sable && layout.tier && layout.heroGroup && layout.tierGroup
+          && layout.weapon && layout.groups
+          && layout.tierGroup.x < layout.heroGroup.x
+          && layout.heroGroup.width > layout.tierGroup.width
+          && layout.sable.width > layout.tier.width * 1.5
+          && layout.sable.height > layout.tier.height
+          && layout.tier.height >= 44
+          && layout.weapon.bottom <= layout.groups.y + 1
+          && layout.role.length > 0;
+        if (!valid) {
+          failures += 1;
+          console.error(`FAIL operative hierarchy ${viewport} ${locale}: ${JSON.stringify(layout)}`);
+        }
+      }
       if (evidence.horizontalOverflow || (name !== 'tier-top' && !evidence.stage?.rifleVisible)) {
         failures += 1;
         console.error(`FAIL ${name} ${viewport} ${locale}: ${JSON.stringify(evidence)}`);

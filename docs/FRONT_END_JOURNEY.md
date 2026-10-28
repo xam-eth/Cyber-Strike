@@ -45,6 +45,7 @@ HERO is the operative showcase, not a duplicate HOME dashboard.
 - Read names, descriptions, prices, models, and selection ids from the relevant definitions/registries rather than duplicating literals.
 - The live Web hero stage uses the shipped hero GLB and equipped weapon/socket data where available; a painted portrait cannot substitute for verifying the actual rig.
 - Hero selection, hero-tier progress, equipped weapon, and weapon-tier progress are separate regions. The weapon rack previews only the shared three-weapon registry, reports owned/locked state, and leaves purchases/upgrades to Armory.
+- The playable hero option is the dominant bottom panel; the selected hero's compact tier stepper sits on its left. Hero cards and the identity row use only roster-backed name, role, status, brief, and actual tier data—no invented skill or hero-stat progression.
 - Celebration, entrance, and settled idle keep the equipped rifle visible on the authored `R_Hand` attachment; the sidecar carry/aim socket pose is blended rather than replaced by an unrelated prop.
 - The stage owns its GPU resources only while visible and releases/pauses them before gameplay needs the engine context.
 - Reduced-motion preferences apply to celebration and nonessential motion.
