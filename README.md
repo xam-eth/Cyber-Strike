@@ -13,10 +13,22 @@ Kamera ini adalah kamera inspeksi bebas, bukan karakter/gameplay. Material dan l
 ## Struktur
 
 - `scenes/aetherfall.tscn`, `scripts/`: scene, builder independen, dan kamera review.
-- `assets/world/aetherfall/`: layout dalam meter, 27 modul kit GLB, 7 tekstur procedural, satu GLB animasi orbit tower dan connector ramp.
+- `assets/world/aetherfall/`: layout dalam meter, 27 modul kit GLB, albedo + normal + ORM PBR untuk surface utama, satu GLB animasi orbit tower dan connector ramp.
 - `source/*.blend`: sumber Blender editable (tekstur kit dikemas dalam file). Kit ditulis dalam koordinat **Y-up** untuk mengikuti layout Godot, sehingga tampil menyamping relatif terhadap grid Z-up Blender; ekspor kit sengaja tidak mengonversi sumbu lagi.
 - `tools/blender/build_aetherfall.py`, `build_orbit.py`, dan `build_connector.py`: produksi ulang kit dan animasi menggunakan Blender `bpy` + numpy/Pillow.
 - `tests/`: kontrak statis dan smoke test scene Godot.
+
+## Produksi ulang asset
+
+Jalankan pipeline melalui Blender `bpy` dalam urutan ini agar ramp menerima peta PBR bersama:
+
+```sh
+python tools/blender/build_aetherfall.py
+python tools/blender/build_connector.py
+python tools/blender/build_orbit.py
+```
+
+Peta yang dibangun untuk permukaan opaque adalah albedo sRGB, normal tangent-space, serta ORM (metallic/roughness/AO). Lihat `assets/world/aetherfall/materials/README.md` dan provenance sumber di `assets/world/aetherfall/source_textures/README.md`.
 
 ## Validasi
 
@@ -29,8 +41,8 @@ godot --headless --path . --script res://tests/traversal_clearance.gd
 godot --headless --path . --script res://tests/traversal_motion.gd
 ```
 
-Lihat `docs/STATUS.md` untuk hasil nyata dan keterbatasan. Proyek review ini bukan klaim game-ready: jalur ramp utama sudah diuji dengan kapsul `CharacterBody3D` otomatis, tetapi sebagian prop tetap menggunakan collider proxy. Belum ada navmesh, profil mobile, screenshot Godot, atau penilaian visual renderer Godot. Asset procedural ini masih membutuhkan penyempurnaan artistik.
+Lihat `docs/STATUS.md` untuk hasil nyata dan keterbatasan. Proyek review ini bukan klaim game-ready: jalur ramp utama sudah diuji dengan kapsul `CharacterBody3D` otomatis, tetapi sebagian prop tetap menggunakan collider proxy. Belum ada navmesh, profil mobile, screenshot Godot, atau penilaian visual renderer Godot. Kit masih membutuhkan penilaian artistik pada renderer Godot dan bukan klaim kualitas photorealistik.
 
 ## Preview desain Blender
 
-`docs/previews/blender_design_preview.png` adalah render desain Blender Cycles dari kit dan layout, **bukan** screenshot Godot. Untuk menghasilkan ulang, jalankan `python tools/blender/render_preview.py` dengan modul `bpy` tersedia. Renderer, atmosfer dan hasilnya tidak identik dengan Godot; nilai kualitas akhir di Godot sendiri.
+`docs/previews/blender_design_preview.png` adalah render desain Blender Cycles dari kit dan layout, sedangkan `docs/previews/blender_pbr_detail.png` adalah crop untuk memeriksa material PBR. Keduanya **bukan** screenshot Godot. Untuk menghasilkan ulang, jalankan `python tools/blender/render_preview.py` atau `python tools/blender/render_preview.py --detail` dengan modul `bpy` tersedia. Renderer, atmosfer dan hasilnya tidak identik dengan Godot; nilai kualitas akhir di Godot sendiri.

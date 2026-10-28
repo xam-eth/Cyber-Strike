@@ -193,9 +193,9 @@ func add_atmosphere() -> void:
 	sky.sky_material = sky_material
 	environment.background_mode = Environment.BG_SKY
 	environment.sky = sky
-	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	environment.ambient_light_color = Color(0.60, 0.72, 0.82)
-	environment.ambient_light_energy = 0.8
+	environment.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
+	environment.ambient_light_energy = 0.95
+	environment.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
 	environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	environment.fog_enabled = true
 	environment.fog_light_color = Color(0.46, 0.58, 0.66)
@@ -208,7 +208,7 @@ func add_atmosphere() -> void:
 	sun.name = "Sun"
 	sun.rotation_degrees = Vector3(-48, -32, 0)
 	sun.light_color = Color(1.0, 0.89, 0.75)
-	sun.light_energy = 1.25
+	sun.light_energy = 1.6
 	sun.shadow_enabled = true
 	add_child(sun)
 

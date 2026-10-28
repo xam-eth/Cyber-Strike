@@ -39,6 +39,7 @@ random.seed(20260101)
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 MODEL_DIR = os.path.join(ROOT, "assets/world/aetherfall/models")
 MAT_DIR = os.path.join(ROOT, "assets/world/aetherfall/materials")
+SOURCE_TEX_DIR = os.path.join(ROOT, "assets/world/aetherfall/source_textures")
 WORLD_DIR = os.path.join(ROOT, "assets/world/aetherfall")
 LAYOUT_PATH = os.path.join(ROOT, "assets/world/aetherfall/layout.json")
 MEASURE_PATH = os.path.join(ROOT, "assets/world/aetherfall/measurements.json")
@@ -74,6 +75,22 @@ def save_png(name, arr):
     img = np.clip(img, 0.0, 1.0)
     PILImage.fromarray((img * 255.0).astype(np.uint8), "RGBA").save(path)
     return path
+
+def blend_source_texture(procedural, filename, amount):
+    """Mix an authored AI source albedo with a procedural tile.
+
+    The source contributes believable abrasion/cracks/mineral detail while the
+    procedural base retains repeat-safe panel language and palette control.
+    """
+    path = os.path.join(SOURCE_TEX_DIR, filename)
+    if not os.path.isfile(path):
+        return procedural
+    src = PILImage.open(path).convert("RGBA").resize(
+        (procedural.shape[1], procedural.shape[0]), PILImage.Resampling.LANCZOS)
+    arr = np.asarray(src, dtype=np.float32) / 255.0
+    out = procedural.copy()
+    out[..., :3] = np.clip(procedural[..., :3] * (1.0 - amount) + arr[..., :3] * amount, 0.0, 1.0)
+    return out
 
 def tex_deck(size=512):
     """Manufactured deck plate: panel grid, seam lines, rivets, wear."""
@@ -174,6 +191,64 @@ def tex_metal(size=512, seed=31):
         base[..., 0] *= (1 - m * 0.25); base[..., 1] *= (1 - m * 0.27); base[..., 2] *= (1 - m * 0.3)
     return base
 
+def tex_composite(size=512):
+    """Carbon-composite panel: dark resin, woven fibers and light abrasion."""
+    y, x = np.mgrid[0:size, 0:size].astype(np.float32) / size
+    rng = np.random.default_rng(57)
+    # The weave must be almost invisible from an overview; otherwise each
+    # box UV repeats into an implausible checker pattern.
+    weave_a = (np.sin((x + y) * math.pi * 16.0) * 0.5 + 0.5)
+    weave_b = (np.sin((x - y) * math.pi * 16.0) * 0.5 + 0.5)
+    fiber = np.maximum(weave_a, weave_b)
+    grain = rng.normal(0.0, 0.008, (size, size))
+    value = 0.185 + fiber * 0.014 + grain
+    base = np.empty((size, size, 4), np.float32)
+    base[..., 0] = value * 0.80
+    base[..., 1] = value * 0.91
+    base[..., 2] = value * 1.05
+    base[..., 3] = 1.0
+    # Broad, restrained dust deposits—not high contrast camouflage.
+    for _ in range(7):
+        cx, cy = rng.uniform(0, 1), rng.uniform(0, 1)
+        radius = rng.uniform(0.05, 0.17)
+        mask = np.clip(1.0 - np.hypot(x - cx, y - cy) / radius, 0.0, 1.0)
+        base[..., :3] += mask[..., None] * 0.014
+    return base
+
+def tex_rubber(size=512):
+    """Matte anti-slip rubber with small molded dimples."""
+    y, x = np.mgrid[0:size, 0:size].astype(np.float32) / size
+    rng = np.random.default_rng(83)
+    dimples = np.cos(x * math.pi * 48.0) * np.cos(y * math.pi * 48.0)
+    grain = rng.normal(0.0, 0.022, (size, size))
+    value = 0.070 + dimples * 0.018 + grain
+    base = np.empty((size, size, 4), np.float32)
+    base[..., 0] = value * 0.88
+    base[..., 1] = value * 0.94
+    base[..., 2] = value
+    base[..., 3] = 1.0
+    return base
+
+def tex_hazard(size=512, red=False):
+    """Weathered safety paint. The diagonal dark band reads on trim faces."""
+    y, x = np.mgrid[0:size, 0:size].astype(np.float32) / size
+    rng = np.random.default_rng(101 if not red else 107)
+    stripe = (np.floor((x * 5.0 - y * 5.0) % 1.0 * 2.0) == 0)
+    paint = np.empty((size, size, 3), np.float32)
+    if red:
+        paint[...] = (0.56, 0.045, 0.028)
+    else:
+        paint[...] = (0.90, 0.39, 0.025)
+    paint[stripe] *= np.array((0.16, 0.18, 0.20), np.float32)
+    paint += rng.normal(0.0, 0.025, (size, size, 1))
+    # chipped flecks reveal a dull substrate.
+    chips = rng.random((size, size)) > 0.987
+    paint[chips] = np.array((0.22, 0.24, 0.25), np.float32)
+    base = np.empty((size, size, 4), np.float32)
+    base[..., :3] = np.clip(paint, 0.0, 1.0)
+    base[..., 3] = 1.0
+    return base
+
 def tex_energy(size=256):
     """Emissive energy: soft radial glow + circuit veins."""
     y, x = np.mgrid[0:size, 0:size].astype(np.float32) / size
@@ -212,24 +287,83 @@ def tex_cloud(size=256):
         base[..., 3] = np.maximum(base[..., 3], m * rng.uniform(0.25, 0.7))
     return base
 
+def _normal_from_height(height, strength):
+    """Generate a tangent-space normal map from a procedural height field."""
+    dy, dx = np.gradient(height)
+    nx = -dx * strength
+    ny = -dy * strength
+    nz = np.ones_like(height)
+    length = np.sqrt(nx * nx + ny * ny + nz * nz)
+    normal = np.empty((*height.shape, 4), np.float32)
+    normal[..., 0] = nx / length * 0.5 + 0.5
+    normal[..., 1] = ny / length * 0.5 + 0.5
+    normal[..., 2] = nz / length * 0.5 + 0.5
+    normal[..., 3] = 1.0
+    return normal
+
+def _pbr_set(name, albedo, roughness, metallic, strength):
+    """Derive normal and packed metallic/roughness/AO maps.
+
+    These are authored procedural PBR maps, not photographs or scan data.
+    The ORM channel order is R=metallic, G=roughness, B=ambient occlusion.
+    """
+    lum = albedo[..., 0] * 0.2126 + albedo[..., 1] * 0.7152 + albedo[..., 2] * 0.0722
+    lo, hi = np.percentile(lum, (4, 96))
+    height = np.clip((lum - lo) / max(hi - lo, 0.001), 0.0, 1.0)
+    # PBR maps intentionally use 256² low-frequency variation: detailed enough
+    # for the kit, compressible in every individually embedded GLB.
+    pbr_size = 256
+    height = np.asarray(PILImage.fromarray((height * 255).astype(np.uint8)).resize(
+        (pbr_size, pbr_size), PILImage.Resampling.BICUBIC), dtype=np.float32) / 255.0
+    rng = np.random.default_rng(sum(ord(c) for c in name) + 331)
+    micro_src = ((rng.random((32, 32)) * 255).astype(np.uint8))
+    micro = np.asarray(PILImage.fromarray(micro_src).resize(
+        (pbr_size, pbr_size), PILImage.Resampling.BICUBIC), dtype=np.float32) / 255.0 - 0.5
+    height = np.clip(height * 0.68 + micro * 0.12 + 0.16, 0.0, 1.0)
+    normal_path = save_png(name + "_normal", _normal_from_height(height, strength))
+    rough = np.clip(roughness + (0.50 - height) * 0.20 + micro * 0.06, 0.04, 0.98)
+    metal = np.clip(metallic + micro * 0.04, 0.0, 1.0)
+    ao = np.clip(0.76 + height * 0.24, 0.0, 1.0)
+    orm = np.empty((*height.shape, 4), np.float32)
+    orm[..., 0] = metal
+    orm[..., 1] = rough
+    orm[..., 2] = ao
+    orm[..., 3] = 1.0
+    orm_path = save_png(name + "_orm", orm)
+    normal = bpy.data.images.load(normal_path)
+    orm_img = bpy.data.images.load(orm_path)
+    normal.colorspace_settings.name = 'Non-Color'
+    orm_img.colorspace_settings.name = 'Non-Color'
+    return normal, orm_img
+
 def bake_textures():
     specs = {
-        "aether_deck": tex_deck,
-        "aether_concrete": tex_concrete,
-        "aether_rock": tex_rock,
-        "aether_metal": tex_metal,
-        "aether_metal2": lambda s=512: tex_metal(s, seed=97),
-        "aether_energy": tex_energy,
-        "aether_cloud": tex_cloud,
+        "aether_deck": (lambda s=512: blend_source_texture(tex_deck(s), "ai_weathered_steel.png", 0.36), 0.48, 0.42, 10.0),
+        "aether_concrete": (lambda s=512: blend_source_texture(tex_concrete(s), "ai_poured_concrete.png", 0.72), 0.87, 0.00, 5.0),
+        "aether_rock": (lambda s=512: blend_source_texture(tex_rock(s), "ai_sedimentary_rock.png", 0.30), 0.93, 0.00, 7.0),
+        "aether_metal": (lambda s=512: blend_source_texture(tex_metal(s), "ai_weathered_steel.png", 0.70), 0.38, 0.88, 5.5),
+        "aether_metal2": (lambda s=512: blend_source_texture(tex_metal(s, seed=97), "ai_weathered_steel.png", 0.52), 0.28, 0.96, 4.0),
+        "aether_composite": (tex_composite, 0.56, 0.12, 3.5),
+        "aether_rubber": (tex_rubber, 0.82, 0.00, 8.0),
+        "aether_hazard": (tex_hazard, 0.43, 0.10, 5.0),
+        "aether_warning": (lambda s=512: tex_hazard(s, red=True), 0.48, 0.10, 5.0),
+        "aether_energy": (tex_energy, None, None, None),
+        "aether_cloud": (tex_cloud, None, None, None),
     }
     out = {}
-    for name, fn in specs.items():
+    global PBR
+    PBR = {}
+    for name, (fn, rough, metal, strength) in specs.items():
         size = 512 if name not in ("aether_energy", "aether_cloud") else 256
         arr = fn(size)
         path = save_png(name, arr)
         img = bpy.data.images.load(path)
+        img.colorspace_settings.name = 'sRGB'
         out[name] = img
-        print("  texture", name, img.size[:])
+        if rough is not None:
+            normal, orm = _pbr_set(name, arr, rough, metal, strength)
+            PBR[name] = {"normal": normal, "orm": orm}
+        print("  texture", name, img.size[:], "PBR" if name in PBR else "colour")
     return out
 
 print("== Aetherfall build: stage 1 textures ==")
@@ -268,14 +402,32 @@ def get_mat(name, base=(0.5, 0.5, 0.5, 1.0), rough=0.62, metal=0.25,
     if tex is not None:
         img = TEX[tex]
         texnode = m.node_tree.nodes.new("ShaderNodeTexImage")
+        texnode.name = "BaseColor_" + tex
         texnode.image = img
         texnode.interpolation = 'Linear'
-        try:
-            texnode.extension = 'REPEAT'
-        except Exception:
-            pass
+        texnode.extension = 'REPEAT'
         img.colorspace_settings.name = 'sRGB'
         m.node_tree.links.new(texnode.outputs["Color"], b.inputs["Base Color"])
+        if tex in PBR:
+            normal_node = m.node_tree.nodes.new("ShaderNodeTexImage")
+            normal_node.name = "Normal_" + tex
+            normal_node.image = PBR[tex]["normal"]
+            normal_node.interpolation = 'Linear'
+            normal_node.extension = 'REPEAT'
+            normal_map = m.node_tree.nodes.new("ShaderNodeNormalMap")
+            normal_map.inputs["Strength"].default_value = 0.72
+            m.node_tree.links.new(normal_node.outputs["Color"], normal_map.inputs["Color"])
+            m.node_tree.links.new(normal_map.outputs["Normal"], b.inputs["Normal"])
+            orm_node = m.node_tree.nodes.new("ShaderNodeTexImage")
+            orm_node.name = "ORM_" + tex
+            orm_node.image = PBR[tex]["orm"]
+            orm_node.interpolation = 'Linear'
+            orm_node.extension = 'REPEAT'
+            separate = m.node_tree.nodes.new("ShaderNodeSeparateColor")
+            separate.mode = 'RGB'
+            m.node_tree.links.new(orm_node.outputs["Color"], separate.inputs["Color"])
+            m.node_tree.links.new(separate.outputs["Red"], b.inputs["Metallic"])
+            m.node_tree.links.new(separate.outputs["Green"], b.inputs["Roughness"])
         if emission is not None:
             b.inputs["Emission Color"].default_value = (emission[0], emission[1], emission[2], 1.0)
             b.inputs["Emission Strength"].default_value = emission_strength
@@ -288,17 +440,17 @@ def palette_materials():
     get_mat("PaintedSteel", base=(0.30, 0.34, 0.39, 1.0), rough=0.5, metal=0.35, tex="aether_deck")
     get_mat("Titanium", base=(0.55, 0.58, 0.62, 1.0), rough=0.35, metal=0.95, tex="aether_metal2")
     get_mat("Concrete", base=(0.52, 0.51, 0.50, 1.0), rough=0.85, metal=0.02, tex="aether_concrete")
-    get_mat("Composite", base=(0.16, 0.19, 0.22, 1.0), rough=0.7, metal=0.1)
+    get_mat("Composite", base=(0.16, 0.19, 0.22, 1.0), rough=0.7, metal=0.1, tex="aether_composite")
     get_mat("Rock", base=(0.44, 0.42, 0.39, 1.0), rough=0.95, metal=0.0, tex="aether_rock")
     get_mat("Stratum", base=(0.50, 0.47, 0.43, 1.0), rough=0.92, metal=0.0, tex="aether_rock")
     get_mat("Glass", base=(0.35, 0.55, 0.68, 0.35), rough=0.08, metal=0.05,
             emission=(0.35, 0.72, 1.0), emission_strength=0.35, transmission=0.6)
-    get_mat("Rubber", base=(0.10, 0.10, 0.11, 1.0), rough=0.85, metal=0.0)
-    get_mat("Cable", base=(0.14, 0.15, 0.17, 1.0), rough=0.8, metal=0.0)
+    get_mat("Rubber", base=(0.10, 0.10, 0.11, 1.0), rough=0.85, metal=0.0, tex="aether_rubber")
+    get_mat("Cable", base=(0.14, 0.15, 0.17, 1.0), rough=0.8, metal=0.0, tex="aether_rubber")
     get_mat("Energy", base=(0.10, 0.45, 0.85, 1.0), rough=0.4, metal=0.1,
             tex="aether_energy", emission=(0.25, 0.70, 1.0), emission_strength=2.4)
-    get_mat("Hazard", base=(0.85, 0.55, 0.12, 1.0), rough=0.5, metal=0.1)
-    get_mat("WarningRed", base=(0.8, 0.2, 0.2, 1.0), rough=0.5, metal=0.1)
+    get_mat("Hazard", base=(0.85, 0.55, 0.12, 1.0), rough=0.5, metal=0.1, tex="aether_hazard")
+    get_mat("WarningRed", base=(0.8, 0.2, 0.2, 1.0), rough=0.5, metal=0.1, tex="aether_warning")
     print("  materials:", len(MATS))
 
 palette_materials()
