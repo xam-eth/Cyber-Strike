@@ -152,11 +152,12 @@ static func landscape(hud) -> void:
 
 	# One compact two-by-two action cluster. FIRE is primary; ammo is the same
 	# width as the cluster and sits directly above SWAP/ARMORY, so equipped
-	# weapon, magazine and weapon action read as one column. Screenshots showed
-	# the old 208x284 px thumb rail on a 1280x720 mouse view, so density now
-	# follows input while geometry and ownership stay unchanged.
-	var fire_px := 96.0 if hud._touch_mode else 64.0
-	var action_px := 80.0 if hud._touch_mode else 56.0
+	# weapon, magazine and weapon action read as one column. The old 208x284 px
+	# thumb rail was oversized on a 1280x720 mouse view. Desktop now uses
+	# 80/72 px plates: still below touch density, but wide enough for the real
+	# 16 px accessibility font and untracked ARMORY/ARSENAL captions.
+	var fire_px := 96.0 if hud._touch_mode else 80.0
+	var action_px := 80.0 if hud._touch_mode else 72.0
 	var gap_px := 8.0 if hud._touch_mode else 6.0
 	var ammo_height_px := 48.0 if hud._touch_mode else 42.0
 	var fire_right := 16.0

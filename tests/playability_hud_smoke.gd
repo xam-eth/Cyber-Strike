@@ -967,14 +967,16 @@ func _run_smoke_test() -> void:
 	var desktop_rail := (controls.get("_touch_ammo_chip") as Control).get_global_rect()
 	for control in [weapon_button, aim_button, skill_button, fire_button]:
 		desktop_rail = desktop_rail.merge((control as Control).get_global_rect())
+	# The 158x206 measured design preserves the global 16 px physical font
+	# floor; the former 140x190 target forced an invalid 11 px caption request.
 	_expect(
 		(
-			desktop_rail.size.x <= 140.0
-			and desktop_rail.size.y <= 190.0
+			desktop_rail.size.x <= 160.0
+			and desktop_rail.size.y <= 210.0
 			and armory_entry.visible
 			and String(weapon_button.get_meta("aegis_state", "")) == "swap"
 		),
-		"desktop rail is at most 140x190 and restores distinct Armory/SWAP: %s" % desktop_rail,
+		"desktop rail is at most 160x210 and restores distinct Armory/SWAP: %s" % desktop_rail,
 	)
 	var caption_overflow := ""
 	var weapon_caption := controls.get("_weapon_caption") as Label

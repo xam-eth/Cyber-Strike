@@ -118,6 +118,9 @@ const TYPE := {
 	"body_s": [FAMILY_UI, 17, 0.0, false],
 	"label": [FAMILY_UI_M, 16, 12.0, true],
 	"label_s": [FAMILY_UI_M, 14, 10.0, true],
+	# Compact combat captions keep the 16 px physical floor but do not spend
+	# their smaller desktop plates on uppercase tracking.
+	"action_s": [FAMILY_UI_M, 14, 0.0, true],
 	"caption": [FAMILY_UI, 16, 2.0, false],
 	"mono_xl": [FAMILY_MONO, 46, 0.0, false],
 	"mono_l": [FAMILY_MONO, 29, 0.0, false],

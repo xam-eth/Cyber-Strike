@@ -166,15 +166,17 @@ static func apply_fonts(hud) -> void:
 		hud._skill_cooldown_label.offset_bottom = -hud._to_layout(2.0)
 
 
-## Desktop action captions need a smaller density than the generic label pass.
-## This runs after landscape geometry with direct caption references: the
-## 1280x720 screenshot proved that 14 px ARMORY copy crosses a 56 px plate.
+## Action captions keep the project-wide 16 px physical font floor. Desktop
+## density comes from removing uppercase tracking and using measured 72 px
+## plates, not from requesting 11 px text that the accessibility floor rejects.
+## Persist the compact role so a later generic font pass cannot restore tracking.
 static func apply_action_caption_density(hud) -> void:
-	if hud._touch_mode:
-		return
+	var role := "label_s" if hud._touch_mode else "action_s"
 	var text_size := maxi(
-		roundi(11.0 * hud._control_unit() * hud._text_scale), hud._minimum_font_size()
+		roundi(float(AegisTheme.type_size(role)) * hud._control_unit() * hud._text_scale),
+		hud._minimum_font_size()
 	)
 	for caption in [hud._fire_caption, hud._weapon_caption, hud._aim_caption, hud._skill_caption]:
 		if is_instance_valid(caption):
-			AegisTheme.resize_label(caption, "label_s", text_size)
+			caption.set_meta("aegis_role", role)
+			AegisTheme.resize_label(caption, role, text_size)
