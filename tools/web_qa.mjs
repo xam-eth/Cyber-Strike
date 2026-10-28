@@ -20,6 +20,9 @@
  *       # safe Explore + deliberate B + preparation; Defense is NOT claimed
  *   node tools/web_qa.mjs --encounter --explore-wait 8000 --encounter-timeout 600
  *       # strict: await a real Defense transition (software WebGL can be slow)
+ *   node tools/web_qa.mjs --page / --recovery
+ *       # Verdant Explore -> Engage -> two GLB guards + Secure-locked HUD
+ *       # (does not claim guard clear, Secure, Extract, or mission completion)
  *   node tools/web_qa.mjs --page / --journey --select-vanguard
  *       # choose Vanguard in the shell and verify its real gameplay build
  *   node tools/web_qa.mjs --page / --journey --select-world titans --audio-shell
@@ -95,8 +98,13 @@ const requireDefense = has('--encounter');
 const encounterMode = requireDefense || has('--encounter-prep');
 const encounterTimeoutMs = Math.max(0, Number(flag('--encounter-timeout', '600')) || 0) * 1000;
 const exploreWaitMs = Number(flag('--explore-wait', '8000'));
+// --recovery proves the real Verdant landing → Engage → guarded state. It does
+// not claim guard elimination, Secure, extraction, or a full mission clear.
+const recoveryMode = has('--recovery');
 const selectVanguard = has('--select-vanguard');
-const selectedWorld = String(flag('--select-world', selectVanguard ? 'vanguard_station' : ''));
+const selectedWorld = String(
+  flag('--select-world', selectVanguard ? 'vanguard_station' : recoveryMode ? 'verdant_bloom' : ''),
+);
 const selectWorld = selectedWorld.length > 0;
 const selectedWorldCard = `world-card-${selectedWorld.replaceAll('_', '-')}`;
 const selectedWorldPin = `${selectedWorld.split('_').map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join('')}Pin`;
@@ -190,6 +198,7 @@ async function checkPage(target, viewport) {
   // WORLD selection uses the engine's measured Control rectangles, never a
   // second set of guessed layout coordinates in the browser harness.
   if (selectWorld) url.searchParams.set('qa_menu', '1');
+  if (recoveryMode) url.searchParams.set('qa_recovery', '1');
   if (adsMode) {
     url.searchParams.set('qa_touch', '1');
     url.searchParams.set('qa_camera', '1');
@@ -820,6 +829,65 @@ async function checkPage(target, viewport) {
     }
   }
 
+  /* ---------- real Verdant Recovery approach and guard activation ---------- */
+  const recoveryFrames = [];
+  let recoveryEvidence = null;
+  if (booted && recoveryMode && inGameplay) {
+    const canvas = await page.$('canvas');
+    if (canvas) await canvas.click();
+    const capture = async (name) => {
+      const file = path.join(outDir, `${slug}-${viewport.spec}-recovery-${name}.png`);
+      await page.screenshot({ path: file });
+      recoveryFrames.push(path.relative(ROOT, file));
+    };
+    await capture('landing');
+    // The straight landing lane contains real world collision. Move around it
+    // with ordinary keyboard input, then let the actual HUD action—not a wall-
+    // clock guess—decide when the cache is inside its interaction radius.
+    await page.keyboard.down('KeyW');
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    await page.keyboard.up('KeyW');
+    await page.keyboard.down('KeyD');
+    await new Promise((resolve) => setTimeout(resolve, 2500));
+    await page.keyboard.up('KeyD');
+    const engageOffered = () => consoleLines.some(
+      (line) => line.includes('Recovery QA:') && line.includes('action=engage'),
+    );
+    if (!engageOffered()) {
+      await page.keyboard.down('KeyW');
+      try {
+        await awaitConsoleText(page, consoleLines, 'action=engage', 60000);
+      } finally {
+        await page.keyboard.up('KeyW');
+      }
+    }
+    recoveryEvidence = { engageOffered: engageOffered(), guardsActive: false, guardModels: [] };
+    await capture('engage-offer');
+    if (recoveryEvidence.engageOffered) {
+      await page.keyboard.press('KeyB');
+      recoveryEvidence.guardsActive = await awaitConsoleText(page, consoleLines, 'guards=2', 15000);
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+    await capture('guarded');
+    if (recoveryEvidence.guardsActive) {
+      await page.mouse.move(viewport.width * 0.58, viewport.height * 0.46);
+      await page.mouse.down();
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      await page.mouse.up();
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      await capture('contact');
+    }
+    const models = new Set();
+    for (const line of consoleLines) {
+      const match = line.match(/EnemyVisual\[(Guard_verdant_seed_vault_[^\]]+)\].*fallback=no/);
+      if (match) models.add(match[1]);
+    }
+    recoveryEvidence.guardModels = [...models];
+    recoveryEvidence.secureLocked = recoveryEvidence.guardsActive
+      && consoleLines.some((line) => line.includes('Recovery QA:') && line.includes('action=none') && line.includes('guards=2'))
+      && !consoleLines.some((line) => line.includes('Encounter: Preparing Defense'));
+  }
+
   /* ---------- walk the front end to the gameplay scene ---------- */
   // A play pass acts on the *gameplay* scene, so it needs the journey walked
   // even when no tour or encounter was asked for. Before this, `--play` on its
@@ -1077,6 +1145,14 @@ async function checkPage(target, viewport) {
     checks.push(['ADS release restored the unaimed state', adsEvidence?.released === true]);
     checks.push(['ADS hold/look/release frames were captured', adsFrames.length === 3]);
   }
+  if (recoveryMode) {
+    checks.push(['Recovery pass reached Verdant gameplay', inGameplay && selectedWorld === 'verdant_bloom']);
+    checks.push(['Seed Vault offered explicit Engage in interaction range', recoveryEvidence?.engageOffered === true]);
+    checks.push(['Engage produced two live Recovery guards', recoveryEvidence?.guardsActive === true]);
+    checks.push(['both Recovery guards loaded real GLB visuals without fallback', recoveryEvidence?.guardModels?.length === 2]);
+    checks.push(['active guards kept Secure locked and blocked generic Defense', recoveryEvidence?.secureLocked === true]);
+    checks.push(['Recovery landing, offer, guarded and contact frames were captured', recoveryFrames.length === 4]);
+  }
   if (selectWorld) {
     if (isFrontEnd) {
       checks.push([`shell ${selectedWorld} card was selected before DEPLOY`, shellWorldSelected === true]);
@@ -1184,6 +1260,9 @@ async function checkPage(target, viewport) {
     safeBeforeActivation,
     defenseObserved: consoleLines.some((line) => line.includes('Encounter: Defense started')),
     encounterTransitions: consoleLines.filter((line) => line.includes('Encounter:')),
+    recovery: recoveryEvidence,
+    recoveryFrames,
+    recoveryTransitions: consoleLines.filter((line) => line.includes('Recovery QA:') || line.includes('Recovery:')),
     audio: audioLines,
     heroStage: shellHeroStage,
     profileMirror: shellProgressMirror,

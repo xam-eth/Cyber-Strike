@@ -430,6 +430,36 @@ jobs:
           PY
           exit "$qa_status"
 
+      - name: Browser Recovery engagement contract
+        run: |
+          # This gate stops at the live guarded state on purpose. Secure,
+          # extraction and permanent reward remain engine contracts until a
+          # separate real-input browser playthrough proves them.
+          qa_status=0
+          node tools/web_qa.mjs --page / --viewport 1280x720 --timeout 120 \
+            --recovery --out exports/web-qa/recovery --json \
+            > exports/web-qa/recovery-report.json || qa_status=1
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path("exports/web-qa/recovery-report.json").read_text())
+          for page in report["pages"]:
+              recovery = page.get("recovery") or {}
+              print(
+                  f'Browser Recovery engagement: {"PASS" if not page["failed"] else "FAIL"} | '
+                  f'engage={recovery.get("engageOffered")} active={recovery.get("guardsActive")} '
+                  f'models={recovery.get("guardModels")} locked={recovery.get("secureLocked")}'
+              )
+              print(
+                  "::notice title=Browser Recovery evidence::"
+                  + json.dumps(recovery, separators=(",", ":"))
+              )
+              for failure in page["failed"]:
+                  print(f"::error title=Browser Recovery QA::{failure}")
+          raise SystemExit(0 if report["ok"] else 1)
+          PY
+          exit "$qa_status"
+
       - name: Upload the web QA screenshots
         if: always()
         uses: actions/upload-artifact@v4

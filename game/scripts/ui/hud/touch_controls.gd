@@ -373,6 +373,7 @@ func set_recovery_status(
 	_state.recovery_guard_count = maxi(guard_count, 0)
 	_apply_context_visibility()
 	HudEncounterUi.refresh_recovery_objective(self)
+	HudEncounterUi.report_recovery_qa(self)
 
 
 ## Explicit run numbers: the score chip needs the key figure, and parsing the

@@ -89,6 +89,30 @@ static func refresh_recovery_objective(hud) -> void:
 	hud._refresh_compact_label()
 
 
+## Read-only browser diagnostics for the real Recovery state machine. The log
+## is emitted only on actual HUD state changes and only with ?qa_recovery; it
+## gives browser automation a deterministic alternative to guessed key timing.
+static func report_recovery_qa(hud) -> void:
+	if not OS.has_feature("web"):
+		return
+	if not bool(JavaScriptBridge.eval("new URLSearchParams(location.search).has('qa_recovery')")):
+		return
+	var action: String = hud._state.recovery_action
+	print(
+		(
+			"Recovery QA: phase=%s action=%s guards=%d title=%s detail=%s state=%s"
+			% [
+				hud._state.play_phase,
+				action if not action.is_empty() else "none",
+				hud._state.recovery_guard_count,
+				hud._state.recovery_title,
+				hud._state.recovery_detail,
+				hud._state.recovery_state,
+			]
+		)
+	)
+
+
 static func apply_context(hud) -> void:
 	if not is_instance_valid(hud._defense_button):
 		return
