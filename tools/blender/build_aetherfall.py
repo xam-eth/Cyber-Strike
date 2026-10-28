@@ -130,26 +130,22 @@ def tex_concrete(size=512):
     return base
 
 def tex_rock(size=512):
-    """Exposed rock strata: banded layers, fractures, dust."""
+    """Subtle coherent sediment, not separate RGB phase-shifted stripes."""
     y, x = np.mgrid[0:size, 0:size].astype(np.float32) / size
     rng = np.random.default_rng(23)
-    bands = np.zeros((size, size), np.float32)
-    for i in range(size):
-        bands[i, :] = np.sin((y[i] * 9.0 + rng.uniform(0, 6)) * math.pi) * 0.5 + 0.5
-    base = np.zeros((size, size, 4), np.float32)
-    for c, tint in enumerate([(0.46, 0.43, 0.38), (0.36, 0.35, 0.33), (0.52, 0.49, 0.44)]):
-        m = np.clip(np.sin((y * 9.0) * math.pi - c * 1.0) * 0.5 + 0.5, 0, 1)
-        base[..., c] = tint[c] * m
-    base[..., :3] *= (0.75 + 0.5 * bands[..., None])
-    base[..., :3] += rng.normal(0, 0.03, (size, size, 3))
-    # sediment veins
-    for _ in range(5):
-        t = np.linspace(0, 1, 80)
-        xs = rng.uniform(0, 1) + t * rng.uniform(-0.1, 0.1)
-        ys = rng.uniform(0, 1) + t * rng.uniform(-0.3, 0.3)
-        for i in range(len(t) - 1):
-            px, py = int(xs[i] * size), int(ys[i] * size)
-            base[max(0, py):py + 3, max(0, px):px + 3, :3] *= 0.7
+    def noise(res):
+        pixels = (rng.random((res, res)) * 255).astype(np.uint8)
+        return np.asarray(PILImage.fromarray(pixels).resize((size, size), PILImage.Resampling.BICUBIC), dtype=np.float32) / 255.0
+    broad = noise(12)
+    detail = noise(65)
+    warped = y + 0.035 * (broad - 0.5) + 0.012 * np.sin(x * 13.0)
+    layers = np.sin(warped * math.pi * 13.0) * 0.025
+    grain = rng.normal(0, 0.012, (size, size))
+    variation = (broad - 0.5) * 0.12 + (detail - 0.5) * 0.07 + layers + grain
+    base = np.empty((size, size, 4), np.float32)
+    for c, tint in enumerate((0.42, 0.405, 0.38)):
+        base[..., c] = tint + variation
+    base[..., 3] = 1.0
     return base
 
 def tex_metal(size=512, seed=31):
@@ -452,7 +448,7 @@ def reg(key, coll):
 # ---------------------------- geology + architecture ----------------------
 def b_terrain_chunk():
     coll = new_collection("A_terrain_chunk")
-    grid_mesh(coll, "TerrainMass", 46.0, 18, (0.0, 0.0, 0.0),
+    grid_mesh(coll, "TerrainMass", 46.0, 32, (0.0, 0.0, 0.0),
               lambda x, z: -3.0 + 2.6 * noise2(x * 0.17, z * 0.17, 4, 7.0),
               "Rock", base_rot=(0.0, 0.0, 0.0), uv_scale=0.09)
     for i in range(3):
@@ -466,7 +462,7 @@ def b_terrain_chunk():
 
 def b_cliff_face():
     coll = new_collection("A_cliff_face")
-    grid_mesh(coll, "CliffMass", 26.0, 14, (0.0, 0.0, 0.0),
+    grid_mesh(coll, "CliffMass", 26.0, 32, (0.0, 0.0, 0.0),
               lambda x, z: 3.0 - 9.0 * noise2(x * 0.22, z * 0.22, 4, 11.0),
               "Rock", base_rot=(0.0, 0.0, 0.0), uv_scale=0.14)
     mbox(coll, "CliffShelf", (26.0, 2.0, 7.0), (0.0, 1.0, -4.0), "Rock", bevel=1.0)

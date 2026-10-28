@@ -6,7 +6,7 @@ Satu proyek Godot untuk meninjau SH-01 **Aetherfall**. Tidak memerlukan proyek g
 
 1. Buka **folder root ini** di Godot **4.7.2** (Project Manager → Import → pilih `project.godot`). Tunggu import seluruh GLB selesai.
 2. Tekan **F6** pada `scenes/aetherfall.tscn`, atau **F5** untuk main scene. World dirakit pada runtime dari `layout.json`; node modul tidak muncul di editor sebelum scene dijalankan. Tab **Remote** dapat dipakai untuk memeriksa hierarchy yang sudah terbangun.
-3. Kamera review: tahan **klik kanan** untuk melihat, **W/A/S/D** bergerak, **Q/E** turun/naik, **Shift** mempercepat, **Esc** melepas mouse.
+3. Kamera review: tahan **klik kanan** untuk melihat, **W/A/S/D** bergerak, **Q/E** turun/naik, **Shift** mempercepat, **Esc** melepas mouse. Tombol **1–5** melompat ke sudut tower, platform, bridge, canyon, dan overview.
 
 Kamera ini adalah kamera inspeksi bebas, bukan karakter/gameplay. Material dan lighting perlu dinilai pada mesin dengan renderer grafis; headless tidak membuktikan tampilan visual.
 
@@ -25,6 +25,12 @@ python3 tests/check_assets.py
 godot --headless --editor --path . --quit
 godot --headless --path . --script res://tests/world_smoke.gd
 godot --headless --path . --script res://tests/surface_collision.gd
+godot --headless --path . --script res://tests/traversal_clearance.gd
+godot --headless --path . --script res://tests/traversal_motion.gd
 ```
 
-Lihat `docs/STATUS.md` untuk hasil nyata dan keterbatasan. Proyek review ini bukan klaim game-ready: collider menggunakan kotak proxy dan route belum diuji dengan karakter; belum ada navmesh, profil mobile, atau screenshot Godot. Asset procedural ini masih membutuhkan penilaian visual dan penyempurnaan artistik.
+Lihat `docs/STATUS.md` untuk hasil nyata dan keterbatasan. Proyek review ini bukan klaim game-ready: jalur ramp utama sudah diuji dengan kapsul `CharacterBody3D` otomatis, tetapi sebagian prop tetap menggunakan collider proxy. Belum ada navmesh, profil mobile, screenshot Godot, atau penilaian visual renderer Godot. Asset procedural ini masih membutuhkan penyempurnaan artistik.
+
+## Preview desain Blender
+
+`docs/previews/blender_design_preview.png` adalah render desain Blender Cycles dari kit dan layout, **bukan** screenshot Godot. Untuk menghasilkan ulang, jalankan `python tools/blender/render_preview.py` dengan modul `bpy` tersedia. Renderer, atmosfer dan hasilnya tidak identik dengan Godot; nilai kualitas akhir di Godot sendiri.

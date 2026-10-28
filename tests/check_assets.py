@@ -26,5 +26,5 @@ assert (root / 'source/aetherfall_kit.blend').is_file()
 assert (root / 'source/energy_orbit.blend').is_file()
 assert (root / 'source/connector_ramp.blend').is_file()
 connectors = json.loads((base / 'connectors.json').read_text())['connectors']
-assert {x['name'] for x in connectors} == {'east_bridge_approach', 'west_catwalk_approach'}
-print(f'PASS: {len(layout["placements"])} placement, {len(measures)} modul, GLB orbit beranimasi, 2 connector, 3 sumber Blender')
+assert {x['name'] for x in connectors} == {'east_bridge_approach', 'west_catwalk_approach', 'lower_canyon_descent'}
+print(f'PASS: {len(layout["placements"])} placement, {len(measures)} modul, GLB orbit beranimasi, 3 connector, 3 sumber Blender')

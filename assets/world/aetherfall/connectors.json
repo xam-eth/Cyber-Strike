@@ -2,7 +2,47 @@
   "schema": "aetherfall.connectors/1",
   "unit": "meters",
   "connectors": [
-    {"name": "east_bridge_approach", "from": [26.0, 0.15, 0.0], "to": [38.0, 4.725, 0.0], "width": 3.0},
-    {"name": "west_catwalk_approach", "from": [-38.0, 5.925, 8.0], "to": [-22.0, 0.15, 8.0], "width": 1.6}
+    {
+      "name": "east_bridge_approach",
+      "from": [
+        26.0,
+        0.15,
+        0.0
+      ],
+      "to": [
+        38.0,
+        4.725,
+        0.0
+      ],
+      "width": 3.0
+    },
+    {
+      "name": "west_catwalk_approach",
+      "from": [
+        -38.0,
+        5.925,
+        8.0
+      ],
+      "to": [
+        -22.0,
+        0.15,
+        8.0
+      ],
+      "width": 1.6
+    },
+    {
+      "name": "lower_canyon_descent",
+      "from": [
+        0.0,
+        0.15,
+        18.0
+      ],
+      "to": [
+        0.0,
+        -6.25,
+        36.0
+      ],
+      "width": 4.5
+    }
   ]
 }

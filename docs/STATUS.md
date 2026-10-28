@@ -1,30 +1,34 @@
 # Status produksi Aetherfall
 
-## Yang diubah
+## Ringkasan
 
-- Proyek Godot dipisah dari game induk; scene tidak lagi memerlukan registry, selection service, mission wrapper, atau pagar tak terlihat milik game lama.
-- JSON dibaca sebagai array dan dikonversi ke Vector3 secara eksplisit; offset collider ditempatkan pada `CollisionShape3D`, bukan pada `BoxShape3D`.
-- `palette_materials()` sebelumnya tidak pernah dipanggil sehingga GLB yang lama menggunakan material abu-abu default. Kit telah dibangun ulang dengan palet, tekstur warna sRGB yang tertanam, dan material emisi. File `.blend` sumber kit dikemas bersama gambar sumbernya.
-- Blender `bpy` digunakan untuk membuat dan mengekspor orbit energi beranimasi, dengan sumber `.blend` terpisah.
-- Ditambahkan kamera terbang untuk memeriksa world saat menjalankan scene di Godot dan uji kontrak aset.
+Aetherfall sekarang adalah proyek Godot mandiri yang hanya berisi satu world review. Kit memiliki 27 modul GLB dan 251 placement dalam meter, dengan tiga ramp sambungan reusable. Semua sumber aset prosedural dibuat ulang melalui Blender `bpy`; source `.blend` disimpan di `source/`.
 
-## Hasil yang terverifikasi
+## VERIFIED
 
-- Python `tests/check_assets.py`: 251 placement, seluruh 27 referensi GLB ditemukan dan header valid, satu GLB orbit memiliki animation, file sumber Blender tersedia.
-- Godot **4.7.2.stable.custom_build**, build headless dari source: import editor selesai (exit 0; dua peringatan tema editor headless); main scene berjalan 60 frame (exit 0); `tests/world_smoke.gd` lulus: 251 placement, 191 collider proxy, routes/spawn dan AnimationPlayer orbit. Ini bukan uji visual.
-- Blender `bpy` 5.0.1: skrip build kit dan orbit dijalankan pada sandbox; diekspor ulang menjadi GLB dan disimpan sebagai file sumber Blender. Penggunaan `bpy` di sandbox ini memerlukan library sistem atau konfigurasi headless yang setara.
+- **Blender:** `bpy` 5.0.1 benar-benar menjalankan `build_aetherfall.py`, `build_orbit.py`, `build_connector.py`, dan `render_preview.py`. Build terbaru mengekspor ulang 27 GLB, orbit animasi, ramp, material batu yang diperhalus, serta `.blend` editable.
+- **Godot:** Godot **4.7.2.stable.custom_build** berhasil dikompilasi dari source dan menjalankan clean editor import headless. Dua peringatan tema editor `<null>_color` muncul di headless; tidak ada error project.
+- **Kontrak aset:** `tests/check_assets.py` lulus — 251 placement, 27 modul, GLB orbit beranimasi, tiga connector, dan tiga source Blender.
+- **Perakitan:** `tests/world_smoke.gd` lulus — 251 placement, 188 collider, marker routes/spawn dan `AnimationPlayer` orbit aktif.
+- **Sumbu serta permukaan:** `tests/surface_collision.gd` lulus untuk mesh lantai deck, bridge, catwalk dan masing-masing tiga titik pada ramp timur, barat, dan canyon. Kit mempertahankan authored Y-up saat ekspor; collider lantai tidak lagi memakai AABB railing/kabel.
+- **Traversal geometris:** `tests/traversal_clearance.gd` lulus pada 19 sampel per ramp dengan **seluruh collider aktif**. `tests/traversal_motion.gd` lulus untuk kapsul `CharacterBody3D` tinggi 1.8 m di ketiga ramp, pada kedua arah. Tes ini menemukan dan memperbaiki orientasi deck edge di depan descent canyon yang sebelumnya menutup jalur.
+- **Gate/rail:** collider gate dibentuk per bagian agar opening tidak berupa kotak padat; railing bridge/catwalk memakai collider komponen. Props canyon digeser dari sumbu ramp.
 
-## Yang masih perlu diperiksa / belum selesai
+## LIKELY
 
-- Tidak ada klaim kualitas photorealistik atau gambar dari Godot sampai scene dirender dan diperiksa pada renderer grafis. Material sudah tidak default abu-abu, tetapi model masih procedural dan sebagian bentuk low-poly.
-- Sebagian besar collider masih berupa proxy AABB; lihat bagian lanjutan untuk perbaikan lantai deck, bridge, dan catwalk. Jalur vertikal, sambungan bridge/catwalk, lower approach, collision dan interaksi karakter belum lulus playtest. Tidak ada navmesh.
-- Performa mobile, FPS, draw call, memori dan perangkat nyata belum diukur. Jumlah triangle di manifest lama bersifat perkiraan, bukan profil runtime.
-- Orbit Blender diekspor dengan animasi dan AnimationPlayer berjalan dalam tes headless. Penampilan dan kualitas geraknya masih harus dinilai secara visual.
+- `docs/previews/blender_design_preview.png` adalah preview Cycles yang sudah diperiksa: tower tetap menjadi landmark pusat; deck, canyon, bridge, dan catwalk terbaca sebagai ruang berlapis. Material batu tidak lagi memiliki pola RGB banding ekstrem. Ini mendukung penilaian komposisi, bukan validasi renderer Godot.
+- Tombol kamera review 1–5 menyediakan sudut tower, platform, bridge, canyon, dan overview untuk inspeksi manual ketika project dibuka dalam editor Godot dengan renderer grafis.
 
-## Lanjutan: sumbu, collider, dan sambungan
+## UNKNOWN / UNVERIFIED
 
-- Ditemukan bahwa kit ditulis dengan Y sebagai sumbu vertikal, tetapi ekspor Blender sebelumnya mengaktifkan konversi Z-up ke Y-up. Ini merotasi geometri relatif terhadap layout dan collider. Ekspor kit kini mempertahankan koordinat Y-up yang sudah ditulis, lalu semua 27 GLB dibangun ulang dengan Blender `bpy`.
-- Collider deck, bridge dan catwalk sekarang mengikuti bounds mesh lantai bernama, bukan AABB seluruh modul yang mencakup railing/kabel. Railing dekoratif yang AABB-nya menghalangi jembatan tidak lagi diberi collider kotak penuh; railing fisik khusus masih harus dibuat.
-- Ditambahkan ramp reusable buatan Blender, beserta source `.blend` dan `connectors.json` untuk pendekatan bridge dan catwalk. Ramp ini menyambungkan elevasi yang diukur dari tiga jenis lantai; bukan jaminan bahwa rute bebas halangan.
-- Godot 4.7.2 headless: test `surface_collision.gd` memeriksa ukuran/orientasi mesh, kesesuaian posisi/ukuran collider dan raycast ke masing-masing jenis lantai, serta tiga titik pada setiap ramp secara terisolasi. Semua lulus. Test ini **bukan** playthrough; collision dari objek lain tidak aktif dalam pengujian ramp dan dapat menghalangi jalur. Lower approach belum disambungkan/dites dengan karakter.
-- Perubahan sejak commit awal belum menjadi bukti screenshot Godot atau performa. Evaluasi visual dan uji traversal menyeluruh masih diperlukan.
+- **UNKNOWN:** tampilan material PBR, sky, fog, glow orbit dan framing pada renderer Godot nyata. Binary yang dijalankan untuk validasi adalah build headless tanpa backend Vulkan/OpenGL, sehingga tidak dapat menghasilkan screenshot in-engine yang jujur.
+- **UNVERIFIED:** FPS/frame time, draw call, memori, device mobile/desktop, kualitas kontrol pemain, AI/navigation, combat/cover gameplay, audio, dan accessibility.
+- **UNVERIFIED:** penilaian artistik final. Kit masih procedural dan sebagian siluet sengaja low-poly; tidak ada klaim photorealistik atau production-ready.
+
+## Batas yang disengaja
+
+- Tidak ada `NavigationRegion3D` atau NavMesh karena proyek ini bukan implementasi AI.
+- Sebagian prop non-lantai tetap memakai proxy AABB. Rute kritis memiliki collision yang diuji; world belum memakai collision mesh yang dipanggang untuk semua aset.
+- `docs/previews/blender_design_preview.png` **bukan screenshot Godot**. Untuk screenshot in-engine, buka scene pada Godot ber-renderer grafis dan dokumentasikan GPU/driver serta setting renderer.
+
+Baca `docs/DESIGN.md` untuk maksud ruang dan metrik rute.

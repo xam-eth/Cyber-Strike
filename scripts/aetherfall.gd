@@ -62,6 +62,13 @@ func _ready() -> void:
 		body.name = "Collision_" + str(item.get("name", key))
 		body.position = pos
 		body.rotation = rot
+		if key == "access_gate":
+			# The gate is an opening, not the solid AABB of the whole arch.
+			for child in instance.find_children("Gate*", "MeshInstance3D", true, false):
+				add_mesh_shape(body, instance, child as MeshInstance3D, scale_factor)
+			collision.add_child(body)
+			collider_count += 1
+			continue
 		var shape := BoxShape3D.new()
 		var offset := Vector3.ZERO
 		if WALKABLE_MESH.has(key):
@@ -82,6 +89,13 @@ func _ready() -> void:
 		node.position = offset
 		node.shape = shape
 		body.add_child(node)
+		# Thin rail meshes are represented individually, never as a solid box
+		# surrounding the entire bridge or catwalk.
+		if key == "bridge_deck" or key == "walkway_deck":
+			var prefix := "Bridge" if key == "bridge_deck" else "Walkway"
+			for child in instance.find_children(prefix + "*", "MeshInstance3D", true, false):
+				if String(child.name).contains("Rail") or String(child.name).contains("Post"):
+					add_mesh_shape(body, instance, child as MeshInstance3D, scale_factor)
 		collision.add_child(body)
 		collider_count += 1
 	var routes := Node3D.new()
@@ -110,6 +124,20 @@ func _ready() -> void:
 	print("Aetherfall: %d placements; %d proxy colliders" % [placement_count, collider_count])
 
 
+func add_mesh_shape(body: StaticBody3D, instance: Node3D, mesh: MeshInstance3D, scale_factor: float) -> void:
+	if mesh == null or mesh.mesh == null:
+		return
+	var relative := instance.global_transform.affine_inverse() * mesh.global_transform
+	var bounds: AABB = relative * mesh.get_aabb()
+	var box := BoxShape3D.new()
+	box.size = bounds.size * scale_factor
+	var shape := CollisionShape3D.new()
+	shape.name = "Part_" + mesh.name
+	shape.position = bounds.get_center() * scale_factor
+	shape.shape = box
+	body.add_child(shape)
+
+
 func add_connectors() -> void:
 	var data := read_json(BASE + "connectors.json")
 	var packed := load(BASE + "models/connector_ramp.glb") as PackedScene
@@ -123,17 +151,20 @@ func add_connectors() -> void:
 		var start := v3(connector.get("from", []))
 		var end := v3(connector.get("to", []))
 		var delta := end - start
-		# Current connectors run in X; enforce ordered endpoints so the top
-		# surface remains upward-facing. Future arbitrary routes need a basis.
-		if delta.x <= 0.0 or absf(delta.z) > 0.001:
+		# Build an orthonormal slope basis for either east-west or north-south
+		# routes. X follows the slope and Y is its upward-facing normal.
+		if Vector2(delta.x, delta.z).length() < 0.01:
 			push_error("Aetherfall: invalid connector endpoints")
 			continue
 		var length := delta.length()
+		var forward := delta.normalized()
+		var side := forward.cross(Vector3.UP).normalized()
+		var normal := side.cross(forward).normalized()
 		var width := float(connector.get("width", 1.6))
 		var root := Node3D.new()
 		root.name = str(connector.get("name", "connector"))
 		root.position = (start + end) * 0.5
-		root.rotation.z = atan2(delta.y, delta.x)
+		root.basis = Basis(forward, normal, side)
 		group.add_child(root)
 		var visual := packed.instantiate() as Node3D
 		visual.name = "Visual"
@@ -153,8 +184,15 @@ func add_connectors() -> void:
 
 func add_atmosphere() -> void:
 	var environment := Environment.new()
-	environment.background_mode = Environment.BG_COLOR
-	environment.background_color = Color(0.23, 0.34, 0.43)
+	var sky_material := ProceduralSkyMaterial.new()
+	sky_material.sky_top_color = Color(0.10, 0.20, 0.32)
+	sky_material.sky_horizon_color = Color(0.56, 0.64, 0.68)
+	sky_material.ground_bottom_color = Color(0.11, 0.14, 0.17)
+	sky_material.ground_horizon_color = Color(0.42, 0.47, 0.48)
+	var sky := Sky.new()
+	sky.sky_material = sky_material
+	environment.background_mode = Environment.BG_SKY
+	environment.sky = sky
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	environment.ambient_light_color = Color(0.60, 0.72, 0.82)
 	environment.ambient_light_energy = 0.8

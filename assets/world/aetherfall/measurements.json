@@ -87,16 +87,16 @@
     "cliff_face": {
       "center": [
         0.0,
-        0.0,
+        -0.0,
         0.0
       ],
       "objects": 11,
       "size": [
         26.0,
-        16.811,
+        18.963,
         26.0
       ],
-      "tris": 544
+      "tris": 2200
     },
     "cloud_puff": {
       "center": [
@@ -303,10 +303,10 @@
       "objects": 5,
       "size": [
         46.0,
-        7.061,
+        7.161,
         53.62
       ],
-      "tris": 696
+      "tris": 2096
     },
     "tower_foundation": {
       "center": [
