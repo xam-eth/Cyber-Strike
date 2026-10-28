@@ -915,7 +915,7 @@ func _register_type(control: Control, role: String, _color: Color, multiplier: f
 
 
 func _action_caption(button: AegisButton, key: String, color: Color, at_top: bool = false) -> Label:
-	var caption := _label_key(key, "label_s", color, [], 1.0, true)
+	var caption := _label_key(key, "label_s", color, [], 1.0)
 	caption.name = "%sCaption" % button.name
 	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	caption.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
