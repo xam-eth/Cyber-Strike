@@ -927,11 +927,11 @@ async function checkPage(target, viewport) {
 
   const audioLines = consoleLines.filter((line) => line.includes('Audio:'));
   const menuLines = consoleLines.filter((line) => line.includes('HUD: '));
-  const scriptErrors = consoleLines.filter((line) => /SCRIPT ERROR:|Parse Error:/.test(line));
+  const scriptErrors = consoleLines.filter((line) => /SCRIPT ERROR:|Parse Error:|ERROR: String formatting error/.test(line));
 
   const checks = [
     ['engine booted (console banner)', booted],
-    ['no Godot script/parse errors', scriptErrors.length === 0],
+    ['no Godot script/parse/format errors', scriptErrors.length === 0],
     ['no page errors', pageErrors.length === 0],
     ['no failed requests', failedRequests.length === 0],
     ['no HTTP 4xx/5xx for page assets', badResponses.length === 0],

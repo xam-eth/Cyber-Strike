@@ -29,6 +29,7 @@ func _run() -> void:
 	var controls := main.get_node("HUD/TouchControls") as TouchControls
 	var camera := player.aim_camera
 	var rig := player.camera_rig
+	rig.set("_qa_camera_trace", true)
 	controls.size = Vector2(844.0 / STRETCH, 390.0 / STRETCH)
 	controls.apply_layout_for_size(Vector2(844.0, 390.0), STRETCH)
 	await process_frame
@@ -69,9 +70,18 @@ func _run() -> void:
 				and not is_equal_approx(pitch_before, rig.pitch_pivot.rotation.x)
 			),
 			(
-				"%s right-mouse motion changes yaw and pitch while aiming "
-				+ "(yaw %.4f -> %.4f, pitch %.4f -> %.4f)"
-			) % [id, yaw_before, rig.yaw_pivot.rotation.y, pitch_before, rig.pitch_pivot.rotation.x]
+				(
+					"%s right-mouse motion changes yaw and pitch while aiming "
+					+ "(yaw %.4f -> %.4f, pitch %.4f -> %.4f)"
+				)
+				% [
+					id,
+					yaw_before,
+					rig.yaw_pivot.rotation.y,
+					pitch_before,
+					rig.pitch_pivot.rotation.x
+				]
+			)
 		)
 		_mouse_button(false)
 		for frame in 20:
@@ -105,17 +115,19 @@ func _run() -> void:
 				and not is_equal_approx(pitch_before, rig.pitch_pivot.rotation.x)
 			),
 			(
-				"%s second-finger touch drag changes ADS yaw and pitch "
-				+ "(yaw %.4f -> %.4f, pitch %.4f -> %.4f, touch=%s)"
+				(
+					"%s second-finger touch drag changes ADS yaw and pitch "
+					+ "(yaw %.4f -> %.4f, pitch %.4f -> %.4f, touch=%s)"
+				)
+				% [
+					id,
+					yaw_before,
+					rig.yaw_pivot.rotation.y,
+					pitch_before,
+					rig.pitch_pivot.rotation.x,
+					(controls.get("_touch") as HudTouchInput).last_touch_debug,
+				]
 			)
-			% [
-				id,
-				yaw_before,
-				rig.yaw_pivot.rotation.y,
-				pitch_before,
-				rig.pitch_pivot.rotation.x,
-				(controls.get("_touch") as HudTouchInput).last_touch_debug,
-			]
 		)
 		_touch(91, look + Vector2(30, -12), false)
 		_touch(90, aim.get_global_rect().get_center(), false)
