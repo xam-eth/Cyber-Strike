@@ -98,11 +98,11 @@ Current selection/profile concerns include:
 - selected hero, weapon, and world ids;
 - BP wallet, weapon ownership/equip, persistent per-weapon tiers, best results, and run counts;
 - legacy/missing tier fallback to 1 and validated fallback for unknown or locked selections;
-- future TECH HUNT secured blueprint/cache/milestone records through the same reviewed profile path.
+- TECH HUNT secured cache/reward records and permanent Arc blueprint eligibility through the same reviewed profile path.
 
 A shell selection is not a second persistent profile. URL parameters are a handoff validated after the saved profile is read, not a mechanism to unlock content.
 
-The future secure/death semantics are defined in `GAMEPLAY_DESIGN.md`; UI must display the result but never decide it independently.
+The secure/death semantics are defined in `GAMEPLAY_DESIGN.md`; UI must display the result but never decide it independently.
 
 ## 8. Presentation and layout rules
 
@@ -118,7 +118,7 @@ Do not reintroduce retired portrait/desktop arrangements or diagnostic chrome me
 
 ## 9. TECH HUNT UI insertion boundary
 
-TECH HUNT 0 will need mission-card, tracker, cache-state, secure/death, and Extract/Endless presentation. These are UI views of Gameplay/Core state:
+TECH HUNT 0 uses mission guidance, cache-state, guarded/Secure, death, and Extract/Endless presentation. These are UI views of Gameplay/Core state:
 
 ```text
 authoritative mission/cache state
@@ -148,7 +148,7 @@ Relevant automated coverage includes:
 - `tools/ui_shots.mjs` / `tools/ui_flow_shots.mjs` for real shell frames where applicable;
 - `tools/operative_evidence.mjs` for EN/ID resting, entrance, settled-tier, rack, overflow, and equipped-rifle evidence;
 - `tests/ads_input_smoke.gd` and `tests/weapon_tier_smoke.gd` for real engine input/profile/controller boundaries;
-- `tools/web_qa.mjs` for browser boot, journey, selected-theatre, and gameplay handoff;
+- `tools/web_qa.mjs` for browser boot, journey, selected-theatre, gameplay handoff, and the state-driven Verdant Recovery engagement gate;
 - `tools/web_loading_qa.mjs` for initial preload and interrupted recovery.
 
 A captured frame needs the correct stage and nonblank content. Automated browser evidence does not establish physical touch comfort, Android behavior, final visual acceptance, or human comprehension of a mission.
