@@ -689,9 +689,11 @@ let lastEntry = 'right';
 function stageShow(entry) {
   const stage = window.AegisHeroStage;
   if (entry) lastEntry = entry;
+  // Loadout paints also run during OPENING/direct DEPLOY. Never initialize the
+  // Three.js stage or fetch hero/weapon models behind the engine preloader.
   // Before the roster answers there is no operative to set, and after a failed
   // fetch there never will be: either way the stage keeps its own default.
-  if (typeof stage === 'undefined' || !roster) return;
+  if (current !== 'hero' || typeof stage === 'undefined' || !roster) return;
   const hero = heroOf(heroState.heroId);
   if (!hero) return;
   const weapon = WEAPONS[prefs.weapon] || WEAPONS.pulse_rifle;
@@ -1043,7 +1045,6 @@ async function loadWeaponData() {
   );
   paintLoadout();
   if (!el('weapon-modal')?.hidden) buildRack();
-  stageShow();
 }
 
 function paintLoadout() {

@@ -130,11 +130,17 @@ async function makePage() {
   const pageErrors = [];
   const failedRequests = [];
   const assetRequests = [];
+  const stageAssetRequests = [];
   page.on('console', (message) => consoleLines.push(`${message.type()}: ${message.text().slice(0, 500)}`));
   page.on('pageerror', (error) => pageErrors.push(String(error).slice(0, 500)));
   page.on('requestfailed', (request) => failedRequests.push(`${request.url().replace(baseUrl, '')} ${request.failure()?.errorText}`));
   page.on('request', (request) => {
     if (/\/web\/index\.(?:wasm|pck)$/.test(request.url())) assetRequests.push(request.url());
+  });
+  page.on('request', (request) => {
+    if (/human_hero_tiers|futuristic_rifle|hero_rig\.json/.test(request.url())) {
+      stageAssetRequests.push(request.url());
+    }
   });
 
   await page.evaluateOnNewDocument(() => {
@@ -197,7 +203,7 @@ async function makePage() {
     if (install()) observer.disconnect();
   });
 
-  return { page, consoleLines, pageErrors, failedRequests, assetRequests };
+  return { page, consoleLines, pageErrors, failedRequests, assetRequests, stageAssetRequests };
 }
 
 async function readState(page) {
@@ -263,7 +269,7 @@ function expectSingleDownloadStart(result, state, requests, requireNotStarted) {
 
 async function runOpeningContract() {
   const result = { failures: [] };
-  const { page, consoleLines, pageErrors, failedRequests, assetRequests } = await makePage();
+  const { page, consoleLines, pageErrors, failedRequests, assetRequests, stageAssetRequests } = await makePage();
   result.expect = (condition, message) => { if (!condition) result.failures.push(message); };
 
   try {
@@ -278,6 +284,8 @@ async function runOpeningContract() {
 
     result.opening = await readState(page);
     result.openingRequests = [...assetRequests];
+    result.openingStageRequests = [...stageAssetRequests];
+    result.expect(stageAssetRequests.length === 0, 'hero/rifle stage assets loaded behind OPENING');
     expectSingleDownloadStart(result, result.opening, assetRequests, true);
     expectByteProgress(result, result.opening, throughputMbps > 0);
     result.expect(result.opening.screen === 'opening', `opening advanced too early to ${result.opening.screen}`);
@@ -349,7 +357,7 @@ async function runOpeningContract() {
 async function runRecoveryCase(asset) {
   const filename = `index.${asset}`;
   const result = { asset: filename, failures: [] };
-  const { page, consoleLines, pageErrors, failedRequests, assetRequests } = await makePage();
+  const { page, consoleLines, pageErrors, failedRequests, assetRequests, stageAssetRequests } = await makePage();
   let failAssets = true;
   await page.setRequestInterception(true);
   page.on('request', (request) => {
@@ -403,6 +411,8 @@ async function runRecoveryCase(asset) {
     result.recoveredPageErrors = [...pageErrors];
     result.recoveredRequestFailures = [...failedRequests];
     result.recoveredRequests = [...assetRequests];
+    result.recoveredStageRequests = [...stageAssetRequests];
+    result.expect(stageAssetRequests.length === 0, 'hero/rifle stage assets loaded behind direct DEPLOY/retry');
     result.expect(result.recovered.mode === 'playing' && result.recovered.canvasHidden === 'false', 'retry did not reveal the game canvas');
     result.expect(consoleLines.some((line) => /Godot Engine v/i.test(line)), 'retry produced no Godot engine banner');
     result.expect(consoleLines.some((line) => line.includes(selectionLog)), 'retry lost the selected-world handoff');
