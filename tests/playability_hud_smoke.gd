@@ -993,13 +993,25 @@ func _run_smoke_test() -> void:
 		var label := caption as Label
 		var font := label.get_theme_font("font")
 		var font_size := label.get_theme_font_size("font_size")
-		var available := label.get_global_rect().size.x - 6.0
+		# The Label rect is already inside the button's left/right offsets.
+		var available := label.get_global_rect().size.x
 		for copy in copies:
 			var measured := (
 				font.get_string_size(String(copy), HORIZONTAL_ALIGNMENT_LEFT, -1.0, font_size).x
 			)
 			if measured > available + 0.5:
-				caption_overflow += "%s/%s=%.1f>%.1f " % [label.name, copy, measured, available]
+				caption_overflow += (
+					"%s/%s=%.1f>%.1f(font=%d,touch=%s,unit=%.2f) "
+					% [
+						label.name,
+						copy,
+						measured,
+						available,
+						font_size,
+						controls.get("_touch_mode"),
+						controls.call("_control_unit"),
+					]
+				)
 	_expect(
 		caption_overflow.is_empty(), "desktop action captions fit their plates: " + caption_overflow
 	)

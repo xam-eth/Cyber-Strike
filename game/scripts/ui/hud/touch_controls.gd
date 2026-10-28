@@ -1047,6 +1047,7 @@ func _layout_controls(
 	_refresh_card_styles()
 	_apply_font_scale()
 	UiLayout.landscape(self)
+	HudStyles.apply_action_caption_density(self)
 	HudArmoryBridge.refresh_entry_label(self)
 
 	_layout_overlays()

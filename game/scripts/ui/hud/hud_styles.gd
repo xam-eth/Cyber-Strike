@@ -76,17 +76,6 @@ static func apply_fonts(hud) -> void:
 			continue
 		var role := String(label.get_meta("aegis_role"))
 		var multiplier := float(label.get_meta("aegis_scale", 1.0))
-		# The 1280x720 screenshot showed 14 px ARMORY copy crossing a 56 px
-		# desktop button. Compact mouse density needs 11 px captions; touch keeps
-		# its existing physical-size floor and full-size action labels.
-		if (
-			not hud._touch_mode
-			and (
-				label
-				in [hud._fire_caption, hud._weapon_caption, hud._aim_caption, hud._skill_caption]
-			)
-		):
-			multiplier *= 0.8
 		var text_size := maxi(
 			roundi(float(AegisTheme.type_size(role)) * unit * multiplier), floor_size
 		)
@@ -175,3 +164,17 @@ static func apply_fonts(hud) -> void:
 		hud._skill_cooldown_label.offset_right = -hud._to_layout(2.0)
 		hud._skill_cooldown_label.offset_top = -hud._to_layout(21.0)
 		hud._skill_cooldown_label.offset_bottom = -hud._to_layout(2.0)
+
+
+## Desktop action captions need a smaller density than the generic label pass.
+## This runs after landscape geometry with direct caption references: the
+## 1280x720 screenshot proved that 14 px ARMORY copy crosses a 56 px plate.
+static func apply_action_caption_density(hud) -> void:
+	if hud._touch_mode:
+		return
+	var text_size := maxi(
+		roundi(11.0 * hud._control_unit() * hud._text_scale), hud._minimum_font_size()
+	)
+	for caption in [hud._fire_caption, hud._weapon_caption, hud._aim_caption, hud._skill_caption]:
+		if is_instance_valid(caption):
+			AegisTheme.resize_label(caption, "label_s", text_size)
