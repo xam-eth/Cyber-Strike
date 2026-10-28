@@ -40,6 +40,9 @@ var recovery_title: String = ""
 var recovery_detail: String = ""
 var recovery_state: String = ""
 var recovery_action: String = ""
+## Live Recovery guards supplied by Main/WaveDirector. This only gates the
+## generic Defense presentation; it never authorizes guard completion or Secure.
+var recovery_guard_count: int = 0
 ## Display name of the equipped weapon, kept so a relayout can re-render the
 ## weapon chip without asking the weapon controller again.
 var weapon_display_name: String = ""

@@ -354,12 +354,15 @@ func set_wave_status(
 	)
 
 
-func set_recovery_status(title: String, detail: String, state_text: String, action: String) -> void:
+func set_recovery_status(
+	title: String, detail: String, state_text: String, action: String, guard_count: int = 0
+) -> void:
 	if (
 		_state.recovery_title == title
 		and _state.recovery_detail == detail
 		and _state.recovery_state == state_text
 		and _state.recovery_action == action
+		and _state.recovery_guard_count == guard_count
 	):
 		return
 	_state.recovery_active = not title.is_empty()
@@ -367,6 +370,7 @@ func set_recovery_status(title: String, detail: String, state_text: String, acti
 	_state.recovery_detail = detail
 	_state.recovery_state = state_text
 	_state.recovery_action = action
+	_state.recovery_guard_count = maxi(guard_count, 0)
 	_apply_context_visibility()
 	HudEncounterUi.refresh_recovery_objective(self)
 

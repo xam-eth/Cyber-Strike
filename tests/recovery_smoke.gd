@@ -214,6 +214,20 @@ func _secure_primary(main: Node) -> void:
 		),
 		"primary guards are not wave enemies",
 	)
+	var hud_state := hud.get("_state") as HudState
+	_expect(
+		(
+			hud_state.recovery_guard_count == 2
+			and hud_state.recovery_detail == AegisText.t("recovery.guards_active", [2])
+			and not (hud.get("_defense_button") as Button).visible
+		),
+		"live guards replace generic Defense with visible Secure-locked guidance",
+	)
+	main.call("_request_defense")
+	_expect(
+		int(main.get("session_mode")) == 0 and int(wave.get("current_wave")) == 0,
+		"Defense cannot bypass or mix with an active Recovery encounter",
+	)
 	var primary: RecoveryCacheDefinition = main.call("_primary_cache")
 	_expect(
 		not main.call("_secure_cache", primary),
@@ -228,8 +242,12 @@ func _secure_primary(main: Node) -> void:
 	)
 	main.call("_update_recovery")
 	_expect(
-		(hud.get("_state") as HudState).recovery_action == "secure",
-		"Ready cache offers Secure rather than another guard spawn",
+		(
+			(hud.get("_state") as HudState).recovery_action == "secure"
+			and (hud.get("_state") as HudState).recovery_guard_count == 0
+			and (hud.get("_defense_button") as Button).visible
+		),
+		"Ready cache restores explicit Secure rather than another guard spawn",
 	)
 	main.call("_on_recovery_action")
 	_expect(

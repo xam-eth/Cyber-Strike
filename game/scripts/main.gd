@@ -429,6 +429,14 @@ func _toggle_pause() -> void:
 func _request_defense() -> void:
 	if session_mode != SessionMode.EXPLORE or player.is_defeated() or _is_paused:
 		return
+	var active_guards := _active_recovery_guard_count()
+	if active_guards > 0:
+		# Do not mix an unresolved TECH HUNT encounter with a generic wave. The
+		# player can still fight, use a ready cache, or reset from Pause.
+		touch_controls._feedback_panel.show_message(
+			AegisText.t("recovery.guards_active", [active_guards])
+		)
+		return
 	session_mode = SessionMode.PREPARING
 	Sfx.set_music_mode(&"preparing")
 	_preparation_remaining = defense_preparation_seconds
@@ -597,6 +605,13 @@ func _cache_distance(cache: RecoveryCacheDefinition) -> float:
 	)
 
 
+func _active_recovery_guard_count() -> int:
+	var count := 0
+	for cache in _recovery_caches:
+		count += wave_director.guard_group_size(cache.cache_id)
+	return count
+
+
 func _update_recovery() -> void:
 	if (
 		_recovery_caches.is_empty()
@@ -644,6 +659,7 @@ func _update_recovery_hud(
 	var title := ""
 	var detail := ""
 	var state_text := ""
+	var active_guards := _active_recovery_guard_count()
 	if nearest != null:
 		title = nearest.display_name
 		var guards := wave_director.guard_group_size(nearest.cache_id)
@@ -670,7 +686,13 @@ func _update_recovery_hud(
 		if target != null:
 			detail = "%s · %d m" % [_recovery_reward_text(target), roundi(_cache_distance(target))]
 			state_text = target.landmark_name
-	touch_controls.set_recovery_status(title, detail, state_text, action)
+	if active_guards > 0 and action.is_empty():
+		# The landscape layout hides the tertiary state badge. Put the active
+		# encounter in the always-visible detail row instead of misleading the
+		# player with START DEFENSE while Secure is still guard-locked.
+		detail = AegisText.t("recovery.guards_active", [active_guards])
+		state_text = AegisText.t("recovery.guards_remaining", [active_guards])
+	touch_controls.set_recovery_status(title, detail, state_text, action, active_guards)
 
 
 func _recovery_state_text(cache: RecoveryCacheDefinition) -> String:

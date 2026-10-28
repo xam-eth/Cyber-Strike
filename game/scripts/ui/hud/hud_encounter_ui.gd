@@ -101,7 +101,14 @@ static func apply_context(hud) -> void:
 	var recovery_available: bool = (
 		not hud._state.recovery_action.is_empty() and (exploring or defending)
 	)
-	hud._defense_button.visible = active and (exploring or preparing or recovery_available)
+	# A live Recovery encounter needs combat, not a generic START DEFENSE action.
+	# Explicit Engage/Secure remains available when Main supplies one; the visible
+	# objective detail carries the guard count because the tertiary state badge is
+	# intentionally hidden on short landscape displays.
+	var generic_defense_available: bool = (
+		(exploring or preparing) and hud._state.recovery_guard_count == 0
+	)
+	hud._defense_button.visible = active and (generic_defense_available or recovery_available)
 	if is_instance_valid(hud._armory_button):
 		# The expanded WEAPON plate owns Armory on a short phone and whenever
 		# one-weapon Explore has no SWAP to offer. Multiple owned weapons make
