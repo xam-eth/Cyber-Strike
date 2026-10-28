@@ -850,22 +850,33 @@ async function checkPage(target, viewport) {
     await page.keyboard.down('KeyD');
     await new Promise((resolve) => setTimeout(resolve, 2500));
     await page.keyboard.up('KeyD');
-    const engageOffered = () => consoleLines.some(
-      (line) => line.includes('Recovery QA:') && line.includes('action=engage'),
-    );
+    const latestRecovery = () => {
+      const line = [...consoleLines].reverse().find((entry) => entry.includes('Recovery QA:'));
+      if (!line) return null;
+      return {
+        action: line.match(/\baction=([a-z]+)/)?.[1] || 'none',
+        guards: Number(line.match(/\bguards=(\d+)/)?.[1] || 0),
+        line,
+      };
+    };
+    const engageOffered = () => latestRecovery()?.action === 'engage';
     if (!engageOffered()) {
+      const beforeApproach = consoleLines.length;
       await page.keyboard.down('KeyW');
       try {
-        await awaitConsoleText(page, consoleLines, 'action=engage', 60000);
+        await awaitConsoleText(page, consoleLines.slice(beforeApproach), 'action=engage', 60000);
       } finally {
         await page.keyboard.up('KeyW');
       }
     }
     recoveryEvidence = { engageOffered: engageOffered(), guardsActive: false, guardModels: [] };
     await capture('engage-offer');
+    const beforeEngage = consoleLines.length;
     if (recoveryEvidence.engageOffered) {
       await page.keyboard.press('KeyB');
-      recoveryEvidence.guardsActive = await awaitConsoleText(page, consoleLines, 'guards=2', 15000);
+      recoveryEvidence.guardsActive = await awaitConsoleText(
+        page, consoleLines.slice(beforeEngage), 'guards=2', 15000,
+      );
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
     await capture('guarded');
@@ -883,8 +894,12 @@ async function checkPage(target, viewport) {
       if (match) models.add(match[1]);
     }
     recoveryEvidence.guardModels = [...models];
+    recoveryEvidence.finalState = latestRecovery();
+    const guardActivation = consoleLines.slice(beforeEngage).find(
+      (line) => line.includes('Recovery QA:') && line.includes('action=none') && line.includes('guards=2'),
+    );
     recoveryEvidence.secureLocked = recoveryEvidence.guardsActive
-      && consoleLines.some((line) => line.includes('Recovery QA:') && line.includes('action=none') && line.includes('guards=2'))
+      && Boolean(guardActivation)
       && !consoleLines.some((line) => line.includes('Encounter: Preparing Defense'));
   }
 

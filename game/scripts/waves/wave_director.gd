@@ -83,6 +83,11 @@ var _session_running: bool = false
 var _spawn_timer: float = 0.0
 var _intermission_timer: float = 0.0
 var _failed_spawn_attempts: int = 0
+## Opt-in, read-only browser targeting evidence. It lets the real-input Recovery
+## probe correct aim from rendered camera geometry instead of guessed mouse
+## timings; it has no gameplay authority and is silent in ordinary play.
+var _recovery_target_qa_enabled: bool = false
+var _recovery_target_qa_remaining: float = 0.0
 
 
 func _ready() -> void:
@@ -99,7 +104,41 @@ func _ready() -> void:
 	_spawn_clearance_shape = SphereShape3D.new()
 	_spawn_clearance_shape.radius = spawn_clearance_radius
 	_rng.randomize()
+	if OS.has_feature("web"):
+		_recovery_target_qa_enabled = bool(
+			JavaScriptBridge.eval("new URLSearchParams(location.search).has('qa_recovery')")
+		)
 	_emit_progress()
+
+
+func _process(delta: float) -> void:
+	if (
+		not _recovery_target_qa_enabled
+		or active_guard_count == 0
+		or not is_instance_valid(_player_camera)
+	):
+		return
+	_recovery_target_qa_remaining = maxf(_recovery_target_qa_remaining - delta, 0.0)
+	if _recovery_target_qa_remaining > 0.0:
+		return
+	_recovery_target_qa_remaining = 0.2
+	for members in _guard_groups.values():
+		for enemy in members as Array:
+			if not is_instance_valid(enemy):
+				continue
+			var target: Vector3 = enemy.global_position + Vector3.UP
+			var screen := _player_camera.unproject_position(target)
+			print(
+				(
+					"Recovery Target QA: id=%s x=%.2f y=%.2f behind=%s"
+					% [
+						enemy.name,
+						screen.x,
+						screen.y,
+						"yes" if _player_camera.is_position_behind(target) else "no",
+					]
+				)
+			)
 
 
 func _physics_process(delta: float) -> void:
