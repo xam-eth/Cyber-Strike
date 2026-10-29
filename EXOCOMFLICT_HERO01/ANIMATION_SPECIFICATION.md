@@ -28,9 +28,9 @@ Poses were computed in Python and baked to ordinary bone keys — the exported c
 - Right hand → grip point: **0.017 m constant at every sampled frame** (bone-anchored by construction; 17 mm is the fixed wrist-bone-to-grip-centre offset inside the modelled glove). **VERIFIED**
 - Left hand → foregrip point: F20 0.040 → F22 0.011 → F24 0.007 → F26 0.004 → F28–45 ≤0.003 m (sampled every 2 frames; script 16 output). **VERIFIED**
 - Same 0.017 m right-grip distance measured again **after export/re-import** at F0 and F36. **VERIFIED**
-- Torso clearance: rifle receiver passes in front of the chest armor without intersection in reviewed frames (close-up `screenshots/animation/aim_F36_closeup.jpg`); the weapon is never forced across the chest — it rises at the right side and comes forward. **VERIFIED visually in Blender renders; Godot visual check pending (owner step).**
+- Torso clearance: rifle receiver passes in front of the chest armor without intersection in reviewed frames (close-up `screenshots/animation/aim_F36_closeup.jpg`); the weapon is never forced across the chest — it rises at the right side and comes forward. **VERIFIED visually in Blender renders, and numerically in Godot 4.7.2** (in-engine grips 0.0000-0.0302 m, bore 0.1-0.4 deg off forward - VALIDATION_REPORT 5.3; a rendered desktop visual pass remains an owner step).
 
 ## 5. Honest limitations
 - The final pose is a **shouldered ready/aim at chest height** (barrel line z≈0.73 vs eyes z≈0.90 in normalized units — the character looks *over* the rifle). It reads correctly for a third-person over-shoulder aim; a cheek-weld ADS variant would need the wrist target ≈8 cm higher and a re-check of support-arm reach. **Documented polish item, not a defect.**
 - Fingers do not articulate (no finger bones in the skeleton contract); both modelled gloves are used as-is.
-- Judgement of "smoothness" is based on rendered key/mid frames and numeric continuity in Blender, not on Godot playback. **Godot playback smoothness UNVERIFIED.**
+- In-engine playback was additionally seek-sampled in Godot 4.7.2 (all measurements match Blender), but judged visual smoothness rests on the Blender frame renders, because headless Godot renders no pixels.

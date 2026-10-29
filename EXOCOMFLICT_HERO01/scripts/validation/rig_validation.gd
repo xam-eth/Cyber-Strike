@@ -1,7 +1,8 @@
 extends Node3D
 ## Rig validation controller: playback, scrub, speed, camera presets,
 ## weapon toggle, skeleton dump and automated checks (UI built in code).
-## Status: authored for Godot 4.7.2, runtime UNVERIFIED - see VALIDATION_REPORT.md.
+## Status: runtime-validated on Godot 4.7.2 (headless main-scene run, zero
+## script errors) - see VALIDATION_REPORT.md section 5.4.
 
 const AutoRigCheck = preload("res://scripts/validation/auto_rig_check.gd")
 

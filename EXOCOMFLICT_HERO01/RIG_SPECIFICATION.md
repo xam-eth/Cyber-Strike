@@ -14,7 +14,7 @@ Root (non-deform)
    ├─ UpperLeg_R → LowerLeg_R → Foot_R → Toe_R
    └─ UpperLeg_L → LowerLeg_L → Foot_L → Toe_L
 ```
-- Bone names in Blender, in the exported GLB skin, and (expected) in Godot `Skeleton3D` are **identical** — no renaming layer. **VERIFIED for Blender+GLB; Godot side UNVERIFIED (no Godot binary in authoring environment).**
+- Bone names in Blender, in the exported GLB skin, and (expected) in Godot `Skeleton3D` are **identical** — no renaming layer. **VERIFIED in all three** (Godot 4.7.2 headless import: Skeleton3D reports the same 24 names - VALIDATION_REPORT 5.3).
 - `Root` and `Weapon_R` are non-deforming (zero painted weight, by construction); all other 22 bones deform. **VERIFIED**
 - No IK/control bones are exported; animation is baked bone keys (see ANIMATION_SPECIFICATION).
 - Joint coordinates (Blender Z-up, as-modeled space): `tools/out/joints_final_v1.json`. Key points: Hips at pelvis z≈0.52; right wrist (Hand_R head) (−0.185, −0.025, 0.465); `Weapon_R` head (−0.192, −0.033, 0.452), tail (−0.207, −0.040, 0.380) — placed on the rifle grip axis in the right palm. **VERIFIED**
@@ -22,7 +22,7 @@ Root (non-deform)
 ## 2. Rest pose, axes, scale, root motion
 - Bind/rest pose = the as-modeled contrapposto stance (weight shifted, head offset x≈+0.043). It is **not** a symmetric T/A-pose — retargeted external animations should be authored/adjusted with this in mind. **VERIFIED**
 - Blender: Z-up, character faces −Y. Exported GLB (Y-up): character faces +Z, height 1.0 unit, origin at ground centre between the feet. **VERIFIED**
-- Godot validation project: `ScaleRoot` applies uniform ×1.8 → 1.8 m tall (**ASSUMPTION**, change in `scenes/characters/HERO_01.tscn`). Character faces +Z as imported; rotate the HERO_01 root 180° about Y if the main project requires the −Z forward convention. **LIKELY (axis math VERIFIED; Godot runtime UNVERIFIED)**
+- Godot validation project: `ScaleRoot` applies uniform ×1.8 → 1.8 m tall (**ASSUMPTION**, change in `scenes/characters/HERO_01.tscn`). Character faces +Z as imported; rotate the HERO_01 root 180° about Y if the main project requires the −Z forward convention. **VERIFIED in-engine** (bore line measures +Z at aim in Godot 4.7.2 - VALIDATION_REPORT 5.3).
 - Root motion: none. `Root`/`Hips` translation channels are constant zero in Milestone 1; all clips are in-place. **VERIFIED**
 
 ## 3. Skinning strategy (as shipped)
@@ -37,7 +37,7 @@ Automatic weights failed on this asset (Blender `ARMATURE_AUTO` produced 100% ze
 ## 4. Weapon attachment (documented convention)
 - The rifle is a **separate object/scene**: `assets/weapons/HERO_01_WEAPON.glb`, wrapped by `scenes/weapons/HERO_01_WEAPON.tscn` with `GripPoint`, `ForegripPoint`, `MuzzlePoint` Marker3Ds (Godot-space positions in the .tscn).
 - Attachment bone: **`Weapon_R`** (child of `Hand_R`). In Blender the weapon object is bone-parented to `Weapon_R` with world-identity transform at rest (max error 1.2e-07, **VERIFIED**); consequently the weapon GLB origin = character origin.
-- In Godot, `scripts/characters/hero_01.gd` creates a `BoneAttachment3D` on `Weapon_R`, instances the weapon scene, and solves the local offset as `inverse(Weapon_R global rest)` so the Blender-authored grip is reproduced regardless of importer bone bases. The solved offset is printed at startup and can be frozen via the `use_manual_weapon_offset` export var — grip adjustment never requires editing hero geometry. **Logic VERIFIED by equivalent Blender math; Godot execution UNVERIFIED.**
+- In Godot, `scripts/characters/hero_01.gd` creates a `BoneAttachment3D` on `Weapon_R`, instances the weapon scene, and solves the attachment-local offset as `skeleton.get_bone_global_rest(Weapon_R).affine_inverse()` - pure skeleton space, so the Blender-authored grip is reproduced at any character scale/placement (an earlier hero-root-anchored version failed exactly here under ScaleRoot x1.8; caught by the headless CI, VALIDATION_REPORT 5.3). The solved offset is printed at startup and can be frozen via the `use_manual_weapon_offset` export var — grip adjustment never requires editing hero geometry. **VERIFIED by execution in Godot 4.7.2** (grip 0.0302 m constant = Blender 0.017 x 1.8; VALIDATION_REPORT 5.3).
 - Grip reference points (Blender rest space): grip (−0.192, −0.033, 0.452); foregrip (−0.215, −0.062, 0.315); muzzle (−0.238, −0.080, 0.205); barrel rest direction ≈ (−0.14, −0.12, −0.98) (pointing down).
 
 ## 5. Export settings (reproduce exactly)
@@ -48,4 +48,4 @@ Deliverable GLBs: `assets/characters/HERO_01_RIGGED.glb` (body+skin+clip), `asse
 ## 6. Retargeting preparation (Phase E)
 Suggested Godot `SkeletonProfileHumanoid` BoneMap (our bone → profile name):
 Root→Root, Hips→Hips, Spine→Spine, Chest→Chest, UpperChest→UpperChest, Neck→Neck, Head→Head, Clavicle_R→RightShoulder, UpperArm_R→RightUpperArm, Forearm_R→RightLowerArm, Hand_R→RightHand, Clavicle_L→LeftShoulder, UpperArm_L→LeftUpperArm, Forearm_L→LeftLowerArm, Hand_L→LeftHand, UpperLeg_R→RightUpperLeg, LowerLeg_R→RightLowerLeg, Foot_R→RightFoot, Toe_R→RightToes, UpperLeg_L→LeftUpperLeg, LowerLeg_L→LeftLowerLeg, Foot_L→LeftFoot, Toe_L→LeftToes. `Weapon_R` has no humanoid equivalent — exclude from the map.
-Warnings: rest pose is an asymmetric contrapposto (not T-pose), unit height is normalized (apply project scale), and bone roll axes follow Blender's glTF conversion. External clips must be validated per-clip; perfect retargeting is **not** claimed. **UNVERIFIED until tested in Godot.**
+Warnings: rest pose is an asymmetric contrapposto (not T-pose), unit height is normalized (apply project scale), and bone roll axes follow Blender's glTF conversion. External clips must be validated per-clip; perfect retargeting is **not** claimed. The skeleton itself is verified in Godot 4.7.2, but BoneMap retargeting has not been exercised - **UNVERIFIED**.

@@ -14,3 +14,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.215, 0.315, 0.062)
 
 [node name="MuzzlePoint" type="Marker3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.238, 0.205, 0.08)
+
+[node name="ReceiverPoint" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.198, 0.5, 0.045)

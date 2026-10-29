@@ -4,8 +4,8 @@ extends Node3D
 ## The weapon GLB origin equals the character origin with identity transform
 ## at rest (VERIFIED in Blender), so the attachment offset is solved from the
 ## Weapon_R bone rest transform: offset = inverse(bone_global_rest).
-## Status: authored for Godot 4.7.2, runtime UNVERIFIED in the authoring
-## environment (no Godot binary available) - see VALIDATION_REPORT.md.
+## Status: runtime-validated on Godot 4.7.2 (headless) 2026-10-29 - see
+## VALIDATION_REPORT.md section 5 and tools/godot/ci_check.gd.
 
 const WEAPON_SCENE = preload("res://scenes/weapons/HERO_01_WEAPON.tscn")
 const AIM_ANIMATION := "Weapon_Raise_To_Aim"
@@ -54,9 +54,14 @@ func _attach_weapon() -> void:
 	if use_manual_weapon_offset:
 		weapon_instance.transform = manual_weapon_offset
 	else:
+		# The weapon GLB is authored at the skeleton's origin (identity at
+		# rest), so the attachment-local offset is simply the inverse of the
+		# bone's global rest transform in skeleton space. This is invariant
+		# to character scale/placement. (Validated in Godot 4.7.2 headless:
+		# tools/godot/ci_check.gd — do NOT anchor to the hero root global,
+		# whose space differs by the ScaleRoot factor.)
 		var bone_rest: Transform3D = skeleton.get_bone_global_rest(bone_idx)
-		var attach_global: Transform3D = skeleton.global_transform * bone_rest
-		weapon_instance.transform = attach_global.affine_inverse() * global_transform
+		weapon_instance.transform = bone_rest.affine_inverse()
 	calibrated_weapon_offset = weapon_instance.transform
 	print("HERO_01: weapon local offset under Weapon_R = ", calibrated_weapon_offset)
 

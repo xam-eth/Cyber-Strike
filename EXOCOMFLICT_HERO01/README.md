@@ -3,7 +3,7 @@
 Standalone Godot **4.7.2** validation project for the rigged HERO_01 hero character + `Weapon_Raise_To_Aim` animation. This project is intentionally independent of the main game repository: validate here, then import the GLBs/scenes you approve.
 
 ## Start here
-1. `VALIDATION_REPORT.md` — what was tested, what passed, and the exact 5-minute Godot check that only you can run (no Godot binary existed in the authoring environment; Godot-side items are honestly marked UNVERIFIED).
+1. `VALIDATION_REPORT.md` — what was tested and what passed, including the executed Godot 4.7.2 headless validation (clean import; in-engine grip/barrel CI) and the short desktop visual pass still recommended on the official editor.
 2. `ART_ASSET_REPORT.md`, `RIG_SPECIFICATION.md`, `ANIMATION_SPECIFICATION.md` — asset audit, skeleton/weights/weapon-attachment contract, animation timing & grip metrics.
 3. Open in Godot: Import → `project.godot` → run (F5) → `RigValidation` scene plays the clip and prints automated PASS/FAIL checks.
 
@@ -25,3 +25,5 @@ Standalone Godot **4.7.2** validation project for the rigged HERO_01 hero charac
 - Weapon attaches via `BoneAttachment3D` on `Weapon_R`; offset auto-solved at startup and manually overridable (`scripts/characters/hero_01.gd`) without touching hero geometry.
 - Character authored at normalized height 1.0; `HERO_01.tscn` scales ×1.8 (assumption — adjust `ScaleRoot`).
 - GDScript only, GLB/glTF 2.0, no addons or external dependencies.
+- Runtime-validated on Godot 4.7.2 (headless editor compiled from official source in the authoring sandbox): re-run the CI anytime with `godot --headless --path . res://tools/godot/CICheck.tscn` after a one-time `--import`.
+- Non-runtime folders (`blender/`, `screenshots/`, `assets/source/`, `tools/blender/`, `tools/out/`) contain `.gdignore` files so Godot never tries to import the authoring .blend / preserved source / screenshots. (A .blend inside a Godot project without a configured Blender path silently aborts *all* headless imports - this bit us once, see VALIDATION_REPORT 5.2; keep the .gdignore files.)

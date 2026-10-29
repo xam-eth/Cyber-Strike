@@ -1,8 +1,6 @@
 # HERO_01 — Validation Report (Phases F, G, H) — Milestone 1
 
-Toolchain actually used: Blender **4.5.15 LTS** (headless bpy, Cycles CPU renders) and Python (pygltflib) for GLB inspection.
-**No Godot binary could be obtained in the authoring sandbox** (the Drive Godot zip is 0 bytes; egress to Godot release hosts is blocked; no system package access). Everything in §5 is therefore **UNVERIFIED at runtime** and is packaged with exact owner steps. No test below is claimed beyond what was executed.
-
+Toolchain actually used: Blender **4.5.15 LTS** (headless bpy, Cycles CPU renders), Python (pygltflib) for GLB inspection, and - as of the 2026-10-29 validation pass - a real **Godot 4.7.2** editor binary compiled from the official `4.7.2-stable` source inside the sandbox (section 5.1 explains why: GitHub release-asset downloads and every npm/PyPI engine route proved unusable from this environment). All Godot tests were executed headless with the dummy rendering driver: import, scene, skeleton, script, animation and transform checks are real engine execution, but **Godot rendered no pixels** - visual evidence remains the Blender Cycles renders from the shipped GLBs (sections 2-4), and a desktop visual pass by the owner is still recommended (5.5). No test is claimed beyond what was executed.
 ## 1. Source preservation — VERIFIED
 - `assets/source/HERO_01.glb` untouched (18,888,488 B, MD5 `9d0ad8cd…`, SHA-256 `f067d3f5…45d50`); all editing on `blender/HERO_01_working.blend`.
 - Vertex conservation through separation **and** export: 262,714 = 244,770 body + 17,944 weapon (counted in source, in Blender, and in shipped GLBs).
@@ -38,25 +36,48 @@ Residual minors (documented, not blockers): a gold jacket flap lifts slightly un
 | Images/materials | 3 / 1 (source set) | 3 / 1 | 0 / 0 |
 Roundtrip: fresh Blender scene, import RIGGED+WEAPON, re-attach weapon to `Weapon_R` (identity at F0, error 2.5e-07; grip distance 0.017 m at F0 **and** F36), renders `screenshots/01…04*.png` produced **from the shipped GLBs only**. One quirk: Blender's own glTF importer reports the re-imported action range as 0–36 (it drops identical trailing samples); the GLB itself contains the full 1.5 s (sampler max = 1.500 s, VERIFIED above).
 
-## 5. Godot project — STATICALLY AUTHORED, RUNTIME **UNVERIFIED**
-`project.godot` (4.7 feature tag, main scene set), `scenes/main/RigValidation.tscn`, `scenes/characters/HERO_01.tscn`, `scenes/weapons/HERO_01_WEAPON.tscn`, GDScript-only logic in `scripts/`. Scripts locate `Skeleton3D`/`AnimationPlayer` by recursive search (no hard-coded importer paths), create the `Weapon_R` BoneAttachment3D at runtime, and solve the weapon offset from the bone rest transform. The validation scene provides Play/Pause/Restart, timeline scrub, 0.25–2× speed, 6 camera presets, weapon toggle, skeleton dump, and an automated check list (`scripts/validation/auto_rig_check.gd`: skeleton presence, 24-bone count, all bone names, animation presence/length≈1.5 s, attachment + weapon instance).
-### Owner validation steps (≈5 minutes)
-1. Open Godot **4.7.2**, Import → select `EXOCOMFLICT_HERO01/project.godot`; wait for GLB import to finish (no errors expected; `.import` files are generated on first open).
-2. Run the project (F5). Expect: character at origin facing camera, aim clip plays once, `AUTO RIG CHECK` panel all PASS, console prints the solved weapon offset + bone dump on demand.
-3. Scrub the timeline slowly; use CloseHands/CloseWeapon presets; confirm grip contact and chest clearance visually; toggle the weapon off/on.
-4. If the weapon appears offset, copy the printed solved offset into `HERO_01.use_manual_weapon_offset/manual_weapon_offset` and nudge there — by design this never touches hero geometry.
-5. Report any console errors verbatim for a fix pass.
-Known static-authoring risks (UNVERIFIED): exact imported node names under the GLB root, `Skeleton3D.get_bone_global_rest()` availability (present in Godot 4.x API), AnimationPlayer default-library naming (`ends_with` matching is used defensively), environment/light setup in the text-authored scene.
+## 5. Godot runtime validation - EXECUTED on Godot 4.7.2 (headless)
 
+### 5.1 How the engine was obtained (provenance)
+- Official release zip: **unreachable** from the sandbox - github.com works, but release assets redirect to `release-assets.githubusercontent.com`, which the sandbox proxy blocks (recorded curl SSL failure).
+- Registry routes evaluated and rejected with evidence: npm `godot-cli` (0.9 MB launcher that downloads from GitHub, so blocked); npm `@ringozz/godot` 4.7.2 (Godot-in-JS: native addons exist only for macOS/Windows - **no Linux addon** - and its wasm fallback boots against a browser canvas/WebGL, so it cannot run CLI-headless here); PyPI has no engine package. The user's Drive Godot zip is 0 bytes.
+- **Working route:** official source `godot-4.7.2-stable` fetched via codeload.github.com (allowed host); `pkgconf` 2.5.1 built from its GitHub source the same way (Godot's linux detect hard-requires pkg-config); editor built with SCons, exit 0, version string `4.7.2.stable.custom_build`:
+  `scons platform=linuxbsd target=editor arch=x86_64 debug_symbols=no production=no vulkan=no opengl3=no module_text_server_adv_enabled=no module_openxr_enabled=no module_webrtc_enabled=no module_websocket_enabled=no module_webxr_enabled=no module_mono_enabled=no module_raycast_enabled=no module_lightmapper_rd_enabled=no module_betsy_enabled=no module_camera_enabled=no -j2`
+  Rendering drivers are off because validation here is data/logic (dummy RenderingServer); import, Skeleton3D, AnimationPlayer and GDScript are unaffected.
+
+### 5.2 Import - PASS (after one real project fix)
+First import runs produced **zero** `.import` products for every file (a minimal one-PNG control project imported fine, proving the binary healthy). Root cause, traced in engine source: our project shipped `blender/HERO_01_working.blend` *inside* the Godot project. Scanning a `.blend` file triggers the Blender format-support query; in headless mode that query errors "Cannot configure blender path in headless mode" and returns *true* (= user configuration required), and `EditorFileSystem::_update_scan_actions` then returns **before** `reimport_files(...)` - silently aborting the whole import batch. On desktop the same layout would have greeted the owner with a "Configure Blender Importer" dialog on first open.
+**Fix shipped:** `.gdignore` added to non-runtime folders: `blender/`, `screenshots/`, `assets/source/`, `tools/blender/`, `tools/out/`. After the fix, `godot --headless --path . --import` imports all three GLBs (`.scn` + basecolor/metallic-roughness/normal `.ctex`) with **zero errors**. The authoring .blend, preserved source GLB and screenshots remain in the package - they are simply invisible to Godot's importer, as they should be.
+
+### 5.3 In-engine CI - ALL PASS (`tools/godot/CICheck.tscn`, exit code 0)
+Headless test scene instantiating the shipped `HERO_01.tscn` unchanged, seeking the clip and measuring in-engine (Godot 4.7.2, scene scale x1.8, so Blender 0.017 m = 0.0306 m here):
+| Sample | dHandR->grip | dHandL->foregrip | Barrel (receiver->muzzle) |
+|---|---|---|---|
+| t=0.0s | 0.0302 m | 0.7536 m (at side) | (-0.133,-0.984,0.117) - down |
+| t=0.4s | 0.0302 m | 0.5920 m | swinging forward/down |
+| t=0.8s | 0.0302 m | 0.0125 m | approx. forward |
+| t=1.2s | 0.0302 m | **0.0000 m** | **0.1 deg off +Z** |
+| t=1.5s | 0.0302 m | **0.0000 m** | **0.4 deg off +Z** |
+Also PASS: Skeleton3D found with exactly 24 bones and all required names; `AnimationPlayer` clip length 1.500 s; `BoneAttachment3D` bound to `Weapon_R`; weapon markers found; right-grip spread across the clip 0.0000 m; Hips moved 0.0000 m; feet planted. Re-run any time: `godot --headless --path . res://tools/godot/CICheck.tscn` (import once first).
+**Real bug found by this CI and fixed:** the first CI run measured a constant 0.4102 m right-grip error. `hero_01.gd` anchored the solved weapon offset to the hero-root global transform, so under `ScaleRoot` (x1.8) the weapon landed at normalized scale beside the hand instead of in it. The offset is now `skeleton.get_bone_global_rest(Weapon_R).affine_inverse()` - pure skeleton space, invariant to character scale/placement. A `ReceiverPoint` marker was also added to the weapon scene so the bore line is measured through receiver->muzzle (an initial foregrip-based estimate misleadingly suggested 4.6 deg; true bore error is 0.1-0.4 deg).
+
+### 5.4 Shipped validation scene - PASS
+`godot --headless --path . --quit-after 150` runs the project's main scene `RigValidation`: exit 0, **zero SCRIPT ERRORs**, all `[RigCheck]` auto-checks PASS, solved weapon offset printed (`HERO_01: weapon local offset under Weapon_R = ... O: (0.288757, 0.398398, 0.012436)`, orthonormal basis). Interactive UI behaviour (buttons/slider/cameras) is constructed without errors headless but cannot be clicked there - desktop interaction is **LIKELY** (standard Control code).
+
+### 5.5 Recommended owner pass (desktop official editor, ~5 minutes)
+1. Open in Godot **4.7.2** desktop, Import -> `EXOCOMFLICT_HERO01/project.godot`; the first import should now complete with no dialogs.
+2. Run (F5): clip plays, AUTO RIG CHECK panel all PASS. Visual pass with real rendering: textures/lighting, scrub slowly with CloseHands/CloseWeapon presets, confirm grip contact and chest clearance visually (all numerically verified already, 5.3).
+3. Confirm the facing convention for the main project: character faces +Z as delivered; rotate the HERO_01 root 180 deg about Y if the main project expects -Z forward.
+Not exercised anywhere yet: BoneMap retargeting of third-party clips (RIG_SPECIFICATION section 6) - remains **UNVERIFIED**.
 ## 6. Acceptance mapping (Milestone 1)
 - Visually intact rigged humanoid in Blender: **VERIFIED** (§1–2, renders).
 - `Weapon_Raise_To_Aim` in Blender: **VERIFIED** (§3).
-- Same character + clip in Godot: **UNVERIFIED** — package complete, runtime confirmation pending owner run (§5). This is the single open acceptance item and it is environmental (no Godot binary), not an asset defect.
+- Same character + clip in Godot 4.7.2: **VERIFIED** at runtime (headless) - clean import, 24-bone Skeleton3D, clip playback sampled in-engine, grips/barrel/root all measured (5.2-5.4). Remaining owner item is a desktop *visual* pass only (5.5), because headless Godot draws no pixels.
 - Humanoid skeleton / inspected weights / armor stability / documented weapon attachment: **VERIFIED** as detailed above.
 - Specs distinguishing verified vs unverified: this report + ART_ASSET_REPORT / RIG_SPECIFICATION / ANIMATION_SPECIFICATION.
 
 ## 7. Recommended next work (not in Milestone 1)
-1. Owner Godot run (§5) → close the UNVERIFIED items.
+1. Owner desktop visual pass (5.5); then lock the final character height/scale decision (currently x1.8 assumption, RIG_SPECIFICATION section 2).
 2. Cheek-weld ADS variant of the aim pose if first-person-style ADS is required.
 3. Locomotion set (idle/walk/run) — validate `Hand_L` wrist weights and hip/knee ranges at run extremes first.
 4. Optional owner-approved LOD/decimation pass for perf budgets; split the 19 grip-fusion shells only if a bare-hand weapon-hidden state is required.
