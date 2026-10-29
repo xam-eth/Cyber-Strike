@@ -19,7 +19,7 @@ Ketiga ramp menggunakan `connector_ramp.glb`, dengan source editable `source/con
 1. **Central deck** — ruang terbuka modular 6×6 m dengan tower dan orbit energi; pintu masuk visual serta ruang konflik utama.
 2. **Elevated spans** — bridge timur dan catwalk barat membentuk loop pandangan silang. Railing memiliki collision per komponen agar jalur tidak menjadi blok AABB menyeluruh.
 3. **Canyon lower approach** — gerbang depan membuka ke ramp lebar; machinery dan cooling vent diposisikan di sisi, tidak pada sumbu lintasan.
-4. **Perimeter geology** — cliff, terrain, boulder, dan siluet jauh membingkai ruang tanpa menjadi floor gameplay. Permukaan memakai albedo, normal dan ORM PBR; detail batu dijaga cukup subtil agar tidak mengalihkan fokus dari tower.
+4. **Perimeter geology** — cliff, terrain, boulder, dan siluet jauh membingkai ruang tanpa menjadi floor gameplay. Permukaan memakai albedo, normal dan ORM PBR; outcrop, strata, brace, panel, rib dan hardware memperkuat skala tanpa mengalihkan fokus dari tower.
 
 ## Konvensi dan batas desain
 
@@ -30,7 +30,7 @@ Ketiga ramp menggunakan `connector_ramp.glb`, dengan source editable `source/con
 
 ## Status review
 
-**VERIFIED (headless):** layout dibangun sebagai 251 placement, semua GLB terimpor, tiga ramp punya permukaan/collision dan dapat dilintasi kapsul otomatis dua arah.
+**VERIFIED (headless):** layout dibangun sebagai 251 placement, seluruh GLB PBR beserta bentuk detail terimpor, tiga ramp punya permukaan/collision dan dapat dilintasi kapsul otomatis dua arah.
 **LIKELY:** komposisi tower/deck/canyon terbaca dari render review Blender.
 **UNKNOWN:** hasil akhir material, sky, fog, glow dan framing di renderer Godot.
 **UNVERIFIED:** performa dan pengalaman perangkat nyata.

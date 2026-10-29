@@ -13,7 +13,7 @@ Kamera ini adalah kamera inspeksi bebas, bukan karakter/gameplay. Material dan l
 ## Struktur
 
 - `scenes/aetherfall.tscn`, `scripts/`: scene, builder independen, dan kamera review.
-- `assets/world/aetherfall/`: layout dalam meter, 27 modul kit GLB, albedo + normal + ORM PBR untuk surface utama, satu GLB animasi orbit tower dan connector ramp.
+- `assets/world/aetherfall/`: layout dalam meter, 27 modul kit GLB, albedo + normal + ORM PBR untuk surface utama, 27 modul yang diperkaya dengan detail bentuk konstruktif, satu GLB animasi orbit tower dan connector ramp.
 - `source/*.blend`: sumber Blender editable (tekstur kit dikemas dalam file). Kit ditulis dalam koordinat **Y-up** untuk mengikuti layout Godot, sehingga tampil menyamping relatif terhadap grid Z-up Blender; ekspor kit sengaja tidak mengonversi sumbu lagi.
 - `tools/blender/build_aetherfall.py`, `build_orbit.py`, dan `build_connector.py`: produksi ulang kit dan animasi menggunakan Blender `bpy` + numpy/Pillow.
 - `tests/`: kontrak statis dan smoke test scene Godot.
@@ -28,7 +28,7 @@ python tools/blender/build_connector.py
 python tools/blender/build_orbit.py
 ```
 
-Peta yang dibangun untuk permukaan opaque adalah albedo sRGB, normal tangent-space, serta ORM (metallic/roughness/AO). Lihat `assets/world/aetherfall/materials/README.md` dan provenance sumber di `assets/world/aetherfall/source_textures/README.md`.
+Peta yang dibangun untuk permukaan opaque adalah albedo sRGB, normal tangent-space, serta ORM (metallic/roughness/AO). Build kit juga menambahkan ribs, bolts, panel, gusset, louver, cable clamp, guard, energy ring, dan detail struktur pada seluruh 27 modul serta connector ramp. Lihat `assets/world/aetherfall/materials/README.md` dan provenance sumber di `assets/world/aetherfall/source_textures/README.md`.
 
 ## Validasi
 

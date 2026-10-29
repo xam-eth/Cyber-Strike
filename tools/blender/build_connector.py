@@ -64,8 +64,16 @@ def box(name, dims, location, mat):
 
 # Top surface is y=0, sharing exact endpoints with Godot collision.
 box('RampDeck', (1, 0.2, 1), (0, -0.1, 0), steel)
+# I-beam-like side chords and underside ribs make the connector read as a
+# manufactured bridge piece even after its length/width are scaled in Godot.
 for z in (-0.45, 0.45):
-    box('SafetyStripe', (1, 0.015, 0.035), (0, 0.0075, z), hazard)
+    box('RampSideChord' + str(z), (1.0, 0.16, 0.075), (0, -0.23, z), steel)
+    box('SafetyStripe' + str(z), (1, 0.015, 0.035), (0, 0.0075, z), hazard)
+for i in range(7):
+    x = -0.42 + i * 0.14
+    box('RampRib' + str(i), (0.028, 0.16, 0.84), (x, -0.23, 0), steel)
+    for z in (-0.34, 0.34):
+        box('RampBolt' + str(i) + str(z), (0.045, 0.04, 0.045), (x, 0.018, z), hazard)
 bpy.ops.file.pack_all()
 bpy.ops.wm.save_as_mainfile(filepath=os.path.join(ROOT, 'source', 'connector_ramp.blend'))
 bpy.ops.export_scene.gltf(filepath=os.path.join(ROOT, 'assets/world/aetherfall/models/connector_ramp.glb'), export_format='GLB', export_yup=False)

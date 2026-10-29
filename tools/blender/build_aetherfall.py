@@ -471,7 +471,7 @@ def _relink(obj, coll):
     coll.objects.link(obj)
 
 def mbox(coll, name, dims, pos=(0.0, 0.0, 0.0), matname="Steel", bevel=0.02,
-         bevel_seg=2, rot=(0.0, 0.0, 0.0)):
+         bevel_seg=3, rot=(0.0, 0.0, 0.0)):
     bpy.ops.mesh.primitive_cube_add(size=2.0, location=pos, rotation=rot)
     o = bpy.context.active_object
     o.name = name
@@ -480,9 +480,13 @@ def mbox(coll, name, dims, pos=(0.0, 0.0, 0.0), matname="Steel", bevel=0.02,
     if bevel > 0.0:
         mod = o.modifiers.new("B", "BEVEL")
         mod.width = bevel
-        mod.segments = bevel_seg
+        mod.segments = max(3, bevel_seg)
         mod.limit_method = 'ANGLE'
         mod.angle_limit = math.radians(32.0)
+        try:
+            mod.harden_normals = True
+        except Exception:
+            pass
     o.data.materials.append(get_mat(matname))
     _relink(o, coll)
     return o
@@ -490,16 +494,21 @@ def mbox(coll, name, dims, pos=(0.0, 0.0, 0.0), matname="Steel", bevel=0.02,
 def mcyl(coll, name, radius, depth, pos=(0.0, 0.0, 0.0), matname="Steel",
          bevel=0.02, verts=16, rot=(0.0, 0.0, 0.0)):
     bpy.ops.mesh.primitive_cylinder_add(radius=radius, depth=depth,
-                                        location=pos, vertices=verts, rotation=rot)
+                                        location=pos, vertices=max(12, verts), rotation=rot)
     o = bpy.context.active_object
     o.name = name
-    o.rotation_euler = (-math.pi / 2.0, 0.0, 0.0)
+    # Cylinder depth starts on Blender Z; author the kit with Y as height.
+    o.rotation_euler = (-math.pi / 2.0 + rot[0], rot[1], rot[2])
     if bevel > 0.0:
         mod = o.modifiers.new("B", "BEVEL")
         mod.width = bevel
-        mod.segments = 2
+        mod.segments = 3
         mod.limit_method = 'ANGLE'
         mod.angle_limit = math.radians(32.0)
+        try:
+            mod.harden_normals = True
+        except Exception:
+            pass
     o.data.materials.append(get_mat(matname))
     _relink(o, coll)
     return o
@@ -507,12 +516,38 @@ def mcyl(coll, name, radius, depth, pos=(0.0, 0.0, 0.0), matname="Steel",
 def msphere(coll, name, radius, pos=(0.0, 0.0, 0.0), matname="Rock",
             segments=16, rings=10):
     bpy.ops.mesh.primitive_uv_sphere_add(radius=radius, location=pos,
-                                         segments=segments, ring_count=rings)
+                                         segments=max(18, segments), ring_count=max(12, rings))
     o = bpy.context.active_object
     o.name = name
     o.data.materials.append(get_mat(matname))
     _relink(o, coll)
     return o
+
+def mtorus(coll, name, major, minor, pos=(0.0, 0.0, 0.0), matname="Steel",
+           major_segments=32, minor_segments=8, rot=(0.0, 0.0, 0.0)):
+    """A clean hard-surface ring in the kit's Y-up orientation."""
+    bpy.ops.mesh.primitive_torus_add(major_radius=major, minor_radius=minor,
+                                     major_segments=major_segments, minor_segments=minor_segments,
+                                     location=pos, rotation=(math.pi / 2.0 + rot[0], rot[1], rot[2]))
+    o = bpy.context.active_object
+    o.name = name
+    o.data.materials.append(get_mat(matname))
+    _relink(o, coll)
+    return o
+
+def add_bolt(coll, name, pos, radius=0.08, height=0.10, matname="Titanium"):
+    return mcyl(coll, name, radius, height, pos, matname, bevel=0.018, verts=12)
+
+def brace_xy(coll, name, a, b, thickness=0.18, depth=0.18, matname="Steel"):
+    """Rectangular diagonal brace between two points in the authored X/Y plane."""
+    dx, dy = b[0] - a[0], b[1] - a[1]
+    length = math.hypot(dx, dy)
+    if length < 0.001:
+        return None
+    angle = math.atan2(-dx, dy)
+    return mbox(coll, name, (thickness, length, depth),
+                ((a[0] + b[0]) * 0.5, (a[1] + b[1]) * 0.5, (a[2] + b[2]) * 0.5),
+                matname, bevel=0.045, rot=(0.0, 0.0, angle))
 
 def grid_mesh(coll, name, size, seg, pos, height_fn, matname,
               base_rot=(0.0, 0.0, 0.0), uv_scale=0.5):
@@ -965,6 +1000,195 @@ b_bridge_deck(); b_bridge_support(); b_walkway_deck(); b_damaged_slab()
 b_machinery(); b_cooling_vent(); b_conduit(); b_cable_bundle(); b_railing(); b_debris_cluster()
 b_cover_barrier(); b_cover_machine(); b_access_gate()
 b_background_silhouette(); b_cloud_puff()
+
+
+# ---------------------------- form enrichment -----------------------------
+def enrich_asset_forms():
+    """Add silhouette, construction logic and close-range detail to all kit roles.
+
+    Existing named walking meshes and pivots remain untouched so the Godot
+    builder's floor/collider contract continues to work. Detail stays within
+    the authored footprint wherever that module receives a proxy collider.
+    """
+    # Geology: satellite rocks, shelves and visible strata break the primitive masses.
+    terrain = ASSETS["terrain_chunk"]
+    for i in range(20):
+        a = math.radians(i * 47.0 + 11.0)
+        radius = 6.0 + (i % 5) * 3.45
+        x, z = math.cos(a) * radius, math.sin(a) * radius
+        y = -2.45 + 2.6 * noise2(x * 0.17, z * 0.17, 4, 7.0)
+        rock = msphere(terrain, "TerrainOutcrop%02d" % i, 0.34 + (i % 4) * 0.16,
+                       (x, y, z), "Rock", segments=10, rings=7)
+        rock.scale = (1.0 + (i % 3) * 0.25, 0.55 + (i % 2) * 0.25, 0.8 + (i % 4) * 0.12)
+    cliff = ASSETS["cliff_face"]
+    for i in range(9):
+        x = -10.5 + i * 2.65
+        mbox(cliff, "CliffStrata%02d" % i, (2.1, 0.38 + (i % 3) * 0.12, 1.4),
+             (x, -0.6 + (i % 4) * 0.55, -5.5 + (i % 2) * 0.45), "Stratum", bevel=0.22,
+             rot=(0.0, math.radians(-8 + i * 6), math.radians((-1) ** i * 4)))
+    boulder = ASSETS["rock_boulder"]
+    for i in range(6):
+        a = math.radians(i * 58.0)
+        r = 2.0 + (i % 2) * 1.0
+        chip = msphere(boulder, "BoulderChip%02d" % i, 0.45 + (i % 3) * 0.17,
+                       (math.cos(a) * r, 0.35 + (i % 2) * 0.25, math.sin(a) * r),
+                       "Rock", segments=12, rings=8)
+        chip.scale = (1.3, 0.7, 1.0)
+
+    # Platform kit: panel rhythm, seat plates and a denser fastener language.
+    deck = ASSETS["deck_6x6"]
+    for ix in (-2.45, -0.82, 0.82, 2.45):
+        for iz in (-2.45, -0.82, 0.82, 2.45):
+            add_bolt(deck, "DeckFastener_%d_%d" % (int(ix * 10), int(iz * 10)), (ix, 0.33, iz), 0.075, 0.09)
+    for i in range(3):
+        mbox(deck, "DeckServiceChannel%d" % i, (0.10, 0.055, 4.85), (-1.65 + i * 1.65, 0.325, 0.0), "Titanium", bevel=0.018)
+    mbox(deck, "DeckServiceHatch", (1.18, 0.055, 0.82), (0.0, 0.33, -1.1), "Composite", bevel=0.035)
+    edge = ASSETS["deck_edge"]
+    for i in range(6):
+        add_bolt(edge, "EdgeFastener%02d" % i, (-2.35 + i * 0.94, 0.34, -0.18), 0.065, 0.08)
+    for i in range(3):
+        mbox(edge, "EdgeStiffener%d" % i, (0.17, 0.42, 0.17), (-2.0 + i * 2.0, 0.08, 0.0), "Steel", bevel=0.03)
+
+    # Structural kit: web stiffeners, gussets, recessed panels and anchor hardware.
+    pillar = ASSETS["pillar"]
+    for y in (1.0, 2.6, 4.1):
+        mbox(pillar, "PillarGusset%.0f" % (y * 10), (1.5, 0.12, 1.45), (0.0, y, 0.0), "Titanium", bevel=0.035)
+    for x in (-0.58, 0.58):
+        for z in (-0.58, 0.58):
+            add_bolt(pillar, "PillarAnchor_%d_%d" % (int(x * 10), int(z * 10)), (x, 0.54, z), 0.08, 0.11)
+    beam = ASSETS["beam"]
+    for z in (-3.2, -1.9, -0.6, 0.7, 2.0, 3.3):
+        mbox(beam, "BeamWebStiffener%d" % int((z + 4) * 10), (1.08, 0.95, 0.11), (0.0, 0.0, z), "Titanium", bevel=0.025)
+    mbox(beam, "BeamTopFlange", (1.32, 0.12, 8.0), (0.0, 0.39, 0.0), "Steel", bevel=0.025)
+    mbox(beam, "BeamBottomFlange", (1.32, 0.12, 8.0), (0.0, -0.39, 0.0), "Steel", bevel=0.025)
+    wall = ASSETS["wall_section"]
+    for i in range(5):
+        mbox(wall, "WallLouver%02d" % i, (2.9, 0.12, 0.16), (0.0, 0.72 + i * 0.34, 0.29), "Titanium", bevel=0.022)
+    for x in (-1.7, 1.7):
+        for y in (0.65, 2.55):
+            mbox(wall, "WallRivet_%d_%d" % (int(x*10), int(y*10)), (0.14, 0.14, 0.11), (x, y, 0.29), "Titanium", bevel=0.02)
+    mbox(wall, "WallStatusStrip", (2.8, 0.10, 0.10), (0.0, 2.72, 0.30), "Energy", bevel=0.018)
+
+    # Tower: ringed massing, exterior panel seams, anchors and readable energy hardware.
+    foundation = ASSETS["tower_foundation"]
+    for i in range(16):
+        a = math.tau * i / 16.0
+        add_bolt(foundation, "FoundationBolt%02d" % i, (math.cos(a) * 7.7, 3.96, math.sin(a) * 7.7), 0.12, 0.16)
+    for i in range(4):
+        a = math.tau * i / 4.0 + math.pi / 4.0
+        brace_xy(foundation, "FoundationBrace%d" % i,
+                 (math.cos(a) * 4.8, 3.4, math.sin(a) * 4.8),
+                 (math.cos(a) * 7.0, 6.2, math.sin(a) * 7.0), 0.25, 0.24, "Steel")
+    mtorus(foundation, "FoundationEnergyRing", 5.5, 0.13, (0.0, 4.1, 0.0), "Energy", 48, 10)
+    tier = ASSETS["tower_tier"]
+    for level in range(4):
+        y = 1.75 + level * 2.25
+        for side in (-1.0, 1.0):
+            mbox(tier, "TierRibX_%d_%d" % (level, int(side)), (0.28, 1.55, 10.8), (side * 5.72, y, 0.0), "Titanium", bevel=0.035)
+            mbox(tier, "TierRibZ_%d_%d" % (level, int(side)), (10.8, 1.55, 0.28), (0.0, y, side * 5.72), "Titanium", bevel=0.035)
+    for y in (1.5, 4.0, 6.5, 9.0):
+        mtorus(tier, "TierBand%d" % int(y * 10), 5.95, 0.11, (0.0, y, 0.0), "Steel", 40, 8)
+    spire = ASSETS["tower_spire"]
+    for i in range(4):
+        a = math.tau * i / 4.0 + math.pi / 4.0
+        mbox(spire, "SpireFin%d" % i, (0.22, 6.0, 2.4), (math.cos(a) * 2.2, 6.4, math.sin(a) * 2.2), "Titanium", bevel=0.05,
+             rot=(0.0, a, 0.0))
+    mtorus(spire, "SpireHalo", 2.7, 0.10, (0.0, 9.6, 0.0), "Energy", 36, 8)
+    core = ASSETS["energy_core"]
+    for y in (1.4, 3.5, 5.7):
+        mtorus(core, "CoreHalo%d" % int(y * 10), 3.0, 0.14, (0.0, y, 0.0), "Energy", 40, 8)
+    for i in range(8):
+        a = math.tau * i / 8.0
+        mbox(core, "CoreEmitter%02d" % i, (0.32, 0.55, 0.65), (math.cos(a) * 2.85, 3.5, math.sin(a) * 2.85), "Titanium", bevel=0.06,
+             rot=(0.0, -a, 0.0))
+
+    # Traversal structures: grating, bolts, diagonal braces and mount plates.
+    bridge = ASSETS["bridge_deck"]
+    for z in (-3.25, -2.15, -1.05, 0.05, 1.15, 2.25, 3.35):
+        mbox(bridge, "BridgeGrate%d" % int((z + 4) * 10), (5.35, 0.055, 0.075), (0.0, 0.415, z), "Titanium", bevel=0.012)
+    for x in (-2.45, 2.45):
+        for z in (-3.2, -1.1, 1.1, 3.2):
+            add_bolt(bridge, "BridgeBolt_%d_%d" % (int(x*10), int(z*10)), (x, 0.43, z), 0.065, 0.08)
+    support = ASSETS["bridge_support"]
+    for z in (-1.7, 1.7):
+        brace_xy(support, "PylonCrossA_%d" % int(z * 10), (-2.05, 2.2, z), (2.05, 11.8, z), 0.25, 0.22)
+        brace_xy(support, "PylonCrossB_%d" % int(z * 10), (2.05, 2.2, z), (-2.05, 11.8, z), 0.25, 0.22)
+    walkway = ASSETS["walkway_deck"]
+    for z in (-2.55, -1.7, -0.85, 0.0, 0.85, 1.7, 2.55):
+        mbox(walkway, "WalkwayGrate%d" % int((z + 3) * 10), (1.38, 0.045, 0.07), (0.0, 0.21, z), "Titanium", bevel=0.012)
+    for side in (-1.0, 1.0):
+        for z in (-1.0, 1.0):
+            brace_xy(walkway, "WalkwayBrace_%d_%d" % (int(side), int(z*10)), (side * 0.61, 0.25, z - 0.45), (side * 0.61, 1.05, z + 0.45), 0.055, 0.055)
+    slab = ASSETS["damaged_slab"]
+    for i in range(8):
+        mbox(slab, "SlabCrack%02d" % i, (0.06, 0.045, 1.3 + (i % 3) * 0.35), (-2.8 + i * 0.72, 1.46 - (i % 2) * 0.35, -0.7 + (i % 3) * 0.75), "Rubber", bevel=0.008,
+             rot=(0.0, math.radians(i * 21), math.radians((-1) ** i * 7)))
+
+    # Industrial props: service panels, louvers, clamps and readable controls.
+    machine = ASSETS["machinery"]
+    for i in range(8):
+        mbox(machine, "MachineLouver%02d" % i, (2.85, 0.11, 0.12), (0.0, 0.75 + i * 0.26, 1.88), "Titanium", bevel=0.018)
+    for x in (-1.62, 1.62):
+        for y in (0.75, 2.7):
+            add_bolt(machine, "MachineBolt_%d_%d" % (int(x*10), int(y*10)), (x, y, 1.98), 0.065, 0.075)
+    for i in range(3):
+        mbox(machine, "MachineIndicator%d" % i, (0.16, 0.16, 0.08), (-0.38 + i * 0.38, 2.85, 1.9), "Energy", bevel=0.025)
+    vent = ASSETS["cooling_vent"]
+    for i in range(8):
+        a = math.tau * i / 8.0
+        mbox(vent, "VentBlade%02d" % i, (0.22, 0.08, 1.15), (math.cos(a) * 0.38, 3.76, math.sin(a) * 0.38), "Titanium", bevel=0.03,
+             rot=(0.0, a, math.radians(15)))
+    mtorus(vent, "VentGuard", 1.35, 0.08, (0.0, 3.82, 0.0), "Steel", 32, 8)
+    conduit = ASSETS["conduit"]
+    for i in range(5):
+        mtorus(conduit, "ConduitCollar%d" % i, 0.38, 0.05, (0.0, 0.8 + i * 1.1, 0.0), "Titanium", 20, 6)
+    cables = ASSETS["cable_bundle"]
+    for z in (-2.4, -1.2, 0.0, 1.2, 2.4):
+        mbox(cables, "CableClamp%d" % int((z+3)*10), (0.72, 0.08, 0.16), (0.0, 0.43, z), "Titanium", bevel=0.02)
+    rail = ASSETS["railing"]
+    for i in range(4):
+        x = -2.7 + i * 1.8
+        mbox(rail, "RailingFoot%d" % i, (0.42, 0.08, 0.42), (x, 0.05, 0.0), "Titanium", bevel=0.025)
+        brace_xy(rail, "RailingBraceA%d" % i, (x, 0.16, -0.08), (x, 0.93, -0.08), 0.06, 0.06)
+    debris = ASSETS["debris_cluster"]
+    for i in range(8):
+        a = math.radians(i * 43.0)
+        shard = msphere(debris, "DebrisShard%02d" % i, 0.26 + (i % 3) * 0.10, (math.cos(a) * (1.0 + (i % 3)), 0.22, math.sin(a) * (1.0 + (i % 3))), "Rock", 10, 7)
+        shard.scale = (1.5, 0.55, 0.7)
+
+    # Cover/gate modules: panels, handles, gauges, mounts and control hardware.
+    barrier = ASSETS["cover_barrier"]
+    for x in (-0.75, 0.0, 0.75):
+        mbox(barrier, "BarrierRib%d" % int(x * 10), (0.12, 0.82, 0.14), (x, 0.65, 0.36), "Titanium", bevel=0.025)
+    mbox(barrier, "BarrierLight", (1.15, 0.10, 0.07), (0.0, 0.94, 0.37), "Energy", bevel=0.018)
+    cover_machine = ASSETS["cover_machine"]
+    for i in range(6):
+        mbox(cover_machine, "CoverVent%02d" % i, (2.8, 0.10, 0.13), (0.0, 0.48 + i * 0.25, 1.42), "Titanium", bevel=0.018)
+    for x in (-1.45, 1.45):
+        mcyl(cover_machine, "CoverPipe%d" % int(x * 10), 0.18, 2.2, (x, 2.85, -0.65), "Steel", bevel=0.035, verts=12)
+    gate = ASSETS["access_gate"]
+    for side in (-1.0, 1.0):
+        x = side * 3.2
+        for y in (0.55, 1.5, 2.45, 3.4):
+            mbox(gate, "GatePlate_%d_%d" % (int(side), int(y*10)), (0.78, 0.17, 0.82), (x, y, 0.0), "Titanium", bevel=0.025)
+            add_bolt(gate, "GateBolt_%d_%d" % (int(side), int(y*10)), (x + side * 0.38, y, 0.28), 0.055, 0.07)
+    mbox(gate, "GateControlBox", (0.62, 1.05, 0.46), (2.35, 1.05, 0.52), "Composite", bevel=0.06)
+    mbox(gate, "GateControlLight", (0.18, 0.18, 0.06), (2.35, 1.23, 0.77), "Energy", bevel=0.018)
+
+    # Distant assets get a little hierarchy but remain light-weight silhouettes.
+    background = ASSETS["background_silhouette"]
+    for i in range(3):
+        mbox(background, "DistAntenna%d" % i, (0.22, 6.0 + i * 1.8, 0.22), (-4.0 + i * 4.0, 35.0 + i, 0.0), "Steel", bevel=0.03)
+    for i in range(5):
+        mbox(background, "DistWindow%d" % i, (1.2, 0.3, 0.08), (-12.0 + i * 5.0, 5.0 + (i % 2), -11.05), "Energy", bevel=0.012)
+    cloud = ASSETS["cloud_puff"]
+    for i in range(5):
+        a = math.radians(72.0 * i + 18.0)
+        o = msphere(cloud, "CloudWisp%02d" % i, 0.9 + (i % 2) * 0.3, (math.cos(a) * 5.5, 0.5 + (i % 2), math.sin(a) * 4.3), "Cloud", 14, 8)
+        o.scale = (2.0, 0.5, 1.4)
+    print("== Aetherfall build: enhanced all 27 reusable asset forms ==")
+
+enrich_asset_forms()
 
 
 def _rot_mat(r):

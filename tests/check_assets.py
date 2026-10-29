@@ -12,6 +12,22 @@ assert len(layout['placements']) == 251
 assert {p['asset'] for p in layout['placements']} == set(measures)
 for p in layout['placements']:
     assert len(p['pos']) == len(p['rot']) == 3 and p['scale'] > 0
+# Geometry budget for every authored reusable object. This deliberately checks
+# form complexity rather than claiming visual realism or runtime performance.
+minimum_meshes = {
+    'access_gate': 25, 'background_silhouette': 14, 'beam': 14,
+    'bridge_deck': 32, 'bridge_support': 15, 'cable_bundle': 14,
+    'cliff_face': 20, 'cloud_puff': 12, 'conduit': 13,
+    'cooling_vent': 19, 'cover_barrier': 9, 'cover_machine': 13,
+    'damaged_slab': 15, 'debris_cluster': 14, 'deck_6x6': 30,
+    'deck_edge': 16, 'energy_core': 20, 'machinery': 24,
+    'pillar': 12, 'railing': 15, 'rock_boulder': 9,
+    'terrain_chunk': 25, 'tower_foundation': 36, 'tower_spire': 13,
+    'tower_tier': 35, 'walkway_deck': 28, 'wall_section': 19,
+}
+assert set(minimum_meshes) == set(measures)
+for asset, minimum in minimum_meshes.items():
+    assert measures[asset]['objects'] >= minimum, f'form detail missing: {asset}'
 for name in [*measures, 'energy_orbit', 'connector_ramp']:
     data = (base / 'models' / (name + '.glb')).read_bytes()
     magic, version, length = struct.unpack_from('<4sII', data)
@@ -22,6 +38,8 @@ for name in [*measures, 'energy_orbit', 'connector_ramp']:
         assert payload.get('animations'), 'animasi orbit hilang'
     else:
         assert payload.get('materials'), name
+        if name == 'connector_ramp':
+            assert len(payload.get('meshes', [])) >= 26, 'detail connector hilang'
         # All opaque PBR surface materials must carry real normal and
         # metallic-roughness maps, not only a base-colour texture.
         textured = {"Steel", "PaintedSteel", "Titanium", "Concrete", "Composite", "Rock", "Stratum", "Rubber", "Cable", "Hazard", "WarningRed", "RampSteel", "RampHazard"}
@@ -41,4 +59,4 @@ for suffix in ['normal', 'orm']:
     assert (base / 'materials' / ('aether_rock_' + suffix + '.png')).is_file()
 connectors = json.loads((base / 'connectors.json').read_text())['connectors']
 assert {x['name'] for x in connectors} == {'east_bridge_approach', 'west_catwalk_approach', 'lower_canyon_descent'}
-print(f'PASS: {len(layout["placements"])} placement, {len(measures)} modul, GLB orbit beranimasi, 3 connector, 3 source Blender, PBR normal+ORM')
+print(f'PASS: {len(layout["placements"])} placement, {len(measures)} modul, GLB orbit beranimasi, 3 connector, 3 source Blender, PBR normal+ORM, bentuk 27 modul')
