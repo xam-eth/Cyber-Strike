@@ -1,7 +1,7 @@
 {
  "RIGGED": {
   "file": "HERO_01_RIGGED.glb",
-  "bytes": 22878136,
+  "bytes": 22897160,
   "nodes": [
    "Head",
    "Neck",
@@ -28,6 +28,7 @@
    "Hips",
    "Root",
    "HERO_01_BODY",
+   "HERO_01_UNDERSUIT",
    "HERO_01_Armature"
   ],
   "meshes": [
@@ -42,6 +43,19 @@
      "WEIGHTS_0"
     ],
     "weight_sum_min": 0.9999998807907104,
+    "weight_sum_max": 1.0000001192092896,
+    "zero_weight_verts": 0
+   },
+   {
+    "name": "HERO_01_UNDERSUIT",
+    "verts": 325,
+    "attrs": [
+     "JOINTS_0",
+     "NORMAL",
+     "POSITION",
+     "WEIGHTS_0"
+    ],
+    "weight_sum_min": 1.0,
     "weight_sum_max": 1.0000001192092896,
     "zero_weight_verts": 0
    }
@@ -85,7 +99,7 @@
    }
   ],
   "images": 3,
-  "materials": 1
+  "materials": 2
  },
  "ANIMATIONS": {
   "file": "HERO_01_ANIMATIONS.glb",
@@ -161,7 +175,7 @@
  },
  "WEAPON": {
   "file": "HERO_01_WEAPON.glb",
-  "bytes": 5326624,
+  "bytes": 5326644,
   "nodes": [
    "HERO_01_WEAPON.001"
   ],
