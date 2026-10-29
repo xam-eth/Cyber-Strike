@@ -70,7 +70,7 @@ func _test_catalog_and_manager() -> void:
 	var picked := mgr.select_choice(0)
 	_check(picked != null, "selecting card 0 must return chosen RunUpgradeDefinition")
 	_check(not mgr.has_pending_choice(), "pending choice must clear after selection")
-	_check(mgr.stack_for(picked.upgrade_id) == 1, "selected upgrade stack must become 1")
+	_check(mgr.stack_count(picked.upgrade_id) == 1, "selected upgrade stack must become 1")
 	_check(not mgr.active_tags_summary().is_empty(), "active_tags_summary must list chosen mod")
 	_check(mgr.charge_required() == 3, "next evolution threshold must step to 3 KOs")
 
@@ -109,10 +109,10 @@ func _test_dashboard_armory_upgrade_wiring() -> void:
 		"Dashboard armory upgrade button must upgrade pulse_rifle to tier 2"
 	)
 
-	var arc_action := armory.find_child("Action_arc_shooter", true, false) as Button
+	var arc_action := armory.find_child("ArcWeaponButton", true, false) as Button
 	_check(
-		arc_action != null and arc_action.disabled,
-		"Arc Shooter unlock button must show disabled when Seed Vault blueprint is missing"
+		arc_action != null and arc_action.text == AegisText.t("armory.blueprint_locked"),
+		"Arc Shooter button must report BLUEPRINT LOCKED when Seed Vault blueprint is missing"
 	)
 
 	stage.queue_free()

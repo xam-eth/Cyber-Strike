@@ -692,19 +692,19 @@ func _on_weapon_upgrade(weapon_id: StringName) -> void:
 	var progression := progression_service()
 	if progression == null or not ProgressionService.WEAPON_IDS.has(weapon_id):
 		return
-	var result := progression.upgrade_weapon(weapon_id)
-	match result:
-		ProgressionService.UPGRADE_OK:
-			var next_tier := progression.weapon_tier(weapon_id)
-			Sfx.play_ui(&"session_clear")
-			_armory_ui.show_hint_key(
-				"armory.now_upgraded", [String(weapon_id).to_upper(), next_tier]
-			)
-		ProgressionService.UPGRADE_INSUFFICIENT_BP:
-			var cost := progression.upgrade_cost(weapon_id)
-			_armory_ui.show_hint_key("armory.need_bp", [maxi(cost - progression.balance, 1)])
-		_:
-			pass
+	var current := progression.weapon_tier(weapon_id)
+	if current >= WeaponTier.tier_count():
+		_armory_ui.show_hint_key("armory.upgrade_max")
+		return
+	var cost := progression.weapon_upgrade_cost(weapon_id)
+	var missing := cost - progression.balance
+	if missing > 0:
+		_armory_ui.show_hint_key("armory.upgrade_need", [missing])
+		return
+	if progression.upgrade_weapon(weapon_id):
+		var next_tier := progression.weapon_tier(weapon_id)
+		Sfx.play_ui(&"session_clear")
+		_armory_ui.show_hint_key("armory.upgraded", [next_tier])
 	refresh_profile()
 
 

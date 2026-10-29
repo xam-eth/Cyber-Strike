@@ -360,7 +360,6 @@ const STRINGS := {
 		"armory.need_bp": "NEED %d MORE BP · FIGHT WAVES",
 		"armory.now_equipped": "%s EQUIPPED",
 		"armory.now_unlocked": "%s UNLOCKED & EQUIPPED",
-		"armory.now_upgraded": "%s UPGRADED TO TIER %d",
 		"armory.blueprint_locked": "BLUEPRINT LOCKED",
 		"armory.blueprint_tier_note": "RECOVER BLUEPRINT IN VERDANT BLOOM",
 		# --- weapons ---------------------------------------------------------
@@ -728,7 +727,6 @@ const STRINGS := {
 		"armory.need_bp": "KURANG %d BP · HADAPI GELOMBANG",
 		"armory.now_equipped": "%s TERPASANG",
 		"armory.now_unlocked": "%s TERBUKA & TERPASANG",
-		"armory.now_upgraded": "%s NAIK KE TIER %d",
 		"armory.blueprint_locked": "BLUEPRINT TERKUNCI",
 		"armory.blueprint_tier_note": "PULIHKAN BLUEPRINT DI VERDANT BLOOM",
 		# --- weapons ---------------------------------------------------------

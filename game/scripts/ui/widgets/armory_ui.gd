@@ -215,8 +215,7 @@ func refresh_profile(
 		var tier := clampi(int(tiers.get(String(id), 1)), 1, WeaponTier.tier_count())
 		var missing_blueprint := false
 		if not owned and blueprints is Dictionary and ProgressionService.BLUEPRINT_REQUIRED.has(id):
-			var bp_key := String(ProgressionService.BLUEPRINT_REQUIRED[id])
-			missing_blueprint = not bool((blueprints as Dictionary).get(bp_key, false))
+			missing_blueprint = not (blueprints as Dictionary).has(String(id))
 		var specs := ""
 		if definition != null:
 			specs = AegisText.t(
@@ -228,9 +227,7 @@ func refresh_profile(
 				]
 			)
 			if missing_blueprint:
-				_tier_labels[index].text = AegisText.t(
-					"armory.blueprint_tier_note", [int(ProgressionService.COSTS[String(id)])]
-				)
+				_tier_labels[index].text = AegisText.t("armory.blueprint_tier_note")
 			else:
 				_tier_labels[index].text = AegisText.t(
 					"armory.tier_reload",
