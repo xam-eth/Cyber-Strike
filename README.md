@@ -2,6 +2,28 @@
 
 Satu proyek Godot untuk meninjau SH-01 **Aetherfall**. Tidak memerlukan proyek game, autoload, atau layanan eksternal. Fokus branch ini hanya world, asset produksi Blender, dan alat validasinya.
 
+## Preview Godot GUI — tanpa toolchain sandbox
+
+**Seluruh file yang dibutuhkan untuk melihat world sudah ada di Git.** Yang berada di luar Git hanya toolchain sementara yang saya gunakan untuk membangun/mengetes (`.venv/`, `/tmp/godot-source`, dan `/tmp/xlibs`) serta cache hasil import Godot (`.godot/`). Anda **tidak** memerlukan file sementara tersebut untuk membuka world.
+
+1. Ambil branch yang dipush:
+
+   ```sh
+   git clone https://github.com/xam-eth/Cyber-Strike.git
+   cd Cyber-Strike
+   git fetch origin arena/939d9492-cyber-strike
+   git switch --track origin/arena/939d9492-cyber-strike
+   ```
+
+   Jika clone Anda sudah memiliki branch lokal tersebut, gunakan `git switch arena/939d9492-cyber-strike` lalu `git pull --ff-only`.
+
+2. Jalankan **Godot desktop 4.7.2** atau versi 4.7 yang kompatibel. Pada Project Manager pilih **Import**, lalu pilih **`project.godot` di root repository** — bukan folder `assets/`, `scenes/`, atau `.godot/`.
+3. Tunggu proses import GLB selesai. Godot membuat folder `.godot/` sendiri; folder itu adalah cache lokal, sehingga sengaja tidak dipush dan tidak hilang dari world.
+4. Tekan **F5** untuk menjalankan `project.godot`, atau buka `scenes/aetherfall.tscn` lalu tekan **F6**. Main scene sudah dideklarasikan sebagai `res://scenes/aetherfall.tscn`.
+5. World dirakit dari `assets/world/aetherfall/layout.json` saat runtime. Karena itu node `Modules`, `Collision`, dan `Connectors` terlihat di tab **Remote** ketika scene berjalan, bukan sebagai anak statis sebelum tombol Run ditekan.
+
+File world yang tersedia langsung dari Git: `project.godot`, scene, GDScript builder, 29 GLB (27 modul + orbit + ramp), albedo/normal/ORM PBR, JSON layout/measurement/connector, dan tiga source `.blend`. Tidak ada dependency game induk, autoload, registry, atau service eksternal yang perlu Anda instal untuk preview.
+
 ## Membuka dan meninjau
 
 1. Buka **folder root ini** di Godot **4.7.2** (Project Manager → Import → pilih `project.godot`). Tunggu import seluruh GLB selesai.
