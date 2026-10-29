@@ -4,6 +4,48 @@ This document records the latest relevant evidence and its limits. It is not a d
 
 For intended behavior, read [`GAMEPLAY_DESIGN.md`](GAMEPLAY_DESIGN.md). For required gates, read [`DEVELOPMENT.md`](DEVELOPMENT.md).
 
+## Gameplay loop, temporary run evolutions, and cohesive UI/UX checkpoint — 2026-10-29
+
+| Item | Current checkpoint |
+|---|---|
+| Baseline commit inspected before changes | `5453420a39b186188bdee262878718eceb2e4b4b` |
+| Runtime, UI/UX, and smoke-test source | `46391ca` |
+| Godot/Web CI | [40898268332](https://github.com/xam-eth/Cyber-Strike/actions/runs/40898268332) — **SUCCESS** (`Static checks`, `Headless smoke tests 38/38`, `Web preview build`) |
+| Committed Web payload | `6d15797dac897db3e9ac470e4fd569fbf0c072e3` |
+| `web/index.pck` | 90,749,804 bytes; SHA-256 `f93c1215a6dc4a82fac531f6ab7930f49e97ed176a3c7d4cd86cef495ab4478b` |
+| `web/index.wasm` | 39,514,754 bytes; SHA-256 `fc74679e3b97f76878947fcd4fbe1268cbfa6188182a2e33bbc3f5dc9bfa57d0` |
+| Baseline runtime screenshots | [`../qa-evidence/redesign/before/`](../qa-evidence/redesign/before/hub-844x390.png) (16 captures) |
+| Post-implementation runtime screenshots | [`../qa-evidence/redesign/after/`](../qa-evidence/redesign/after/hub-844x390.png) (19 captures) |
+
+### Phase 1 baseline audit summary (`5453420`)
+
+Before modifying source files, the baseline project was audited statically and executed in headless Chromium against the committed WebAssembly build:
+
+- **VERIFIED WORKING at baseline:** Web opening/preload/interrupted-download recovery (`index.html`, `ui/shell.js`), 3D player movement/ADS/shoot/reload/EMP (`player_controller.gd`, `weapon_controller.gd`), `Runner` + `Shooter` enemy waves (`wave_director.gd`), Verdant Seed Vault Recovery (`recovery_cache_node.gd`), persistent BP/weapon-tier/hero-tier/cache profile storage (`progression_service.gd`), EN/ID localization (`aegis_text_catalog.gd`), and WebAudio synthesis (`sfx.gd`, `ui/audio.js`).
+- **Gaps identified at baseline (`NOT IMPLEMENTED` / `PARTIALLY WORKING`):**
+  1. **Temporary mid-run upgrades (`CHOOSE → EVOLVE`):** **NOT IMPLEMENTED** — no `RunUpgradeDefinition` or `RunUpgradeManager`, no HUD evolution prompt/modal, and no non-persistent runtime modifier layer on `WeaponController`/`PlayerController`.
+  2. **Reusable UI component coverage:** **PARTIALLY WORKING** — lacked reusable `AegisTierBadge`, `AegisStatChip`, `AegisUpgradeCard`, and `AegisConfirmDialog` widgets; abandoning an active Defense run from Pause had no unbanked-BP confirmation guard.
+  3. **Cross-surface data sync & Armory parity:** **PARTIALLY WORKING** — Web shell only received `aegis.runs` (showing hardcoded weapon tier 1 and no wallet BP/best score/blueprint state), `StageDashboard`'s Armory modal did not connect `weapon_upgrade_requested` (leaving `T2/T3` buttons inert in native Hub), `ArmoryUi` showed `UNLOCK 250 BP` on Arc Shooter even when its blueprint was still locked, and Web `CONTROLS` listed stale keys (`1/2/3`, `Space`, `Shift`) that were not bound in GDScript.
+
+### What this checkpoint verifies
+
+- **VERIFIED (local static gates):** `./scripts/dev_check.sh` passed with **0 failed steps and 2 expected local skips**: 96/96 GDScript files parsed/linted/formatted, `project_doctor.py` `0 FAIL`, `19/19` canonical documents, `103` Python tooling unit tests, `0` static-call or architecture-boundary violations (`check_architecture.py`), `308/308` EN/ID localization keys with aligned placeholders (`check_localization.py`), `123` hero/tier checks, and generated module-map sync (`module_map.py --check`).
+- **VERIFIED (Godot 4.7.2 headless engine suite — `38/38` PASS):** CI run [40898268332](https://github.com/xam-eth/Cyber-Strike/actions/runs/40898268332) executed all 38 smoke tests on Godot `4.7.2.stable.official.ed1daf0bf` with `0` failures and `0` script errors, including the new `tests/run_upgrade_smoke.gd` covering:
+  - all 6 authored `RunUpgradeDefinition` resources (`overcharge_cells`, `rapid_autoloader`, `expanded_capacitor`, `emp_resonator`, `kinetic_servos`, `reactive_plating`);
+  - `RunUpgradeManager` KO charge thresholds (`2, 3, 4, 5, 6`), milestone triggers, 3-card non-duplicate offers, max-stack filtering, and clean `reset_run()`;
+  - native `StageDashboard` `ArmoryUi` `weapon_upgrade_requested` upgrading `pulse_rifle` to Tier 2 and displaying `BLUEPRINT LOCKED` on `arc_shooter` before Seed Vault recovery;
+  - live `main.tscn` vertical slice: safe Explore `PauseHomeButton` immediate exit, Wave 1 start, 2 real enemy eliminations readying `UpgradeReadyButton`, multi-resolution layout bounds at `1280×720`, `844×390`, and `667×375`, `RunUpgradePanel` pause/select/resume flow, `AegisConfirmDialog` protecting unbanked Defense BP (`BANK BP & FINISH` / `STAY IN FIGHT` / `ABANDON RUN`), immutable `.tres` `WeaponDefinition` verification, exact-once `bank_run` (duplicate `_finish_run()` guard), and complete temporary modifier reset on `_return_to_explore()` while preserving banked wallet BP.
+- **VERIFIED (exported WebAssembly runtime & visual inspection on payload `6d15797`):**
+  - CI Web preview job passed export, 984-file PCK audit, static delivery, browser smoke, Secure Context/AudioWorklet preflight, interrupted-download recovery, shell world-selection, Titans selection/audio, mouse/touch ADS, and Verdant Recovery engagement contracts.
+  - Post-pull Chromium captures verified both Web shell and Godot WASM rendering with zero script/page errors across `1280×720`, `844×390`, and `667×375`:
+    - Hub & Operative shell: [`before/hub-844x390.png`](../qa-evidence/redesign/before/hub-844x390.png) → [`after/hub-844x390.png`](../qa-evidence/redesign/after/hub-844x390.png), [`after/hub-667x375.png`](../qa-evidence/redesign/after/hub-667x375.png), [`before/hero-844x390.png`](../qa-evidence/redesign/before/hero-844x390.png) → [`after/hero-844x390.png`](../qa-evidence/redesign/after/hero-844x390.png), [`after/settings-844x390.png`](../qa-evidence/redesign/after/settings-844x390.png).
+    - Native Godot front-end stages: [`before/godot-dashboard-844x390.png`](../qa-evidence/redesign/before/godot-dashboard-844x390.png) → [`after/godot-dashboard-844x390.png`](../qa-evidence/redesign/after/godot-dashboard-844x390.png), [`after/godot-hero-844x390.png`](../qa-evidence/redesign/after/godot-hero-844x390.png), [`after/godot-world-844x390.png`](../qa-evidence/redesign/after/godot-world-844x390.png).
+    - Combat HUD, Temporary Run Evolutions, and Blueprint-gated Armory: [`before/hud-explore-844x390.png`](../qa-evidence/redesign/before/hud-explore-844x390.png) → [`after/hud-upgrade-ready-844x390.png`](../qa-evidence/redesign/after/hud-upgrade-ready-844x390.png), [`after/hud-upgrade-modal-844x390.png`](../qa-evidence/redesign/after/hud-upgrade-modal-844x390.png), [`after/hud-upgrade-modal-667x375.png`](../qa-evidence/redesign/after/hud-upgrade-modal-667x375.png), [`after/hud-upgrade-applied-844x390.png`](../qa-evidence/redesign/after/hud-upgrade-applied-844x390.png) (`VITALS 125 / 125` + `RUN MOD PLT L1 0/3`), [`after/hud-armory-844x390.png`](../qa-evidence/redesign/after/hud-armory-844x390.png), [`after/hud-pause-844x390.png`](../qa-evidence/redesign/after/hud-pause-844x390.png), and [`after/root-1280x720-recovery-landing.png`](../qa-evidence/redesign/after/root-1280x720-recovery-landing.png).
+- **UNKNOWN / UNVERIFIED (honest scope limits):**
+  - **UNVERIFIED on physical Android hardware:** native APK installation, physical touch ergonomics, mobile GPU frame time/thermals/battery, and Android lifecycle soak remain unverified in this environment (APK target remains paused per earlier project decision).
+  - **INTENTIONAL SCOPE / IN DEVELOPMENT:** second operative `Kestrel` (`hero_2`), Cosmetic progression (`NOT IMPLEMENTED`, separated by design from gameplay tiers), and `THEATRE 06` remain marked `IN DEVELOPMENT` rather than faking inactive systems.
+  - **UNKNOWN (human playtest outcomes):** subjective combat feel, run-evolution balance across long Endless waves, audiovisual mix preference, and player retention require human playtesting.
+
 ## Website Operator and Recovery gameplay checkpoint — 2026-10-28
 
 | Item | Current checkpoint |
