@@ -1,2 +1,0 @@
-# Optional parser/linter/formatter for GDScript; Godot runtime checks are still required.
-gdtoolkit==4.5.0
