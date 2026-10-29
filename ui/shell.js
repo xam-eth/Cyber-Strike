@@ -1207,6 +1207,7 @@ void audio.play('deploy');
   // The URL carries the hand-off, so retry/reload resumes it instead of dropping
   // the player back at the opening.
   const url = new URL(location.href);
+  url.searchParams.delete('ui');
   url.searchParams.set('qa_stage', 'GAMEPLAY');
   // The engine reads these in ProgressionService.load_profile() and
   // FrontEnd._enter_qa_world(): the shell's choices are the run's loadout and

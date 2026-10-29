@@ -1239,68 +1239,119 @@ async function checkPage(target, viewport) {
 
       // 2. Navigate back inside Seed Vault's 5m interaction radius if combat moved us out.
       if (e2e.guardsCleared) {
-        const approachDeadline = Date.now() + 75000;
-        let approachSteps = 0;
+        const approachDeadline = Date.now() + 90000;
+        let approachStrides = 0;
+        let approachBypasses = 0;
         let bestDist = Infinity;
         let stalledStrides = 0;
+        let lastCacheDist = null;
+        const parseHudDist = () => {
+          const m = latestRecovery()?.line?.match(/(\d+)\s*m\b/i);
+          const n = m ? Number(m[1]) : NaN;
+          return Number.isFinite(n) ? n : null;
+        };
+        const waitFreshCacheProj = async (maxMs = 1100) => {
+          const startIdx = consoleLines.length;
+          const deadline = Date.now() + maxMs;
+          while (Date.now() < deadline) {
+            if (latestRecovery()?.action === 'secure') return null;
+            const fresh = parseProjection('Recovery Cache QA: id=verdant_seed_vault', startIdx);
+            if (fresh) return fresh;
+            await new Promise((r) => setTimeout(r, 45));
+          }
+          return parseProjection('Recovery Cache QA: id=verdant_seed_vault', Math.max(0, startIdx - 6));
+        };
+        const sprintTowardVault = async (durationMs, strafeKey = null) => {
+          await releaseAds();
+          await page.keyboard.down('ShiftLeft');
+          await page.keyboard.down('KeyW');
+          if (strafeKey) await page.keyboard.down(strafeKey);
+          const endAt = Date.now() + durationMs;
+          try {
+            while (Date.now() < endAt) {
+              if (latestRecovery()?.action === 'secure') {
+                e2e.secureOffered = true;
+                break;
+              }
+              await new Promise((r) => setTimeout(r, 150));
+            }
+          } finally {
+            if (strafeKey) await page.keyboard.up(strafeKey).catch(() => {});
+            await page.keyboard.up('KeyW').catch(() => {});
+            await page.keyboard.up('ShiftLeft').catch(() => {});
+          }
+        };
         while (Date.now() < approachDeadline) {
-          const recNow = latestRecovery();
-          if (recNow?.action === 'secure') {
+          if (latestRecovery()?.action === 'secure') {
             e2e.secureOffered = true;
             break;
           }
-          const markIdx = Math.max(0, consoleLines.length - 8);
-          await new Promise((r) => setTimeout(r, 260));
-          const cacheProj = parseProjection('Recovery Cache QA: id=verdant_seed_vault', markIdx)
-            || parseProjection('Recovery Cache QA: id=verdant_seed_vault', 0);
-          const recDist = Number(recNow?.line.match(/(\d+)\s*m\b/)?.[1] ?? 'NaN');
-          const curDist = cacheProj?.dist ?? (Number.isFinite(recDist) ? recDist : null);
-          if (curDist !== null) {
-            if (curDist < bestDist - 0.8) {
-              bestDist = curDist;
-              stalledStrides = 0;
-            } else {
-              stalledStrides += 1;
-            }
-          }
-          if (stalledStrides >= 3) {
-            // Sidestep around any straight-lane world prop collision
-            await releaseAds();
-            await page.keyboard.down('ShiftLeft');
-            await page.keyboard.down('KeyD');
-            await new Promise((r) => setTimeout(r, 1050));
-            await page.keyboard.up('KeyD');
-            await page.keyboard.up('ShiftLeft');
-            stalledStrides = 0;
-            continue;
+          const cacheProj = await waitFreshCacheProj(1100);
+          if (latestRecovery()?.action === 'secure') {
+            e2e.secureOffered = true;
+            break;
           }
           if (!cacheProj) {
-            const key = approachSteps % 6 === 5 ? 'KeyD' : 'KeyW';
-            await page.keyboard.down('ShiftLeft');
-            await page.keyboard.down(key);
-            await new Promise((r) => setTimeout(r, 650));
-            await page.keyboard.up(key);
-            await page.keyboard.up('ShiftLeft');
-            approachSteps += 1;
+            const beforeHudDist = parseHudDist();
+            await sprintTowardVault(2000, approachStrides % 4 === 2 ? 'KeyA' : null);
+            approachStrides += 1;
+            const afterHudDist = parseHudDist();
+            if (afterHudDist !== null) {
+              lastCacheDist = afterHudDist;
+              if (afterHudDist < bestDist - 0.6) {
+                bestDist = afterHudDist;
+                stalledStrides = 0;
+              } else if (beforeHudDist !== null) {
+                stalledStrides += 1;
+              }
+            }
+          } else if (cacheProj.behind) {
+            await steerAim(680, 0);
             continue;
-          }
-          if (cacheProj.behind) {
-            await steerAim(620, 0);
-            continue;
-          }
-          const errX = cacheProj.x - cacheProj.vpW * 0.5;
-          if (Math.abs(errX) > 75) {
-            await steerAim(Math.max(-420, Math.min(420, errX * 0.78)), 0);
           } else {
+            const errX = cacheProj.x - cacheProj.vpW * 0.5;
+            if (Math.abs(errX) > 95) {
+              await steerAim(Math.max(-520, Math.min(520, errX * 0.78)), 0);
+              continue;
+            }
+            const preDist = cacheProj.dist ?? parseHudDist();
+            if (preDist !== null && preDist < bestDist) bestDist = preDist;
+            const strideMs = preDist !== null && preDist <= 9.5 ? 900 : 2200;
+            await sprintTowardVault(strideMs, null);
+            approachStrides += 1;
+            if (e2e.secureOffered || latestRecovery()?.action === 'secure') {
+              e2e.secureOffered = true;
+              break;
+            }
+            const postProj = await waitFreshCacheProj(950);
+            const postDist = postProj?.dist ?? parseHudDist();
+            if (postDist !== null) {
+              lastCacheDist = postDist;
+              if (postDist < bestDist - 0.6) {
+                bestDist = postDist;
+                stalledStrides = 0;
+              } else {
+                stalledStrides += 1;
+              }
+            }
+          }
+          if (stalledStrides >= 2 && !e2e.secureOffered) {
+            // Sidestep around world prop collision: prefer LEFT ('KeyA') first to
+            // take the wide-open sand lane clear of the south-east radar tower.
+            const sideKey = approachBypasses % 2 === 0 ? 'KeyA' : 'KeyD';
+            approachBypasses += 1;
+            stalledStrides = 0;
             await releaseAds();
             await page.keyboard.down('ShiftLeft');
-            await page.keyboard.down('KeyW');
-            await new Promise((r) => setTimeout(r, 650));
-            await page.keyboard.up('KeyW');
+            await page.keyboard.down(sideKey);
+            await new Promise((r) => setTimeout(r, 1100));
+            await page.keyboard.up(sideKey);
             await page.keyboard.up('ShiftLeft');
+            await sprintTowardVault(1300, sideKey);
           }
         }
         await releaseAds();
+        e2e.diag = { lastCacheDist, approachStrides, approachBypasses };
       }
       await capture('ready-to-secure');
 
@@ -1377,14 +1428,21 @@ async function checkPage(target, viewport) {
       // 5. Return HOME -> Shell Hub -> Operative Tier 2 -> Redeploy at 106 vitals.
       if (e2e.extractedResultsShown && isFrontEnd) {
         const resUi = latestResultsQa('results', beforeExtract);
-        const navPromise = page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 25000 }).catch(() => null);
-        if (resUi?.home) await clickCanvasPoint(resUi.home);
-        else {
-          await page.keyboard.press('ArrowDown');
-          await page.keyboard.press('ArrowDown');
-          await page.keyboard.press('Enter');
+        if (resUi?.home) {
+          const navTry = page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 7000 }).catch(() => null);
+          await clickCanvasPoint(resUi.home);
+          await navTry;
         }
-        await navPromise;
+        const hubAlready = await page.evaluate(() => document.body?.dataset?.screen === 'hub').catch(() => false);
+        if (!hubAlready) {
+          const navFallback = page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 22000 }).catch(() => null);
+          await page.keyboard.press('ArrowDown');
+          await new Promise((r) => setTimeout(r, 140));
+          await page.keyboard.press('ArrowDown');
+          await new Promise((r) => setTimeout(r, 140));
+          await page.keyboard.press('Enter');
+          await navFallback;
+        }
         await page.waitForFunction(() => document.body?.dataset?.screen === 'hub', { timeout: 25000 }).catch(() => {});
         e2e.returnedToHub = await page.evaluate(() => document.body?.dataset?.screen === 'hub');
 
@@ -1462,6 +1520,7 @@ async function checkPage(target, viewport) {
           .some((l) => l.includes('Recovery QA:') && l.includes('LAB CACHE'));
         await capture('redeploy-tier2-106hp');
       }
+      await cdp.detach().catch(() => {});
       recoveryEvidence.e2e = e2e;
     }
   }
