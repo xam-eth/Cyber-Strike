@@ -1,7 +1,7 @@
 extends SceneTree
 
 const MainScene = preload("res://scenes/main.tscn")
-const DashboardScript = preload("res://scripts/ui/menus/stage_dashboard.gd")
+const FrontEndScene = preload("res://scenes/ui/front_end.tscn")
 const PROFILE_PATH := "user://run_upgrade_smoke_profile.cfg"
 
 var _failures: Array[String] = []
@@ -86,25 +86,26 @@ func _test_catalog_and_manager() -> void:
 
 func _test_dashboard_armory_upgrade_wiring() -> void:
 	_remove_profile()
-	var svc := ProgressionService.new()
+	var fe := FrontEndScene.instantiate()
+	var svc: ProgressionService = fe.get_node("ProgressionService")
 	svc.profile_path = PROFILE_PATH
-	root.add_child(svc)
+	root.add_child(fe)
+	await process_frame
 	await process_frame
 	svc.bank_run(300, 300)
 	_check(svc.weapon_tier(&"pulse_rifle") == 1, "fresh profile must start pulse_rifle at tier 1")
 
-	var stage := DashboardScript.new()
-	stage._services = {"progression": svc}
-	stage.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	root.add_child(stage)
+	fe._enter(&"DASHBOARD", {})
 	await process_frame
-	stage.enter({})
 	await process_frame
+	var stage := fe.get_node("StageHost/DASHBOARD")
 
 	stage._on_armory_pressed()
-	var armory := stage.get_node_or_null("ArmoryPanel") as ArmoryUi
+	await process_frame
+	var armory := stage.find_child("ArmoryPanel", true, false) as ArmoryUi
 	_check(armory != null and armory.visible, "Dashboard armory must open")
 	armory.weapon_upgrade_requested.emit(&"pulse_rifle")
+	await process_frame
 	_check(
 		svc.weapon_tier(&"pulse_rifle") == 2,
 		"Dashboard armory upgrade button must upgrade pulse_rifle to tier 2"
@@ -116,8 +117,7 @@ func _test_dashboard_armory_upgrade_wiring() -> void:
 		"Arc Shooter button must report BLUEPRINT LOCKED when Seed Vault blueprint is missing"
 	)
 
-	stage.queue_free()
-	svc.queue_free()
+	fe.queue_free()
 	await process_frame
 
 

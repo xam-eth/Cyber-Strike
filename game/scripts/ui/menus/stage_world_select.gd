@@ -319,7 +319,7 @@ func reframe() -> void:
 			physical_min_size(child as Control, 0.0, 64.0)
 	_chapter.visible = not compact
 	_mode_line.visible = true
-	_reward_line.visible = true
+	_reward_line.visible = height >= 385.0
 	_limit_lines(_mode_line, 1)
 	_limit_lines(_reward_line, 1)
 	_brief.visible = not compact
@@ -327,7 +327,6 @@ func reframe() -> void:
 	_limit_lines(_title, 1)
 	_status.visible = true
 	physical_min_size(_status, 0.0, 18.0 if compact else 24.0)
-	enforce_font_floor(_info, _stretch)
 
 
 ## Moves a node only when it is somewhere else; re-adding on every resize would
