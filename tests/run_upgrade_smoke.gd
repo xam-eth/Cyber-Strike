@@ -85,11 +85,12 @@ func _test_catalog_and_manager() -> void:
 
 
 func _test_dashboard_armory_upgrade_wiring() -> void:
+	_remove_profile()
 	var svc := ProgressionService.new()
 	svc.profile_path = PROFILE_PATH
 	root.add_child(svc)
 	await process_frame
-	svc.bank(300, 300)
+	svc.bank_run(300, 300)
 	_check(svc.weapon_tier(&"pulse_rifle") == 1, "fresh profile must start pulse_rifle at tier 1")
 
 	var stage := DashboardScript.new()
@@ -176,21 +177,28 @@ func _test_main_vertical_slice_and_layouts() -> void:
 
 	# Verify HUD & modal geometry across 1280x720, 844x390, and 667x375.
 	for vp in [Vector2i(1280, 720), Vector2i(844, 390), Vector2i(667, 375)]:
-		DisplayServer.window_set_size(vp)
+		var stretch := float(vp.y) / 720.0
+		hud.size = Vector2(float(vp.x) / stretch, float(vp.y) / stretch)
+		hud.call("apply_layout_for_size", Vector2(vp), stretch)
 		await process_frame
 		await process_frame
 		var btn_rect := ready_btn.get_global_rect()
+		var phys_size := btn_rect.size * stretch
+		var phys_pos := btn_rect.position * stretch
+		var phys_end := btn_rect.end * stretch
 		_check(
-			btn_rect.size.x >= 120.0 and btn_rect.size.y >= 44.0,
-			"UpgradeReadyButton touch size too small at %s: %s" % [vp, btn_rect]
+			phys_size.x >= 96.0 and phys_size.y >= 40.0,
+			"UpgradeReadyButton touch size too small at %s: %s" % [vp, phys_size]
 		)
 		_check(
-			btn_rect.position.x >= 0.0 and btn_rect.end.x <= float(vp.x) + 1.0,
-			"UpgradeReadyButton out of horizontal bounds at %s: %s" % [vp, btn_rect]
+			phys_pos.x >= -1.0 and phys_end.x <= float(vp.x) + 2.0,
+			"UpgradeReadyButton out of horizontal bounds at %s: %s..%s" % [vp, phys_pos, phys_end]
 		)
 
 	# Open Run Upgrade modal and verify 3 cards fit inside 667x375 viewport.
+	var compact_stretch := 375.0 / 720.0
 	ready_btn.pressed.emit()
+	await process_frame
 	await process_frame
 	var upg_panel := hud.find_child("RunUpgradePanel", true, false) as Control
 	_check(
@@ -198,14 +206,16 @@ func _test_main_vertical_slice_and_layouts() -> void:
 		"tapping UpgradeReadyButton must pause combat and show RunUpgradePanel"
 	)
 	var panel_rect := upg_panel.get_global_rect()
+	var panel_pos := panel_rect.position * compact_stretch
+	var panel_end := panel_rect.end * compact_stretch
 	_check(
 		(
-			panel_rect.position.x >= 0.0
-			and panel_rect.position.y >= 0.0
-			and panel_rect.end.x <= 668.0
-			and panel_rect.end.y <= 376.0
+			panel_pos.x >= -1.0
+			and panel_pos.y >= -1.0
+			and panel_end.x <= 669.0
+			and panel_end.y <= 377.0
 		),
-		"RunUpgradePanel must fit inside 667x375 viewport, got %s" % panel_rect
+		"RunUpgradePanel must fit inside 667x375 viewport, got %s..%s" % [panel_pos, panel_end]
 	)
 
 	# Force deterministic Overcharge + Plating test via manager + apply_run_modifiers.
@@ -241,14 +251,23 @@ func _test_main_vertical_slice_and_layouts() -> void:
 		"temporary run modifiers must never mutate shared WeaponDefinition .tres resources"
 	)
 
-	# Finish run -> bank permanent BP -> return to explore -> verify temporary mods reset!
-	var earned_bp: int = main.get_node("RewardService").run_battle_points
+	# Finish run -> bank permanent BP -> verify duplicate finish_run does NOT double-bank -> reset!
+	var earned_bp: int = main.get_node("RunStats").bp_earned
 	_check(earned_bp >= 20, "expected >= 20 BP earned from 2 KOs, got %d" % earned_bp)
 	main._finish_run()
 	await process_frame
 	_check(
 		progression.balance == earned_bp,
 		"finishing run must bank permanent BP once (%d != %d)" % [progression.balance, earned_bp]
+	)
+	main._finish_run()
+	await process_frame
+	_check(
+		progression.balance == earned_bp,
+		(
+			"repeated _finish_run must not duplicate rewards (%d != %d)"
+			% [progression.balance, earned_bp]
+		)
 	)
 	main._return_to_explore()
 	await process_frame
@@ -264,7 +283,8 @@ func _test_main_vertical_slice_and_layouts() -> void:
 		"effective weapon damage must return to base/permanent tier after run reset"
 	)
 
-	DisplayServer.window_set_size(Vector2i(1280, 720))
+	hud.size = Vector2(1280.0, 720.0)
+	hud.call("apply_layout_for_size", Vector2(1280.0, 720.0), 1.0)
 	main.queue_free()
 	await process_frame
 

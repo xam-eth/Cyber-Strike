@@ -196,8 +196,7 @@ const STRINGS := {
 		"world.vanguard_station.zone_title": "DOCK 07 · STATION",
 		"world.vanguard_station.zone_subtitle": "SAFE ZONE · SEALS OPEN",
 		# --- in-run HUD ------------------------------------------------------
-		"hud.help":
-		"STICK MOVE · DRAG LOOK · HOLD AIM\nFIRE · G RELOAD · F EMP · V EVOLVE · B DEFENSE",
+		"hud.help": "STICK MOVE · DRAG LOOK · HOLD AIM\nFIRE · EMP · SWAP · V EVOLVE · B DEFENSE",
 		"hud.vitals": "VITALS",
 		"hud.reloading": "RELOAD",
 		"hud.fire": "FIRE",
@@ -565,7 +564,7 @@ const STRINGS := {
 		"world.vanguard_station.zone_subtitle": "ZONA AMAN · SEGEL TERBUKA",
 		# --- in-run HUD ------------------------------------------------------
 		"hud.help":
-		"STIK GERAK · GESER PANDANG · TAHAN BIDIK\nTEMBAK · G RELOAD · F EMP · V EVOLUSI · B BERTAHAN",
+		"STIK GERAK · GESER PANDANG · TAHAN BIDIK\nTEMBAK · EMP · GANTI · V EVOLUSI · B BERTAHAN",
 		"hud.vitals": "VITAL",
 		"hud.reloading": "ISI ULANG",
 		"hud.fire": "TEMBAK",

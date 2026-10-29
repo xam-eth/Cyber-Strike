@@ -103,9 +103,9 @@ static func refresh(hud, manager: RunUpgradeManager) -> void:
 		if maxed and not tags.is_empty():
 			hud._upgrade_status_value.text = tags
 		elif not tags.is_empty():
-			hud._upgrade_status_value.text = "%s · %d/%d" % [tags, charge, needed]
+			hud._upgrade_status_value.text = "%s %d/%d" % [tags, charge, needed]
 		else:
-			hud._upgrade_status_value.text = "%d / %d KO" % [charge, needed]
+			hud._upgrade_status_value.text = "%d/%d KO" % [charge, needed]
 	update_visibility(hud)
 
 

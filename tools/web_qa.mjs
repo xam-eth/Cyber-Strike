@@ -101,6 +101,7 @@ const exploreWaitMs = Number(flag('--explore-wait', '8000'));
 // --recovery proves the real Verdant landing → Engage → guarded state. It does
 // not claim guard elimination, Secure, extraction, or a full mission clear.
 const recoveryMode = has('--recovery');
+const upgradesMode = has('--upgrades');
 const selectVanguard = has('--select-vanguard');
 const selectedWorld = String(
   flag('--select-world', selectVanguard ? 'vanguard_station' : recoveryMode ? 'verdant_bloom' : ''),
@@ -199,6 +200,7 @@ async function checkPage(target, viewport) {
   // second set of guessed layout coordinates in the browser harness.
   if (selectWorld) url.searchParams.set('qa_menu', '1');
   if (recoveryMode) url.searchParams.set('qa_recovery', '1');
+  if (upgradesMode) url.searchParams.set('qa_upgrade', '1');
   if (adsMode) {
     url.searchParams.set('qa_touch', '1');
     url.searchParams.set('qa_camera', '1');
@@ -459,41 +461,6 @@ async function checkPage(target, viewport) {
     }
   }
 
-  if (booted && has('--upgrades')) {
-    const canvasCentre = await page.evaluate(() => {
-      const rect = document.querySelector('canvas')?.getBoundingClientRect();
-      return rect ? { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 } : null;
-    });
-    if (canvasCentre) {
-      await page.mouse.click(canvasCentre.x, canvasCentre.y);
-      await new Promise((r) => setTimeout(r, 400));
-      const readyFrame = path.join(outDir, `${slug}-${viewport.spec}-upgrade-ready.png`);
-      await page.screenshot({ path: readyFrame });
-      menuFrames.push(path.relative(ROOT, readyFrame));
-
-      await page.keyboard.press('KeyV');
-      await awaitConsoleText(page, consoleLines, 'HUD: run upgrades opened', 10000);
-      await new Promise((r) => setTimeout(r, 500));
-      const modalFrame = path.join(outDir, `${slug}-${viewport.spec}-upgrade-modal.png`);
-      await page.screenshot({ path: modalFrame });
-      menuFrames.push(path.relative(ROOT, modalFrame));
-
-      await page.keyboard.press('Digit1');
-      await new Promise((r) => setTimeout(r, 600));
-      const appliedFrame = path.join(outDir, `${slug}-${viewport.spec}-upgrade-applied.png`);
-      await page.screenshot({ path: appliedFrame });
-      menuFrames.push(path.relative(ROOT, appliedFrame));
-
-      await page.keyboard.press('KeyU');
-      await new Promise((r) => setTimeout(r, 600));
-      const armoryFrame = path.join(outDir, `${slug}-${viewport.spec}-armory.png`);
-      await page.screenshot({ path: armoryFrame });
-      menuFrames.push(path.relative(ROOT, armoryFrame));
-      await page.keyboard.press('Escape');
-      await new Promise((r) => setTimeout(r, 350));
-    }
-  }
-
   /* ---------- reach the gameplay scene ---------- */
   // A Godot canvas is one DOM element with no children, so a button cannot be
   // queried, and every menu stage sets mouse_filter = MOUSE_FILTER_STOP: the
@@ -631,7 +598,7 @@ async function checkPage(target, viewport) {
   // Reach gameplay before any encounter input or screenshots. Running this
   // after the encounter block photographed menus and sent B to the front end.
   let inGameplay = false;
-  if (booted && (journeyMode || tourMode || encounterMode || playSeconds > 0 || adsMode)) {
+  if (booted && (journeyMode || tourMode || encounterMode || playSeconds > 0 || adsMode || upgradesMode)) {
     inGameplay = await advanceToGameplay();
   }
 
@@ -867,6 +834,40 @@ async function checkPage(target, viewport) {
   /* ---------- real Verdant Recovery approach and guard activation ---------- */
   const recoveryFrames = [];
   let recoveryEvidence = null;
+  if (booted && upgradesMode && inGameplay) {
+    const canvasCentre = await page.evaluate(() => {
+      const rect = document.querySelector('canvas')?.getBoundingClientRect();
+      return rect ? { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 } : null;
+    });
+    if (canvasCentre) {
+      await page.mouse.click(canvasCentre.x, canvasCentre.y);
+      await new Promise((r) => setTimeout(r, 500));
+      const readyFrame = path.join(outDir, `${slug}-${viewport.spec}-upgrade-ready.png`);
+      await page.screenshot({ path: readyFrame });
+      menuFrames.push(path.relative(ROOT, readyFrame));
+
+      await page.keyboard.press('KeyV');
+      await awaitConsoleText(page, consoleLines, 'HUD: run upgrades opened', 10000);
+      await new Promise((r) => setTimeout(r, 600));
+      const modalFrame = path.join(outDir, `${slug}-${viewport.spec}-upgrade-modal.png`);
+      await page.screenshot({ path: modalFrame });
+      menuFrames.push(path.relative(ROOT, modalFrame));
+
+      await page.keyboard.press('Digit1');
+      await new Promise((r) => setTimeout(r, 600));
+      const appliedFrame = path.join(outDir, `${slug}-${viewport.spec}-upgrade-applied.png`);
+      await page.screenshot({ path: appliedFrame });
+      menuFrames.push(path.relative(ROOT, appliedFrame));
+
+      await page.keyboard.press('KeyU');
+      await new Promise((r) => setTimeout(r, 600));
+      const armoryFrame = path.join(outDir, `${slug}-${viewport.spec}-armory.png`);
+      await page.screenshot({ path: armoryFrame });
+      menuFrames.push(path.relative(ROOT, armoryFrame));
+      await page.keyboard.press('Escape');
+      await new Promise((r) => setTimeout(r, 350));
+    }
+  }
   if (booted && recoveryMode && inGameplay) {
     const canvas = await page.$('canvas');
     if (canvas) await canvas.click();

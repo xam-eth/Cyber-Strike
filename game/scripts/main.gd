@@ -418,10 +418,8 @@ func _on_run_upgrade_chosen(index: int) -> void:
 			chosen.refill_magazine_on_pick,
 		)
 	)
+	var stacks := run_upgrade_manager.stack_count(chosen.upgrade_id)
 	Sfx.play_ui(&"session_clear")
-	touch_controls._feedback_panel.show_message(
-		AegisText.t("hud.upg_applied_toast", [chosen.display_title()])
-	)
 	_update_status()
 	if run_upgrade_manager.has_pending_choice():
 		HudUpgradeBridge.show_panel(
@@ -429,6 +427,9 @@ func _on_run_upgrade_chosen(index: int) -> void:
 		)
 	else:
 		_close_run_upgrades()
+	touch_controls._feedback_panel.show_message(
+		AegisText.t("hud.upg_applied_toast", ["%s L%d" % [chosen.short_tag, stacks]])
+	)
 
 
 func _on_run_upgrades_changed() -> void:

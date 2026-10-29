@@ -807,11 +807,11 @@ func _apply_density() -> void:
 	if is_instance_valid(_role_label):
 		_role_label.visible = not short_screen
 	if is_instance_valid(_tier_label):
-		_tier_label.visible = true
+		_tier_label.visible = not short_screen
 	if is_instance_valid(_loadout_label):
-		_loadout_label.visible = true
+		_loadout_label.visible = not short_screen
 	if is_instance_valid(_weapon_stat):
-		_weapon_stat.visible = true
+		_weapon_stat.visible = not short_screen
 	for pin in _weapon_pins:
 		# 64 px is the project's touch floor (`AegisTokens.MIN_TOUCH_PX`); 52 was
 		# under it on every size the suite measures.
@@ -864,14 +864,12 @@ func _apply_density() -> void:
 	# operative is, and the panel keeps the actions it exists to reach.
 	_development_label.visible = not short_screen
 	_role_label.visible = not short_screen
-	_loadout_label.visible = true
+	_loadout_label.visible = not short_screen
 	physical_separation(_actions, 8.0 if short_screen else 12.0)
 	physical_min_size(_continue, 0.0, AegisTokens.MIN_TOUCH_PX)
 	physical_min_size(_select_button, 0.0, AegisTokens.MIN_TOUCH_PX)
 	if is_instance_valid(_tier_button):
 		physical_min_size(_tier_button, 0.0, AegisTokens.MIN_TOUCH_PX)
-	enforce_font_floor(_panel, _stretch)
-	enforce_font_floor(_actions, _stretch)
 	AegisText.apply(_heading, "hero.title")
 	# BACK + heading + status have to share the header. "OPERATIVE" set in
 	# `display_m` is 208 px at the smallest width the suite measures, which is

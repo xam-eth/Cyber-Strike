@@ -22,7 +22,7 @@ func _init() -> void:
 	focus_mode = Control.FOCUS_ALL
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	text = ""
-	AegisTheme.set_button_variant(self, "round")
+	AegisTheme.set_button_variant(self, "card")
 	_build_contents()
 
 
