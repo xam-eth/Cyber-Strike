@@ -10,6 +10,8 @@ Main scene kini tetap memakai layout Aetherfall yang sama, dengan tambahan minim
 - `ObjectiveDevice` reusable di zona mesin/cover tengah: meminta satu `tech_data`, kemudian menyimpan aktivasi relai satu kali.
 - Operator validasi third-person dan HUD lokal untuk menjalankan slice ini. **WASD** bergerak, tahan klik kanan untuk melihat, **E** berinteraksi, dan **F1** menukar ke kamera review free-fly yang tetap dipertahankan.
 
+Tambahan density terarah juga tersedia di `assets/world/aetherfall/landmarks/`: Field Outpost, Relay Annex, Service Hangar, dan cargo/service cluster. Ketiganya ditempatkan sebagai landmark spawn/relay/cover berdasarkan `landmarks.json`, dengan collider sederhana, bukan filler acak. Atmosfer mengurangi kabut dan bloom untuk pemisahan siluet yang lebih tegas; kualitas visual final tetap perlu diperiksa pada Godot GUI.
+
 Ini bukan pengganti atau klaim integrasi dengan inventory/mission/combat EXOCOMFLICT lama—sistem tersebut tidak ada di branch standalone ini. Jalankan `tests/interactive_slice.gd` di Godot untuk memeriksa range, collision, animasi, persistence, reward dan anti-duplikasi. Detail bukti serta keterbatasan screenshot/performa ada pada `docs/VALIDATION.md`.
 
 ## Preview Godot GUI — tanpa toolchain sandbox

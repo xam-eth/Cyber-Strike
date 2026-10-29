@@ -1,0 +1,73 @@
+{
+  "schema": "aetherfall.landmarks/1",
+  "unit": "meters",
+  "intent": "Focused structural density: three navigational buildings plus three cargo/service clusters. No random filler placements.",
+  "placements": [
+    {
+      "id": "primary_arrival_outpost",
+      "asset": "field_outpost",
+      "position": [-34.0, 0.25, 12.7],
+      "rotation_degrees": [0.0, 0.0, 0.0],
+      "purpose": "Spawn-side insertion landmark and visual shelter. Sits at the west deck edge, clear of the primary spawn and central route.",
+      "collision_boxes": [
+        {"center": [0.0, 1.95, 0.0], "size": [7.2, 3.9, 4.65]}
+      ],
+      "light": {"position": [0.0, 2.8, -2.8], "color": [0.18, 0.67, 1.0], "energy": 1.15, "range": 7.0}
+    },
+    {
+      "id": "horizon_relay_annex",
+      "asset": "relay_annex",
+      "position": [16.0, 0.25, -4.0],
+      "rotation_degrees": [0.0, 180.0, 0.0],
+      "purpose": "Tall support building that gives the central relay a credible physical destination and creates a visible mid-field landmark off the main route.",
+      "collision_boxes": [
+        {"center": [0.0, 3.1, 0.0], "size": [4.85, 6.2, 4.85]}
+      ],
+      "light": {"position": [0.0, 4.0, -2.7], "color": [0.10, 0.56, 1.0], "energy": 1.3, "range": 8.0}
+    },
+    {
+      "id": "east_service_hangar",
+      "asset": "service_hangar",
+      "position": [30.0, 0.25, -10.0],
+      "rotation_degrees": [0.0, 0.0, 0.0],
+      "purpose": "East-deck industrial building and secondary-spawn silhouette; its open front provides readable sheltered cover rather than a solid navigation wall.",
+      "collision_boxes": [
+        {"center": [0.0, 2.0, 2.45], "size": [10.25, 3.7, 0.42]},
+        {"center": [-4.85, 2.0, -0.1], "size": [0.42, 3.9, 5.1]},
+        {"center": [4.85, 2.0, -0.1], "size": [0.42, 3.9, 5.1]},
+        {"center": [0.0, 4.1, 0.0], "size": [10.8, 0.35, 5.5]}
+      ],
+      "light": {"position": [0.0, 3.15, -1.9], "color": [0.2, 0.76, 1.0], "energy": 1.0, "range": 10.0}
+    },
+    {
+      "id": "arrival_service_stack",
+      "asset": "cargo_service_cluster",
+      "position": [-34.0, 0.25, 6.8],
+      "rotation_degrees": [0.0, 22.0, 0.0],
+      "purpose": "Outpost logistics story and low cover on the west deck edge, without cutting across the central lane.",
+      "collision_boxes": [
+        {"center": [0.0, 1.2, 0.0], "size": [3.8, 2.4, 2.9]}
+      ]
+    },
+    {
+      "id": "hangar_cargo_stack",
+      "asset": "cargo_service_cluster",
+      "position": [23.0, 0.25, -10.0],
+      "rotation_degrees": [0.0, -90.0, 0.0],
+      "purpose": "Hangar loading cluster that adds operational context and a compact hard-cover option on the east deck.",
+      "collision_boxes": [
+        {"center": [0.0, 1.2, 0.0], "size": [3.8, 2.4, 2.9]}
+      ]
+    },
+    {
+      "id": "relay_service_stack",
+      "asset": "cargo_service_cluster",
+      "position": [20.0, 0.25, 1.0],
+      "rotation_degrees": [0.0, 120.0, 0.0],
+      "purpose": "Relay maintenance supplies at the annex flank; placed outside the direct route to the central objective.",
+      "collision_boxes": [
+        {"center": [0.0, 1.2, 0.0], "size": [3.8, 2.4, 2.9]}
+      ]
+    }
+  ]
+}

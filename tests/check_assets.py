@@ -82,6 +82,33 @@ for required in [
     'scripts/objective_device.gd', 'tests/interactive_slice.gd',
 ]:
     assert (root / required).is_file(), required
+# Purpose-authored visual density: structural buildings and cargo setpieces are
+# distinct from the preserved kit layout, with their own collision contract.
+landmark_data = json.loads((base / 'landmarks.json').read_text())
+landmarks = landmark_data['placements']
+assert len(landmarks) == 6
+assert {item['asset'] for item in landmarks} == {
+    'field_outpost', 'relay_annex', 'service_hangar', 'cargo_service_cluster',
+}
+assert (root / 'source/aetherfall_landmarks.blend').is_file()
+for filename, minimum_meshes in [
+    ('field_outpost.glb', 28),
+    ('relay_annex.glb', 30),
+    ('service_hangar.glb', 32),
+    ('cargo_service_cluster.glb', 13),
+]:
+    data = (base / 'landmarks' / filename).read_bytes()
+    magic, version, length = struct.unpack_from('<4sII', data)
+    assert (magic, version, length) == (b'glTF', 2, len(data)), filename
+    json_len = struct.unpack_from('<I', data, 12)[0]
+    payload = json.loads(data[20:20 + json_len])
+    assert len(payload.get('meshes', [])) >= minimum_meshes, filename
+    assert len(payload.get('materials', [])) >= 5 and payload.get('textures'), filename
+    for material in payload['materials']:
+        pbr = material.get('pbrMetallicRoughness', {})
+        assert material.get('normalTexture'), f'normal map missing: {filename}/{material["name"]}'
+        assert pbr.get('metallicRoughnessTexture'), f'ORM map missing: {filename}/{material["name"]}'
+assert sum(len(item.get('collision_boxes', [])) for item in landmarks) == 9
 for source in ['ai_weathered_steel.png', 'ai_poured_concrete.png', 'ai_sedimentary_rock.png']:
     assert (base / 'source_textures' / source).is_file()
 for suffix in ['normal', 'orm']:
@@ -90,4 +117,4 @@ for suffix in ['normal', 'orm']:
     assert (base / 'materials' / ('aether_rock_' + suffix + '.png')).is_file()
 connectors = json.loads((base / 'connectors.json').read_text())['connectors']
 assert {x['name'] for x in connectors} == {'east_bridge_approach', 'west_catwalk_approach', 'lower_canyon_descent'}
-print(f'PASS: {len(layout["placements"])} placement, {len(measures)} modul, orbit, 3 connector, 2 prop Stellar Horizon, 4 source Blender, PBR normal+ORM')
+print(f'PASS: {len(layout["placements"])} kit placement, {len(measures)} modul, 3 connector, 2 interaktif, 6 landmark, 5 source Blender, PBR normal+ORM')

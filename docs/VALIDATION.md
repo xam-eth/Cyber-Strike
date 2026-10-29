@@ -35,6 +35,17 @@ It asserts:
 
 **Status at report time: NOT YET RUN in the post-change Godot runtime.** A sandbox rebuild of Godot 4.7.2 was attempted because no engine binary persisted in the environment; it could not finish within the available sandbox build window and the parallel attempt hit the compiler memory limit. No runtime PASS is claimed here.
 
+## Structural-density and atmosphere enhancement
+
+The world now adds six purpose-authored placements outside the preserved 251-placement kit contract:
+
+- **Field Outpost** at the west primary-spawn edge: entry landmark, shelter silhouette and local cyan guide light.
+- **Relay Annex** east of the central line: vertical receiver/mast architecture that gives the relay objective a credible physical support building.
+- **Service Hangar** at the east deck: open-front industrial shelter with non-blocking segmented collision, load bays, roof vents and a local light.
+- **Three Cargo Service Clusters:** named logistics/maintenance cover setpieces placed beside their respective building, not on the central direct lane.
+
+Atmosphere parameters now use less than half the prior fog density (`0.00095` from `0.0018`), lower sky fog influence, restrained glow/bloom, modest contrast/saturation correction and a more separated blue horizon palette. This is an authored configuration change; final perceived sharpness remains a graphical-runtime check.
+
 ## Visual and performance status
 
 - **Godot graphical screenshot:** **NOT PROVIDED / UNVERIFIED.** The sandbox validation build has X11, Wayland, Vulkan and OpenGL disabled, so it cannot make an honest graphical Godot screenshot. Blender images are not substituted for a Godot screenshot.

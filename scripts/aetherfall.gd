@@ -12,11 +12,18 @@ const WALKABLE_MESH := {
 }
 var placement_count := 0
 var collider_count := 0
+var landmark_count := 0
+var landmark_collider_count := 0
 
 func v3(value: Variant) -> Vector3:
 	if value is Array and value.size() >= 3:
 		return Vector3(float(value[0]), float(value[1]), float(value[2]))
 	return Vector3.ZERO
+
+func color3(value: Variant, fallback := Color.WHITE) -> Color:
+	if value is Array and value.size() >= 3:
+		return Color(float(value[0]), float(value[1]), float(value[2]))
+	return fallback
 
 func read_json(path: String) -> Dictionary:
 	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
@@ -124,8 +131,62 @@ func _ready() -> void:
 	add_connectors()
 	add_atmosphere()
 	add_animation()
+	add_structural_landmarks()
 	add_stellar_horizon_slice(layout)
-	print("Aetherfall: %d placements; %d proxy colliders" % [placement_count, collider_count])
+	print("Aetherfall: %d kit placements; %d proxy colliders; %d landmark placements; %d landmark colliders" % [placement_count, collider_count, landmark_count, landmark_collider_count])
+
+
+func add_structural_landmarks() -> void:
+	## Purpose-authored buildings live outside layout.json so the original 251-kit
+	## composition remains reviewable and its module contract stays stable.
+	var data := read_json(BASE + "landmarks.json")
+	if data.is_empty():
+		return
+	var group := Node3D.new()
+	group.name = "StructuralLandmarks"
+	add_child(group)
+	for spec: Dictionary in data.get("placements", []):
+		var asset := str(spec.get("asset", ""))
+		var packed := load(BASE + "landmarks/" + asset + ".glb") as PackedScene
+		if packed == null:
+			push_error("Aetherfall: landmark model tidak ditemukan: " + asset)
+			continue
+		var landmark := Node3D.new()
+		landmark.name = str(spec.get("id", asset))
+		landmark.position = v3(spec.get("position", []))
+		landmark.rotation = v3(spec.get("rotation_degrees", [])) * PI / 180.0
+		group.add_child(landmark)
+		var visual := packed.instantiate() as Node3D
+		visual.name = "Visual"
+		landmark.add_child(visual)
+		var collision := StaticBody3D.new()
+		collision.name = "Collision"
+		landmark.add_child(collision)
+		for box_data: Dictionary in spec.get("collision_boxes", []):
+			var size := v3(box_data.get("size", []))
+			if size.x <= 0.0 or size.y <= 0.0 or size.z <= 0.0:
+				push_error("Aetherfall: invalid landmark collision " + landmark.name)
+				continue
+			var shape := CollisionShape3D.new()
+			shape.name = "Shape"
+			shape.position = v3(box_data.get("center", []))
+			var box := BoxShape3D.new()
+			box.size = size
+			shape.shape = box
+			collision.add_child(shape)
+			landmark_collider_count += 1
+		var light_data: Variant = spec.get("light", null)
+		if light_data is Dictionary:
+			var light_config := light_data as Dictionary
+			var light := OmniLight3D.new()
+			light.name = "StructuralLight"
+			light.position = v3(light_config.get("position", []))
+			light.light_color = color3(light_config.get("color", []), Color(0.18, 0.67, 1.0))
+			light.light_energy = float(light_config.get("energy", 1.0))
+			light.omni_range = float(light_config.get("range", 7.0))
+			light.shadow_enabled = false
+			landmark.add_child(light)
+		landmark_count += 1
 
 
 func add_stellar_horizon_slice(layout: Dictionary) -> void:
@@ -239,10 +300,10 @@ func add_connectors() -> void:
 func add_atmosphere() -> void:
 	var environment := Environment.new()
 	var sky_material := ProceduralSkyMaterial.new()
-	sky_material.sky_top_color = Color(0.10, 0.20, 0.32)
-	sky_material.sky_horizon_color = Color(0.56, 0.64, 0.68)
-	sky_material.ground_bottom_color = Color(0.11, 0.14, 0.17)
-	sky_material.ground_horizon_color = Color(0.42, 0.47, 0.48)
+	sky_material.sky_top_color = Color(0.055, 0.14, 0.27)
+	sky_material.sky_horizon_color = Color(0.44, 0.59, 0.72)
+	sky_material.ground_bottom_color = Color(0.075, 0.10, 0.14)
+	sky_material.ground_horizon_color = Color(0.34, 0.43, 0.50)
 	var sky := Sky.new()
 	sky.sky_material = sky_material
 	environment.background_mode = Environment.BG_SKY
@@ -251,19 +312,33 @@ func add_atmosphere() -> void:
 	environment.ambient_light_energy = 0.95
 	environment.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
 	environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	# Deliberately lean haze and restrained glow preserve canyon depth, PBR
+	# contrast and building silhouettes instead of flattening the scene.
+	environment.tonemap_exposure = 1.04
+	environment.tonemap_white = 1.15
 	environment.fog_enabled = true
-	environment.fog_light_color = Color(0.46, 0.58, 0.66)
-	environment.fog_density = 0.0018
+	environment.fog_light_color = Color(0.44, 0.58, 0.68)
+	environment.fog_density = 0.00095
+	environment.fog_aerial_perspective = 0.34
+	environment.fog_sky_affect = 0.22
 	environment.glow_enabled = true
+	environment.glow_intensity = 0.55
+	environment.glow_strength = 0.72
+	environment.glow_bloom = 0.08
+	environment.adjustment_enabled = true
+	environment.adjustment_contrast = 1.07
+	environment.adjustment_saturation = 1.04
 	var world_env := WorldEnvironment.new()
 	world_env.environment = environment
 	add_child(world_env)
 	var sun := DirectionalLight3D.new()
 	sun.name = "Sun"
 	sun.rotation_degrees = Vector3(-48, -32, 0)
-	sun.light_color = Color(1.0, 0.89, 0.75)
-	sun.light_energy = 1.6
+	sun.light_color = Color(1.0, 0.90, 0.76)
+	sun.light_energy = 1.72
 	sun.shadow_enabled = true
+	sun.directional_shadow_max_distance = 115.0
+	sun.directional_shadow_fade_start = 0.84
 	add_child(sun)
 
 func add_animation() -> void:
