@@ -1239,7 +1239,7 @@ async function checkPage(target, viewport) {
 
       // 2. Navigate back inside Seed Vault's 5m interaction radius if combat moved us out.
       if (e2e.guardsCleared) {
-        const approachDeadline = Date.now() + 90000;
+        const approachDeadline = Date.now() + 120000;
         let approachStrides = 0;
         let approachBypasses = 0;
         let bestDist = Infinity;
@@ -1250,7 +1250,7 @@ async function checkPage(target, viewport) {
           const n = m ? Number(m[1]) : NaN;
           return Number.isFinite(n) ? n : null;
         };
-        const waitFreshCacheProj = async (maxMs = 1100) => {
+        const waitFreshCacheProj = async (maxMs = 950) => {
           const startIdx = consoleLines.length;
           const deadline = Date.now() + maxMs;
           while (Date.now() < deadline) {
@@ -1273,7 +1273,7 @@ async function checkPage(target, viewport) {
                 e2e.secureOffered = true;
                 break;
               }
-              await new Promise((r) => setTimeout(r, 150));
+              await new Promise((r) => setTimeout(r, 120));
             }
           } finally {
             if (strafeKey) await page.keyboard.up(strafeKey).catch(() => {});
@@ -1281,27 +1281,48 @@ async function checkPage(target, viewport) {
             await page.keyboard.up('ShiftLeft').catch(() => {});
           }
         };
+        // Same parallel-lane bypass used by initial landing approach: once facing
+        // Seed Vault, sidestep ~3.2m perpendicular WITHOUT turning back into the
+        // center collider, then sprint straight parallel into the 5m radius!
+        const bypassObstacleParallel = async () => {
+          const sideKey = approachBypasses % 2 === 0 ? 'KeyD' : 'KeyA';
+          const sideMs = approachBypasses >= 2 ? 3400 : 2500;
+          approachBypasses += 1;
+          stalledStrides = 0;
+          await releaseAds();
+          await page.keyboard.down('ShiftLeft');
+          await page.keyboard.down(sideKey);
+          await new Promise((r) => setTimeout(r, sideMs));
+          await page.keyboard.up(sideKey);
+          await page.keyboard.up('ShiftLeft');
+          await sprintTowardVault(5200, null);
+        };
         while (Date.now() < approachDeadline) {
           if (latestRecovery()?.action === 'secure') {
             e2e.secureOffered = true;
             break;
           }
-          const cacheProj = await waitFreshCacheProj(1100);
+          const cacheProj = await waitFreshCacheProj(950);
           if (latestRecovery()?.action === 'secure') {
             e2e.secureOffered = true;
             break;
           }
           if (!cacheProj) {
             const beforeHudDist = parseHudDist();
-            await sprintTowardVault(2000, approachStrides % 4 === 2 ? 'KeyA' : null);
+            if (beforeHudDist !== null && beforeHudDist < bestDist) bestDist = beforeHudDist;
+            await sprintTowardVault(2400, null);
             approachStrides += 1;
+            if (e2e.secureOffered || latestRecovery()?.action === 'secure') {
+              e2e.secureOffered = true;
+              break;
+            }
             const afterHudDist = parseHudDist();
             if (afterHudDist !== null) {
               lastCacheDist = afterHudDist;
               if (afterHudDist < bestDist - 0.6) {
                 bestDist = afterHudDist;
                 stalledStrides = 0;
-              } else if (beforeHudDist !== null) {
+              } else {
                 stalledStrides += 1;
               }
             }
@@ -1310,20 +1331,20 @@ async function checkPage(target, viewport) {
             continue;
           } else {
             const errX = cacheProj.x - cacheProj.vpW * 0.5;
-            if (Math.abs(errX) > 95) {
+            const aimTol = (cacheProj.dist ?? 20) <= 11.0 ? 55 : 95;
+            if (Math.abs(errX) > aimTol) {
               await steerAim(Math.max(-520, Math.min(520, errX * 0.78)), 0);
               continue;
             }
             const preDist = cacheProj.dist ?? parseHudDist();
             if (preDist !== null && preDist < bestDist) bestDist = preDist;
-            const strideMs = preDist !== null && preDist <= 9.5 ? 900 : 2200;
-            await sprintTowardVault(strideMs, null);
+            await sprintTowardVault(2400, null);
             approachStrides += 1;
             if (e2e.secureOffered || latestRecovery()?.action === 'secure') {
               e2e.secureOffered = true;
               break;
             }
-            const postProj = await waitFreshCacheProj(950);
+            const postProj = await waitFreshCacheProj(850);
             const postDist = postProj?.dist ?? parseHudDist();
             if (postDist !== null) {
               lastCacheDist = postDist;
@@ -1335,19 +1356,13 @@ async function checkPage(target, viewport) {
               }
             }
           }
-          if (stalledStrides >= 2 && !e2e.secureOffered) {
-            // Sidestep around world prop collision: prefer LEFT ('KeyA') first to
-            // take the wide-open sand lane clear of the south-east radar tower.
-            const sideKey = approachBypasses % 2 === 0 ? 'KeyA' : 'KeyD';
-            approachBypasses += 1;
-            stalledStrides = 0;
-            await releaseAds();
-            await page.keyboard.down('ShiftLeft');
-            await page.keyboard.down(sideKey);
-            await new Promise((r) => setTimeout(r, 1100));
-            await page.keyboard.up(sideKey);
-            await page.keyboard.up('ShiftLeft');
-            await sprintTowardVault(1300, sideKey);
+          const nearLane = lastCacheDist !== null && lastCacheDist <= 11.0;
+          if (!e2e.secureOffered && (stalledStrides >= 2 || (nearLane && stalledStrides >= 1))) {
+            await bypassObstacleParallel();
+            if (e2e.secureOffered || latestRecovery()?.action === 'secure') {
+              e2e.secureOffered = true;
+              break;
+            }
           }
         }
         await releaseAds();
