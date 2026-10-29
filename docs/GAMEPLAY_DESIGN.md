@@ -177,11 +177,11 @@ A known target supports intentional mission selection. Avoid lore dumps, long cu
 
 Use escalating guidance:
 
-1. **Area:** objective names a district/landmark and general direction.
-2. **Local:** entering the area reveals signal strength, sight-line landmarks, or guardian arena.
-3. **Stuck:** after measured lack of objective progress, offer an optional stronger hint.
+1. **Area (`> 18m`):** objective names the target cache/landmark, relative bearing (`AHEAD` / `LEFT` / `RIGHT` / `BEHIND`), distance, and reward preview.
+2. **Local (`<= 18m`):** entering the local zone tightens signal lock onto the Shrine or active guard position; `<= 5m` switches to explicit `Engage` or `Secure` interaction.
+3. **Stuck (`>= 12s` without `>= 1.25m` forward closure):** surfaces a stronger `SIGNAL LOCK` hint, triggers one non-blocking sightline toast, and boosts the 3D `RecoveryCacheVisual` vertical `GuidanceBeacon` until forward progress resumes.
 
-The tracker holds one primary task and at most one tracked optional task. Completed steps remain visible long enough for the player to understand the state change.
+The tracker holds one primary task (`verdant_seed_vault`) and automatically promotes the optional cache (`verdant_crashed_lab`) once the primary cache is secured. Completed steps remain visible in Mission Complete and Extraction Results with explicit permanent-kept versus run-reset breakdown.
 
 ### 6.3 Guard activation and safe entry
 
@@ -536,5 +536,6 @@ The design inference is: preserve permanent secured tech and clear mission purpo
 
 ## 17. Change record
 
+- **2026-10-29:** Track 1 (TECH HUNT 0 closure) implements Area → Local → Stuck escalating recovery guidance (`Main` + `RecoveryCacheVisual` vertical `GuidanceBeacon`), explicit Mission Complete & Extraction Results progression breakdown (secured blueprints, Operative Tier promotion e.g. `Sable T1 → T2 · 106 HP · 3% DR`, kept permanent progress vs. reset run-only state), shell-to-Godot redeploy handoff preserving newly unlocked operative tiers, and automated Chromium E2E closure (`tools/web_qa.mjs --recovery-e2e`).
 - **2026-10-28:** Website-only UI/UX scope records real three-tier weapon progression, separated Operator hero/weapon state, and ADS repair for the three existing weapon ids. APK/native work remains paused; no fourth weapon, currency, save manager, IAP, or in-run draft was added.
 - **2026-10-26:** TECH HUNT selected as the prototype direction; locked-shot dodge/punish retained as the combat-mastery hypothesis. TECH HUNT 0 scope, death/save semantics, Endless integration, ownership, and acceptance gates consolidated into this canonical document. No gameplay implementation or human-validation claim is attached to this documentation decision.

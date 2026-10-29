@@ -270,9 +270,9 @@ func _exercise_tier2_redeploy(profile_path: String) -> void:
 	root.add_child(fe)
 	await process_frame
 	await process_frame
-	fe.call("_enter", &"HERO", {})
+	fe.call("go_to", &"HERO", {})
 	await process_frame
-	var hero_stage := fe.get_node("StageHost/HeroSelectStage") as Control
+	var hero_stage := fe.get("_current") as Control
 	var tier_btn := hero_stage.get("_tier_button") as Button
 	_expect(
 		tier_btn != null and not tier_btn.disabled and fe_prog.owned_tier() == 2,
@@ -289,9 +289,9 @@ func _exercise_tier2_redeploy(profile_path: String) -> void:
 		),
 		"selecting Tier 2 updates HERO vitals readout to 106 HP",
 	)
-	fe.call("_enter", &"DASHBOARD", {})
+	fe.call("go_to", &"DASHBOARD", {})
 	await process_frame
-	var dash_stage := fe.get_node("StageHost/DashboardStage") as Control
+	var dash_stage := fe.get("_current") as Control
 	var dash_hero := dash_stage.get("_hero_status") as Label
 	_expect(
 		dash_hero.text.contains("TIER 2") and dash_hero.text.contains("HP 106"),

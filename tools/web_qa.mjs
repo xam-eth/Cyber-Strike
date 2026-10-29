@@ -237,6 +237,16 @@ async function checkPage(target, viewport) {
   });
   page.on('requestfailed', (r) => failedRequests.push(`${r.url().replace(baseUrl, '')} ${r.failure()?.errorText}`));
 
+  if (recoveryE2eMode) {
+    await page.evaluateOnNewDocument(() => {
+      // CDP mouse moves deliver zero movementX/Y under pointer lock, and native
+      // context menus swallow right-button mouseup events when pointer lock is off.
+      // Exercise PlayerController's supported no-pointer-lock ADS fallback cleanly.
+      HTMLElement.prototype.requestPointerLock = function requestPointerLockNoop() {};
+      window.addEventListener('contextmenu', (e) => e.preventDefault(), { capture: true });
+    });
+  }
+
   const started = Date.now();
   await page.goto(url.toString(), { waitUntil: 'domcontentloaded', timeout: 60000 });
 
@@ -915,6 +925,13 @@ async function checkPage(target, viewport) {
       recoveryEvidence.guardsActive = await awaitConsoleText(
         page, consoleLines.slice(beforeEngage), 'guards=2', 15000,
       );
+      if (recoveryE2eMode && recoveryEvidence.guardsActive) {
+        // Hold sprint-backpedal across guarded/contact PNG captures so Sable
+        // enters combat at 100/100 HP ~12 m south in the wide-open clearing with
+        // both guards centered horizontally at y ~ 348!
+        await page.keyboard.down('ShiftLeft');
+        await page.keyboard.down('KeyS');
+      }
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
     await capture('guarded');
@@ -925,6 +942,10 @@ async function checkPage(target, viewport) {
       await page.mouse.up();
       await new Promise((resolve) => setTimeout(resolve, 300));
       await capture('contact');
+    }
+    if (recoveryE2eMode) {
+      await page.keyboard.up('KeyS').catch(() => {});
+      await page.keyboard.up('ShiftLeft').catch(() => {});
     }
     const models = new Set();
     for (const line of consoleLines) {
@@ -991,27 +1012,136 @@ async function checkPage(target, viewport) {
         }
         return null;
       };
-      const steerCameraStep = async (dx, dy) => {
-        await page.mouse.up({ button: 'right' }).catch(() => {});
-        await page.mouse.move(cx, cy);
-        await page.mouse.down({ button: 'right' });
-        // First motion event after right-press is intentionally ignored by
-        // PlayerController to absorb pointer-lock entry jumps.
-        await page.mouse.move(cx + 1, cy);
-        const clampedX = Math.max(24, Math.min(viewport.width - 24, Math.round(cx + 1 + dx)));
-        const clampedY = Math.max(24, Math.min(viewport.height - 24, Math.round(cy + dy)));
-        await page.mouse.move(clampedX, clampedY, { steps: 3 });
-        await new Promise((r) => setTimeout(r, 90));
-        await page.mouse.up({ button: 'right' });
+      const pickGuardSnapshot = (afterIdx = 0) => {
+        const recent = new Map();
+        const start = Math.max(afterIdx, consoleLines.length - 16);
+        for (let i = start; i < consoleLines.length; i += 1) {
+          const entry = consoleLines[i];
+          if (!entry.includes('Recovery Target QA:')) continue;
+          const id = entry.match(/\bid=([^\s]+)/)?.[1] || '';
+          const x = Number(entry.match(/\bx=(-?[0-9.]+)/)?.[1]);
+          const y = Number(entry.match(/\by=(-?[0-9.]+)/)?.[1]);
+          const behind = entry.match(/\bbehind=(yes|no)/)?.[1] || 'no';
+          const dist = Number(entry.match(/\bdist=([0-9.]+)/)?.[1] ?? 'NaN');
+          const vpMatch = entry.match(/\bvp=([0-9]+)x([0-9]+)/);
+          if (!id || !Number.isFinite(x) || !Number.isFinite(y)) continue;
+          recent.set(id, {
+            id,
+            x,
+            y,
+            behind: behind === 'yes',
+            dist: Number.isFinite(dist) ? dist : null,
+            vpW: vpMatch ? Number(vpMatch[1]) : viewport.width,
+            vpH: vpMatch ? Number(vpMatch[2]) : viewport.height,
+          });
+        }
+        if (!recent.size) return { target: null, anyClose: false };
+        const all = [...recent.values()];
+        // Only flag genuine close melee proximity (< 5 m / y > 540) so Sable
+        // stays inside Pulse Carbine's 12-18 m sweet spot in the open clearing!
+        const anyClose = all.some((g) =>
+          (g.dist !== null ? g.dist < 5.0 : (!g.behind && g.y > 540)));
+        all.sort((a, b) => {
+          if (a.id.endsWith('_01') !== b.id.endsWith('_01')) {
+            return a.id.endsWith('_01') ? -1 : 1;
+          }
+          return b.y - a.y;
+        });
+        return { target: all[0], anyClose };
+      };
+      const cdp = await page.createCDPSession();
+      const cdpMove = (x, y, buttons = 0) =>
+        cdp.send('Input.dispatchMouseEvent', {
+          type: 'mouseMoved',
+          x: Math.round(x),
+          y: Math.round(y),
+          button: 'none',
+          buttons,
+        });
+      const cdpButton = (type, x, y, button, buttons) =>
+        cdp.send('Input.dispatchMouseEvent', {
+          type,
+          x: Math.round(x),
+          y: Math.round(y),
+          button,
+          buttons,
+          clickCount: 1,
+        });
+
+      let aimHeld = false;
+      let curX = 500;
+      let curY = 360;
+      const waitEngineTick = async (maxMs = 360) => {
+        const startLen = consoleLines.length;
+        const deadline = Date.now() + maxMs;
+        while (Date.now() < deadline) {
+          if (consoleLines.slice(startLen).some((l) => l.includes('Recovery Target QA:') || l.includes('Recovery QA:'))) {
+            return;
+          }
+          await new Promise((r) => setTimeout(r, 35));
+        }
+      };
+      const releaseAds = async () => {
+        if (!aimHeld) return;
+        await cdpButton('mouseReleased', curX, curY, 'right', 0);
+        aimHeld = false;
+        // Wait >1 full SwiftShader frame before moving cursor with buttons=0 so
+        // Godot flushes MOUSE_BUTTON_RIGHT release and never un-rotates the camera.
+        await new Promise((r) => setTimeout(r, 420));
+      };
+      // Park near the left edge (x=80) before turning right (dx>=0) for 950 px
+      // (+105 deg) of uninterrupted clockwise travel, or near x=880 before turning
+      // left (dx<0) for 840 px (-93 deg) of uninterrupted counter-clockwise travel!
+      const reanchorAds = async (preferRightTurn = true) => {
+        await releaseAds();
+        const startX = preferRightTurn ? 80 : 880;
+        const startY = 360;
+        await cdpMove(startX, startY, 0);
+        await new Promise((r) => setTimeout(r, 360));
+        await cdpButton('mousePressed', startX, startY, 'right', 2);
+        await new Promise((r) => setTimeout(r, 340));
+        await cdpMove(startX + 1, startY, 2);
+        await new Promise((r) => setTimeout(r, 360));
+        curX = startX + 1;
+        curY = startY;
+        aimHeld = true;
+      };
+      const steerAim = async (dx, dy) => {
+        if (
+          !aimHeld
+          || curX + dx < 36
+          || curX + dx > 1030
+          || curY + dy < 125
+          || curY + dy > 655
+        ) {
+          await reanchorAds(dx >= 0);
+        }
+        const nextX = Math.max(36, Math.min(1030, Math.round(curX + dx)));
+        let nextY = Math.max(125, Math.min(655, Math.round(curY + dy)));
+        if (nextX < 355 && nextY < 182) nextY = 182;
+        for (let step = 1; step <= 3; step += 1) {
+          const ix = curX + ((nextX - curX) * step) / 3;
+          const iy = curY + ((nextY - curY) * step) / 3;
+          await cdpMove(ix, iy, 2);
+          await new Promise((r) => setTimeout(r, 30));
+        }
+        curX = nextX;
+        curY = nextY;
+        await new Promise((r) => setTimeout(r, 380));
       };
 
+      // Prime ADS for Runner (_01) on the left (-268 px) from the open clearing.
+      await reanchorAds(false);
+
       // 1. Defeat both live Seed Vault guards using real ADS camera steering,
-      // gunfire bursts, footwork, and EMP Pulse.
-      const combatDeadline = Date.now() + 90000;
+      // gunfire bursts, circle-strafe footwork between bursts, and EMP Pulse.
+      const combatDeadline = Date.now() + 160000;
       let lastEmpAt = 0;
       let burstsSinceKo = 0;
+      let loopTick = 0;
       let knownKos = 0;
       while (Date.now() < combatDeadline) {
+        loopTick += 1;
         const rec = latestRecovery();
         const readySeen = consoleLines
           .slice(beforeEngage)
@@ -1020,86 +1150,157 @@ async function checkPage(target, viewport) {
           e2e.guardsCleared = true;
           break;
         }
-        const kosNow = consoleLines.slice(beforeEngage).filter((l) => l.includes('KO') || l.includes('hit_confirm')).length;
+        const kosNow = consoleLines
+          .slice(beforeEngage)
+          .filter((l) => l.includes('KO') || l.includes('hit_confirm') || l.includes('guards=1')).length;
         if (kosNow > knownKos) {
           knownKos = kosNow;
           burstsSinceKo = 0;
         }
-        const markIdx = Math.max(beforeEngage, consoleLines.length - 12);
-        await new Promise((r) => setTimeout(r, 220));
-        const guard = parseProjection('Recovery Target QA:', markIdx)
-          || parseProjection('Recovery Target QA:', beforeEngage);
-        if (Date.now() - lastEmpAt > 4000 && (!guard || (guard.dist !== null && guard.dist <= 8.8))) {
-          await page.keyboard.press('KeyE');
+        const markIdx = Math.max(beforeEngage, consoleLines.length - 8);
+        await waitEngineTick(340);
+        let snap = pickGuardSnapshot(markIdx);
+        if (!snap.target) snap = pickGuardSnapshot(beforeEngage);
+        const guard = snap.target;
+        if (Date.now() - lastEmpAt > 3500 && (!guard || snap.anyClose || (guard.dist !== null && guard.dist <= 8.8))) {
+          await page.keyboard.press('KeyF');
           lastEmpAt = Date.now();
         }
         if (!guard) continue;
+        const tooFar = !snap.anyClose && (guard.dist !== null
+          ? guard.dist > 22.0
+          : (!guard.behind && guard.y < 346));
+        if (snap.anyClose) {
+          await page.keyboard.down('ShiftLeft');
+          await page.keyboard.down('KeyS');
+          await new Promise((r) => setTimeout(r, 520));
+          await page.keyboard.up('KeyS');
+          await page.keyboard.up('ShiftLeft');
+        } else if (tooFar && Math.abs(guard.x - guard.vpW * 0.5) < 120) {
+          await page.keyboard.down('KeyW');
+          await new Promise((r) => setTimeout(r, 380));
+          await page.keyboard.up('KeyW');
+        }
         if (guard.behind) {
-          await steerCameraStep(270, 0);
+          const dodgeKey = loopTick % 4 < 2 ? 'KeyD' : 'KeyA';
+          await page.keyboard.down(dodgeKey);
+          await new Promise((r) => setTimeout(r, 180));
+          await page.keyboard.up(dodgeKey);
+          await steerAim(780, 0);
           continue;
         }
         const errX = guard.x - guard.vpW * 0.5;
         const errY = guard.y - guard.vpH * 0.5;
-        if (guard.dist !== null && guard.dist < 2.3) {
-          await page.keyboard.down('KeyS');
-          await new Promise((r) => setTimeout(r, 240));
-          await page.keyboard.up('KeyS');
-        } else if (guard.dist !== null && guard.dist > 15.0 && Math.abs(errX) < 110) {
+        if (Math.abs(errX) > 8 || Math.abs(errY) > 10) {
+          if (Math.abs(errX) > 120) {
+            const dodgeKey = loopTick % 4 < 2 ? 'KeyD' : 'KeyA';
+            await page.keyboard.down(dodgeKey);
+            await new Promise((r) => setTimeout(r, 140));
+            await page.keyboard.up(dodgeKey);
+          }
+          // Measured ADS gain is ~1.265 screen px per mouse px -> 0.78 critically
+          // damps onto (640, 360) down to <= 8 px (inside distant guard hitbox!).
+          const rawX = errX * 0.78;
+          const rawY = errY * 0.78;
+          const stepX = Math.abs(errX) > 8
+            ? Math.max(-720, Math.min(720, Math.sign(rawX) * Math.max(6, Math.abs(rawX))))
+            : 0;
+          const stepY = Math.abs(errY) > 10
+            ? Math.max(-220, Math.min(220, Math.sign(rawY) * Math.max(6, Math.abs(rawY))))
+            : 0;
+          await steerAim(stepX, stepY);
+          continue;
+        }
+        // Locked dead-center on guard capsule (<= 11 px error): release right-mouse
+        // cleanly first, then hold the HUD FIRE control via the same CDP session
+        // (buttons: 0 -> 1 -> 0) for 950 ms (~8 rounds = 144 dmg through (640, 360))!
+        await releaseAds();
+        const fireX = viewport.width - 55;
+        const fireY = viewport.height - 60;
+        await cdpMove(fireX, fireY, 0);
+        await new Promise((r) => setTimeout(r, 140));
+        await cdpButton('mousePressed', fireX, fireY, 'left', 1);
+        await new Promise((r) => setTimeout(r, 950));
+        await cdpButton('mouseReleased', fireX, fireY, 'left', 0);
+        await new Promise((r) => setTimeout(r, 160));
+        burstsSinceKo += 1;
+        if (burstsSinceKo >= 2) {
+          // Advance slightly forward to close distance if >20 m away
           await page.keyboard.down('KeyW');
-          await new Promise((r) => setTimeout(r, 320));
+          await new Promise((r) => setTimeout(r, 420));
           await page.keyboard.up('KeyW');
         }
-        if (Math.abs(errX) > 22 || Math.abs(errY) > 22) {
-          const stepX = Math.max(-250, Math.min(250, errX * 0.92));
-          const stepY = Math.max(-140, Math.min(140, errY * 0.85));
-          await steerCameraStep(stepX, stepY);
-        }
-        if (Math.abs(errX) < 125 && Math.abs(errY) < 105) {
-          await page.mouse.move(cx, cy);
-          await page.mouse.down({ button: 'right' });
-          await page.mouse.down({ button: 'left' });
-          await new Promise((r) => setTimeout(r, 420));
-          await page.mouse.up({ button: 'left' });
-          await page.mouse.up({ button: 'right' });
-          burstsSinceKo += 1;
-          if (burstsSinceKo >= 5) {
-            const strafeKey = burstsSinceKo % 2 === 0 ? 'KeyA' : 'KeyD';
-            await page.keyboard.down(strafeKey);
-            await new Promise((r) => setTimeout(r, 420));
-            await page.keyboard.up(strafeKey);
-            burstsSinceKo = 0;
-          }
+        if (burstsSinceKo >= 3) {
+          await page.keyboard.press('KeyG');
+          burstsSinceKo = 0;
         }
       }
-      await page.mouse.up({ button: 'left' }).catch(() => {});
-      await page.mouse.up({ button: 'right' }).catch(() => {});
+      await releaseAds();
 
       // 2. Navigate back inside Seed Vault's 5m interaction radius if combat moved us out.
       if (e2e.guardsCleared) {
-        const approachDeadline = Date.now() + 30000;
+        const approachDeadline = Date.now() + 75000;
+        let approachSteps = 0;
+        let bestDist = Infinity;
+        let stalledStrides = 0;
         while (Date.now() < approachDeadline) {
-          if (latestRecovery()?.action === 'secure') {
+          const recNow = latestRecovery();
+          if (recNow?.action === 'secure') {
             e2e.secureOffered = true;
             break;
           }
           const markIdx = Math.max(0, consoleLines.length - 8);
-          await new Promise((r) => setTimeout(r, 280));
+          await new Promise((r) => setTimeout(r, 260));
           const cacheProj = parseProjection('Recovery Cache QA: id=verdant_seed_vault', markIdx)
             || parseProjection('Recovery Cache QA: id=verdant_seed_vault', 0);
-          if (!cacheProj) continue;
+          const recDist = Number(recNow?.line.match(/(\d+)\s*m\b/)?.[1] ?? 'NaN');
+          const curDist = cacheProj?.dist ?? (Number.isFinite(recDist) ? recDist : null);
+          if (curDist !== null) {
+            if (curDist < bestDist - 0.8) {
+              bestDist = curDist;
+              stalledStrides = 0;
+            } else {
+              stalledStrides += 1;
+            }
+          }
+          if (stalledStrides >= 3) {
+            // Sidestep around any straight-lane world prop collision
+            await releaseAds();
+            await page.keyboard.down('ShiftLeft');
+            await page.keyboard.down('KeyD');
+            await new Promise((r) => setTimeout(r, 1050));
+            await page.keyboard.up('KeyD');
+            await page.keyboard.up('ShiftLeft');
+            stalledStrides = 0;
+            continue;
+          }
+          if (!cacheProj) {
+            const key = approachSteps % 6 === 5 ? 'KeyD' : 'KeyW';
+            await page.keyboard.down('ShiftLeft');
+            await page.keyboard.down(key);
+            await new Promise((r) => setTimeout(r, 650));
+            await page.keyboard.up(key);
+            await page.keyboard.up('ShiftLeft');
+            approachSteps += 1;
+            continue;
+          }
           if (cacheProj.behind) {
-            await steerCameraStep(270, 0);
+            await steerAim(620, 0);
             continue;
           }
           const errX = cacheProj.x - cacheProj.vpW * 0.5;
-          if (Math.abs(errX) > 85) {
-            await steerCameraStep(Math.max(-230, Math.min(230, errX * 0.9)), 0);
+          if (Math.abs(errX) > 75) {
+            await steerAim(Math.max(-420, Math.min(420, errX * 0.78)), 0);
           } else {
+            await releaseAds();
+            await page.keyboard.down('ShiftLeft');
             await page.keyboard.down('KeyW');
-            await new Promise((r) => setTimeout(r, 380));
+            await new Promise((r) => setTimeout(r, 650));
             await page.keyboard.up('KeyW');
+            await page.keyboard.up('ShiftLeft');
           }
         }
+        await releaseAds();
       }
       await capture('ready-to-secure');
 
@@ -1126,7 +1327,13 @@ async function checkPage(target, viewport) {
           const r = document.querySelector('canvas')?.getBoundingClientRect();
           return r ? { left: r.left, top: r.top } : { left: 0, top: 0 };
         });
-        await page.mouse.click(bounds.left + pt.x, bounds.top + pt.y);
+        const px = bounds.left + pt.x;
+        const py = bounds.top + pt.y;
+        await cdpMove(px, py, 0);
+        await new Promise((r) => setTimeout(r, 90));
+        await cdpButton('mousePressed', px, py, 'left', 1);
+        await new Promise((r) => setTimeout(r, 90));
+        await cdpButton('mouseReleased', px, py, 'left', 0);
       };
       const latestResultsQa = (mode, fromIdx) => {
         const line = [...consoleLines.slice(fromIdx)]
@@ -1148,8 +1355,17 @@ async function checkPage(target, viewport) {
           page,
           consoleLines.slice(beforeExtract),
           'Recovery Results QA: mode=results',
-          15000,
+          5000,
         );
+        if (!e2e.extractedResultsShown) {
+          await page.keyboard.press('Enter');
+          e2e.extractedResultsShown = await awaitConsoleText(
+            page,
+            consoleLines.slice(beforeExtract),
+            'Recovery Results QA: mode=results',
+            12000,
+          );
+        }
         const bankLines = consoleLines
           .slice(beforeExtract)
           .filter((l) => l.includes('Progression: banked'));
@@ -1161,7 +1377,7 @@ async function checkPage(target, viewport) {
       // 5. Return HOME -> Shell Hub -> Operative Tier 2 -> Redeploy at 106 vitals.
       if (e2e.extractedResultsShown && isFrontEnd) {
         const resUi = latestResultsQa('results', beforeExtract);
-        const navPromise = page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 20000 }).catch(() => null);
+        const navPromise = page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 25000 }).catch(() => null);
         if (resUi?.home) await clickCanvasPoint(resUi.home);
         else {
           await page.keyboard.press('ArrowDown');
@@ -1169,7 +1385,7 @@ async function checkPage(target, viewport) {
           await page.keyboard.press('Enter');
         }
         await navPromise;
-        await page.waitForFunction(() => document.body?.dataset?.screen === 'hub', { timeout: 20000 }).catch(() => {});
+        await page.waitForFunction(() => document.body?.dataset?.screen === 'hub', { timeout: 25000 }).catch(() => {});
         e2e.returnedToHub = await page.evaluate(() => document.body?.dataset?.screen === 'hub');
 
         const mirrorCheck = await page.evaluate(() => {
@@ -1192,13 +1408,14 @@ async function checkPage(target, viewport) {
           && mirrorCheck.arcBlueprint
           && mirrorCheck.seedSecured;
 
-        await page.click('#hub-card-operative');
+        await page.evaluate(() => document.getElementById('hub-card-operative')?.click());
         await page.waitForFunction(
           () => document.body?.dataset?.screen === 'hero'
             && document.getElementById('screen-hero')?.dataset?.ready === 'true',
-          { timeout: 20000 },
+          { timeout: 25000 },
         ).catch(() => {});
-        await page.click('#hero-tiers .tierstep[data-tier="2"]');
+        await page.evaluate(() =>
+          document.querySelector('#hero-tiers .tierstep[data-tier="2"]')?.click());
         await new Promise((r) => setTimeout(r, 450));
         const tierReadout = await page.evaluate(() => {
           const step = document.querySelector('#hero-tiers .tierstep[data-tier="2"]');
@@ -1213,31 +1430,32 @@ async function checkPage(target, viewport) {
         e2e.tier2VitalsReadout = tierReadout;
         await capture('operative-tier2');
 
-        await page.click('#hero-loadout');
-        await new Promise((r) => setTimeout(r, 350));
+        await page.evaluate(() => document.getElementById('hero-loadout')?.click());
+        await new Promise((r) => setTimeout(r, 400));
         const arcRackState = await page.evaluate(() => {
           const node = document.querySelector('#hero-rack .rackcard[data-weapon="arc_shooter"] .rackcard__state');
           return node ? node.textContent.trim() : '';
         });
         e2e.arcBlueprintEligibleInRack = arcRackState.includes('350') && !/blueprint/i.test(arcRackState);
         await capture('rack-arc-eligible');
-        await page.click('#weapon-modal-close');
+        await page.evaluate(() => document.getElementById('weapon-modal-close')?.click());
         await new Promise((r) => setTimeout(r, 250));
 
-        await page.click('#hero-next');
+        await page.evaluate(() => document.getElementById('hero-next')?.click());
         await page.waitForFunction(() => document.body?.dataset?.screen === 'hub', { timeout: 15000 }).catch(() => {});
+        await capture('hub-tier2-ready');
         await page.evaluate(() => {
           document.getElementById('world-card-verdant-bloom')?.click();
         });
         const beforeRedeploy = consoleLines.length;
-        await page.click('#hub-deploy');
+        await page.evaluate(() => document.getElementById('hub-deploy')?.click());
         e2e.redeployedTier2Vitals106 = await awaitConsoleText(
           page,
           consoleLines.slice(beforeRedeploy),
           'Operative: hero=sable tier=2/2 vitals=106 reduction=3%',
-          90000,
+          Math.max(150000, timeout * 1000),
         );
-        await awaitConsoleText(page, consoleLines.slice(beforeRedeploy), 'Recovery QA:', 20000);
+        await awaitConsoleText(page, consoleLines.slice(beforeRedeploy), 'Recovery QA:', 30000);
         await new Promise((r) => setTimeout(r, 3500));
         e2e.redeploySeedVaultSecured = consoleLines
           .slice(beforeRedeploy)

@@ -46,7 +46,7 @@ var _recovery_choice_presented: bool = false
 var _recovery_return_mode: SessionMode = SessionMode.EXPLORE
 var _recovery_guidance_stage: String = "area"
 var _recovery_stuck_seconds: float = 0.0
-var _recovery_best_dist: float = INF
+var _recovery_anchor_dist: float = INF
 var _recovery_tracked_target: StringName = &""
 var _recovery_stuck_notified: bool = false
 var _recovery_qa_enabled: bool = false
@@ -661,7 +661,7 @@ func _reset_recovery() -> void:
 	_recovery_choice_presented = false
 	_recovery_guidance_stage = "area"
 	_recovery_stuck_seconds = 0.0
-	_recovery_best_dist = INF
+	_recovery_anchor_dist = INF
 	_recovery_tracked_target = &""
 	_recovery_stuck_notified = false
 	_recovery_notices.clear()
@@ -811,7 +811,7 @@ func _tick_recovery_guidance(delta: float) -> void:
 	var target := _active_guidance_cache()
 	if target == null:
 		_reset_guidance_stuck()
-		_recovery_best_dist = INF
+		_recovery_anchor_dist = INF
 		return
 	var guard := _nearest_active_guard()
 	var focus_pos := guard.global_position if guard != null else target.position
@@ -819,19 +819,21 @@ func _tick_recovery_guidance(delta: float) -> void:
 		Vector2(player.global_position.x - focus_pos.x, player.global_position.z - focus_pos.z)
 		. length()
 	)
-	if _recovery_tracked_target != target.cache_id:
+	if _recovery_tracked_target != target.cache_id or not is_finite(_recovery_anchor_dist):
 		_recovery_tracked_target = target.cache_id
-		_recovery_best_dist = dist
+		_recovery_anchor_dist = dist
 		_reset_guidance_stuck()
 		return
 	if guard == null and dist <= target.interaction_radius:
-		_recovery_best_dist = dist
+		_recovery_anchor_dist = dist
 		_reset_guidance_stuck()
 		return
-	if dist < _recovery_best_dist - 1.25:
-		_recovery_best_dist = dist
+	if dist < _recovery_anchor_dist - 1.25:
+		_recovery_anchor_dist = dist
 		_reset_guidance_stuck()
 		return
+	if dist > _recovery_anchor_dist + 2.0:
+		_recovery_anchor_dist = dist
 	_recovery_stuck_seconds += delta
 	if _recovery_stuck_seconds >= RECOVERY_STUCK_SECONDS and not _recovery_stuck_notified:
 		_recovery_stuck_notified = true
@@ -1038,7 +1040,11 @@ func _recovery_state_text(cache: RecoveryCacheDefinition) -> String:
 func _recovery_reward_text(cache: RecoveryCacheDefinition) -> String:
 	if cache.blueprint_id != &"":
 		var weapon := WeaponDefinition.load_definition(cache.blueprint_id)
-		var weapon_name := String(cache.blueprint_id) if weapon == null else weapon.display_name
+		var weapon_name := (
+			String(cache.blueprint_id).to_upper()
+			if weapon == null
+			else weapon.display_name.to_upper()
+		)
 		return AegisText.t("recovery.blueprint_reward", [weapon_name])
 	return AegisText.t("recovery.bp_reward", [cache.bp_reward])
 
@@ -1210,7 +1216,9 @@ func _recovery_result_summary() -> String:
 		if notice.get("kind", "") == "blueprint":
 			var weapon := WeaponDefinition.load_definition(StringName(notice["weapon"]))
 			if weapon != null:
-				lines.append(AegisText.t("results.recovery_blueprint", [weapon.display_name]))
+				lines.append(
+					AegisText.t("results.recovery_blueprint", [weapon.display_name.to_upper()])
+				)
 		elif notice.get("kind", "") == "bp":
 			lines.append(AegisText.t("results.recovery_bp", [int(notice["amount"])]))
 	if _run_banked:
