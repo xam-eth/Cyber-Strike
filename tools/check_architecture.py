@@ -79,7 +79,11 @@ PATH_LAYERS: list[tuple[str, str, str]] = [
     # Stateless integration adapters are core plumbing. They return load
     # failures to the owning domain and never import World, Character, or UI.
     (r"^scripts/integration/", "core", ""),
-    (r"^scripts/progression/(progression_service|reward_service|run_stats)\.gd$", "systems", ""),
+    (
+        r"^scripts/progression/(progression_service|reward_service|run_stats|run_upgrade_manager)\.gd$",
+        "systems",
+        "",
+    ),
     (r"^scripts/progression/hero_definition\.gd$", "content", "hero"),
     (r"^scripts/progression/world_definition\.gd$", "content", "world"),
     # WeaponController is the player's weapon handling — cooldowns, ammo,

@@ -102,6 +102,8 @@ const STRINGS := {
 		"dash.selected_cost": "SELECTED  ·  %d BP",
 		"dash.battle_points": "BATTLE POINTS",
 		"dash.runs": "RUNS",
+		"dash.hero_summary": "TIER %d  ·  HP 100  ·  ARMOUR -%d%%  ·  %s",
+		"dash.arsenal_summary": "TIER %d EQUIPPED  ·  %d/%d OWNED",
 		# --- operative -------------------------------------------------------
 		"hero.title": "SELECT OPERATIVE",
 		"hero.slot": "SLOT %02d",
@@ -111,6 +113,10 @@ const STRINGS := {
 		"hero.confirm_tip": "Confirm %s",
 		"hero.equipped_tip": "%s is equipped",
 		"hero.continue_tip": "Choose a weapon",
+		"hero.vitals_line": "TIER %d  ·  HP %d  ·  ARMOUR -%d%%  ·  EMP 7.5M",
+		"hero.tier_btn": "TIER %d/%d",
+		"hero.tier_cycle_tip": "Cycle unlocked operative tier (%d / %d)",
+		"hero.tier_locked_tip": "Operative Tier %d / %d (complete runs to unlock higher plate)",
 		"hero.sable.role":
 		(
 			"Raised on the frontier line and fielded as a strike lead. "
@@ -132,6 +138,13 @@ const STRINGS := {
 		"world.launch": "LAUNCH",
 		"world.launch_tip": "Drop into the selected theatre",
 		"world.preparing_drop": "PREPARING DROP",
+		"world.mode_recovery": "TECH RECOVERY + WAVE DEFENSE",
+		"world.mode_defense": "FRONTIER WAVE DEFENSE",
+		"world.objective_recovery": "CLEAR GUARDS & SECURE %d CACHES",
+		"world.objective_defense": "EXPLORE ZONE · START WAVE DEFENSE",
+		"world.reward_recovery": "BLUEPRINT + PERMANENT BP",
+		"world.reward_defense": "10 BP / KO · 100 BP / WAVE",
+		"world.caches_progress": "CACHES %d/%d",
 		"world.neon_frontier.role":
 		(
 			"An open training theatre: reactor, command centre, research lab, "
@@ -183,7 +196,8 @@ const STRINGS := {
 		"world.vanguard_station.zone_title": "DOCK 07 · STATION",
 		"world.vanguard_station.zone_subtitle": "SAFE ZONE · SEALS OPEN",
 		# --- in-run HUD ------------------------------------------------------
-		"hud.help": "STICK MOVE · DRAG LOOK · HOLD AIM\nFIRE · EMP · SWAP · B DEFENSE · ESC PAUSE",
+		"hud.help":
+		"STICK MOVE · DRAG LOOK · HOLD AIM\nFIRE · G RELOAD · F EMP · V EVOLVE · B DEFENSE",
 		"hud.vitals": "VITALS",
 		"hud.reloading": "RELOAD",
 		"hud.fire": "FIRE",
@@ -253,6 +267,35 @@ const STRINGS := {
 		"hud.emp_miss": "EMP PULSE · NO TARGETS",
 		"hud.pause_tip": "Pause (Esc)",
 		"hud.resume_tip": "Resume (Esc)",
+		"hud.upg_chip_title": "RUN MOD",
+		"hud.upg_ready_key": "EVOLVE READY  [V]",
+		"hud.upg_ready_tip": "Open Tactical Run Evolution (V) - temporary boost for this run",
+		"hud.upg_eyebrow": "TEMPORARY RUN EVOLUTION  ·  RESETS AFTER MISSION",
+		"hud.upg_title": "CHOOSE TACTICAL MOD",
+		"hud.upg_hint":
+		"Run-only combat boost. Permanent weapon and operative upgrades stay in Armory.",
+		"hud.upg_scope_run": "RUN ONLY",
+		"hud.upg_active_none": "ACTIVE RUN MODS · NONE YET",
+		"hud.upg_active_list": "ACTIVE RUN MODS · %s",
+		"hud.upg_later": "LATER  [ESC]",
+		"hud.upg_applied_toast": "EVOLVED · %s",
+		"hud.upg_cat_weapon": "WEAPON MOD",
+		"hud.upg_cat_tactical": "TACTICAL MOD",
+		"hud.upg_cat_mobility": "MOBILITY MOD",
+		"hud.upg_cat_survival": "SURVIVAL MOD",
+		"hud.upg_overcharge_title": "OVERCHARGE CELLS",
+		"hud.upg_overcharge_desc": "+20% weapon and splash damage for this run.",
+		"hud.upg_autoloader_title": "RAPID AUTOLOADER",
+		"hud.upg_autoloader_desc": "+18% fire rate, -22% reload time, and instant magazine refill.",
+		"hud.upg_capacitor_title": "HIGH-CAP CAPACITOR",
+		"hud.upg_capacitor_desc":
+		"+35% magazine capacity, +15% effective range, and instant refill.",
+		"hud.upg_emp_title": "EMP RESONATOR",
+		"hud.upg_emp_desc": "-25% EMP cooldown, +3m blast radius, and +12 EMP damage.",
+		"hud.upg_servos_title": "KINETIC SERVOS",
+		"hud.upg_servos_desc": "+16% movement speed and +25 instant HP repair.",
+		"hud.upg_plating_title": "REACTIVE PLATING",
+		"hud.upg_plating_desc": "+25 max vitals, +10% temporary armour, and +25 HP repair.",
 		# --- pause -----------------------------------------------------------
 		"pause.eyebrow": "RUN SUSPENDED",
 		"pause.title": "PAUSED",
@@ -260,10 +303,17 @@ const STRINGS := {
 		"pause.restart": "RESTART",
 		"pause.settings": "SETTINGS",
 		"pause.home": "HOME",
-		"pause.hint": "SETTINGS → CONTROLS · ESC RESUME",
+		"pause.hint": "SETTINGS > CONTROLS · ESC RESUME",
 		"pause.reset": "RESET EXPLORATION",
 		"pause.finish_run": "FINISH RUN · RESULTS",
 		"pause.cancel_defense": "CANCEL DEFENSE",
+		"pause.confirm_eyebrow": "UNBANKED RUN PROGRESS",
+		"pause.confirm_title": "ABANDON ACTIVE RUN?",
+		"pause.confirm_body":
+		"Leaving to Home discards +%d unbanked BP and run mods. Finish Run banks BP first.",
+		"pause.confirm_stay": "STAY IN RUN",
+		"pause.confirm_bank": "FINISH & BANK BP",
+		"pause.confirm_leave": "ABANDON RUN",
 		# --- results ---------------------------------------------------------
 		"results.eyebrow": "RUN COMPLETE",
 		"results.eyebrow_ended": "RUN ENDED",
@@ -288,6 +338,7 @@ const STRINGS := {
 		"results.summary_best": "BEST SCORE %s  ·  WALLET %d BP",
 		"results.recovery_blueprint": "SECURED · %s BLUEPRINT · ARMORY ELIGIBILITY SAVED",
 		"results.recovery_bp": "SECURED · +%d BP ALREADY IN WALLET",
+		"results.run_mods_summary": "RUN MODS USED (RESET) · %s",
 		# --- armory ----------------------------------------------------------
 		"armory.title": "ARMORY / FIELD LOADOUT",
 		"armory.hint": "EARN BP BY DEFEATING WAVES",
@@ -309,6 +360,9 @@ const STRINGS := {
 		"armory.need_bp": "NEED %d MORE BP · FIGHT WAVES",
 		"armory.now_equipped": "%s EQUIPPED",
 		"armory.now_unlocked": "%s UNLOCKED & EQUIPPED",
+		"armory.now_upgraded": "%s UPGRADED TO TIER %d",
+		"armory.blueprint_locked": "BLUEPRINT LOCKED",
+		"armory.blueprint_tier_note": "RECOVER BLUEPRINT IN VERDANT BLOOM",
 		# --- weapons ---------------------------------------------------------
 		"wpn.pulse.name": "PULSE RIFLE",
 		"wpn.pulse.role": "Fast, accurate rounds",
@@ -419,6 +473,8 @@ const STRINGS := {
 		"dash.selected_cost": "DIPILIH  ·  %d BP",
 		"dash.battle_points": "BATTLE POINT",
 		"dash.runs": "SESI",
+		"dash.hero_summary": "TIER %d  ·  HP 100  ·  ZIRAH -%d%%  ·  %s",
+		"dash.arsenal_summary": "TIER %d TERPASANG  ·  %d/%d DIMILIKI",
 		# --- operative -------------------------------------------------------
 		"hero.title": "PILIH OPERATIF",
 		"hero.slot": "SLOT %02d",
@@ -428,6 +484,10 @@ const STRINGS := {
 		"hero.confirm_tip": "Konfirmasi %s",
 		"hero.equipped_tip": "%s sudah terpasang",
 		"hero.continue_tip": "Pilih senjata",
+		"hero.vitals_line": "TIER %d  ·  HP %d  ·  ZIRAH -%d%%  ·  EMP 7.5M",
+		"hero.tier_btn": "TINGKAT %d/%d",
+		"hero.tier_cycle_tip": "Ganti tingkat operatif terbuka (%d / %d)",
+		"hero.tier_locked_tip": "Tingkat Operatif %d / %d (tuntaskan sesi untuk pelat berikutnya)",
 		"hero.sable.role":
 		(
 			"Besar di garis perbatasan dan diterjunkan sebagai pemimpin serbu. "
@@ -447,6 +507,13 @@ const STRINGS := {
 		"world.launch": "MULAI",
 		"world.launch_tip": "Turun ke teater yang dipilih",
 		"world.preparing_drop": "MENYIAPKAN PENERJUNAN",
+		"world.mode_recovery": "PEMULIHAN TEKNOLOGI + PERTAHANAN",
+		"world.mode_defense": "PERTAHANAN GELOMBANG",
+		"world.objective_recovery": "KALAHKAN PENJAGA & AMANKAN %d CACHE",
+		"world.objective_defense": "JELAJAHI ZONA · MULAI PERTAHANAN",
+		"world.reward_recovery": "BLUEPRINT + BP PERMANEN",
+		"world.reward_defense": "10 BP / KO · 100 BP / GELOMBANG",
+		"world.caches_progress": "CACHE %d/%d",
 		"world.neon_frontier.role":
 		(
 			"Teater latihan terbuka: reaktor, pusat komando, laboratorium riset, "
@@ -499,7 +566,7 @@ const STRINGS := {
 		"world.vanguard_station.zone_subtitle": "ZONA AMAN · SEGEL TERBUKA",
 		# --- in-run HUD ------------------------------------------------------
 		"hud.help":
-		"STIK GERAK · GESER PANDANG · TAHAN BIDIK\nTEMBAK · EMP · GANTI · B BERTAHAN · ESC JEDA",
+		"STIK GERAK · GESER PANDANG · TAHAN BIDIK\nTEMBAK · G RELOAD · F EMP · V EVOLUSI · B BERTAHAN",
 		"hud.vitals": "VITAL",
 		"hud.reloading": "ISI ULANG",
 		"hud.fire": "TEMBAK",
@@ -569,6 +636,34 @@ const STRINGS := {
 		"hud.emp_miss": "DENYUT EMP · TANPA SASARAN",
 		"hud.pause_tip": "Jeda (Esc)",
 		"hud.resume_tip": "Lanjutkan (Esc)",
+		"hud.upg_chip_title": "MOD SESI",
+		"hud.upg_ready_key": "EVOLUSI SIAP  [V]",
+		"hud.upg_ready_tip": "Buka Evolusi Taktis Sesi (V) - penguat sementara sesi ini",
+		"hud.upg_eyebrow": "EVOLUSI SEMENTARA SESI  ·  RESET USAI MISI",
+		"hud.upg_title": "PILIH MOD TAKTIS",
+		"hud.upg_hint":
+		"Penguat tempur khusus sesi ini. Upgrade permanen tetap terpisah di Arsenal.",
+		"hud.upg_scope_run": "SESI SAJA",
+		"hud.upg_active_none": "MOD SESI AKTIF · BELUM ADA",
+		"hud.upg_active_list": "MOD SESI AKTIF · %s",
+		"hud.upg_later": "NANTI  [ESC]",
+		"hud.upg_applied_toast": "EVOLUSI · %s",
+		"hud.upg_cat_weapon": "MOD SENJATA",
+		"hud.upg_cat_tactical": "MOD TAKTIS",
+		"hud.upg_cat_mobility": "MOD MOBILITAS",
+		"hud.upg_cat_survival": "MOD PERTAHANAN",
+		"hud.upg_overcharge_title": "SEL OVERCHARGE",
+		"hud.upg_overcharge_desc": "+20% damage senjata dan ledakan di sesi ini.",
+		"hud.upg_autoloader_title": "AUTOLOADER CEPAT",
+		"hud.upg_autoloader_desc": "+18% laju tembak, -22% waktu isi ulang, dan isi penuh magasin.",
+		"hud.upg_capacitor_title": "KAPASITOR EKSTRA",
+		"hud.upg_capacitor_desc": "+35% kapasitas magasin, +15% jangkauan efektif, dan isi penuh.",
+		"hud.upg_emp_title": "RESONATOR EMP",
+		"hud.upg_emp_desc": "-25% jeda EMP, +3m radius ledakan, dan +12 damage EMP.",
+		"hud.upg_servos_title": "SERVO KINETIK",
+		"hud.upg_servos_desc": "+16% kecepatan gerak dan pemulihan instan +25 HP.",
+		"hud.upg_plating_title": "PELAT REAKTIF",
+		"hud.upg_plating_desc": "+25 vital maks, +10% zirah sementara, dan pulih +25 HP.",
 		# --- pause -----------------------------------------------------------
 		"pause.eyebrow": "SESI DIJEDA",
 		"pause.title": "JEDA",
@@ -576,10 +671,17 @@ const STRINGS := {
 		"pause.restart": "ULANGI",
 		"pause.settings": "PENGATURAN",
 		"pause.home": "BERANDA",
-		"pause.hint": "PENGATURAN → KONTROL · ESC UNTUK LANJUT",
+		"pause.hint": "PENGATURAN > KONTROL · ESC UNTUK LANJUT",
 		"pause.reset": "ULANG JELAJAH",
 		"pause.finish_run": "AKHIRI SESI · HASIL",
 		"pause.cancel_defense": "BATALKAN PERTAHANAN",
+		"pause.confirm_eyebrow": "PROGRES SESI BELUM DISIMPAN",
+		"pause.confirm_title": "TINGGALKAN SESI AKTIF?",
+		"pause.confirm_body":
+		"Ke Beranda membuang +%d BP belum disimpan & mod sesi. Akhiri Sesi simpan BP dulu.",
+		"pause.confirm_stay": "TETAP DI SESI",
+		"pause.confirm_bank": "AKHIRI & SIMPAN BP",
+		"pause.confirm_leave": "TINGGALKAN",
 		# --- results ---------------------------------------------------------
 		"results.eyebrow": "SESI SELESAI",
 		"results.eyebrow_ended": "SESI BERAKHIR",
@@ -604,6 +706,7 @@ const STRINGS := {
 		"results.summary_best": "SKOR TERBAIK %s  ·  DOMPET %d BP",
 		"results.recovery_blueprint": "TERAMANKAN · BLUEPRINT %s · ELIGIBILITAS ARSENAL TERSIMPAN",
 		"results.recovery_bp": "TERAMANKAN · +%d BP SUDAH MASUK DOMPET",
+		"results.run_mods_summary": "MOD SESI DIPAKAI (DIRESET) · %s",
 		# --- armory ----------------------------------------------------------
 		"armory.title": "ARSENAL / PERLENGKAPAN LAPANGAN",
 		"armory.hint": "KUMPULKAN BP DENGAN MENGALAHKAN GELOMBANG",
@@ -625,6 +728,9 @@ const STRINGS := {
 		"armory.need_bp": "KURANG %d BP · HADAPI GELOMBANG",
 		"armory.now_equipped": "%s TERPASANG",
 		"armory.now_unlocked": "%s TERBUKA & TERPASANG",
+		"armory.now_upgraded": "%s NAIK KE TIER %d",
+		"armory.blueprint_locked": "BLUEPRINT TERKUNCI",
+		"armory.blueprint_tier_note": "PULIHKAN BLUEPRINT DI VERDANT BLOOM",
 		# --- weapons ---------------------------------------------------------
 		"wpn.pulse.name": "PULSE RIFLE",
 		"wpn.pulse.role": "Tembakan cepat dan akurat",

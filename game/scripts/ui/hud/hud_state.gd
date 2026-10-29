@@ -49,3 +49,9 @@ var weapon_display_name: String = ""
 ## Persistent rank of that equipped weapon; presentation only, never an upgrade
 ## authority. ProgressionService/WeaponController own the value and its effects.
 var weapon_tier: int = 1
+## Run-scoped temporary upgrade readout (owned by RunUpgradeManager, never saved).
+var upgrade_pending: bool = false
+var upgrade_active_tags: String = ""
+var upgrade_charge: int = 0
+var upgrade_required: int = 2
+var upgrade_maxed: bool = false

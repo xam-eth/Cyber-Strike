@@ -368,6 +368,7 @@ func _build_modals() -> void:
 	_armory_ui.name = "ArmoryPanel"
 	_armory_ui.visible = false
 	_armory_ui.weapon_action_requested.connect(_on_weapon_action)
+	_armory_ui.weapon_upgrade_requested.connect(_on_weapon_upgrade)
 	_armory_ui.close_requested.connect(_on_armory_close)
 	add_child(_armory_ui)
 
@@ -423,17 +424,26 @@ func refresh_profile() -> void:
 	# on OPERATIVE prints the same string, so the board cannot say an operative
 	# is ready when their card says otherwise.
 	var hero_definition := HeroDefinition.load_definition(progression.selected_hero_id)
-	_hero_status.text = (
+	var hero_tier := progression.fieldable_tier()
+	var hero_reduction := HeroTier.reduction(hero_tier)
+	var hero_ready := (
 		hero_definition.display_status().to_upper()
 		if hero_definition != null
 		else AegisText.t("common.field_ready")
 	)
+	_hero_status.text = AegisText.t("dash.hero_summary", [hero_tier, hero_reduction, hero_ready])
 	_hero_plate.texture = (
 		try_texture(hero_definition.portrait_path) if hero_definition != null else null
 	)
 	var world_definition := WorldDefinition.load_definition(progression.selected_world_id)
 	if world_definition != null:
-		_mission_brief.text = _first_sentence(world_definition.display_role())
+		_mission_brief.text = (
+			"%s · %s"
+			% [
+				world_definition.display_mode_label(),
+				world_definition.display_reward_summary(),
+			]
+		)
 		_mission_plate.texture = try_texture(world_definition.plate_path)
 	else:
 		_mission_brief.text = ""
@@ -441,8 +451,13 @@ func refresh_profile() -> void:
 	_arsenal_plate.texture = try_texture(
 		WEAPON_PLATE_DIR + "weapon_%s.png" % String(progression.selected_weapon_id)
 	)
+	var wpn_tier := progression.weapon_tier(progression.selected_weapon_id)
+	var owned_count := progression.unlocked_ids.size()
+	var total_weapons := maxi(WeaponDefinition.load_all_definitions().size(), 1)
 	if progression.is_unlocked(progression.selected_weapon_id):
-		AegisText.apply(_arsenal_state, "dash.equipped")
+		_arsenal_state.text = AegisText.t(
+			"dash.arsenal_summary", [wpn_tier, owned_count, total_weapons]
+		)
 	else:
 		(
 			AegisText
@@ -453,12 +468,16 @@ func refresh_profile() -> void:
 			)
 		)
 	if _armory_ui.visible:
-		_armory_ui.refresh_profile(
-			progression.balance,
-			progression.best_score,
-			progression.unlocked_ids,
-			progression.selected_weapon_id,
-			progression.weapon_tiers
+		(
+			_armory_ui
+			. refresh_profile(
+				progression.balance,
+				progression.best_score,
+				progression.unlocked_ids,
+				progression.selected_weapon_id,
+				progression.weapon_tiers,
+				progression.blueprint_ids,
+			)
 		)
 
 
@@ -554,12 +573,13 @@ func _apply_density() -> void:
 	_profile_line.visible = not (compact or narrow)
 	# The brief is the theatre's own paragraph, cut to one sentence; the row
 	# above already names it, so a compact screen keeps the name and drops this.
-	_mission_brief.visible = not compact
-	_arsenal_state.visible = not compact
+	_mission_brief.visible = true
+	_arsenal_state.visible = true
 	_loadout.visible = not compact
 	for item in _loadout_items:
 		item.visible = not compact
 		_limit_lines(item, 1)
+	_limit_lines(_hero_status, 1)
 	_limit_lines(_mission_brief, 1)
 	_limit_lines(_arsenal_state, 1)
 	_limit_lines(_loadout, 2)
@@ -620,9 +640,10 @@ func _on_deploy_pressed() -> void:
 
 
 func _on_armory_pressed() -> void:
-	refresh_profile()
 	_armory_ui.visible = true
 	_settings.visible = false
+	refresh_profile()
+	_apply_armory_and_settings_sizes()
 	_armory_ui.focus_first()
 
 
@@ -664,6 +685,26 @@ func _on_weapon_action(weapon_id: StringName) -> void:
 		progression.select_weapon(weapon_id)
 		Sfx.play_ui(&"session_clear")
 		_armory_ui.show_hint_key("armory.now_unlocked", [String(weapon_id).to_upper()])
+	refresh_profile()
+
+
+func _on_weapon_upgrade(weapon_id: StringName) -> void:
+	var progression := progression_service()
+	if progression == null or not ProgressionService.WEAPON_IDS.has(weapon_id):
+		return
+	var result := progression.upgrade_weapon(weapon_id)
+	match result:
+		ProgressionService.UPGRADE_OK:
+			var next_tier := progression.weapon_tier(weapon_id)
+			Sfx.play_ui(&"session_clear")
+			_armory_ui.show_hint_key(
+				"armory.now_upgraded", [String(weapon_id).to_upper(), next_tier]
+			)
+		ProgressionService.UPGRADE_INSUFFICIENT_BP:
+			var cost := progression.upgrade_cost(weapon_id)
+			_armory_ui.show_hint_key("armory.need_bp", [maxi(cost - progression.balance, 1)])
+		_:
+			pass
 	refresh_profile()
 
 

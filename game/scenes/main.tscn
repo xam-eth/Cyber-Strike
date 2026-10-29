@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/worlds/mission_world.tscn" id="2_world"]
@@ -12,6 +12,7 @@
 [ext_resource type="Script" path="res://scripts/progression/progression_service.gd" id="10_progression"]
 [ext_resource type="Resource" path="res://resources/enemies/runner.tres" id="12_runner_definition"]
 [ext_resource type="Resource" path="res://resources/enemies/shooter.tres" id="13_shooter_definition"]
+[ext_resource type="Script" path="res://scripts/progression/run_upgrade_manager.gd" id="14_run_upgrades"]
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_main")
@@ -67,5 +68,8 @@ script = ExtResource("7_run_stats")
 
 [node name="RewardService" type="Node" parent="."]
 script = ExtResource("8_reward_service")
+
+[node name="RunUpgradeManager" type="Node" parent="."]
+script = ExtResource("14_run_upgrades")
 
 [node name="HUD" parent="." instance=ExtResource("5_hud")]

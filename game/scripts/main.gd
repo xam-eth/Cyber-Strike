@@ -9,6 +9,7 @@ const WaveDirectorScript = preload("res://scripts/waves/wave_director.gd")
 const TouchControlsScript = preload("res://scripts/ui/hud/touch_controls.gd")
 const RunStatsScript = preload("res://scripts/progression/run_stats.gd")
 const RewardServiceScript = preload("res://scripts/progression/reward_service.gd")
+const RunUpgradeManagerScript = preload("res://scripts/progression/run_upgrade_manager.gd")
 const ProgressionServiceScript = preload("res://scripts/progression/progression_service.gd")
 const RecoveryCacheVisualScript = preload("res://scripts/worlds/recovery_cache_visual.gd")
 const DEFEAT_REVEAL_SECONDS := 1.55
@@ -52,6 +53,7 @@ var _profiler_context_seconds := 0.0
 @onready var wave_director: WaveDirectorScript = $WaveDirector
 @onready var run_stats: RunStatsScript = $RunStats
 @onready var reward_service: RewardServiceScript = $RewardService
+@onready var run_upgrade_manager: RunUpgradeManagerScript = $RunUpgradeManager
 @onready var progression_service: ProgressionServiceScript = $ProgressionService
 @onready var touch_controls: TouchControlsScript = $HUD/TouchControls
 
@@ -129,6 +131,11 @@ func _ready() -> void:
 	touch_controls.armory_weapon_action_requested.connect(_on_armory_weapon_action)
 	touch_controls.armory_weapon_upgrade_requested.connect(_on_armory_weapon_upgrade)
 	touch_controls.armory_close_requested.connect(_close_armory)
+	touch_controls.upgrade_open_requested.connect(_open_run_upgrades)
+	touch_controls.upgrade_choice_requested.connect(_on_run_upgrade_chosen)
+	touch_controls.upgrade_close_requested.connect(_close_run_upgrades)
+	run_upgrade_manager.state_changed.connect(_on_run_upgrades_changed)
+	run_upgrade_manager.choices_ready.connect(_on_run_upgrade_choices_ready)
 	touch_controls.skill_requested.connect(player.activate_skill)
 	touch_controls.pause_requested.connect(_toggle_pause)
 	touch_controls.sound_mute_requested.connect(_on_sound_mute_requested)
@@ -199,6 +206,16 @@ func _ready() -> void:
 	if start_wave_session_on_ready:
 		# Explicit opt-in for automated fixtures; never enabled in main.tscn.
 		_request_defense()
+	_apply_qa_hooks()
+
+
+func _apply_qa_hooks() -> void:
+	if not OS.has_feature("web"):
+		return
+	var query := str(JavaScriptBridge.eval("location.search || ''"))
+	if query.contains("qa_upgrade=1"):
+		run_upgrade_manager.set_seed(7)
+		run_upgrade_manager.record_milestone("qa_upgrade")
 
 
 func _process(delta: float) -> void:
@@ -242,6 +259,8 @@ func _process(delta: float) -> void:
 			_request_defense()
 	if Input.is_action_just_pressed("open_armory"):
 		_open_armory()
+	if Input.is_action_just_pressed("open_upgrades"):
+		_open_run_upgrades()
 	if Input.is_action_just_pressed("reset_session"):
 		_reset_session()
 	if Input.is_action_just_pressed("toggle_sound"):
@@ -289,13 +308,19 @@ func _on_settings_changed(values: Dictionary) -> void:
 func _on_profile_changed() -> void:
 	player.weapon_controller.set_available_weapon_ids(progression_service.unlocked_ids)
 	player.weapon_controller.set_weapon_tiers(progression_service.weapon_tiers)
-	HudArmoryBridge.refresh(
-		touch_controls,
-		progression_service.balance,
-		progression_service.best_score,
-		progression_service.unlocked_ids,
-		player.weapon_controller.get_current_definition().weapon_id,
-		progression_service.weapon_tiers
+	if is_instance_valid(run_upgrade_manager) and run_upgrade_manager.total_stacks() > 0:
+		player.apply_run_modifiers(run_upgrade_manager.get_modifiers(), 0.0, false)
+	(
+		HudArmoryBridge
+		. refresh(
+			touch_controls,
+			progression_service.balance,
+			progression_service.best_score,
+			progression_service.unlocked_ids,
+			player.weapon_controller.get_current_definition().weapon_id,
+			progression_service.weapon_tiers,
+			progression_service.blueprint_ids,
+		)
 	)
 	touch_controls.set_weapon_label(player.get_current_weapon_name())
 	touch_controls.set_weapon_tier(
@@ -358,6 +383,63 @@ func _close_armory() -> void:
 	HudArmoryBridge.hide_panel(touch_controls)
 	if _is_paused:
 		_toggle_pause()
+
+
+func _open_run_upgrades() -> void:
+	if (
+		session_mode in [SessionMode.RESULTS, SessionMode.MISSION_COMPLETE]
+		or player.is_defeated()
+		or _is_paused
+		or not run_upgrade_manager.has_pending_choice()
+	):
+		return
+	_toggle_pause()
+	HudUpgradeBridge.show_panel(
+		touch_controls, run_upgrade_manager.get_pending_choices(), run_upgrade_manager
+	)
+	print("HUD: run upgrades opened")
+
+
+func _close_run_upgrades() -> void:
+	HudUpgradeBridge.hide_panel(touch_controls)
+	if _is_paused:
+		_toggle_pause()
+
+
+func _on_run_upgrade_chosen(index: int) -> void:
+	var chosen := run_upgrade_manager.select_choice(index)
+	if chosen == null:
+		return
+	(
+		player
+		. apply_run_modifiers(
+			run_upgrade_manager.get_modifiers(),
+			chosen.instant_heal_on_pick,
+			chosen.refill_magazine_on_pick,
+		)
+	)
+	Sfx.play_ui(&"session_clear")
+	touch_controls._feedback_panel.show_message(
+		AegisText.t("hud.upg_applied_toast", [chosen.display_title()])
+	)
+	_update_status()
+	if run_upgrade_manager.has_pending_choice():
+		HudUpgradeBridge.show_panel(
+			touch_controls, run_upgrade_manager.get_pending_choices(), run_upgrade_manager
+		)
+	else:
+		_close_run_upgrades()
+
+
+func _on_run_upgrades_changed() -> void:
+	HudUpgradeBridge.refresh(touch_controls, run_upgrade_manager)
+
+
+func _on_run_upgrade_choices_ready(
+	_choices: Array[RunUpgradeDefinition], evolution_level: int
+) -> void:
+	HudUpgradeBridge.refresh(touch_controls, run_upgrade_manager)
+	print("RunUpgrade: ready level=%d" % evolution_level)
 
 
 func _on_armory_weapon_action(weapon_id: StringName) -> void:
@@ -479,6 +561,8 @@ func _return_to_explore() -> void:
 	_shots_fired = 0
 	run_stats.reset_run()
 	reward_service.reset_run()
+	run_upgrade_manager.reset_run()
+	HudUpgradeBridge.refresh(touch_controls, run_upgrade_manager)
 	session_mode = SessionMode.EXPLORE
 	_reset_recovery()
 	Sfx.set_music_mode(&"explore")
@@ -786,6 +870,8 @@ func _on_guard_group_cleared(group_id: StringName) -> void:
 	var cache := _cache_by_id(group_id)
 	if cache == null or progression_service.is_cache_secured(group_id):
 		return
+	if run_upgrade_manager.total_evolutions_claimed_or_queued() == 0:
+		run_upgrade_manager.record_milestone("guard:" + String(group_id))
 	_recovery_states[group_id] = RecoveryState.READY
 	_refresh_recovery_visual(cache)
 	touch_controls._feedback_panel.show_message(
@@ -871,6 +957,9 @@ func _recovery_result_summary() -> String:
 				lines.append(AegisText.t("results.recovery_blueprint", [weapon.display_name]))
 		elif notice.get("kind", "") == "bp":
 			lines.append(AegisText.t("results.recovery_bp", [int(notice["amount"])]))
+	var run_mods := run_upgrade_manager.active_tags_summary()
+	if not run_mods.is_empty():
+		lines.append(AegisText.t("results.run_mods_summary", [run_mods]))
 	return "\n".join(lines)
 
 
@@ -928,6 +1017,7 @@ func _on_enemy_rewarded(enemy: Node3D, _score_reward: int, bp_reward: int) -> vo
 	# A real KO deserves an immediate outcome even if the player cannot finish
 	# the wave. The same earned reward appears in Results and the browser log.
 	touch_controls._feedback_panel.show_message("TARGET DOWN · +%d BP" % bp_reward)
+	run_upgrade_manager.record_elimination(enemy)
 	var archetype := "SHOOTER" if enemy.is_in_group("shooter_enemies") else "RUNNER"
 	print("Encounter: %s KO · +%d BP" % [archetype, bp_reward])
 

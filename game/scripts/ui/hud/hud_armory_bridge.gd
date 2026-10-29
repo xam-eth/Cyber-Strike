@@ -29,12 +29,18 @@ static func install_panel(hud) -> void:
 
 
 static func refresh(
-	hud, balance: int, best: int, unlocked: Dictionary, equipped: StringName, tiers: Dictionary = {}
+	hud,
+	balance: int,
+	best: int,
+	unlocked: Dictionary,
+	equipped: StringName,
+	tiers: Dictionary = {},
+	blueprints: Variant = null,
 ) -> void:
 	hud._state.wallet_bp = balance
 	hud._state.available_weapons = unlocked.size()
 	refresh_entry_label(hud)
-	hud._armory_panel.refresh_profile(balance, best, unlocked, equipped, tiers)
+	hud._armory_panel.refresh_profile(balance, best, unlocked, equipped, tiers, blueprints)
 
 
 static func refresh_entry_label(hud) -> void:

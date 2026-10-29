@@ -94,7 +94,7 @@ static func build_pause(hud) -> void:
 	hud._pause_home_button.mouse_filter = Control.MOUSE_FILTER_STOP
 	hud._pause_home_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	AegisTheme.set_button_variant(hud._pause_home_button, "ghost")
-	hud._pause_home_button.pressed.connect(hud._on_home_pressed)
+	hud._pause_home_button.pressed.connect(hud._on_pause_home_pressed)
 	actions.add_child(hud._pause_home_button)
 	hud._touch_buttons.append(hud._pause_home_button)
 
@@ -373,6 +373,10 @@ static func show_results(
 	for control in [
 		hud._defense_button,
 		hud._armory_button,
+		hud._upgrade_entry_button,
+		hud._upgrade_status_card,
+		hud._upgrade_panel,
+		hud._confirm_dialog,
 		hud._fire_button,
 		hud._weapon_button,
 		hud._skill_button,
@@ -481,6 +485,11 @@ static func apply_paused(hud, paused: bool) -> void:
 		if is_instance_valid(hud._hud_editor):
 			hud._hud_editor.close()
 		hud._top_bar.visible = true
+	if not paused:
+		if is_instance_valid(hud._upgrade_panel):
+			hud._upgrade_panel.visible = false
+		if is_instance_valid(hud._confirm_dialog):
+			hud._confirm_dialog.visible = false
 	if is_instance_valid(hud._pause_button):
 		hud._pause_button.icon = AegisTheme.icon("play" if paused else "pause", true)
 		hud._pause_button.text = ""

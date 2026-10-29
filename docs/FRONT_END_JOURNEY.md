@@ -147,8 +147,8 @@ Relevant automated coverage includes:
 - data-source tests for registry-backed text/content;
 - `tools/ui_shots.mjs` / `tools/ui_flow_shots.mjs` for real shell frames where applicable;
 - `tools/operative_evidence.mjs` for EN/ID resting, entrance, settled-tier, rack, overflow, and equipped-rifle evidence;
-- `tests/ads_input_smoke.gd` and `tests/weapon_tier_smoke.gd` for real engine input/profile/controller boundaries;
-- `tools/web_qa.mjs` for browser boot, journey, selected-theatre, gameplay handoff, and the state-driven Verdant Recovery engagement gate;
+- `tests/ads_input_smoke.gd`, `tests/weapon_tier_smoke.gd`, and `tests/run_upgrade_smoke.gd` for real engine input/profile/controller, Armory upgrade wiring, temporary run-evolution, and confirmation-dialog boundaries;
+- `tools/web_qa.mjs` (`--menus`, `--recovery`, `--upgrades`) for browser boot, journey, selected-theatre, gameplay handoff, live HUD/modal frames, and the state-driven Verdant Recovery engagement gate;
 - `tools/web_loading_qa.mjs` for initial preload and interrupted recovery.
 
 A captured frame needs the correct stage and nonblank content. Automated browser evidence does not establish physical touch comfort, Android behavior, final visual acceptance, or human comprehension of a mission.

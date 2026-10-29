@@ -389,9 +389,12 @@ func _mirror_runs_to_shell() -> void:
 			{
 				"runs": completed_runs,
 				"balance": balance,
+				"best_score": best_score,
 				"unlocked": unlocked_ids.keys(),
 				"equipped": String(selected_weapon_id),
 				"weapon_tiers": weapon_tiers,
+				"blueprints": blueprint_ids.keys(),
+				"secured_caches": secured_caches,
 			}
 		)
 	)

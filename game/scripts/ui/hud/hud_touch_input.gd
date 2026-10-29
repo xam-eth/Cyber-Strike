@@ -154,9 +154,17 @@ func clear() -> void:
 func find_button(position: Vector2) -> Button:
 	# Only the foreground menu accepts touches while a submenu is open.
 	var candidates: Array[Button] = hud._touch_buttons
-	if is_instance_valid(hud._settings_menu) and hud._settings_menu.visible:
+	if is_instance_valid(hud._confirm_dialog) and hud._confirm_dialog.visible:
+		candidates = []
+		for node in hud._confirm_dialog.find_children("*", "Button", true, false):
+			candidates.append(node as Button)
+	elif is_instance_valid(hud._settings_menu) and hud._settings_menu.visible:
 		candidates = []
 		for node in hud._settings_menu.find_children("*", "Button", true, false):
+			candidates.append(node as Button)
+	elif is_instance_valid(hud._upgrade_panel) and hud._upgrade_panel.visible:
+		candidates = []
+		for node in hud._upgrade_panel.find_children("*", "Button", true, false):
 			candidates.append(node as Button)
 	elif is_instance_valid(hud._armory_panel) and hud._armory_panel.visible:
 		candidates = []

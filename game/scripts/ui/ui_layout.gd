@@ -32,6 +32,9 @@ static func over_hud(hud, position: Vector2) -> bool:
 		hud._pause_panel,
 		hud._results_panel,
 		hud._settings_menu,
+		hud._upgrade_entry_button,
+		hud._upgrade_panel,
+		hud._confirm_dialog,
 		hud._run_card,
 		hud._score_chip,
 		hud._compact_card,
@@ -103,6 +106,29 @@ static func landscape(hud) -> void:
 	var bar_height: float = hud._to_layout(56.0)
 	_place_top_bar(hud, edge, hud._top_inset, bar_height)
 	_place_in_top_bar(hud._health_card, 0, 0, 0, 0, Rect2(0, 0, hud._to_layout(208.0), bar_height))
+	if is_instance_valid(hud._upgrade_status_card):
+		_place_in_top_bar(
+			hud._upgrade_status_card,
+			1,
+			0,
+			1,
+			0,
+			Rect2(-hud._to_layout(196.0), 0, hud._to_layout(196.0), bar_height)
+		)
+	if is_instance_valid(hud._upgrade_entry_button):
+		_place(
+			hud._upgrade_entry_button,
+			1,
+			0,
+			1,
+			0,
+			Rect2(
+				-edge - hud._to_layout(196.0),
+				hud._top_inset,
+				hud._to_layout(196.0),
+				hud._to_layout(52.0)
+			)
+		)
 	var objective_top: float = bar_height + hud._to_layout(8.0)
 	_place_in_top_bar(
 		hud._wave_card,

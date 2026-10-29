@@ -18,6 +18,7 @@ var _available_ids: Dictionary = {"pulse_rifle": true}
 ## Runtime-only effective resources. Authored entries in weapon_definitions
 ## remain immutable registry data, including when a tier is upgraded mid-run.
 var _weapon_tiers: Dictionary = {}
+var _run_modifiers: Dictionary = {}
 var _effective_definitions: Array[WeaponDefinition] = []
 
 
@@ -48,7 +49,12 @@ func _process(delta: float) -> void:
 			continue
 		_reload_remaining[index] = maxf(_reload_remaining[index] - delta, 0.0)
 		if _reload_remaining[index] <= 0.0:
-			_magazines[index] = weapon_definitions[index].magazine_size
+			var finished_def := get_effective_definition(index)
+			_magazines[index] = (
+				finished_def.magazine_size
+				if finished_def != null
+				else weapon_definitions[index].magazine_size
+			)
 			if index == _current_weapon_index:
 				_emit_ammo()
 
@@ -82,7 +88,7 @@ func get_current_ammo() -> int:
 
 
 func get_current_magazine_size() -> int:
-	var definition := get_current_definition()
+	var definition := get_effective_definition()
 	return definition.magazine_size if definition != null else 0
 
 
@@ -112,7 +118,9 @@ func request_reload() -> bool:
 
 func reset_ammo() -> void:
 	for index in range(_magazines.size()):
-		var definition: WeaponDefinition = weapon_definitions[index]
+		var definition := get_effective_definition(index)
+		if definition == null and index < weapon_definitions.size():
+			definition = weapon_definitions[index]
 		_magazines[index] = definition.magazine_size if definition != null else 0
 		_cooldowns[index] = 0.0
 		_reload_remaining[index] = 0.0
@@ -133,22 +141,73 @@ func set_available_weapon_ids(ids: Dictionary) -> void:
 
 func set_weapon_tiers(tiers: Dictionary) -> void:
 	_weapon_tiers.clear()
-	_effective_definitions.clear()
 	for base in weapon_definitions:
+		if base == null:
+			continue
+		var id := String(base.weapon_id)
+		_weapon_tiers[id] = clampi(int(tiers.get(id, 1)), 1, WeaponTier.tier_count())
+	_rebuild_effective_definitions(true, false)
+
+
+## Applies temporary run-only combat modifiers onto runtime copies without
+## mutating authored WeaponDefinition resources or permanent weapon tiers.
+func apply_run_modifiers(modifiers: Dictionary, refill_magazines: bool = false) -> void:
+	_run_modifiers = modifiers.duplicate()
+	_rebuild_effective_definitions(true, refill_magazines)
+
+
+func clear_run_modifiers() -> void:
+	if _run_modifiers.is_empty():
+		return
+	_run_modifiers.clear()
+	_rebuild_effective_definitions(false, true)
+
+
+func _rebuild_effective_definitions(preserve_ammo: bool, refill_magazines: bool) -> void:
+	var previous_caps: Array[int] = []
+	for index in range(weapon_definitions.size()):
+		var prior := get_effective_definition(index)
+		if prior == null:
+			prior = weapon_definitions[index]
+		previous_caps.append(prior.magazine_size if prior != null else 0)
+
+	_effective_definitions.clear()
+	var has_run_mods := not _run_modifiers.is_empty()
+	var run_dmg := float(_run_modifiers.get("damage_multiplier", 1.0))
+	var run_rate := float(_run_modifiers.get("fire_rate_multiplier", 1.0))
+	var run_reload := float(_run_modifiers.get("reload_multiplier", 1.0))
+	var run_mag := float(_run_modifiers.get("magazine_multiplier", 1.0))
+	var run_range := float(_run_modifiers.get("range_multiplier", 1.0))
+
+	for index in range(weapon_definitions.size()):
+		var base := weapon_definitions[index]
 		if base == null:
 			_effective_definitions.append(null)
 			continue
 		var id := String(base.weapon_id)
-		var tier := clampi(int(tiers.get(id, 1)), 1, WeaponTier.tier_count())
-		_weapon_tiers[id] = tier
+		var tier := clampi(int(_weapon_tiers.get(id, 1)), 1, WeaponTier.tier_count())
 		var effective := base
-		if tier > 1:
+		if tier > 1 or has_run_mods:
 			effective = base.duplicate(true) as WeaponDefinition
-			var damage_scale := WeaponTier.damage_multiplier(tier)
+			var damage_scale := WeaponTier.damage_multiplier(tier) * run_dmg
 			effective.damage = base.damage * damage_scale
 			effective.splash_damage = base.splash_damage * damage_scale
-			effective.reload_seconds = base.reload_seconds * WeaponTier.reload_multiplier(tier)
+			effective.reload_seconds = maxf(
+				base.reload_seconds * WeaponTier.reload_multiplier(tier) * run_reload, 0.25
+			)
+			effective.fire_rate = base.fire_rate * run_rate
+			effective.magazine_size = maxi(int(round(float(base.magazine_size) * run_mag)), 1)
+			effective.max_range = base.max_range * run_range
 		_effective_definitions.append(effective)
+
+		if index < _magazines.size():
+			if refill_magazines:
+				_magazines[index] = effective.magazine_size
+				_reload_remaining[index] = 0.0
+			elif preserve_ammo:
+				var gained := maxi(effective.magazine_size - previous_caps[index], 0)
+				_magazines[index] = clampi(_magazines[index] + gained, 0, effective.magazine_size)
+	_emit_ammo()
 
 
 func is_weapon_available(index: int) -> bool:

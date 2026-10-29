@@ -58,6 +58,7 @@ var _last_best := 0
 var _last_unlocked: Dictionary = {}
 var _last_equipped := &""
 var _last_tiers: Dictionary = {}
+var _last_blueprints: Variant = null
 var _hint_key := ""
 var _hint_args: Array = []
 
@@ -197,19 +198,25 @@ func refresh_profile(
 	best_score: int,
 	unlocked_ids: Dictionary,
 	equipped: StringName,
-	tiers: Dictionary = {}
+	tiers: Dictionary = {},
+	blueprints: Variant = null,
 ) -> void:
 	_last_balance = balance
 	_last_best = best_score
 	_last_unlocked = unlocked_ids
 	_last_equipped = equipped
 	_last_tiers = tiers.duplicate()
+	_last_blueprints = blueprints.duplicate() if blueprints is Dictionary else null
 	_wallet_label.text = AegisText.t("armory.wallet", [balance, best_score])
 	for index in range(ORDER.size()):
 		var id: StringName = ORDER[index]
 		var definition := WeaponDefinition.load_definition(id)
 		var owned := unlocked_ids.has(String(id))
 		var tier := clampi(int(tiers.get(String(id), 1)), 1, WeaponTier.tier_count())
+		var missing_blueprint := false
+		if not owned and blueprints is Dictionary and ProgressionService.BLUEPRINT_REQUIRED.has(id):
+			var bp_key := String(ProgressionService.BLUEPRINT_REQUIRED[id])
+			missing_blueprint = not bool((blueprints as Dictionary).get(bp_key, false))
 		var specs := ""
 		if definition != null:
 			specs = AegisText.t(
@@ -220,10 +227,15 @@ func refresh_profile(
 					definition.magazine_size
 				]
 			)
-			_tier_labels[index].text = AegisText.t(
-				"armory.tier_reload",
-				[tier, _numeral(definition.reload_seconds * WeaponTier.reload_multiplier(tier))]
-			)
+			if missing_blueprint:
+				_tier_labels[index].text = AegisText.t(
+					"armory.blueprint_tier_note", [int(ProgressionService.COSTS[String(id)])]
+				)
+			else:
+				_tier_labels[index].text = AegisText.t(
+					"armory.tier_reload",
+					[tier, _numeral(definition.reload_seconds * WeaponTier.reload_multiplier(tier))]
+				)
 		var state := _states[index]
 		state.text = specs
 		var button := _weapon_buttons[index]
@@ -236,6 +248,11 @@ func refresh_profile(
 			AegisText.apply(button, "armory.equip")
 			state.add_theme_color_override("font_color", AegisTokens.OK)
 			_cards[index].accent_color = AegisTokens.OK
+		elif missing_blueprint:
+			AegisText.apply(button, "armory.blueprint_locked")
+			state.add_theme_color_override("font_color", AegisTokens.INFO)
+			_cards[index].accent_color = AegisTokens.INFO
+			variant = "ghost"
 		else:
 			var cost: int = int(ProgressionService.COSTS[String(id)])
 			AegisText.apply(button, "armory.unlock", [cost])
@@ -298,7 +315,12 @@ func refresh_language() -> void:
 	AegisText.refresh(self)
 	if not _last_equipped.is_empty():
 		refresh_profile(
-			int(_last_balance), int(_last_best), _last_unlocked, _last_equipped, _last_tiers
+			int(_last_balance),
+			int(_last_best),
+			_last_unlocked,
+			_last_equipped,
+			_last_tiers,
+			_last_blueprints,
 		)
 	if not _hint_key.is_empty():
 		AegisText.apply(_hint_label, _hint_key, _hint_args)

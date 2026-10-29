@@ -96,6 +96,24 @@ func display_zone_subtitle() -> String:
 	return AegisText.t_or("world.%s.zone_subtitle" % world_id, zone_subtitle)
 
 
+func has_recovery_caches() -> bool:
+	return not recovery_caches.is_empty()
+
+
+func display_mode_label() -> String:
+	return AegisText.t("world.mode_recovery" if has_recovery_caches() else "world.mode_defense")
+
+
+func display_objective_summary() -> String:
+	return AegisText.t(
+		"world.objective_recovery" if has_recovery_caches() else "world.objective_defense"
+	)
+
+
+func display_reward_summary() -> String:
+	return AegisText.t("world.reward_recovery" if has_recovery_caches() else "world.reward_defense")
+
+
 func is_valid_definition() -> bool:
 	return (
 		world_id != &""

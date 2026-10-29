@@ -145,8 +145,11 @@
           <div class="screen__inner hub">
             <div class="hub__main">
               <div class="hub__head">
-                <p class="eyebrow" data-i18n="hub.eyebrow">OPERATIONS MAP</p>
-                <h1 class="hub__title" id="hub-title" data-i18n="hub.title">CHOOSE THEATRE</h1>
+                <div class="hub__titles">
+                  <p class="eyebrow" data-i18n="hub.eyebrow">OPERATIONS MAP</p>
+                  <h1 class="hub__title" id="hub-title" data-i18n="hub.title">CHOOSE THEATRE</h1>
+                </div>
+                <span class="hub__wallet" id="hub-profile-strip">0 BP · 0 RUNS · BEST 0</span>
               </div>
 
 <div class="carousel" id="world-carousel" role="listbox" data-i18n-aria="hub.carousel_label" aria-label="Theatres">
@@ -155,7 +158,7 @@
                   <span class="wcard__no" aria-hidden="true">01</span>
                   <span class="wcard__copy">
                     <span class="wcard__name">Frostline Relay</span>
-                    <span class="wcard__role" data-i18n="world.frostline_relay.role">Relay · frozen antenna field</span>
+                    <span class="wcard__role" data-i18n="world.frostline_relay.role">Defense · Relay</span>
                   </span>
                   <span class="wcard__state" data-i18n="world.state.open">OPEN</span>
                   <span class="wcard__tick" aria-hidden="true"><svg class="ico"><use href="#i-check" /></svg></span>
@@ -166,7 +169,7 @@
                   <span class="wcard__no" aria-hidden="true">02</span>
                   <span class="wcard__copy">
                     <span class="wcard__name">Verdant Bloom</span>
-                    <span class="wcard__role" data-i18n="world.verdant_bloom.role">Recovery · overgrown research dome</span>
+                    <span class="wcard__role" data-i18n="world.verdant_bloom.role">Recovery · Caches</span>
                   </span>
                   <span class="wcard__state" data-i18n="world.state.open">OPEN</span>
                   <span class="wcard__tick" aria-hidden="true"><svg class="ico"><use href="#i-check" /></svg></span>
@@ -177,7 +180,7 @@
                   <span class="wcard__no" aria-hidden="true">03</span>
                   <span class="wcard__copy">
                     <span class="wcard__name">Emberfall Foundry</span>
-                    <span class="wcard__role" data-i18n="world.emberfall_foundry.role">Foundry · furnace and cinder yard</span>
+                    <span class="wcard__role" data-i18n="world.emberfall_foundry.role">Defense · Foundry</span>
                   </span>
                   <span class="wcard__state" data-i18n="world.state.open">OPEN</span>
                   <span class="wcard__tick" aria-hidden="true"><svg class="ico"><use href="#i-check" /></svg></span>
@@ -188,7 +191,7 @@
                   <span class="wcard__no" aria-hidden="true">04</span>
                   <span class="wcard__copy">
                     <span class="wcard__name">Vanguard Station</span>
-                    <span class="wcard__role" data-i18n="world.vanguard_station.role">Hangar · blast door</span>
+                    <span class="wcard__role" data-i18n="world.vanguard_station.role">Defense · Dock 07</span>
                   </span>
                   <span class="wcard__state" data-i18n="world.state.open">OPEN</span>
                   <span class="wcard__tick" aria-hidden="true"><svg class="ico"><use href="#i-check" /></svg></span>
@@ -199,7 +202,7 @@
                   <span class="wcard__no" aria-hidden="true">05</span>
                   <span class="wcard__copy">
 <span class="wcard__name">THE TITANS</span>
-                    <span class="wcard__role" data-i18n="world.titans.role">Storm · fallen giant</span>
+                    <span class="wcard__role" data-i18n="world.titans.role">Defense · Storm</span>
                   </span>
                   <span class="wcard__state" data-i18n="world.state.open">OPEN</span>
                   <span class="wcard__tick" aria-hidden="true"><svg class="ico"><use href="#i-check" /></svg></span>
@@ -223,7 +226,7 @@
                   <span class="btn__label" data-i18n="hub.deploy">DEPLOY</span>
                   <span class="btn__meta" id="hub-deploy-meta">Pulse Rifle</span>
                 </button>
-                <p class="hub__hint" data-i18n="hub.hint">The first wave starts inside the arena</p>
+                <p class="hub__hint" data-i18n="hub.hint">Explore safe · [B] Defense / Cache · [V] Run Mod</p>
               </div>
             </div>
 
@@ -508,9 +511,12 @@
                     <div><span data-i18n="key.move">Move</span><kbd>W A S D</kbd></div>
                     <div><span data-i18n="key.aim">Aim</span><kbd data-i18n="key.aim_value">Right click</kbd></div>
                     <div><span data-i18n="key.fire">Fire</span><kbd data-i18n="key.fire_value">Left click</kbd></div>
-                    <div><span data-i18n="key.swap">Swap weapon</span><kbd>E</kbd></div>
-                    <div><span data-i18n="key.emp">EMP</span><kbd>Q</kbd></div>
-                    <div><span data-i18n="key.defense">Defence</span><kbd>B</kbd></div>
+                    <div><span data-i18n="key.reload">Reload</span><kbd>G</kbd></div>
+                    <div><span data-i18n="key.swap">Swap weapon</span><kbd>E / Q</kbd></div>
+                    <div><span data-i18n="key.emp">EMP pulse</span><kbd>F</kbd></div>
+                    <div><span data-i18n="key.evolve">Run upgrade</span><kbd>V</kbd></div>
+                    <div><span data-i18n="key.armory">Armory</span><kbd>U</kbd></div>
+                    <div><span data-i18n="key.defense">Defense / Cache</span><kbd>B</kbd></div>
                     <div><span data-i18n="key.pause">Pause</span><kbd>Esc</kbd></div>
                   </div>
                 </div>

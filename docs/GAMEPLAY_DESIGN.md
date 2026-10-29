@@ -265,11 +265,17 @@ read windup → relocate/use cover → locked shot misses
 
 The first playtest should use existing mechanics and feedback. Add a recovery indicator, tutorial prompt, new enemy, or new combat manager only if observation identifies a specific failure that existing presentation cannot solve.
 
-### 7.4 Adaptation boundary
+### 7.4 Adaptation boundary and Temporary Run Evolutions — IMPLEMENTED
 
-Current adaptation is positional aiming, cover/movement, target prioritization, weapon selection, and EMP timing. Persistent Armory unlocks are **not** in-run upgrade choices.
+Combat adaptation spans positional aiming, cover/movement, target prioritization, weapon selection, EMP timing, and **run-scoped Tactical Evolutions** (`RunUpgradeDefinition` + `RunUpgradeManager`). Persistent Armory unlocks and upgrades remain strictly separate from temporary in-run evolutions.
 
-A future one-of-three milestone system remains **PROPOSED**. Before implementation it needs approved milestones, eligible definitions, stacking/incompatibility rules, pause/defeat behavior, exactly-once application, and run-reset semantics. Shared base weapon resources must remain immutable.
+Implemented run-evolution contract:
+
+- **Milestones (`COLLECT → CHOOSE → EVOLVE`):** `RunUpgradeManager` charges from verified enemy eliminations (`reward_service.enemy_rewarded`, deduplicated by instance ID) across progressive thresholds (`2 → 3 → 4 → 5 → 6` KOs, max **5** evolutions per run) and guarantees an evolution milestone upon clearing a guarded Recovery cache (`record_milestone`).
+- **Draft & Non-Blocking Entry:** When an evolution is ready, the HUD exposes `UpgradeReadyButton` (`EVOLVE READY  [V]`, physical key `V`) in the top-right slot without auto-pausing mid-shot or overwriting combat reward toasts. Opening the draft pauses simulation cleanly and presents 3 distinct, non-duplicate `AegisUpgradeCard` choices (`HudRunUpgradeUi`, selectable by touch/click or `1`/`2`/`3`, deferrable via `Esc` / `LATER`).
+- **Eligible Definitions & Stacking:** Six programmatic `RunUpgradeDefinition` entries (`overcharge_cells`, `rapid_autoloader`, `expanded_capacitor`, `emp_resonator`, `kinetic_servos`, `reactive_plating`), each capped at **2 stacks** per run.
+- **Immutable Resource Layering:** `WeaponController.apply_run_modifiers` and `PlayerController.apply_run_modifiers` layer run multipliers over permanent `WeaponTier` and `HeroTier` stats on runtime duplicates/fields. Shared `.tres` `WeaponDefinition` resources and `get_current_definition()` registry identity are **never** mutated.
+- **Zero Persistence (`reset_run`):** Retry, defeat reset, Return to Explore, and Home exit call `run_upgrade_manager.reset_run()` and `player.clear_run_modifiers()`, wiping all temporary stacks while preserving permanent `ProgressionService` wallet BP, blueprints, weapon tiers, and operative ranks.
 
 ## 8. Progression and technology
 

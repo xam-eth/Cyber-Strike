@@ -459,6 +459,41 @@ async function checkPage(target, viewport) {
     }
   }
 
+  if (booted && has('--upgrades')) {
+    const canvasCentre = await page.evaluate(() => {
+      const rect = document.querySelector('canvas')?.getBoundingClientRect();
+      return rect ? { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 } : null;
+    });
+    if (canvasCentre) {
+      await page.mouse.click(canvasCentre.x, canvasCentre.y);
+      await new Promise((r) => setTimeout(r, 400));
+      const readyFrame = path.join(outDir, `${slug}-${viewport.spec}-upgrade-ready.png`);
+      await page.screenshot({ path: readyFrame });
+      menuFrames.push(path.relative(ROOT, readyFrame));
+
+      await page.keyboard.press('KeyV');
+      await awaitConsoleText(page, consoleLines, 'HUD: run upgrades opened', 10000);
+      await new Promise((r) => setTimeout(r, 500));
+      const modalFrame = path.join(outDir, `${slug}-${viewport.spec}-upgrade-modal.png`);
+      await page.screenshot({ path: modalFrame });
+      menuFrames.push(path.relative(ROOT, modalFrame));
+
+      await page.keyboard.press('Digit1');
+      await new Promise((r) => setTimeout(r, 600));
+      const appliedFrame = path.join(outDir, `${slug}-${viewport.spec}-upgrade-applied.png`);
+      await page.screenshot({ path: appliedFrame });
+      menuFrames.push(path.relative(ROOT, appliedFrame));
+
+      await page.keyboard.press('KeyU');
+      await new Promise((r) => setTimeout(r, 600));
+      const armoryFrame = path.join(outDir, `${slug}-${viewport.spec}-armory.png`);
+      await page.screenshot({ path: armoryFrame });
+      menuFrames.push(path.relative(ROOT, armoryFrame));
+      await page.keyboard.press('Escape');
+      await new Promise((r) => setTimeout(r, 350));
+    }
+  }
+
   /* ---------- reach the gameplay scene ---------- */
   // A Godot canvas is one DOM element with no children, so a button cannot be
   // queried, and every menu stage sets mouse_filter = MOUSE_FILTER_STOP: the

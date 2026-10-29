@@ -74,6 +74,8 @@ var _chrome: LobbyChrome
 ## direction is the container class, and a `vertical` flag did nothing.
 var _weapon_row: Container
 var _weapon_stat: Label
+var _tier_label: Label
+var _tier_button: AegisButton
 var _weapon_pins: Array[AegisButton] = []
 
 
@@ -491,8 +493,13 @@ func _build_panel() -> void:
 	_role_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	column.add_child(_role_label)
 
-	_loadout_label = make_label("", "label_s", AegisTokens.INK_3)
-	_loadout_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	_tier_label = make_label("", "label_s", AegisTokens.INFO)
+	_tier_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_limit_lines(_tier_label, 1)
+	_tier_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	column.add_child(_tier_label)
+
+	_loadout_label = make_label("", "label_s", AegisTokens.INK_2)
 	_loadout_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_limit_lines(_loadout_label, 1)
 	_loadout_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
@@ -533,6 +540,13 @@ func _build_actions() -> void:
 	_select_button.pressed.connect(_on_select_pressed)
 	_actions.add_child(_select_button)
 
+	_tier_button = make_button("TIER 1", "card")
+	_tier_button.name = &"TierCycleButton"
+	_tier_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	physical_min_size(_tier_button, 0.0, AegisTokens.MIN_TOUCH_PX)
+	_tier_button.pressed.connect(_on_tier_cycle_pressed)
+	_actions.add_child(_tier_button)
+
 	_continue = make_button_key("common.continue", "primary", "hero.continue_tip")
 	_continue.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	physical_min_size(_continue, 0.0, AegisTokens.MIN_TOUCH_PX)
@@ -562,6 +576,20 @@ func _refresh() -> void:
 		AegisText.apply_tip(_select_button, "hero.confirm_tip", [_hero_name(_selected)])
 	else:
 		AegisText.apply_tip(_select_button, "hero.equipped_tip", [_hero_name(_selected)])
+	if is_instance_valid(_tier_button):
+		var cur_tier := progression.fieldable_tier() if progression != null else 1
+		var max_owned := progression.owned_tier() if progression != null else 1
+		_tier_button.text = AegisText.t("hero.tier_btn", [cur_tier, max_owned])
+		_tier_button.disabled = max_owned <= 1
+		_tier_button.edge_active = max_owned > 1
+		(
+			AegisText
+			. apply_tip(
+				_tier_button,
+				"hero.tier_cycle_tip" if max_owned > 1 else "hero.tier_locked_tip",
+				[cur_tier, max_owned],
+			)
+		)
 	_refresh_weapons(progression)
 
 
@@ -581,12 +609,18 @@ func _present_selected(reveal: bool) -> void:
 	_status_label.add_theme_color_override("font_color", AegisTokens.OK)
 	_role_label.text = _first_sentence(definition.display_role())
 	var progression := progression_service()
+	var active_tier := progression.fieldable_tier() if progression != null else 1
+	var reduction := HeroTier.reduction(active_tier)
+	if is_instance_valid(_tier_label):
+		_tier_label.text = AegisText.t("hero.vitals_line", [active_tier, 100, reduction])
 	if progression != null:
+		var wpn_tier := progression.weapon_tier(progression.selected_weapon_id)
 		_loadout_label.text = (
-			"%s  ·  %s"
+			"%s T%d  ·  %s"
 			% [
-				_weapon_name(progression.selected_weapon_id),
-				_world_name(progression.selected_world_id),
+				_weapon_name(progression.selected_weapon_id).to_upper(),
+				wpn_tier,
+				_world_name(progression.selected_world_id).to_upper(),
 			]
 		)
 
@@ -685,6 +719,17 @@ func _on_select_pressed() -> void:
 	_refresh()
 
 
+func _on_tier_cycle_pressed() -> void:
+	var progression := progression_service()
+	if progression == null or progression.owned_tier() <= 1:
+		return
+	var next_tier := (progression.fieldable_tier() % progression.owned_tier()) + 1
+	if progression.select_tier(next_tier):
+		Sfx.play_ui(&"ui_click")
+		_refresh()
+		_present_selected(false)
+
+
 func _on_continue_pressed() -> void:
 	var progression := progression_service()
 	if progression != null:
@@ -734,7 +779,7 @@ func _apply_orientation() -> void:
 	# over each other. A rail with a width of its own is the fix the capture
 	# asked for; the model keeps the rest of the canvas.
 	_col_right.size_flags_horizontal = Control.SIZE_SHRINK_END
-	var rail := 340.0 if physical_size().y < 520.0 else minf(440.0, physical_size().x * 0.36)
+	var rail := 360.0 if physical_size().y < 520.0 else minf(440.0, physical_size().x * 0.38)
 	_col_right.custom_minimum_size.x = px(rail)
 
 
@@ -761,12 +806,12 @@ func _apply_density() -> void:
 	# are the difference between the buttons fitting and not.
 	if is_instance_valid(_role_label):
 		_role_label.visible = not short_screen
+	if is_instance_valid(_tier_label):
+		_tier_label.visible = true
 	if is_instance_valid(_loadout_label):
-		_loadout_label.visible = not short_screen
+		_loadout_label.visible = true
 	if is_instance_valid(_weapon_stat):
-		# The stat line is one more row than the old header had, and on 390 px of
-		# height it was the row that pushed EQUIPPED/CONTINUE past the bottom edge.
-		_weapon_stat.visible = not short_screen
+		_weapon_stat.visible = true
 	for pin in _weapon_pins:
 		# 64 px is the project's touch floor (`AegisTokens.MIN_TOUCH_PX`); 52 was
 		# under it on every size the suite measures.
@@ -819,9 +864,14 @@ func _apply_density() -> void:
 	# operative is, and the panel keeps the actions it exists to reach.
 	_development_label.visible = not short_screen
 	_role_label.visible = not short_screen
-	_loadout_label.visible = not short_screen
-	physical_separation(_actions, 8.0 if short_screen else 14.0)
+	_loadout_label.visible = true
+	physical_separation(_actions, 8.0 if short_screen else 12.0)
 	physical_min_size(_continue, 0.0, AegisTokens.MIN_TOUCH_PX)
+	physical_min_size(_select_button, 0.0, AegisTokens.MIN_TOUCH_PX)
+	if is_instance_valid(_tier_button):
+		physical_min_size(_tier_button, 0.0, AegisTokens.MIN_TOUCH_PX)
+	enforce_font_floor(_panel, _stretch)
+	enforce_font_floor(_actions, _stretch)
 	AegisText.apply(_heading, "hero.title")
 	# BACK + heading + status have to share the header. "OPERATIVE" set in
 	# `display_m` is 208 px at the smallest width the suite measures, which is

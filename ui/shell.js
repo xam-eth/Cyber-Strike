@@ -338,8 +338,26 @@ function paintWorld() {
       dot.dataset.active = String(index === worldIndex());
     });
   }
+  const snap = profileSnapshot();
+  const strip = el('hub-profile-strip');
+  if (strip) {
+    const bp = Number.isFinite(Number(snap.balance)) ? Math.max(0, Math.floor(Number(snap.balance))) : 0;
+    const runs = completedRuns();
+    const best = Number.isFinite(Number(snap.best_score)) ? Math.max(0, Math.floor(Number(snap.best_score))) : 0;
+    strip.textContent = t('hub.profile_strip', bp, runs, best);
+  }
   const line = el('hub-world-line');
-  if (line) line.textContent = t(WORLDS[worldIndex()].lineKey);
+  if (line) {
+    const selected = WORLDS[worldIndex()];
+    if (selected.id === 'verdant_bloom') {
+      const caches = snap.secured_caches && typeof snap.secured_caches === 'object'
+        ? Object.values(snap.secured_caches).filter(Boolean).length
+        : 0;
+      line.textContent = t(selected.lineKey, Math.min(caches, 2));
+    } else {
+      line.textContent = t(selected.lineKey);
+    }
+  }
   const eyebrow = el('launch-eyebrow');
   if (eyebrow) eyebrow.textContent = t('launch.eyebrow', WORLDS[worldIndex()].name);
 }
@@ -861,6 +879,7 @@ function buildRack() {
     button.dataset.weapon = id;
     button.dataset.cost = String(weapon.cost);
     const owned = weaponOwned(id);
+    const hasBp = weaponHasBlueprint(id);
     const equipped = owned && id === prefs.weapon;
     const tier = weaponTierFor(id);
     const numbers = weaponNumbers(id, tier);
@@ -874,7 +893,9 @@ function buildRack() {
       </span>
       <span class="rackcard__state">${
         !owned
-          ? t('hero.weapon.cost', weapon.cost)
+          ? !hasBp
+            ? t('hero.weapon.blueprint_cost', weapon.cost)
+            : t('hero.weapon.cost', weapon.cost)
           : equipped
             ? t('hero.weapon.equipped')
             : t('hero.weapon.owned')
@@ -1017,6 +1038,12 @@ function weaponOwned(id) {
   if (id === 'pulse_rifle') return true;
   const unlocked = profileSnapshot().unlocked;
   return Array.isArray(unlocked) && unlocked.includes(id);
+}
+
+function weaponHasBlueprint(id) {
+  if (id !== 'arc_shooter') return true;
+  const blueprints = profileSnapshot().blueprints;
+  return Array.isArray(blueprints) && blueprints.includes(id);
 }
 
 function weaponTierFor(id) {

@@ -28,6 +28,9 @@ signal armory_requested
 signal armory_weapon_action_requested(weapon_id: StringName)
 signal armory_weapon_upgrade_requested(weapon_id: StringName)
 signal armory_close_requested
+signal upgrade_open_requested
+signal upgrade_choice_requested(index: int)
+signal upgrade_close_requested
 ## One signal for every HOME in the HUD: pause, results, armory and settings all
 ## mean "leave the world for the dashboard", and main.gd answers it once.
 signal home_requested
@@ -145,6 +148,12 @@ var _pause_home_button: AegisButton
 var _results_home_button: AegisButton
 var _armory_panel: ArmoryUi
 var _armory_button: AegisButton
+var _upgrade_status_card: AegisPanel
+var _upgrade_status_value: Label
+var _upgrade_charge_bar: SegmentedBar
+var _upgrade_entry_button: AegisButton
+var _upgrade_panel: HudRunUpgradeUi
+var _confirm_dialog: AegisConfirmDialog
 var _scrim: ColorRect
 
 var _health_heading: Label
@@ -455,6 +464,7 @@ func _set_play_phase(phase: String, seconds: int = 0) -> void:
 
 func _apply_context_visibility() -> void:
 	HudEncounterUi.apply_context(self)
+	HudUpgradeBridge.update_visibility(self)
 
 
 ## The cluster is the HUD on every device. `_touch_mode` still decides which
@@ -723,8 +733,10 @@ func _build_ui() -> void:
 	_build_combat_feedback()
 	_build_touch_buttons()
 	HudArmoryBridge.install_entry(self)
+	HudUpgradeBridge.install_top_widgets(self)
 	_build_overlays()
 	HudArmoryBridge.install_panel(self)
+	HudUpgradeBridge.install_overlays(self)
 
 
 func _build_health_card() -> void:
@@ -1087,6 +1099,10 @@ func _layout_overlays() -> void:
 		_feedback_panel.layout_for(self)
 	if is_instance_valid(_armory_panel):
 		_armory_panel.layout_for(self)
+	if is_instance_valid(_upgrade_panel):
+		_upgrade_panel.layout_for(self)
+	if is_instance_valid(_confirm_dialog):
+		_confirm_dialog.layout_for(self)
 	if is_instance_valid(_settings_menu):
 		var width := minf(_to_layout(700.0), size.x * 0.94)
 		var height := minf(_to_layout(520.0), size.y * 0.90)
@@ -1403,11 +1419,23 @@ func _on_home_pressed() -> void:
 	home_requested.emit()
 
 
+func _on_pause_home_pressed() -> void:
+	if _state.play_phase != "explore" and (_state.bp > 0 or _state.score > 0):
+		Sfx.play_ui(&"ui_click")
+		HudUpgradeBridge.show_leave_confirm(self)
+		return
+	_on_home_pressed()
+
+
 ## ESC on the armory asks the owner to close it, exactly as the panel's own
 ## close button does: the layer's back action and its button must not be two
 ## different paths.
 func _close_armory_overlay() -> void:
 	armory_close_requested.emit()
+
+
+func _close_upgrade_overlay() -> void:
+	upgrade_close_requested.emit()
 
 
 func _on_return_to_explore_pressed() -> void:

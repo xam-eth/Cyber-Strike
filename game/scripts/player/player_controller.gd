@@ -34,6 +34,14 @@ var current_health: float = 0.0
 ## Fraction of incoming damage the selected tier's plate absorbs (0..1). Set
 ## once, from the roster, before the first hit -- see `_apply_progression_tier`.
 var _damage_reduction: float = 0.0
+var _scene_move_speed: float = 6.0
+var _scene_max_health: float = 100.0
+var _scene_emp_cooldown: float = 12.0
+var _scene_emp_radius: float = 9.0
+var _scene_emp_damage: float = 18.0
+var _tier_vitals_base: float = 100.0
+var _tier_dr_base: float = 0.0
+var _run_modifiers: Dictionary = {}
 var _skill_cooldown_remaining: float = 0.0
 var _is_defeated: bool = false
 var _touch_movement: Vector2 = Vector2.ZERO
@@ -56,6 +64,13 @@ var _reload_was_active: bool = false
 
 
 func _ready() -> void:
+	_scene_move_speed = move_speed
+	_scene_max_health = max_health
+	_scene_emp_cooldown = emp_pulse_cooldown
+	_scene_emp_radius = emp_pulse_radius
+	_scene_emp_damage = emp_pulse_damage
+	_tier_vitals_base = max_health
+	_tier_dr_base = _damage_reduction
 	_apply_progression_tier()
 	current_health = max_health
 	weapon_controller.weapon_changed.connect(_on_weapon_changed)
@@ -254,12 +269,61 @@ func can_take_damage() -> bool:
 ## tree keeps the scene's own 100 HP and takes full damage.
 func _apply_progression_tier() -> void:
 	var progression := _progression_service()
-	if progression == null:
-		return
-	var vitals := progression.tier_vitals()
-	if vitals > 0.0:
-		max_health = vitals
-	_damage_reduction = clampf(progression.tier_damage_reduction() / 100.0, 0.0, 0.9)
+	if progression != null:
+		var vitals := progression.tier_vitals()
+		if vitals > 0.0:
+			_tier_vitals_base = vitals
+		_tier_dr_base = clampf(progression.tier_damage_reduction() / 100.0, 0.0, 0.9)
+	else:
+		_tier_vitals_base = _scene_max_health
+		_tier_dr_base = 0.0
+	_recompute_runtime_stats()
+
+
+## Applies temporary run-scoped modifiers on top of permanent operative/weapon
+## progression without mutating any persistent save or `.tres` resource.
+func apply_run_modifiers(
+	modifiers: Dictionary, heal_amount: float = 0.0, refill_magazines: bool = false
+) -> void:
+	var prior_max := max_health
+	var prior_emp_cd := maxf(emp_pulse_cooldown, 0.01)
+	_run_modifiers = modifiers.duplicate()
+	_recompute_runtime_stats()
+	var max_delta := maxf(max_health - prior_max, 0.0)
+	if not _is_defeated and (max_delta > 0.0 or heal_amount > 0.0):
+		current_health = minf(current_health + max_delta + heal_amount, max_health)
+	elif current_health > max_health:
+		current_health = max_health
+	if _skill_cooldown_remaining > 0.0 and emp_pulse_cooldown < prior_emp_cd:
+		_skill_cooldown_remaining *= emp_pulse_cooldown / prior_emp_cd
+	weapon_controller.apply_run_modifiers(_run_modifiers, refill_magazines)
+	health_changed.emit(current_health, max_health)
+	skill_cooldown_changed.emit(_skill_cooldown_remaining, emp_pulse_cooldown)
+
+
+func clear_run_modifiers() -> void:
+	_run_modifiers.clear()
+	_recompute_runtime_stats()
+	weapon_controller.clear_run_modifiers()
+
+
+func _recompute_runtime_stats() -> void:
+	var speed_mult := float(_run_modifiers.get("move_speed_multiplier", 1.0))
+	var health_bonus := float(_run_modifiers.get("max_health_bonus", 0.0))
+	var dr_bonus := float(_run_modifiers.get("damage_reduction_bonus", 0.0))
+	var emp_cd_mult := float(_run_modifiers.get("emp_cooldown_multiplier", 1.0))
+	var emp_rad_bonus := float(_run_modifiers.get("emp_radius_bonus", 0.0))
+	var emp_dmg_bonus := float(_run_modifiers.get("emp_damage_bonus", 0.0))
+
+	move_speed = _scene_move_speed * speed_mult
+	max_health = _tier_vitals_base + health_bonus
+	if _run_modifiers.is_empty():
+		_damage_reduction = _tier_dr_base
+	else:
+		_damage_reduction = clampf(_tier_dr_base + dr_bonus, 0.0, 0.65)
+	emp_pulse_cooldown = maxf(_scene_emp_cooldown * emp_cd_mult, 3.0)
+	emp_pulse_radius = _scene_emp_radius + emp_rad_bonus
+	emp_pulse_damage = _scene_emp_damage + emp_dmg_bonus
 
 
 func _progression_service() -> ProgressionService:
@@ -297,6 +361,8 @@ func is_defeated() -> bool:
 
 func reset_player() -> void:
 	_is_defeated = false
+	clear_run_modifiers()
+	_apply_progression_tier()
 	set_aiming(false)
 	_touch_aim_hold = false
 	_mouse_aim_hold = false

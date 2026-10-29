@@ -35,6 +35,8 @@ var _map_plate: TextureRect
 var _map_name: Label
 var _title: Label
 var _chapter: Label
+var _mode_line: Label
+var _reward_line: Label
 var _brief: Label
 var _status: Label
 var _launch: AegisButton
@@ -209,7 +211,7 @@ func _build_pin(definition: WorldDefinition) -> AegisButton:
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_theme_constant_override("separation", 0)
 	pin.add_child(column)
-	var name_label := make_label(definition.display_name.to_upper(), "label", AegisTokens.INK)
+	var name_label := make_label(definition.display_name.to_upper(), "label_s", AegisTokens.INK)
 	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_limit_lines(name_label, 2)
@@ -275,12 +277,18 @@ func _build_info() -> void:
 	_chapter = make_label("", "label", AegisTokens.ACCENT)
 	_title = make_label("", "display_m", AegisTokens.INK)
 	_title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_mode_line = make_label("", "label_s", AegisTokens.INFO)
+	_mode_line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_mode_line.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	_reward_line = make_label("", "label_s", AegisTokens.INK_2)
+	_reward_line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_reward_line.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_brief = make_label("", "body_s", AegisTokens.INK_2)
 	_brief.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_status = make_label("", "label_s", AegisTokens.OK)
 	_launch = make_button_key("world.launch", "primary", "world.launch_tip")
 	_launch.pressed.connect(_on_launch_pressed)
-	for node in [_chapter, _title, _brief, _status]:
+	for node in [_chapter, _title, _mode_line, _reward_line, _brief, _status]:
 		_info_text.add_child(node)
 	_info_text.add_child(_launch)
 
@@ -291,6 +299,7 @@ func _build_info() -> void:
 func reframe() -> void:
 	var height := physical_size().y
 	var compact := height < 520.0
+	physical_separation(_stack, 10.0 if compact else 16.0)
 	_reparent(_map, _side)
 	_reparent(_info, _side)
 	_reparent(_side, _body)
@@ -299,7 +308,7 @@ func reframe() -> void:
 	_info.size_flags_horizontal = Control.SIZE_FILL
 	physical_min_size(_map, 0.0, 0.0)
 	_map.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_info_text.add_theme_constant_override("separation", 6)
+	_info_text.add_theme_constant_override("separation", 4 if compact else 6)
 	physical_min_size(_launch, 0.0, 64.0)
 	# 64 px is the touch floor (`AegisTokens.MIN_TOUCH_PX`); 56 failed it. Every
 	# child of the row, not just `_pins`: the roadmap slot was built after the
@@ -308,22 +317,17 @@ func reframe() -> void:
 	for child in _pin_row.get_children():
 		if child is Control:
 			physical_min_size(child as Control, 0.0, 64.0)
-	# 390 px of height is enough for the name and one line about the theatre, not
-	# for the chapter tag as well; the pin under the map already carries the name.
-	# The framed plate's caption already says DEPLOYMENT THEATRE on every screen;
-	# the panel repeating it 40 px lower is the kind of duplicate that reads as a
-	# placeholder.
-	_chapter.visible = true
-	# The framed plate on the left already shows the theatre's name, and three
-	# 64 px pins plus the panel plus the map are what has to fit. The paragraph
-	# stays where there is height for it.
+	_chapter.visible = not compact
+	_mode_line.visible = true
+	_reward_line.visible = true
+	_limit_lines(_mode_line, 1)
+	_limit_lines(_reward_line, 1)
 	_brief.visible = not compact
-	# The framed plate's own caption names the theatre; printing it again 40 px
-	# below it is the kind of repetition that reads as a placeholder.
 	_title.visible = true
-	# The status line says FIELD READY, which the pin above it already says.
+	_limit_lines(_title, 1)
 	_status.visible = true
-	physical_min_size(_status, 0.0, 20.0 if compact else 24.0)
+	physical_min_size(_status, 0.0, 18.0 if compact else 24.0)
+	enforce_font_floor(_info, _stretch)
 
 
 ## Moves a node only when it is somewhere else; re-adding on every resize would
@@ -405,6 +409,32 @@ func _refresh() -> void:
 		_map_name.text = definition.display_name.to_upper()
 	if is_instance_valid(_map_plate):
 		_map_plate.texture = try_texture(definition.plate_path)
+	if is_instance_valid(_mode_line):
+		_mode_line.text = definition.display_mode_label()
+	if is_instance_valid(_reward_line):
+		if definition.has_recovery_caches():
+			var total_caches := definition.recovery_caches.size()
+			var secured := 0
+			if progression != null:
+				for item in definition.recovery_caches:
+					var cache := item as RecoveryCacheDefinition
+					if cache != null and progression.is_cache_secured(cache.cache_id):
+						secured += 1
+			_reward_line.text = (
+				"%s · %s"
+				% [
+					AegisText.t("world.caches_progress", [secured, total_caches]),
+					definition.display_reward_summary(),
+				]
+			)
+		else:
+			_reward_line.text = (
+				"%s · %s"
+				% [
+					definition.display_objective_summary(),
+					definition.display_reward_summary(),
+				]
+			)
 	_brief.text = _first_sentence(definition.display_role())
 	_status.text = definition.display_status().to_upper()
 	if definition.field_ready:

@@ -53,6 +53,13 @@ static func apply(hud) -> void:
 	if is_instance_valid(hud._health_bar):
 		hud._health_bar.custom_minimum_size = Vector2(0.0, hud._to_layout(6.0))
 		hud._health_bar.gap_width = maxf(hud._to_layout(2.0), 1.0)
+	if is_instance_valid(hud._upgrade_status_card):
+		hud._upgrade_status_card.add_theme_stylebox_override(
+			"panel", AegisTheme.panel_style(fill, AegisTokens.INFO, 1, AegisTokens.RADIUS, tight)
+		)
+	if is_instance_valid(hud._upgrade_charge_bar):
+		hud._upgrade_charge_bar.custom_minimum_size = Vector2(0.0, hud._to_layout(5.0))
+		hud._upgrade_charge_bar.gap_width = maxf(hud._to_layout(2.0), 1.0)
 	if is_instance_valid(hud._wave_icon):
 		var icon_size: float = hud._to_layout(16.0)
 		hud._wave_icon.custom_minimum_size = Vector2(icon_size, icon_size)
@@ -104,9 +111,18 @@ static func apply_fonts(hud) -> void:
 			AegisTheme.resize_button_font(
 				button, "title", maxi(roundi(hud._to_layout(15.0)), floor_size)
 			)
+		elif is_instance_valid(hud._upgrade_panel) and hud._upgrade_panel.is_ancestor_of(button):
+			AegisTheme.resize_button_font(
+				button, "title", maxi(roundi(hud._to_layout(14.0)), floor_size)
+			)
+		elif is_instance_valid(hud._confirm_dialog) and hud._confirm_dialog.is_ancestor_of(button):
+			AegisTheme.resize_button_font(
+				button, "title", maxi(roundi(hud._to_layout(14.0)), floor_size)
+			)
 		elif (
 			button == hud._armory_button
 			or button == hud._defense_button
+			or button == hud._upgrade_entry_button
 			or button == hud._results_retry_button
 			or button == hud._results_explore_button
 			or button == hud._pause_resume_button
