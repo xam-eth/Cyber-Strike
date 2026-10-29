@@ -3,7 +3,7 @@
 Standalone Godot **4.7.2** validation project for the rigged HERO_01 hero character + `Weapon_Raise_To_Aim` animation. This project is intentionally independent of the main game repository: validate here, then import the GLBs/scenes you approve.
 
 ## Start here
-1. `VALIDATION_REPORT.md` — what was tested and what passed, including the executed Godot 4.7.2 headless validation (clean import; in-engine grip/barrel CI) and the short desktop visual pass still recommended on the official editor.
+1. `VALIDATION_REPORT.md` (versi Bahasa Indonesia: `VALIDATION_REPORT-ID.md`) — what was tested and what passed, including the executed Godot 4.7.2 headless validation (clean import; in-engine grip/barrel CI) and the short desktop visual pass still recommended on the official editor.
 2. `ART_ASSET_REPORT.md`, `RIG_SPECIFICATION.md`, `ANIMATION_SPECIFICATION.md` — asset audit, skeleton/weights/weapon-attachment contract, animation timing & grip metrics.
 3. Open in Godot: Import → `project.godot` → run (F5) → `RigValidation` scene plays the clip and prints automated PASS/FAIL checks.
 
