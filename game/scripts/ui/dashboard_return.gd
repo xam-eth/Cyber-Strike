@@ -24,9 +24,9 @@ static func request(tree: SceneTree) -> void:
 		return
 	tree.paused = false
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	if OS.has_feature("web") and _shell_owns_the_home_screen():
+	if OS.has_feature("web") and _hand_off_to_shell():
 		# The shell replaces the document; nothing after this line runs.
-		JavaScriptBridge.eval("window.AegisShell.home()", true)
+		print("DashboardReturn: shell home")
 		return
 	if OS.has_feature("web"):
 		# The deep link that put the engine in the world (`?qa_stage=GAMEPLAY`)
@@ -38,8 +38,7 @@ static func request(tree: SceneTree) -> void:
 				+ " for (const k of ['qa_stage', 'weapon', 'qa_world', 'hero', 'tier'])"
 				+ " u.searchParams.delete(k);"
 				+ " history.replaceState(null, '', u); })()"
-			),
-			true
+			)
 		)
 	FrontEnd.resume_stage = &"DASHBOARD"
 	var error := tree.change_scene_to_file(FRONT_END_SCENE)
@@ -49,8 +48,21 @@ static func request(tree: SceneTree) -> void:
 
 ## The shell only exists around the engine: `web/index.html` and the desktop
 ## build have no `AegisShell`, and asking a missing object would be an error in
-## the browser console on every press.
-static func _shell_owns_the_home_screen() -> bool:
+## the browser console on every press. Calling `home()` inside the same JS
+## frame and returning a string ('1' / '0') avoids boolean union marshaling in
+## WASM and guarantees `history.replaceState` never races `location.replace`.
+static func _hand_off_to_shell() -> bool:
 	if not OS.has_feature("web"):
 		return false
-	return str(JavaScriptBridge.eval("typeof window.AegisShell === 'object'", true)) == "true"
+	var handed_off := str(
+		JavaScriptBridge.eval(
+			(
+				"(() => {"
+				+ " const s = window.AegisShell;"
+				+ " if (s && typeof s.home === 'function') { s.home(); return '1'; }"
+				+ " return '0';"
+				+ " })()"
+			)
+		)
+	)
+	return handed_off == "1"

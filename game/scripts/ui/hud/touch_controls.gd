@@ -723,6 +723,14 @@ func show_extraction_choice(
 
 
 func _report_results_qa() -> void:
+	if not is_inside_tree() or get_tree() == null:
+		return
+	await get_tree().process_frame
+	if not is_inside_tree() or get_tree() == null:
+		return
+	await get_tree().process_frame
+	if not is_inside_tree() or not _results_visible():
+		return
 	HudMenuUi.report_results_qa(self)
 
 

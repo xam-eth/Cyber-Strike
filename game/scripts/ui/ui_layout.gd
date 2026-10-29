@@ -276,6 +276,11 @@ static func overlays(hud) -> void:
 	hud._results_retry_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	hud._results_explore_button.custom_minimum_size = hud._results_retry_button.custom_minimum_size
 	hud._results_explore_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	if is_instance_valid(hud._results_home_button):
+		hud._results_home_button.custom_minimum_size = Vector2(
+			hud._results_retry_button.custom_minimum_size.x, hud._to_layout(44.0)
+		)
+		hud._results_home_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	hud._results_goal_bar.custom_minimum_size.y = hud._to_layout(8.0)
 
 	var pause_width: float = minf(hud._to_layout(400.0), hud.size.x * 0.88)

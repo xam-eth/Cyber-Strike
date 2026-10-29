@@ -1451,13 +1451,16 @@ async function checkPage(target, viewport) {
       // 5. Return HOME -> Shell Hub -> Operative Tier 2 -> Redeploy at 106 vitals.
       if (e2e.extractedResultsShown && isFrontEnd) {
         const resUi = latestResultsQa('results', beforeExtract);
-        if (resUi?.home) {
-          await clickCanvasPoint(resUi.home).catch(() => {});
-        }
-        await cdp.detach().catch(() => {});
-        cdp = null;
+        // ResultsRetryButton owns GUI focus on open; keep focus intact (clicking
+        // non-button panel surface clears focus) and step down to ResultsHomeButton
+        // with >=500ms spacing so SwiftShader processes each key event cleanly.
+        await page.keyboard.press('ArrowDown').catch(() => {});
+        await new Promise((r) => setTimeout(r, 520));
+        await page.keyboard.press('ArrowDown').catch(() => {});
+        await new Promise((r) => setTimeout(r, 520));
+        await page.keyboard.press('Enter').catch(() => {});
         const hubDeadline = Date.now() + 30000;
-        let triedKeyFallback = false;
+        let triedClickFallback = false;
         while (Date.now() < hubDeadline) {
           const onHub = await page.evaluate(
             () => document.body?.dataset?.screen === 'hub' && typeof window.AegisShell === 'object',
@@ -1466,15 +1469,17 @@ async function checkPage(target, viewport) {
             e2e.returnedToHub = true;
             break;
           }
-          if (!triedKeyFallback && hubDeadline - Date.now() < 23000) {
-            triedKeyFallback = true;
-            await page.keyboard.press('ArrowDown').catch(() => {});
-            await new Promise((r) => setTimeout(r, 160));
-            await page.keyboard.press('ArrowDown').catch(() => {});
-            await new Promise((r) => setTimeout(r, 160));
-            await page.keyboard.press('Enter').catch(() => {});
+          if (!triedClickFallback && hubDeadline - Date.now() < 25000) {
+            triedClickFallback = true;
+            if (resUi?.home && cdp) {
+              await clickCanvasPoint(resUi.home).catch(() => {});
+            }
           }
           await new Promise((r) => setTimeout(r, 350));
+        }
+        if (cdp) {
+          await cdp.detach().catch(() => {});
+          cdp = null;
         }
 
         if (e2e.returnedToHub) {
@@ -1552,7 +1557,10 @@ async function checkPage(target, viewport) {
             Math.max(150000, timeout * 1000),
           );
           await awaitConsoleText(page, consoleLines.slice(beforeRedeploy), 'Recovery QA:', 30000);
-          await new Promise((r) => setTimeout(r, 3500));
+          await page
+            .waitForFunction(() => document.body?.dataset?.mode === 'playing', { timeout: 15000 })
+            .catch(() => {});
+          await new Promise((r) => setTimeout(r, 2500));
           e2e.redeploySeedVaultSecured = consoleLines
             .slice(beforeRedeploy)
             .some((l) => l.includes('Recovery QA:') && l.includes('LAB CACHE'));
