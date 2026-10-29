@@ -43,6 +43,7 @@ Automatic weights failed on this asset (Blender `ARMATURE_AUTO` produced 100% ze
 ## 5. Export settings (reproduce exactly)
 Blender 4.5 glTF exporter, per script `tools/blender/scripts/18_export_polish.py`:
 format GLB; `use_selection`; Y-up; **no modifier apply**; skins on; *deformation-bones-only OFF* (all 24 bones exported, incl. `Weapon_R`); animations = ACTIONS mode, force-sampling ON, optimize-animation-size OFF; materials EXPORT (rig + weapon) / NONE→superseded by skeleton-only animations file (script 20). Scene frame rate 30 fps.
+**Double-sided material REQUIRED:** the mesh is open shells, so the glTF material must be `doubleSided: true` (Blender material Backface Culling OFF), otherwise Godot culls back-facing shell detail during motion. Shipped GLBs carry the flag via `tools/patch_glb_double_sided.py`; re-apply after any re-export with culling on. See VALIDATION_REPORT 5.6.
 Deliverable GLBs: `assets/characters/HERO_01_RIGGED.glb` (body+skin+clip), `assets/weapons/HERO_01_WEAPON.glb`, `animations/HERO_01_ANIMATIONS.glb` (skeleton + clip only, 67 KB — retarget/reference; the playable clip also lives inside RIGGED).
 
 ## 6. Retargeting preparation (Phase E)

@@ -14,6 +14,11 @@ const AIM_ANIMATION := "Weapon_Raise_To_Aim"
 ## (printed solved offset can be pasted here after the first successful run).
 @export var use_manual_weapon_offset: bool = false
 @export var manual_weapon_offset: Transform3D = Transform3D.IDENTITY
+## Hero meshes are dense open-shell geometry: force LOD0 and a generous
+## cull margin so fine detail never pops out while animating or in
+## close-up cameras. (Materials are double-sided in the GLBs themselves;
+## see tools/patch_glb_double_sided.py and VALIDATION_REPORT 5.6.)
+@export var force_full_detail: bool = true
 
 var skeleton: Skeleton3D
 var animation_player: AnimationPlayer
@@ -30,6 +35,8 @@ func _ready() -> void:
 	if animation_player == null:
 		push_warning("HERO_01: AnimationPlayer not found in imported GLB scene.")
 	_attach_weapon()
+	if force_full_detail:
+		_apply_full_detail(self)
 
 func _find_first(node: Node, type_name: String) -> Node:
 	for child in node.get_children():
@@ -39,6 +46,14 @@ func _find_first(node: Node, type_name: String) -> Node:
 		if found != null:
 			return found
 	return null
+
+func _apply_full_detail(node: Node) -> void:
+	if node is GeometryInstance3D:
+		var gi := node as GeometryInstance3D
+		gi.lod_bias = 64.0
+		gi.extra_cull_margin = 1.0
+	for child in node.get_children():
+		_apply_full_detail(child)
 
 func _attach_weapon() -> void:
 	var bone_idx := skeleton.find_bone("Weapon_R")
