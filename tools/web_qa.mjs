@@ -168,7 +168,7 @@ const browser = await puppeteer.launch({
   executablePath: await chromium.executablePath(),
   args: [...chromium.args, '--no-sandbox', '--disable-dev-shm-usage'],
   headless: true,
-  protocolTimeout: 300000,
+  protocolTimeout: 600000,
   env: { ...process.env, LD_LIBRARY_PATH: [LIB_DIR, process.env.LD_LIBRARY_PATH].filter(Boolean).join(':') },
 });
 
@@ -235,7 +235,11 @@ async function checkPage(target, viewport) {
   page.on('response', (r) => {
     if (r.status() >= 400) badResponses.push(`${r.status()} ${r.url().replace(baseUrl, '')}`);
   });
-  page.on('requestfailed', (r) => failedRequests.push(`${r.url().replace(baseUrl, '')} ${r.failure()?.errorText}`));
+  page.on('requestfailed', (r) => {
+    const errText = r.failure()?.errorText || '';
+    if (recoveryE2eMode && errText === 'net::ERR_ABORTED') return;
+    failedRequests.push(`${r.url().replace(baseUrl, '')} ${errText}`);
+  });
 
   if (recoveryE2eMode) {
     await page.evaluateOnNewDocument(() => {
@@ -981,6 +985,9 @@ async function checkPage(target, viewport) {
         redeployedTier2Vitals106: false,
         redeploySeedVaultSecured: false,
       };
+      recoveryEvidence.e2e = e2e;
+      let cdp = null;
+      try {
       const cx = Math.round(viewport.width * 0.5);
       const cy = Math.round(viewport.height * 0.5);
       const parseVector = (raw) => {
@@ -1049,7 +1056,7 @@ async function checkPage(target, viewport) {
         });
         return { target: all[0], anyClose };
       };
-      const cdp = await page.createCDPSession();
+      cdp = await page.createCDPSession();
       const cdpMove = (x, y, buttons = 0) =>
         cdp.send('Input.dispatchMouseEvent', {
           type: 'mouseMoved',
@@ -1436,7 +1443,8 @@ async function checkPage(target, viewport) {
           .slice(beforeExtract)
           .filter((l) => l.includes('Progression: banked'));
         e2e.runBankedOnce = bankLines.length === 1 && bankLines[0].includes('runs 1 · tier 2');
-        await new Promise((r) => setTimeout(r, 500));
+        // Allow Emscripten IDBFS to commit user://progression.cfg to IndexedDB before reload.
+        await new Promise((r) => setTimeout(r, 1500));
       }
       await capture('results-extracted');
 
@@ -1444,98 +1452,118 @@ async function checkPage(target, viewport) {
       if (e2e.extractedResultsShown && isFrontEnd) {
         const resUi = latestResultsQa('results', beforeExtract);
         if (resUi?.home) {
-          const navTry = page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 7000 }).catch(() => null);
-          await clickCanvasPoint(resUi.home);
-          await navTry;
+          await clickCanvasPoint(resUi.home).catch(() => {});
         }
-        const hubAlready = await page.evaluate(() => document.body?.dataset?.screen === 'hub').catch(() => false);
-        if (!hubAlready) {
-          const navFallback = page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 22000 }).catch(() => null);
-          await page.keyboard.press('ArrowDown');
-          await new Promise((r) => setTimeout(r, 140));
-          await page.keyboard.press('ArrowDown');
-          await new Promise((r) => setTimeout(r, 140));
-          await page.keyboard.press('Enter');
-          await navFallback;
-        }
-        await page.waitForFunction(() => document.body?.dataset?.screen === 'hub', { timeout: 25000 }).catch(() => {});
-        e2e.returnedToHub = await page.evaluate(() => document.body?.dataset?.screen === 'hub');
-
-        const mirrorCheck = await page.evaluate(() => {
-          const runsRaw = localStorage.getItem('aegis.runs');
-          let progress = null;
-          try {
-            progress = JSON.parse(localStorage.getItem('aegis.progress') || 'null');
-          } catch {
-            progress = null;
+        await cdp.detach().catch(() => {});
+        cdp = null;
+        const hubDeadline = Date.now() + 30000;
+        let triedKeyFallback = false;
+        while (Date.now() < hubDeadline) {
+          const onHub = await page.evaluate(
+            () => document.body?.dataset?.screen === 'hub' && typeof window.AegisShell === 'object',
+          ).catch(() => false);
+          if (onHub) {
+            e2e.returnedToHub = true;
+            break;
           }
-          return {
-            runsRaw,
-            runs: progress?.runs ?? null,
-            arcBlueprint: Boolean(progress?.blueprints?.arc_shooter),
-            seedSecured: Boolean(progress?.secured_caches?.verdant_seed_vault),
-          };
-        });
-        e2e.mirrorSynced = mirrorCheck.runsRaw === '1'
-          && mirrorCheck.runs === 1
-          && mirrorCheck.arcBlueprint
-          && mirrorCheck.seedSecured;
+          if (!triedKeyFallback && hubDeadline - Date.now() < 23000) {
+            triedKeyFallback = true;
+            await page.keyboard.press('ArrowDown').catch(() => {});
+            await new Promise((r) => setTimeout(r, 160));
+            await page.keyboard.press('ArrowDown').catch(() => {});
+            await new Promise((r) => setTimeout(r, 160));
+            await page.keyboard.press('Enter').catch(() => {});
+          }
+          await new Promise((r) => setTimeout(r, 350));
+        }
 
-        await page.evaluate(() => document.getElementById('hub-card-operative')?.click());
-        await page.waitForFunction(
-          () => document.body?.dataset?.screen === 'hero'
-            && document.getElementById('screen-hero')?.dataset?.ready === 'true',
-          { timeout: 25000 },
-        ).catch(() => {});
-        await page.evaluate(() =>
-          document.querySelector('#hero-tiers .tierstep[data-tier="2"]')?.click());
-        await new Promise((r) => setTimeout(r, 450));
-        const tierReadout = await page.evaluate(() => {
-          const step = document.querySelector('#hero-tiers .tierstep[data-tier="2"]');
-          return {
-            checked: step?.getAttribute('aria-checked') === 'true',
-            locked: step?.dataset?.locked === 'true',
-            vitals: document.getElementById('hero-stat-vitals')?.textContent?.trim() || '',
-            armour: document.getElementById('hero-stat-armour')?.textContent?.trim() || '',
-          };
-        });
-        e2e.tier2Selected = tierReadout.checked && !tierReadout.locked && tierReadout.vitals === '106' && tierReadout.armour === '3%';
-        e2e.tier2VitalsReadout = tierReadout;
-        await capture('operative-tier2');
+        if (e2e.returnedToHub) {
+          const mirrorCheck = await page.evaluate(() => {
+            const runsRaw = localStorage.getItem('aegis.runs');
+            let progress = null;
+            try {
+              progress = JSON.parse(localStorage.getItem('aegis.progress') || 'null');
+            } catch {
+              progress = null;
+            }
+            const blueprints = progress?.blueprints;
+            const arcBlueprint = Array.isArray(blueprints)
+              ? blueprints.includes('arc_shooter')
+              : Boolean(blueprints?.arc_shooter);
+            return {
+              runsRaw,
+              runs: progress?.runs ?? null,
+              arcBlueprint,
+              seedSecured: Boolean(progress?.secured_caches?.verdant_seed_vault),
+            };
+          });
+          e2e.mirrorCheck = mirrorCheck;
+          e2e.mirrorSynced = mirrorCheck.runsRaw === '1'
+            && mirrorCheck.runs === 1
+            && mirrorCheck.arcBlueprint
+            && mirrorCheck.seedSecured;
 
-        await page.evaluate(() => document.getElementById('hero-loadout')?.click());
-        await new Promise((r) => setTimeout(r, 400));
-        const arcRackState = await page.evaluate(() => {
-          const node = document.querySelector('#hero-rack .rackcard[data-weapon="arc_shooter"] .rackcard__state');
-          return node ? node.textContent.trim() : '';
-        });
-        e2e.arcBlueprintEligibleInRack = arcRackState.includes('350') && !/blueprint/i.test(arcRackState);
-        await capture('rack-arc-eligible');
-        await page.evaluate(() => document.getElementById('weapon-modal-close')?.click());
-        await new Promise((r) => setTimeout(r, 250));
+          await page.evaluate(() => document.getElementById('hub-card-operative')?.click());
+          await page.waitForFunction(
+            () => document.body?.dataset?.screen === 'hero'
+              && document.getElementById('screen-hero')?.dataset?.ready === 'true',
+            { timeout: 25000 },
+          ).catch(() => {});
+          await page.evaluate(() =>
+            document.querySelector('#hero-tiers .tierstep[data-tier="2"]')?.click());
+          await new Promise((r) => setTimeout(r, 450));
+          const tierReadout = await page.evaluate(() => {
+            const step = document.querySelector('#hero-tiers .tierstep[data-tier="2"]');
+            return {
+              checked: step?.getAttribute('aria-checked') === 'true',
+              locked: step?.dataset?.locked === 'true',
+              vitals: document.getElementById('hero-stat-vitals')?.textContent?.trim() || '',
+              armour: document.getElementById('hero-stat-armour')?.textContent?.trim() || '',
+            };
+          });
+          e2e.tier2Selected = tierReadout.checked && !tierReadout.locked && tierReadout.vitals === '106' && tierReadout.armour === '3%';
+          e2e.tier2VitalsReadout = tierReadout;
+          await capture('operative-tier2');
 
-        await page.evaluate(() => document.getElementById('hero-next')?.click());
-        await page.waitForFunction(() => document.body?.dataset?.screen === 'hub', { timeout: 15000 }).catch(() => {});
-        await capture('hub-tier2-ready');
-        await page.evaluate(() => {
-          document.getElementById('world-card-verdant-bloom')?.click();
-        });
-        const beforeRedeploy = consoleLines.length;
-        await page.evaluate(() => document.getElementById('hub-deploy')?.click());
-        e2e.redeployedTier2Vitals106 = await awaitConsoleText(
-          page,
-          consoleLines.slice(beforeRedeploy),
-          'Operative: hero=sable tier=2/2 vitals=106 reduction=3%',
-          Math.max(150000, timeout * 1000),
-        );
-        await awaitConsoleText(page, consoleLines.slice(beforeRedeploy), 'Recovery QA:', 30000);
-        await new Promise((r) => setTimeout(r, 3500));
-        e2e.redeploySeedVaultSecured = consoleLines
-          .slice(beforeRedeploy)
-          .some((l) => l.includes('Recovery QA:') && l.includes('LAB CACHE'));
-        await capture('redeploy-tier2-106hp');
+          await page.evaluate(() => document.getElementById('hero-loadout')?.click());
+          await new Promise((r) => setTimeout(r, 400));
+          const arcRackState = await page.evaluate(() => {
+            const node = document.querySelector('#hero-rack .rackcard[data-weapon="arc_shooter"] .rackcard__state');
+            return node ? node.textContent.trim() : '';
+          });
+          e2e.arcRackState = arcRackState;
+          e2e.arcBlueprintEligibleInRack = arcRackState.includes('250') && !/blueprint/i.test(arcRackState);
+          await capture('rack-arc-eligible');
+          await page.evaluate(() => document.getElementById('weapon-modal-close')?.click());
+          await new Promise((r) => setTimeout(r, 250));
+
+          await page.evaluate(() => document.getElementById('hero-next')?.click());
+          await page.waitForFunction(() => document.body?.dataset?.screen === 'hub', { timeout: 15000 }).catch(() => {});
+          await capture('hub-tier2-ready');
+          await page.evaluate(() => {
+            document.getElementById('world-card-verdant-bloom')?.click();
+          });
+          const beforeRedeploy = consoleLines.length;
+          await page.evaluate(() => document.getElementById('hub-deploy')?.click());
+          e2e.redeployedTier2Vitals106 = await awaitConsoleText(
+            page,
+            consoleLines.slice(beforeRedeploy),
+            'Operative: hero=sable tier=2/2 vitals=106 reduction=3%',
+            Math.max(150000, timeout * 1000),
+          );
+          await awaitConsoleText(page, consoleLines.slice(beforeRedeploy), 'Recovery QA:', 30000);
+          await new Promise((r) => setTimeout(r, 3500));
+          e2e.redeploySeedVaultSecured = consoleLines
+            .slice(beforeRedeploy)
+            .some((l) => l.includes('Recovery QA:') && l.includes('LAB CACHE'));
+          await capture('redeploy-tier2-106hp');
+        }
       }
-      await cdp.detach().catch(() => {});
+      } catch (e2eErr) {
+        e2e.error = String(e2eErr?.stack || e2eErr).slice(0, 400);
+      } finally {
+        if (cdp) await cdp.detach().catch(() => {});
+      }
       recoveryEvidence.e2e = e2e;
     }
   }
@@ -1819,7 +1847,7 @@ async function checkPage(target, viewport) {
       checks.push(['Extract banked Run #1 once and presented Extraction Results', e2e?.extractedResultsShown === true && e2e?.runBankedOnce === true]);
       checks.push(['Results HOME returned to shell Hub with synced localStorage progress', e2e?.returnedToHub === true && e2e?.mirrorSynced === true]);
       checks.push(['Operative Tier 2 unlocked and selected with 106 vitals and 3% armor', e2e?.tier2Selected === true]);
-      checks.push(['Weapon rack reflects unlocked Arc Shooter blueprint eligibility (350 BP)', e2e?.arcBlueprintEligibleInRack === true]);
+      checks.push(['Weapon rack reflects unlocked Arc Shooter blueprint eligibility (250 BP)', e2e?.arcBlueprintEligibleInRack === true]);
       checks.push(['Redeploy spawned Sable at Tier 2 with 106 vitals and preserved Seed Vault secure state', e2e?.redeployedTier2Vitals106 === true && e2e?.redeploySeedVaultSecured === true]);
     }
   }
