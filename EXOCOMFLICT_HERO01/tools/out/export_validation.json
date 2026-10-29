@@ -1,0 +1,184 @@
+{
+ "RIGGED": {
+  "file": "HERO_01_RIGGED.glb",
+  "bytes": 22878116,
+  "nodes": [
+   "Head",
+   "Neck",
+   "Weapon_R",
+   "Hand_R",
+   "Forearm_R",
+   "UpperArm_R",
+   "Clavicle_R",
+   "Hand_L",
+   "Forearm_L",
+   "UpperArm_L",
+   "Clavicle_L",
+   "UpperChest",
+   "Chest",
+   "Spine",
+   "Toe_R",
+   "Foot_R",
+   "LowerLeg_R",
+   "UpperLeg_R",
+   "Toe_L",
+   "Foot_L",
+   "LowerLeg_L",
+   "UpperLeg_L",
+   "Hips",
+   "Root",
+   "HERO_01_BODY",
+   "HERO_01_Armature"
+  ],
+  "meshes": [
+   {
+    "name": "HERO_01_BODY",
+    "verts": 244770,
+    "attrs": [
+     "JOINTS_0",
+     "NORMAL",
+     "POSITION",
+     "TEXCOORD_0",
+     "WEIGHTS_0"
+    ],
+    "weight_sum_min": 0.9999998807907104,
+    "weight_sum_max": 1.0000001192092896,
+    "zero_weight_verts": 0
+   }
+  ],
+  "skins": [
+   {
+    "joints": 24,
+    "joint_names": [
+     "Root",
+     "Hips",
+     "Spine",
+     "Chest",
+     "UpperChest",
+     "Neck",
+     "Head",
+     "Clavicle_R",
+     "UpperArm_R",
+     "Forearm_R",
+     "Hand_R",
+     "Weapon_R",
+     "Clavicle_L",
+     "UpperArm_L",
+     "Forearm_L",
+     "Hand_L",
+     "UpperLeg_R",
+     "LowerLeg_R",
+     "Foot_R",
+     "Toe_R",
+     "UpperLeg_L",
+     "LowerLeg_L",
+     "Foot_L",
+     "Toe_L"
+    ]
+   }
+  ],
+  "animations": [
+   {
+    "name": "Weapon_Raise_To_Aim",
+    "channels": 72,
+    "duration_s": 1.5
+   }
+  ],
+  "images": 3,
+  "materials": 1
+ },
+ "ANIMATIONS": {
+  "file": "HERO_01_ANIMATIONS.glb",
+  "bytes": 67196,
+  "nodes": [
+   "Head",
+   "Neck",
+   "Weapon_R",
+   "Hand_R",
+   "Forearm_R",
+   "UpperArm_R",
+   "Clavicle_R",
+   "Hand_L",
+   "Forearm_L",
+   "UpperArm_L",
+   "Clavicle_L",
+   "UpperChest",
+   "Chest",
+   "Spine",
+   "Toe_R",
+   "Foot_R",
+   "LowerLeg_R",
+   "UpperLeg_R",
+   "Toe_L",
+   "Foot_L",
+   "LowerLeg_L",
+   "UpperLeg_L",
+   "Hips",
+   "Root",
+   "HERO_01_Armature"
+  ],
+  "meshes": [],
+  "skins": [
+   {
+    "joints": 24,
+    "joint_names": [
+     "Root",
+     "Hips",
+     "Spine",
+     "Chest",
+     "UpperChest",
+     "Neck",
+     "Head",
+     "Clavicle_R",
+     "UpperArm_R",
+     "Forearm_R",
+     "Hand_R",
+     "Weapon_R",
+     "Clavicle_L",
+     "UpperArm_L",
+     "Forearm_L",
+     "Hand_L",
+     "UpperLeg_R",
+     "LowerLeg_R",
+     "Foot_R",
+     "Toe_R",
+     "UpperLeg_L",
+     "LowerLeg_L",
+     "Foot_L",
+     "Toe_L"
+    ]
+   }
+  ],
+  "animations": [
+   {
+    "name": "Weapon_Raise_To_Aim",
+    "channels": 72,
+    "duration_s": 1.5
+   }
+  ],
+  "images": 0,
+  "materials": 0
+ },
+ "WEAPON": {
+  "file": "HERO_01_WEAPON.glb",
+  "bytes": 5326624,
+  "nodes": [
+   "HERO_01_WEAPON.001"
+  ],
+  "meshes": [
+   {
+    "name": "HERO_01_WEAPON.001",
+    "verts": 17944,
+    "attrs": [
+     "NORMAL",
+     "POSITION",
+     "TEXCOORD_0"
+    ]
+   }
+  ],
+  "skins": [],
+  "animations": [],
+  "images": 3,
+  "materials": 1
+ }
+}
