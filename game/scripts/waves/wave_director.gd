@@ -128,14 +128,19 @@ func _process(delta: float) -> void:
 				continue
 			var target: Vector3 = enemy.global_position + Vector3.UP
 			var screen := _player_camera.unproject_position(target)
+			var vp_size := _player_camera.get_viewport().get_visible_rect().size
+			var dist := _player.global_position.distance_to(enemy.global_position)
 			print(
 				(
-					"Recovery Target QA: id=%s x=%.2f y=%.2f behind=%s"
+					"Recovery Target QA: id=%s x=%.2f y=%.2f behind=%s dist=%.1f vp=%.0fx%.0f"
 					% [
 						enemy.name,
 						screen.x,
 						screen.y,
 						"yes" if _player_camera.is_position_behind(target) else "no",
+						dist,
+						vp_size.x,
+						vp_size.y,
 					]
 				)
 			)

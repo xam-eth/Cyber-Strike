@@ -364,7 +364,12 @@ func set_wave_status(
 
 
 func set_recovery_status(
-	title: String, detail: String, state_text: String, action: String, guard_count: int = 0
+	title: String,
+	detail: String,
+	state_text: String,
+	action: String,
+	guard_count: int = 0,
+	guidance: String = "",
 ) -> void:
 	if (
 		_state.recovery_title == title
@@ -372,6 +377,7 @@ func set_recovery_status(
 		and _state.recovery_state == state_text
 		and _state.recovery_action == action
 		and _state.recovery_guard_count == guard_count
+		and _state.recovery_guidance == guidance
 	):
 		return
 	_state.recovery_active = not title.is_empty()
@@ -380,6 +386,7 @@ func set_recovery_status(
 	_state.recovery_state = state_text
 	_state.recovery_action = action
 	_state.recovery_guard_count = maxi(guard_count, 0)
+	_state.recovery_guidance = guidance
 	_apply_context_visibility()
 	HudEncounterUi.refresh_recovery_objective(self)
 	HudEncounterUi.report_recovery_qa(self)
@@ -666,6 +673,14 @@ func set_player_down(down: bool) -> void:
 	_apply_context_visibility()
 
 
+func set_results_context(
+	extracted: bool, promoted_tier: int = 0, arc_blueprint: bool = false
+) -> void:
+	_state.results_extracted = extracted
+	_state.results_promoted_tier = promoted_tier
+	_state.results_arc_blueprint = arc_blueprint
+
+
 func show_results(
 	wave_reached: int,
 	survival_time: String,
@@ -696,8 +711,19 @@ func show_results(
 	)
 
 
-func show_extraction_choice(wallet_bp: int, arc_unlocked: bool) -> void:
-	HudMenuUi.show_extraction_choice(self, wallet_bp, arc_unlocked)
+func show_extraction_choice(
+	wallet_bp: int,
+	arc_unlocked: bool,
+	completed_runs: int = 0,
+	optional_secured: bool = false,
+) -> void:
+	HudMenuUi.show_extraction_choice(
+		self, wallet_bp, arc_unlocked, completed_runs, optional_secured
+	)
+
+
+func _report_results_qa() -> void:
+	HudMenuUi.report_results_qa(self)
 
 
 func hide_results() -> void:

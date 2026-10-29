@@ -132,8 +132,7 @@ func _check_shell_character_fallback() -> void:
 		var name_label := stage.get("_name_label") as Label
 		var status_label := stage.get("_status_label") as Label
 		_expect(
-			name_label != null and name_label.text == "MARA VOSS",
-			"hero metadata remains visible"
+			name_label != null and name_label.text == "MARA VOSS", "hero metadata remains visible"
 		)
 		_expect(
 			status_label != null and status_label.text.contains("VISUAL OFFLINE"),
@@ -157,11 +156,7 @@ func _check_shell_character_fallback() -> void:
 	await process_frame
 
 
-func _make_main(
-	world_override: String,
-	hero_path: String = "",
-	weapon_path: String = ""
-) -> Node:
+func _make_main(world_override: String, hero_path: String = "", weapon_path: String = "") -> Node:
 	var main := MainScene.instantiate()
 	main.set("start_wave_session_on_ready", false)
 	main.get_node("ProgressionService").set("profile_path", "")
@@ -192,9 +187,7 @@ func _check_loader_results() -> void:
 	_expect(not bool(missing["ok"]), "a missing package returns failure instead of a scene")
 	_expect(missing["code"] == "missing", "the missing-package result has a stable reason")
 	var character_path := HeroTier.model_path(HeroDefinition.DEFAULT_HERO_ID, 1)
-	var outside := ContentModuleLoader.load_scene(
-		character_path, ContentModuleLoader.WORLD_ROOTS
-	)
+	var outside := ContentModuleLoader.load_scene(character_path, ContentModuleLoader.WORLD_ROOTS)
 	_expect(not bool(outside["ok"]), "a World loader cannot load a Character path")
 	_expect(outside["code"] == "outside_allowed_roots", "the domain boundary is explicit")
 	var healthy_character := ContentModuleLoader.load_scene(

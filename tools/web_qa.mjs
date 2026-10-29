@@ -98,9 +98,11 @@ const requireDefense = has('--encounter');
 const encounterMode = requireDefense || has('--encounter-prep');
 const encounterTimeoutMs = Math.max(0, Number(flag('--encounter-timeout', '600')) || 0) * 1000;
 const exploreWaitMs = Number(flag('--explore-wait', '8000'));
-// --recovery proves the real Verdant landing → Engage → guarded state. It does
-// not claim guard elimination, Secure, extraction, or a full mission clear.
-const recoveryMode = has('--recovery');
+// --recovery proves the real Verdant landing → Engage → guarded state.
+// --recovery-e2e drives the full Verdant clear → Arc Blueprint secure →
+// Extract → Tier-2 selection → 106-vital redeploy loop via real inputs.
+const recoveryE2eMode = has('--recovery-e2e');
+const recoveryMode = has('--recovery') || recoveryE2eMode;
 const upgradesMode = has('--upgrades');
 const selectVanguard = has('--select-vanguard');
 const selectedWorld = String(
@@ -937,6 +939,313 @@ async function checkPage(target, viewport) {
     recoveryEvidence.secureLocked = recoveryEvidence.guardsActive
       && Boolean(guardActivation)
       && !consoleLines.some((line) => line.includes('Encounter: Preparing Defense'));
+
+    if (recoveryE2eMode && recoveryEvidence.guardsActive) {
+      const e2e = {
+        initialTier1Vitals100: consoleLines.some((line) =>
+          line.includes('Operative: hero=sable tier=1/1 vitals=100')),
+        guidanceObserved: consoleLines.some((line) =>
+          line.includes('Recovery QA:') && /\bguidance=(area|local|interact|combat)\b/.test(line)),
+        guardsCleared: false,
+        secureOffered: false,
+        blueprintSecured: false,
+        missionCompleteShown: false,
+        extractedResultsShown: false,
+        runBankedOnce: false,
+        returnedToHub: false,
+        mirrorSynced: false,
+        tier2Selected: false,
+        tier2VitalsReadout: null,
+        arcBlueprintEligibleInRack: false,
+        redeployedTier2Vitals106: false,
+        redeploySeedVaultSecured: false,
+      };
+      const cx = Math.round(viewport.width * 0.5);
+      const cy = Math.round(viewport.height * 0.5);
+      const parseVector = (raw) => {
+        if (!raw || raw === 'none') return null;
+        const parts = raw.split(',').map(Number);
+        return parts.length === 2 && parts.every(Number.isFinite)
+          ? { x: parts[0], y: parts[1] }
+          : null;
+      };
+      const parseProjection = (prefix, afterIdx = 0) => {
+        for (let i = consoleLines.length - 1; i >= afterIdx; i -= 1) {
+          const entry = consoleLines[i];
+          if (!entry.includes(prefix)) continue;
+          const x = Number(entry.match(/\bx=(-?[0-9.]+)/)?.[1]);
+          const y = Number(entry.match(/\by=(-?[0-9.]+)/)?.[1]);
+          const behind = entry.match(/\bbehind=(yes|no)/)?.[1] || 'no';
+          const dist = Number(entry.match(/\bdist=([0-9.]+)/)?.[1] ?? 'NaN');
+          const vpMatch = entry.match(/\bvp=([0-9]+)x([0-9]+)/);
+          if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
+          return {
+            id: entry.match(/\bid=([^\s]+)/)?.[1] || '',
+            x,
+            y,
+            behind: behind === 'yes',
+            dist: Number.isFinite(dist) ? dist : null,
+            vpW: vpMatch ? Number(vpMatch[1]) : viewport.width,
+            vpH: vpMatch ? Number(vpMatch[2]) : viewport.height,
+          };
+        }
+        return null;
+      };
+      const steerCameraStep = async (dx, dy) => {
+        await page.mouse.up({ button: 'right' }).catch(() => {});
+        await page.mouse.move(cx, cy);
+        await page.mouse.down({ button: 'right' });
+        // First motion event after right-press is intentionally ignored by
+        // PlayerController to absorb pointer-lock entry jumps.
+        await page.mouse.move(cx + 1, cy);
+        const clampedX = Math.max(24, Math.min(viewport.width - 24, Math.round(cx + 1 + dx)));
+        const clampedY = Math.max(24, Math.min(viewport.height - 24, Math.round(cy + dy)));
+        await page.mouse.move(clampedX, clampedY, { steps: 3 });
+        await new Promise((r) => setTimeout(r, 90));
+        await page.mouse.up({ button: 'right' });
+      };
+
+      // 1. Defeat both live Seed Vault guards using real ADS camera steering,
+      // gunfire bursts, footwork, and EMP Pulse.
+      const combatDeadline = Date.now() + 90000;
+      let lastEmpAt = 0;
+      let burstsSinceKo = 0;
+      let knownKos = 0;
+      while (Date.now() < combatDeadline) {
+        const rec = latestRecovery();
+        const readySeen = consoleLines
+          .slice(beforeEngage)
+          .some((l) => l.includes('Recovery QA:') && l.includes('guards=0'));
+        if ((rec && rec.guards === 0) || readySeen) {
+          e2e.guardsCleared = true;
+          break;
+        }
+        const kosNow = consoleLines.slice(beforeEngage).filter((l) => l.includes('KO') || l.includes('hit_confirm')).length;
+        if (kosNow > knownKos) {
+          knownKos = kosNow;
+          burstsSinceKo = 0;
+        }
+        const markIdx = Math.max(beforeEngage, consoleLines.length - 12);
+        await new Promise((r) => setTimeout(r, 220));
+        const guard = parseProjection('Recovery Target QA:', markIdx)
+          || parseProjection('Recovery Target QA:', beforeEngage);
+        if (Date.now() - lastEmpAt > 4000 && (!guard || (guard.dist !== null && guard.dist <= 8.8))) {
+          await page.keyboard.press('KeyE');
+          lastEmpAt = Date.now();
+        }
+        if (!guard) continue;
+        if (guard.behind) {
+          await steerCameraStep(270, 0);
+          continue;
+        }
+        const errX = guard.x - guard.vpW * 0.5;
+        const errY = guard.y - guard.vpH * 0.5;
+        if (guard.dist !== null && guard.dist < 2.3) {
+          await page.keyboard.down('KeyS');
+          await new Promise((r) => setTimeout(r, 240));
+          await page.keyboard.up('KeyS');
+        } else if (guard.dist !== null && guard.dist > 15.0 && Math.abs(errX) < 110) {
+          await page.keyboard.down('KeyW');
+          await new Promise((r) => setTimeout(r, 320));
+          await page.keyboard.up('KeyW');
+        }
+        if (Math.abs(errX) > 22 || Math.abs(errY) > 22) {
+          const stepX = Math.max(-250, Math.min(250, errX * 0.92));
+          const stepY = Math.max(-140, Math.min(140, errY * 0.85));
+          await steerCameraStep(stepX, stepY);
+        }
+        if (Math.abs(errX) < 125 && Math.abs(errY) < 105) {
+          await page.mouse.move(cx, cy);
+          await page.mouse.down({ button: 'right' });
+          await page.mouse.down({ button: 'left' });
+          await new Promise((r) => setTimeout(r, 420));
+          await page.mouse.up({ button: 'left' });
+          await page.mouse.up({ button: 'right' });
+          burstsSinceKo += 1;
+          if (burstsSinceKo >= 5) {
+            const strafeKey = burstsSinceKo % 2 === 0 ? 'KeyA' : 'KeyD';
+            await page.keyboard.down(strafeKey);
+            await new Promise((r) => setTimeout(r, 420));
+            await page.keyboard.up(strafeKey);
+            burstsSinceKo = 0;
+          }
+        }
+      }
+      await page.mouse.up({ button: 'left' }).catch(() => {});
+      await page.mouse.up({ button: 'right' }).catch(() => {});
+
+      // 2. Navigate back inside Seed Vault's 5m interaction radius if combat moved us out.
+      if (e2e.guardsCleared) {
+        const approachDeadline = Date.now() + 30000;
+        while (Date.now() < approachDeadline) {
+          if (latestRecovery()?.action === 'secure') {
+            e2e.secureOffered = true;
+            break;
+          }
+          const markIdx = Math.max(0, consoleLines.length - 8);
+          await new Promise((r) => setTimeout(r, 280));
+          const cacheProj = parseProjection('Recovery Cache QA: id=verdant_seed_vault', markIdx)
+            || parseProjection('Recovery Cache QA: id=verdant_seed_vault', 0);
+          if (!cacheProj) continue;
+          if (cacheProj.behind) {
+            await steerCameraStep(270, 0);
+            continue;
+          }
+          const errX = cacheProj.x - cacheProj.vpW * 0.5;
+          if (Math.abs(errX) > 85) {
+            await steerCameraStep(Math.max(-230, Math.min(230, errX * 0.9)), 0);
+          } else {
+            await page.keyboard.down('KeyW');
+            await new Promise((r) => setTimeout(r, 380));
+            await page.keyboard.up('KeyW');
+          }
+        }
+      }
+      await capture('ready-to-secure');
+
+      // 3. Explicit Secure -> Mission Complete (Extract vs Continue to Endless).
+      const beforeSecure = consoleLines.length;
+      if (e2e.secureOffered) {
+        await page.keyboard.press('KeyB');
+        e2e.missionCompleteShown = await awaitConsoleText(
+          page,
+          consoleLines.slice(beforeSecure),
+          'Recovery Results QA: mode=extraction',
+          15000,
+        );
+        e2e.blueprintSecured = consoleLines
+          .slice(beforeSecure)
+          .some((l) => l.includes('Recovery: secured verdant_seed_vault · reward arc_shooter_blueprint'));
+        await new Promise((r) => setTimeout(r, 450));
+      }
+      await capture('mission-complete');
+
+      // 4. Choose Extract -> Mission Results (banked run #1 + Tier-2 promotion).
+      const clickCanvasPoint = async (pt) => {
+        const bounds = await page.evaluate(() => {
+          const r = document.querySelector('canvas')?.getBoundingClientRect();
+          return r ? { left: r.left, top: r.top } : { left: 0, top: 0 };
+        });
+        await page.mouse.click(bounds.left + pt.x, bounds.top + pt.y);
+      };
+      const latestResultsQa = (mode, fromIdx) => {
+        const line = [...consoleLines.slice(fromIdx)]
+          .reverse()
+          .find((l) => l.includes(`Recovery Results QA: mode=${mode}`));
+        if (!line) return null;
+        return {
+          primary: parseVector(line.match(/\bprimary=([^\s]+)/)?.[1]),
+          home: parseVector(line.match(/\bhome=([^\s]+)/)?.[1]),
+          line,
+        };
+      };
+      const beforeExtract = consoleLines.length;
+      if (e2e.missionCompleteShown) {
+        const extUi = latestResultsQa('extraction', beforeSecure);
+        if (extUi?.primary) await clickCanvasPoint(extUi.primary);
+        else await page.keyboard.press('Enter');
+        e2e.extractedResultsShown = await awaitConsoleText(
+          page,
+          consoleLines.slice(beforeExtract),
+          'Recovery Results QA: mode=results',
+          15000,
+        );
+        const bankLines = consoleLines
+          .slice(beforeExtract)
+          .filter((l) => l.includes('Progression: banked'));
+        e2e.runBankedOnce = bankLines.length === 1 && bankLines[0].includes('runs 1 · tier 2');
+        await new Promise((r) => setTimeout(r, 500));
+      }
+      await capture('results-extracted');
+
+      // 5. Return HOME -> Shell Hub -> Operative Tier 2 -> Redeploy at 106 vitals.
+      if (e2e.extractedResultsShown && isFrontEnd) {
+        const resUi = latestResultsQa('results', beforeExtract);
+        const navPromise = page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 20000 }).catch(() => null);
+        if (resUi?.home) await clickCanvasPoint(resUi.home);
+        else {
+          await page.keyboard.press('ArrowDown');
+          await page.keyboard.press('ArrowDown');
+          await page.keyboard.press('Enter');
+        }
+        await navPromise;
+        await page.waitForFunction(() => document.body?.dataset?.screen === 'hub', { timeout: 20000 }).catch(() => {});
+        e2e.returnedToHub = await page.evaluate(() => document.body?.dataset?.screen === 'hub');
+
+        const mirrorCheck = await page.evaluate(() => {
+          const runsRaw = localStorage.getItem('aegis.runs');
+          let progress = null;
+          try {
+            progress = JSON.parse(localStorage.getItem('aegis.progress') || 'null');
+          } catch {
+            progress = null;
+          }
+          return {
+            runsRaw,
+            runs: progress?.runs ?? null,
+            arcBlueprint: Boolean(progress?.blueprints?.arc_shooter),
+            seedSecured: Boolean(progress?.secured_caches?.verdant_seed_vault),
+          };
+        });
+        e2e.mirrorSynced = mirrorCheck.runsRaw === '1'
+          && mirrorCheck.runs === 1
+          && mirrorCheck.arcBlueprint
+          && mirrorCheck.seedSecured;
+
+        await page.click('#hub-card-operative');
+        await page.waitForFunction(
+          () => document.body?.dataset?.screen === 'hero'
+            && document.getElementById('screen-hero')?.dataset?.ready === 'true',
+          { timeout: 20000 },
+        ).catch(() => {});
+        await page.click('#hero-tiers .tierstep[data-tier="2"]');
+        await new Promise((r) => setTimeout(r, 450));
+        const tierReadout = await page.evaluate(() => {
+          const step = document.querySelector('#hero-tiers .tierstep[data-tier="2"]');
+          return {
+            checked: step?.getAttribute('aria-checked') === 'true',
+            locked: step?.dataset?.locked === 'true',
+            vitals: document.getElementById('hero-stat-vitals')?.textContent?.trim() || '',
+            armour: document.getElementById('hero-stat-armour')?.textContent?.trim() || '',
+          };
+        });
+        e2e.tier2Selected = tierReadout.checked && !tierReadout.locked && tierReadout.vitals === '106' && tierReadout.armour === '3%';
+        e2e.tier2VitalsReadout = tierReadout;
+        await capture('operative-tier2');
+
+        await page.click('#hero-loadout');
+        await new Promise((r) => setTimeout(r, 350));
+        const arcRackState = await page.evaluate(() => {
+          const node = document.querySelector('#hero-rack .rackcard[data-weapon="arc_shooter"] .rackcard__state');
+          return node ? node.textContent.trim() : '';
+        });
+        e2e.arcBlueprintEligibleInRack = arcRackState.includes('350') && !/blueprint/i.test(arcRackState);
+        await capture('rack-arc-eligible');
+        await page.click('#weapon-modal-close');
+        await new Promise((r) => setTimeout(r, 250));
+
+        await page.click('#hero-next');
+        await page.waitForFunction(() => document.body?.dataset?.screen === 'hub', { timeout: 15000 }).catch(() => {});
+        await page.evaluate(() => {
+          document.getElementById('world-card-verdant-bloom')?.click();
+        });
+        const beforeRedeploy = consoleLines.length;
+        await page.click('#hub-deploy');
+        e2e.redeployedTier2Vitals106 = await awaitConsoleText(
+          page,
+          consoleLines.slice(beforeRedeploy),
+          'Operative: hero=sable tier=2/2 vitals=106 reduction=3%',
+          90000,
+        );
+        await awaitConsoleText(page, consoleLines.slice(beforeRedeploy), 'Recovery QA:', 20000);
+        await new Promise((r) => setTimeout(r, 3500));
+        e2e.redeploySeedVaultSecured = consoleLines
+          .slice(beforeRedeploy)
+          .some((l) => l.includes('Recovery QA:') && l.includes('LAB CACHE'));
+        await capture('redeploy-tier2-106hp');
+      }
+      recoveryEvidence.e2e = e2e;
+    }
   }
 
   /* ---------- walk the front end to the gameplay scene ---------- */
@@ -1202,7 +1511,25 @@ async function checkPage(target, viewport) {
     checks.push(['Engage produced two live Recovery guards', recoveryEvidence?.guardsActive === true]);
     checks.push(['both Recovery guards loaded real GLB visuals without fallback', recoveryEvidence?.guardModels?.length === 2]);
     checks.push(['active guards kept Secure locked and blocked generic Defense', recoveryEvidence?.secureLocked === true]);
-    checks.push(['Recovery landing, offer, guarded and contact frames were captured', recoveryFrames.length === 4]);
+    checks.push([
+      recoveryE2eMode
+        ? 'Recovery E2E frames captured across combat, secure, extract, Tier-2, and redeploy'
+        : 'Recovery landing, offer, guarded and contact frames were captured',
+      recoveryE2eMode ? recoveryFrames.length >= 9 : recoveryFrames.length === 4,
+    ]);
+    if (recoveryE2eMode) {
+      const e2e = recoveryEvidence?.e2e;
+      checks.push(['Run 1 spawned Sable at Tier 1 with 100 vitals', e2e?.initialTier1Vitals100 === true]);
+      checks.push(['Escalating directional guidance reported active stage in HUD', e2e?.guidanceObserved === true]);
+      checks.push(['Both live Seed Vault guards were defeated via real combat input', e2e?.guardsCleared === true]);
+      checks.push(['Seed Vault transitioned to explicit Secure offer after guard clear', e2e?.secureOffered === true]);
+      checks.push(['Explicit Secure persisted Arc Shooter blueprint and opened Mission Complete', e2e?.blueprintSecured === true && e2e?.missionCompleteShown === true]);
+      checks.push(['Extract banked Run #1 once and presented Extraction Results', e2e?.extractedResultsShown === true && e2e?.runBankedOnce === true]);
+      checks.push(['Results HOME returned to shell Hub with synced localStorage progress', e2e?.returnedToHub === true && e2e?.mirrorSynced === true]);
+      checks.push(['Operative Tier 2 unlocked and selected with 106 vitals and 3% armor', e2e?.tier2Selected === true]);
+      checks.push(['Weapon rack reflects unlocked Arc Shooter blueprint eligibility (350 BP)', e2e?.arcBlueprintEligibleInRack === true]);
+      checks.push(['Redeploy spawned Sable at Tier 2 with 106 vitals and preserved Seed Vault secure state', e2e?.redeployedTier2Vitals106 === true && e2e?.redeploySeedVaultSecured === true]);
+    }
   }
   if (selectWorld) {
     if (isFrontEnd) {

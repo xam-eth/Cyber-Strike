@@ -610,9 +610,10 @@ func _present_selected(reveal: bool) -> void:
 	_role_label.text = _first_sentence(definition.display_role())
 	var progression := progression_service()
 	var active_tier := progression.fieldable_tier() if progression != null else 1
-	var reduction := HeroTier.reduction(active_tier)
+	var vitals := roundi(HeroTier.vitals(active_tier))
+	var reduction := roundi(HeroTier.reduction(active_tier))
 	if is_instance_valid(_tier_label):
-		_tier_label.text = AegisText.t("hero.vitals_line", [active_tier, 100, reduction])
+		_tier_label.text = AegisText.t("hero.vitals_line", [active_tier, vitals, reduction])
 	if progression != null:
 		var wpn_tier := progression.weapon_tier(progression.selected_weapon_id)
 		_loadout_label.text = (

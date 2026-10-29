@@ -3,6 +3,7 @@ extends SceneTree
 ## TECH HUNT 0 contract: real guard actors, explicit Secure, permanent profile
 ## writes, both mission-complete choices, Endless coexistence, and death/retry.
 const MainScene = preload("res://scenes/main.tscn")
+const FrontEndScene = preload("res://scenes/ui/front_end.tscn")
 const WORLD_ID := &"verdant_bloom"
 const PRIMARY := &"verdant_seed_vault"
 const OPTIONAL := &"verdant_crashed_lab"
@@ -40,6 +41,7 @@ func _exercise_continue_and_death() -> void:
 		wave.get("current_wave") == 0 and wave.call("get_active_enemies").is_empty(),
 		"Verdant landing has no automatic combat",
 	)
+	await _exercise_escalating_guidance(main)
 	await _secure_primary(main)
 	var progression := main.get_node("ProgressionService") as ProgressionService
 	_expect(
@@ -159,11 +161,30 @@ func _exercise_death_retry_and_extract() -> void:
 	)
 
 	await _secure_primary(main)
+	var choice_summary := (hud.get("_results_summary") as Label).text
+	_expect(
+		choice_summary.contains("TIER 2") and choice_summary.contains("106 HP"),
+		"Mission Complete choice explicitly previews Tier 2 (106 HP) unlock on Extract",
+	)
 	(hud.get("_results_retry_button") as Button).pressed.emit()
 	await process_frame
 	_expect(
 		(hud.get("_state") as HudState).results_mode == "results",
 		"Extract transitions from the choice to ordinary Results",
+	)
+	var results_title := (hud.get("_results_title") as Label).text
+	var results_reward := (hud.get("_results_reward_label") as Label).text
+	var results_summary := (hud.get("_results_summary") as Label).text
+	_expect(
+		(
+			results_title == AegisText.t("results.extracted_title")
+			and results_reward == AegisText.t("results.extracted_reward")
+			and results_summary.contains("ARC SHOOTER")
+			and results_summary.contains("TIER 2")
+			and results_summary.contains("106 HP")
+			and results_summary.contains("RESET")
+		),
+		"Extraction Results explain kept blueprint, Tier 2 promotion, and reset run state",
 	)
 	_expect(
 		progression.completed_runs == 1 and progression.balance == 0,
@@ -184,6 +205,121 @@ func _exercise_death_retry_and_extract() -> void:
 		"Extract persists the blueprint and one completed run after reload",
 	)
 	reloaded.queue_free()
+	await process_frame
+	await _exercise_tier2_redeploy(EXTRACT_PROFILE)
+
+
+func _exercise_escalating_guidance(main: Node) -> void:
+	var player := main.get_node("Player") as CharacterBody3D
+	var hud := main.get_node("HUD/TouchControls") as TouchControls
+	var hud_state := hud.get("_state") as HudState
+	var camera_rig: Node = player.get_node("CameraRig")
+	var yaw_pivot := camera_rig.get_node("YawPivot") as Node3D
+	player.set_physics_process(false)
+	player.global_position = Vector3(0.0, 0.1, 32.0)
+	yaw_pivot.rotation.y = 0.0
+	await physics_frame
+	main.call("advance_recovery_guidance", 0.1)
+	_expect(
+		(
+			main.call("recovery_guidance_stage") == "area"
+			and hud_state.recovery_detail.contains(AegisText.t("recovery.dir_ahead"))
+		),
+		"distant player receives Area guidance with AHEAD bearing toward Seed Vault",
+	)
+	yaw_pivot.rotation.y = PI
+	main.call("_update_recovery")
+	_expect(
+		hud_state.recovery_detail.contains(AegisText.t("recovery.dir_behind")),
+		"turning 180 degrees flips directional guidance to BEHIND",
+	)
+	yaw_pivot.rotation.y = 0.0
+	player.global_position = Vector3(0.0, 0.1, 18.0)
+	await physics_frame
+	main.call("advance_recovery_guidance", 0.1)
+	_expect(
+		main.call("recovery_guidance_stage") == "local",
+		"closing within 22m escalates Area guidance to Local approach guidance",
+	)
+	main.call("advance_recovery_guidance", 12.5)
+	var seed_visual := main.get_node("RecoveryCaches/Cache_verdant_seed_vault") as Node3D
+	var seed_beacon := seed_visual.get_node("GuidanceBeacon") as MeshInstance3D
+	var seed_label := seed_visual.get_node("RecoveryLabel") as Label3D
+	_expect(
+		(
+			main.call("recovery_guidance_stage") == "stuck"
+			and seed_beacon.visible
+			and seed_label.no_depth_test
+		),
+		"12s without objective progress triggers Stuck waypoint hint and through-cover beacon",
+	)
+	player.global_position = Vector3(0.0, 0.1, 14.0)
+	await physics_frame
+	main.call("advance_recovery_guidance", 0.1)
+	_expect(
+		main.call("recovery_guidance_stage") == "local" and not seed_label.no_depth_test,
+		"resuming forward progress clears the Stuck hint back to Local guidance",
+	)
+
+
+func _exercise_tier2_redeploy(profile_path: String) -> void:
+	var fe := FrontEndScene.instantiate()
+	fe.set("boot_stage", &"HERO")
+	var fe_prog := fe.get_node("ProgressionService") as ProgressionService
+	fe_prog.profile_path = profile_path
+	root.add_child(fe)
+	await process_frame
+	await process_frame
+	fe.call("_enter", &"HERO", {})
+	await process_frame
+	var hero_stage := fe.get_node("StageHost/HeroSelectStage") as Control
+	var tier_btn := hero_stage.get("_tier_button") as Button
+	_expect(
+		tier_btn != null and not tier_btn.disabled and fe_prog.owned_tier() == 2,
+		"completed run unlocks Operative Tier 2 selection on HERO stage",
+	)
+	tier_btn.pressed.emit()
+	await process_frame
+	var tier_label := hero_stage.get("_tier_label") as Label
+	_expect(
+		(
+			fe_prog.fieldable_tier() == 2
+			and tier_label.text.contains("TIER 2")
+			and tier_label.text.contains("HP 106")
+		),
+		"selecting Tier 2 updates HERO vitals readout to 106 HP",
+	)
+	fe.call("_enter", &"DASHBOARD", {})
+	await process_frame
+	var dash_stage := fe.get_node("StageHost/DashboardStage") as Control
+	var dash_hero := dash_stage.get("_hero_status") as Label
+	_expect(
+		dash_hero.text.contains("TIER 2") and dash_hero.text.contains("HP 106"),
+		"DASHBOARD reflects Tier 2 and 106 HP before redeploy",
+	)
+	fe.queue_free()
+	await process_frame
+
+	var redeployed := await _make_main(profile_path)
+	var player := redeployed.get_node("Player") as CharacterBody3D
+	var hud := redeployed.get_node("HUD/TouchControls") as TouchControls
+	var hud_state := hud.get("_state") as HudState
+	_expect(
+		(
+			is_equal_approx(float(player.get("max_health")), 106.0)
+			and is_equal_approx(float(player.get("current_health")), 106.0)
+			and is_equal_approx(float(player.call("tier_damage_reduction")), 0.03)
+		),
+		"redeploying at Tier 2 spawns Sable with 106 vitals and 3% damage reduction",
+	)
+	_expect(
+		(
+			redeployed.call("recovery_cache_state", PRIMARY) == "secured"
+			and hud_state.recovery_title == AegisText.t("recovery.optional_task", ["LAB CACHE"])
+		),
+		"redeploying into Verdant keeps Seed Vault secured and guides toward Lab Cache",
+	)
+	redeployed.queue_free()
 	await process_frame
 
 

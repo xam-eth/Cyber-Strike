@@ -460,6 +460,35 @@ jobs:
           PY
           exit "$qa_status"
 
+      - name: Browser TECH HUNT E2E closure contract
+        run: |
+          qa_status=0
+          node tools/web_qa.mjs --page / --viewport 1280x720 --timeout 180 \
+            --recovery-e2e --out exports/web-qa/recovery-e2e --json \
+            > exports/web-qa/recovery-e2e-report.json || qa_status=1
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path("exports/web-qa/recovery-e2e-report.json").read_text())
+          for page in report["pages"]:
+              recovery = page.get("recovery") or {}
+              e2e = recovery.get("e2e") or {}
+              print(
+                  f'Browser TECH HUNT E2E: {"PASS" if not page["failed"] else "FAIL"} | '
+                  f'cleared={e2e.get("guardsCleared")} secured={e2e.get("blueprintSecured")} '
+                  f'banked={e2e.get("runBankedOnce")} tier2={e2e.get("tier2Selected")} '
+                  f'redeploy106={e2e.get("redeployedTier2Vitals106")}'
+              )
+              print(
+                  "::notice title=Browser TECH HUNT E2E evidence::"
+                  + json.dumps(e2e, separators=(",", ":"))
+              )
+              for failure in page["failed"]:
+                  print(f"::error title=Browser TECH HUNT E2E::{failure}")
+          raise SystemExit(0 if report["ok"] else 1)
+          PY
+          exit "$qa_status"
+
       - name: Upload the web QA screenshots
         if: always()
         uses: actions/upload-artifact@v4

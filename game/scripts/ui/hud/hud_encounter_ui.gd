@@ -98,13 +98,15 @@ static func report_recovery_qa(hud) -> void:
 	if not bool(JavaScriptBridge.eval("new URLSearchParams(location.search).has('qa_recovery')")):
 		return
 	var action: String = hud._state.recovery_action
+	var guidance: String = hud._state.recovery_guidance
 	print(
 		(
-			"Recovery QA: phase=%s action=%s guards=%d title=%s detail=%s state=%s"
+			"Recovery QA: phase=%s action=%s guards=%d guidance=%s title=%s detail=%s state=%s"
 			% [
 				hud._state.play_phase,
 				action if not action.is_empty() else "none",
 				hud._state.recovery_guard_count,
+				guidance if not guidance.is_empty() else "none",
 				hud._state.recovery_title,
 				hud._state.recovery_detail,
 				hud._state.recovery_state,

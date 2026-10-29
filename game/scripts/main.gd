@@ -14,6 +14,8 @@ const ProgressionServiceScript = preload("res://scripts/progression/progression_
 const RecoveryCacheVisualScript = preload("res://scripts/worlds/recovery_cache_visual.gd")
 const DEFEAT_REVEAL_SECONDS := 1.55
 const DEFEAT_HOLD_DRAWN_FRAMES := 6
+const RECOVERY_LOCAL_RADIUS := 22.0
+const RECOVERY_STUCK_SECONDS := 12.0
 
 ## Test/authoring override only. The shipped scene starts in safe Explore; the
 ## player must explicitly choose Defense before the WaveDirector can run.
@@ -42,8 +44,16 @@ var _recovery_action_cache: StringName = &""
 var _recovery_notices: Array[Dictionary] = []
 var _recovery_choice_presented: bool = false
 var _recovery_return_mode: SessionMode = SessionMode.EXPLORE
+var _recovery_guidance_stage: String = "area"
+var _recovery_stuck_seconds: float = 0.0
+var _recovery_best_dist: float = INF
+var _recovery_tracked_target: StringName = &""
+var _recovery_stuck_notified: bool = false
+var _recovery_qa_enabled: bool = false
+var _recovery_qa_timer: float = 0.0
 var _extracting: bool = false
 var _run_banked: bool = false
+var _unlocked_tier_on_run: int = 0
 var _device_profiler: Node
 var _profiler_context := ""
 var _profiler_context_seconds := 0.0
@@ -155,6 +165,18 @@ func _ready() -> void:
 	_apply_saved_weapon()
 	_apply_selected_world_spawn()
 	_setup_recovery()
+	print(
+		(
+			"Operative: hero=%s tier=%d/%d vitals=%d reduction=%d%%"
+			% [
+				progression_service.selected_hero_id,
+				progression_service.fieldable_tier(),
+				progression_service.owned_tier(),
+				roundi(player.max_health),
+				roundi(player.tier_damage_reduction() * 100.0),
+			]
+		)
+	)
 	touch_controls._update_weapon_ammo(
 		player.weapon_controller.get_current_ammo(),
 		player.weapon_controller.get_current_magazine_size(),
@@ -213,6 +235,7 @@ func _apply_qa_hooks() -> void:
 	if not OS.has_feature("web"):
 		return
 	var query := str(JavaScriptBridge.eval("location.search || ''"))
+	_recovery_qa_enabled = query.contains("qa_recovery")
 	if query.contains("qa_upgrade=1"):
 		run_upgrade_manager.set_seed(7)
 		run_upgrade_manager.record_milestone("qa_upgrade")
@@ -220,7 +243,9 @@ func _apply_qa_hooks() -> void:
 
 func _process(delta: float) -> void:
 	touch_controls.set_aim_state(player.is_aiming())
+	_tick_recovery_guidance(delta)
 	_update_recovery()
+	_emit_recovery_cache_qa(delta)
 	if _pending_defeat_wave >= 0:
 		_defeat_reveal_remaining = maxf(_defeat_reveal_remaining - delta, 0.0)
 		if _defeat_reveal_remaining <= 0.0:
@@ -553,6 +578,7 @@ func _return_to_explore() -> void:
 	_retry_defense = false
 	_extracting = false
 	_run_banked = false
+	_unlocked_tier_on_run = 0
 	_recovery_return_mode = SessionMode.EXPLORE
 	wave_director.reset_session()
 	player.reset_player()
@@ -633,6 +659,11 @@ func _setup_recovery() -> void:
 func _reset_recovery() -> void:
 	_recovery_action_cache = &""
 	_recovery_choice_presented = false
+	_recovery_guidance_stage = "area"
+	_recovery_stuck_seconds = 0.0
+	_recovery_best_dist = INF
+	_recovery_tracked_target = &""
+	_recovery_stuck_notified = false
 	_recovery_notices.clear()
 	for cache in _recovery_caches:
 		_recovery_states[cache.cache_id] = (
@@ -697,6 +728,164 @@ func _active_recovery_guard_count() -> int:
 	return count
 
 
+func recovery_guidance_stage() -> String:
+	return _recovery_guidance_stage
+
+
+func advance_recovery_guidance(seconds: float) -> void:
+	_tick_recovery_guidance(maxf(seconds, 0.0))
+	_update_recovery()
+
+
+func _active_guidance_cache() -> RecoveryCacheDefinition:
+	var primary := _primary_cache()
+	if primary != null and _cache_state(primary.cache_id) != RecoveryState.SECURED:
+		return primary
+	var optional := _optional_cache()
+	if optional != null and _cache_state(optional.cache_id) != RecoveryState.SECURED:
+		return optional
+	return null
+
+
+func _nearest_active_guard() -> Node3D:
+	var best: Node3D = null
+	var best_sq := INF
+	for cache in _recovery_caches:
+		for candidate in wave_director.get_guard_group(cache.cache_id):
+			var enemy := candidate as Node3D
+			if not is_instance_valid(enemy):
+				continue
+			if enemy.has_method("is_defeated") and bool(enemy.call("is_defeated")):
+				continue
+			var sq := player.global_position.distance_squared_to(enemy.global_position)
+			if sq < best_sq:
+				best_sq = sq
+				best = enemy
+	return best
+
+
+func _relative_bearing_label(world_pos: Vector3) -> String:
+	var to_target := Vector3(
+		world_pos.x - player.global_position.x,
+		0.0,
+		world_pos.z - player.global_position.z,
+	)
+	if to_target.length_squared() < 0.04:
+		return AegisText.t("recovery.dir_ahead")
+	to_target = to_target.normalized()
+	var basis := player.camera_rig.get_yaw_basis()
+	var forward := -basis.z
+	forward.y = 0.0
+	forward = forward.normalized() if forward.length_squared() > 0.0001 else Vector3.FORWARD
+	var right := basis.x
+	right.y = 0.0
+	right = right.normalized() if right.length_squared() > 0.0001 else Vector3.RIGHT
+	var deg := rad_to_deg(atan2(to_target.dot(right), to_target.dot(forward)))
+	var key := "recovery.dir_behind"
+	if absf(deg) <= 28.0:
+		key = "recovery.dir_ahead"
+	elif deg < -28.0 and deg >= -75.0:
+		key = "recovery.dir_ahead_left"
+	elif deg < -75.0 and deg >= -135.0:
+		key = "recovery.dir_left"
+	elif deg > 28.0 and deg <= 75.0:
+		key = "recovery.dir_ahead_right"
+	elif deg > 75.0 and deg <= 135.0:
+		key = "recovery.dir_right"
+	return AegisText.t(key)
+
+
+func _reset_guidance_stuck() -> void:
+	_recovery_stuck_seconds = 0.0
+	_recovery_stuck_notified = false
+
+
+func _tick_recovery_guidance(delta: float) -> void:
+	if (
+		_recovery_caches.is_empty()
+		or _is_paused
+		or player.is_defeated()
+		or session_mode not in [SessionMode.EXPLORE, SessionMode.DEFENSE]
+	):
+		return
+	var target := _active_guidance_cache()
+	if target == null:
+		_reset_guidance_stuck()
+		_recovery_best_dist = INF
+		return
+	var guard := _nearest_active_guard()
+	var focus_pos := guard.global_position if guard != null else target.position
+	var dist := (
+		Vector2(player.global_position.x - focus_pos.x, player.global_position.z - focus_pos.z)
+		. length()
+	)
+	if _recovery_tracked_target != target.cache_id:
+		_recovery_tracked_target = target.cache_id
+		_recovery_best_dist = dist
+		_reset_guidance_stuck()
+		return
+	if guard == null and dist <= target.interaction_radius:
+		_recovery_best_dist = dist
+		_reset_guidance_stuck()
+		return
+	if dist < _recovery_best_dist - 1.25:
+		_recovery_best_dist = dist
+		_reset_guidance_stuck()
+		return
+	_recovery_stuck_seconds += delta
+	if _recovery_stuck_seconds >= RECOVERY_STUCK_SECONDS and not _recovery_stuck_notified:
+		_recovery_stuck_notified = true
+		(
+			touch_controls
+			. _feedback_panel
+			. show_message(
+				(
+					AegisText
+					. t(
+						"recovery.stuck_toast",
+						[_relative_bearing_label(focus_pos), roundi(dist)],
+					)
+				)
+			)
+		)
+
+
+func _emit_recovery_cache_qa(delta: float) -> void:
+	if (
+		not _recovery_qa_enabled
+		or _recovery_caches.is_empty()
+		or _is_paused
+		or player.is_defeated()
+		or not is_instance_valid(player.aim_camera)
+		or session_mode not in [SessionMode.EXPLORE, SessionMode.DEFENSE]
+	):
+		return
+	_recovery_qa_timer = maxf(_recovery_qa_timer - delta, 0.0)
+	if _recovery_qa_timer > 0.0:
+		return
+	_recovery_qa_timer = 0.25
+	var target := _active_guidance_cache()
+	if target == null:
+		return
+	var focus := target.position + Vector3(0.0, 1.0, 0.0)
+	var screen := player.aim_camera.unproject_position(focus)
+	var vp_size := player.aim_camera.get_viewport().get_visible_rect().size
+	print(
+		(
+			"Recovery Cache QA: id=%s x=%.2f y=%.2f behind=%s dist=%.1f vp=%.0fx%.0f"
+			% [
+				target.cache_id,
+				screen.x,
+				screen.y,
+				"yes" if player.aim_camera.is_position_behind(focus) else "no",
+				_cache_distance(target),
+				vp_size.x,
+				vp_size.y,
+			]
+		)
+	)
+
+
 func _update_recovery() -> void:
 	if (
 		_recovery_caches.is_empty()
@@ -745,6 +934,17 @@ func _update_recovery_hud(
 	var detail := ""
 	var state_text := ""
 	var active_guards := _active_recovery_guard_count()
+	var is_stuck := _recovery_stuck_seconds >= RECOVERY_STUCK_SECONDS
+	var focus_cache := nearest if nearest != null else _active_guidance_cache()
+	for cache in _recovery_caches:
+		var visual := _recovery_visuals.get(cache.cache_id) as Node3D
+		if visual != null:
+			var is_target := (
+				focus_cache != null
+				and cache.cache_id == focus_cache.cache_id
+				and _cache_state(cache.cache_id) != RecoveryState.SECURED
+			)
+			visual.call("set_guidance_focus", is_target, is_target and is_stuck)
 	if nearest != null:
 		title = nearest.display_name
 		var guards := wave_director.guard_group_size(nearest.cache_id)
@@ -754,6 +954,7 @@ func _update_recovery_hud(
 			else _recovery_state_text(nearest)
 		)
 		detail = "%s · %d m" % [_recovery_reward_text(nearest), roundi(nearest_distance)]
+		_recovery_guidance_stage = "combat" if active_guards > 0 else "interact"
 	else:
 		var primary := _primary_cache()
 		var optional := _optional_cache()
@@ -768,16 +969,59 @@ func _update_recovery_hud(
 			title = AegisText.t("recovery.complete_title")
 			detail = AegisText.t("recovery.all_secured")
 			state_text = AegisText.t("recovery.secured")
+			_recovery_guidance_stage = "complete"
 		if target != null:
-			detail = "%s · %d m" % [_recovery_reward_text(target), roundi(_cache_distance(target))]
-			state_text = target.landmark_name
+			var target_dist := _cache_distance(target)
+			var dist_m := roundi(target_dist)
+			var bearing := _relative_bearing_label(target.position)
+			if is_stuck:
+				_recovery_guidance_stage = "stuck"
+				detail = "%s · %s %dM" % [_recovery_reward_text(target), bearing, dist_m]
+				state_text = AegisText.t("recovery.stuck_waypoint", [bearing, dist_m])
+			elif target_dist <= RECOVERY_LOCAL_RADIUS:
+				_recovery_guidance_stage = "local"
+				detail = (
+					"%s · %s"
+					% [
+						_recovery_reward_text(target),
+						AegisText.t("recovery.local_approach", [bearing, dist_m]),
+					]
+				)
+				state_text = "%s · %s" % [target.landmark_name, bearing]
+			else:
+				_recovery_guidance_stage = "area"
+				detail = "%s · %s %dM" % [_recovery_reward_text(target), bearing, dist_m]
+				state_text = "%s · %s" % [target.landmark_name, bearing]
 	if active_guards > 0 and action.is_empty():
+		_recovery_guidance_stage = "stuck" if is_stuck else "combat"
 		# The landscape layout hides the tertiary state badge. Put the active
 		# encounter in the always-visible detail row instead of misleading the
 		# player with START DEFENSE while Secure is still guard-locked.
 		detail = AegisText.t("recovery.guards_active", [active_guards])
-		state_text = AegisText.t("recovery.guards_remaining", [active_guards])
-	touch_controls.set_recovery_status(title, detail, state_text, action, active_guards)
+		var guard := _nearest_active_guard()
+		if guard != null:
+			var g_dist := roundi(
+				(
+					Vector2(
+						player.global_position.x - guard.global_position.x,
+						player.global_position.z - guard.global_position.z
+					)
+					. length()
+				)
+			)
+			var g_dir := _relative_bearing_label(guard.global_position)
+			state_text = (
+				AegisText
+				. t(
+					"recovery.stuck_waypoint" if is_stuck else "recovery.guard_bearing",
+					[g_dir, g_dist],
+				)
+			)
+		else:
+			state_text = AegisText.t("recovery.guards_remaining", [active_guards])
+	touch_controls.set_recovery_status(
+		title, detail, state_text, action, active_guards, _recovery_guidance_stage
+	)
 
 
 func _recovery_state_text(cache: RecoveryCacheDefinition) -> String:
@@ -828,8 +1072,10 @@ func _on_recovery_action() -> void:
 		RecoveryState.GUARDED:
 			if wave_director.guard_group_size(cache.cache_id) > 0:
 				return
+			_reset_guidance_stuck()
 			wave_director.spawn_guard_group(cache.cache_id, cache.guard_spawns)
 		RecoveryState.READY:
+			_reset_guidance_stuck()
 			_secure_cache(cache)
 	_update_recovery()
 	_update_status()
@@ -873,6 +1119,7 @@ func _on_guard_group_cleared(group_id: StringName) -> void:
 		return
 	if run_upgrade_manager.total_evolutions_claimed_or_queued() == 0:
 		run_upgrade_manager.record_milestone("guard:" + String(group_id))
+	_reset_guidance_stuck()
 	_recovery_states[group_id] = RecoveryState.READY
 	_refresh_recovery_visual(cache)
 	touch_controls._feedback_panel.show_message(
@@ -905,8 +1152,16 @@ func _present_recovery_choice() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	Sfx.set_music_mode(&"results")
 	touch_controls._set_play_phase("results")
-	touch_controls.show_extraction_choice(
-		progression_service.balance, progression_service.is_unlocked(&"arc_shooter")
+	var opt := _optional_cache()
+	var opt_secured := opt != null and progression_service.is_cache_secured(opt.cache_id)
+	(
+		touch_controls
+		. show_extraction_choice(
+			progression_service.balance,
+			progression_service.is_unlocked(&"arc_shooter"),
+			progression_service.completed_runs,
+			opt_secured,
+		)
 	)
 
 
@@ -958,9 +1213,60 @@ func _recovery_result_summary() -> String:
 				lines.append(AegisText.t("results.recovery_blueprint", [weapon.display_name]))
 		elif notice.get("kind", "") == "bp":
 			lines.append(AegisText.t("results.recovery_bp", [int(notice["amount"])]))
+	if _run_banked:
+		if _unlocked_tier_on_run > 1:
+			(
+				lines
+				. append(
+					(
+						AegisText
+						. t(
+							"results.tier_promoted",
+							[
+								_unlocked_tier_on_run,
+								roundi(HeroTier.vitals(_unlocked_tier_on_run)),
+								roundi(HeroTier.reduction(_unlocked_tier_on_run)),
+							],
+						)
+					)
+				)
+			)
+		elif not _recovery_caches.is_empty():
+			var owned := progression_service.owned_tier()
+			(
+				lines
+				. append(
+					(
+						AegisText
+						. t(
+							"results.runs_tier_kept",
+							[
+								progression_service.completed_runs,
+								owned,
+								roundi(HeroTier.vitals(owned)),
+							],
+						)
+					)
+				)
+			)
 	var run_mods := run_upgrade_manager.active_tags_summary()
 	if not run_mods.is_empty():
 		lines.append(AegisText.t("results.run_mods_summary", [run_mods]))
+	elif _extracting or not _recovery_notices.is_empty():
+		lines.append(AegisText.t("results.reset_clean"))
+	if _run_banked and _unlocked_tier_on_run > 1:
+		(
+			lines
+			. append(
+				(
+					AegisText
+					. t(
+						"results.next_redeploy_tier",
+						[_unlocked_tier_on_run, roundi(HeroTier.vitals(_unlocked_tier_on_run))],
+					)
+				)
+			)
+		)
 	return "\n".join(lines)
 
 
@@ -984,6 +1290,7 @@ func _on_player_defeated() -> void:
 
 
 func _on_target_damage_received(_amount: float, _current: float, _maximum: float) -> void:
+	_reset_guidance_stuck()
 	Sfx.play_ui(&"hit_confirm")
 	touch_controls.show_hit_confirmed()
 
@@ -1057,11 +1364,20 @@ func _on_wave_session_ended(wave_index: int, _total_defeated: int) -> void:
 		# Bank immediately, including Extract from a non-Defense Recovery. The
 		# guard covers duplicate end signals and all subsequent retry/reset paths.
 		_run_banked = true
+		var tier_before := progression_service.owned_tier()
 		progression_service.bank_run(run_stats.run_score, run_stats.bp_earned)
+		var tier_after := progression_service.owned_tier()
+		_unlocked_tier_on_run = tier_after if tier_after > tier_before else 0
 		print(
 			(
-				"Progression: banked +%d BP · wallet %d · best %d"
-				% [run_stats.bp_earned, progression_service.balance, progression_service.best_score]
+				"Progression: banked +%d BP · wallet %d · best %d · runs %d · tier %d"
+				% [
+					run_stats.bp_earned,
+					progression_service.balance,
+					progression_service.best_score,
+					progression_service.completed_runs,
+					tier_after,
+				]
 			)
 		)
 	if was_defense and player.is_defeated():
@@ -1078,6 +1394,14 @@ func _on_wave_session_ended(wave_index: int, _total_defeated: int) -> void:
 
 func _present_results(wave_index: int) -> void:
 	touch_controls._set_play_phase("results")
+	(
+		touch_controls
+		. set_results_context(
+			_extracting,
+			_unlocked_tier_on_run,
+			progression_service.has_blueprint(&"arc_shooter"),
+		)
+	)
 	(
 		touch_controls
 		. show_results(

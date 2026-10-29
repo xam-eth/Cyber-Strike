@@ -825,6 +825,7 @@ function selectTier(tier) {
   prefs.tier = row.tier;
   savePrefs();
   paintOperative();
+  paintLoadout();
   // Owned or not, the picture is the point; what changes is whether the run
   // can deploy at that tier (see deploy()).
   stageShow('top');
@@ -970,6 +971,7 @@ loadRoster()
     heroState.tier = Math.min(Math.max(1, Number(prefs.tier) || 1), roster.tier_count);
     heroState.tier = Math.min(heroState.tier, ownedTier()) || 1;
     paintOperative();
+    paintLoadout();
     const screen = screens.hero;
     if (screen) screen.dataset.ready = 'true';
     if (current === 'hero') {
@@ -1139,10 +1141,15 @@ function paintLoadout() {
       item.dataset.current = String(rank === tier);
     }
   }
+  const activeHero = heroOf(prefs.hero || 'sable');
+  const activeOpTier = roster
+    ? Math.min(Math.max(1, Number(prefs.tier) || 1), ownedTier())
+    : Math.max(1, Math.min(Number(prefs.tier) || 1, completedRuns() >= 1 ? 2 : 1));
+  const opCallsign = activeHero ? activeHero.callsign : 'Sable';
   const hub = el('hub-operative-meta');
-  if (hub) hub.textContent = `${name} · T${tier}`;
+  if (hub) hub.textContent = `${opCallsign} T${activeOpTier} · ${name} T${tier}`;
   const deployMeta = el('hub-deploy-meta');
-  if (deployMeta) deployMeta.textContent = `${name} · T${tier}`;
+  if (deployMeta) deployMeta.textContent = `${opCallsign} T${activeOpTier} · ${name} T${tier}`;
   stageShow();
 }
 
@@ -1603,9 +1610,9 @@ function lockLandscape() {
  */
 function home() {
   const url = new URL(location.href);
-  url.searchParams.delete('qa_stage');
-  url.searchParams.delete('weapon');
-  url.searchParams.delete('qa_world');
+  for (const key of ['qa_stage', 'weapon', 'qa_world', 'hero', 'tier']) {
+    url.searchParams.delete(key);
+  }
   url.searchParams.set('ui', 'hub');
   location.replace(url.toString());
 }

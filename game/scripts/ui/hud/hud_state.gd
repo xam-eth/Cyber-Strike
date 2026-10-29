@@ -33,6 +33,9 @@ var preparation_seconds: int = 0
 ## Results is also the mission-complete choice surface. In "extraction" mode
 ## its two actions mean Extract and Continue, never Retry or abandon the run.
 var results_mode: String = "results"
+var results_extracted: bool = false
+var results_promoted_tier: int = 0
+var results_arc_blueprint: bool = false
 ## Main's current Recovery presentation. Empty action means no field interaction
 ## is available; these values never authorize a spawn, secure, or reward.
 var recovery_active: bool = false
@@ -43,6 +46,8 @@ var recovery_action: String = ""
 ## Live Recovery guards supplied by Main/WaveDirector. This only gates the
 ## generic Defense presentation; it never authorizes guard completion or Secure.
 var recovery_guard_count: int = 0
+## Escalating guidance stage ("area" | "local" | "interact" | "combat" | "stuck" | "complete").
+var recovery_guidance: String = ""
 ## Display name of the equipped weapon, kept so a relayout can re-render the
 ## weapon chip without asking the weapon controller again.
 var weapon_display_name: String = ""

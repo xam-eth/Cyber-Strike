@@ -30,12 +30,13 @@ static func request(tree: SceneTree) -> void:
 		return
 	if OS.has_feature("web"):
 		# The deep link that put the engine in the world (`?qa_stage=GAMEPLAY`)
-		# would put it back there on the next reload. A return is allowed to
-		# edit the URL it was given.
+		# would put it back there on the next reload. Clear loadout/tier query
+		# handoff params too so newly earned Tier-2+ selections are not clamped.
 		JavaScriptBridge.eval(
 			(
 				"(() => { const u = new URL(location.href);"
-				+ " for (const k of ['qa_stage', 'weapon', 'qa_world']) u.searchParams.delete(k);"
+				+ " for (const k of ['qa_stage', 'weapon', 'qa_world', 'hero', 'tier'])"
+				+ " u.searchParams.delete(k);"
 				+ " history.replaceState(null, '', u); })()"
 			),
 			true

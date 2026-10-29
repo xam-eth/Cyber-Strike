@@ -208,6 +208,22 @@ static func build_results(hud) -> void:
 	content.add_child(hud._results_home_button)
 	hud._touch_buttons.append(hud._results_home_button)
 
+	hud._results_retry_button.focus_neighbor_bottom = hud._results_retry_button.get_path_to(
+		hud._results_explore_button
+	)
+	hud._results_explore_button.focus_neighbor_top = hud._results_explore_button.get_path_to(
+		hud._results_retry_button
+	)
+	hud._results_explore_button.focus_neighbor_bottom = hud._results_explore_button.get_path_to(
+		hud._results_home_button
+	)
+	hud._results_home_button.focus_neighbor_top = hud._results_home_button.get_path_to(
+		hud._results_explore_button
+	)
+	hud._results_home_button.focus_neighbor_bottom = hud._results_home_button.get_path_to(
+		hud._results_retry_button
+	)
+
 
 ## Results makes the objective -> earned reward -> next loadout relationship
 ## visible. Purchases still live exclusively in ProgressionService/Main.
@@ -224,19 +240,26 @@ static func update_results(
 	was_defeated: bool,
 	recovery_summary: String = "",
 ) -> void:
+	var was_extracted: bool = hud._state.results_extracted
 	AegisText.apply(hud._results_hint_label, "results.hint")
-	AegisText.apply(
-		hud._results_eyebrow,
-		"results.eyebrow_ended" if was_defeated else "results.eyebrow_complete"
-	)
-	(
-		AegisText
-		. apply(
-			hud._results_title,
-			"results.recover" if wave_reached <= 0 else "hud.wave",
-			[] if wave_reached <= 0 else [wave_reached],
+	if was_extracted and not was_defeated:
+		AegisText.apply(hud._results_eyebrow, "results.extracted_eyebrow")
+	else:
+		AegisText.apply(
+			hud._results_eyebrow,
+			"results.eyebrow_ended" if was_defeated else "results.eyebrow_complete"
 		)
-	)
+	if was_extracted and wave_reached <= 0 and not was_defeated:
+		AegisText.apply(hud._results_title, "results.extracted_title")
+	else:
+		(
+			AegisText
+			. apply(
+				hud._results_title,
+				"results.recover" if wave_reached <= 0 else "hud.wave",
+				[] if wave_reached <= 0 else [wave_reached],
+			)
+		)
 	(
 		AegisText
 		. apply(
@@ -244,10 +267,12 @@ static func update_results(
 			"results.retry_explore" if wave_reached <= 0 else "results.retry_defense",
 		)
 	)
-	if wave_reached <= 0:
-		AegisText.apply(hud._results_reward_label, "results.no_bp")
-	else:
+	if wave_reached > 0 or (was_extracted and bp_earned > 0):
 		AegisText.apply(hud._results_reward_label, "results.banked", [bp_earned])
+	elif was_extracted and not was_defeated:
+		AegisText.apply(hud._results_reward_label, "results.extracted_reward")
+	else:
+		AegisText.apply(hud._results_reward_label, "results.no_bp")
 	hud._results_summary.set_meta("i18n_skip", true)
 	hud._results_summary.text = (
 		AegisText.t("results.summary_wave", [maxi(wave_reached, 0), survival_time])
@@ -395,18 +420,62 @@ static func show_results(
 		hud._pause_panel.visible = false
 	hud._aiming = false
 	hud.queue_redraw()
+	hud.call_deferred("_report_results_qa")
 
 
 ## The primary secure opens a choice inside the existing Results surface. No
 ## banking happens until Extract; Continue keeps the current field and run.
-static func show_extraction_choice(hud, wallet_bp: int, arc_unlocked: bool) -> void:
+static func show_extraction_choice(
+	hud,
+	wallet_bp: int,
+	arc_unlocked: bool,
+	completed_runs: int = 0,
+	optional_secured: bool = false,
+) -> void:
+	hud._state.results_extracted = false
 	var unlocked: Dictionary = {"arc_shooter": true} if arc_unlocked else {}
 	show_results(hud, 0, "00:00", 0, 0, 0, wallet_bp, 0, unlocked, false)
 	hud._state.results_mode = "extraction"
 	AegisText.apply(hud._results_eyebrow, "recovery.complete_eyebrow")
 	AegisText.apply(hud._results_title, "recovery.complete_title")
 	AegisText.apply(hud._results_reward_label, "recovery.primary_reward")
-	AegisText.apply(hud._results_summary, "recovery.choice_summary")
+	var summary_lines := PackedStringArray([AegisText.t("recovery.choice_summary")])
+	var cur_tier := HeroTier.owned_tier(completed_runs)
+	var next_tier := HeroTier.owned_tier(completed_runs + 1)
+	if next_tier > cur_tier:
+		(
+			summary_lines
+			. append(
+				(
+					AegisText
+					. t(
+						"recovery.choice_tier_unlock",
+						[
+							next_tier,
+							roundi(HeroTier.vitals(next_tier)),
+							roundi(HeroTier.reduction(next_tier)),
+						],
+					)
+				)
+			)
+		)
+	else:
+		(
+			summary_lines
+			. append(
+				(
+					AegisText
+					. t(
+						"recovery.choice_tier_progress",
+						[completed_runs + 1, cur_tier, roundi(HeroTier.vitals(cur_tier))],
+					)
+				)
+			)
+		)
+	if optional_secured:
+		summary_lines.append(AegisText.t("results.recovery_bp", [80]))
+	hud._results_summary.set_meta("i18n_skip", true)
+	hud._results_summary.text = "\n".join(summary_lines)
 	AegisText.apply(hud._results_hint_label, "recovery.choice_hint")
 	AegisText.apply(hud._results_retry_button, "recovery.extract")
 	AegisText.apply(hud._results_explore_button, "recovery.continue_endless")
@@ -426,6 +495,34 @@ static func show_extraction_choice(hud, wallet_bp: int, arc_unlocked: bool) -> v
 		)
 	hud._results_goal_bar.max_value = ProgressionService.COSTS["arc_shooter"]
 	hud._results_goal_bar.value = mini(wallet_bp, int(hud._results_goal_bar.max_value))
+	hud.call_deferred("_report_results_qa")
+
+
+static func report_results_qa(hud) -> void:
+	if not OS.has_feature("web") or not results_visible(hud):
+		return
+	if not bool(JavaScriptBridge.eval("new URLSearchParams(location.search).has('qa_recovery')")):
+		return
+	var physical := Vector2(hud.get_window().size)
+	var stretch := UiLayout.compute_stretch(hud, physical)
+	var btn_center := func(btn: Control) -> String:
+		if not is_instance_valid(btn) or not btn.visible:
+			return "none"
+		var rect := btn.get_global_rect()
+		var center := (rect.position + rect.size * 0.5) * stretch
+		return "%.1f,%.1f" % [center.x, center.y]
+	print(
+		(
+			"Recovery Results QA: mode=%s primary=%s secondary=%s home=%s reward=%s"
+			% [
+				hud._state.results_mode,
+				btn_center.call(hud._results_retry_button),
+				btn_center.call(hud._results_explore_button),
+				btn_center.call(hud._results_home_button),
+				hud._results_reward_label.text,
+			]
+		)
+	)
 
 
 static func hide_results(hud) -> void:
