@@ -46,6 +46,8 @@ format GLB; `use_selection`; Y-up; **no modifier apply**; skins on; *deformation
 **Double-sided material REQUIRED:** the mesh is open shells, so the glTF material must be `doubleSided: true` (Blender material Backface Culling OFF), otherwise Godot culls back-facing shell detail during motion. Shipped GLBs carry the flag via `tools/patch_glb_double_sided.py`; re-apply after any re-export with culling on. See VALIDATION_REPORT 5.6.
 
 **Presentation requirement (host scenes):** the material is heavily metallic PBR. In Godot it needs sky/environment ambient + reflections (or reflection probes) and MSAA; a flat color-ambient scene without anti-aliasing crushes neighbouring dark shells into a near-black, detail-less mass that reads as missing geometry — the shipped geometry itself is complete (VALIDATION_REPORT 5.7). Thin seam lines between the source's 247 loose shells are inherent to the source asset.
+
+**Spine-chain shared weight field (do not regress, VALIDATION_REPORT 5.8):** every spine-chain shell at rest height z∈[0.435,0.825] shares one height-based `Hips`→`Neck` weight field (script 31, fitted + smoothed), so inter-shell seams cannot open under spine motion. Never weight waist/abdomen shells to leg bones — the original 100%-`UpperLeg_L` waist shell caused the abdomen hole fixed in 5.8. Any re-skinning must preserve seam coherence (equal weights at equal height across shell boundaries) or re-apply script 31; the working .blend is the source of truth for weights.
 Deliverable GLBs: `assets/characters/HERO_01_RIGGED.glb` (body+skin+clip), `assets/weapons/HERO_01_WEAPON.glb`, `animations/HERO_01_ANIMATIONS.glb` (skeleton + clip only, 67 KB — retarget/reference; the playable clip also lives inside RIGGED).
 
 ## 6. Retargeting preparation (Phase E)
