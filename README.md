@@ -2,6 +2,16 @@
 
 Satu proyek Godot untuk meninjau SH-01 **Aetherfall**. Tidak memerlukan proyek game, autoload, atau layanan eksternal. Fokus branch ini hanya world, asset produksi Blender, dan alat validasinya.
 
+## Stellar Horizon — vertical slice interaktif
+
+Main scene kini tetap memakai layout Aetherfall yang sama, dengan tambahan minimal berikut:
+
+- `TechCache` reusable di sisi jalur dari spawn primer: collider statis, `Area3D` range, animasi buka authored Blender, serta transaksi `tech_data` satu kali yang disimpan ke `user://aetherfall_stellar_horizon.cfg`.
+- `ObjectiveDevice` reusable di zona mesin/cover tengah: meminta satu `tech_data`, kemudian menyimpan aktivasi relai satu kali.
+- Operator validasi third-person dan HUD lokal untuk menjalankan slice ini. **WASD** bergerak, tahan klik kanan untuk melihat, **E** berinteraksi, dan **F1** menukar ke kamera review free-fly yang tetap dipertahankan.
+
+Ini bukan pengganti atau klaim integrasi dengan inventory/mission/combat EXOCOMFLICT lama—sistem tersebut tidak ada di branch standalone ini. Jalankan `tests/interactive_slice.gd` di Godot untuk memeriksa range, collision, animasi, persistence, reward dan anti-duplikasi. Detail bukti serta keterbatasan screenshot/performa ada pada `docs/VALIDATION.md`.
+
 ## Preview Godot GUI — tanpa toolchain sandbox
 
 **Seluruh file yang dibutuhkan untuk melihat world sudah ada di Git.** Yang berada di luar Git hanya toolchain sementara yang saya gunakan untuk membangun/mengetes (`.venv/`, `/tmp/godot-source`, dan `/tmp/xlibs`) serta cache hasil import Godot (`.godot/`). Anda **tidak** memerlukan file sementara tersebut untuk membuka world.

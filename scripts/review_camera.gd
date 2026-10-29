@@ -2,6 +2,8 @@ extends Camera3D
 ## Free-fly review camera: WASD, Q/E, shift and right-mouse look.
 var speed := 18.0
 var looking := false
+var review_mode := false
+var help_label: Label
 
 const VIEWS := {
 	KEY_1: [Vector3(0, 19, 55), Vector3(0, 20, -26)],
@@ -15,15 +17,28 @@ func _ready() -> void:
 	var overlay := CanvasLayer.new()
 	overlay.name = "ReviewHelp"
 	add_child(overlay)
-	var label := Label.new()
-	label.position = Vector2(16, 14)
-	label.text = "AETHERFALL  |  Klik kanan: lihat  •  WASD: terbang  •  Q/E: turun/naik  •  Shift: cepat  •  1–5: sudut review"
-	label.add_theme_font_size_override("font_size", 15)
-	label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
-	label.add_theme_constant_override("outline_size", 5)
-	overlay.add_child(label)
+	help_label = Label.new()
+	help_label.position = Vector2(16, 14)
+	help_label.text = "REVIEW AETHERFALL  |  Klik kanan: lihat  •  WASD: terbang  •  Q/E: turun/naik  •  Shift: cepat  •  1–5: sudut review  •  F1: operator"
+	help_label.add_theme_font_size_override("font_size", 15)
+	help_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+	help_label.add_theme_constant_override("outline_size", 5)
+	help_label.visible = false
+	overlay.add_child(help_label)
+
+func set_review_mode(enabled: bool) -> void:
+	review_mode = enabled
+	looking = false
+	if help_label != null:
+		help_label.visible = enabled
+	if enabled:
+		make_current()
+	else:
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 func _unhandled_input(event: InputEvent) -> void:
+	if not review_mode:
+		return
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
 		looking = event.pressed
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED if looking else Input.MOUSE_MODE_VISIBLE
@@ -38,6 +53,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 func _process(delta: float) -> void:
+	if not review_mode:
+		return
 	var direction := Vector3.ZERO
 	if Input.is_key_pressed(KEY_W): direction -= transform.basis.z
 	if Input.is_key_pressed(KEY_S): direction += transform.basis.z

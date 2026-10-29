@@ -1,0 +1,33 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/tech_cache.gd" id="1_cache"]
+[ext_resource type="PackedScene" path="res://assets/world/aetherfall/interactives/tech_cache.glb" id="2_model"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_body"]
+size = Vector3(2.6, 1.35, 1.5)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_range"]
+size = Vector3(4.2, 2.7, 4.2)
+
+[node name="TechCache" type="Node3D"]
+script = ExtResource("1_cache")
+interaction_id = "aetherfall_primary_tech_cache"
+interaction_label = "Ambil data teknologi"
+
+[node name="Visual" parent="." instance=ExtResource("2_model")]
+
+[node name="Collision" type="StaticBody3D" parent="."]
+
+[node name="Shape" type="CollisionShape3D" parent="Collision"]
+position = Vector3(0, 0.675, 0)
+shape = SubResource("BoxShape3D_body")
+
+[node name="InteractionRange" type="Area3D" parent="."]
+collision_layer = 0
+collision_mask = 1
+monitoring = true
+monitorable = false
+
+[node name="Shape" type="CollisionShape3D" parent="InteractionRange"]
+position = Vector3(0, 1.0, 0)
+shape = SubResource("BoxShape3D_range")

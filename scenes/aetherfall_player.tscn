@@ -1,0 +1,44 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/aetherfall_player.gd" id="1_player"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
+radius = 0.35
+height = 1.8
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_player"]
+radius = 0.35
+height = 1.8
+radial_segments = 16
+rings = 6
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_player"]
+albedo_color = Color(0.08, 0.34, 0.5, 1)
+metallic = 0.45
+roughness = 0.48
+
+[node name="AetherfallPlayer" type="CharacterBody3D"]
+script = ExtResource("1_player")
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+shape = SubResource("CapsuleShape3D_player")
+
+[node name="OperatorSilhouette" type="MeshInstance3D" parent="."]
+mesh = SubResource("CapsuleMesh_player")
+material_override = SubResource("StandardMaterial3D_player")
+cast_shadow = 1
+
+[node name="Pivot" type="Node3D" parent="."]
+position = Vector3(0, 0.65, 0)
+rotation = Vector3(-0.16, 0, 0)
+
+[node name="SpringArm3D" type="SpringArm3D" parent="Pivot"]
+spring_length = 4.6
+margin = 0.12
+collision_mask = 1
+
+[node name="Camera3D" type="Camera3D" parent="Pivot/SpringArm3D"]
+current = true
+fov = 68.0
+near = 0.08
+far = 500.0

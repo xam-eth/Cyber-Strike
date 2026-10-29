@@ -1,0 +1,33 @@
+{
+  "schema": "aetherfall.stellar-horizon/1",
+  "mission_id": "stellar_horizon_bootstrap",
+  "progression_note": "Local vertical-slice state only; does not claim a dependency on a removed game-wide inventory.",
+  "player_spawn": "primary",
+  "interactives": [
+    {
+      "kind": "tech_cache",
+      "id": "aetherfall_primary_tech_cache",
+      "scene": "res://scenes/props/tech_cache.tscn",
+      "position": [-24.5, 0.25, 10.5],
+      "rotation_degrees": [0.0, -18.0, 0.0],
+      "reward": {
+        "resource": "tech_data",
+        "amount": 1,
+        "reason": "Data teknis dari cache lapangan untuk mengautentikasi relai."
+      },
+      "placement_reason": "Di sisi jalur dari spawn primer: terlihat dan mudah dicapai tanpa menyempitkan rute sentral 6 m."
+    },
+    {
+      "kind": "objective_device",
+      "id": "aetherfall_horizon_relay",
+      "scene": "res://scenes/props/objective_device.tscn",
+      "position": [8.0, 0.25, 7.0],
+      "rotation_degrees": [0.0, 180.0, 0.0],
+      "requires": {
+        "resource": "tech_data",
+        "amount": 1
+      },
+      "placement_reason": "Terminal relai berada di zona mesin/cover tengah sebagai tujuan visual setelah cache; footprint 1.82 m tidak menutup jalur sentral."
+    }
+  ]
+}

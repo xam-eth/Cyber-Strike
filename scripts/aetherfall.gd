@@ -1,6 +1,9 @@
 extends Node3D
 ## Independent Aetherfall assembly. All dimensions and placements are in metres.
 const BASE := "res://assets/world/aetherfall/"
+const PLAYER_SCENE := preload("res://scenes/aetherfall_player.tscn")
+const PROGRESSION_STATE := preload("res://scripts/progression_state.gd")
+const MISSION_HUD := preload("res://scripts/mission_hud.gd")
 const NO_COLLISION := ["terrain_chunk", "cliff_face", "rock_boulder", "background_silhouette", "cloud_puff", "debris_cluster", "cable_bundle", "energy_core", "railing"]
 # Surface meshes, not the enclosing AABB of railings or dangling cables.
 const WALKABLE_MESH := {
@@ -121,7 +124,58 @@ func _ready() -> void:
 	add_connectors()
 	add_atmosphere()
 	add_animation()
+	add_stellar_horizon_slice(layout)
 	print("Aetherfall: %d placements; %d proxy colliders" % [placement_count, collider_count])
+
+
+func add_stellar_horizon_slice(layout: Dictionary) -> void:
+	## This local slice is kept separate from the kit assembly: it does not
+	## replace routes, cover or legacy review controls, and has no autoload.
+	var data := read_json(BASE + "stellar_horizon_slice.json")
+	if data.is_empty():
+		return
+	var progression := PROGRESSION_STATE.new() as AetherfallProgressionState
+	progression.name = "ProgressionState"
+	add_child(progression)
+	var group := Node3D.new()
+	group.name = "StellarHorizon"
+	add_child(group)
+	var cache_id := ""
+	var objective_id := ""
+	var required_data := 1
+	for spec: Dictionary in data.get("interactives", []):
+		var packed := load(str(spec.get("scene", ""))) as PackedScene
+		if packed == null:
+			push_error("Aetherfall: interactive scene tidak ditemukan: " + str(spec.get("scene", "")))
+			continue
+		var instance := packed.instantiate() as AetherfallInteractionTarget
+		if instance == null:
+			push_error("Aetherfall: scene interaktif bukan AetherfallInteractionTarget.")
+			continue
+		instance.name = str(spec.get("id", "Interactive"))
+		instance.interaction_id = str(spec.get("id", instance.interaction_id))
+		instance.position = v3(spec.get("position", []))
+		instance.rotation = v3(spec.get("rotation_degrees", [])) * PI / 180.0
+		if instance is AetherfallTechCache:
+			var cache := instance as AetherfallTechCache
+			cache.reward_amount = int(spec.get("reward", {}).get("amount", cache.reward_amount))
+			cache_id = cache.interaction_id
+		elif instance is AetherfallObjectiveDevice:
+			var device := instance as AetherfallObjectiveDevice
+			device.required_tech_data = int(spec.get("requires", {}).get("amount", device.required_tech_data))
+			objective_id = device.interaction_id
+			required_data = device.required_tech_data
+		group.add_child(instance)
+	var spawn_key := str(data.get("player_spawn", "primary"))
+	var spawn_position := v3(layout.get("spawn", {}).get(spawn_key, []))
+	var player := PLAYER_SCENE.instantiate() as AetherfallPlayer
+	player.name = "AetherfallPlayer"
+	player.position = spawn_position
+	add_child(player)
+	var hud := MISSION_HUD.new() as AetherfallMissionHud
+	hud.name = "MissionHUD"
+	add_child(hud)
+	hud.bind_slice(progression, player, cache_id, objective_id, required_data)
 
 
 func add_mesh_shape(body: StaticBody3D, instance: Node3D, mesh: MeshInstance3D, scale_factor: float) -> void:

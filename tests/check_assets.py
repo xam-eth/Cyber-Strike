@@ -51,6 +51,37 @@ for name in [*measures, 'energy_orbit', 'connector_ramp']:
 assert (root / 'source/aetherfall_kit.blend').is_file()
 assert (root / 'source/energy_orbit.blend').is_file()
 assert (root / 'source/connector_ramp.blend').is_file()
+# Stellar Horizon stops at two authored reusable hero props until this vertical
+# slice is validated; this contract guards their Blender source, PBR maps and
+# authored state clips without claiming a renderer/performance result.
+slice_data = json.loads((base / 'stellar_horizon_slice.json').read_text())
+interactives = slice_data['interactives']
+assert len(interactives) == 2
+assert {item['kind'] for item in interactives} == {'tech_cache', 'objective_device'}
+assert (root / 'source/aetherfall_interactives.blend').is_file()
+for filename, animation, minimum_meshes in [
+    ('tech_cache.glb', 'TechCache_Open', 22),
+    ('objective_device.glb', 'ObjectiveDevice_Activate', 19),
+]:
+    data = (base / 'interactives' / filename).read_bytes()
+    magic, version, length = struct.unpack_from('<4sII', data)
+    assert (magic, version, length) == (b'glTF', 2, len(data)), filename
+    json_len = struct.unpack_from('<I', data, 12)[0]
+    payload = json.loads(data[20:20 + json_len])
+    assert len(payload.get('meshes', [])) >= minimum_meshes, filename
+    assert animation in [clip.get('name') for clip in payload.get('animations', [])], filename
+    assert payload.get('materials') and payload.get('textures'), filename
+    for material in payload['materials']:
+        pbr = material.get('pbrMetallicRoughness', {})
+        assert material.get('normalTexture'), f'normal map missing: {filename}/{material["name"]}'
+        assert pbr.get('metallicRoughnessTexture'), f'ORM map missing: {filename}/{material["name"]}'
+for required in [
+    'scenes/aetherfall_player.tscn', 'scenes/props/tech_cache.tscn',
+    'scenes/props/objective_device.tscn', 'scripts/progression_state.gd',
+    'scripts/interaction_target.gd', 'scripts/tech_cache.gd',
+    'scripts/objective_device.gd', 'tests/interactive_slice.gd',
+]:
+    assert (root / required).is_file(), required
 for source in ['ai_weathered_steel.png', 'ai_poured_concrete.png', 'ai_sedimentary_rock.png']:
     assert (base / 'source_textures' / source).is_file()
 for suffix in ['normal', 'orm']:
@@ -59,4 +90,4 @@ for suffix in ['normal', 'orm']:
     assert (base / 'materials' / ('aether_rock_' + suffix + '.png')).is_file()
 connectors = json.loads((base / 'connectors.json').read_text())['connectors']
 assert {x['name'] for x in connectors} == {'east_bridge_approach', 'west_catwalk_approach', 'lower_canyon_descent'}
-print(f'PASS: {len(layout["placements"])} placement, {len(measures)} modul, GLB orbit beranimasi, 3 connector, 3 source Blender, PBR normal+ORM, bentuk 27 modul')
+print(f'PASS: {len(layout["placements"])} placement, {len(measures)} modul, orbit, 3 connector, 2 prop Stellar Horizon, 4 source Blender, PBR normal+ORM')
