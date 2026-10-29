@@ -1554,7 +1554,7 @@ async function checkPage(target, viewport) {
             page,
             consoleLines.slice(beforeRedeploy),
             'Operative: hero=sable tier=2/2 vitals=106 reduction=3%',
-            Math.max(150000, timeout * 1000),
+            Math.max(150000, bootTimeoutMs),
           );
           await awaitConsoleText(page, consoleLines.slice(beforeRedeploy), 'Recovery QA:', 30000);
           await page
