@@ -21,7 +21,24 @@ For another device on the same network, use the development machine's reachable 
 
 Godot audio requires a **Secure Context** and AudioWorklet. `http://localhost:<port>/` is secure only in the browser on the same machine that runs the server. Plain HTTP through a PC's LAN IP is not a secure context on another device; use HTTPS for that remote-device path. The root shell checks these requirements before fetching the engine configuration, WASM, or PCK and shows URL/browser guidance instead of a later `audioWorklet.addModule` exception.
 
-The committed `web/` directory contains the generated HTML/JS/WASM/PCK payload. Do not hand-edit generated output. CI/export tooling refreshes it when a full Web gate runs; a documentation-only `[skip ci]` change does not produce a new payload.
+The committed `web/` directory contains the last opt-in fallback HTML/JS/WASM/PCK payload. Do not hand-edit generated output. Every CI run builds, tests, and uploads `web-preview`, but only a source commit whose message contains **`[web-payload]`** may write a new payload/template blob back to branch history. Ordinary source pulls therefore reuse the local payload instead of downloading another 90+ MB PCK. Use the CI artifact, Pages, or a local export when the latest source must be played; the tracked fallback is not claimed to track every source commit.
+
+### Bandwidth-safe Git use
+
+For workflow, documentation, and tooling-only work, a new checkout can avoid both old binary history and the current payload. This example is **not a playable checkout**; add the required runtime assets/payload later or use the CI artifact:
+
+```bash
+git clone --depth=1 --filter=blob:none --no-checkout --single-branch \
+  --branch <branch> https://github.com/xam-eth/Cyber-Strike.git
+cd Cyber-Strike
+git sparse-checkout init --no-cone
+git sparse-checkout set --no-cone \
+  '/.github/' '/.gitattributes' '/.gitignore' '/README.md' \
+  '/docs/*.md' '/docs/runbooks/*.md' '/tools/' '/scripts/'
+git checkout
+```
+
+Do not run `clean`, `reset --hard`, or a sparse-checkout change against a checkout with another agent's uncommitted work. A normal source commit needs no marker. Use `[web-payload]` only for a deliberate milestone that accepts the large fallback download on the next pull; the artifact remains the per-push output either way.
 
 ## 2. Player and loading flow
 

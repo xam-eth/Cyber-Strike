@@ -488,10 +488,14 @@ jobs:
           ls -lh engine/web_templates || true
           echo "::notice title=Web export templates staged::${staged} archive(s) in engine/web_templates"
 
-      - name: Commit the payload and templates into the repository
-        # Pushes only: PR runs from forks get a read-only token. The commit is
-        # what makes "git pull + python3 tools/serve_preview.py --port 800" play the game.
-        if: github.event_name == 'push' && !contains(github.event.head_commit.message, '[skip ci]')
+      - name: Opt in to a payload and template history commit
+        # The artifact is produced and tested on every run. Writing 90+ MB of
+        # generated binaries back into Git is reserved for an explicit source
+        # commit marker, so ordinary pulls do not fetch a new PCK every time.
+        if: >-
+          github.event_name == 'push' &&
+          contains(github.event.head_commit.message, '[web-payload]') &&
+          !contains(github.event.head_commit.message, '[skip ci]')
         run: |
           pck_bytes="$(stat -c %s web/index.pck)"
           if (( pck_bytes >= 100000000 )); then

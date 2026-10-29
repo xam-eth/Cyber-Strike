@@ -51,11 +51,13 @@ engine/web_templates/*.zip -filter -diff -merge
 #   * there is no git-lfs in this sandbox at all, and with `filter=lfs` set,
 #     `git add` on these files fails outright ("external filter 'git-lfs
 #     clean' failed").
-# The pack grows or shrinks as the staged game changes and CI regenerates it. It
-# stays in the tree because the preview has to work from a bare clone. Keep the
-# non-LFS PCK below the workflow's explicit 100000000-byte publication budget;
-# deduplicate staged resources or stop committing the payload rather than hiding
-# it behind a filter that makes the repository un-runnable.
+# The pack grows or shrinks as the staged game changes. The last opt-in fallback
+# stays in the tree so an existing bare clone can still play, but CI must not add
+# another 90+ MB blob on every source push. Only a source commit containing
+# `[web-payload]` may refresh payload/template history; every run still publishes
+# and tests the `web-preview` artifact. Keep the non-LFS PCK below the workflow's
+# explicit 100000000-byte publication budget, and do not hide generated output
+# behind a filter that makes the repository un-runnable.
 
 # INTENDED for LFS, not yet migrated — do not re-add these lines until
 # `scripts/setup_lfs.sh --migrate` has actually moved the blobs (see the

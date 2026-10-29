@@ -31,7 +31,7 @@ Gameplay starts safely. The existing Defense path begins only through its explic
 
 ## Browser preview
 
-The committed Web payload can be served without installing Godot:
+The last opt-in Web fallback payload can be served without installing Godot:
 
 ```bash
 python3 tools/serve_preview.py --port 800
@@ -39,7 +39,9 @@ python3 tools/serve_preview.py --port 800
 
 Open the landing page at `http://localhost:800/` on the same development machine. The opening preloads the WASM + main PCK before MASUK; DEPLOY reuses that pack for the selected theatre. A warm unchanged preview revalidates content instead of intentionally downloading every asset again.
 
-Full export, QA, cache, recovery, and troubleshooting instructions: [`docs/runbooks/WEB_PREVIEW.md`](docs/runbooks/WEB_PREVIEW.md). The Web path requires an initial WASM/PCK download; it is not a zero-download or fully offline PWA.
+Every CI run builds, tests, and uploads the current `web-preview` artifact, but only a source commit marked **`[web-payload]`** may refresh the tracked payload/templates. Ordinary source pulls therefore reuse local binaries rather than downloading another 90+ MB PCK. Use the artifact, Pages, or a local export for the latest source; the committed fallback does not claim to track every source commit.
+
+Full export, QA, cache, bandwidth, recovery, and troubleshooting instructions: [`docs/runbooks/WEB_PREVIEW.md`](docs/runbooks/WEB_PREVIEW.md). The Web path requires an initial WASM/PCK download; it is not a zero-download or fully offline PWA.
 
 ## Android development and offline USB
 
@@ -84,7 +86,7 @@ See [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) before interpreting results. St
 game/             Godot project: scripts, scenes, resources, runtime assets
 tests/            Headless Godot smoke/regression tests
 ui/               Painted Web shell, selection, loadout, art and audio
-web/              Committed WebAssembly export and loader
+web/              Last opt-in WebAssembly fallback export and loader
 engine/           Pinned Web export templates
 scripts/          Setup, validation, test and export entry points
 tools/            Asset, QA, payload, preview and architecture tooling

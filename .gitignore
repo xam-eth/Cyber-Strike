@@ -48,10 +48,10 @@ local.properties
 build/
 **/build/
 
-# The exported web payload under web/ is committed on purpose: the served site
-# needs it, and a clone plus "python3 tools/serve_preview.py --port 800" must play
-# the game with no artifact download. The web-preview CI job refreshes it. Same layout idea as
-# xam-eth/Scary-Night, which keeps its engine and web export templates in-tree.
+# The exported web payload under web/ remains as an opt-in bare-clone fallback:
+# ordinary source pulls reuse it instead of downloading a fresh PCK/WASM each
+# time. CI builds/tests every push and publishes `web-preview`; only an explicit
+# `[web-payload]` source commit may refresh the tracked fallback and templates.
 
 # Local exports, packages, and physical-device evidence (can contain serials/logcat)
 artifacts/android/
