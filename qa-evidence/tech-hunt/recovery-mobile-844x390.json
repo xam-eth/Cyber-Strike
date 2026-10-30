@@ -1,0 +1,394 @@
+{
+  "base": "http://127.0.0.1:8080",
+  "pages": [
+    {
+      "target": "/",
+      "viewport": "844x390",
+      "touchDevice": true,
+      "url": "http://127.0.0.1:8080/?qa_menu=1&qa_recovery=1",
+      "ms": 99888,
+      "booted": true,
+      "engine": "Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org",
+      "state": {
+        "title": "Exocomplict",
+        "hasCanvas": true,
+        "canvasSize": "844x390",
+        "canvasHittable": true,
+        "hitTarget": "canvas",
+        "glContext": true,
+        "glLost": false,
+        "failureVisible": false,
+        "failureText": "",
+        "chip": null,
+        "bodyText": ""
+      },
+      "checks": [
+        {
+          "name": "engine booted (console banner)",
+          "ok": true
+        },
+        {
+          "name": "no Godot script/parse/format errors",
+          "ok": true
+        },
+        {
+          "name": "no page errors",
+          "ok": true
+        },
+        {
+          "name": "no failed requests",
+          "ok": true
+        },
+        {
+          "name": "no HTTP 4xx/5xx for page assets",
+          "ok": true
+        },
+        {
+          "name": "a canvas exists",
+          "ok": true
+        },
+        {
+          "name": "canvas is not the 300x150 default",
+          "ok": true
+        },
+        {
+          "name": "canvas accepts pointer input (no transparent loading overlay)",
+          "ok": true
+        },
+        {
+          "name": "WebGL context alive",
+          "ok": true
+        },
+        {
+          "name": "no failure card shown",
+          "ok": true
+        },
+        {
+          "name": "HERO shows the real rig and its authored celebration before the theatre map",
+          "ok": true
+        },
+        {
+          "name": "engine profile mirror is a readable object with weapon ownership and tiers",
+          "ok": true
+        },
+        {
+          "name": "front-end handoff reached the gameplay scene",
+          "ok": true
+        },
+        {
+          "name": "Recovery pass reached Verdant gameplay",
+          "ok": true
+        },
+        {
+          "name": "Seed Vault offered explicit Engage in interaction range",
+          "ok": true
+        },
+        {
+          "name": "Engage produced two live Recovery guards",
+          "ok": true
+        },
+        {
+          "name": "both Recovery guards loaded real GLB visuals without fallback",
+          "ok": true
+        },
+        {
+          "name": "active guards kept Secure locked and blocked generic Defense",
+          "ok": true
+        },
+        {
+          "name": "Recovery landing, offer, guarded and contact frames were captured",
+          "ok": true
+        },
+        {
+          "name": "shell verdant_bloom card was selected before DEPLOY",
+          "ok": true
+        },
+        {
+          "name": "engine accepted the shell verdant_bloom selection",
+          "ok": true
+        },
+        {
+          "name": "front-end selection built verdant_bloom gameplay",
+          "ok": true
+        },
+        {
+          "name": "shell DEPLOY bypassed the engine WORLD stage",
+          "ok": true
+        }
+      ],
+      "failed": [],
+      "screenshot": "qa-evidence/tech-hunt/root-844x390.png",
+      "menuFrames": [],
+      "settingsTabFrames": [],
+      "accessBottomFrame": null,
+      "frames": [],
+      "tourFrames": [],
+      "encounterFrames": [],
+      "safeBeforeActivation": false,
+      "defenseObserved": false,
+      "encounterTransitions": [
+        "log: Encounter: Explore safe; activate Start Defense when ready"
+      ],
+      "recovery": {
+        "engageOffered": true,
+        "guardsActive": true,
+        "guardModels": [
+          "Guard_verdant_seed_vault_01",
+          "Guard_verdant_seed_vault_02"
+        ],
+        "finalState": {
+          "action": "none",
+          "guards": 2,
+          "line": "log: Recovery QA: phase=explore action=none guards=2 guidance=combat title=SEED VAULT detail=2 GUARDS ACTIVE · SECURE LOCKED state=HOSTILE · LEFT 1M"
+        },
+        "secureLocked": true
+      },
+      "recoveryFrames": [
+        "qa-evidence/tech-hunt/root-844x390-recovery-landing.png",
+        "qa-evidence/tech-hunt/root-844x390-recovery-engage-offer.png",
+        "qa-evidence/tech-hunt/root-844x390-recovery-guarded.png",
+        "qa-evidence/tech-hunt/root-844x390-recovery-contact.png"
+      ],
+      "recoveryTransitions": [
+        "log: Recovery QA: phase=explore action=none guards=0 guidance=local title=RECOVER · SEED VAULT detail=ARC SHOOTER BLUEPRINT · APPROACH · AHEAD 9M state=SHRINE · AHEAD",
+        "log: Recovery QA: phase=explore action=none guards=0 guidance=local title=RECOVER · SEED VAULT detail=ARC SHOOTER BLUEPRINT · APPROACH · AHEAD 8M state=SHRINE · AHEAD",
+        "log: Recovery QA: phase=explore action=none guards=0 guidance=local title=RECOVER · SEED VAULT detail=ARC SHOOTER BLUEPRINT · APPROACH · AHEAD 7M state=SHRINE · AHEAD",
+        "log: Recovery QA: phase=explore action=none guards=0 guidance=local title=RECOVER · SEED VAULT detail=ARC SHOOTER BLUEPRINT · APPROACH · AHEAD 6M state=SHRINE · AHEAD",
+        "log: Recovery QA: phase=explore action=none guards=0 guidance=local title=RECOVER · SEED VAULT detail=ARC SHOOTER BLUEPRINT · APPROACH · AHEAD 7M state=SHRINE · AHEAD",
+        "log: Recovery QA: phase=explore action=none guards=0 guidance=local title=RECOVER · SEED VAULT detail=ARC SHOOTER BLUEPRINT · APPROACH · AHEAD 6M state=SHRINE · AHEAD",
+        "log: Recovery QA: phase=explore action=none guards=0 guidance=local title=RECOVER · SEED VAULT detail=ARC SHOOTER BLUEPRINT · APPROACH · AHEAD 5M state=SHRINE · AHEAD",
+        "log: Recovery QA: phase=explore action=engage guards=0 guidance=interact title=SEED VAULT detail=ARC SHOOTER BLUEPRINT · 5 m state=GUARDED",
+        "log: Recovery QA: phase=explore action=engage guards=0 guidance=interact title=SEED VAULT detail=ARC SHOOTER BLUEPRINT · 4 m state=GUARDED",
+        "log: Recovery QA: phase=explore action=none guards=2 guidance=combat title=SEED VAULT detail=2 GUARDS ACTIVE · SECURE LOCKED state=HOSTILE · LEFT 6M",
+        "log: Recovery QA: phase=explore action=none guards=2 guidance=combat title=SEED VAULT detail=2 GUARDS ACTIVE · SECURE LOCKED state=HOSTILE · LEFT 5M",
+        "log: Recovery QA: phase=explore action=none guards=2 guidance=combat title=SEED VAULT detail=2 GUARDS ACTIVE · SECURE LOCKED state=HOSTILE · LEFT 4M",
+        "log: Recovery QA: phase=explore action=none guards=2 guidance=combat title=SEED VAULT detail=2 GUARDS ACTIVE · SECURE LOCKED state=HOSTILE · LEFT 3M",
+        "log: Recovery QA: phase=explore action=none guards=2 guidance=combat title=SEED VAULT detail=2 GUARDS ACTIVE · SECURE LOCKED state=HOSTILE · LEFT 2M",
+        "log: Recovery QA: phase=explore action=none guards=2 guidance=combat title=SEED VAULT detail=2 GUARDS ACTIVE · SECURE LOCKED state=HOSTILE · LEFT 1M"
+      ],
+      "audio": [
+        "log: Audio: 14 sounds ready in 355 ms · muted=no · music=on",
+        "log: Audio: 14 sounds, 0 played, ready in 355 ms, muted=no, music=on/explore",
+        "log: Audio: first voice played (shot_pulse_rifle) 78539 ms after synthesis",
+        "log: Audio: first weapon voice played (shot_pulse_rifle)"
+      ],
+      "heroStage": {
+        "ready": true,
+        "model": "./game/assets/characters/human_hero_tiers/hero_human_tier_1.glb",
+        "clips": [
+          "idle",
+          "walk",
+          "run",
+          "raise_weapon",
+          "aim",
+          "aim_walk",
+          "aim_run",
+          "fire",
+          "reload",
+          "hit",
+          "death",
+          "lower_weapon"
+        ],
+        "bone": "R_Hand",
+        "tier": 1,
+        "modelUrl": "game/assets/characters/human_hero_tiers/hero_human_tier_1.glb",
+        "entrance": {
+          "mode": "right",
+          "offset": [
+            0.089,
+            0.007
+          ]
+        },
+        "celebration": "celebration",
+        "celebrationSeconds": 2.4,
+        "heroId": "sable",
+        "weaponId": "pulse_rifle",
+        "weaponTier": 1,
+        "weaponModel": "./game/assets/weapons/futuristic_rifle/rifle.glb",
+        "rifle": true,
+        "rifleVisible": true,
+        "socketParent": "R_Hand",
+        "socketPose": "carry",
+        "rifleWorld": [
+          -0.051,
+          0.492,
+          0.119
+        ],
+        "handWorld": [
+          -0.066,
+          0.536,
+          0.036
+        ],
+        "rifleSize": {
+          "x": 0.12,
+          "y": 0.397,
+          "z": 0.367
+        },
+        "bounds": {
+          "height": 0.999,
+          "width": 0.388
+        }
+      },
+      "profileMirror": {
+        "balance": 0,
+        "best_score": 0,
+        "blueprints": [],
+        "equipped": "pulse_rifle",
+        "runs": 0,
+        "secured_caches": {},
+        "unlocked": [
+          "pulse_rifle"
+        ],
+        "weapon_tiers": {
+          "arc_shooter": 1,
+          "nova_launcher": 1,
+          "pulse_rifle": 1
+        }
+      },
+      "ads": null,
+      "adsFrames": [],
+      "shellAudio": {
+        "hero": null,
+        "before": null,
+        "muted": null,
+        "unmuted": null,
+        "handoff": null,
+        "after": null,
+        "muteStored": null,
+        "unmuteStored": null,
+        "gameplayMuteStored": null,
+        "gameplayUnmuteStored": null
+      },
+      "menuTransitions": [],
+      "scriptErrors": [],
+      "console": [
+        "log: Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org",
+        "log: OpenGL API OpenGL ES 3.0 (WebGL 2.0 (OpenGL ES 3.0 Chromium)) - Compatibility - Using Device: WebKit - WebKit WebGL",
+        "log: Build configuration: Emscripten 4.0.20, single-threaded, no GDExtension support.",
+        "log: Audio: 14 sounds ready in 355 ms · muted=no · music=on",
+        "log: FrontEnd: qa_world selected verdant_bloom",
+        "log: MISSION WORLD: verdant_bloom (verdant.glb)",
+        "log: MISSION WORLD: 1275 verdant_bloom mesh colliders derived from the real world",
+        "log: MISSION WORLD: lit as Verdant Bloom — Sunset",
+        "log: CharacterVisual: model=CharacterModel fitted_height=1.780m scale=1.782 rig=Armature clips=12 fallback=no",
+        "log: EnemyVisual[TrainingDrone]: model=EnemyModel fitted_height=0.447m fallback=no",
+        "log: Operative: hero=sable tier=1/1 vitals=100 reduction=0%",
+        "log: Recovery QA: phase=explore action=none guards=0 guidance=local title=RECOVER · SEED VAULT detail=ARC SHOOTER BLUEPRINT · APPROACH · AHEAD 9M state=SHRINE · AHEAD",
+        "log: Encounter: Explore safe; activate Start Defense when ready",
+        "log: Progression: wallet 0 BP · 1 weapon(s) owned",
+        "log: Audio: 14 sounds, 0 played, ready in 355 ms, muted=no, music=on/explore",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=755.88 y=335.23 behind=no dist=9.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=755.88 y=335.15 behind=no dist=9.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=755.88 y=335.15 behind=no dist=9.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=755.88 y=335.15 behind=no dist=9.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=755.88 y=335.15 behind=no dist=9.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=755.88 y=335.15 behind=no dist=9.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=755.88 y=335.15 behind=no dist=9.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=755.88 y=335.15 behind=no dist=9.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=755.88 y=335.15 behind=no dist=9.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=755.88 y=335.15 behind=no dist=9.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=755.88 y=335.15 behind=no dist=9.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=755.88 y=335.15 behind=no dist=9.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=755.88 y=335.15 behind=no dist=9.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=755.88 y=335.15 behind=no dist=9.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=755.88 y=335.15 behind=no dist=9.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=755.88 y=335.15 behind=no dist=9.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=755.88 y=335.15 behind=no dist=9.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=755.88 y=335.15 behind=no dist=9.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=755.88 y=335.15 behind=no dist=9.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=755.88 y=335.15 behind=no dist=9.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=755.88 y=335.15 behind=no dist=9.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=755.88 y=335.15 behind=no dist=9.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=755.88 y=335.15 behind=no dist=9.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=755.88 y=335.15 behind=no dist=9.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=755.88 y=335.15 behind=no dist=9.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=755.88 y=335.15 behind=no dist=9.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=755.88 y=335.15 behind=no dist=9.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=755.88 y=335.15 behind=no dist=9.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=755.88 y=335.15 behind=no dist=9.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=755.88 y=335.15 behind=no dist=9.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=755.88 y=335.15 behind=no dist=9.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=755.88 y=335.15 behind=no dist=9.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=755.88 y=335.15 behind=no dist=9.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=755.88 y=335.15 behind=no dist=9.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=755.55 y=335.91 behind=no dist=8.8 vp=1558x720",
+        "log: Recovery QA: phase=explore action=none guards=0 guidance=local title=RECOVER · SEED VAULT detail=ARC SHOOTER BLUEPRINT · APPROACH · AHEAD 8M state=SHRINE · AHEAD",
+        "log: Recovery QA: phase=explore action=none guards=0 guidance=local title=RECOVER · SEED VAULT detail=ARC SHOOTER BLUEPRINT · APPROACH · AHEAD 7M state=SHRINE · AHEAD",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=752.72 y=342.43 behind=no dist=7.4 vp=1558x720",
+        "log: Recovery QA: phase=explore action=none guards=0 guidance=local title=RECOVER · SEED VAULT detail=ARC SHOOTER BLUEPRINT · APPROACH · AHEAD 6M state=SHRINE · AHEAD",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=738.79 y=348.27 behind=no dist=6.4 vp=1558x720",
+        "log: Recovery QA: phase=explore action=none guards=0 guidance=local title=RECOVER · SEED VAULT detail=ARC SHOOTER BLUEPRINT · APPROACH · AHEAD 7M state=SHRINE · AHEAD",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=734.18 y=347.28 behind=no dist=6.5 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=734.51 y=346.80 behind=no dist=6.6 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=734.56 y=346.72 behind=no dist=6.6 vp=1558x720",
+        "log: Recovery QA: phase=explore action=none guards=0 guidance=local title=RECOVER · SEED VAULT detail=ARC SHOOTER BLUEPRINT · APPROACH · AHEAD 6M state=SHRINE · AHEAD",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=745.48 y=350.92 behind=no dist=6.0 vp=1558x720",
+        "log: Recovery QA: phase=explore action=none guards=0 guidance=local title=RECOVER · SEED VAULT detail=ARC SHOOTER BLUEPRINT · APPROACH · AHEAD 5M state=SHRINE · AHEAD",
+        "log: Recovery QA: phase=explore action=engage guards=0 guidance=interact title=SEED VAULT detail=ARC SHOOTER BLUEPRINT · 5 m state=GUARDED",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=745.89 y=370.66 behind=no dist=4.5 vp=1558x720",
+        "log: Recovery QA: phase=explore action=engage guards=0 guidance=interact title=SEED VAULT detail=ARC SHOOTER BLUEPRINT · 4 m state=GUARDED",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=748.05 y=372.03 behind=no dist=4.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=748.05 y=372.03 behind=no dist=4.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=748.05 y=372.03 behind=no dist=4.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=748.05 y=372.03 behind=no dist=4.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=748.05 y=372.03 behind=no dist=4.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=748.05 y=372.03 behind=no dist=4.0 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=748.05 y=372.03 behind=no dist=4.0 vp=1558x720",
+        "log: EnemyVisual[Guard_verdant_seed_vault_01]: model=EnemyModel fitted_height=1.720m fallback=no",
+        "log: EnemyVisual[Guard_verdant_seed_vault_02]: model=EnemyModel fitted_height=1.620m fallback=no",
+        "log: Recovery QA: phase=explore action=none guards=2 guidance=combat title=SEED VAULT detail=2 GUARDS ACTIVE · SECURE LOCKED state=HOSTILE · LEFT 6M",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_01 x=-296.71 y=497.82 behind=no dist=6.0 vp=1558x720",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_02 x=1700.65 y=497.82 behind=no dist=6.2 vp=1558x720",
+        "log: Recovery QA: phase=explore action=none guards=2 guidance=combat title=SEED VAULT detail=2 GUARDS ACTIVE · SECURE LOCKED state=HOSTILE · LEFT 5M",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=748.05 y=372.03 behind=no dist=4.0 vp=1558x720",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_01 x=-143.04 y=505.90 behind=no dist=5.3 vp=1558x720",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_02 x=1696.81 y=513.63 behind=no dist=6.2 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=748.05 y=372.03 behind=no dist=4.0 vp=1558x720",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_01 x=-2.03 y=481.55 behind=no dist=4.9 vp=1558x720",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_02 x=1696.81 y=513.63 behind=no dist=6.2 vp=1558x720",
+        "log: Recovery QA: phase=explore action=none guards=2 guidance=combat title=SEED VAULT detail=2 GUARDS ACTIVE · SECURE LOCKED state=HOSTILE · LEFT 4M",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=748.05 y=372.03 behind=no dist=4.0 vp=1558x720",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_01 x=126.08 y=464.17 behind=no dist=4.5 vp=1558x720",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_02 x=1696.81 y=513.63 behind=no dist=6.2 vp=1558x720",
+        "log: Recovery QA: phase=explore action=none guards=2 guidance=combat title=SEED VAULT detail=2 GUARDS ACTIVE · SECURE LOCKED state=HOSTILE · LEFT 3M",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=748.05 y=372.03 behind=no dist=4.0 vp=1558x720",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_01 x=254.28 y=452.60 behind=no dist=3.5 vp=1558x720",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_02 x=1696.81 y=513.63 behind=no dist=6.2 vp=1558x720",
+        "log: Recovery QA: phase=explore action=none guards=2 guidance=combat title=SEED VAULT detail=2 GUARDS ACTIVE · SECURE LOCKED state=HOSTILE · LEFT 2M",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=748.05 y=372.03 behind=no dist=4.0 vp=1558x720",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_01 x=385.47 y=445.91 behind=no dist=2.5 vp=1558x720",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_02 x=1696.81 y=513.63 behind=no dist=6.2 vp=1558x720",
+        "log: Recovery QA: phase=explore action=none guards=2 guidance=combat title=SEED VAULT detail=2 GUARDS ACTIVE · SECURE LOCKED state=HOSTILE · LEFT 1M",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=748.05 y=372.03 behind=no dist=4.0 vp=1558x720",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_01 x=518.32 y=445.68 behind=no dist=1.5 vp=1558x720",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_02 x=1696.81 y=513.63 behind=no dist=6.2 vp=1558x720",
+        "log: Audio: first voice played (shot_pulse_rifle) 78539 ms after synthesis",
+        "log: Audio: first weapon voice played (shot_pulse_rifle)",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=748.05 y=372.03 behind=no dist=4.0 vp=1558x720",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_01 x=573.35 y=447.71 behind=no dist=1.0 vp=1558x720",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_02 x=1696.81 y=513.63 behind=no dist=6.2 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=748.05 y=372.03 behind=no dist=4.0 vp=1558x720",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_01 x=573.35 y=447.71 behind=no dist=1.0 vp=1558x720",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_02 x=1696.81 y=513.63 behind=no dist=6.2 vp=1558x720",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_01 x=573.35 y=447.71 behind=no dist=1.0 vp=1558x720",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_02 x=1696.81 y=513.63 behind=no dist=6.2 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=748.05 y=372.03 behind=no dist=4.0 vp=1558x720",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_01 x=573.35 y=447.71 behind=no dist=1.0 vp=1558x720",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_02 x=1696.81 y=513.63 behind=no dist=6.2 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=748.05 y=372.03 behind=no dist=4.0 vp=1558x720",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_01 x=573.35 y=447.71 behind=no dist=1.0 vp=1558x720",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_02 x=1696.81 y=513.63 behind=no dist=6.2 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=748.05 y=372.03 behind=no dist=4.0 vp=1558x720",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_01 x=573.35 y=447.71 behind=no dist=1.0 vp=1558x720",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_02 x=1696.81 y=513.63 behind=no dist=6.2 vp=1558x720",
+        "log: Recovery Cache QA: id=verdant_seed_vault x=748.05 y=372.03 behind=no dist=4.0 vp=1558x720",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_01 x=573.35 y=447.71 behind=no dist=1.0 vp=1558x720",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_02 x=1696.81 y=513.63 behind=no dist=6.2 vp=1558x720"
+      ],
+      "pageErrors": [],
+      "badResponses": [],
+      "failedRequests": []
+    }
+  ],
+  "ok": true
+}
