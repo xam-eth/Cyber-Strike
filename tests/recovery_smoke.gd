@@ -178,13 +178,13 @@ func _exercise_death_retry_and_extract() -> void:
 	_expect(
 		(
 			results_title == AegisText.t("results.extracted_title")
-			and results_reward == AegisText.t("results.extracted_reward")
+			and results_reward == AegisText.t("results.banked", [20])
 			and results_summary.contains("ARC SHOOTER")
 			and results_summary.contains("TIER 2")
 			and results_summary.contains("106 HP")
 			and results_summary.contains("RESET")
 		),
-		"Extraction Results explain kept blueprint, Tier 2 promotion, and reset run state",
+		"Extraction Results explain +20 BP banked, kept blueprint, Tier 2 promotion, and reset run state",
 	)
 	_expect(
 		(
