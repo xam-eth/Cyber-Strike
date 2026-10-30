@@ -1,10 +1,18 @@
 """Accessor-level diff of the HERO_01_BODY primitive between two rigged GLBs.
 
-Proves whether an additive change (e.g. the script-43 undersuit mesh) left the
-original body geometry/weights, skin inverse-bind matrices, body material, and
-animation sampler data byte-identical. Usage:
-  python diff_rigged_glb.py <old.glb> <new.glb> [--mesh HERO_01_BODY]
-Exit code 0 = body primitive/skin/animation/material identical; 1 = differences.
+Proves whether an additive change (e.g. the script-43 undersuit mesh or new
+Phase-1 animations) left the original body geometry/weights, skin inverse-bind
+matrices, body material, and pre-existing animation data intact.
+
+Body/skin/material comparisons are always exact. Animation channels are
+compared semantically by (target node name, path), never by sampler index.
+By default animation arrays must also be exact; pass --anim-tol to allow a
+documented floating-point re-export tolerance (Phase-1 multi-action export
+moved the legacy clip by <=4.8e-07, i.e. float32 epsilon scale).
+
+Usage:
+  python diff_rigged_glb.py <old.glb> <new.glb> [--mesh HERO_01_BODY] [--anim-tol 1e-6]
+Exit code 0 = body exact and old animations exact/within stated tolerance.
 """
 import json
 import struct
@@ -48,16 +56,36 @@ def mesh_prim(gltf_json, name):
     raise KeyError(name)
 
 
+def channel_map(g, gltf_json, anim):
+    out = {}
+    for ch in anim.get("channels", []):
+        s = anim["samplers"][ch["sampler"]]
+        key = (gltf_json["nodes"][ch["target"]["node"]]["name"], ch["target"]["path"])
+        out[key] = (s.get("interpolation", "LINEAR"), acc_array(g, s["input"]), acc_array(g, s["output"]))
+    return out
+
+
 def main():
-    args = [a for a in sys.argv[1:] if not a.startswith("--mesh")]
     mesh_name = "HERO_01_BODY"
-    if "--mesh" in sys.argv:
-        mesh_name = sys.argv[sys.argv.index("--mesh") + 1]
-        args = [a for a in args if a != mesh_name]
+    anim_tol = 0.0
+    args = []
+    argv = sys.argv[1:]
+    i = 0
+    while i < len(argv):
+        if argv[i] == "--mesh" and i + 1 < len(argv):
+            mesh_name = argv[i + 1]
+            i += 2
+        elif argv[i] == "--anim-tol" and i + 1 < len(argv):
+            anim_tol = float(argv[i + 1])
+            i += 2
+        else:
+            args.append(argv[i])
+            i += 1
     old_p, new_p = args[0], args[1]
     go, gn = GLTF2().load_binary(old_p), GLTF2().load_binary(new_p)
     jo, jn = glb_json(old_p), glb_json(new_p)
     ok = True
+    anim_exact = True
 
     po, pn = mesh_prim(jo, mesh_name), mesh_prim(jn, mesh_name)
     print(f"mesh {mesh_name}: old material idx={po.get('material')} new material idx={pn.get('material')}")
@@ -95,30 +123,56 @@ def main():
 
     ao_list = {a.get("name"): a for a in jo.get("animations", [])}
     an_list = {a.get("name"): a for a in jn.get("animations", [])}
-    print(f" animations old={list(ao_list)} new={list(an_list)}")
+    print(f" animations old={list(ao_list)} new={list(an_list)} anim_tol={anim_tol:g}")
     for name in ao_list:
         a_old, a_new = ao_list[name], an_list.get(name)
         if a_new is None:
             print(f"  {name}: MISSING in new")
             ok = False
+            anim_exact = False
             continue
-        same = len(a_old["samplers"]) == len(a_new["samplers"]) and len(a_old["channels"]) == len(a_new["channels"])
-        nsamp_bad = 0
-        if same:
-            for s_old, s_new in zip(a_old["samplers"], a_new["samplers"]):
-                for key in ("input", "output"):
-                    x = acc_array(go, s_old[key])
-                    y = acc_array(gn, s_new[key])
-                    if x.shape != y.shape or not np.array_equal(x, y):
-                        nsamp_bad += 1
-        print(f"  {name}: channels {len(a_old['channels'])} vs {len(a_new['channels'])}; sampler arrays differing={nsamp_bad}")
-        ok &= same and nsamp_bad == 0
+        mo_ch = channel_map(go, jo, a_old)
+        mn_ch = channel_map(gn, jn, a_new)
+        same_keys = set(mo_ch) == set(mn_ch)
+        exact_differing = 0
+        tol_bad = 0
+        max_in = 0.0
+        max_out = 0.0
+        if same_keys:
+            for key in mo_ch:
+                io_interp, xo, yo = mo_ch[key]
+                in_interp, xn, yn = mn_ch[key]
+                exact = (io_interp == in_interp and xo.shape == xn.shape and yo.shape == yn.shape
+                         and np.array_equal(xo, xn) and np.array_equal(yo, yn))
+                if not exact:
+                    exact_differing += 1
+                if io_interp != in_interp or xo.shape != xn.shape or yo.shape != yn.shape:
+                    tol_bad += 1
+                    continue
+                di = float(np.abs(xo.astype(np.float64) - xn.astype(np.float64)).max()) if xo.size else 0.0
+                do = float(np.abs(yo.astype(np.float64) - yn.astype(np.float64)).max()) if yo.size else 0.0
+                max_in = max(max_in, di)
+                max_out = max(max_out, do)
+                if di > anim_tol or do > anim_tol:
+                    tol_bad += 1
+        else:
+            tol_bad = 1
+        anim_exact &= same_keys and exact_differing == 0
+        print(f"  {name}: channels {len(mo_ch)} vs {len(mn_ch)}; exact_differing={exact_differing}; "
+              f"max_input_diff={max_in:.3g}; max_output_diff={max_out:.3g}; within_tol={same_keys and tol_bad == 0}")
+        ok &= same_keys and tol_bad == 0
 
     print(f" meshes old={[m.get('name') for m in jo.get('meshes', [])]}")
     print(f" meshes new={[m.get('name') for m in jn.get('meshes', [])]}")
     print(f" materials old={[m.get('name') for m in jo.get('materials', [])]}")
     print(f" materials new={[m.get('name') for m in jn.get('materials', [])]}")
-    print("RESULT:", "IDENTICAL" if ok else "DIFFERENCES FOUND")
+    if ok and anim_exact:
+        result = "IDENTICAL"
+    elif ok:
+        result = "COMPATIBLE_WITHIN_ANIM_TOL (body/skin/material exact)"
+    else:
+        result = "DIFFERENCES FOUND"
+    print("RESULT:", result)
     sys.exit(0 if ok else 1)
 
 

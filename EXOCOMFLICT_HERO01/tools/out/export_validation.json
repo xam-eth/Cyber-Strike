@@ -1,7 +1,7 @@
 {
  "RIGGED": {
   "file": "HERO_01_RIGGED.glb",
-  "bytes": 22897160,
+  "bytes": 23177636,
   "nodes": [
    "Head",
    "Neck",
@@ -93,6 +93,31 @@
   ],
   "animations": [
    {
+    "name": "Aim_Idle",
+    "channels": 72,
+    "duration_s": 3.0
+   },
+   {
+    "name": "Fire",
+    "channels": 72,
+    "duration_s": 0.4
+   },
+   {
+    "name": "Idle",
+    "channels": 72,
+    "duration_s": 3.0
+   },
+   {
+    "name": "Weapon_Lower",
+    "channels": 72,
+    "duration_s": 0.8
+   },
+   {
+    "name": "Weapon_Raise",
+    "channels": 72,
+    "duration_s": 1.2
+   },
+   {
     "name": "Weapon_Raise_To_Aim",
     "channels": 72,
     "duration_s": 1.5
@@ -103,7 +128,7 @@
  },
  "ANIMATIONS": {
   "file": "HERO_01_ANIMATIONS.glb",
-  "bytes": 67196,
+  "bytes": 346860,
   "nodes": [
    "Head",
    "Neck",
@@ -164,6 +189,31 @@
    }
   ],
   "animations": [
+   {
+    "name": "Aim_Idle",
+    "channels": 72,
+    "duration_s": 3.0
+   },
+   {
+    "name": "Fire",
+    "channels": 72,
+    "duration_s": 0.4
+   },
+   {
+    "name": "Idle",
+    "channels": 72,
+    "duration_s": 3.0
+   },
+   {
+    "name": "Weapon_Lower",
+    "channels": 72,
+    "duration_s": 0.8
+   },
+   {
+    "name": "Weapon_Raise",
+    "channels": 72,
+    "duration_s": 1.2
+   },
    {
     "name": "Weapon_Raise_To_Aim",
     "channels": 72,
