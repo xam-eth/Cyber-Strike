@@ -12,7 +12,7 @@ size = Vector3(4.2, 2.7, 4.2)
 [node name="TechCache" type="Node3D"]
 script = ExtResource("1_cache")
 interaction_id = "aetherfall_primary_tech_cache"
-interaction_label = "Ambil data teknologi"
+interaction_label = "Ambil credential akses Archive"
 
 [node name="Visual" parent="." instance=ExtResource("2_model")]
 

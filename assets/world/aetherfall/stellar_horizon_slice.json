@@ -1,7 +1,7 @@
 {
   "schema": "aetherfall.stellar-horizon/1",
   "mission_id": "stellar_horizon_bootstrap",
-  "progression_note": "Local vertical-slice state only; does not claim a dependency on a removed game-wide inventory.",
+  "progression_note": "Local state only. Field cache data is a credential for the Sentinel Archive Computer; the unique final Data Core record is committed only in archive_phase3.json. No game-wide inventory, mission completion, or unlock is claimed.",
   "player_spawn": "primary",
   "interactives": [
     {
@@ -13,7 +13,7 @@
       "reward": {
         "resource": "tech_data",
         "amount": 1,
-        "reason": "Data teknis dari cache lapangan untuk mengautentikasi relai."
+        "reason": "Credential teknis dari cache lapangan untuk mengautentikasi Archive Computer; bukan Archive Data Core."
       },
       "placement_reason": "Di sisi jalur dari spawn primer: terlihat dan mudah dicapai tanpa menyempitkan rute sentral 6 m."
     },

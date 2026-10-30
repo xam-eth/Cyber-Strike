@@ -36,7 +36,7 @@ func attempt_interaction(actor: Node3D) -> Dictionary:
 	if result.get("ok", false):
 		_active = true
 		_set_active_visual(false)
-		actor.show_interaction_feedback("Relai horizon aktif. Objective slice selesai dan tersimpan.")
+		actor.show_interaction_feedback("Relai horizon aktif dan status lokal tersimpan. Ini bukan penyelesaian misi atau reward final.")
 		interaction_completed.emit(interaction_id, result)
 		interaction_state_changed.emit()
 	else:

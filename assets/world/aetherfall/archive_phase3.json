@@ -1,0 +1,32 @@
+{
+  "schema": "aetherfall.archive-phase3/1",
+  "unit": "meters",
+  "intent": "One compact Sentinel Archive interior connected to the Phase 1 exterior: open exterior threshold, short vestibule, one Archive Computer room, and a durable named Data Core transaction. This configuration does not add AI, combat, damage, hazards, extraction, or mission completion.",
+  "interior": {
+    "id": "sentinel_archive_interior",
+    "asset": "archive_vestibule",
+    "position": [8.0, 0.25, -14.3],
+    "rotation_degrees": [0.0, 180.0, 0.0],
+    "purpose": "Compact sealed contrast to the open ice basin. The front opening aligns to the exterior Archive threshold; one partition divides the short vestibule from the single objective room.",
+    "collision_boxes": [
+      {"center": [0.0, 0.52, 0.85], "size": [10.5, 0.14, 5.5]},
+      {"center": [-3.75, 3.08, 0.22], "size": [2.72, 5.0, 0.24]},
+      {"center": [3.75, 3.08, 0.22], "size": [2.72, 5.0, 0.24]},
+      {"center": [0.0, 5.02, 0.22], "size": [4.75, 1.38, 0.24]}
+    ],
+    "lights": [
+      {"position": [0.0, 4.75, -1.1], "color": [0.12, 0.55, 1.0], "energy": 0.72, "range": 6.5},
+      {"position": [0.0, 4.55, 2.15], "color": [0.20, 0.76, 1.0], "energy": 1.05, "range": 7.0}
+    ]
+  },
+  "computer": {
+    "id": "aetherfall_sentinel_computer",
+    "scene": "res://scenes/props/archive_computer.tscn",
+    "data_core_id": "aetherfall_sentinel_data_core",
+    "local_position": [0.0, 0.60, 1.85],
+    "local_rotation_degrees": [0.0, 180.0, 0.0],
+    "requires": {"resource": "tech_data", "amount": 1, "reason": "Cache lapangan memberi credential akses saja; reward final tetap Data Core yang dicatat oleh Archive Computer."},
+    "download_seconds": 1.2,
+    "purpose": "Satu sumber final teknologi. State aktual: locked, authorized, downloading, collected. Record Data Core dibuat hanya setelah profil lokal berhasil ditulis."
+  }
+}

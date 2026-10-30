@@ -6,8 +6,8 @@ Satu proyek Godot untuk meninjau SH-01 **Aetherfall**. Tidak memerlukan proyek g
 
 Main scene kini tetap memakai layout Aetherfall yang sama, dengan tambahan minimal berikut:
 
-- `TechCache` reusable di sisi jalur dari spawn primer: collider statis, `Area3D` range, animasi buka authored Blender, serta transaksi `tech_data` satu kali yang disimpan ke `user://aetherfall_stellar_horizon.cfg`.
-- `ObjectiveDevice` reusable di zona mesin/cover tengah: meminta satu `tech_data`, kemudian menyimpan aktivasi relai satu kali.
+- `TechCache` reusable di sisi jalur dari spawn primer: collider statis, `Area3D` range, animasi buka authored Blender, serta transaksi `tech_data` satu kali yang disimpan ke `user://aetherfall_stellar_horizon.cfg`. Pada flow Archive, data ini adalah **credential akses**, bukan reward final.
+- `ObjectiveDevice` reusable di zona mesin/cover tengah: meminta satu `tech_data`, kemudian menyimpan aktivasi relai satu kali. Relai tidak mengklaim completion misi ataupun Archive Data Core.
 - Interaksi tetap memiliki actor test privat di `tests/interactive_slice.gd`, tetapi **scene QA utama tidak lagi memunculkan karakter**. `ReviewCamera` adalah kamera QA default: tahan klik kanan untuk melihat, **WASD/Q/E** untuk free-fly, dan **1–0** untuk framing overview, outpost, cache, relay, hangar, density, Archive, skyline, Scrapper Basin, serta lower canyon.
 
 Tambahan density terarah juga tersedia di `assets/world/aetherfall/landmarks/`: Field Outpost, Relay Annex, Service Hangar, dan cargo/service cluster. Ketiganya ditempatkan sebagai landmark spawn/relay/cover berdasarkan `landmarks.json`, dengan collider sederhana, bukan filler acak. Atmosfer mengurangi kabut dan bloom untuk pemisahan siluet yang lebih tegas; kualitas visual final tetap perlu diperiksa pada Godot GUI.
@@ -16,9 +16,15 @@ Tambahan density terarah juga tersedia di `assets/world/aetherfall/landmarks/`: 
 
 `assets/world/aetherfall/phase2_cover.json` merakit delapan setpiece yang memiliki tujuan eksplisit: tiga berm es untuk cover/arah approach, dua salvage pod robot untuk cover naratif, satu cryo bulkhead pemutus sightline, serta dua ice terrace bertingkat untuk membaca sisi high/low Basin. Semua aset ada di `assets/world/aetherfall/phase2/`, diproduksi ulang melalui `tools/blender/build_phase2_cover.py`, dan mempunyai source editable `source/aetherfall_phase2_cover.blend`.
 
-Konfigurasi mendokumentasikan clearance untuk central spine dan tiga connector route. `tests/check_assets.py` memeriksa GLB/PBR/purpose/collider dan margin statis minimal 0.5 m dari footprint konservatif. `tests/phase2_cover.gd` adalah kontrak **runtime yang disediakan tetapi belum dijalankan di sandbox ini**; ia memeriksa perakitan delapan placement, dua belas collider, terrace bertingkat, dan tiga lampu diagnostik. Phase 2 tidak menambahkan atau mengklaim AI robot, combat, damage/hazard, interior Archive, Archive Computer, maupun interaksi Archive Data Core.
+Konfigurasi mendokumentasikan clearance untuk central spine dan tiga connector route. `tests/check_assets.py` memeriksa GLB/PBR/purpose/collider dan margin statis minimal 0.5 m dari footprint konservatif. `tests/phase2_cover.gd` adalah kontrak **runtime yang disediakan tetapi belum dijalankan di sandbox ini**; ia memeriksa perakitan delapan placement, dua belas collider, terrace bertingkat, dan tiga lampu diagnostik.
 
-Ini bukan pengganti atau klaim integrasi dengan inventory/mission/combat EXOCOMFLICT lama—sistem tersebut tidak ada di branch standalone ini. Jalankan `tests/interactive_slice.gd` di Godot untuk memeriksa range, collision, animasi, persistence, reward dan anti-duplikasi. Detail bukti serta keterbatasan screenshot/performa ada pada `docs/VALIDATION.md`.
+## Phase 3 — Sentinel Archive interior & Data Core
+
+`assets/world/aetherfall/archive_phase3.json` merakit **satu** vestibule/ruang tujuan di dalam shell Sentinel Archive yang sama. `archive_vestibule.glb` menghadirkan threshold terbuka, vestibule, partition, server pylons dan console banks; `archive_computer.glb` adalah satu-satunya sumber `aetherfall_sentinel_data_core`. Kedua source Blender dan pipeline berada di `source/aetherfall_archive_interior.blend` serta `tools/blender/build_archive_interior.py`.
+
+`ArchiveComputer` memiliki state nyata `locked → authorized → downloading → collected`: credential cache mempersist otorisasi; timer download kemudian melakukan transaksi Data Core bernama yang hanya dianggap collected setelah write profil lokal sukses. Duplikasi, download paralel, dan transaksi tanpa otorisasi ditolak. `tests/archive_phase3.gd` menguji kontrak runtime ini, tetapi **belum dijalankan di sandbox** karena binary Godot tidak tersedia. Tekan **I** pada ReviewCamera untuk framing interior tanpa karakter.
+
+Ini bukan pengganti atau klaim integrasi dengan inventory/mission/combat EXOCOMFLICT lama—sistem tersebut tidak ada di branch standalone ini. Detail bukti serta keterbatasan screenshot/performa ada pada `docs/VALIDATION.md`.
 
 ## Preview Godot GUI — tanpa toolchain sandbox
 
@@ -68,6 +74,7 @@ python tools/blender/build_connector.py
 python tools/blender/build_orbit.py
 python tools/blender/build_ice_planet.py
 python tools/blender/build_phase2_cover.py
+python tools/blender/build_archive_interior.py
 ```
 
 Peta yang dibangun untuk permukaan opaque adalah albedo sRGB, normal tangent-space, serta ORM (metallic/roughness/AO). Build kit juga menambahkan ribs, bolts, panel, gusset, louver, cable clamp, guard, energy ring, dan detail struktur pada seluruh 27 modul serta connector ramp. Lihat `assets/world/aetherfall/materials/README.md` dan provenance sumber di `assets/world/aetherfall/source_textures/README.md`.
@@ -85,7 +92,7 @@ godot --headless --path . --script res://tests/ice_planet_phase1.gd
 godot --headless --path . --script res://tests/phase2_cover.gd
 ```
 
-Lihat `docs/STATUS.md` untuk hasil nyata dan keterbatasan. Proyek review ini bukan klaim game-ready: jalur ramp utama sudah diuji dengan kapsul `CharacterBody3D` otomatis, tetapi sebagian prop tetap menggunakan collider proxy. Belum ada navmesh, profil mobile, screenshot Godot, atau penilaian visual renderer Godot. Kit masih membutuhkan penilaian artistik pada renderer Godot dan bukan klaim kualitas photorealistik.
+Lihat `docs/STATUS.md` untuk hasil nyata dan keterbatasan. Proyek review ini bukan klaim game-ready: jalur ramp utama **pernah** diuji dengan kapsul `CharacterBody3D` otomatis sebelum collider Phase 2/3; sebagian prop tetap menggunakan collider proxy dan run tersebut perlu diulang. Belum ada navmesh, profil mobile, screenshot Godot, atau penilaian visual renderer Godot. Kit masih membutuhkan penilaian artistik pada renderer Godot dan bukan klaim kualitas photorealistik.
 
 ## Preview desain Blender
 

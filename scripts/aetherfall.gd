@@ -18,6 +18,9 @@ var ice_planet_count := 0
 var ice_planet_collider_count := 0
 var phase2_cover_count := 0
 var phase2_cover_collider_count := 0
+var archive_interior_count := 0
+var archive_interior_collider_count := 0
+var archive_computer_count := 0
 
 func v3(value: Variant) -> Vector3:
 	if value is Array and value.size() >= 3:
@@ -138,9 +141,79 @@ func _ready() -> void:
 	add_vertical_infrastructure()
 	add_structural_landmarks()
 	add_ice_planet_phase1()
-	add_phase2_cover()
+	# Progression state must exist before Archive Computer _ready() resolves a
+	# prior authorization or collected Data Core from the local profile.
 	add_stellar_horizon_slice(layout)
-	print("Aetherfall: %d kit / %d proxy colliders / %d vertical / %d landmark / %d ice-planet / %d phase-2 cover placement" % [placement_count, collider_count, verticality_count, landmark_count, ice_planet_count, phase2_cover_count])
+	add_archive_interior()
+	add_phase2_cover()
+	print("Aetherfall: %d kit / %d proxy colliders / %d vertical / %d landmark / %d ice-planet / %d archive interior / %d phase-2 cover placement" % [placement_count, collider_count, verticality_count, landmark_count, ice_planet_count, archive_interior_count, phase2_cover_count])
+
+
+func add_archive_interior() -> void:
+	## Phase 3 is exactly one exterior-linked vestibule and one objective room.
+	## The Archive Computer performs its own persisted Data Core transaction;
+	## this builder does not invent AI, damage, extraction or mission completion.
+	var data := read_json(BASE + "archive_phase3.json")
+	var interior: Dictionary = data.get("interior", {})
+	if interior.is_empty():
+		return
+	var asset := str(interior.get("asset", ""))
+	var packed := load(BASE + "archive/" + asset + ".glb") as PackedScene
+	if packed == null:
+		push_error("Aetherfall: model interior Archive tidak ditemukan: " + asset)
+		return
+	var archive := Node3D.new()
+	archive.name = "ArchiveInterior"
+	archive.position = v3(interior.get("position", []))
+	archive.rotation = v3(interior.get("rotation_degrees", [])) * PI / 180.0
+	add_child(archive)
+	var visual := packed.instantiate() as Node3D
+	visual.name = "VestibuleVisual"
+	archive.add_child(visual)
+	var collision := StaticBody3D.new()
+	collision.name = "Collision"
+	archive.add_child(collision)
+	for box_data: Dictionary in interior.get("collision_boxes", []):
+		var size := v3(box_data.get("size", []))
+		if size.x <= 0.0 or size.y <= 0.0 or size.z <= 0.0:
+			push_error("Aetherfall: invalid Archive interior collision")
+			continue
+		var shape := CollisionShape3D.new()
+		shape.name = "Shape"
+		shape.position = v3(box_data.get("center", []))
+		var box := BoxShape3D.new()
+		box.size = size
+		shape.shape = box
+		collision.add_child(shape)
+		archive_interior_collider_count += 1
+	for light_data: Dictionary in interior.get("lights", []):
+		var light := OmniLight3D.new()
+		light.name = "ArchiveInteriorLight"
+		light.position = v3(light_data.get("position", []))
+		light.light_color = color3(light_data.get("color", []), Color(0.12, 0.62, 1.0))
+		light.light_energy = float(light_data.get("energy", 1.0))
+		light.omni_range = float(light_data.get("range", 6.0))
+		light.shadow_enabled = false
+		archive.add_child(light)
+	var computer_data: Dictionary = data.get("computer", {})
+	var computer_scene := load(str(computer_data.get("scene", ""))) as PackedScene
+	if computer_scene == null:
+		push_error("Aetherfall: scene Archive Computer tidak ditemukan")
+	else:
+		var computer := computer_scene.instantiate() as AetherfallArchiveComputer
+		if computer == null:
+			push_error("Aetherfall: scene Archive Computer tidak memakai kontrak interaksi")
+		else:
+			computer.name = str(computer_data.get("id", "ArchiveComputer"))
+			computer.interaction_id = str(computer_data.get("id", computer.interaction_id))
+			computer.data_core_id = str(computer_data.get("data_core_id", computer.data_core_id))
+			computer.required_access_data = int(computer_data.get("requires", {}).get("amount", computer.required_access_data))
+			computer.download_seconds = float(computer_data.get("download_seconds", computer.download_seconds))
+			computer.position = v3(computer_data.get("local_position", []))
+			computer.rotation = v3(computer_data.get("local_rotation_degrees", [])) * PI / 180.0
+			archive.add_child(computer)
+			archive_computer_count += 1
+	archive_interior_count += 1
 
 
 func add_phase2_cover() -> void:

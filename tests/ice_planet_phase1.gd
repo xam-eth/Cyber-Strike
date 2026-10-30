@@ -16,8 +16,8 @@ func run_test() -> void:
 	if group == null or world.ice_planet_count != 9:
 		fail("sembilan placement ice-planet Phase 1 tidak termuat")
 		return
-	if world.ice_planet_collider_count != 4:
-		fail("collider Sentinel Archive tidak sesuai desain pintu")
+	if world.ice_planet_collider_count != 6:
+		fail("collider shell Sentinel Archive tidak sesuai threshold interior")
 		return
 	var archive := group.get_node_or_null("sentinel_archive_exterior") as Node3D
 	if archive == null or archive.get_node_or_null("Visual") == null or archive.get_node_or_null("Collision") == null:

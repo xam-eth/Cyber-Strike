@@ -228,11 +228,17 @@ def sentinel_archive():
     parent = root(collection, "SentinelArchiveRoot")
     # 15m x 9m x 11m exterior facility, front toward negative Z before placement rotation.
     box(collection, parent, "ArchiveFoundation", (15.2, .45, 9.2), (0, .23, 0), ICE_DARK, .06)
-    box(collection, parent, "ArchiveCore", (12.4, 7.8, 6.2), (0, 4.12, .85), STEEL, .06)
+    # Phase 3 opens the formerly solid core into a real shell. The compact
+    # vestibule occupies this volume; the south/front threshold stays clear.
+    box(collection, parent, "ArchiveRearShell", (11.7, 7.8, .55), (0, 4.12, 3.65), STEEL, .055)
+    for x in (-5.82, 5.82):
+        box(collection, parent, "ArchiveSideShell_" + str(x), (.78, 7.8, 5.55), (x, 4.12, .85), STEEL, .055)
+    for x in (-4.08, 4.08):
+        box(collection, parent, "ArchiveFrontWing_" + str(x), (3.55, 7.8, .55), (x, 4.12, -2.25), STEEL, .055)
+    box(collection, parent, "ArchiveFrontLintel", (5.15, 3.0, .55), (0, 6.5, -2.25), STEEL, .055)
     box(collection, parent, "ArchiveRoof", (13.9, .42, 7.75), (0, 8.22, .85), DARK, .06)
-    # Front archive door, deliberate clean threshold for later compact interior.
-    box(collection, parent, "ArchiveDoorRecess", (4.25, 4.85, .12), (0, 2.72, -2.32), DARK, .015)
-    box(collection, parent, "ArchiveDoor", (3.58, 4.20, .08), (0, 2.62, -2.43), STEEL, .01)
+    # The framed south/front opening is a physical threshold to the compact
+    # interior, not a decorative sealed wall. Door pylons retain its robot ID.
     for x in (-2.45, 2.45):
         box(collection, parent, "DoorPylon_" + str(x), (.38, 5.8, .35), (x, 3.0, -2.4), ICE_DARK, .025)
         box(collection, parent, "DoorGuide_" + str(x), (.08, 4.3, .06), (x * .89, 2.78, -2.65), CYAN, .006)

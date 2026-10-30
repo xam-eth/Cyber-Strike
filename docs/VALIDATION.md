@@ -1,6 +1,6 @@
 # Validation report — Stellar Horizon vertical slice
 
-**Recorded:** 2026-10-29 (Asia/Kuching)
+**Recorded / last updated:** 2026-10-31 (Asia/Kuching)
 
 **Scope:** static asset/source validation performed after adding the local Aetherfall slice. This report deliberately separates completed checks from checks that require a graphical Godot runtime.
 
@@ -49,9 +49,19 @@ Phase 2 assembles eight sparse, purpose-defined outdoor placements from four Ble
 
 `tests/phase2_cover.gd` is supplied to check runtime assembly (eight placements, twelve collision volumes, two 3-level terraces and three lights), but it has **NOT YET RUN** in a post-change Godot runtime. No graphical Godot screenshot, final material composition, changed-route capsule traversal, player feel, performance or combat/AI claim follows from this record.
 
+## Phase 3 — compact Archive interior and named Data Core
+
+Phase 3 changes the Sentinel Archive exterior from a solid visual core to a shell with a deliberately open south/front threshold: six exterior collision volumes now model the side shells, rear shell, front wings and lintel while leaving the doorway physically clear. `archive_vestibule.glb` (55 meshes) fits into that footprint as one short vestibule and one objective room. It has floor channels, partition opening, server pylons and console banks; it is not a multi-room dungeon. `archive_computer.glb` (23 meshes) is the single final-tech prop and contains the Blender-authored `ArchiveComputer_Download` animation.
+
+**Completed static evidence:** Blender `bpy` 5.0.1 generated both GLBs and `source/aetherfall_archive_interior.blend`. `tests/check_assets.py` verifies both GLB 2.0 containers, PBR normal+ORM references, detail floors, terminal animation, one interior configuration, four interior collision boxes, two lights, a collision-free exterior door point, the named `aetherfall_sentinel_data_core`, and the state/persistence methods. The cache config now documents `tech_data` as an access credential rather than the final Data Core; relay feedback does not claim mission completion.
+
+The supplied `tests/archive_phase3.gd` owns a private test actor and covers the real local sequence: no credential → locked rejection; persisted credential → authorization; one timer-driven download; persisted named Data Core; duplicate/concurrent rejection; fresh state reader reload. It has **NOT YET RUN** in a post-change Godot runtime because this sandbox does not retain a Godot executable. Static parsing is not substituted for that execution.
+
+No claim is made for a playable Archive door animation, visual Godot lighting, exterior-to-interior capsule traversal, combat/AI, hazards, extraction, generic mission completion, performance, or device behavior.
+
 ## Camera-only QA and dense verticality pass
 
-`scenes/aetherfall.tscn` is now character-free for visual QA. The default `ReviewCamera` is current immediately and provides ten labelled presets: overview, outpost, cache/route, relay, hangar, density, Archive exterior, tower/glacial skyline, Scrapper Basin cover, and lower-canyon high/low read. The interaction actor remains only in the dedicated test so visual review is not obstructed by an avatar or HUD.
+`scenes/aetherfall.tscn` is now character-free for visual QA. The default `ReviewCamera` provides ten numeric presets (overview through lower-canyon high/low read) plus **I** for the Sentinel Archive vestibule/Data Core view. The interaction actor remains only in dedicated tests so visual review is not obstructed by an avatar or HUD.
 
 A reference-analysis brief is recorded in `docs/ART_DIRECTION_REFERENCE.md`. Based on its layered hangar/industrial principles, the world now adds two 13m refinery stacks, a 24m overhead service gantry at 7m, and a raised operations deck at 5m. This produces foreground/mid/high structural rhythm rather than merely spacing additional floor props.
 
@@ -72,13 +82,17 @@ Atmosphere parameters now use less than half the prior fog density (`0.00095` fr
 - **Third-person visual readability/camera clipping:** **PENDING runtime inspection.** A basic third-person validation actor is now supplied; its exact visual camera result must be checked in an editor/game window.
 - **Mobile FPS, frame time, draw calls, memory:** **NOT MEASURED.** The project remains configured for Godot Mobile rendering, but no performance claims are made.
 
-## Manual smoke path for a local Godot GUI
+## Manual review and runtime path for a local Godot GUI
 
 1. Import the repository root with Godot 4.7 or newer and run `scenes/aetherfall.tscn`.
-2. Use **WASD** to move, hold right mouse to look, **E** to interact, and **F1** to toggle the preserved free-fly review camera.
-3. From the primary spawn, collect the cache on the adjacent central approach. The HUD must increase `Data teknologi tersimpan` to 1.
-4. Continue to the compact relay in the central machinery/cover zone. Activate it with **E**.
-5. Restart the scene. The opened cache and active relay should retain their state from `user://aetherfall_stellar_horizon.cfg`; deleting that file resets the vertical slice.
+2. The default scene is intentionally **camera-only**: hold right mouse to look; use **WASD/Q/E**, **1–0**, and **I** to inspect the exterior, cover/traversal, Archive threshold, vestibule and Archive Computer without a player mesh or HUD.
+3. To validate state rather than merely view it, run the private-actor contracts from the project root:
+   ```bash
+   godot --headless --path . --script res://tests/interactive_slice.gd
+   godot --headless --path . --script res://tests/archive_phase3.gd
+   ```
+4. The Archive contract first commits one access credential, then verifies `locked → authorized → downloading → collected`; it must find the named Data Core after constructing a new `AetherfallProgressionState`. Its cleanup deletes `user://aetherfall_stellar_horizon.cfg` after the test.
+5. A GUI review may inspect the physical open exterior threshold and compact interior, but it does not alone prove persistence, combat, mission completion, performance, or device behavior.
 
 ## Known scope boundary
 

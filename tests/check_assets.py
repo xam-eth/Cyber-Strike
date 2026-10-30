@@ -156,7 +156,63 @@ for filename, minimum_meshes in [
         pbr = material.get('pbrMetallicRoughness', {})
         assert material.get('normalTexture'), f'normal map missing: {filename}/{material["name"]}'
         assert pbr.get('metallicRoughnessTexture'), f'ORM map missing: {filename}/{material["name"]}'
-assert sum(len(item.get('collision_boxes', [])) for item in ice_phase1) == 4
+    if filename == 'sentinel_archive.glb':
+        node_names = {node.get('name') for node in payload.get('nodes', [])}
+        assert 'ArchiveCore' not in node_names, 'Archive masih memakai core solid yang menutup interior'
+        assert {'ArchiveRearShell', 'ArchiveFrontLintel', 'ArchiveSideShell_-5.82', 'ArchiveSideShell_5.82'} <= node_names
+assert sum(len(item.get('collision_boxes', [])) for item in ice_phase1) == 6
+# Phase 3 converts the former visual-only Archive door into a shell threshold.
+archive_shell = next(item for item in ice_phase1 if item['id'] == 'sentinel_archive_exterior')
+for box in archive_shell['collision_boxes']:
+    # local point just inside the south/front threshold must remain unobstructed
+    inside = all(abs(point - float(center)) <= float(size) / 2.0 for point, center, size in zip((0.0, 2.5, -2.25), box['center'], box['size']))
+    assert not inside, 'Archive threshold is sealed by an exterior collision box'
+# Phase 3 adds precisely one compact vestibule and one named final-tech source.
+# It is deliberately independent from combat/AI and persists the Data Core only
+# after the Archive Computer has an access credential and a successful write.
+archive_phase3 = json.loads((base / 'archive_phase3.json').read_text())
+archive_interior = archive_phase3['interior']
+archive_computer = archive_phase3['computer']
+assert archive_interior['asset'] == 'archive_vestibule'
+assert len(archive_interior['collision_boxes']) == 4
+assert len(archive_interior['lights']) == 2
+assert archive_computer['id'] == 'aetherfall_sentinel_computer'
+assert archive_computer['data_core_id'] == 'aetherfall_sentinel_data_core'
+assert archive_computer['requires']['resource'] == 'tech_data' and archive_computer['requires']['amount'] == 1
+assert archive_computer['download_seconds'] > 0.0
+assert 'locked, authorized, downloading, collected' in archive_computer['purpose']
+assert (root / 'source/aetherfall_archive_interior.blend').is_file()
+for required in [
+    'assets/world/aetherfall/archive/archive_vestibule.glb',
+    'assets/world/aetherfall/archive/archive_computer.glb',
+    'scenes/props/archive_computer.tscn', 'scripts/archive_computer.gd',
+    'tests/archive_phase3.gd',
+]:
+    assert (root / required).is_file(), required
+for filename, minimum_meshes, animation in [
+    ('archive_vestibule.glb', 55, None),
+    ('archive_computer.glb', 23, 'ArchiveComputer_Download'),
+]:
+    data = (base / 'archive' / filename).read_bytes()
+    magic, version, length = struct.unpack_from('<4sII', data)
+    assert (magic, version, length) == (b'glTF', 2, len(data)), filename
+    json_len = struct.unpack_from('<I', data, 12)[0]
+    payload = json.loads(data[20:20 + json_len])
+    assert len(payload.get('meshes', [])) >= minimum_meshes, filename
+    assert payload.get('materials') and payload.get('textures'), filename
+    if animation:
+        assert animation in [clip.get('name') for clip in payload.get('animations', [])], filename
+    for material in payload['materials']:
+        pbr = material.get('pbrMetallicRoughness', {})
+        assert material.get('normalTexture'), f'normal map missing: {filename}/{material["name"]}'
+        assert pbr.get('metallicRoughnessTexture'), f'ORM map missing: {filename}/{material["name"]}'
+progression_source = (root / 'scripts/progression_state.gd').read_text()
+computer_source = (root / 'scripts/archive_computer.gd').read_text()
+for method in ['authorize_archive_computer', 'commit_archive_data_core', 'has_data_core']:
+    assert method in progression_source, method
+for state_name in ['LOCKED', 'AUTHORIZED', 'DOWNLOADING', 'COLLECTED']:
+    assert state_name in computer_source, state_name
+
 # Phase 2 has a deliberately small set of collision-backed cover and terrain
 # pieces. This validates source/GLB/PBR contracts and proves, geometrically,
 # that every named preserved route retains at least 0.5m beyond the setpiece
@@ -220,4 +276,4 @@ for suffix in ['normal', 'orm']:
     assert (base / 'materials' / ('aether_rock_' + suffix + '.png')).is_file()
 connectors = json.loads((base / 'connectors.json').read_text())['connectors']
 assert {x['name'] for x in connectors} == {'east_bridge_approach', 'west_catwalk_approach', 'lower_canyon_descent'}
-print(f'PASS: {len(layout["placements"])} kit placement, {len(measures)} modul, 3 connector, 2 interaktif, 4 vertical, 6 landmark, 9 ice-planet placement, 8 Phase-2 cover, 8 source Blender, PBR normal+ORM')
+print(f'PASS: {len(layout["placements"])} kit placement, {len(measures)} modul, 3 connector, 2 interaktif, 4 vertical, 6 landmark, 9 ice-planet placement, 8 Phase-2 cover, 1 Archive Interior, 9 source Blender, PBR normal+ORM')

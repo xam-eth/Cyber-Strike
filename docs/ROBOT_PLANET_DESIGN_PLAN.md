@@ -1,6 +1,6 @@
 # Aetherfall — Robot Planet Tech Heist
 
-**Status:** Phase 1 exterior macro composition dan Phase 2 cover/traversal blockout telah diproduksi. Bukti yang tersedia untuk Phase 2 adalah kontrak aset, konfigurasi, parse skrip, dan pemeriksaan clearance statis; inspeksi grafis serta runtime Godot tetap terpisah dan belum diklaim.
+**Status:** Phase 1 exterior macro composition, Phase 2 cover/traversal blockout, dan Phase 3 compact Archive telah diproduksi. Bukti yang tersedia adalah kontrak aset, konfigurasi, parse skrip, dan pemeriksaan statis; inspeksi grafis serta runtime Godot tetap terpisah dan belum diklaim.
 
 ## 1. Direction decision
 
@@ -279,17 +279,44 @@ Data Core interaction. None is claimed by this phase.
 simply "decorative combat cover" without a sightline or route reason. Phase 3
 remains blocked pending separate approval.
 
-### Phase 3 — Archive interior and final tech computer
+### Phase 3 — Archive interior and final tech computer — IMPLEMENTED (static assembly)
 
-1. Build one compact Archive Interior scene/module with exterior door,
-   vestibule and computer room.
-2. Convert existing tech cache into access item or remove it from final reward
-   flow.
-3. Create reusable `ArchiveComputer` state machine: locked → authorised →
-   downloading → collected, including persistence and duplicate prevention.
+1. Reworked the Sentinel Archive from a solid visual box into a six-collider
+   exterior shell with an open, collision-free south threshold. Added one
+   Blender-authored `archive_vestibule` (55 meshes): a short vestibule,
+   partition opening, server pylons, console banks, floor channels and one
+   objective room. It is placed inside the existing Archive footprint rather
+   than making a separate dungeon or world.
+2. Added one Blender-authored `archive_computer` hero prop (23 meshes) with
+   `ArchiveComputer_Download` animation, dedicated `StaticBody3D` collision and
+   `Area3D` interaction range. Camera-only review adds **I** for the interior
+   and Data Core framing.
+3. The former outdoor cache is now explicitly an **access credential**. It is
+   not the Archive Data Core; the relay feedback also no longer claims mission
+   completion or a final reward.
+4. Added a reusable `ArchiveComputer` state machine: `locked → authorized →
+   downloading → collected`. Authorization is persisted only when the local
+   profile write succeeds; downloading is delayed; a named
+   `aetherfall_sentinel_data_core` record is committed only after its own
+   successful profile write. Duplicate computer authorization, concurrent
+   download and duplicate Data Core collection are all rejected.
 
-**Gate:** final technology cannot be collected outdoors; it is committed only by
-interacting with the indoor computer and survives a reload.
+**VERIFIED (static):** `archive_phase3.json` has one interior, four interior
+collision boxes, two lights, one named computer and one named Data Core. GLB
+integrity, mesh/detail floors, embedded PBR normal+ORM dependencies, the
+terminal animation, source files, state-machine methods, JSON parsing, Python
+compilation and GDScript parsing are checked in-repository.
+
+**UNVERIFIED:** Godot runtime instantiation, `Area3D` overlap, timer-driven
+transaction, persistence reload, exterior-to-interior capsule traversal,
+graphical interior framing, performance, AI, combat, hazards, extraction and
+mission completion. `tests/archive_phase3.gd` supplies the runtime contract but
+has not been run in this sandbox.
+
+**Gate result:** final technology has no outdoor transaction path in the new
+Archive flow. The supplied runtime contract must prove the real local write
+and reload before the Phase 3 gate can be called runtime-verified. Phase 4
+remains blocked pending a separate gameplay-system decision.
 
 ### Phase 4 — Robot gameplay integration
 
@@ -321,7 +348,7 @@ purpose and a test. No visual-only "enemy" is counted as gameplay.
 3. East high flank → height/risk read and open sky.
 4. Lower canyon → natural planet material and buried robot infrastructure.
 5. Archive exterior → door legibility, future guard/cover anchors and destination read.
-6. Archive interior → computer is unmistakably the final tech source (**deferred; not built in Phase 2**).
+6. Archive interior → one vestibule and one Archive Computer are unmistakably the named final-tech source; camera key I frames this without a character.
 7. Return/extraction → route reads back toward landing ridge.
 8. Phase 2 Scrapper Basin → berm or salvage foreground, cryo bulkhead/building mid-ground, Archive/tower far target.
 9. Phase 2 lower flank → canyon salvage cover and a terrace/high-route relationship without a character in frame.
@@ -329,11 +356,11 @@ purpose and a test. No visual-only "enemy" is counted as gameplay.
 ## 10. Approval checkpoint
 
 The reviewer has selected the mixed mission tone, ice/blue-energy planet,
-Archive Data Core reward, and compact archive interior. Phase 1 and the
-purpose-defined Phase 2 exterior assembly are complete at the static-contract
-level. The next remaining gate is separate approval for **Phase 3 — Archive
-Interior and final-tech computer**.
+Archive Data Core reward, and compact archive interior. Phase 1, Phase 2 and
+the bounded Phase 3 assembly are complete at the static-contract level. The
+next remaining gate is separate approval for **Phase 4 — robot gameplay
+integration**.
 
-Phase 3 must not fabricate robot AI, player combat, damage, mission completion,
-mobile performance, or a Data Core unlock without its real persistence and
-state-validation architecture.
+Phase 4 must not fabricate robot AI, player combat, damage, mission completion
+or mobile performance without an actual controller/combat/AI decision, runtime
+validation and the corresponding authoritative systems.

@@ -17,7 +17,7 @@ func _ready() -> void:
 func get_prompt() -> String:
 	if _opened:
 		return "Cache teknologi — sudah diklaim"
-	return "Tekan E — Ambil data teknologi"
+	return "Tekan E — Ambil credential akses Archive"
 
 func attempt_interaction(actor: Node3D) -> Dictionary:
 	var range_result := validate_interaction(actor)
@@ -33,7 +33,7 @@ func attempt_interaction(actor: Node3D) -> Dictionary:
 	if result.get("ok", false):
 		_opened = true
 		_set_open_visual(false)
-		actor.show_interaction_feedback("+%d data teknologi tersimpan. Relai horizon siap diautentikasi." % reward_amount)
+		actor.show_interaction_feedback("+%d credential akses Archive tersimpan. Archive Computer dapat diautentikasi; ini bukan Data Core final." % reward_amount)
 		interaction_completed.emit(interaction_id, result)
 		interaction_state_changed.emit()
 	else:
