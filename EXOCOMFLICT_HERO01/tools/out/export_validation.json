@@ -1,7 +1,7 @@
 {
  "RIGGED": {
   "file": "HERO_01_RIGGED.glb",
-  "bytes": 23177636,
+  "bytes": 23177572,
   "nodes": [
    "Head",
    "Neck",
@@ -128,7 +128,7 @@
  },
  "ANIMATIONS": {
   "file": "HERO_01_ANIMATIONS.glb",
-  "bytes": 346860,
+  "bytes": 346800,
   "nodes": [
    "Head",
    "Neck",

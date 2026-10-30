@@ -13,6 +13,10 @@ import bpy, os
 
 PROJ = "/home/user/Cyber-Strike/EXOCOMFLICT_HERO01"
 bpy.ops.wm.open_mainfile(filepath=f"{PROJ}/blender/HERO_01_working.blend")
+# The blend may have been saved in Pose Mode (script 60); selection operators
+# below only poll in Object Mode.
+if bpy.context.object is not None and bpy.context.object.mode != 'OBJECT':
+    bpy.ops.object.mode_set(mode='OBJECT')
 arm = bpy.data.objects["HERO_01_Armature"]
 body = bpy.data.objects["HERO_01_BODY"]
 under = bpy.data.objects["HERO_01_UNDERSUIT"]

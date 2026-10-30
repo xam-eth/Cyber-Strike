@@ -43,6 +43,11 @@ for pb in arm.pose.bones:
 
 # Weapon reference points in weapon-local/rest-authored coordinates (script 15).
 FG0 = Vector((-0.215, -0.062, 0.315))
+# Script 60 moved Hand_L to the anatomical glove wrist. The Phase-1 clips
+# preserve the old world deformation, so the historic support-grip metric is
+# evaluated at the old IK wrist point carried by Forearm_L's deformation
+# matrix, not at the new anatomical Hand_L head.
+OLD_LW0 = Vector((0.190, -0.015, 0.410))
 GRIP0 = Vector((-0.192, -0.033, 0.452))
 MZ0 = Vector((-0.238, -0.080, 0.205))
 RC0 = Vector((-0.198, -0.045, 0.500))
@@ -291,15 +296,18 @@ def metrics_at(act, frame):
     bd = (weapon.matrix_world.to_3x3() @ DIR_REST).normalized()
     hr = arm.pose.bones["Hand_R"].head.copy()
     hl = arm.pose.bones["Hand_L"].head.copy()
+    pf = arm.pose.bones["Forearm_L"]
+    virtual_l = (pf.matrix @ pf.bone.matrix_local.inverted()) @ OLD_LW0
     grip = weapon.matrix_world @ GRIP0
     fg = weapon.matrix_world @ FG0
     return {
         "barrel": bd,
         "barrel_deg": math.degrees(bd.angle(FORWARD)),
         "r_grip": float((hr - grip).length),
-        "l_grip": float((hl - fg).length),
+        "l_grip": float((virtual_l - fg).length),
         "hand_r": hr,
         "hand_l": hl,
+        "virtual_l": virtual_l,
         "foot_r": arm.pose.bones["Foot_R"].head.copy(),
         "foot_l": arm.pose.bones["Foot_L"].head.copy(),
         "basis": current_basis(),

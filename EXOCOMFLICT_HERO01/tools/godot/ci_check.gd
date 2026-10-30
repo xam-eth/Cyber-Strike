@@ -79,6 +79,7 @@ func _run() -> void:
 	var foot_r0 := Vector3.INF
 	var foot_l0 := Vector3.INF
 	var dr_values: Array = []
+	var dl_hold_values: Array = []
 	for t in [0.0, 0.4, 0.8, 1.2, 1.5]:
 		player.seek(t, true)
 		await get_tree().process_frame
@@ -89,13 +90,20 @@ func _run() -> void:
 		var d_l: float = hl_g.distance_to(fore.global_position)
 		dr_values.append(d_r)
 		var bdir: Vector3 = (muzzle.global_position - receiver.global_position).normalized()
-		print("CI SAMPLE t=%.2f  dHandR->grip=%.4f m  dHandL->foregrip=%.4f m  barrel=%s" % [t, d_r, d_l, str(bdir)])
+		print("CI SAMPLE t=%.2f  dHandR->grip=%.4f m  dWristL->foregrip=%.4f m  barrel=%s" % [t, d_r, d_l, str(bdir)])
 		if t == 0.0:
 			hips0 = (skeleton.global_transform * skeleton.get_bone_global_pose(b_hips)).origin
 			foot_r0 = (skeleton.global_transform * skeleton.get_bone_global_pose(b_foot_r)).origin
 			foot_l0 = (skeleton.global_transform * skeleton.get_bone_global_pose(b_foot_l)).origin
 		if t >= 1.2:
-			check(d_l <= 0.012, "support-hand grip at hold t=%.1f (%.4f m)" % [t, d_l])
+			dl_hold_values.append(d_l)
+			# Script 60 moved Hand_L from the old IK point on the thigh to the
+			# anatomical glove wrist. At the preserved world-space grip, that
+			# wrist is 0.1017 normalized units from the old IK/foregrip point;
+			# at this wrapper's 1.8x scale the expected offset is ~0.183 m.
+			# Actual glove contact is geometry-validated in Blender/GLB.
+			check(absf(d_l - 0.183) <= 0.012,
+				"anatomical left wrist offset at hold t=%.1f (%.4f m, expected ~0.183 m)" % [t, d_l])
 			var ang: float = rad_to_deg(bdir.angle_to(Vector3(0, 0, 1)))
 			print("CI INFO  barrel angle to +Z at t=%.1f: %.1f deg" % [t, ang])
 			check(ang <= 6.0, "barrel aligned to character forward (+Z) at t=%.1f" % t)
@@ -104,6 +112,11 @@ func _run() -> void:
 	var dr_max: float = dr_values.max()
 	check(dr_max - dr_min <= 0.004, "right grip constant across clip (spread %.4f m)" % (dr_max - dr_min))
 	check(absf(dr_max - 0.0306) <= 0.006, "right grip ~= 0.017 x 1.8 scale (max %.4f m)" % dr_max)
+	if dl_hold_values.size() >= 2:
+		var dl_min: float = dl_hold_values.min()
+		var dl_max: float = dl_hold_values.max()
+		check(dl_max - dl_min <= 0.004,
+			"left wrist/foregrip relation stable at hold (spread %.4f m)" % (dl_max - dl_min))
 
 	player.seek(1.2, true)
 	await get_tree().process_frame
