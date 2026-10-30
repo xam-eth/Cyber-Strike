@@ -157,6 +157,59 @@ for filename, minimum_meshes in [
         assert material.get('normalTexture'), f'normal map missing: {filename}/{material["name"]}'
         assert pbr.get('metallicRoughnessTexture'), f'ORM map missing: {filename}/{material["name"]}'
 assert sum(len(item.get('collision_boxes', [])) for item in ice_phase1) == 4
+# Phase 2 has a deliberately small set of collision-backed cover and terrain
+# pieces. This validates source/GLB/PBR contracts and proves, geometrically,
+# that every named preserved route retains at least 0.5m beyond the setpiece
+# collision footprint and nominal route half-width. It is static evidence, not
+# a substitute for Godot capsule traversal execution.
+phase2_data = json.loads((base / 'phase2_cover.json').read_text())
+phase2 = phase2_data['placements']
+assert len(phase2) == 8
+assert {item['asset'] for item in phase2} == {
+    'glacier_berm', 'salvage_pod', 'cryo_bulkhead', 'ice_terrace',
+}
+assert (root / 'source/aetherfall_phase2_cover.blend').is_file()
+assert all(len(item.get('purpose', '')) >= 40 for item in phase2)
+assert sum(len(item.get('collision_boxes', [])) for item in phase2) == 12
+route_contract = phase2_data.get('route_clearance', [])
+assert {item['route'] for item in route_contract} == {
+    'central', 'east_bridge_approach', 'west_catwalk_approach',
+    'lower_canyon_descent',
+}
+assert all(item.get('status') == 'preserved' and item.get('reason') for item in route_contract)
+for filename, minimum_meshes in [
+    ('glacier_berm.glb', 10),
+    ('salvage_pod.glb', 13),
+    ('cryo_bulkhead.glb', 15),
+    ('ice_terrace.glb', 11),
+]:
+    data = (base / 'phase2' / filename).read_bytes()
+    magic, version, length = struct.unpack_from('<4sII', data)
+    assert (magic, version, length) == (b'glTF', 2, len(data)), filename
+    json_len = struct.unpack_from('<I', data, 12)[0]
+    payload = json.loads(data[20:20 + json_len])
+    assert len(payload.get('meshes', [])) >= minimum_meshes, filename
+    assert payload.get('materials') and payload.get('textures'), filename
+    for material in payload['materials']:
+        pbr = material.get('pbrMetallicRoughness', {})
+        assert material.get('normalTexture'), f'normal map missing: {filename}/{material["name"]}'
+        assert pbr.get('metallicRoughnessTexture'), f'ORM map missing: {filename}/{material["name"]}'
+routes_for_clearance = {item['name']: (item['from'], item['to'], item['width']) for item in layout['routes']}
+connector_data = json.loads((base / 'connectors.json').read_text())['connectors']
+routes_for_clearance.update({item['name']: (item['from'], item['to'], item['width']) for item in connector_data})
+def point_segment_distance_2d(point, start, end):
+    dx, dz = end[0] - start[0], end[2] - start[2]
+    length_squared = dx * dx + dz * dz
+    assert length_squared > 0.0
+    t = max(0.0, min(1.0, ((point[0] - start[0]) * dx + (point[2] - start[2]) * dz) / length_squared))
+    return ((point[0] - (start[0] + t * dx)) ** 2 + (point[2] - (start[2] + t * dz)) ** 2) ** 0.5
+for item in phase2:
+    footprint_radius = max((box['size'][0] ** 2 + box['size'][2] ** 2) ** 0.5 / 2.0 for box in item['collision_boxes'])
+    for contract in route_contract:
+        start, end, width = routes_for_clearance[contract['route']]
+        clearance = point_segment_distance_2d(item['position'], start, end) - footprint_radius - width / 2.0
+        assert clearance >= 0.5, f'Phase 2 blocks {contract["route"]}: {item["id"]} ({clearance:.2f}m)'
+
 for suffix in ['', '_normal', '_orm']:
     assert (base / 'materials' / ('aether_ice' + suffix + '.png')).is_file()
 for source in ['ai_weathered_steel.png', 'ai_poured_concrete.png', 'ai_sedimentary_rock.png']:
@@ -167,4 +220,4 @@ for suffix in ['normal', 'orm']:
     assert (base / 'materials' / ('aether_rock_' + suffix + '.png')).is_file()
 connectors = json.loads((base / 'connectors.json').read_text())['connectors']
 assert {x['name'] for x in connectors} == {'east_bridge_approach', 'west_catwalk_approach', 'lower_canyon_descent'}
-print(f'PASS: {len(layout["placements"])} kit placement, {len(measures)} modul, 3 connector, 2 interaktif, 4 vertical, 6 landmark, 9 ice-planet placement, 7 source Blender, PBR normal+ORM')
+print(f'PASS: {len(layout["placements"])} kit placement, {len(measures)} modul, 3 connector, 2 interaktif, 4 vertical, 6 landmark, 9 ice-planet placement, 8 Phase-2 cover, 8 source Blender, PBR normal+ORM')

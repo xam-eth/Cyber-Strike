@@ -8,9 +8,15 @@ Main scene kini tetap memakai layout Aetherfall yang sama, dengan tambahan minim
 
 - `TechCache` reusable di sisi jalur dari spawn primer: collider statis, `Area3D` range, animasi buka authored Blender, serta transaksi `tech_data` satu kali yang disimpan ke `user://aetherfall_stellar_horizon.cfg`.
 - `ObjectiveDevice` reusable di zona mesin/cover tengah: meminta satu `tech_data`, kemudian menyimpan aktivasi relai satu kali.
-- Interaksi tetap memiliki actor test privat di `tests/interactive_slice.gd`, tetapi **scene QA utama tidak lagi memunculkan karakter**. `ReviewCamera` adalah kamera QA default: tahan klik kanan untuk melihat, **WASD/Q/E** untuk free-fly, dan **1–7** untuk framing overview, outpost, cache, relay, hangar, density, serta tower.
+- Interaksi tetap memiliki actor test privat di `tests/interactive_slice.gd`, tetapi **scene QA utama tidak lagi memunculkan karakter**. `ReviewCamera` adalah kamera QA default: tahan klik kanan untuk melihat, **WASD/Q/E** untuk free-fly, dan **1–0** untuk framing overview, outpost, cache, relay, hangar, density, Archive, skyline, Scrapper Basin, serta lower canyon.
 
 Tambahan density terarah juga tersedia di `assets/world/aetherfall/landmarks/`: Field Outpost, Relay Annex, Service Hangar, dan cargo/service cluster. Ketiganya ditempatkan sebagai landmark spawn/relay/cover berdasarkan `landmarks.json`, dengan collider sederhana, bukan filler acak. Atmosfer mengurangi kabut dan bloom untuk pemisahan siluet yang lebih tegas; kualitas visual final tetap perlu diperiksa pada Godot GUI.
+
+## Phase 2 — cover dan traversal blockout
+
+`assets/world/aetherfall/phase2_cover.json` merakit delapan setpiece yang memiliki tujuan eksplisit: tiga berm es untuk cover/arah approach, dua salvage pod robot untuk cover naratif, satu cryo bulkhead pemutus sightline, serta dua ice terrace bertingkat untuk membaca sisi high/low Basin. Semua aset ada di `assets/world/aetherfall/phase2/`, diproduksi ulang melalui `tools/blender/build_phase2_cover.py`, dan mempunyai source editable `source/aetherfall_phase2_cover.blend`.
+
+Konfigurasi mendokumentasikan clearance untuk central spine dan tiga connector route. `tests/check_assets.py` memeriksa GLB/PBR/purpose/collider dan margin statis minimal 0.5 m dari footprint konservatif. `tests/phase2_cover.gd` adalah kontrak **runtime yang disediakan tetapi belum dijalankan di sandbox ini**; ia memeriksa perakitan delapan placement, dua belas collider, terrace bertingkat, dan tiga lampu diagnostik. Phase 2 tidak menambahkan atau mengklaim AI robot, combat, damage/hazard, interior Archive, Archive Computer, maupun interaksi Archive Data Core.
 
 Ini bukan pengganti atau klaim integrasi dengan inventory/mission/combat EXOCOMFLICT lama—sistem tersebut tidak ada di branch standalone ini. Jalankan `tests/interactive_slice.gd` di Godot untuk memeriksa range, collision, animasi, persistence, reward dan anti-duplikasi. Detail bukti serta keterbatasan screenshot/performa ada pada `docs/VALIDATION.md`.
 
@@ -34,7 +40,7 @@ Ini bukan pengganti atau klaim integrasi dengan inventory/mission/combat EXOCOMF
 4. Tekan **F5** untuk menjalankan `project.godot`, atau buka `scenes/aetherfall.tscn` lalu tekan **F6**. Main scene sudah dideklarasikan sebagai `res://scenes/aetherfall.tscn`.
 5. World dirakit dari `assets/world/aetherfall/layout.json` saat runtime. Karena itu node `Modules`, `Collision`, dan `Connectors` terlihat di tab **Remote** ketika scene berjalan, bukan sebagai anak statis sebelum tombol Run ditekan.
 
-File world yang tersedia langsung dari Git: `project.godot`, scene, GDScript builder, 29 GLB (27 modul + orbit + ramp), albedo/normal/ORM PBR, JSON layout/measurement/connector, dan tiga source `.blend`. Tidak ada dependency game induk, autoload, registry, atau service eksternal yang perlu Anda instal untuk preview.
+File world yang tersedia langsung dari Git: `project.godot`, scene, GDScript builder, **46 GLB** (kit dasar, orbit/ramp, interaktif, landmark, infrastruktur vertikal, ice planet, dan Phase 2), albedo/normal/ORM PBR, konfigurasi JSON, serta delapan source `.blend` editable. Tidak ada dependency game induk, autoload, registry, atau service eksternal yang perlu Anda instal untuk preview.
 
 ## Membuka dan meninjau
 
@@ -60,6 +66,8 @@ Jalankan pipeline melalui Blender `bpy` dalam urutan ini agar ramp menerima peta
 python tools/blender/build_aetherfall.py
 python tools/blender/build_connector.py
 python tools/blender/build_orbit.py
+python tools/blender/build_ice_planet.py
+python tools/blender/build_phase2_cover.py
 ```
 
 Peta yang dibangun untuk permukaan opaque adalah albedo sRGB, normal tangent-space, serta ORM (metallic/roughness/AO). Build kit juga menambahkan ribs, bolts, panel, gusset, louver, cable clamp, guard, energy ring, dan detail struktur pada seluruh 27 modul serta connector ramp. Lihat `assets/world/aetherfall/materials/README.md` dan provenance sumber di `assets/world/aetherfall/source_textures/README.md`.
@@ -73,6 +81,8 @@ godot --headless --path . --script res://tests/world_smoke.gd
 godot --headless --path . --script res://tests/surface_collision.gd
 godot --headless --path . --script res://tests/traversal_clearance.gd
 godot --headless --path . --script res://tests/traversal_motion.gd
+godot --headless --path . --script res://tests/ice_planet_phase1.gd
+godot --headless --path . --script res://tests/phase2_cover.gd
 ```
 
 Lihat `docs/STATUS.md` untuk hasil nyata dan keterbatasan. Proyek review ini bukan klaim game-ready: jalur ramp utama sudah diuji dengan kapsul `CharacterBody3D` otomatis, tetapi sebagian prop tetap menggunakan collider proxy. Belum ada navmesh, profil mobile, screenshot Godot, atau penilaian visual renderer Godot. Kit masih membutuhkan penilaian artistik pada renderer Godot dan bukan klaim kualitas photorealistik.

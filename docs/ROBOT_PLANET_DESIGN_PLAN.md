@@ -1,6 +1,6 @@
 # Aetherfall — Robot Planet Tech Heist
 
-**Status:** DESIGN DIRECTION RECORDED — configuration selected on 2026-10-30; no new gameplay/level production follows until the reviewer approves the plan for Phase 1.
+**Status:** Phase 1 exterior macro composition dan Phase 2 cover/traversal blockout telah diproduksi. Bukti yang tersedia untuk Phase 2 adalah kontrak aset, konfigurasi, parse skrip, dan pemeriksaan clearance statis; inspeksi grafis serta runtime Godot tetap terpisah dan belum diklaim.
 
 ## 1. Direction decision
 
@@ -247,15 +247,37 @@ phase does **not** claim a playable door or Archive Interior yet.
 available; final graphical camera QA and altered-route collision runtime checks
 remain pending a Godot runtime.
 
-### Phase 2 — Cover and vertical traversal blockout
+### Phase 2 — Cover and traversal blockout — IMPLEMENTED (static assembly)
 
-1. Place only purpose-defined hard cover, tall sight breaks, terrain berms and
-   building corners.
-2. Add high/low route geometry only where it offers a genuine decision.
-3. Re-run collision/clearance tests on every altered route.
+1. Added four Blender-authored PBR setpiece families: irregular **glacier berm**,
+   directional robot **salvage pod**, tall **cryo bulkhead**, and three-step
+   **ice terrace**. They reuse the real ice/metal/hazard PBR maps rather than
+   flat colour substitutions.
+2. Added eight named placements: landing-ridge cover, two basin-side cover
+   decisions, an east sightline break, archive-approach cover, two raised ice
+   terraces, and one lower-canyon maintenance-shell cover. Each placement has a
+   documented navigation/sightline reason in `phase2_cover.json`.
+3. Added twelve deliberate proxy collision volumes: one per berm/pod/bulkhead
+   and three physical levels per terrace. The main central spine and all three
+   connector approaches are statically clearance-checked with at least 0.5 m
+   beyond each conservative collision footprint and route half-width.
+4. Added character-free camera presets 9 (Scrapper Basin near/mid/far cover to
+   Archive) and 10 (lower canyon salvage / high-low read). Existing presets
+   7–8 retain Archive and skyline review.
 
-**Gate:** cover purpose is documented per encounter space; no prop is simply
-"decorative combat cover" without a sightline or route reason.
+**VERIFIED (static):** GLB integrity, mesh/detail floor, embedded PBR
+normal+ORM dependencies, eight configuration purposes, twelve collision boxes,
+route-clearance calculation, Python compilation and GDScript parsing can be
+checked from this repository.
+
+**UNVERIFIED:** Godot runtime instantiation, capsule clearance after the new
+colliders, graphical framing/material appearance, player traversal feel,
+combat balance, AI, damage/hazards, Archive interior, Archive Computer and
+Data Core interaction. None is claimed by this phase.
+
+**Gate result:** cover purpose is documented per encounter space; no prop is
+simply "decorative combat cover" without a sightline or route reason. Phase 3
+remains blocked pending separate approval.
 
 ### Phase 3 — Archive interior and final tech computer
 
@@ -298,17 +320,20 @@ purpose and a test. No visual-only "enemy" is counted as gameplay.
 2. Central basin → foreground cover, mid building, far tower in one frame.
 3. East high flank → height/risk read and open sky.
 4. Lower canyon → natural planet material and buried robot infrastructure.
-5. Archive exterior → door legibility, guard/cover anchors and destination read.
-6. Archive interior → computer is unmistakably the final tech source.
+5. Archive exterior → door legibility, future guard/cover anchors and destination read.
+6. Archive interior → computer is unmistakably the final tech source (**deferred; not built in Phase 2**).
 7. Return/extraction → route reads back toward landing ridge.
+8. Phase 2 Scrapper Basin → berm or salvage foreground, cryo bulkhead/building mid-ground, Archive/tower far target.
+9. Phase 2 lower flank → canyon salvage cover and a terrace/high-route relationship without a character in frame.
 
 ## 10. Approval checkpoint
 
 The reviewer has selected the mixed mission tone, ice/blue-energy planet,
-Archive Data Core reward, and compact archive interior. The only remaining gate
-is approval to start **Phase 1 — Exterior Macro Composition**.
+Archive Data Core reward, and compact archive interior. Phase 1 and the
+purpose-defined Phase 2 exterior assembly are complete at the static-contract
+level. The next remaining gate is separate approval for **Phase 3 — Archive
+Interior and final-tech computer**.
 
-Phase 1 will create the outdoor ice-planet composition and Sentinel Archive
-approach only. It will not fabricate robot AI, player combat, damage, mission
-completion, mobile performance, or a data-core unlock beyond the existing
-minimal interaction architecture.
+Phase 3 must not fabricate robot AI, player combat, damage, mission completion,
+mobile performance, or a Data Core unlock without its real persistence and
+state-validation architecture.

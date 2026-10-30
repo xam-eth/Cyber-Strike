@@ -41,9 +41,17 @@ Phase 1 implements the approved cold, open-sky robot-planet direction without cl
 
 `aether_ice` is a new original procedural material dependency with its own albedo, normal and ORM maps. Sky, sun, fog and tone parameters now use a cold ice-blue exterior palette with slightly leaner fog for landmark visibility. The runtime visual result remains unverified until opened in graphical Godot.
 
+## Phase 2 — cover and traversal blockout
+
+Phase 2 assembles eight sparse, purpose-defined outdoor placements from four Blender-authored PBR GLB families: `glacier_berm`, `salvage_pod`, `cryo_bulkhead`, and `ice_terrace`. The configuration provides one documented role for each placement: Landing Ridge cover, west/east Scrapper Basin cover lanes, an east bulkhead sightline break, Archive approach cover, two raised side terraces, and a Lower Canyon maintenance-shell cover. It is explicitly not a robot/combat/hazard or Archive-interior implementation.
+
+**Completed static evidence:** `tests/check_assets.py` verifies the four GLB 2.0 containers, minimum authored mesh counts (10/13/15/11), embedded PBR normal+ORM map references, eight nonempty purposes, twelve intentional collision boxes, route-clearance records and a conservative 2D clearance calculation. The central route and three connector approaches retain at least **0.5m static margin** after subtracting the setpiece collision footprint and configured route half-width. This is a static geometric check, **not** a Godot physics/capsule execution result.
+
+`tests/phase2_cover.gd` is supplied to check runtime assembly (eight placements, twelve collision volumes, two 3-level terraces and three lights), but it has **NOT YET RUN** in a post-change Godot runtime. No graphical Godot screenshot, final material composition, changed-route capsule traversal, player feel, performance or combat/AI claim follows from this record.
+
 ## Camera-only QA and dense verticality pass
 
-`scenes/aetherfall.tscn` is now character-free for visual QA. The default `ReviewCamera` is current immediately and provides seven labelled presets: overview, outpost, cache/route, relay, hangar, density, and tower. The interaction actor remains only in the dedicated test so visual review is not obstructed by an avatar or HUD.
+`scenes/aetherfall.tscn` is now character-free for visual QA. The default `ReviewCamera` is current immediately and provides ten labelled presets: overview, outpost, cache/route, relay, hangar, density, Archive exterior, tower/glacial skyline, Scrapper Basin cover, and lower-canyon high/low read. The interaction actor remains only in the dedicated test so visual review is not obstructed by an avatar or HUD.
 
 A reference-analysis brief is recorded in `docs/ART_DIRECTION_REFERENCE.md`. Based on its layered hangar/industrial principles, the world now adds two 13m refinery stacks, a 24m overhead service gantry at 7m, and a raised operations deck at 5m. This produces foreground/mid/high structural rhythm rather than merely spacing additional floor props.
 

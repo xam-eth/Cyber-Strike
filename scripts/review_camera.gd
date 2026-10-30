@@ -49,6 +49,16 @@ const VIEWS := {
 		"target": Vector3(0, 15, -26),
 		"label": "08 — energy tower / glacial skyline",
 	},
+	KEY_9: {
+		"position": Vector3(-28, 8, 17),
+		"target": Vector3(-1, 3, -5),
+		"label": "09 — Scrapper Basin cover / archive approach",
+	},
+	KEY_0: {
+		"position": Vector3(11, 9, 31),
+		"target": Vector3(3, -3, 25),
+		"label": "10 — lower canyon salvage / high-low read",
+	},
 }
 
 func _ready() -> void:
@@ -58,7 +68,7 @@ func _ready() -> void:
 	add_child(overlay)
 	help_label = Label.new()
 	help_label.position = Vector2(16, 14)
-	help_label.text = "AETHERFALL QA CAMERA  |  Klik kanan: lihat  •  WASD: terbang  •  Q/E: turun/naik  •  Shift: cepat  •  1–8: framing detail"
+	help_label.text = "AETHERFALL QA CAMERA  |  Klik kanan: lihat  •  WASD: terbang  •  Q/E: turun/naik  •  Shift: cepat  •  1–0: framing detail"
 	help_label.add_theme_font_size_override("font_size", 15)
 	help_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
 	help_label.add_theme_constant_override("outline_size", 5)

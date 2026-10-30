@@ -16,6 +16,8 @@ var verticality_count := 0
 var verticality_collider_count := 0
 var ice_planet_count := 0
 var ice_planet_collider_count := 0
+var phase2_cover_count := 0
+var phase2_cover_collider_count := 0
 
 func v3(value: Variant) -> Vector3:
 	if value is Array and value.size() >= 3:
@@ -136,8 +138,64 @@ func _ready() -> void:
 	add_vertical_infrastructure()
 	add_structural_landmarks()
 	add_ice_planet_phase1()
+	add_phase2_cover()
 	add_stellar_horizon_slice(layout)
-	print("Aetherfall: %d kit / %d proxy colliders / %d vertical / %d landmark / %d ice-planet placement" % [placement_count, collider_count, verticality_count, landmark_count, ice_planet_count])
+	print("Aetherfall: %d kit / %d proxy colliders / %d vertical / %d landmark / %d ice-planet / %d phase-2 cover placement" % [placement_count, collider_count, verticality_count, landmark_count, ice_planet_count, phase2_cover_count])
+
+
+func add_phase2_cover() -> void:
+	## Phase 2 adds only named cover, sight-break and stepped-terrain decisions.
+	## Connector endpoints stay untouched; no combat, AI or hazard state is made.
+	var data := read_json(BASE + "phase2_cover.json")
+	if data.is_empty():
+		return
+	var group := Node3D.new()
+	group.name = "Phase2Cover"
+	add_child(group)
+	for spec: Dictionary in data.get("placements", []):
+		var asset := str(spec.get("asset", ""))
+		var packed := load(BASE + "phase2/" + asset + ".glb") as PackedScene
+		if packed == null:
+			push_error("Aetherfall: model cover Phase 2 tidak ditemukan: " + asset)
+			continue
+		var setpiece := Node3D.new()
+		setpiece.name = str(spec.get("id", asset))
+		setpiece.position = v3(spec.get("position", []))
+		setpiece.rotation = v3(spec.get("rotation_degrees", [])) * PI / 180.0
+		group.add_child(setpiece)
+		var visual := packed.instantiate() as Node3D
+		visual.name = "Visual"
+		setpiece.add_child(visual)
+		var boxes: Array = spec.get("collision_boxes", [])
+		if not boxes.is_empty():
+			var collision := StaticBody3D.new()
+			collision.name = "Collision"
+			setpiece.add_child(collision)
+			for box_data: Dictionary in boxes:
+				var size := v3(box_data.get("size", []))
+				if size.x <= 0.0 or size.y <= 0.0 or size.z <= 0.0:
+					push_error("Aetherfall: invalid Phase 2 collision " + setpiece.name)
+					continue
+				var shape := CollisionShape3D.new()
+				shape.name = "Shape"
+				shape.position = v3(box_data.get("center", []))
+				var box := BoxShape3D.new()
+				box.size = size
+				shape.shape = box
+				collision.add_child(shape)
+				phase2_cover_collider_count += 1
+		var light_data: Variant = spec.get("light", null)
+		if light_data is Dictionary:
+			var light_config := light_data as Dictionary
+			var light := OmniLight3D.new()
+			light.name = "Phase2CoverLight"
+			light.position = v3(light_config.get("position", []))
+			light.light_color = color3(light_config.get("color", []), Color(0.08, 0.66, 1.0))
+			light.light_energy = float(light_config.get("energy", 1.0))
+			light.omni_range = float(light_config.get("range", 6.0))
+			light.shadow_enabled = false
+			setpiece.add_child(light)
+		phase2_cover_count += 1
 
 
 func add_ice_planet_phase1() -> void:
