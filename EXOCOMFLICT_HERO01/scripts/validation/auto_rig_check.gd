@@ -13,6 +13,12 @@ const CLIP_DURATIONS := {
 	"Weapon_Raise_To_Aim": 1.5,
 }
 const LOOP_CLIPS := ["Idle", "Aim_Idle"]
+const RIG_BUILD := "Hand_L rerig v2 (2026-10-30)"
+# Skeleton-local glTF/global-rest measurements from the shipped GLB.
+# Old Hand_L origin was (0.190, 0.410, 0.015) and Forearm_L was 0.177 long.
+const EXPECTED_HANDL_REST := Vector3(0.2441, 0.4961, 0.0118)
+const EXPECTED_FOREARM_L_VECTOR := Vector3(0.0791, -0.0889, 0.0068)
+const EXPECTED_FOREARM_L_LENGTH := 0.1192
 
 static func _ok(lines: Array, cond: bool, label: String) -> void:
 	lines.append(("PASS  " if cond else "FAIL  ") + label)
@@ -54,6 +60,34 @@ static func _check_clip(lines: Array, player: AnimationPlayer, clip_name: String
 		loop_label = "linear loop"
 	_ok(lines, anim.loop_mode == expected_loop, "%s loop mode = %s" % [clip_name, loop_label])
 
+static func _check_handl_pivot(lines: Array, skeleton: Skeleton3D) -> void:
+	var fore_l := skeleton.find_bone("Forearm_L")
+	var hand_l := skeleton.find_bone("Hand_L")
+	var fore_r := skeleton.find_bone("Forearm_R")
+	var hand_r := skeleton.find_bone("Hand_R")
+	_ok(lines, fore_l >= 0 and hand_l >= 0 and fore_r >= 0 and hand_r >= 0,
+		"%s: forearm/hand bones resolved for pivot measurement" % RIG_BUILD)
+	if fore_l < 0 or hand_l < 0 or fore_r < 0 or hand_r < 0:
+		return
+	var fore_l_rest: Vector3 = skeleton.get_bone_global_rest(fore_l).origin
+	var hand_l_rest: Vector3 = skeleton.get_bone_global_rest(hand_l).origin
+	var fore_r_rest: Vector3 = skeleton.get_bone_global_rest(fore_r).origin
+	var hand_r_rest: Vector3 = skeleton.get_bone_global_rest(hand_r).origin
+	var fore_l_vec: Vector3 = hand_l_rest - fore_l_rest
+	var len_l: float = fore_l_vec.length()
+	var len_r: float = hand_r_rest.distance_to(fore_r_rest)
+	lines.append("INFO  Hand_L global-rest origin=%s; Forearm_L origin=%s" % [str(hand_l_rest), str(fore_l_rest)])
+	lines.append("INFO  Forearm_L vector=%s length=%.4f; Forearm_R length=%.4f" % [str(fore_l_vec), len_l, len_r])
+	_ok(lines, absf(len_l - EXPECTED_FOREARM_L_LENGTH) <= 0.010,
+		"Hand_L rerig pivot: Forearm_L length %.4f (~0.119 new; 0.177 old)" % len_l)
+	_ok(lines, fore_l_vec.distance_to(EXPECTED_FOREARM_L_VECTOR) <= 0.020,
+		"Hand_L rerig pivot: Forearm_L rest vector matches shipped GLB")
+	_ok(lines, hand_l_rest.distance_to(EXPECTED_HANDL_REST) <= 0.020,
+		"Hand_L rerig pivot: origin matches (0.2441, 0.4961, 0.0118); old=(0.190, 0.410, 0.015)")
+	if len_r > 0.001:
+		_ok(lines, absf(len_l / len_r - 1.0) <= 0.10,
+			"Hand_L rerig pivot: L/R forearm length ratio %.3f" % (len_l / len_r))
+
 static func run_checks(hero: Node) -> Array:
 	var lines: Array = []
 	var skeleton = hero.get("skeleton") as Skeleton3D
@@ -66,6 +100,7 @@ static func run_checks(hero: Node) -> Array:
 		_ok(lines, skeleton.get_bone_count() == EXPECTED_BONES, "Bone count == 24 (got %d)" % skeleton.get_bone_count())
 		for b in ["Root", "Hips", "Head", "Hand_R", "Hand_L", "Weapon_R"]:
 			_ok(lines, skeleton.find_bone(b) >= 0, "Bone %s exists" % b)
+		_check_handl_pivot(lines, skeleton)
 	if player != null:
 		var names: Array = []
 		for clip_name in CLIP_DURATIONS.keys():

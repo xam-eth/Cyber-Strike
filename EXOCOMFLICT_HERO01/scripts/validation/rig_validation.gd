@@ -16,6 +16,7 @@ var checks_label: Label
 var scrub: HSlider
 var scrubbing := false
 var legacy_anim := ""
+var pivot_markers: Array[Node3D] = []
 
 var CAMERA_PRESETS := {
 	"Front": [Vector3(0, 1.05, 3.4), Vector3(0, 0.95, 0)],
@@ -24,6 +25,7 @@ var CAMERA_PRESETS := {
 	"ThreeQuarter": [Vector3(-2.3, 1.3, 2.3), Vector3(0, 0.9, 0)],
 	"CloseHands": [Vector3(-0.7, 1.45, 1.15), Vector3(-0.05, 1.3, 0.25)],
 	"CloseWeapon": [Vector3(-1.1, 1.4, 1.5), Vector3(-0.1, 1.3, 0.35)],
+	"CloseWristL": [Vector3(0.62, 1.02, 0.92), Vector3(0.43, 0.89, 0.03)],
 }
 
 func _ready() -> void:
@@ -34,6 +36,7 @@ func _ready() -> void:
 	legacy_anim = _resolve_anim("Weapon_Raise_To_Aim")
 	_build_ui()
 	_run_checks()
+	_build_pivot_markers()
 	if _tree_enabled():
 		scrub.max_value = float(hero.call("get_current_animation_length"))
 	elif legacy_anim != "" and player != null:
@@ -76,7 +79,7 @@ func _tree_enabled() -> bool:
 
 func _run_checks() -> void:
 	var lines: Array = AutoRigCheck.run_checks(hero)
-	var text := "AUTO RIG CHECK\n"
+	var text := "AUTO RIG CHECK — Hand_L rerig v2\nINFO  Pivot markers: white=elbow, green=NEW Hand_L wrist, red=OLD Hand_L point carried by Forearm_L\n"
 	for l in lines:
 		text += String(l) + "\n"
 		print("[RigCheck] ", l)
@@ -88,7 +91,7 @@ func _build_ui() -> void:
 	root.position = Vector2(12, 10)
 	layer.add_child(root)
 	var title := Label.new()
-	title.text = "HERO_01 - Rig Validation (Phase-1 weapon chain)"
+	title.text = "HERO_01 - Rig Validation (Phase-1 + Hand_L rerig v2)"
 	root.add_child(title)
 	status_label = Label.new()
 	root.add_child(status_label)
@@ -112,6 +115,7 @@ func _build_ui() -> void:
 	_add_button(row, "Restart", _on_restart)
 	_add_button(row, "Toggle weapon", _on_toggle_weapon)
 	_add_button(row, "Dump skeleton", _dump_skeleton)
+	_add_button(row, "Toggle wrist markers", _toggle_pivot_markers)
 	_add_button(row, "Re-run checks", _run_checks)
 
 	var speed_row := HBoxContainer.new()
@@ -215,6 +219,58 @@ func _apply_camera(preset_name: String) -> void:
 	camera.position = p[0]
 	camera.look_at(p[1], Vector3.UP)
 
+func _make_pivot_marker(parent: Node, marker_name: String, local_pos: Vector3, color: Color, radius: float) -> MeshInstance3D:
+	var sphere := SphereMesh.new()
+	sphere.radius = radius
+	sphere.height = radius * 2.0
+	sphere.radial_segments = 20
+	sphere.rings = 10
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = color
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.no_depth_test = true
+	sphere.material = mat
+	var instance := MeshInstance3D.new()
+	instance.name = marker_name
+	instance.mesh = sphere
+	instance.position = local_pos
+	parent.add_child(instance)
+	return instance
+
+func _build_pivot_markers() -> void:
+	if not pivot_markers.is_empty() or hero == null:
+		return
+	var skeleton: Skeleton3D = hero.get("skeleton") as Skeleton3D
+	if skeleton == null:
+		return
+	var fore_idx := skeleton.find_bone("Forearm_L")
+	var hand_idx := skeleton.find_bone("Hand_L")
+	if fore_idx < 0 or hand_idx < 0:
+		return
+	var fore_attachment := BoneAttachment3D.new()
+	fore_attachment.name = "PivotMarker_Forearm_L"
+	skeleton.add_child(fore_attachment)
+	fore_attachment.bone_name = "Forearm_L"
+	var hand_attachment := BoneAttachment3D.new()
+	hand_attachment.name = "PivotMarker_Hand_L"
+	skeleton.add_child(hand_attachment)
+	hand_attachment.bone_name = "Hand_L"
+	_make_pivot_marker(fore_attachment, "ElbowMarker", Vector3.ZERO, Color.WHITE, 0.012)
+	_make_pivot_marker(hand_attachment, "NewWristMarker", Vector3.ZERO, Color(0.1, 1.0, 0.35), 0.014)
+	# Old thigh-space wrist point, expressed in Forearm_L's rest frame so
+	# it follows the forearm deformation for a direct old/new comparison.
+	var fore_rest: Transform3D = skeleton.get_bone_global_rest(fore_idx)
+	var old_local: Vector3 = fore_rest.affine_inverse() * Vector3(0.190, 0.410, 0.015)
+	_make_pivot_marker(fore_attachment, "OldWristMarker", old_local, Color(1.0, 0.12, 0.08), 0.014)
+	pivot_markers.append(fore_attachment)
+	pivot_markers.append(hand_attachment)
+	print("[RigCheck] Hand_L pivot markers built: white=elbow green=NEW wrist red=OLD wrist")
+
+func _toggle_pivot_markers() -> void:
+	_build_pivot_markers()
+	for marker in pivot_markers:
+		marker.visible = not marker.visible
+
 func _dump_skeleton() -> void:
 	var skeleton: Skeleton3D = hero.get("skeleton") as Skeleton3D
 	if skeleton == null:
@@ -222,4 +278,7 @@ func _dump_skeleton() -> void:
 		return
 	print("[RigCheck] Skeleton3D bone count: ", skeleton.get_bone_count())
 	for i in skeleton.get_bone_count():
-		print("[RigCheck]  bone %02d  %-12s parent=%d" % [i, skeleton.get_bone_name(i), skeleton.get_bone_parent(i)])
+		var rest_origin: Vector3 = skeleton.get_bone_global_rest(i).origin
+		print("[RigCheck]  bone %02d  %-12s parent=%d  global_rest=(%.4f, %.4f, %.4f)" % [
+			i, skeleton.get_bone_name(i), skeleton.get_bone_parent(i),
+			rest_origin.x, rest_origin.y, rest_origin.z])
