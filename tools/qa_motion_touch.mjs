@@ -1,16 +1,14 @@
 #!/usr/bin/env node
 /*
- * WebAssembly portrait in-game motion and weapon feedback capture.
+ * WebAssembly landscape in-game motion and weapon feedback capture.
  * Start the project-root server first:
- *   python -m http.server 800 --bind 0.0.0.0
+ *   python3 -m http.server 8080 --bind 0.0.0.0
  * Then: npm ci --prefix tools && node tools/qa_motion_touch.mjs
  * Optional: add --record for an ignored diagnostic WebM of the canvas.
  *
- * Capture the actual Blender hero under movement, ADS and firing in safe Explore.
+ * Captures the actual Blender hero under movement, ADS and firing in safe Explore.
  * Keyboard movement is used to keep the right thumb available for FIRE/ADS;
  * these screenshots and clip logs are NOT acceptance of animation quality.
- * Headless SwiftShader may render far below the requested video frame rate:
- * do not use --record footage to grade timing or claim device performance.
  */
 import chromium from '@sparticuz/chromium';
 import puppeteer from 'puppeteer-core';
@@ -23,7 +21,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'exports', 'qa-motion-touch');
 const RECORD = process.argv.includes('--record');
-const URL = process.argv.find(arg => arg.startsWith('--url='))?.slice(6) || 'http://127.0.0.1:800/';
+const URL = process.argv.find(arg => arg.startsWith('--url='))?.slice(6) || 'http://127.0.0.1:8080/';
 const LIB_DIR = path.join(ROOT, 'tools', '.cache', 'al2023-lib', 'lib');
 if (!fs.existsSync(path.join(LIB_DIR, 'libnss3.so'))) {
   const entry = path.dirname(fileURLToPath(import.meta.resolve('@sparticuz/chromium')));
@@ -45,13 +43,13 @@ const browser = await puppeteer.launch({
 fs.mkdirSync(OUT, { recursive: true });
 try {
   const page = await browser.newPage();
-  await page.setViewport({ width: 390, height: 844, hasTouch: true, isMobile: true, deviceScaleFactor: 1 });
+  await page.setViewport({ width: 844, height: 390, hasTouch: true, isMobile: true, deviceScaleFactor: 1 });
   const lines = [];
   const errors = [];
   page.on('console', message => {
     const line = message.text();
     lines.push(line);
-    if (/Encounter:|Progression:|Armory:/.test(line)) console.log(line);
+    if (/Encounter:|Progression:|Armory:|Touch QA:/.test(line)) console.log(line);
     if (/SCRIPT ERROR:|Parse Error:/.test(line)) errors.push(line);
   });
   page.on('pageerror', error => errors.push(String(error)));
@@ -75,9 +73,20 @@ try {
     await page.screenshot({ path: path.join(OUT, `${name}.png`) });
     console.log('FRAME', name);
   };
-  const preview = URL.includes('?') ? URL + '&qa_camera' : URL + '?qa_camera';
-  await page.goto(preview, { waitUntil: 'domcontentloaded', timeout: 90000 });
-  await waitFor('Encounter: Explore safe', 90000);
+  const joiner = URL.includes('?') ? '&' : '?';
+  const preview = `${URL}${joiner}qa_stage=GAMEPLAY&qa_world=frostline_relay&qa_camera&qa_touch`;
+  await page.goto(preview, { waitUntil: 'domcontentloaded', timeout: 120000 });
+  await waitFor('Encounter: Explore safe', 150000);
+  await waitFor('Touch QA: viewport=844x390 phase=explore ', 45000);
+  const touchLine = lines.filter(line => line.startsWith('Touch QA: viewport=844x390 phase=explore ')).at(-1);
+  const centerOf = name => {
+    const m = touchLine?.match(new RegExp(`${name}=(-?\\d+),(-?\\d+),(\\d+)x(\\d+)`));
+    if (!m) throw new Error(`Missing ${name} rect in ${touchLine}`);
+    return { x: Math.round(Number(m[1]) + Number(m[3]) / 2), y: Math.round(Number(m[2]) + Number(m[4]) / 2) };
+  };
+  const ads = centerOf('ADS');
+  const fire = centerOf('FIRE');
+
   if (RECORD) {
     const started = await page.evaluate(() => {
       const canvas = document.querySelector('#canvas');
@@ -97,25 +106,23 @@ try {
     if (!started) throw new Error('This browser cannot record canvas VP8/WebM; try without --record');
   }
   await shot('01-idle');
-  // Enlarged portrait: ADS x258..382/y474..598, FIRE y610..812.
-  // Keep the aim touch in ADS, not the FIRE rim.
-  await page.touchscreen.touchStart(330, 585); // ADS icon, not FIRE
+  await page.touchscreen.touchStart(ads.x, ads.y);
   await delay(900);
   await shot('02-ads-held');
   await page.touchscreen.touchEnd();
-  await page.touchscreen.touchStart(323, 746);
+  await page.touchscreen.touchStart(fire.x, fire.y);
   await delay(750);
   await shot('03-fire-held');
   await page.touchscreen.touchEnd();
   await page.keyboard.down('KeyW');
   await delay(1000);
   await shot('04-move');
-  await page.touchscreen.touchStart(323, 746);
+  await page.touchscreen.touchStart(fire.x, fire.y);
   await delay(850);
   await shot('05-move-fire-held');
   await page.touchscreen.touchEnd();
   await page.keyboard.up('KeyW');
-  await page.keyboard.press('KeyG'); // actual reload input after spending Pulse rounds
+  await page.keyboard.press('KeyG');
   await waitFor('clip=reload', 30000);
   await shot('06-reload');
   if (RECORD) {
@@ -145,8 +152,7 @@ try {
       || !traces.some(line => line.includes('clip=reload'))) {
     throw new Error('Camera trace never observed ADS, FIRE, aim_run and reload in gameplay');
   }
-  console.log('PASS: actual Explore ADS/FIRE/run/reload inputs and clip traces; human motion/VFX review remains OPEN');
-
+  console.log('PASS: actual landscape 844x390 Explore ADS/FIRE/run/reload inputs and clip traces');
 } finally {
   await browser.close();
 }

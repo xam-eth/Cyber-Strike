@@ -149,7 +149,9 @@ function show(name, options = {}) {
     stageShow('right');
     celebrate('right');
   }
-  if (name === 'settings') fromSettings = options.from === 'hero' ? 'hero' : 'hub';
+  if (name === 'settings') {
+    fromSettings = ['hero', 'opening'].includes(options.from) ? options.from : 'hub';
+  }
   if (options.focus !== false) {
     const target = screens[name].querySelector('.btn--primary, .wcard[aria-selected="true"], button, [tabindex]');
     if (target) target.focus({ preventScroll: true });
@@ -182,12 +184,12 @@ function paintAudioControl() {
   const node = el('dock-audio');
   if (!node) return;
   const label = !audio.supported
-    ? 'Audio tidak didukung peramban'
+    ? t('dock.audio_unavailable')
     : audio.muted
-      ? 'Nyalakan audio'
+      ? t('dock.audio_unmute')
       : audio.unlocked
-        ? 'Bisukan audio'
-        : 'Aktifkan audio';
+        ? t('dock.audio_mute')
+        : t('dock.audio_enable');
   node.dataset.state = !audio.supported ? 'unavailable' : audio.muted ? 'muted' : audio.unlocked ? 'ready' : 'locked';
   node.setAttribute('aria-label', label);
   node.setAttribute('aria-pressed', String(audio.muted));
@@ -344,7 +346,7 @@ function paintWorld() {
     const bp = Number.isFinite(Number(snap.balance)) ? Math.max(0, Math.floor(Number(snap.balance))) : 0;
     const runs = completedRuns();
     const best = Number.isFinite(Number(snap.best_score)) ? Math.max(0, Math.floor(Number(snap.best_score))) : 0;
-    strip.textContent = t('hub.profile_strip', bp, runs, best);
+    strip.textContent = t(runs === 1 ? 'hub.profile_strip_one' : 'hub.profile_strip', bp, runs, best);
   }
   const line = el('hub-world-line');
   if (line) {
@@ -1146,8 +1148,9 @@ function paintLoadout() {
     ? Math.min(Math.max(1, Number(prefs.tier) || 1), ownedTier())
     : Math.max(1, Math.min(Number(prefs.tier) || 1, completedRuns() >= 1 ? 2 : 1));
   const opCallsign = activeHero ? activeHero.callsign : 'Sable';
+  const shortWeapon = String(name).split(' ')[0] || name;
   const hub = el('hub-operative-meta');
-  if (hub) hub.textContent = `${opCallsign} T${activeOpTier} · ${name} T${tier}`;
+  if (hub) hub.textContent = `${opCallsign} T${activeOpTier} · ${shortWeapon}`;
   const deployMeta = el('hub-deploy-meta');
   if (deployMeta) deployMeta.textContent = `${opCallsign} T${activeOpTier} · ${name} T${tier}`;
   stageShow();
@@ -1228,29 +1231,32 @@ function armBootWatchdog() {
   window.clearTimeout(bootWatchdog);
   bootWatchdog = window.setTimeout(() => {
     if (!['preparing', 'loading'].includes(bootState)) return;
-    const title = assetsComplete ? 'Dunia terlalu lama disiapkan' : 'Unduhan dunia berhenti';
+    const title = assetsComplete
+      ? t('launch.failed.timeout_loading_title')
+      : t('launch.failed.timeout_download_title');
     const detail = assetsComplete
-      ? 'Mesin dan paket dunia sudah diterima, tetapi dunia belum siap setelah 3 menit. Muat ulang lalu coba lagi.'
-      : 'Tidak ada data baru selama 3 menit. Periksa koneksi, biarkan tab tetap aktif, lalu coba lagi.';
+      ? t('launch.failed.timeout_loading_detail')
+      : t('launch.failed.timeout_download_detail');
     launchFailed(title, detail);
   }, BOOT_STALL_TIMEOUT_MS);
 }
 
 function formatMegabytes(bytes) {
-  return (bytes / 1000000).toFixed(1).replace('.', ',');
+  const fixed = (bytes / 1000000).toFixed(1);
+  return locale() === 'id' ? fixed.replace('.', ',') : fixed;
 }
 
 function failLaunchFrom(error) {
-  const detail = String(error?.message || error || 'Kesalahan yang tidak dikenal.');
+  const detail = String(error?.message || error || t('launch.failed.unknown'));
   if (error?.launchTitle) {
     launchFailed(error.launchTitle, detail);
   } else if (/failed to fetch|network\s*error|load failed|failed loading file|err_(?:failed|content_length_mismatch)/i.test(detail)) {
     launchFailed(
-      'Koneksi dunia terputus',
-      `Unduhan mesin atau paket dunia tidak selesai. Periksa koneksi lalu coba lagi. Detail: ${detail}`,
+      t('launch.failed.network_title'),
+      t('launch.failed.network_detail', detail),
     );
   } else {
-    launchFailed('Dunia gagal dimuat', detail);
+    launchFailed(t('launch.failed.world'), detail);
   }
 }
 
@@ -1266,9 +1272,9 @@ function paintAssetProgress() {
   progress.querySelector('.rail__head').style.left = `calc(${(ratio * 100).toFixed(1)}% - 2px)`;
   el('launch-percent').textContent = `${Math.floor(ratio * 100)}%`;
   el('launch-status').textContent = assetsComplete
-    ? 'aset lengkap, menyusun dunia'
-    : `mengunduh mesin + dunia · ${formatMegabytes(downloadedBytes)}/${formatMegabytes(expectedBytes)} MB`;
-  if (assetsComplete) el('launch-hint').textContent = 'Unduhan selesai. Menyiapkan WebGL dan dunia…';
+    ? t('launch.status.assembling')
+    : t('launch.status.downloading', formatMegabytes(downloadedBytes), formatMegabytes(expectedBytes));
+  if (assetsComplete) el('launch-hint').textContent = t('launch.hint.assets_ready');
 }
 
 function handleAssetProgress(loaded, total) {
@@ -1333,7 +1339,7 @@ function prepareEngine() {
       },
     });
 
-    el('launch-hint').textContent = `Unduhan awal ${formatMegabytes(expectedBytes)} MB (mesin + dunia). Jangan tutup atau muat ulang saat progres bergerak.`;
+    el('launch-hint').textContent = t('launch.hint.initial_download', formatMegabytes(expectedBytes));
     paintAssetProgress();
     paintOpening();
 
@@ -1352,7 +1358,7 @@ function prepareEngine() {
     window.clearTimeout(bootWatchdog);
     markCheck('assets', true);
     paintAssetProgress();
-    paintDock('ok', 'Paket dunia siap');
+    paintDock('ok', t('dock.package_ready'));
     return engine;
   })();
 
@@ -1376,10 +1382,10 @@ async function bootEngine() {
     await audio.handoff();
     if (bootState !== 'loading') return;
     if (audio.snapshot().musicVoices !== 0) {
-      throw new Error('Audio opening belum selesai; DEPLOY dihentikan untuk mencegah musik ganda.');
+      throw new Error(t('launch.failed.audio_handoff'));
     }
-    el('launch-status').textContent = 'aset lengkap, menyusun dunia';
-    el('launch-hint').textContent = 'Paket sudah lengkap. Menyiapkan WebGL dan teater pilihan…';
+    el('launch-status').textContent = t('launch.status.assembling');
+    el('launch-hint').textContent = t('launch.hint.preparing_theatre');
 
     // startGame() would call preloadFile() a second time. The opening already
     // owns that buffer, so supply startGame's main-pack argument directly to
@@ -1389,15 +1395,15 @@ async function bootEngine() {
     bootState = 'ready';
     window.clearTimeout(bootWatchdog);
     engineReady = true;
-    paintDock('ok', 'Konsol siap');
+    paintDock('ok', t('dock.ready'));
     const progress = el('launch-progress');
     progress.dataset.indeterminate = 'false';
     progress.setAttribute('aria-valuenow', '100');
     el('launch-fill').style.width = '100%';
     progress.querySelector('.rail__head').style.left = 'calc(100% - 2px)';
     el('launch-percent').textContent = '100%';
-    el('launch-status').textContent = 'dunia siap';
-    el('launch-hint').textContent = 'Masuk ke dunia…';
+    el('launch-status').textContent = t('launch.status.ready');
+    el('launch-hint').textContent = t('launch.hint.enter');
     revealCanvas();
   } catch (error) {
 failLaunchFrom(error);
@@ -1525,7 +1531,12 @@ el('opt-language')?.addEventListener('click', () => {
   // line) are painted by their owners, so the switch repaints them by hand.
   paintOpening();
   paintWorld();
-  paintDock(engineReady ? 'ok' : 'warn', engineReady ? t('dock.ready') : t('dock.not_ready'));
+  paintLoadout();
+  paintAudioControl();
+  paintDock(
+    engineReady || bootState === 'prepared' ? 'ok' : 'warn',
+    engineReady ? t('dock.ready') : bootState === 'prepared' ? t('dock.package_ready') : t('dock.not_ready'),
+  );
   if (current === 'launch') el('launch-title').textContent = t('launch.title');
 });
 
@@ -1565,6 +1576,14 @@ document.addEventListener('keydown', (event) => {
     return;
   }
   if (event.key === 'Enter') {
+    const focused = document.activeElement;
+    if (
+      focused &&
+      screens[current]?.contains(focused) &&
+      focused.matches('button, a[href], input, select, textarea, [role="switch"], [role="option"]')
+    ) {
+      return;
+    }
     const active = screens[current].querySelector(
       '.btn--primary, .wcard[aria-selected="true"], .wcard, .card[aria-pressed="true"], .card',
     );

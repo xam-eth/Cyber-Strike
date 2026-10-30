@@ -319,7 +319,8 @@ body[data-screen='opening'] .plate--opening::after {
     inset 0 1px 0 rgba(255, 240, 205, 0.8),
     inset 0 -10px 18px -12px rgba(90, 50, 0, 0.95),
     0 14px 34px -20px rgba(255, 176, 32, 0.95);
-  padding-inline: clamp(var(--s5), 3.4vw, var(--s6));
+  padding-left: clamp(var(--s5), 3vw, var(--s6));
+  padding-right: 46px;
 }
 
 /* Hazard ticks, cut into the trailing end of the action plate. Painted by a
@@ -940,7 +941,7 @@ body[data-screen='hub'] .plate--hub {
 .btn--deploy {
   --tr: var(--cut-lg);
   --bl: var(--cut-xs);
-  flex: 0 1 auto;
+  flex: 0 0 auto;
   min-width: clamp(180px, 26vw, 260px);
   justify-content: flex-start;
 }
@@ -1034,7 +1035,7 @@ body[data-screen='hub'] .plate--hub {
   max-width: 100%;
   font-family: var(--font-ui);
   font-size: 8.5px;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
   color: var(--ink-3);
   white-space: nowrap;

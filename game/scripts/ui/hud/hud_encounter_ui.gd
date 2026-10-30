@@ -84,6 +84,10 @@ static func refresh_recovery_objective(hud) -> void:
 	hud._wave_title_label.text = hud._state.recovery_title
 	hud._wave_enemy_label.text = hud._state.recovery_detail
 	hud._wave_state_label.text = hud._state.recovery_state
+	if is_instance_valid(hud._wave_state_label):
+		hud._wave_state_label.visible = (
+			hud._state.recovery_guard_count > 0 and not hud._state.recovery_state.is_empty()
+		)
 	AegisText.apply(hud._wave_chip_label, "hud.chip_recovery")
 	hud._compact_wave_text = hud._wave_enemy_label.text
 	hud._refresh_compact_label()
@@ -202,7 +206,7 @@ static func refresh_weapon_action(hud) -> void:
 	var compact_armory: bool = weapon_acts_as_armory(hud)
 	var can_swap: bool = hud._state.available_weapons > 1 and not compact_armory
 	hud._weapon_button.text = ""
-	hud._weapon_button.icon = AegisTheme.hud_icon("hud-weapon" if compact_armory else "hud-swap")
+	hud._weapon_button.icon = AegisTheme.hud_icon("hud-swap" if can_swap else "hud-weapon")
 	hud._weapon_button.set_meta("aegis_state", "swap" if can_swap else "armory")
 	if is_instance_valid(hud._weapon_caption):
 		AegisText.apply(hud._weapon_caption, "hud.swap" if can_swap else "hud.armory_short")

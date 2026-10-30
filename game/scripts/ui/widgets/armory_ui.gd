@@ -175,7 +175,7 @@ func _build_card(index: int) -> AegisPanel:
 	button.focus_mode = Control.FOCUS_ALL
 	button.mouse_filter = Control.MOUSE_FILTER_STOP
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	AegisTheme.set_button_variant(button, "round")
+	AegisTheme.set_button_variant(button, "card")
 	button.pressed.connect(_on_weapon_pressed.bind(ORDER[index]))
 	actions.add_child(button)
 	_weapon_buttons.append(button)
@@ -236,7 +236,7 @@ func refresh_profile(
 		var state := _states[index]
 		state.text = specs
 		var button := _weapon_buttons[index]
-		var variant := "round"
+		var variant := "card"
 		if String(id) == String(equipped):
 			AegisText.apply(button, "common.equipped")
 			state.add_theme_color_override("font_color", AegisTokens.ACCENT)
@@ -255,7 +255,7 @@ func refresh_profile(
 			AegisText.apply(button, "armory.unlock", [cost])
 			state.add_theme_color_override("font_color", AegisTokens.INK_2)
 			_cards[index].accent_color = AegisTokens.LINE_HI
-			variant = "primary" if balance >= cost else "round"
+			variant = "primary" if balance >= cost else "card"
 		# set_button_variant() resets typography to logical pixels. Preserve the
 		# scaled HUD font after changing the visual state.
 		if button.get_meta("armory_variant", "") != variant:
@@ -324,30 +324,34 @@ func refresh_language() -> void:
 
 
 func layout_for(hud) -> void:
-	var width := minf(hud._to_layout(720.0), hud.size.x * 0.94)
-	# 340 px, not 300: the card is a photograph of a weapon, and at 300 the art
-	# collapsed to a 50 px strip once the three text lines and the action had
-	# taken their room. 340 still clears the 0.94 reserve on a 375 px-tall phone.
-	var height := minf(hud._to_layout(340.0), hud.size.y * 0.94)
-	custom_minimum_size = Vector2(width, height)
-	UiLayout.place(hud, self, 0.5, 0.5, 0.5, 0.5, Rect2(-width * 0.5, -height * 0.5, width, height))
-	_column.add_theme_constant_override("separation", roundi(hud._to_layout(4.0)))
-	for card in _cards:
-		card.custom_minimum_size = Vector2(hud._to_layout(180.0), 0)
-	# The art is the reason the modal exists; it gets a floor of its own instead
-	# of whatever the text left over. On a 375 px-tall phone that floor has to
-	# give: at 104 the three cards, their text and the footer pushed the panel
-	# past the glass and the actions were drawn half off the screen.
 	var screen_height: float = hud.size.y * hud._stretch
-	var art_floor: float = 104.0 if screen_height >= 390.0 else 76.0
+	var compact_v: bool = screen_height < 480.0
+	var width: float = minf(float(hud._to_layout(720.0)), hud.size.x * 0.94)
+	var target_h: float = 336.0 if compact_v else 380.0
+	var height: float = minf(float(hud._to_layout(target_h)), hud.size.y * 0.92)
+	var col_sep: int = roundi(float(hud._to_layout(2.0 if compact_v else 4.0)))
+	_column.add_theme_constant_override("separation", col_sep)
+	var card_pad: float = float(hud._to_layout(6.0 if compact_v else 12.0))
+	var card_min_w: float = float(hud._to_layout(148.0 if compact_v else 180.0))
+	for card in _cards:
+		card.set_surface_pad(card_pad)
+		card.custom_minimum_size = Vector2(card_min_w, 0.0)
+		if card.get_child_count() > 0 and card.get_child(0) is VBoxContainer:
+			(card.get_child(0) as VBoxContainer).add_theme_constant_override("separation", col_sep)
+	var art_floor: float = 54.0 if screen_height < 400.0 else (68.0 if compact_v else 104.0)
+	var art_min_h: float = float(hud._to_layout(art_floor))
 	for art in _arts:
-		art.custom_minimum_size = Vector2(0, hud._to_layout(art_floor))
+		art.custom_minimum_size = Vector2(0.0, art_min_h)
+	var btn_h: float = float(hud._to_layout(32.0 if compact_v else 36.0))
 	for button in _weapon_buttons:
-		button.custom_minimum_size = Vector2(0, hud._to_layout(36.0))
+		button.custom_minimum_size = Vector2(0.0, btn_h)
 	for button in _upgrade_buttons:
-		button.custom_minimum_size = Vector2(0, hud._to_layout(36.0))
-	_close_button.custom_minimum_size = Vector2(0, hud._to_layout(40.0))
-	_home_button.custom_minimum_size = Vector2(hud._to_layout(120.0), hud._to_layout(40.0))
+		button.custom_minimum_size = Vector2(0.0, btn_h)
+	var foot_h: float = float(hud._to_layout(34.0 if compact_v else 40.0))
+	var home_w: float = float(hud._to_layout(120.0))
+	_close_button.custom_minimum_size = Vector2(0.0, foot_h)
+	_home_button.custom_minimum_size = Vector2(home_w, foot_h)
+	var panel_pad: float = float(hud._to_layout(8.0 if compact_v else 14.0))
 	add_theme_stylebox_override(
 		"panel",
 		AegisTheme.panel_style(
@@ -355,8 +359,15 @@ func layout_for(hud) -> void:
 			Color(AegisTokens.LINE_HI, 0.9),
 			1,
 			AegisTokens.RADIUS,
-			hud._to_layout(14.0)
+			panel_pad
 		)
+	)
+	custom_minimum_size = Vector2(width, height)
+	var min_size: Vector2 = get_combined_minimum_size()
+	var final_w: float = maxf(width, min_size.x)
+	var final_h: float = maxf(height, min_size.y)
+	UiLayout.place(
+		hud, self, 0.5, 0.5, 0.5, 0.5, Rect2(-final_w * 0.5, -final_h * 0.5, final_w, final_h)
 	)
 
 

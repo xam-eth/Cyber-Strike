@@ -283,6 +283,9 @@ func _process(_delta: float) -> void:
 	match status:
 		ResourceLoader.THREAD_LOAD_LOADED:
 			_index += 1
+			var completed_ratio := float(_index) / float(maxi(_targets.size(), 1))
+			_bar.value = completed_ratio
+			_percent.text = "%d%%" % roundi(completed_ratio * 100.0)
 			AegisText.apply(_status, "loading.progress", [_index, _targets.size()])
 			if _index < _targets.size():
 				ResourceLoader.load_threaded_request(_targets[_index])
@@ -299,6 +302,9 @@ func _process(_delta: float) -> void:
 			push_error("MenuLoading: could not load '%s'." % _targets[_index])
 			_failed.append(_targets[_index])
 			_index += 1
+			var failed_ratio := float(_index) / float(maxi(_targets.size(), 1))
+			_bar.value = failed_ratio
+			_percent.text = "%d%%" % roundi(failed_ratio * 100.0)
 			_status.text = "%d / %d" % [_index, _targets.size()]
 			if _index < _targets.size():
 				ResourceLoader.load_threaded_request(_targets[_index])

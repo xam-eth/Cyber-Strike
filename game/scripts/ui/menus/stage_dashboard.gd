@@ -614,8 +614,15 @@ func _apply_armory_and_settings_sizes() -> void:
 	# The armory and settings panels are sized in physical pixels too: they are
 	# lists of 56 px rows, and a panel authored in canvas units would be a third
 	# of that on a phone.
-	_armory_ui.custom_minimum_size = Vector2(px(minf(physical_size().x * 0.92, 470.0)), px(470.0))
-	_settings.custom_minimum_size = Vector2(px(minf(physical_size().x * 0.94, 560.0)), px(560.0))
+	var phys := physical_size()
+	_armory_ui.custom_minimum_size = Vector2(
+		px(minf(phys.x * 0.92, 680.0)),
+		px(minf(phys.y * 0.90, 440.0)),
+	)
+	_settings.custom_minimum_size = Vector2(
+		px(minf(phys.x * 0.94, 560.0)),
+		px(minf(phys.y * 0.90, 560.0)),
+	)
 	enforce_font_floor(_armory_ui, _stretch)
 	enforce_font_floor(_settings, _stretch)
 	_centre(_armory_ui)
@@ -630,8 +637,12 @@ func _on_resized() -> void:
 
 
 func _centre(panel: Control) -> void:
+	var target_size := Vector2(
+		maxf(panel.size.x, panel.custom_minimum_size.x),
+		maxf(panel.size.y, panel.custom_minimum_size.y),
+	)
 	panel.set_anchors_preset(Control.PRESET_CENTER)
-	panel.position = (size - panel.size) * 0.5
+	panel.position = (size - target_size) * 0.5
 
 
 # --- actions ---------------------------------------------------------------- #

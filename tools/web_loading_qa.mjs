@@ -381,7 +381,10 @@ async function runRecoveryCase(asset) {
     result.expectedRequestFailures = [...failedRequests];
     result.interruptedPageErrors = [...pageErrors];
     result.expect(result.interrupted.retryVisible, 'interrupted download did not expose retry');
-    result.expect(result.interrupted.title === 'Koneksi dunia terputus', `unexpected failure title: ${result.interrupted.title}`);
+    result.expect(
+      ['Koneksi dunia terputus', 'World connection lost'].includes(result.interrupted.title),
+      `unexpected failure title: ${result.interrupted.title}`,
+    );
     result.expect(result.interrupted.canvasHidden === 'true', 'canvas was revealed after a failed boot');
     result.expect(result.interruptedPageErrors.length === 0, `unhandled initialization rejection: ${result.interruptedPageErrors.join(' | ')}`);
     result.expect(result.expectedRequestFailures.some((line) => line.includes(filename)), 'the requested asset was not actually interrupted');
@@ -401,7 +404,10 @@ async function runRecoveryCase(asset) {
       && document.getElementById('canvas')?.dataset.hidden === 'false'
       && getComputedStyle(document.getElementById('app')).display === 'none'
     ), { timeout: timeoutMs });
-    await page.waitForFunction(() => document.getElementById('launch-status')?.textContent === 'dunia siap', { timeout: 15000 });
+    await page.waitForFunction(
+      () => ['dunia siap', 'world ready'].includes((document.getElementById('launch-status')?.textContent || '').trim().toLowerCase()),
+      { timeout: 15000 },
+    );
     for (let attempt = 0; attempt < 240 && !consoleLines.some((line) => line.includes('Encounter: Explore safe')); attempt += 1) {
       await new Promise((resolve) => setTimeout(resolve, 250));
     }

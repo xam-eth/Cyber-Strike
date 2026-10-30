@@ -294,7 +294,9 @@ func _build_header() -> void:
 	_heading = make_label_key("hero.title", "display_m", AegisTokens.INK)
 	_heading.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_heading.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_heading.autowrap_mode = TextServer.AUTOWRAP_OFF
+	_heading.clip_text = true
+	_heading.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_header.add_child(_heading)
 
 	_status_label = make_label("", "label", AegisTokens.OK)
@@ -534,7 +536,7 @@ func _build_actions() -> void:
 	# not depend on it to put anything in the tree.
 	_col_right.add_child(_actions)
 
-	_select_button = make_button_key("hero.equipped", "round")
+	_select_button = make_button_key("hero.equipped", "card")
 	_select_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	physical_min_size(_select_button, 0.0, AegisTokens.MIN_TOUCH_PX)
 	_select_button.pressed.connect(_on_select_pressed)
@@ -892,3 +894,4 @@ func _apply_density() -> void:
 	physical_min_size(_carousel_wrap, 0.0, 0.0)
 	physical_separation(_stack, 8.0 if short_screen else 14.0)
 	physical_separation(_carousel_wrap, 4.0 if short_screen else 10.0)
+	enforce_font_floor(self, _stretch)

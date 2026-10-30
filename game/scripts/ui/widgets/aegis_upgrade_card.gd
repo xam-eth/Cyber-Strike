@@ -119,7 +119,7 @@ static func _make_line(text_val: String, role: String, color: Color, wrap: bool)
 	label.set_meta("aegis_scale", 1.0)
 	if wrap:
 		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		label.max_lines_visible = 2
+		label.max_lines_visible = 3
 	else:
 		label.autowrap_mode = TextServer.AUTOWRAP_OFF
 		label.max_lines_visible = 1

@@ -66,16 +66,16 @@ const serveDir = path.resolve(ROOT, flag('--serve', '.'));
  * capture behaves exactly as before. */
 const transientDelayMs = Number(flag('--transient-delay', '0'));
 
-const DEFAULT_STAGES = ['BOOT', 'LOADING', 'CHAPTER', 'DASHBOARD', 'HERO', 'WEAPON', 'WORLD'];
+const DEFAULT_STAGES = ['BOOT', 'LOADING', 'CHAPTER', 'DASHBOARD', 'HERO', 'WORLD'];
 const requested = (list('--stages').join(',') || DEFAULT_STAGES.join(','))
   .split(',')
   .map((name) => name.trim().toUpperCase())
   .filter(Boolean);
 
 const viewportArgs = list('--viewport');
-const viewports = (viewportArgs.length ? viewportArgs : ['390x844', '1280x720']).map((spec) => {
+const viewports = (viewportArgs.length ? viewportArgs : ['844x390', '1280x720']).map((spec) => {
   const [w, h] = spec.split('x').map(Number);
-  return { spec, width: w || 390, height: h || 844 };
+  return { spec, width: w || 844, height: h || 390 };
 });
 
 /* Chromium comes from the pinned packages in tools/package.json, extracted on

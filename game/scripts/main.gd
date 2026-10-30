@@ -480,25 +480,23 @@ func _on_armory_weapon_action(weapon_id: StringName) -> void:
 	if progression_service.is_unlocked(weapon_id):
 		player.select_weapon(weapon_index)
 		print("Armory: equipped " + String(weapon_id))
-		touch_controls._armory_panel.show_hint(
-			"%s EQUIPPED · READY TO PLAY" % weapon_name.to_upper()
-		)
+		touch_controls._armory_panel.show_hint_key("armory.now_equipped", [weapon_name.to_upper()])
 		return
 	if (
 		ProgressionService.BLUEPRINT_REQUIRED.has(weapon_id)
 		and not progression_service.has_blueprint(weapon_id)
 	):
-		touch_controls._armory_panel.show_hint(AegisText.t("recovery.blueprint_required"))
+		touch_controls._armory_panel.show_hint_key("recovery.blueprint_required")
 		return
 	var missing := progression_service.unlock_cost(weapon_id) - progression_service.balance
 	if missing > 0:
-		touch_controls._armory_panel.show_hint("NEED %d MORE BP · FIGHT WAVES" % missing)
+		touch_controls._armory_panel.show_hint_key("armory.need_bp", [missing])
 		return
 	if progression_service.unlock_weapon(weapon_id):
 		player.select_weapon(weapon_index)
 		print("Armory: unlocked " + String(weapon_id))
 		Sfx.play_ui(&"session_clear")
-		touch_controls._armory_panel.show_hint("%s UNLOCKED & EQUIPPED" % weapon_name.to_upper())
+		touch_controls._armory_panel.show_hint_key("armory.now_unlocked", [weapon_name.to_upper()])
 
 
 func _on_armory_weapon_upgrade(weapon_id: StringName) -> void:
@@ -521,7 +519,7 @@ func _on_armory_weapon_upgrade(weapon_id: StringName) -> void:
 
 
 func _toggle_pause() -> void:
-	if session_mode == SessionMode.MISSION_COMPLETE:
+	if session_mode in [SessionMode.MISSION_COMPLETE, SessionMode.RESULTS]:
 		return
 	if player.is_defeated():
 		_reset_session()
@@ -1080,6 +1078,8 @@ func _on_recovery_action() -> void:
 				return
 			_reset_guidance_stuck()
 			wave_director.spawn_guard_group(cache.cache_id, cache.guard_spawns)
+			if wave_director.guard_group_size(cache.cache_id) > 0:
+				run_stats.start_run()
 		RecoveryState.READY:
 			_reset_guidance_stuck()
 			_secure_cache(cache)
@@ -1332,7 +1332,7 @@ func _on_wave_completed(_wave_index: int) -> void:
 func _on_enemy_rewarded(enemy: Node3D, _score_reward: int, bp_reward: int) -> void:
 	# A real KO deserves an immediate outcome even if the player cannot finish
 	# the wave. The same earned reward appears in Results and the browser log.
-	touch_controls._feedback_panel.show_message("TARGET DOWN · +%d BP" % bp_reward)
+	touch_controls._feedback_panel.show_message(AegisText.t("hud.target_down_bp", [bp_reward]))
 	run_upgrade_manager.record_elimination(enemy)
 	var archetype := "SHOOTER" if enemy.is_in_group("shooter_enemies") else "RUNNER"
 	print("Encounter: %s KO · +%d BP" % [archetype, bp_reward])
@@ -1342,7 +1342,7 @@ func _on_wave_rewarded(wave_index: int, bp_reward: int) -> void:
 	# Only show the award once it was actually applied, not before the reward
 	# service has checked its per-wave duplicate guard.
 	touch_controls._feedback_panel.show_message(
-		"WAVE %02d CLEAR · +%d BP" % [wave_index, bp_reward]
+		AegisText.t("hud.wave_clear_bp", [wave_index, bp_reward])
 	)
 
 

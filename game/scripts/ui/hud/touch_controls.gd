@@ -1396,9 +1396,9 @@ func _on_skill_pressed() -> void:
 
 
 func _on_pause_pressed() -> void:
-	Sfx.play_ui(&"ui_click")
-	if _results_visible() and _state.results_mode == "extraction":
+	if _results_visible() and not _player_down:
 		return
+	Sfx.play_ui(&"ui_click")
 	if _player_down:
 		retry_requested.emit()
 	else:

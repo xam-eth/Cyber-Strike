@@ -187,8 +187,16 @@ func _exercise_death_retry_and_extract() -> void:
 		"Extraction Results explain kept blueprint, Tier 2 promotion, and reset run state",
 	)
 	_expect(
-		progression.completed_runs == 1 and progression.balance == 0,
-		"Extract banks a zero-wave Recovery run exactly once",
+		(
+			progression.completed_runs == 1
+			and progression.balance == 20
+			and int(main.get_node("RunStats").get("eliminations")) == 2
+		),
+		"Extract banks the 2 primary guard eliminations (+20 BP) and one completed run once",
+	)
+	_expect(
+		(hud.get("_results_explore_button") as Button).text == AegisText.t("results.explore"),
+		"Extract results reset the secondary button label from Continue-to-Endless back to Explore",
 	)
 	main.call("_extract_from_recovery")
 	_expect(progression.completed_runs == 1, "repeated Extract cannot bank a second run")

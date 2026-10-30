@@ -27,6 +27,8 @@ func _ready() -> void:
 	_message_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_message_label.max_lines_visible = 2
 	_message_label.clip_text = true
+	_message_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_message_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	add_child(_message_label)
 	visible = false
 
@@ -45,6 +47,8 @@ func show_message(text: String) -> void:
 	_refresh_message()
 	_remaining = 1.9
 	visible = true
+	notification(Container.NOTIFICATION_SORT_CHILDREN)
+	queue_redraw()
 
 
 func _refresh_message() -> void:
@@ -78,7 +82,9 @@ func layout_for(hud) -> void:
 	var right: float = hud.size.x - inset
 	if is_instance_valid(hud._skill_button):
 		right = minf(right, hud._skill_button.position.x - inset)
-	var height: float = hud._to_layout(58.0)
+	var height: float = hud._to_layout(48.0)
 	var top: float = hud.size.y - hud._safe_bottom - hud._to_layout(10.0) - height
 	var width: float = maxf(right - left, hud._to_layout(96.0))
 	UiLayout.place(hud, self, 0.0, 0.0, 0.0, 0.0, Rect2(left, top, width, height))
+	if visible:
+		notification(Container.NOTIFICATION_SORT_CHILDREN)

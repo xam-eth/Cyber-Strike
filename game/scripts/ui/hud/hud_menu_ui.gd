@@ -289,6 +289,8 @@ static func update_results(
 			"results.retry_explore" if wave_reached <= 0 else "results.retry_defense",
 		)
 	)
+	hud._results_retry_button.icon = AegisTheme.icon("arrow-counter-clockwise")
+	AegisText.apply(hud._results_explore_button, "results.explore")
 	if wave_reached > 0 or (was_extracted and bp_earned > 0):
 		AegisText.apply(hud._results_reward_label, "results.banked", [bp_earned])
 	elif was_extracted and not was_defeated:
@@ -500,6 +502,7 @@ static func show_extraction_choice(
 	hud._results_summary.text = "\n".join(summary_lines)
 	AegisText.apply(hud._results_hint_label, "recovery.choice_hint")
 	AegisText.apply(hud._results_retry_button, "recovery.extract")
+	hud._results_retry_button.icon = AegisTheme.icon("check", true)
 	AegisText.apply(hud._results_explore_button, "recovery.continue_endless")
 	hud._results_home_button.visible = false
 	if arc_unlocked:
