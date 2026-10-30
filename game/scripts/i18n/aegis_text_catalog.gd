@@ -243,7 +243,7 @@ const STRINGS := {
 		"recovery.secured_feedback": "%s · REWARD SECURED",
 		"recovery.ready_feedback": "%s · GUARDS CLEAR · SECURE NOW",
 		"recovery.spawn_blocked": "GUARD SPAWN BLOCKED · REPOSITION",
-		"recovery.complete_eyebrow": "TECH HUNT 0 · PRIMARY SECURED",
+		"recovery.complete_eyebrow": "TECH HUNT · PRIMARY SECURED",
 		"recovery.primary_reward": "ARC SHOOTER BLUEPRINT SECURED",
 		"recovery.choice_summary":
 		"Primary tech is safe. Extract to upgrade, or continue this field in Endless Survival.",
@@ -631,7 +631,7 @@ const STRINGS := {
 		"recovery.secured_feedback": "%s · REWARD TERAMANKAN",
 		"recovery.ready_feedback": "%s · PENJAGA TUNTAS · AMANKAN",
 		"recovery.spawn_blocked": "SPAWN PENJAGA TERHALANG · PINDAH POSISI",
-		"recovery.complete_eyebrow": "TECH HUNT 0 · UTAMA TERAMANKAN",
+		"recovery.complete_eyebrow": "TECH HUNT · UTAMA TERAMANKAN",
 		"recovery.primary_reward": "BLUEPRINT ARC SHOOTER TERAMANKAN",
 		"recovery.choice_summary":
 		"Teknologi utama aman. Ekstraksi untuk upgrade, atau lanjutkan area ini ke Endless Survival.",

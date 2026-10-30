@@ -259,8 +259,8 @@ static func landscape(hud) -> void:
 ## Pause and results are centred cards, sized from the shorter dimension so a
 ## 390 px-tall phone keeps both its actions on screen without scrolling.
 static func overlays(hud) -> void:
-	var results_width: float = minf(hud._to_layout(600.0), hud.size.x * 0.92)
-	var results_height: float = minf(hud._to_layout(528.0), hud.size.y * 0.9)
+	var results_width: float = minf(hud._to_layout(668.0), hud.size.x * 0.92)
+	var results_height: float = minf(hud._to_layout(624.0), hud.size.y * 0.92)
 	hud._results_panel.custom_minimum_size = Vector2(results_width, results_height)
 	_place(
 		hud._results_panel,
@@ -270,16 +270,22 @@ static func overlays(hud) -> void:
 		0.5,
 		Rect2(-results_width * 0.5, -results_height * 0.5, results_width, results_height)
 	)
-	hud._results_retry_button.custom_minimum_size = Vector2(
-		minf(hud._to_layout(240.0), results_width - hud._to_layout(48.0)), hud._to_layout(52.0)
+	var wide_results := results_width >= hud._to_layout(600.0)
+	var actions := hud._results_panel.find_child("ResultsActions", true, false) as BoxContainer
+	if is_instance_valid(actions):
+		actions.vertical = not wide_results
+	var button_width: float = (
+		hud._to_layout(188.0)
+		if wide_results
+		else minf(hud._to_layout(240.0), results_width - hud._to_layout(48.0))
 	)
+	var button_size := Vector2(button_width, hud._to_layout(48.0))
+	hud._results_retry_button.custom_minimum_size = button_size
 	hud._results_retry_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	hud._results_explore_button.custom_minimum_size = hud._results_retry_button.custom_minimum_size
+	hud._results_explore_button.custom_minimum_size = button_size
 	hud._results_explore_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	if is_instance_valid(hud._results_home_button):
-		hud._results_home_button.custom_minimum_size = Vector2(
-			hud._results_retry_button.custom_minimum_size.x, hud._to_layout(44.0)
-		)
+		hud._results_home_button.custom_minimum_size = button_size
 		hud._results_home_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	hud._results_goal_bar.custom_minimum_size.y = hud._to_layout(8.0)
 

@@ -114,7 +114,7 @@ static func build_results(hud) -> void:
 	hud.add_child(hud._results_panel)
 
 	var content := VBoxContainer.new()
-	content.add_theme_constant_override("separation", 12)
+	content.add_theme_constant_override("separation", 10)
 	hud._results_panel.add_child(content)
 
 	hud._results_eyebrow = hud._label_key("results.eyebrow", "label", AegisTokens.ACCENT)
@@ -127,8 +127,8 @@ static func build_results(hud) -> void:
 	rule.custom_minimum_size = Vector2(0.0, 1.0)
 	content.add_child(rule)
 
-	# The report scrolls on short landscape viewports; the two run decisions
-	# remain pinned and reachable. Portrait has room to display all of it.
+	# The report scrolls on short landscape viewports; the action footer
+	# remains pinned and reachable while giving the breakdown generous space.
 	var report_scroll := ScrollContainer.new()
 	report_scroll.name = "RunReportScroll"
 	report_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -136,12 +136,13 @@ static func build_results(hud) -> void:
 	report_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	content.add_child(report_scroll)
 	var report := VBoxContainer.new()
-	report.add_theme_constant_override("separation", 12)
+	report.add_theme_constant_override("separation", 8)
 	report.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	report_scroll.add_child(report)
 
 	hud._results_reward_label = hud._label("", "mono_l", AegisTokens.ACCENT)
-	hud._results_reward_label.set_meta("aegis_scale", 1.4)
+	hud._results_reward_label.set_meta("aegis_scale", 1.15)
+	hud._results_reward_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	report.add_child(hud._results_reward_label)
 	hud._results_goal_label = hud._label("", "label", AegisTokens.INK)
 	hud._results_goal_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -171,6 +172,12 @@ static func build_results(hud) -> void:
 	hud._results_hint_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	report.add_child(hud._results_hint_label)
 
+	var actions := BoxContainer.new()
+	actions.name = "ResultsActions"
+	actions.alignment = BoxContainer.ALIGNMENT_CENTER
+	actions.add_theme_constant_override("separation", 10)
+	content.add_child(actions)
+
 	hud._results_retry_button = AegisButton.new()
 	hud._results_retry_button.name = "ResultsRetryButton"
 	AegisText.apply(hud._results_retry_button, "results.retry")
@@ -180,7 +187,7 @@ static func build_results(hud) -> void:
 	hud._results_retry_button.add_theme_constant_override("icon_max_width", 18)
 	AegisTheme.set_button_variant(hud._results_retry_button, "primary")
 	hud._results_retry_button.pressed.connect(hud._on_results_retry_pressed)
-	content.add_child(hud._results_retry_button)
+	actions.add_child(hud._results_retry_button)
 	hud._touch_buttons.append(hud._results_retry_button)
 
 	hud._results_explore_button = AegisButton.new()
@@ -191,7 +198,7 @@ static func build_results(hud) -> void:
 	hud._results_explore_button.icon = AegisTheme.icon("caret-right")
 	AegisTheme.set_button_variant(hud._results_explore_button, "round")
 	hud._results_explore_button.pressed.connect(hud._on_return_to_explore_pressed)
-	content.add_child(hud._results_explore_button)
+	actions.add_child(hud._results_explore_button)
 	hud._touch_buttons.append(hud._results_explore_button)
 
 	# A run ends where the player came from: the results card is the one screen
@@ -205,22 +212,37 @@ static func build_results(hud) -> void:
 	hud._results_home_button.add_theme_constant_override("icon_max_width", 18)
 	AegisTheme.set_button_variant(hud._results_home_button, "ghost")
 	hud._results_home_button.pressed.connect(hud._on_home_pressed)
-	content.add_child(hud._results_home_button)
+	actions.add_child(hud._results_home_button)
 	hud._touch_buttons.append(hud._results_home_button)
 
 	hud._results_retry_button.focus_neighbor_bottom = hud._results_retry_button.get_path_to(
 		hud._results_explore_button
 	)
+	hud._results_retry_button.focus_neighbor_right = hud._results_retry_button.get_path_to(
+		hud._results_explore_button
+	)
 	hud._results_explore_button.focus_neighbor_top = hud._results_explore_button.get_path_to(
+		hud._results_retry_button
+	)
+	hud._results_explore_button.focus_neighbor_left = hud._results_explore_button.get_path_to(
 		hud._results_retry_button
 	)
 	hud._results_explore_button.focus_neighbor_bottom = hud._results_explore_button.get_path_to(
 		hud._results_home_button
 	)
+	hud._results_explore_button.focus_neighbor_right = hud._results_explore_button.get_path_to(
+		hud._results_home_button
+	)
 	hud._results_home_button.focus_neighbor_top = hud._results_home_button.get_path_to(
 		hud._results_explore_button
 	)
+	hud._results_home_button.focus_neighbor_left = hud._results_home_button.get_path_to(
+		hud._results_explore_button
+	)
 	hud._results_home_button.focus_neighbor_bottom = hud._results_home_button.get_path_to(
+		hud._results_retry_button
+	)
+	hud._results_home_button.focus_neighbor_right = hud._results_home_button.get_path_to(
 		hud._results_retry_button
 	)
 
