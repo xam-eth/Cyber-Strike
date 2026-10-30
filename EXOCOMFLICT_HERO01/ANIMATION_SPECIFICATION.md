@@ -111,10 +111,11 @@ Godot status for this new layer is **UNVERIFIED at runtime** until the owner re-
 
 ## 10. Production order and acceptance gates
 
-1. **Phase 1 (done in Blender/GLB):** `Idle → Weapon_Raise → Aim_Idle → Fire → Weapon_Lower`. *Exit gate still open:* owner Godot re-import + visual confirmation of the chain and hip locus.
-2. **Phase 2 locomotion:** stress-validate hip/knee/ankle ranges first, then `Walk`, `Run`, `Sprint`; foot-plant/speed sync, BlendSpace1D, and the filtered upper-body layer (Move + Aim test) before acceptance.
-3. **Phase 3 weapon completion:** `Reload`; define/confirm whether `Recoil` is a distinct heavy-weapon clip or should be removed as redundant with `Fire`.
-4. **Phase 4 full-body:** `Jump → Fall → Land`, `Dodge`, `Crouch`, `Melee_Attack`, `Hit_React`, `Heavy_Hit`, `Death` — each with deformation stress renders around hips/shoulders before export.
-5. **Phase 5 interaction:** generic `Interact`, evaluate in context, then decide the deferred object-specific clips.
+1. **Phase 1 (done in Blender/GLB):** `Idle → Weapon_Raise → Aim_Idle → Fire → Weapon_Lower`. *Exit gates still open:* owner Godot re-import + visual confirmation of the chain and hip locus, and resolution of the owner's stale-import clip failure (VALIDATION_REPORT 5.11).
+2. **Rig-anatomy gate (inserted 2026-10-30, VALIDATION_REPORT 5.11):** torso-island arm-weight leakage and the over-wide left-elbow blend are repaired and re-exported, but the misplaced `Hand_L` pivot (bone segment through the thigh, glove ~55 mm lateral / ~50 mm higher) is a structural blocker. No new arm-heavy clip and no locomotion sign-off until the owner approves the Hand_L rest-skeleton correction + left-arm re-pose/regeneration of the clips above, or explicitly accepts the current pivot as a limitation.
+3. **Phase 2 locomotion:** stress-validate hip/knee/ankle ranges first, then `Walk`, `Run`, `Sprint`; foot-plant/speed sync, BlendSpace1D, and the filtered upper-body layer (Move + Aim test) before acceptance.
+4. **Phase 3 weapon completion:** `Reload`; define/confirm whether `Recoil` is a distinct heavy-weapon clip or should be removed as redundant with `Fire`.
+5. **Phase 4 full-body:** `Jump → Fall → Land`, `Dodge`, `Crouch`, `Melee_Attack`, `Hit_React`, `Heavy_Hit`, `Death` — each with deformation stress renders around hips/shoulders before export.
+6. **Phase 5 interaction:** generic `Interact`, evaluate in context, then decide the deferred object-specific clips.
 
 Every clip must pass the same evidence chain before it is called production-ready: Blender numeric gates (finite transforms, grips where relevant, planted/support feet, loop closure) → individually viewed renders at deformation-critical angles → GLB structural validation + byte-diff of body data → Godot import/auto-check/CI → owner desktop visual pass. Export success or keyframes alone are never sufficient evidence.
