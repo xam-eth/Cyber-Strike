@@ -25,8 +25,10 @@ static func request(tree: SceneTree) -> void:
 	tree.paused = false
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	if OS.has_feature("web") and _hand_off_to_shell():
-		# The shell replaces the document; nothing after this line runs.
+		# Flush Emscripten's /userfs mount to IndexedDB via OS_Web::finalize() ->
+		# GodotFS.sync() before the shell's onExit callback replaces the document.
 		print("DashboardReturn: shell home")
+		tree.quit(0)
 		return
 	if OS.has_feature("web"):
 		# The deep link that put the engine in the world (`?qa_stage=GAMEPLAY`)

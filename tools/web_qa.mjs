@@ -1459,7 +1459,7 @@ async function checkPage(target, viewport) {
         await page.keyboard.press('ArrowDown').catch(() => {});
         await new Promise((r) => setTimeout(r, 520));
         await page.keyboard.press('Enter').catch(() => {});
-        const hubDeadline = Date.now() + 30000;
+        const hubDeadline = Date.now() + 45000;
         let triedClickFallback = false;
         while (Date.now() < hubDeadline) {
           const onHub = await page.evaluate(
@@ -1469,7 +1469,7 @@ async function checkPage(target, viewport) {
             e2e.returnedToHub = true;
             break;
           }
-          if (!triedClickFallback && hubDeadline - Date.now() < 25000) {
+          if (!triedClickFallback && hubDeadline - Date.now() < 22000) {
             triedClickFallback = true;
             if (resUi?.home && cdp) {
               await clickCanvasPoint(resUi.home).catch(() => {});

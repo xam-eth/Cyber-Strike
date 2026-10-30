@@ -1325,7 +1325,13 @@ function prepareEngine() {
 
     const EngineClass = window.Engine || window.Godot;
     if (typeof EngineClass !== 'function') throw new Error('window.Engine/window.Godot is unavailable.');
-    engine = new EngineClass({ ...config, onProgress: handleAssetProgress });
+    engine = new EngineClass({
+      ...config,
+      onProgress: handleAssetProgress,
+      onExit: () => {
+        if (pendingHomeNavigation) navigateHomeNow();
+      },
+    });
 
     el('launch-hint').textContent = `Unduhan awal ${formatMegabytes(expectedBytes)} MB (mesin + dunia). Jangan tutup atau muat ulang saat progres bergerak.`;
     paintAssetProgress();
@@ -1609,13 +1615,38 @@ function lockLandscape() {
  * hand-off parameters are dropped and `ui=hub` puts the lobby up -- loadout,
  * world and progress all survive because they live in storage, not in the tab.
  */
-function home() {
+let pendingHomeNavigation = false;
+
+function navigateHomeNow() {
+  pendingHomeNavigation = false;
   const url = new URL(location.href);
   for (const key of ['qa_stage', 'weapon', 'qa_world', 'hero', 'tier']) {
     url.searchParams.delete(key);
   }
   url.searchParams.set('ui', 'hub');
   location.replace(url.toString());
+}
+
+function home() {
+  // Emscripten mounts /userfs without autoPersist: replacing the document
+  // before Godot runs OS_Web::finalize() -> GodotFS.sync() discards any save
+  // written during the run. Request a clean engine quit first so IDBFS flushes
+  // user://progression.cfg to IndexedDB before onExit navigates to the Hub.
+  if (engineReady && engine && typeof engine.requestQuit === 'function') {
+    if (pendingHomeNavigation) return;
+    pendingHomeNavigation = true;
+    window.setTimeout(() => {
+      if (pendingHomeNavigation) navigateHomeNow();
+    }, 20000);
+    try {
+      engine.requestQuit();
+      return;
+    } catch {
+      navigateHomeNow();
+      return;
+    }
+  }
+  navigateHomeNow();
 }
 
 /* Read by the engine's HOME affordances and by the shell's own QA harness. */
