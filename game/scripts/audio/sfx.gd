@@ -38,6 +38,12 @@ static func stop_all() -> void:
 		director.stop_all()
 
 
+static func shutdown() -> void:
+	var director := _director()
+	if director != null:
+		director.shutdown()
+
+
 static func set_music_mode(mode: StringName) -> void:
 	var director := _director()
 	if director != null:

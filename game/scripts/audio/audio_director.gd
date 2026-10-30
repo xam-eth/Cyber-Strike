@@ -156,6 +156,14 @@ func stop_all() -> void:
 		player.stop()
 
 
+## Stops every active SFX and looping music/ambience bed without mutating the
+## saved mute preference. Used before Web engine teardown so WebAudio sources
+## detach their `ended` listeners while `GodotAudio.ctx` is still alive.
+func shutdown() -> void:
+	stop_all()
+	_stop_beds()
+
+
 func sound_count() -> int:
 	return _streams.size()
 

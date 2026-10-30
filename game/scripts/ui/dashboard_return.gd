@@ -24,9 +24,15 @@ static func request(tree: SceneTree) -> void:
 		return
 	tree.paused = false
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	if OS.has_feature("web") and _hand_off_to_shell():
-		# Flush Emscripten's /userfs mount to IndexedDB via OS_Web::finalize() ->
-		# GodotFS.sync() before the shell's onExit callback replaces the document.
+	if OS.has_feature("web") and _shell_owns_the_home_screen():
+		# Stop active WebAudio beds/SFX and advance two frames so AudioDriverWeb
+		# runs SampleNode.clear() while GodotAudio.ctx is still non-null, then
+		# flush Emscripten's /userfs mount to IndexedDB via tree.quit(0) before
+		# the shell's onExit callback replaces the document.
+		Sfx.shutdown()
+		await tree.process_frame
+		await tree.process_frame
+		JavaScriptBridge.eval("window.AegisShell.home()")
 		print("DashboardReturn: shell home")
 		tree.quit(0)
 		return
@@ -50,21 +56,19 @@ static func request(tree: SceneTree) -> void:
 
 ## The shell only exists around the engine: `web/index.html` and the desktop
 ## build have no `AegisShell`, and asking a missing object would be an error in
-## the browser console on every press. Calling `home()` inside the same JS
-## frame and returning a string ('1' / '0') avoids boolean union marshaling in
-## WASM and guarantees `history.replaceState` never races `location.replace`.
-static func _hand_off_to_shell() -> bool:
+## the browser console on every press. Returning a string ('1' / '0') avoids
+## boolean union marshaling in WASM.
+static func _shell_owns_the_home_screen() -> bool:
 	if not OS.has_feature("web"):
 		return false
-	var handed_off := str(
+	var present := str(
 		JavaScriptBridge.eval(
 			(
 				"(() => {"
 				+ " const s = window.AegisShell;"
-				+ " if (s && typeof s.home === 'function') { s.home(); return '1'; }"
-				+ " return '0';"
+				+ " return (s && typeof s.home === 'function') ? '1' : '0';"
 				+ " })()"
 			)
 		)
 	)
-	return handed_off == "1"
+	return present == "1"
