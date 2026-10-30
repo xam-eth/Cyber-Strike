@@ -35,6 +35,12 @@ It asserts:
 
 **Status at report time: NOT YET RUN in the post-change Godot runtime.** A sandbox rebuild of Godot 4.7.2 was attempted because no engine binary persisted in the environment; it could not finish within the available sandbox build window and the parallel attempt hit the compiler memory limit. No runtime PASS is claimed here.
 
+## Ice Planet Phase 1 — exterior macro composition
+
+Phase 1 implements the approved cold, open-sky robot-planet direction without claiming AI or combat. The world now assembles nine dedicated placements from four Blender-authored PBR asset families: four glacier shelves, two frozen skyline spires, two cryo pylons, and the Sentinel Archive exterior. The archive is the visible route destination and has segmented collision volumes rather than an indiscriminate solid box, preserving its future doorway/vestibule work.
+
+`aether_ice` is a new original procedural material dependency with its own albedo, normal and ORM maps. Sky, sun, fog and tone parameters now use a cold ice-blue exterior palette with slightly leaner fog for landmark visibility. The runtime visual result remains unverified until opened in graphical Godot.
+
 ## Camera-only QA and dense verticality pass
 
 `scenes/aetherfall.tscn` is now character-free for visual QA. The default `ReviewCamera` is current immediately and provides seven labelled presets: overview, outpost, cache/route, relay, hangar, density, and tower. The interaction actor remains only in the dedicated test so visual review is not obstructed by an avatar or HUD.

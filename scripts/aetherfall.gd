@@ -14,6 +14,8 @@ var landmark_count := 0
 var landmark_collider_count := 0
 var verticality_count := 0
 var verticality_collider_count := 0
+var ice_planet_count := 0
+var ice_planet_collider_count := 0
 
 func v3(value: Variant) -> Vector3:
 	if value is Array and value.size() >= 3:
@@ -133,8 +135,64 @@ func _ready() -> void:
 	add_animation()
 	add_vertical_infrastructure()
 	add_structural_landmarks()
+	add_ice_planet_phase1()
 	add_stellar_horizon_slice(layout)
-	print("Aetherfall: %d kit / %d proxy colliders / %d vertical / %d landmark placement" % [placement_count, collider_count, verticality_count, landmark_count])
+	print("Aetherfall: %d kit / %d proxy colliders / %d vertical / %d landmark / %d ice-planet placement" % [placement_count, collider_count, verticality_count, landmark_count, ice_planet_count])
+
+
+func add_ice_planet_phase1() -> void:
+	## Phase 1 preserves Aetherfall's tested deck/connectors while giving it an
+	## open-sky glacial basin, a visible archive destination and robot landmarks.
+	var data := read_json(BASE + "ice_planet_phase1.json")
+	if data.is_empty():
+		return
+	var group := Node3D.new()
+	group.name = "IcePlanetPhase1"
+	add_child(group)
+	for spec: Dictionary in data.get("placements", []):
+		var asset := str(spec.get("asset", ""))
+		var packed := load(BASE + "ice_planet/" + asset + ".glb") as PackedScene
+		if packed == null:
+			push_error("Aetherfall: ice-planet model tidak ditemukan: " + asset)
+			continue
+		var setpiece := Node3D.new()
+		setpiece.name = str(spec.get("id", asset))
+		setpiece.position = v3(spec.get("position", []))
+		setpiece.rotation = v3(spec.get("rotation_degrees", [])) * PI / 180.0
+		group.add_child(setpiece)
+		var visual := packed.instantiate() as Node3D
+		visual.name = "Visual"
+		setpiece.add_child(visual)
+		var boxes: Array = spec.get("collision_boxes", [])
+		if not boxes.is_empty():
+			var collision := StaticBody3D.new()
+			collision.name = "Collision"
+			setpiece.add_child(collision)
+			for box_data: Dictionary in boxes:
+				var size := v3(box_data.get("size", []))
+				if size.x <= 0.0 or size.y <= 0.0 or size.z <= 0.0:
+					push_error("Aetherfall: invalid ice-planet collision " + setpiece.name)
+					continue
+				var shape := CollisionShape3D.new()
+				shape.name = "Shape"
+				shape.position = v3(box_data.get("center", []))
+				var box := BoxShape3D.new()
+				box.size = size
+				shape.shape = box
+				collision.add_child(shape)
+				ice_planet_collider_count += 1
+		var light_data: Variant = spec.get("light", null)
+		if light_data is Dictionary:
+			var light_config := light_data as Dictionary
+			var light := OmniLight3D.new()
+			light.name = "IcePlanetLight"
+			light.position = v3(light_config.get("position", []))
+			light.light_color = color3(light_config.get("color", []), Color(0.18, 0.72, 1.0))
+			light.light_energy = float(light_config.get("energy", 1.0))
+			light.omni_range = float(light_config.get("range", 10.0))
+			light.shadow_enabled = false
+			setpiece.add_child(light)
+		ice_planet_count += 1
 
 
 func add_vertical_infrastructure() -> void:
@@ -338,10 +396,12 @@ func add_connectors() -> void:
 func add_atmosphere() -> void:
 	var environment := Environment.new()
 	var sky_material := ProceduralSkyMaterial.new()
-	sky_material.sky_top_color = Color(0.055, 0.14, 0.27)
-	sky_material.sky_horizon_color = Color(0.44, 0.59, 0.72)
-	sky_material.ground_bottom_color = Color(0.075, 0.10, 0.14)
-	sky_material.ground_horizon_color = Color(0.34, 0.43, 0.50)
+	# Cold open-sky planet palette: visible glacial horizon without a dense
+	# indoor-hangar haze. The blue shift belongs to the planet, not a post-FX tint.
+	sky_material.sky_top_color = Color(0.018, 0.065, 0.16)
+	sky_material.sky_horizon_color = Color(0.55, 0.76, 0.91)
+	sky_material.ground_bottom_color = Color(0.045, 0.075, 0.12)
+	sky_material.ground_horizon_color = Color(0.40, 0.57, 0.70)
 	var sky := Sky.new()
 	sky.sky_material = sky_material
 	environment.background_mode = Environment.BG_SKY
@@ -352,13 +412,13 @@ func add_atmosphere() -> void:
 	environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	# Deliberately lean haze and restrained glow preserve canyon depth, PBR
 	# contrast and building silhouettes instead of flattening the scene.
-	environment.tonemap_exposure = 1.04
-	environment.tonemap_white = 1.15
+	environment.tonemap_exposure = 1.08
+	environment.tonemap_white = 1.22
 	environment.fog_enabled = true
-	environment.fog_light_color = Color(0.44, 0.58, 0.68)
-	environment.fog_density = 0.00095
-	environment.fog_aerial_perspective = 0.34
-	environment.fog_sky_affect = 0.22
+	environment.fog_light_color = Color(0.58, 0.75, 0.90)
+	environment.fog_density = 0.00082
+	environment.fog_aerial_perspective = 0.30
+	environment.fog_sky_affect = 0.18
 	environment.glow_enabled = true
 	environment.glow_intensity = 0.55
 	environment.glow_strength = 0.72
@@ -372,8 +432,8 @@ func add_atmosphere() -> void:
 	var sun := DirectionalLight3D.new()
 	sun.name = "Sun"
 	sun.rotation_degrees = Vector3(-48, -32, 0)
-	sun.light_color = Color(1.0, 0.90, 0.76)
-	sun.light_energy = 1.72
+	sun.light_color = Color(0.76, 0.87, 1.0)
+	sun.light_energy = 1.58
 	sun.shadow_enabled = true
 	sun.directional_shadow_max_distance = 115.0
 	sun.directional_shadow_fade_start = 0.84

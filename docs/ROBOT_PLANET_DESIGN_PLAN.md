@@ -228,18 +228,24 @@ Approve: outdoor robot planet direction, seven-zone flow, indoor archive as
 final-tech location, and camera-only QA. **No production geometry starts before
 this gate.**
 
-### Phase 1 — Exterior macro composition
+### Phase 1 — Exterior macro composition — IMPLEMENTED
 
-1. Build a non-hangar planetary backdrop: cliff sectors, distant mechanical
-   silhouettes, extraction scars and sky/fog tuning.
-2. Block Sentinel Archive exterior and its approach from all three routes.
-3. Replace the visual reading of the central deck with basin/terrace/structure
-   bands while preserving tested connector endpoints.
-4. QA with the seven camera views; reject any wide shot that has an empty
-   foreground-to-background read.
+1. Added original PBR ice maps and four authored Blender asset families:
+   glacier shelf, frozen spire, cryo pylon and Sentinel Archive exterior.
+2. Added nine deliberate placements: Sentinel Archive, four glacial perimeter
+   masses, two skyline spires and two robot cryo pylons.
+3. Tuned the world toward a cold open-sky palette with restrained blue haze;
+   it is not framed as an indoor hangar.
+4. Added camera preset 7 for the archive exterior and 8 for tower/glacial
+   skyline, while retaining the existing inspection presets.
 
-**Gate:** camera QA shows outdoor planet identity, three scale bands, a visible
-archive goal, and no route is accidentally blocked.
+The archive door aligns with the central-route destination and uses segmented
+collider volumes that leave the later doorway/vestibule work possible. The
+phase does **not** claim a playable door or Archive Interior yet.
+
+**Gate result:** static asset, placement, PBR and script-parse checks are
+available; final graphical camera QA and altered-route collision runtime checks
+remain pending a Godot runtime.
 
 ### Phase 2 — Cover and vertical traversal blockout
 

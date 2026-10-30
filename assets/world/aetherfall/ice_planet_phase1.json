@@ -1,0 +1,77 @@
+{
+  "schema": "aetherfall.ice-planet-phase1/1",
+  "unit": "meters",
+  "intent": "Phase 1 macro composition: open-sky ice planet, visible Sentinel Archive objective, glacial perimeter silhouettes and terrain-bound robot infrastructure. No AI, combat or final-tech interaction is claimed here.",
+  "placements": [
+    {
+      "id": "sentinel_archive_exterior",
+      "asset": "sentinel_archive",
+      "position": [8.0, 0.25, -14.3],
+      "rotation_degrees": [0.0, 180.0, 0.0],
+      "purpose": "Final-tech destination. The south-facing exterior door aligns with the end of the central route; the rear visually locks into the tower foundation without enclosing the sky.",
+      "collision_boxes": [
+        {"center": [-4.3, 4.0, 0.5], "size": [4.0, 8.0, 6.6]},
+        {"center": [4.3, 4.0, 0.5], "size": [4.0, 8.0, 6.6]},
+        {"center": [0.0, 4.0, 2.2], "size": [4.7, 8.0, 1.3]},
+        {"center": [0.0, 6.8, -1.65], "size": [4.7, 2.4, 1.4]}
+      ],
+      "light": {"position": [0.0, 5.2, -2.9], "color": [0.18, 0.72, 1.0], "energy": 1.45, "range": 12.0}
+    },
+    {
+      "id": "west_glacier_wall",
+      "asset": "glacier_shelf",
+      "position": [-33.0, 0.2, -18.0],
+      "rotation_degrees": [0.0, 70.0, 0.0],
+      "purpose": "West/north glacial perimeter makes the deck read as a basin rather than a floating rectangle. It stays outside the main tested route."
+    },
+    {
+      "id": "east_glacier_wall",
+      "asset": "glacier_shelf",
+      "position": [34.0, 0.2, -19.0],
+      "rotation_degrees": [0.0, -68.0, 0.0],
+      "purpose": "East/north glacial perimeter and counterweight to the archive silhouette, kept outside the bridge approach."
+    },
+    {
+      "id": "west_outer_glacier",
+      "asset": "glacier_shelf",
+      "position": [-48.0, 2.0, -8.0],
+      "rotation_degrees": [0.0, 16.0, 0.0],
+      "purpose": "Far west ice mass for wide QA views and open-world depth, beyond the primary deck edge."
+    },
+    {
+      "id": "east_outer_glacier",
+      "asset": "glacier_shelf",
+      "position": [49.0, 3.0, -5.0],
+      "rotation_degrees": [0.0, -18.0, 0.0],
+      "purpose": "Far east ice mass to frame the raised bridge and avoid a bare horizon."
+    },
+    {
+      "id": "tower_glacier_spire_west",
+      "asset": "frozen_spire",
+      "position": [-30.0, 0.2, -35.0],
+      "rotation_degrees": [0.0, 11.0, 0.0],
+      "purpose": "Tall glacial silhouette behind the tower, visible above mid-ground facilities."
+    },
+    {
+      "id": "tower_glacier_spire_east",
+      "asset": "frozen_spire",
+      "position": [34.0, 0.2, -34.0],
+      "rotation_degrees": [0.0, -22.0, 0.0],
+      "purpose": "Tall glacial silhouette balancing the tower skyline from the east side."
+    },
+    {
+      "id": "archive_cryo_pylon_west",
+      "asset": "cryo_pylon",
+      "position": [-12.0, 0.25, -15.0],
+      "rotation_degrees": [0.0, 0.0, 0.0],
+      "purpose": "Robot-owned cryogenic receiver near the archive approach; adds a distinct high vertical layer."
+    },
+    {
+      "id": "archive_cryo_pylon_east",
+      "asset": "cryo_pylon",
+      "position": [27.0, 0.25, -16.0],
+      "rotation_degrees": [0.0, 0.0, 0.0],
+      "purpose": "Outer receiver tying the east refinery/hangar sector into the Sentinel Archive visual language."
+    }
+  ]
+}

@@ -133,6 +133,32 @@ for filename, minimum_meshes in [
         assert material.get('normalTexture'), f'normal map missing: {filename}/{material["name"]}'
         assert pbr.get('metallicRoughnessTexture'), f'ORM map missing: {filename}/{material["name"]}'
 assert sum(len(item.get('collision_boxes', [])) for item in verticality) == 12
+ice_phase1 = json.loads((base / 'ice_planet_phase1.json').read_text())['placements']
+assert len(ice_phase1) == 9
+assert {item['asset'] for item in ice_phase1} == {
+    'glacier_shelf', 'frozen_spire', 'sentinel_archive', 'cryo_pylon',
+}
+assert (root / 'source/aetherfall_ice_planet.blend').is_file()
+for filename, minimum_meshes in [
+    ('glacier_shelf.glb', 15),
+    ('frozen_spire.glb', 6),
+    ('sentinel_archive.glb', 34),
+    ('cryo_pylon.glb', 12),
+]:
+    data = (base / 'ice_planet' / filename).read_bytes()
+    magic, version, length = struct.unpack_from('<4sII', data)
+    assert (magic, version, length) == (b'glTF', 2, len(data)), filename
+    json_len = struct.unpack_from('<I', data, 12)[0]
+    payload = json.loads(data[20:20 + json_len])
+    assert len(payload.get('meshes', [])) >= minimum_meshes, filename
+    assert payload.get('materials') and payload.get('textures'), filename
+    for material in payload['materials']:
+        pbr = material.get('pbrMetallicRoughness', {})
+        assert material.get('normalTexture'), f'normal map missing: {filename}/{material["name"]}'
+        assert pbr.get('metallicRoughnessTexture'), f'ORM map missing: {filename}/{material["name"]}'
+assert sum(len(item.get('collision_boxes', [])) for item in ice_phase1) == 4
+for suffix in ['', '_normal', '_orm']:
+    assert (base / 'materials' / ('aether_ice' + suffix + '.png')).is_file()
 for source in ['ai_weathered_steel.png', 'ai_poured_concrete.png', 'ai_sedimentary_rock.png']:
     assert (base / 'source_textures' / source).is_file()
 for suffix in ['normal', 'orm']:
@@ -141,4 +167,4 @@ for suffix in ['normal', 'orm']:
     assert (base / 'materials' / ('aether_rock_' + suffix + '.png')).is_file()
 connectors = json.loads((base / 'connectors.json').read_text())['connectors']
 assert {x['name'] for x in connectors} == {'east_bridge_approach', 'west_catwalk_approach', 'lower_canyon_descent'}
-print(f'PASS: {len(layout["placements"])} kit placement, {len(measures)} modul, 3 connector, 2 interaktif, 4 vertical, 6 landmark, 6 source Blender, PBR normal+ORM')
+print(f'PASS: {len(layout["placements"])} kit placement, {len(measures)} modul, 3 connector, 2 interaktif, 4 vertical, 6 landmark, 9 ice-planet placement, 7 source Blender, PBR normal+ORM')

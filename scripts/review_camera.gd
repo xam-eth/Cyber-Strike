@@ -40,9 +40,14 @@ const VIEWS := {
 		"label": "06 — top-down density / route read",
 	},
 	KEY_7: {
+		"position": Vector3(29, 11, 5),
+		"target": Vector3(8, 4, -14),
+		"label": "07 — Sentinel Archive exterior",
+	},
+	KEY_8: {
 		"position": Vector3(-2, 14, -1),
 		"target": Vector3(0, 15, -26),
-		"label": "07 — energy tower silhouette",
+		"label": "08 — energy tower / glacial skyline",
 	},
 }
 
@@ -53,7 +58,7 @@ func _ready() -> void:
 	add_child(overlay)
 	help_label = Label.new()
 	help_label.position = Vector2(16, 14)
-	help_label.text = "AETHERFALL QA CAMERA  |  Klik kanan: lihat  •  WASD: terbang  •  Q/E: turun/naik  •  Shift: cepat  •  1–7: framing detail"
+	help_label.text = "AETHERFALL QA CAMERA  |  Klik kanan: lihat  •  WASD: terbang  •  Q/E: turun/naik  •  Shift: cepat  •  1–8: framing detail"
 	help_label.add_theme_font_size_override("font_size", 15)
 	help_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
 	help_label.add_theme_constant_override("outline_size", 5)
