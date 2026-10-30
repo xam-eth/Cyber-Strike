@@ -77,6 +77,8 @@ try {
   const preview = `${URL}${joiner}qa_stage=GAMEPLAY&qa_world=frostline_relay&qa_camera&qa_touch`;
   await page.goto(preview, { waitUntil: 'domcontentloaded', timeout: 120000 });
   await waitFor('Encounter: Explore safe', 150000);
+  await page.waitForFunction(() => document.body?.dataset?.mode === 'playing', { timeout: 30000 });
+  await delay(900);
   await waitFor('Touch QA: viewport=844x390 phase=explore ', 45000);
   const touchLine = lines.filter(line => line.startsWith('Touch QA: viewport=844x390 phase=explore ')).at(-1);
   const centerOf = name => {
@@ -114,14 +116,14 @@ try {
   await delay(750);
   await shot('03-fire-held');
   await page.touchscreen.touchEnd();
-  await page.keyboard.down('KeyW');
+  await page.keyboard.down('KeyS');
   await delay(1000);
   await shot('04-move');
   await page.touchscreen.touchStart(fire.x, fire.y);
   await delay(850);
   await shot('05-move-fire-held');
   await page.touchscreen.touchEnd();
-  await page.keyboard.up('KeyW');
+  await page.keyboard.up('KeyS');
   await page.keyboard.press('KeyG');
   await waitFor('clip=reload', 30000);
   await shot('06-reload');

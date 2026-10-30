@@ -105,7 +105,12 @@ try {
     await page.screenshot({ path: path.join(OUT, `${name}.png`) });
     console.log('FRAME', name);
   };
-  const tap = async (x, y) => { await page.touchscreen.tap(x, y); await delay(450); };
+  const tap = async (x, y) => {
+    await page.touchscreen.touchStart(x, y);
+    await delay(180);
+    await page.touchscreen.touchEnd();
+    await delay(450);
+  };
   const viewport = async (width, height, newScene = false) => {
     if (newScene) {
       await page.close();
@@ -116,7 +121,8 @@ try {
     const explored = count('Encounter: Explore safe');
     await page.goto(preview, { waitUntil: 'domcontentloaded', timeout: 120000 });
     await waitForCount('Encounter: Explore safe', explored + 1, 150000);
-    await delay(850);
+    await page.waitForFunction(() => document.body?.dataset?.mode === 'playing', { timeout: 30000 });
+    await delay(900);
   };
   const fireFromRim = async (rect, name) => {
     const before = count('Shot QA: real shot frozen');
@@ -147,7 +153,8 @@ try {
   await shot('04-landscape-844-emp');
 
   const pauses = count('HUD: paused');
-  await tap(r844.PAUSE.cx, r844.PAUSE.cy);
+  const pauseX = r844.PAUSE.x < 422 ? Math.round(844 / 2 + 36) : r844.PAUSE.cx;
+  await tap(pauseX, r844.PAUSE.cy);
   await waitForCount('HUD: paused', pauses + 1);
   await shot('05-landscape-844-pause');
   await page.keyboard.press('Escape');
