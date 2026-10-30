@@ -1,6 +1,6 @@
 # Aetherfall — Robot Planet Tech Heist
 
-**Status:** DRAFT FOR APPROVAL — no new gameplay/level production follows from this document until the plan is approved.
+**Status:** DESIGN DIRECTION RECORDED — configuration selected on 2026-10-30; no new gameplay/level production follows until the reviewer approves the plan for Phase 1.
 
 ## 1. Direction decision
 
@@ -19,6 +19,15 @@ The mission is a tech heist:
 The level must read as a place with an operational purpose, not a flat prop
 showcase. Every asset must support navigation, cover, landmarking, objective
 readability, danger, or story.
+
+## Configuration selected by reviewer
+
+| Decision | Selected direction | Consequence |
+| --- | --- | --- |
+| Mission tone | **Mixed infiltration** | Exterior supports bypass routes and cover-based combat routes; neither stealth nor combat is falsely implemented before its systems exist. |
+| Planet condition | **Ice / blue-energy planet** | Glacial cliffs, dark basalt, snow-dust, buried cryogenic machinery and blue fissure/robot energy replace the oxidised mining default. |
+| Final reward | **Archive Data Core** | The indoor Archive Computer commits the unique Data Core record; later research/progression may consume it, but that broader catalog does not yet exist. |
+| Archive scale | **Compact room + vestibule** | One mobile-aware indoor objective room provides a clear tech-computer climax without prematurely building a generic dungeon. |
 
 ## 2. Current verified starting point
 
@@ -41,11 +50,11 @@ will be presented as implemented.
 
 ### 3.1 Planetary exterior, not an interior bay
 
-- Open sky, distant rock strata, dust haze, extraction scars and silhouette
-  towers are always visible from the major exterior zones.
-- Facilities are **attached to terrain**: half-buried refinery walls, exposed
-  piping, cliff anchors, weathered receiver masts, transit bridges and service
-  decks.
+- Open sky, distant glacial rock strata, snow-dust haze, blue-energy fissures
+  and silhouette towers are always visible from the major exterior zones.
+- Facilities are **attached to terrain**: half-buried cryogenic refinery walls,
+  ice-locked piping, cliff anchors, frozen receiver masts, transit bridges and
+  service decks.
 - A limited archive interior is intentional contrast: calm, sealed, colder,
   cleaner and clearly owned by the robot faction.
 
@@ -57,7 +66,8 @@ will be presented as implemented.
   walker, heavy guard and dormant maintenance unit. Those are **planned roles**,
   not existing AI.
 - Amber is hazard/industrial authorization; cyan is robot system state; the
-  natural planet palette remains stone, oxidised metal and muted blue sky.
+  natural planet palette is blue-white ice, dark basalt, frost-dulled metal and
+  a cold luminous sky.
 
 ### 3.3 Density through structure, not clutter
 
@@ -286,15 +296,13 @@ purpose and a test. No visual-only "enemy" is counted as gameplay.
 6. Archive interior → computer is unmistakably the final tech source.
 7. Return/extraction → route reads back toward landing ridge.
 
-## 10. Decisions needed from reviewer
+## 10. Approval checkpoint
 
-1. **Mission tone:** stealth-first infiltration, combat-first raid, or mixed
-   route choice? The world will support all three visually, but robot/cover
-   ratios depend on this decision.
-2. **Archive reward:** should the stolen technology be a single named prototype
-   unlock, or a data core that unlocks later research? Current branch has no
-   pre-existing progression catalog.
-3. **Planet condition:** dry oxidised mining planet (default), ice/blue energy
-   planet, or volcanic/ash planet? This controls terrain palette and atmosphere.
-4. **Interior scale:** one focused archive room (default and mobile-aware) or a
-   larger multi-room facility (requires more navigation and performance work).
+The reviewer has selected the mixed mission tone, ice/blue-energy planet,
+Archive Data Core reward, and compact archive interior. The only remaining gate
+is approval to start **Phase 1 — Exterior Macro Composition**.
+
+Phase 1 will create the outdoor ice-planet composition and Sentinel Archive
+approach only. It will not fabricate robot AI, player combat, damage, mission
+completion, mobile performance, or a data-core unlock beyond the existing
+minimal interaction architecture.
