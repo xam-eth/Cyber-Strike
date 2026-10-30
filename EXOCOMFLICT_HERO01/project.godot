@@ -19,4 +19,7 @@ window/size/viewport_height=720
 [rendering]
 
 renderer/rendering_method="forward_plus"
-anti_aliasing/quality/msaa_3d=2
+; Validation-project quality: MSAA 8x (3) + anisotropic filtering 16x (4).
+; Host-game projects should choose their own performance budget.
+anti_aliasing/quality/msaa_3d=3
+textures/default_filters/anisotropic_filtering_level=4
