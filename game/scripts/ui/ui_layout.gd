@@ -270,16 +270,18 @@ static func overlays(hud) -> void:
 		0.5,
 		Rect2(-results_width * 0.5, -results_height * 0.5, results_width, results_height)
 	)
-	var wide_results := results_width >= hud._to_layout(600.0)
-	var actions := hud._results_panel.find_child("ResultsActions", true, false) as BoxContainer
+	var wide_results: bool = results_width >= float(hud._to_layout(600.0))
+	var actions: BoxContainer = (
+		hud._results_panel.find_child("ResultsActions", true, false) as BoxContainer
+	)
 	if is_instance_valid(actions):
 		actions.vertical = not wide_results
 	var button_width: float = (
-		hud._to_layout(188.0)
+		float(hud._to_layout(188.0))
 		if wide_results
-		else minf(hud._to_layout(240.0), results_width - hud._to_layout(48.0))
+		else minf(float(hud._to_layout(240.0)), results_width - float(hud._to_layout(48.0)))
 	)
-	var button_size := Vector2(button_width, hud._to_layout(48.0))
+	var button_size := Vector2(button_width, float(hud._to_layout(48.0)))
 	hud._results_retry_button.custom_minimum_size = button_size
 	hud._results_retry_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	hud._results_explore_button.custom_minimum_size = button_size
