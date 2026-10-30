@@ -1,8 +1,10 @@
 extends Node3D
-## Rig validation controller: playback, scrub, speed, camera presets,
-## weapon toggle, skeleton dump and automated checks (UI built in code).
-## Status: runtime-validated on Godot 4.7.2 (headless main-scene run, zero
-## script errors) - see VALIDATION_REPORT.md section 5.4.
+## Rig validation controller: Phase-1 AnimationTree chain controls, legacy
+## clip playback/scrub, speed, camera presets, weapon toggle, skeleton dump
+## and automated checks (UI built in code).
+## Status: legacy controller runtime-validated on Godot 4.7.2 headless in
+## VALIDATION_REPORT 5.4; Phase-1 controls await the owner's desktop
+## Godot re-import pass in 5.10.
 
 const AutoRigCheck = preload("res://scripts/validation/auto_rig_check.gd")
 
@@ -13,7 +15,7 @@ var status_label: Label
 var checks_label: Label
 var scrub: HSlider
 var scrubbing := false
-var aim_anim := ""
+var legacy_anim := ""
 
 var CAMERA_PRESETS := {
 	"Front": [Vector3(0, 1.05, 3.4), Vector3(0, 0.95, 0)],
@@ -29,24 +31,48 @@ func _ready() -> void:
 	camera = $Camera3D
 	await get_tree().process_frame
 	player = hero.get("animation_player") as AnimationPlayer
-	if player != null:
-		for a in player.get_animation_list():
-			if String(a).ends_with("Weapon_Raise_To_Aim"):
-				aim_anim = String(a)
+	legacy_anim = _resolve_anim("Weapon_Raise_To_Aim")
 	_build_ui()
 	_run_checks()
-	if aim_anim != "":
-		scrub.max_value = player.get_animation(aim_anim).length
+	if _tree_enabled():
+		scrub.max_value = float(hero.call("get_current_animation_length"))
+	elif legacy_anim != "" and player != null:
+		scrub.max_value = player.get_animation(legacy_anim).length
 		hero.play_aim(true)
 
 func _process(_delta: float) -> void:
-	if player != null and aim_anim != "":
-		if not scrubbing:
+	if status_label == null:
+		return
+	if _tree_enabled():
+		var state := String(hero.call("get_current_animation_state"))
+		var pos := float(hero.call("get_current_animation_position"))
+		var length := float(hero.call("get_current_animation_length"))
+		if scrub != null:
+			scrub.max_value = maxf(length, 0.001)
+			if not scrubbing:
+				scrub.value = pos
+		status_label.text = "AnimationTree state: %s  t=%.2fs / %.2fs  (Idle -> Raise -> Aim -> Fire -> Lower)" % [state, pos, length]
+	elif player != null and legacy_anim != "":
+		if scrub != null and not scrubbing:
 			scrub.value = player.current_animation_position
-		status_label.text = "Anim: %s  t=%.2fs / %.2fs  speed=%.2fx  %s" % [
-			aim_anim, player.current_animation_position,
-			player.get_animation(aim_anim).length, player.speed_scale,
+		status_label.text = "Legacy anim: %s  t=%.2fs / %.2fs  speed=%.2fx  %s" % [
+			legacy_anim, player.current_animation_position,
+			player.get_animation(legacy_anim).length, player.speed_scale,
 			"PLAYING" if player.is_playing() else "PAUSED"]
+
+func _resolve_anim(anim_name: String) -> String:
+	if player == null:
+		return ""
+	for candidate in player.get_animation_list():
+		var s := String(candidate)
+		var parts := s.split("/")
+		var base := String(parts[parts.size() - 1]) if parts.size() > 0 else s
+		if s == anim_name or base == anim_name:
+			return s
+	return ""
+
+func _tree_enabled() -> bool:
+	return hero != null and hero.has_method("is_animation_tree_enabled") and bool(hero.call("is_animation_tree_enabled"))
 
 func _run_checks() -> void:
 	var lines: Array = AutoRigCheck.run_checks(hero)
@@ -62,36 +88,52 @@ func _build_ui() -> void:
 	root.position = Vector2(12, 10)
 	layer.add_child(root)
 	var title := Label.new()
-	title.text = "HERO_01 - Rig Validation (Weapon_Raise_To_Aim)"
+	title.text = "HERO_01 - Rig Validation (Phase-1 weapon chain)"
 	root.add_child(title)
 	status_label = Label.new()
 	root.add_child(status_label)
+
+	var chain_row := HBoxContainer.new()
+	root.add_child(chain_row)
+	var chain_label := Label.new()
+	chain_label.text = "Phase-1 chain:"
+	chain_row.add_child(chain_label)
+	for state_name in ["Idle", "Weapon_Raise", "Aim_Idle", "Fire", "Weapon_Lower"]:
+		var b := Button.new()
+		b.text = state_name
+		b.pressed.connect(_on_state_pressed.bind(state_name))
+		chain_row.add_child(b)
+	_add_button(chain_row, "Tree on/off", _on_toggle_tree)
+
 	var row := HBoxContainer.new()
 	root.add_child(row)
-	_add_button(row, "Play", _on_play)
+	_add_button(row, "Play legacy aim", _on_play)
 	_add_button(row, "Pause", _on_pause)
 	_add_button(row, "Restart", _on_restart)
 	_add_button(row, "Toggle weapon", _on_toggle_weapon)
 	_add_button(row, "Dump skeleton", _dump_skeleton)
 	_add_button(row, "Re-run checks", _run_checks)
+
 	var speed_row := HBoxContainer.new()
 	root.add_child(speed_row)
 	var sl := Label.new()
-	sl.text = "Speed:"
+	sl.text = "Legacy speed:"
 	speed_row.add_child(sl)
 	for s in [0.25, 0.5, 1.0, 2.0]:
 		var b := Button.new()
 		b.text = "%sx" % s
 		b.pressed.connect(_set_speed.bind(s))
 		speed_row.add_child(b)
+
 	scrub = HSlider.new()
-	scrub.custom_minimum_size = Vector2(520, 0)
+	scrub.custom_minimum_size = Vector2(640, 0)
 	scrub.min_value = 0.0
 	scrub.step = 0.001
 	scrub.drag_started.connect(_on_scrub_started)
 	scrub.drag_ended.connect(_on_scrub_ended)
 	scrub.value_changed.connect(_on_scrub_changed)
 	root.add_child(scrub)
+
 	var cam_row := HBoxContainer.new()
 	root.add_child(cam_row)
 	var cl := Label.new()
@@ -102,8 +144,12 @@ func _build_ui() -> void:
 		b.text = preset_name
 		b.pressed.connect(_apply_camera.bind(preset_name))
 		cam_row.add_child(b)
+
+	var scroll := ScrollContainer.new()
+	scroll.custom_minimum_size = Vector2(980, 330)
+	root.add_child(scroll)
 	checks_label = Label.new()
-	root.add_child(checks_label)
+	scroll.add_child(checks_label)
 
 func _add_button(parent: Control, text: String, fn: Callable) -> void:
 	var b := Button.new()
@@ -111,16 +157,37 @@ func _add_button(parent: Control, text: String, fn: Callable) -> void:
 	b.pressed.connect(fn)
 	parent.add_child(b)
 
+func _on_state_pressed(state_name: String) -> void:
+	if hero == null:
+		return
+	if not _tree_enabled():
+		hero.call("set_animation_tree_enabled", true)
+	if state_name == "Fire":
+		hero.call("fire_weapon")
+	else:
+		hero.call("travel_animation_state", state_name)
+
+func _on_toggle_tree() -> void:
+	if hero != null and hero.has_method("set_animation_tree_enabled"):
+		hero.call("set_animation_tree_enabled", not _tree_enabled())
+
 func _on_play() -> void:
-	if player != null and aim_anim != "":
-		player.play(aim_anim)
+	if _tree_enabled():
+		hero.call("set_animation_tree_enabled", false)
+	if player != null and legacy_anim != "":
+		player.play(legacy_anim)
 
 func _on_pause() -> void:
-	if player != null:
+	if _tree_enabled():
+		hero.call("set_animation_tree_enabled", false)
+	elif player != null:
 		player.pause()
 
 func _on_restart() -> void:
-	hero.play_aim(true)
+	if _tree_enabled():
+		hero.call("raise_weapon")
+	else:
+		hero.play_aim(true)
 
 func _on_toggle_weapon() -> void:
 	var w: Node3D = hero.get("weapon_instance") as Node3D
@@ -138,7 +205,9 @@ func _on_scrub_ended(_changed: bool) -> void:
 	scrubbing = false
 
 func _on_scrub_changed(v: float) -> void:
-	if scrubbing and player != null:
+	# Scrubbing is a direct-AnimationPlayer inspection tool; in tree mode the
+	# slider is a read-only position indicator.
+	if scrubbing and player != null and not _tree_enabled():
 		player.seek(v, true)
 
 func _apply_camera(preset_name: String) -> void:

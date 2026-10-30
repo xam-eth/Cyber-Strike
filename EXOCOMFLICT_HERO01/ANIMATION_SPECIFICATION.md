@@ -1,4 +1,6 @@
-# HERO_01 — Animation Specification: `Weapon_Raise_To_Aim` (Phase D)
+# HERO_01 — Animation Specification & Production Plan
+
+Sections 1–5 document the original verified `Weapon_Raise_To_Aim` clip (Milestone 1 / Phase D). Sections 6 onward define the approved 20-clip production target and the completed Phase-1 weapon chain built from that verified clip.
 
 ## 1. Clip summary
 - Name: `Weapon_Raise_To_Aim` (Blender action + exported glTF animation). **VERIFIED**
@@ -34,3 +36,85 @@ Poses were computed in Python and baked to ordinary bone keys — the exported c
 - The final pose is a **shouldered ready/aim at chest height** (barrel line z≈0.73 vs eyes z≈0.90 in normalized units — the character looks *over* the rifle). It reads correctly for a third-person over-shoulder aim; a cheek-weld ADS variant would need the wrist target ≈8 cm higher and a re-check of support-arm reach. **Documented polish item, not a defect.**
 - Fingers do not articulate (no finger bones in the skeleton contract); both modelled gloves are used as-is.
 - In-engine playback was additionally seek-sampled in Godot 4.7.2 (all measurements match Blender), but judged visual smoothness rests on the Blender frame renders, because headless Godot renders no pixels.
+
+## 6. Approved 20-clip production target
+
+The production set is intentionally **20 reusable clips**, not one clip for every combined gameplay state. Gameplay code controls character facing and movement speed (joystick/`CharacterBody3D` velocity); the animation system composes locomotion, weapon actions, full-body actions and interactions at runtime.
+
+| # | Clip | Primary layer / use | Status at Phase 1 |
+|---|---|---|---|
+| 1 | `Idle` | Locomotion base, loop | **Done — Phase 1** |
+| 2 | `Walk` | Locomotion, loop | Not started |
+| 3 | `Run` | Locomotion, loop | Not started |
+| 4 | `Sprint` | Locomotion, loop | Not started |
+| 5 | `Weapon_Raise` | Weapon transition | **Done — Phase 1** |
+| 6 | `Aim_Idle` | Weapon aim hold, loop | **Done — Phase 1** |
+| 7 | `Fire` | Weapon one-shot | **Done — Phase 1** |
+| 8 | `Reload` | Upper-body weapon action | Not started |
+| 9 | `Weapon_Lower` | Weapon transition | **Done — Phase 1** |
+| 10 | `Recoil` | Future heavy/weapon-class impulse layer; exact gameplay role to confirm because `Fire` already contains normal recoil/recovery | Not started |
+| 11 | `Jump` | Full-body action (takeoff) | Not started |
+| 12 | `Fall` | Full-body air state, loop/hold | Not started |
+| 13 | `Land` | Full-body recovery | Not started |
+| 14 | `Dodge` | Full-body action; gameplay supplies direction initially | Not started |
+| 15 | `Crouch` | Posture state/loop, blended by state machine | Not started |
+| 16 | `Melee_Attack` | Full-body action | Not started |
+| 17 | `Hit_React` | Full-body/upper-body reaction | Not started |
+| 18 | `Heavy_Hit` | Full-body reaction/stagger-scale event | Not started |
+| 19 | `Death` | Full-body terminal action | Not started |
+| 20 | `Interact` | Generic interaction base | Not started |
+
+Deferred until after the first 20-evaluation: `Pickup_Item`, `Open_Cache`, `Activate_Terminal`, `Victory`. Directional locomotion (`Walk_Left`, `Walk_Right`, `Walk_Backward`, `Walk_Forward`) is **not** in the initial set because the character rotates toward joystick movement. Dedicated strafe/backpedal clips become a separate requirement only if gameplay later requires the character to keep facing/aiming at an enemy while moving sideways or backwards.
+
+`Weapon_Raise_To_Aim` (sections 1–5) remains exported as an additional legacy/reference clip. It is **not counted** in the 20; the production chain splits its raise and hold into `Weapon_Raise` + `Aim_Idle` so the state machine can hold, fire and lower independently.
+
+## 7. Runtime composition architecture (Godot)
+
+Target composition, to be completed phase by phase:
+
+1. **Locomotion layer:** `Idle → Walk → Run → Sprint` in a BlendSpace1D driven by horizontal speed. Clips are in-place unless a later phase explicitly approves root motion; gameplay velocity and facing remain code-driven.
+2. **Weapon upper-body layer:** aim/fire/reload composed over locomotion with an `AnimationNodeBlendTree` (filtered upper-body tracks: Spine/Chest/UpperChest/Neck/Head/clavicles/arms/hands/`Weapon_R`) and one-shot nodes where appropriate. This is what will permit move-while-aiming or run-then-fire without combination clips.
+3. **Full-body action states:** Jump/Fall/Land, Dodge, Melee, Heavy_Hit and Death override or strongly blend over the base through the root state machine.
+4. **Interaction states:** generic `Interact` first; object-specific variants only after the base set is evaluated in game context.
+
+**Important implementation boundary:** Blender currently exports every clip with all 24 bone channels. The Phase-1 tree (below) therefore plays the weapon chain as full-body states while stationary. Before Phase-2 locomotion is accepted, the upper-body track filtering/blending must be implemented and tested (Move + Aim / Run + Fire) — that combination is **not yet claimed**.
+
+## 8. Phase-1 weapon chain — completed clips (Blender/GLB VERIFIED)
+
+Production gate executed first, per owner direction, because this asset previously showed deformation defects when the arms raised:
+
+`Idle → Weapon_Raise → Aim_Idle → Fire → Aim_Idle → Weapon_Lower → Idle`
+
+| Clip | Frames @30 fps | Seconds | Loop in Godot wrapper | Construction / measured result |
+|---|---:|---:|---|---|
+| `Idle` | 0–90 | 3.0 | Linear | Exact bind-pose basis + one smooth breathing cycle through Spine/Chest/UpperChest (±0.35° max). Right-hand excursion 0.0028; loop closure 0.00e+00; feet drift 0.0000. |
+| `Weapon_Raise` | 0–36 | 1.2 | None | Legacy verified raise resampled every 3 source frames, ending at source stable-aim F36. Final barrel error 0.000°; contact-phase left grip ≤0.0069 at F33 and ~0 at F36. |
+| `Aim_Idle` | 0–90 | 3.0 | Linear | Stable F36 aim + breathing; max barrel sway 0.443°; left grip ≤0.0002; loop closure 5.96e-08. |
+| `Fire` | 0–12 | 0.4 | None | Stable aim → F2 recoil peak → F7 near-aim → F12 exact aim. Peak muzzle climb 1.867°; left grip ≤0.0003; starts/recovers at stable aim. |
+| `Weapon_Lower` | 0–24 | 0.8 | None | Reverse of the verified stable-aim→rest path (source F36→F0 sampled every 2 frames). Ends at rest barrel direction, error 0.000°. |
+
+All five clips: 168 Blender fcurves (24 bones × loc/quat/scale channels), 72 exported glTF channels, finite sampled bone transforms, right-grip deviation 0.0000 at the printed precision, feet planted (leg/foot channels stay at bind), no `Root`/`Hips` translation. Recoil and breathing are driven through the spine chain so both arms and the bone-parented weapon move coherently and the authored grips do not separate. `Weapon_Raise` deliberately ends at source F36 — the first exact stable-aim frame — excluding the legacy clip's extra 0.3 s settle/hold.
+
+Evidence: gated generator `tools/blender/scripts/47_build_phase1_weapon_chain.py` (saves only if every numeric gate passes); 13 Cycles verification renders in `screenshots/animation/phase1/` (script 48). The underside/hip-critical left and front-left views at Fire F02, Raise F36, Lower F12 and Idle F45 were individually inspected: **no re-opened front-left hip void, shell tearing, grip loss or gross intersection observed** in Blender renders.
+
+Export (script 49 + `tools/patch_glb_double_sided.py`): `assets/characters/HERO_01_RIGGED.glb` (23,177,636 B, md5 `95360c299bc7d3d25c11913b83e425b5`) and `animations/HERO_01_ANIMATIONS.glb` (346,860 B, md5 `54cf3004be0359fb681b8d6b91cb6d0d`) each contain all six clips. `tools/diff_rigged_glb.py --anim-tol 1e-6` proves the body geometry/weights/material, skin joints and inverse-bind matrices stayed **byte-identical** to the pre-Phase-1 GLB; the legacy clip's sampler outputs moved by at most 4.77e-07 (float32 epsilon scale) in the multi-action re-export, so it is documented as equivalent within 1e-6, not byte-identical.
+
+## 9. Godot Phase-1 integration shipped in this package
+
+`scripts/characters/hero_01.gd` now resolves all clip names by exact basename (so `Idle` can never resolve to `Aim_Idle`), sets `Idle`/`Aim_Idle` to linear loop and the transition/one-shot clips to no loop, and builds an `AnimationTree` state machine in code:
+
+- `Start → Idle` (auto), `Idle → Weapon_Raise`, `Weapon_Raise → Aim_Idle` (auto at end), `Aim_Idle → Fire`, `Fire → Aim_Idle` (auto at end), `Aim_Idle → Weapon_Lower`, `Weapon_Raise → Weapon_Lower` (interrupt), `Weapon_Lower → Idle` (auto at end).
+- Public API: `play_idle()`, `raise_weapon()`, `play_aim_idle()`, `fire_weapon()`, `lower_weapon()`, `travel_animation_state(name)`, `set_animation_tree_enabled(bool)`, plus current state/position/length getters. The export `use_animation_tree` defaults to true; disable it if a host game supplies its own AnimationTree. Legacy `play_aim()` remains for the original clip/CI.
+- `RigValidation` gained Phase-1 chain buttons; its scrub slider becomes a read-only position indicator in tree mode and still scrubs the legacy clip in direct mode. `auto_rig_check.gd` verifies all six clips (presence, duration, loop mode) and that the tree built; `tools/godot/ci_check.gd` disables the tree before its direct seek measurements.
+
+Godot status for this new layer is **UNVERIFIED at runtime** until the owner re-imports the changed GLBs in desktop Godot 4.7.2 (or the headless CI is re-run on a Godot binary): see VALIDATION_REPORT 5.10 for exactly what was and was not executed. GDScript syntax was parser-checked only.
+
+## 10. Production order and acceptance gates
+
+1. **Phase 1 (done in Blender/GLB):** `Idle → Weapon_Raise → Aim_Idle → Fire → Weapon_Lower`. *Exit gate still open:* owner Godot re-import + visual confirmation of the chain and hip locus.
+2. **Phase 2 locomotion:** stress-validate hip/knee/ankle ranges first, then `Walk`, `Run`, `Sprint`; foot-plant/speed sync, BlendSpace1D, and the filtered upper-body layer (Move + Aim test) before acceptance.
+3. **Phase 3 weapon completion:** `Reload`; define/confirm whether `Recoil` is a distinct heavy-weapon clip or should be removed as redundant with `Fire`.
+4. **Phase 4 full-body:** `Jump → Fall → Land`, `Dodge`, `Crouch`, `Melee_Attack`, `Hit_React`, `Heavy_Hit`, `Death` — each with deformation stress renders around hips/shoulders before export.
+5. **Phase 5 interaction:** generic `Interact`, evaluate in context, then decide the deferred object-specific clips.
+
+Every clip must pass the same evidence chain before it is called production-ready: Blender numeric gates (finite transforms, grips where relevant, planted/support feet, loop closure) → individually viewed renders at deformation-critical angles → GLB structural validation + byte-diff of body data → Godot import/auto-check/CI → owner desktop visual pass. Export success or keyframes alone are never sufficient evidence.

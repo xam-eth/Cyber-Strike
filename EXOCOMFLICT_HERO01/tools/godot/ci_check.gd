@@ -62,6 +62,12 @@ func _run() -> void:
 		_finish()
 		return
 
+	# The wrapper now starts its Phase-1 AnimationTree automatically. Disable
+	# it before these direct AnimationPlayer seek measurements so the tree
+	# does not overwrite the sampled legacy clip pose.
+	if hero.has_method("set_animation_tree_enabled"):
+		hero.call("set_animation_tree_enabled", false)
+		await get_tree().process_frame
 	player.play(anim)
 	player.speed_scale = 0.0
 	var b_hand_r := skeleton.find_bone("Hand_R")
