@@ -8,7 +8,7 @@ Main scene kini tetap memakai layout Aetherfall yang sama, dengan tambahan minim
 
 - `TechCache` reusable di sisi jalur dari spawn primer: collider statis, `Area3D` range, animasi buka authored Blender, serta transaksi `tech_data` satu kali yang disimpan ke `user://aetherfall_stellar_horizon.cfg`.
 - `ObjectiveDevice` reusable di zona mesin/cover tengah: meminta satu `tech_data`, kemudian menyimpan aktivasi relai satu kali.
-- Operator validasi third-person dan HUD lokal untuk menjalankan slice ini. **WASD** bergerak, tahan klik kanan untuk melihat, **E** berinteraksi, dan **F1** menukar ke kamera review free-fly yang tetap dipertahankan.
+- Interaksi tetap memiliki actor test privat di `tests/interactive_slice.gd`, tetapi **scene QA utama tidak lagi memunculkan karakter**. `ReviewCamera` adalah kamera QA default: tahan klik kanan untuk melihat, **WASD/Q/E** untuk free-fly, dan **1–7** untuk framing overview, outpost, cache, relay, hangar, density, serta tower.
 
 Tambahan density terarah juga tersedia di `assets/world/aetherfall/landmarks/`: Field Outpost, Relay Annex, Service Hangar, dan cargo/service cluster. Ketiganya ditempatkan sebagai landmark spawn/relay/cover berdasarkan `landmarks.json`, dengan collider sederhana, bukan filler acak. Atmosfer mengurangi kabut dan bloom untuk pemisahan siluet yang lebih tegas; kualitas visual final tetap perlu diperiksa pada Godot GUI.
 

@@ -1,9 +1,7 @@
 extends Node3D
 ## Independent Aetherfall assembly. All dimensions and placements are in metres.
 const BASE := "res://assets/world/aetherfall/"
-const PLAYER_SCENE := preload("res://scenes/aetherfall_player.tscn")
 const PROGRESSION_STATE := preload("res://scripts/progression_state.gd")
-const MISSION_HUD := preload("res://scripts/mission_hud.gd")
 const NO_COLLISION := ["terrain_chunk", "cliff_face", "rock_boulder", "background_silhouette", "cloud_puff", "debris_cluster", "cable_bundle", "energy_core", "railing"]
 # Surface meshes, not the enclosing AABB of railings or dangling cables.
 const WALKABLE_MESH := {
@@ -14,6 +12,8 @@ var placement_count := 0
 var collider_count := 0
 var landmark_count := 0
 var landmark_collider_count := 0
+var verticality_count := 0
+var verticality_collider_count := 0
 
 func v3(value: Variant) -> Vector3:
 	if value is Array and value.size() >= 3:
@@ -131,9 +131,63 @@ func _ready() -> void:
 	add_connectors()
 	add_atmosphere()
 	add_animation()
+	add_vertical_infrastructure()
 	add_structural_landmarks()
 	add_stellar_horizon_slice(layout)
-	print("Aetherfall: %d kit placements; %d proxy colliders; %d landmark placements; %d landmark colliders" % [placement_count, collider_count, landmark_count, landmark_collider_count])
+	print("Aetherfall: %d kit / %d proxy colliders / %d vertical / %d landmark placement" % [placement_count, collider_count, verticality_count, landmark_count])
+
+
+func add_vertical_infrastructure() -> void:
+	## Connected high/low industrial masses deliberately break the former open,
+	## zero-height deck read. Geometry is separate from the preserved kit layout.
+	var data := read_json(BASE + "verticality.json")
+	if data.is_empty():
+		return
+	var group := Node3D.new()
+	group.name = "VerticalInfrastructure"
+	add_child(group)
+	for spec: Dictionary in data.get("placements", []):
+		var asset := str(spec.get("asset", ""))
+		var packed := load(BASE + "vertical/" + asset + ".glb") as PackedScene
+		if packed == null:
+			push_error("Aetherfall: vertical model tidak ditemukan: " + asset)
+			continue
+		var structure := Node3D.new()
+		structure.name = str(spec.get("id", asset))
+		structure.position = v3(spec.get("position", []))
+		structure.rotation = v3(spec.get("rotation_degrees", [])) * PI / 180.0
+		group.add_child(structure)
+		var visual := packed.instantiate() as Node3D
+		visual.name = "Visual"
+		structure.add_child(visual)
+		var collision := StaticBody3D.new()
+		collision.name = "Collision"
+		structure.add_child(collision)
+		for box_data: Dictionary in spec.get("collision_boxes", []):
+			var size := v3(box_data.get("size", []))
+			if size.x <= 0.0 or size.y <= 0.0 or size.z <= 0.0:
+				push_error("Aetherfall: invalid vertical collision " + structure.name)
+				continue
+			var shape := CollisionShape3D.new()
+			shape.name = "Shape"
+			shape.position = v3(box_data.get("center", []))
+			var box := BoxShape3D.new()
+			box.size = size
+			shape.shape = box
+			collision.add_child(shape)
+			verticality_collider_count += 1
+		var light_data: Variant = spec.get("light", null)
+		if light_data is Dictionary:
+			var light_config := light_data as Dictionary
+			var light := OmniLight3D.new()
+			light.name = "VerticalLight"
+			light.position = v3(light_config.get("position", []))
+			light.light_color = color3(light_config.get("color", []), Color(0.12, 0.60, 1.0))
+			light.light_energy = float(light_config.get("energy", 1.0))
+			light.omni_range = float(light_config.get("range", 12.0))
+			light.shadow_enabled = false
+			structure.add_child(light)
+		verticality_count += 1
 
 
 func add_structural_landmarks() -> void:
@@ -201,9 +255,6 @@ func add_stellar_horizon_slice(layout: Dictionary) -> void:
 	var group := Node3D.new()
 	group.name = "StellarHorizon"
 	add_child(group)
-	var cache_id := ""
-	var objective_id := ""
-	var required_data := 1
 	for spec: Dictionary in data.get("interactives", []):
 		var packed := load(str(spec.get("scene", ""))) as PackedScene
 		if packed == null:
@@ -220,23 +271,10 @@ func add_stellar_horizon_slice(layout: Dictionary) -> void:
 		if instance is AetherfallTechCache:
 			var cache := instance as AetherfallTechCache
 			cache.reward_amount = int(spec.get("reward", {}).get("amount", cache.reward_amount))
-			cache_id = cache.interaction_id
 		elif instance is AetherfallObjectiveDevice:
 			var device := instance as AetherfallObjectiveDevice
 			device.required_tech_data = int(spec.get("requires", {}).get("amount", device.required_tech_data))
-			objective_id = device.interaction_id
-			required_data = device.required_tech_data
 		group.add_child(instance)
-	var spawn_key := str(data.get("player_spawn", "primary"))
-	var spawn_position := v3(layout.get("spawn", {}).get(spawn_key, []))
-	var player := PLAYER_SCENE.instantiate() as AetherfallPlayer
-	player.name = "AetherfallPlayer"
-	player.position = spawn_position
-	add_child(player)
-	var hud := MISSION_HUD.new() as AetherfallMissionHud
-	hud.name = "MissionHUD"
-	add_child(hud)
-	hud.bind_slice(progression, player, cache_id, objective_id, required_data)
 
 
 func add_mesh_shape(body: StaticBody3D, instance: Node3D, mesh: MeshInstance3D, scale_factor: float) -> void:

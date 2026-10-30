@@ -16,12 +16,18 @@ func run_test() -> void:
 	await physics_frame
 	await physics_frame
 	var state := world.get_node_or_null("ProgressionState") as AetherfallProgressionState
-	var player := world.get_node_or_null("AetherfallPlayer") as AetherfallPlayer
 	var cache := world.get_node_or_null("StellarHorizon/aetherfall_primary_tech_cache") as AetherfallTechCache
 	var device := world.get_node_or_null("StellarHorizon/aetherfall_horizon_relay") as AetherfallObjectiveDevice
-	if state == null or player == null or cache == null or device == null:
+	if state == null or cache == null or device == null:
 		fail("komponen vertical slice tidak lengkap")
 		return
+	# QA world intentionally stays character-free; the test injects its private
+	# actor so interaction contracts remain covered without a visual avatar.
+	var player_scene := load("res://scenes/aetherfall_player.tscn") as PackedScene
+	var player := player_scene.instantiate() as AetherfallPlayer
+	player.name = "InteractionTestActor"
+	root.add_child(player)
+	await physics_frame
 	state.clear_persisted_profile_for_test()
 	if cache.get_node_or_null("Collision/Shape") == null or cache.get_node_or_null("InteractionRange/Shape") == null:
 		fail("cache tidak memiliki collision/range yang dipisahkan")

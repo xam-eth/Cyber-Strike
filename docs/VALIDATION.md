@@ -35,6 +35,12 @@ It asserts:
 
 **Status at report time: NOT YET RUN in the post-change Godot runtime.** A sandbox rebuild of Godot 4.7.2 was attempted because no engine binary persisted in the environment; it could not finish within the available sandbox build window and the parallel attempt hit the compiler memory limit. No runtime PASS is claimed here.
 
+## Camera-only QA and dense verticality pass
+
+`scenes/aetherfall.tscn` is now character-free for visual QA. The default `ReviewCamera` is current immediately and provides seven labelled presets: overview, outpost, cache/route, relay, hangar, density, and tower. The interaction actor remains only in the dedicated test so visual review is not obstructed by an avatar or HUD.
+
+A reference-analysis brief is recorded in `docs/ART_DIRECTION_REFERENCE.md`. Based on its layered hangar/industrial principles, the world now adds two 13m refinery stacks, a 24m overhead service gantry at 7m, and a raised operations deck at 5m. This produces foreground/mid/high structural rhythm rather than merely spacing additional floor props.
+
 ## Structural-density and atmosphere enhancement
 
 The world now adds six purpose-authored placements outside the preserved 251-placement kit contract:

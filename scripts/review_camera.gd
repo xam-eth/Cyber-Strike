@@ -1,44 +1,73 @@
 extends Camera3D
-## Free-fly review camera: WASD, Q/E, shift and right-mouse look.
+## Character-free QA camera for inspecting Aetherfall's composition and assets.
+## Numeric presets frame individual landmarks; right-mouse free-fly remains for
+## close inspection without introducing a player mesh into visual QA.
+
 var speed := 18.0
 var looking := false
-var review_mode := false
 var help_label: Label
+var view_label: Label
 
 const VIEWS := {
-	KEY_1: [Vector3(0, 19, 55), Vector3(0, 20, -26)],
-	KEY_2: [Vector3(-30, 12, 28), Vector3(0, 5, -8)],
-	KEY_3: [Vector3(55, 15, 22), Vector3(38, 4, 0)],
-	KEY_4: [Vector3(0, 12, 50), Vector3(0, -3, 25)],
-	KEY_5: [Vector3(0, 95, 100), Vector3(0, 0, -8)],
+	KEY_1: {
+		"position": Vector3(0, 24, 55),
+		"target": Vector3(0, 7, -10),
+		"label": "01 — overview / skyline",
+	},
+	KEY_2: {
+		"position": Vector3(-47, 10, 24),
+		"target": Vector3(-34, 3, 12),
+		"label": "02 — primary outpost & arrival edge",
+	},
+	KEY_3: {
+		"position": Vector3(-33, 7, 23),
+		"target": Vector3(-24, 1, 10),
+		"label": "03 — tech cache / central lane detail",
+	},
+	KEY_4: {
+		"position": Vector3(28, 12, 15),
+		"target": Vector3(12, 3, 1),
+		"label": "04 — relay device & annex",
+	},
+	KEY_5: {
+		"position": Vector3(45, 9, 3),
+		"target": Vector3(30, 2, -10),
+		"label": "05 — east service hangar",
+	},
+	KEY_6: {
+		"position": Vector3(0, 61, 43),
+		"target": Vector3(0, 5, -6),
+		"label": "06 — top-down density / route read",
+	},
+	KEY_7: {
+		"position": Vector3(-2, 14, -1),
+		"target": Vector3(0, 15, -26),
+		"label": "07 — energy tower silhouette",
+	},
 }
 
 func _ready() -> void:
+	make_current()
 	var overlay := CanvasLayer.new()
-	overlay.name = "ReviewHelp"
+	overlay.name = "QAReviewOverlay"
 	add_child(overlay)
 	help_label = Label.new()
 	help_label.position = Vector2(16, 14)
-	help_label.text = "REVIEW AETHERFALL  |  Klik kanan: lihat  •  WASD: terbang  •  Q/E: turun/naik  •  Shift: cepat  •  1–5: sudut review  •  F1: operator"
+	help_label.text = "AETHERFALL QA CAMERA  |  Klik kanan: lihat  •  WASD: terbang  •  Q/E: turun/naik  •  Shift: cepat  •  1–7: framing detail"
 	help_label.add_theme_font_size_override("font_size", 15)
 	help_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
 	help_label.add_theme_constant_override("outline_size", 5)
-	help_label.visible = false
 	overlay.add_child(help_label)
-
-func set_review_mode(enabled: bool) -> void:
-	review_mode = enabled
-	looking = false
-	if help_label != null:
-		help_label.visible = enabled
-	if enabled:
-		make_current()
-	else:
-		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	view_label = Label.new()
+	view_label.position = Vector2(16, 39)
+	view_label.text = "01 — overview / skyline"
+	view_label.add_theme_font_size_override("font_size", 14)
+	view_label.add_theme_color_override("font_color", Color(0.48, 0.84, 1.0))
+	view_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+	view_label.add_theme_constant_override("outline_size", 4)
+	overlay.add_child(view_label)
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not review_mode:
-		return
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
 		looking = event.pressed
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED if looking else Input.MOUSE_MODE_VISIBLE
@@ -46,15 +75,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		rotation.y -= event.relative.x * 0.002
 		rotation.x = clampf(rotation.x - event.relative.y * 0.002, -1.55, 1.55)
 	elif event is InputEventKey and event.pressed and not event.echo and VIEWS.has(event.keycode):
-		position = VIEWS[event.keycode][0]
-		look_at(VIEWS[event.keycode][1], Vector3.UP)
+		var view: Dictionary = VIEWS[event.keycode]
+		position = view["position"]
+		look_at(view["target"], Vector3.UP)
+		view_label.text = str(view["label"])
 	elif event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
 		looking = false
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 func _process(delta: float) -> void:
-	if not review_mode:
-		return
 	var direction := Vector3.ZERO
 	if Input.is_key_pressed(KEY_W): direction -= transform.basis.z
 	if Input.is_key_pressed(KEY_S): direction += transform.basis.z
