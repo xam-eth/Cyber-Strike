@@ -142,7 +142,14 @@ def bevel(obj, width=0.03):
     bpy.ops.object.modifier_apply(modifier=modifier.name)
 
 
-def box(collection, parent, name, dims, pos, material, bevel_size=.025, rotation=None):
+def tile_uv(obj, repeats):
+    layer = obj.data.uv_layers.active
+    if layer:
+        for item in layer.data:
+            item.uv *= repeats
+
+
+def box(collection, parent, name, dims, pos, material, bevel_size=.025, rotation=None, repeats=1.0):
     bpy.ops.mesh.primitive_cube_add(size=1.0, location=pos)
     obj = bpy.context.object
     obj.name = name
@@ -152,6 +159,7 @@ def box(collection, parent, name, dims, pos, material, bevel_size=.025, rotation
         obj.rotation_euler = rotation
     if bevel_size:
         bevel(obj, bevel_size)
+    tile_uv(obj, repeats)
     obj.data.materials.append(material)
     return attach(obj, collection, parent)
 
@@ -183,6 +191,19 @@ def ice_rock(collection, parent, name, radius, pos, scale, material, seed):
     obj.scale = scale
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
     bevel(obj, .035)
+    tile_uv(obj, max(1.0, max(scale) / 3.0))
+    obj.data.materials.append(material)
+    return attach(obj, collection, parent)
+
+
+def ice_spike(collection, parent, name, radius, height, pos, material, lean=0.0):
+    """Tall faceted ice shard with its height on Godot Y, not Blender Z."""
+    bpy.ops.mesh.primitive_cone_add(vertices=7, radius1=radius, radius2=.16, depth=height, location=pos)
+    obj = bpy.context.object
+    obj.name = name
+    obj.rotation_euler = (math.pi * .5 + lean, lean * .32, lean * .18)
+    bevel(obj, .035)
+    tile_uv(obj, max(1.0, height / 3.0))
     obj.data.materials.append(material)
     return attach(obj, collection, parent)
 
@@ -190,38 +211,37 @@ def ice_rock(collection, parent, name, radius, pos, scale, material, seed):
 def glacier_shelf():
     collection = new_collection("GlacierShelf")
     parent = root(collection, "GlacierShelfRoot")
-    # 18m wide sloped ice/rock wall, open to sky and suitable as perimeter mass.
-    ice_rock(collection, parent, "GlacierMassA", 1.0, (-5.6, 3.0, 0), (4.9, 4.5, 2.8), ICE_DARK, 10)
-    ice_rock(collection, parent, "GlacierMassB", 1.0, (-1.6, 4.8, .4), (4.7, 6.8, 3.1), ICE, 11)
-    ice_rock(collection, parent, "GlacierMassC", 1.0, (3.6, 3.7, -.2), (5.5, 5.1, 3.4), ICE_DARK, 12)
-    ice_rock(collection, parent, "GlacierMassD", 1.0, (7.0, 2.3, .3), (3.5, 3.2, 2.5), ICE, 13)
-    for index, x in enumerate((-7.6, -4.2, .5, 4.5, 7.8)):
-        bpy.ops.mesh.primitive_cone_add(vertices=7, radius1=.72 + (index % 2) * .2, radius2=.12, depth=3.0 + index * .32, location=(x, 3.1 + index * .28, -2.55))
-        shard = bpy.context.object
-        shard.name = "IceShard_" + str(index)
-        shard.rotation_euler = (.05 * index, .19 * index, .11 * index)
-        shard.data.materials.append(ICE)
-        attach(shard, collection, parent)
-    # Half-buried robot anchors tell an extraction story without an indoor wall.
-    for x in (-5.0, 1.8, 6.0):
-        cylinder(collection, parent, "FrozenAnchor_" + str(x), .34, 3.3, (x, 1.6, 2.5), STEEL, None, 12)
-        cylinder(collection, parent, "AnchorGlow_" + str(x), .16, .12, (x, 3.3, 2.5), CYAN, None, 16)
+    # A 34m wide macro ice formation. Existing placements become unmistakable
+    # skyline/route landmarks rather than low, pebble-like perimeter props.
+    ice_rock(collection, parent, "GlacierMassWest", 1.0, (-11.5, 5.0, .5), (6.2, 7.6, 5.4), ICE_DARK, 10)
+    ice_rock(collection, parent, "GlacierMassCrown", 1.0, (-2.8, 9.2, .3), (7.5, 12.4, 6.4), ICE, 11)
+    ice_rock(collection, parent, "GlacierMassEast", 1.0, (7.4, 6.4, -.4), (7.2, 8.9, 5.8), ICE_DARK, 12)
+    ice_rock(collection, parent, "GlacierMassFoot", 1.0, (13.8, 3.8, .5), (4.5, 4.9, 4.4), ICE, 13)
+    for index, (x, height, radius, lean) in enumerate([
+        (-15.4, 11.0, 1.45, -.13), (-8.8, 16.5, 1.72, .09),
+        (-.4, 22.0, 2.05, -.06), (8.2, 15.0, 1.66, .12), (15.1, 10.6, 1.34, -.10),
+    ]):
+        ice_spike(collection, parent, "IceShard_" + str(index), radius, height, (x, height * .5, -3.8), ICE if index % 2 else ICE_DARK, lean)
+    # Embedded robot anchors make the formation read as harvested/contested geology.
+    for x in (-10.0, 0.5, 11.5):
+        cylinder(collection, parent, "FrozenAnchor_" + str(x), .40, 5.2, (x, 2.55, 3.6), STEEL, None, 12)
+        cylinder(collection, parent, "AnchorGlow_" + str(x), .18, .16, (x, 5.22, 3.6), CYAN, None, 16)
+        box(collection, parent, "AnchorClamp_" + str(x), (1.9, .18, .72), (x, .38, 3.4), DARK, .025, None, 1.5)
     return collection
 
 
 def frozen_spire():
     collection = new_collection("FrozenSpire")
     parent = root(collection, "FrozenSpireRoot")
-    # Narrow tall silhouette for far/mid shots; layered ice plates avoid a cone read.
-    for index, (x, z, height, radius) in enumerate([(0, 0, 13.5, 2.1), (-1.7, .8, 8.5, 1.3), (1.6, -.7, 9.7, 1.45)]):
-        bpy.ops.mesh.primitive_cone_add(vertices=6, radius1=radius, radius2=.18, depth=height, location=(x, height * .5, z))
-        shard = bpy.context.object
-        shard.name = "SpireShard_" + str(index)
-        shard.rotation_euler = (.08 * index, .22 * index, .12 * index)
-        shard.data.materials.append(ICE if index != 1 else ICE_DARK)
-        attach(shard, collection, parent)
-    for y in (2.6, 5.4, 8.2):
-        box(collection, parent, "SpireIceBand_" + str(y), (2.55, .16, 2.15), (0, y, 0), ICE_DARK, .015, (0, .3, 0))
+    # Distant silhouette is deliberately 26m high and multi-peak, so it reads
+    # over the buildings instead of disappearing into the low ground texture.
+    for index, (x, z, height, radius, lean) in enumerate([
+        (0, 0, 26.0, 3.2, .02), (-3.2, 1.7, 17.5, 2.05, -.12),
+        (3.5, -1.4, 20.5, 2.35, .10), (-6.2, -1.0, 11.2, 1.45, -.05),
+    ]):
+        ice_spike(collection, parent, "SpireShard_" + str(index), radius, height, (x, height * .5, z), ICE if index != 1 else ICE_DARK, lean)
+    for y, width in ((3.8, 6.4), (8.2, 5.5), (13.7, 4.4), (18.9, 3.2)):
+        box(collection, parent, "SpireIceBand_" + str(y), (width, .20, 3.0), (0, y, 0), ICE_DARK, .02, (0, .28, 0), 2.2)
     return collection
 
 
@@ -263,6 +283,25 @@ def sentinel_archive():
     # Terrain clamp rocks merge the facility visually into the ice plateau.
     ice_rock(collection, parent, "ArchiveIceClampWest", 1.0, (-6.6, 1.3, 2.6), (2.1, 1.8, 2.0), ICE, 51)
     ice_rock(collection, parent, "ArchiveIceClampEast", 1.0, (6.6, 1.3, 2.6), (2.1, 1.8, 2.0), ICE, 52)
+    # Macro-scale outer bastion: the vestibule-sized Archive core is retained,
+    # while flank towers and a receiver crown make the final destination read
+    # as a robot citadel from the overview and long perimeter routes.
+    box(collection, parent, "ArchiveCitadelFoundation", (27.0, .72, 17.0), (0, .18, .85), ICE_DARK, .10, None, 5.0)
+    for x in (-10.1, 10.1):
+        box(collection, parent, "ArchiveCitadelWing_" + str(x), (3.35, 10.4, 10.8), (x, 5.38, .85), STEEL, .075, None, 4.0)
+        box(collection, parent, "ArchiveCitadelCap_" + str(x), (4.15, .46, 11.55), (x, 10.78, .85), DARK, .06, None, 3.0)
+        for y in (1.7, 4.0, 6.3, 8.6):
+            box(collection, parent, "CitadelWingBand_" + str(x) + str(y), (3.62, .13, 11.02), (x, y, .85), HAZARD, .012, None, 2.4)
+        for z in (-3.0, .9, 4.6):
+            box(collection, parent, "CitadelWingLight_" + str(x) + str(z), (.055, 1.32, .64), (x * .982, 7.45, z), CYAN, .006, None, 1.0)
+        box(collection, parent, "ArchiveGatePylon_" + str(x), (2.05, 17.6, 2.75), (x * .91, 8.8, -4.2), DARK, .065, None, 3.4)
+        box(collection, parent, "ArchiveGateGuide_" + str(x), (.12, 13.8, .12), (x * .91, 8.9, -5.62), CYAN, .008, None, 1.0)
+    box(collection, parent, "ArchiveCitadelBridge", (20.4, .74, 3.15), (0, 13.6, 2.85), STEEL, .06, None, 4.0)
+    box(collection, parent, "ArchiveCrownBase", (7.2, 1.0, 6.1), (0, 14.45, 2.15), DARK, .08, None, 2.6)
+    cylinder(collection, parent, "ArchiveCrownReceiver", 1.15, 9.0, (0, 19.25, 2.15), CYAN, None, 20)
+    for angle in (0, math.pi * .5, math.pi, math.pi * 1.5):
+        x, z = math.sin(angle) * 2.2, 2.15 + math.cos(angle) * 2.2
+        box(collection, parent, "ArchiveCrownVane_" + str(angle), (.20, 4.0, 1.35), (x, 18.5, z), STEEL, .025, (0, -angle, 0), 1.5)
     return collection
 
 

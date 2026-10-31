@@ -24,6 +24,10 @@ Konfigurasi mendokumentasikan clearance untuk central spine dan tiga connector r
 
 `ArchiveComputer` memiliki state nyata `locked → authorized → downloading → collected`: credential cache mempersist otorisasi; timer download kemudian melakukan transaksi Data Core bernama yang hanya dianggap collected setelah write profil lokal sukses. Duplikasi, download paralel, dan transaksi tanpa otorisasi ditolak. `tests/archive_phase3.gd` menguji kontrak runtime ini, tetapi **belum dijalankan di sandbox** karena binary Godot tidak tersedia. Tekan **I** pada ReviewCamera untuk framing interior tanpa karakter.
 
+## Macro ice dan Sentinel Citadel
+
+Struktur world tidak diperluas menjadi filler baru. Sebagai gantinya, formasi `glacier_shelf` sekarang adalah massa es robot-terjangkar selebar sekitar 34 m dengan puncak hingga 22 m; `frozen_spire` memiliki puncak utama 26 m. Sentinel Archive tetap menyimpan vestibule/Computer yang sama, tetapi core itu kini berada dalam **Sentinel Citadel**: dua wing besar, pylon gerbang 17,6 m, bridge crown, dan receiver hingga sekitar 24 m. Semua detail ini memakai PBR ice/metal/hazard bertile dan collision tambahan hanya pada dua wing luar; threshold interior tetap terbuka. Tampilan renderer Godot setelah reimport tetap perlu ditinjau secara manual.
+
 ## Connected Expanse — world loop dan catch terrain
 
 `assets/world/aetherfall/world_expansion.json` mengubah tiga endpoint jauh yang sebelumnya terbaca terputus menjadi **satu loop perimeter 208m × 170m**. West catwalk, east bridge, dan lower canyon sekarang semua memiliki jalur lanjutan ke sisi lain. Empat belas shelf berfungsi sebagai turn/landmark surface; 17 transit spine membentuk loop; satu recovery spine membawa Lower Canyon ke bawah.

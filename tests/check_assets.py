@@ -108,6 +108,18 @@ for path, name, expected in [
     assert all(actual >= minimum for actual, minimum in zip(extent, expected)), (path, name, extent)
 pylon_extent, pylon_node = node_extent(glb_payload('assets/world/aetherfall/ice_planet/cryo_pylon.glb'), 'PylonShaft')
 assert pylon_extent[2] >= 9.0 and abs(pylon_node['rotation'][0]) >= 0.7
+# Macro ice and the final robot citadel must remain legible at overview scale,
+# not regress to low pebble props or a compact utility shell.
+shelf_payload = glb_payload('assets/world/aetherfall/ice_planet/glacier_shelf.glb')
+shelf_spike_extent, shelf_spike = node_extent(shelf_payload, 'IceShard_2')
+assert shelf_spike_extent[2] >= 20.0 and abs(shelf_spike['rotation'][0]) >= 0.65
+spire_extent, spire_node = node_extent(glb_payload('assets/world/aetherfall/ice_planet/frozen_spire.glb'), 'SpireShard_0')
+assert spire_extent[2] >= 25.0 and abs(spire_node['rotation'][0]) >= 0.65
+archive_payload = glb_payload('assets/world/aetherfall/ice_planet/sentinel_archive.glb')
+archive_gate_extent, _ = node_extent(archive_payload, 'ArchiveGatePylon_-10.1')
+archive_receiver_extent, archive_receiver = node_extent(archive_payload, 'ArchiveCrownReceiver')
+assert len(archive_payload['meshes']) >= 60 and archive_gate_extent[1] >= 17.0
+assert archive_receiver_extent[2] >= 8.5 and abs(archive_receiver['rotation'][0]) >= 0.7
 for required in [
     'scenes/aetherfall_player.tscn', 'scenes/props/tech_cache.tscn',
     'scenes/props/objective_device.tscn', 'scripts/progression_state.gd',
@@ -193,7 +205,7 @@ for filename, minimum_meshes in [
         node_names = {node.get('name') for node in payload.get('nodes', [])}
         assert 'ArchiveCore' not in node_names, 'Archive masih memakai core solid yang menutup interior'
         assert {'ArchiveRearShell', 'ArchiveFrontLintel', 'ArchiveSideShell_-5.82', 'ArchiveSideShell_5.82'} <= node_names
-assert sum(len(item.get('collision_boxes', [])) for item in ice_phase1) == 6
+assert sum(len(item.get('collision_boxes', [])) for item in ice_phase1) == 8
 # Phase 3 converts the former visual-only Archive door into a shell threshold.
 archive_shell = next(item for item in ice_phase1 if item['id'] == 'sentinel_archive_exterior')
 for box in archive_shell['collision_boxes']:
