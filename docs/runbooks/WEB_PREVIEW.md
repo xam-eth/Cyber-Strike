@@ -134,6 +134,15 @@ node tools/web_qa.mjs --page / --recovery --out exports/web-qa/recovery
 
 `web_qa.mjs` serves/opens the real pages and checks engine boot, WebGL context, canvas, failed requests, and error surfaces. Its gameplay/journey options exercise actual input and selected-theatre paths. `--ads` uses camera telemetry and the measured touch AIM rect to assert hold/look/release on the currently equipped Web weapon; `tests/ads_input_smoke.gd` covers all three ids at the engine input boundary. `--recovery` selects Verdant, moves with real keyboard input until the read-only `?qa_recovery` state reports Engage, then requires two active guards, two non-fallback GLB visual logs, Secure-locked HUD state, and no generic Defense transition. Its landing/offer/guarded/contact frames still require visual inspection; this mode does not claim guard elimination, Secure, Extract, or mission completion. `web_support_qa.mjs` uses a real non-loopback insecure HTTP context (opening and direct DEPLOY) plus a separate simulated missing-AudioWorklet localhost control; each must show actionable guidance without constructing Engine or fetching the payload. `web_loading_qa.mjs` checks initial opening, interrupted asset recovery, real byte progress, retry, and selected-gameplay return.
 
+The focused Recovery adaptation probe runs against a server started separately (ordinary `python3 -m http.server 800 --bind 0.0.0.0` is sufficient for this local route):
+
+```bash
+node tools/qa_recovery_adaptation.mjs --url=http://127.0.0.1:800/ --lang=en
+node tools/qa_recovery_adaptation.mjs --url=http://127.0.0.1:800/ --lang=id --visual-only
+```
+
+`qa_recovery_adaptation.mjs` uses real shell navigation, movement, ADS/fire, projection-guided touch look, and a measured touchscreen card tap. The full route requires guard clear → adaptation → Secure → Continue/Endless → Pause/Results → hub → redeploy; `--visual-only` stops after the Secure/Extraction evidence. Run each language in a fresh browser invocation/profile: primary Secure is permanent, so the same profile cannot legitimately earn that cache's offer again. The probe writes a report and actual-build frames, but it does not approve their typography, composition, touch comfort, or human play quality.
+
 Additional play/tour options exist in `tools/web_qa.mjs`; read the current source for exact flags and required server setup. A harness that only waits for a Godot banner may not traverse opening → HERO → theatre → DEPLOY. Diagnose harness mismatches instead of mislabeling them as game failures or passes.
 
 For visual candidates, `ui_shots.mjs` also waits for the shell dock's `ok` readiness state so deep-linked screens do not capture a random loading status. `web_qa.mjs --encounter-prep` requires unpaused safe Explore before B and fails rather than presenting paused output as Defense preparation. Repeat new captures before approving a baseline. For reference/current/diff comparison and explicit golden approval, use [`VISUAL_REVIEW.md`](VISUAL_REVIEW.md); never auto-approve a changed screenshot.
@@ -160,6 +169,7 @@ A screenshot of a menu or an ammunition decrease alone does not prove a complete
 | `tools/verify_web_build.py` | Static exported-file verification |
 | `tools/check_payload.py` | Payload content/policy audit |
 | `tools/web_qa.mjs` | Browser boot/journey/gameplay/frame gates |
+| `tools/qa_recovery_adaptation.mjs` | Real-input guard clear, temporary card, Secure, Endless, Results, and redeploy evidence |
 | `tools/web_support_qa.mjs` | Secure Context and AudioWorklet preflight gates |
 | `tools/web_loading_qa.mjs` | Opening preload and interrupted-recovery gates |
 | `tools/serve_preview.py` | Local static server with content-based revalidation |
