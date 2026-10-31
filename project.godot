@@ -41,3 +41,6 @@ interact={
 renderer/rendering_method="mobile"
 renderer/rendering_method.mobile="mobile"
 textures/default_filters/use_nearest_mipmap_filter=false
+; Preserve PBR detail at shallow travel-camera angles. This is a quality
+; configuration only; no device-performance claim is implied.
+textures/default_filters/anisotropic_filtering_level=2

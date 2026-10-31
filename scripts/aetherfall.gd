@@ -21,6 +21,10 @@ var phase2_cover_collider_count := 0
 var archive_interior_count := 0
 var archive_interior_collider_count := 0
 var archive_computer_count := 0
+var expanse_lowland_count := 0
+var expanse_shelf_count := 0
+var expanse_route_count := 0
+var expanse_collider_count := 0
 
 func v3(value: Variant) -> Vector3:
 	if value is Array and value.size() >= 3:
@@ -146,7 +150,104 @@ func _ready() -> void:
 	add_stellar_horizon_slice(layout)
 	add_archive_interior()
 	add_phase2_cover()
-	print("Aetherfall: %d kit / %d proxy colliders / %d vertical / %d landmark / %d ice-planet / %d archive interior / %d phase-2 cover placement" % [placement_count, collider_count, verticality_count, landmark_count, ice_planet_count, archive_interior_count, phase2_cover_count])
+	add_connected_expanse()
+	print("Aetherfall: %d kit / %d proxy colliders / %d vertical / %d landmark / %d ice-planet / %d archive interior / %d phase-2 cover / %d expanse route placement" % [placement_count, collider_count, verticality_count, landmark_count, ice_planet_count, archive_interior_count, phase2_cover_count, expanse_route_count])
+
+
+func add_connected_expanse() -> void:
+	## Connectivity pass: three legacy remote endpoints now participate in a
+	## closed perimeter loop. Lowland ice is real catch terrain, not a kill plane
+	## or a boundary wall. This remains environment assembly only.
+	var data := read_json(BASE + "world_expansion.json")
+	if data.is_empty():
+		return
+	var field_pack := load(BASE + "expanse/lowland_field.glb") as PackedScene
+	var shelf_pack := load(BASE + "expanse/expanse_shelf.glb") as PackedScene
+	var route_pack := load(BASE + "expanse/transit_spine.glb") as PackedScene
+	if field_pack == null or shelf_pack == null or route_pack == null:
+		push_error("Aetherfall: model connected expanse tidak ditemukan")
+		return
+	var group := Node3D.new()
+	group.name = "ConnectedExpanse"
+	add_child(group)
+	var lowlands := Node3D.new()
+	lowlands.name = "LowlandFields"
+	group.add_child(lowlands)
+	for spec: Dictionary in data.get("lowland_fields", []):
+		add_expanse_static(lowlands, field_pack, spec, Vector3(80.0, 0.4, 72.0), Vector3(0, -0.2, 0))
+		expanse_lowland_count += 1
+	var shelves := Node3D.new()
+	shelves.name = "RimShelves"
+	group.add_child(shelves)
+	for spec: Dictionary in data.get("shelves", []):
+		add_expanse_static(shelves, shelf_pack, spec, Vector3(28.0, 0.6, 24.0), Vector3(0, -0.3, 0))
+		expanse_shelf_count += 1
+	var routes := Node3D.new()
+	routes.name = "PerimeterLoop"
+	group.add_child(routes)
+	for spec: Dictionary in data.get("loop_routes", []):
+		add_expanse_route(routes, route_pack, spec)
+		expanse_route_count += 1
+	for spec: Dictionary in data.get("recovery_routes", []):
+		add_expanse_route(routes, route_pack, spec)
+		expanse_route_count += 1
+
+
+func add_expanse_static(parent: Node3D, packed: PackedScene, spec: Dictionary, shape_size: Vector3, shape_center: Vector3) -> void:
+	var setpiece := Node3D.new()
+	setpiece.name = str(spec.get("id", "ExpanseSetpiece"))
+	setpiece.position = v3(spec.get("position", []))
+	setpiece.rotation = v3(spec.get("rotation_degrees", [])) * PI / 180.0
+	parent.add_child(setpiece)
+	var visual := packed.instantiate() as Node3D
+	visual.name = "Visual"
+	setpiece.add_child(visual)
+	var body := StaticBody3D.new()
+	body.name = "Collision"
+	setpiece.add_child(body)
+	var shape := CollisionShape3D.new()
+	shape.name = "Surface"
+	shape.position = shape_center
+	var box := BoxShape3D.new()
+	box.size = shape_size
+	shape.shape = box
+	body.add_child(shape)
+	expanse_collider_count += 1
+
+
+func add_expanse_route(parent: Node3D, packed: PackedScene, spec: Dictionary) -> void:
+	var start := v3(spec.get("from", []))
+	var finish := v3(spec.get("to", []))
+	var delta := finish - start
+	if delta.length() < 0.01 or Vector2(delta.x, delta.z).length() < 0.01:
+		push_error("Aetherfall: route expanse tidak valid: " + str(spec.get("id", "")))
+		return
+	var length := delta.length()
+	var forward := delta.normalized()
+	var side := forward.cross(Vector3.UP).normalized()
+	var normal := side.cross(forward).normalized()
+	var route := Node3D.new()
+	route.name = str(spec.get("id", "ExpanseRoute"))
+	route.position = (start + finish) * .5
+	route.basis = Basis(forward, normal, side)
+	parent.add_child(route)
+	var visual := packed.instantiate() as Node3D
+	visual.name = "Visual"
+	# TransitSpine is nominally 12m by 5.2m. X alone scales to the
+	# configured distance, retaining a deliberately walkable route width.
+	visual.scale = Vector3(length / 12.0, 1.0, float(spec.get("width", 5.2)) / 5.2)
+	route.add_child(visual)
+	var body := StaticBody3D.new()
+	body.name = "Collision"
+	route.add_child(body)
+	var shape := CollisionShape3D.new()
+	shape.name = "Surface"
+	shape.position.y = -.25
+	var box := BoxShape3D.new()
+	box.size = Vector3(length, .5, float(spec.get("width", 5.2)))
+	shape.shape = box
+	body.add_child(shape)
+	expanse_collider_count += 1
 
 
 func add_archive_interior() -> void:

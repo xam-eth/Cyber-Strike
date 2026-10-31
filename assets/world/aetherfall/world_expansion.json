@@ -1,0 +1,66 @@
+{
+  "schema": "aetherfall.connected-expanse/1",
+  "unit": "meters",
+  "intent": "Continuous outdoor traversal expansion for Aetherfall. The west catwalk, east bridge, and lower canyon connector endpoints join one closed 208m by 170m perimeter loop. Nine lower ice fields catch falls as physical terrain rather than using an invisible wall or lethal void. No AI, combat, damage, respawn, mission completion, or world streaming claim is made.",
+  "coverage": {
+    "lowland_x_range": [-120.0, 120.0],
+    "lowland_z_range": [-108.0, 108.0],
+    "outer_loop_x_range": [-102.0, 104.0],
+    "outer_loop_z_range": [-90.0, 80.0],
+    "design_read": "The original compact basin becomes the center of a connected glacial expanse. Existing connector endpoints are no longer implied dead ends."
+  },
+  "lowland_fields": [
+    {"id": "lowland_northwest", "asset": "lowland_field", "position": [-80.0, -14.0, -72.0], "purpose": "Physical northwest catch terrain beneath the exposed west/north rim; no invisible boundary."},
+    {"id": "lowland_north", "asset": "lowland_field", "position": [0.0, -14.0, -72.0], "purpose": "Physical north catch terrain under the long glacial traverse."},
+    {"id": "lowland_northeast", "asset": "lowland_field", "position": [80.0, -14.0, -72.0], "purpose": "Physical northeast catch terrain beneath the east return."},
+    {"id": "lowland_west", "asset": "lowland_field", "position": [-80.0, -14.0, 0.0], "purpose": "Continuous lower ice field below western catwalk and rim routes."},
+    {"id": "lowland_core", "asset": "lowland_field", "position": [0.0, -14.0, 0.0], "purpose": "Broad lower basin that lets an exposed-route fall land on real ice terrain."},
+    {"id": "lowland_east", "asset": "lowland_field", "position": [80.0, -14.0, 0.0], "purpose": "Continuous lower ice field below eastern bridge and return routes."},
+    {"id": "lowland_southwest", "asset": "lowland_field", "position": [-80.0, -14.0, 72.0], "purpose": "Physical southwest catch terrain under the southern perimeter branch."},
+    {"id": "lowland_south", "asset": "lowland_field", "position": [0.0, -14.0, 72.0], "purpose": "Physical south catch terrain with the lower-canyon recovery ascent."},
+    {"id": "lowland_southeast", "asset": "lowland_field", "position": [80.0, -14.0, 72.0], "purpose": "Physical southeast catch terrain under the exposed east/south route."}
+  ],
+  "shelves": [
+    {"id": "west_release_shelf", "asset": "expanse_shelf", "position": [-96.0, 6.0, 6.0], "rotation_degrees": [0.0, 8.0, 0.0], "purpose": "Wide turn platform that receives the former west-catwalk endpoint and opens the outer loop."},
+    {"id": "northwest_weather_shelf", "asset": "expanse_shelf", "position": [-94.0, 5.0, -52.0], "rotation_degrees": [0.0, -18.0, 0.0], "purpose": "Northwest ice shelf: first long-range view and continuous west-to-north turn."},
+    {"id": "northwest_lookout_shelf", "asset": "expanse_shelf", "position": [-62.0, 3.0, -82.0], "rotation_degrees": [0.0, 22.0, 0.0], "purpose": "Northwest rim shelf; keeps the long traverse from resolving into a dead bridge end."},
+    {"id": "north_trunk_shelf", "asset": "expanse_shelf", "position": [-12.0, 3.0, -90.0], "rotation_degrees": [0.0, 0.0, 0.0], "purpose": "Northern trunk shelf with a wide connected turning surface rather than a narrow edge."},
+    {"id": "northeast_shelf", "asset": "expanse_shelf", "position": [55.0, 4.0, -82.0], "rotation_degrees": [0.0, -12.0, 0.0], "purpose": "Northeast route shelf linking the northern traverse to the east return."},
+    {"id": "east_glacis_shelf", "asset": "expanse_shelf", "position": [100.0, 5.0, -48.0], "rotation_degrees": [0.0, 18.0, 0.0], "purpose": "East glacis turn that connects high northern travel back to the legacy bridge endpoint."},
+    {"id": "east_exposure_shelf", "asset": "expanse_shelf", "position": [104.0, 5.0, 8.0], "rotation_degrees": [0.0, -12.0, 0.0], "purpose": "East exposed shelf: outward continuation after the old bridge instead of a disconnected vista."},
+    {"id": "east_descent_shelf", "asset": "expanse_shelf", "position": [102.0, 2.0, 48.0], "rotation_degrees": [0.0, 14.0, 0.0], "purpose": "Eastern descent shelf links high bridge elevation to the southern low route."},
+    {"id": "southeast_ice_shelf", "asset": "expanse_shelf", "position": [72.0, -3.0, 76.0], "rotation_degrees": [0.0, -8.0, 0.0], "purpose": "Southeast low shelf gives the outer circuit a readable ground-level turn."},
+    {"id": "southeast_cut_shelf", "asset": "expanse_shelf", "position": [35.0, -5.0, 80.0], "rotation_degrees": [0.0, 18.0, 0.0], "purpose": "South-east cut shelf leads continuously into the existing lower canyon connector."},
+    {"id": "southwest_cut_shelf", "asset": "expanse_shelf", "position": [-35.0, -5.0, 80.0], "rotation_degrees": [0.0, -18.0, 0.0], "purpose": "South-west cut shelf carries travel away from the lower canyon toward the western rim."},
+    {"id": "southwest_ice_shelf", "asset": "expanse_shelf", "position": [-72.0, -3.0, 76.0], "rotation_degrees": [0.0, 8.0, 0.0], "purpose": "Southwest low shelf forms the return side of the single continuous perimeter route."},
+    {"id": "west_descent_shelf", "asset": "expanse_shelf", "position": [-102.0, 3.0, 48.0], "rotation_degrees": [0.0, -14.0, 0.0], "purpose": "West descent shelf transitions from southern low route to the west catwalk elevation."},
+    {"id": "west_exposure_shelf", "asset": "expanse_shelf", "position": [-100.0, 5.0, 8.0], "rotation_degrees": [0.0, 12.0, 0.0], "purpose": "Western exposed shelf closes the outer circuit at the legacy west-catwalk endpoint."}
+  ],
+  "loop_routes": [
+    {"id": "west_catwalk_to_release", "from": [-62.0, 6.5, 8.0], "to": [-96.0, 6.0, 6.0], "width": 5.2, "purpose": "Connects the remote west-catwalk endpoint to the continuous perimeter loop."},
+    {"id": "release_to_northwest_weather", "from": [-96.0, 6.0, 6.0], "to": [-94.0, 5.0, -52.0], "width": 5.2, "purpose": "West rim continuation."},
+    {"id": "northwest_weather_to_lookout", "from": [-94.0, 5.0, -52.0], "to": [-62.0, 3.0, -82.0], "width": 5.2, "purpose": "Northwest perimeter continuation."},
+    {"id": "lookout_to_north_trunk", "from": [-62.0, 3.0, -82.0], "to": [-12.0, 3.0, -90.0], "width": 5.2, "purpose": "Northern traversal spine."},
+    {"id": "north_trunk_to_northeast", "from": [-12.0, 3.0, -90.0], "to": [55.0, 4.0, -82.0], "width": 5.2, "purpose": "Northern traversal spine."},
+    {"id": "northeast_to_east_glacis", "from": [55.0, 4.0, -82.0], "to": [100.0, 5.0, -48.0], "width": 5.2, "purpose": "Northeast-to-east outer link."},
+    {"id": "east_glacis_to_bridge", "from": [100.0, 5.0, -48.0], "to": [62.0, 5.0, 0.0], "width": 5.2, "purpose": "Returns to the formerly terminal east-bridge endpoint."},
+    {"id": "bridge_to_east_exposure", "from": [62.0, 5.0, 0.0], "to": [104.0, 5.0, 8.0], "width": 5.2, "purpose": "Continues beyond the legacy east bridge."},
+    {"id": "east_exposure_to_descent", "from": [104.0, 5.0, 8.0], "to": [102.0, 2.0, 48.0], "width": 5.2, "purpose": "East rim descent."},
+    {"id": "east_descent_to_southeast", "from": [102.0, 2.0, 48.0], "to": [72.0, -3.0, 76.0], "width": 5.2, "purpose": "Southeast low-route continuation."},
+    {"id": "southeast_to_southeast_cut", "from": [72.0, -3.0, 76.0], "to": [35.0, -5.0, 80.0], "width": 5.2, "purpose": "Southward perimeter continuation."},
+    {"id": "southeast_cut_to_lower_canyon", "from": [35.0, -5.0, 80.0], "to": [0.0, -6.25, 36.0], "width": 5.2, "purpose": "Connects to the legacy lower-canyon endpoint rather than ending at it."},
+    {"id": "lower_canyon_to_southwest_cut", "from": [0.0, -6.25, 36.0], "to": [-35.0, -5.0, 80.0], "width": 5.2, "purpose": "Second side of the lower-canyon loop."},
+    {"id": "southwest_cut_to_southwest", "from": [-35.0, -5.0, 80.0], "to": [-72.0, -3.0, 76.0], "width": 5.2, "purpose": "Southwest return."},
+    {"id": "southwest_to_west_descent", "from": [-72.0, -3.0, 76.0], "to": [-102.0, 3.0, 48.0], "width": 5.2, "purpose": "West rise from the southern low route."},
+    {"id": "west_descent_to_west_exposure", "from": [-102.0, 3.0, 48.0], "to": [-100.0, 5.0, 8.0], "width": 5.2, "purpose": "West rim ascent."},
+    {"id": "west_exposure_to_catwalk", "from": [-100.0, 5.0, 8.0], "to": [-62.0, 6.5, 8.0], "width": 5.2, "purpose": "Closes the complete perimeter loop at the legacy west-catwalk endpoint."}
+  ],
+  "recovery_routes": [
+    {"id": "lower_canyon_to_icefield", "from": [0.0, -6.25, 36.0], "to": [0.0, -14.0, 42.0], "width": 6.0, "purpose": "Physical recovery slope from the existing lower canyon to the continuous lowland ice fields after an exposed-route fall."}
+  ],
+  "legacy_endpoint_contract": [
+    {"id": "west_catwalk_remote", "position": [-62.0, 6.5, 8.0], "connected_route_ids": ["west_catwalk_to_release", "west_exposure_to_catwalk"]},
+    {"id": "east_bridge_remote", "position": [62.0, 5.0, 0.0], "connected_route_ids": ["east_glacis_to_bridge", "bridge_to_east_exposure"]},
+    {"id": "lower_canyon_remote", "position": [0.0, -6.25, 36.0], "connected_route_ids": ["southeast_cut_to_lower_canyon", "lower_canyon_to_southwest_cut", "lower_canyon_to_icefield"]}
+  ]
+}

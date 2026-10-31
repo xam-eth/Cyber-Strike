@@ -59,9 +59,19 @@ The supplied `tests/archive_phase3.gd` owns a private test actor and covers the 
 
 No claim is made for a playable Archive door animation, visual Godot lighting, exterior-to-interior capsule traversal, combat/AI, hazards, extraction, generic mission completion, performance, or device behavior.
 
+## Connected Expanse — world topology and higher-density surface detail
+
+The connected-expanse pass turns the prior finite-looking outer connector ends into a closed physical perimeter loop. Seventeen route spans link the original west-catwalk endpoint, east-bridge endpoint, and lower-canyon endpoint through fourteen broad ice shelves; one additional recovery span reaches the lowlands. Nine 80m × 72m lowland fields create a contiguous 240m × 216m ice surface beneath the exposed paths. The authored outer loop spans 208m × 170m. These are actual visual and `StaticBody3D` surface placements in the Aetherfall scene, not merely map markers.
+
+The transit kit intentionally has low visual curbs and beacons but no collision rails or invisible boundary wall. A fall has a lower ice surface beneath it and an authored lower-canyon recovery slope; this does **not** imply damage, respawn, a falling state, or any gameplay consequence without a controller/runtime decision.
+
+**Completed static evidence:** Blender `bpy` 5.0.1 generated three PBR GLBs (`expanse_shelf`: 25 meshes, `transit_spine`: 23, `lowland_field`: 23), source `aetherfall_connected_expanse.blend`, and original 768px ice/metal/hazard albedo, normal, and ORM maps. `tests/check_assets.py` verifies GLB/PBR integrity, source, 768px PNG headers, exact placement/route counts, explicit legacy-endpoint links, loop degree-two topology, nine lowlands, fourteen shelves, 18 total spans, and coverage extents. The higher texture density comes from the new 768px maps plus repeated UVs on the large surfaces; legacy embedded GLBs were not mass-rebuilt in this pass.
+
+`tests/world_expansion.gd` supplies a Godot runtime contract for 9 lowlands, 14 shelves, 18 spans, and 41 collision surfaces. It has **NOT YET RUN** in a post-change Godot executable. Thus actual world assembly, slope traversal, lowland landing behavior, texture perception, graphical camera framing, memory, draw calls, FPS, and mobile behavior remain unverified.
+
 ## Camera-only QA and dense verticality pass
 
-`scenes/aetherfall.tscn` is now character-free for visual QA. The default `ReviewCamera` provides ten numeric presets (overview through lower-canyon high/low read) plus **I** for the Sentinel Archive vestibule/Data Core view. The interaction actor remains only in dedicated tests so visual review is not obstructed by an avatar or HUD.
+`scenes/aetherfall.tscn` is now character-free for visual QA. The default `ReviewCamera` provides ten numeric presets (overview through lower-canyon high/low read), **I** for the Sentinel Archive vestibule/Data Core view, and **O** for the full Connected Expanse loop. The interaction actor remains only in dedicated tests so visual review is not obstructed by an avatar or HUD.
 
 A reference-analysis brief is recorded in `docs/ART_DIRECTION_REFERENCE.md`. Based on its layered hangar/industrial principles, the world now adds two 13m refinery stacks, a 24m overhead service gantry at 7m, and a raised operations deck at 5m. This produces foreground/mid/high structural rhythm rather than merely spacing additional floor props.
 
@@ -85,14 +95,16 @@ Atmosphere parameters now use less than half the prior fog density (`0.00095` fr
 ## Manual review and runtime path for a local Godot GUI
 
 1. Import the repository root with Godot 4.7 or newer and run `scenes/aetherfall.tscn`.
-2. The default scene is intentionally **camera-only**: hold right mouse to look; use **WASD/Q/E**, **1–0**, and **I** to inspect the exterior, cover/traversal, Archive threshold, vestibule and Archive Computer without a player mesh or HUD.
+2. The default scene is intentionally **camera-only**: hold right mouse to look; use **WASD/Q/E**, **1–0**, **I**, and **O** to inspect the exterior, cover/traversal, Archive threshold, vestibule, Archive Computer, and full Connected Expanse loop without a player mesh or HUD.
 3. To validate state rather than merely view it, run the private-actor contracts from the project root:
    ```bash
    godot --headless --path . --script res://tests/interactive_slice.gd
    godot --headless --path . --script res://tests/archive_phase3.gd
+   godot --headless --path . --script res://tests/world_expansion.gd
    ```
 4. The Archive contract first commits one access credential, then verifies `locked → authorized → downloading → collected`; it must find the named Data Core after constructing a new `AetherfallProgressionState`. Its cleanup deletes `user://aetherfall_stellar_horizon.cfg` after the test.
-5. A GUI review may inspect the physical open exterior threshold and compact interior, but it does not alone prove persistence, combat, mission completion, performance, or device behavior.
+5. The expansion contract confirms the configured loop/collision assembly; it is required before treating the former remote connector ends as runtime-verified. It does not prove falling physics, traversal feel, or a return path under controller input.
+6. A GUI review may inspect the physical open exterior threshold, compact interior, and connected loop, but it does not alone prove persistence, combat, mission completion, performance, or device behavior.
 
 ## Known scope boundary
 

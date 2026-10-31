@@ -4,7 +4,7 @@ Dokumen ini menjelaskan **desain review** Aetherfall yang ada di branch ini. Ini
 
 ## Intent ruang
 
-Aetherfall adalah rig pemanenan energi yang patah di bibir canyon. Tower pusat adalah landmark dan orientasi utama. Deck industri yang lebar memberi ruang orientasi/konflik, lalu tiga rute mengubah elevasi dan lebar lintasan:
+Aetherfall adalah rig pemanenan energi yang patah di bibir canyon, tetapi bukan deck terbatas atau kumpulan jalan buntu. Tower pusat adalah landmark dan orientasi utama di dalam basin; tiga connector lama kini menjadi pintu masuk ke loop glacial perimeter yang lebih luas. Deck industri yang lebar memberi ruang orientasi/konflik, lalu tiga rute mengubah elevasi dan lebar lintasan:
 
 | Rute | Fungsi desain | Dimensi/kondisi yang diuji |
 | --- | --- | --- |
@@ -20,6 +20,7 @@ Ketiga ramp menggunakan `connector_ramp.glb`, dengan source editable `source/con
 2. **Elevated spans** — bridge timur dan catwalk barat membentuk loop pandangan silang. Railing memiliki collision per komponen agar jalur tidak menjadi blok AABB menyeluruh.
 3. **Canyon lower approach** — gerbang depan membuka ke ramp lebar; machinery dan cooling vent diposisikan di sisi, tidak pada sumbu lintasan.
 4. **Perimeter geology** — cliff, terrain, boulder, dan siluet jauh membingkai ruang tanpa menjadi floor gameplay. Permukaan memakai albedo, normal dan ORM PBR; outcrop, strata, brace, panel, rib dan hardware memperkuat skala tanpa mengalihkan fokus dari tower.
+5. **Connected Expanse** — endpoint remote catwalk barat, bridge timur, dan canyon bawah sekarang merupakan tiga through-point dalam loop perimeter 208m × 170m. Empat belas shelf menyediakan belokan/landmark yang cukup lebar; transit spine memberi jalur fisik antar shelf; sembilan lowland ice field membentuk catch terrain 240m × 216m di bawah lintasan terbuka. Tidak ada collision rail atau invisible wall pada spine. Jatuh menuju lowland dan slope recovery adalah geometri yang dibuat; damage, respawn, dan pengalaman jatuh tetap belum diimplementasikan.
 
 ## Konvensi dan batas desain
 

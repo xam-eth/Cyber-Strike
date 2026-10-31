@@ -1,6 +1,6 @@
 # Aetherfall — Robot Planet Tech Heist
 
-**Status:** Phase 1 exterior macro composition, Phase 2 cover/traversal blockout, dan Phase 3 compact Archive telah diproduksi. Bukti yang tersedia adalah kontrak aset, konfigurasi, parse skrip, dan pemeriksaan statis; inspeksi grafis serta runtime Godot tetap terpisah dan belum diklaim.
+**Status:** Phase 1 exterior macro composition, Phase 2 cover/traversal blockout, Phase 3 compact Archive, dan pass Connected Expanse telah diproduksi. Bukti yang tersedia adalah kontrak aset, konfigurasi, parse skrip, dan pemeriksaan statis; inspeksi grafis serta runtime Godot tetap terpisah dan belum diklaim.
 
 ## 1. Direction decision
 
@@ -318,6 +318,42 @@ Archive flow. The supplied runtime contract must prove the real local write
 and reload before the Phase 3 gate can be called runtime-verified. Phase 4
 remains blocked pending a separate gameplay-system decision.
 
+### Connected Expanse pass — continuous world topology — IMPLEMENTED (static assembly)
+
+1. The former remote ends of `west_catwalk_approach`, `east_bridge_approach`,
+   and `lower_canyon_descent` now join a single **closed 208m × 170m perimeter
+   loop**. No legacy endpoint is represented as an implied dead road: west and
+   east each have two loop connections; lower canyon has two loop connections
+   plus an explicit recovery descent.
+2. Added a small reusable Blender set, not prop scatter: a 28m rim shelf, a
+   nominal 12m exposed transit spine, and an 80m × 72m lowland ice field.
+   Fourteen named shelves make turns/bypass choices readable; 17 loop spans and
+   one recovery span connect them; nine lowland fields form a continuous
+   240m × 216m physical catch basin below the whole loop.
+3. The transit spines deliberately have visual curb/beacon language but no
+   collision rails or invisible boundary wall. An operator can physically leave
+   an exposed route and land on the lowland surface; the lower-canyon recovery
+   slope returns to the connected route network. This pass does **not** claim
+   fall damage, respawn, or a gameplay consequence for falling.
+4. Added original 768px PBR maps (`aether_expanse_ice`, metal and hazard,
+   each albedo/normal/ORM) with repeated UVs. The new broad playable surfaces
+   therefore have denser close-range microfracture, frost, scratch and panel
+   detail than the previous 512px kit maps without mass-rebuilding all legacy
+   embedded GLBs.
+5. Added camera key **O** for a character-free full-loop composition review and
+   `tests/world_expansion.gd` for the supplied runtime assembly contract.
+
+**VERIFIED (static):** one loop cycle with every junction degree two, explicit
+legacy endpoint links, nine physical lowlands, fourteen shelves, eighteen
+spans, 41 collision surfaces, three valid PBR GLBs, 768px map headers, source
+Blender file, JSON, Python compilation and GDScript parse.
+
+**UNVERIFIED:** Godot runtime assembly, slope/capsule traversal for the new
+routes, actual falling/landing behavior, graphical texture sharpness and
+mipmap perception, camera clipping, performance, memory, streaming and device
+behavior. The wider extent is authored world geometry, not a claim of an open
+world streaming system.
+
 ### Phase 4 — Robot gameplay integration
 
 Only after an actual controller/combat/AI decision is supplied or built:
@@ -352,14 +388,15 @@ purpose and a test. No visual-only "enemy" is counted as gameplay.
 7. Return/extraction → route reads back toward landing ridge.
 8. Phase 2 Scrapper Basin → berm or salvage foreground, cryo bulkhead/building mid-ground, Archive/tower far target.
 9. Phase 2 lower flank → canyon salvage cover and a terrace/high-route relationship without a character in frame.
+10. Connected Expanse → full perimeter loop, broad lowland catch terrain, and the original basin as a readable central region rather than a finite deck.
 
 ## 10. Approval checkpoint
 
 The reviewer has selected the mixed mission tone, ice/blue-energy planet,
-Archive Data Core reward, and compact archive interior. Phase 1, Phase 2 and
-the bounded Phase 3 assembly are complete at the static-contract level. The
-next remaining gate is separate approval for **Phase 4 — robot gameplay
-integration**.
+Archive Data Core reward, and compact archive interior. Phase 1, Phase 2,
+Phase 3 and the Connected Expanse topology pass are complete at the
+static-contract level. The next remaining gate is separate approval for
+**Phase 4 — robot gameplay integration**.
 
 Phase 4 must not fabricate robot AI, player combat, damage, mission completion
 or mobile performance without an actual controller/combat/AI decision, runtime

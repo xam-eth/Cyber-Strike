@@ -4,6 +4,8 @@ import struct
 from pathlib import Path
 
 root = Path(__file__).resolve().parents[1]
+project_config = (root / 'project.godot').read_text()
+assert 'textures/default_filters/anisotropic_filtering_level=2' in project_config
 base = root / 'assets/world/aetherfall'
 layout = json.loads((base / 'layout.json').read_text())
 measures = json.loads((base / 'measurements.json').read_text())['assets']
@@ -213,6 +215,67 @@ for method in ['authorize_archive_computer', 'commit_archive_data_core', 'has_da
 for state_name in ['LOCKED', 'AUTHORIZED', 'DOWNLOADING', 'COLLECTED']:
     assert state_name in computer_source, state_name
 
+# Connected Expanse joins every former remote connector endpoint into one
+# intentional perimeter loop. Its lowland is physical catch terrain, not an
+# invisible boundary, while exposed spines retain no collision rails.
+expanse_data = json.loads((base / 'world_expansion.json').read_text())
+lowlands = expanse_data['lowland_fields']
+shelves = expanse_data['shelves']
+loop_routes = expanse_data['loop_routes']
+recovery_routes = expanse_data['recovery_routes']
+assert len(lowlands) == 9 and len(shelves) == 14
+assert len(loop_routes) == 17 and len(recovery_routes) == 1
+assert {item['asset'] for item in lowlands} == {'lowland_field'}
+assert {item['asset'] for item in shelves} == {'expanse_shelf'}
+assert all(item.get('purpose') for item in [*lowlands, *shelves, *loop_routes, *recovery_routes])
+coverage = expanse_data['coverage']
+assert coverage['lowland_x_range'] == [-120.0, 120.0]
+assert coverage['lowland_z_range'] == [-108.0, 108.0]
+assert coverage['outer_loop_x_range'] == [-102.0, 104.0]
+assert coverage['outer_loop_z_range'] == [-90.0, 80.0]
+assert (root / 'source/aetherfall_connected_expanse.blend').is_file()
+assert (root / 'tools/blender/build_connected_expanse.py').is_file()
+assert (root / 'tests/world_expansion.gd').is_file()
+for filename, minimum_meshes in [
+    ('expanse_shelf.glb', 25),
+    ('transit_spine.glb', 23),
+    ('lowland_field.glb', 23),
+]:
+    data = (base / 'expanse' / filename).read_bytes()
+    magic, version, length = struct.unpack_from('<4sII', data)
+    assert (magic, version, length) == (b'glTF', 2, len(data)), filename
+    json_len = struct.unpack_from('<I', data, 12)[0]
+    payload = json.loads(data[20:20 + json_len])
+    assert len(payload.get('meshes', [])) >= minimum_meshes, filename
+    assert payload.get('materials') and payload.get('textures'), filename
+    for material in payload['materials']:
+        pbr = material.get('pbrMetallicRoughness', {})
+        assert material.get('normalTexture'), f'normal map missing: {filename}/{material["name"]}'
+        assert pbr.get('metallicRoughnessTexture'), f'ORM map missing: {filename}/{material["name"]}'
+# 768px original maps and explicitly repeated UVs give the expanded walkable
+# surfaces higher close-range density than the earlier 512px world kit.
+for name in ['aether_expanse_ice', 'aether_expanse_metal', 'aether_expanse_hazard']:
+    for suffix in ['', '_normal', '_orm']:
+        png = (base / 'materials' / (name + suffix + '.png')).read_bytes()
+        assert png[:8] == b"\x89PNG\r\n\x1a\n"
+        width, height = struct.unpack('>II', png[16:24])
+        assert (width, height) == (768, 768), f'{name}{suffix} expected 768px'
+# Cycle proof: each outer-loop junction has exactly one arrival and departure.
+degree = {}
+for route in loop_routes:
+    start = tuple(route['from'])
+    end = tuple(route['to'])
+    degree[start] = degree.get(start, 0) + 1
+    degree[end] = degree.get(end, 0) + 1
+assert degree and all(value == 2 for value in degree.values()), degree
+route_ids = {route['id'] for route in [*loop_routes, *recovery_routes]}
+for endpoint in expanse_data['legacy_endpoint_contract']:
+    assert all(route_id in route_ids for route_id in endpoint['connected_route_ids']), endpoint['id']
+    # West/east endpoints are loop through-points; lower canyon has the loop
+    # plus its explicit recovery slope to the physical lowland.
+    expected = 3 if endpoint['id'] == 'lower_canyon_remote' else 2
+    assert len(endpoint['connected_route_ids']) == expected, endpoint['id']
+
 # Phase 2 has a deliberately small set of collision-backed cover and terrain
 # pieces. This validates source/GLB/PBR contracts and proves, geometrically,
 # that every named preserved route retains at least 0.5m beyond the setpiece
@@ -276,4 +339,4 @@ for suffix in ['normal', 'orm']:
     assert (base / 'materials' / ('aether_rock_' + suffix + '.png')).is_file()
 connectors = json.loads((base / 'connectors.json').read_text())['connectors']
 assert {x['name'] for x in connectors} == {'east_bridge_approach', 'west_catwalk_approach', 'lower_canyon_descent'}
-print(f'PASS: {len(layout["placements"])} kit placement, {len(measures)} modul, 3 connector, 2 interaktif, 4 vertical, 6 landmark, 9 ice-planet placement, 8 Phase-2 cover, 1 Archive Interior, 9 source Blender, PBR normal+ORM')
+print(f'PASS: {len(layout["placements"])} kit placement, {len(measures)} modul, 3 connector, 2 interaktif, 4 vertical, 6 landmark, 9 ice-planet placement, 8 Phase-2 cover, 1 Archive Interior, 1 Connected Expanse, 10 source Blender, PBR normal+ORM')
