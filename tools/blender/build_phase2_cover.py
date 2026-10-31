@@ -98,6 +98,16 @@ def bevel(obj, width=.028):
     bpy.ops.object.modifier_apply(modifier=modifier.name)
 
 
+def tile_uv(obj, dims, broad=False):
+    """Give ice and hard-cover PBR maps a consistent metre-scale repeat."""
+    layer = obj.data.uv_layers.active
+    if not layer:
+        return
+    repeat = max(1.0, max(dims) / (4.2 if broad else 2.35))
+    for loop in layer.data:
+        loop.uv *= repeat
+
+
 def box(collection, parent, name, dims, pos, mat, bevel_size=.025, rot=None):
     bpy.ops.mesh.primitive_cube_add(size=1.0, location=pos)
     obj = bpy.context.object
@@ -108,6 +118,7 @@ def box(collection, parent, name, dims, pos, mat, bevel_size=.025, rot=None):
         obj.rotation_euler = rot
     if bevel_size:
         bevel(obj, bevel_size)
+    tile_uv(obj, dims, broad="Ice" in mat.name)
     obj.data.materials.append(mat)
     return attach(obj, collection, parent)
 
@@ -121,6 +132,7 @@ def cylinder(collection, parent, name, radius, depth, pos, mat, rot=None, sides=
     if rot:
         obj.rotation_euler = (math.pi * .5 + rot[0], rot[1], rot[2])
     bevel(obj, min(.026, radius * .18))
+    tile_uv(obj, (radius * 2.0, depth, radius * 2.0), broad="Ice" in mat.name)
     obj.data.materials.append(mat)
     return attach(obj, collection, parent)
 
@@ -137,6 +149,7 @@ def ice_rock(collection, parent, name, pos, scale, material, seed):
     obj.scale = scale
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
     bevel(obj, .03)
+    tile_uv(obj, tuple(value * 2.0 for value in scale), broad=True)
     obj.data.materials.append(material)
     return attach(obj, collection, parent)
 
@@ -153,6 +166,7 @@ def glacier_berm():
         shard = bpy.context.object
         shard.name = "BermShard_" + str(i)
         shard.rotation_euler = (.05 * i, .2 * i, .09 * i)
+        tile_uv(shard, (.76, 1.9 + .22 * i, .76), broad=True)
         shard.data.materials.append(ICE)
         attach(shard, collection, parent)
     box(collection, parent, "FrozenCableTray", (3.4, .18, .22), (0, 1.02, .86), DARK, .012)

@@ -125,6 +125,20 @@ for asset in [
     'tower_foundation', 'tower_tier', 'tower_spire', 'energy_core',
 ]:
     assert glb_tiled_uv_max('assets/world/aetherfall/models/' + asset + '.glb') >= 1.5, asset
+for relative_path, minimum in [
+    ('assets/world/aetherfall/landmarks/field_outpost.glb', 1.5),
+    ('assets/world/aetherfall/landmarks/relay_annex.glb', 1.5),
+    ('assets/world/aetherfall/landmarks/service_hangar.glb', 1.5),
+    ('assets/world/aetherfall/landmarks/cargo_service_cluster.glb', 1.3),
+    ('assets/world/aetherfall/vertical/refinery_stack.glb', 1.5),
+    ('assets/world/aetherfall/vertical/overhead_gantry.glb', 1.5),
+    ('assets/world/aetherfall/vertical/raised_ops_deck.glb', 1.5),
+    ('assets/world/aetherfall/phase2/glacier_berm.glb', 1.0),
+    ('assets/world/aetherfall/phase2/salvage_pod.glb', 1.5),
+    ('assets/world/aetherfall/phase2/cryo_bulkhead.glb', 1.5),
+    ('assets/world/aetherfall/phase2/ice_terrace.glb', 1.5),
+]:
+    assert glb_tiled_uv_max(relative_path) >= minimum, relative_path
 
 def node_extent(payload, name):
     node = next(item for item in payload['nodes'] if item.get('name') == name)

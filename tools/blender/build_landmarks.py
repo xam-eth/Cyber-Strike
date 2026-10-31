@@ -99,6 +99,16 @@ def bevel(obj, width=0.035, segments=2):
     bpy.ops.object.modifier_apply(modifier=modifier.name)
 
 
+def tile_uv(obj, dims, broad=False):
+    """Give structural PBR maps a consistent metre-scale repeat."""
+    layer = obj.data.uv_layers.active
+    if not layer:
+        return
+    repeat = max(1.0, max(dims) / (4.2 if broad else 2.35))
+    for loop in layer.data:
+        loop.uv *= repeat
+
+
 def box(collection, name, dims, pos, mat, parent, bevel_width=0.025, rotation=None):
     bpy.ops.mesh.primitive_cube_add(size=1.0, location=pos)
     obj = bpy.context.object
@@ -109,6 +119,7 @@ def box(collection, name, dims, pos, mat, parent, bevel_width=0.025, rotation=No
         obj.rotation_euler = rotation
     if bevel_width:
         bevel(obj, bevel_width)
+    tile_uv(obj, dims, broad="Concrete" in mat.name)
     obj.data.materials.append(mat)
     obj.parent = parent
     link(obj, collection)
@@ -125,6 +136,7 @@ def cylinder(collection, name, radius, depth, pos, mat, parent, rotation=None, v
     if rotation:
         obj.rotation_euler = (math.pi * .5 + rotation[0], rotation[1], rotation[2])
     bevel(obj, min(radius * 0.18, 0.026), 2)
+    tile_uv(obj, (radius * 2.0, depth, radius * 2.0), broad="Concrete" in mat.name)
     obj.data.materials.append(mat)
     obj.parent = parent
     link(obj, collection)
