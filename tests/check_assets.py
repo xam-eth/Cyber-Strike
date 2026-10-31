@@ -126,6 +126,12 @@ for asset in [
 ]:
     assert glb_tiled_uv_max('assets/world/aetherfall/models/' + asset + '.glb') >= 1.5, asset
 for relative_path, minimum in [
+    ('assets/world/aetherfall/ice_planet/glacier_shelf.glb', 4.0),
+    ('assets/world/aetherfall/ice_planet/frozen_spire.glb', 4.0),
+    ('assets/world/aetherfall/ice_planet/sentinel_archive.glb', 2.0),
+    ('assets/world/aetherfall/ice_planet/cryo_pylon.glb', 3.0),
+    ('assets/world/aetherfall/archive/archive_vestibule.glb', 2.0),
+    ('assets/world/aetherfall/interactives/tech_cache.glb', 1.5),
     ('assets/world/aetherfall/landmarks/field_outpost.glb', 1.5),
     ('assets/world/aetherfall/landmarks/relay_annex.glb', 1.5),
     ('assets/world/aetherfall/landmarks/service_hangar.glb', 1.5),

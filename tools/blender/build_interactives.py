@@ -125,6 +125,7 @@ def cylinder(collection, name, radius, depth, location, material, parent=None, v
     obj = bpy.context.object
     obj.name = name
     bevel(obj, min(0.025, radius * 0.2), 2)
+    tile_uv(obj, max(1.0, depth / 2.35))
     obj.data.materials.append(material)
     if parent:
         obj.parent = parent

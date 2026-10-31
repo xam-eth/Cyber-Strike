@@ -97,6 +97,16 @@ def bevel(obj, width=.025):
     bpy.ops.object.modifier_apply(modifier=modifier.name)
 
 
+def tile_uv(obj, dims, broad=False):
+    """Preserve readable PBR density on the Archive's occupied interior."""
+    layer = obj.data.uv_layers.active
+    if not layer:
+        return
+    repeat = max(1.0, max(dims) / (4.2 if broad else 2.35))
+    for loop in layer.data:
+        loop.uv *= repeat
+
+
 def box(group, parent, name, dims, pos, material, chamfer=.025, rotation=None):
     bpy.ops.mesh.primitive_cube_add(size=1.0, location=pos)
     obj = bpy.context.object
@@ -107,6 +117,7 @@ def box(group, parent, name, dims, pos, material, chamfer=.025, rotation=None):
         obj.rotation_euler = rotation
     if chamfer:
         bevel(obj, chamfer)
+    tile_uv(obj, dims, broad="Ice" in material.name)
     obj.data.materials.append(material)
     return add_to(obj, group, parent)
 
@@ -118,6 +129,7 @@ def cylinder(group, parent, name, radius, depth, pos, material, rotation=None, v
     if rotation:
         obj.rotation_euler = rotation
     bevel(obj, min(.025, radius * .2))
+    tile_uv(obj, (radius * 2.0, depth, radius * 2.0), broad="Ice" in material.name)
     obj.data.materials.append(material)
     return add_to(obj, group, parent)
 

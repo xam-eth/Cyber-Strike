@@ -149,7 +149,7 @@ def tile_uv(obj, repeats):
             item.uv *= repeats
 
 
-def box(collection, parent, name, dims, pos, material, bevel_size=.025, rotation=None, repeats=1.0):
+def box(collection, parent, name, dims, pos, material, bevel_size=.025, rotation=None, repeats=None):
     bpy.ops.mesh.primitive_cube_add(size=1.0, location=pos)
     obj = bpy.context.object
     obj.name = name
@@ -159,6 +159,8 @@ def box(collection, parent, name, dims, pos, material, bevel_size=.025, rotation
         obj.rotation_euler = rotation
     if bevel_size:
         bevel(obj, bevel_size)
+    if repeats is None:
+        repeats = max(1.0, max(dims) / (4.2 if "Ice" in material.name else 2.35))
     tile_uv(obj, repeats)
     obj.data.materials.append(material)
     return attach(obj, collection, parent)
@@ -173,6 +175,7 @@ def cylinder(collection, parent, name, radius, depth, pos, material, rotation=No
     if rotation:
         obj.rotation_euler = (math.pi * .5 + rotation[0], rotation[1], rotation[2])
     bevel(obj, min(.028, radius * .18))
+    tile_uv(obj, max(1.0, depth / (4.2 if "Ice" in material.name else 2.35)))
     obj.data.materials.append(material)
     return attach(obj, collection, parent)
 
