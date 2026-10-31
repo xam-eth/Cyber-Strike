@@ -127,8 +127,17 @@ static func joystick(
 
 
 ## Draws the top-center tactical azimuth compass driven by live Camera3D yaw,
-## active hostiles, and any tracked Recovery objective waypoint.
-static func draw_tactical_compass(hud: Control) -> void:
+## active hostiles, and any tracked Recovery objective waypoint onto its own
+## lightweight Control layer so camera turns never rebuild TouchControls docks.
+static func draw_tactical_compass(hud: Control, layer: Control = null) -> void:
+	var surface: Control = layer if is_instance_valid(layer) else hud
+	if (
+		hud.get("_player_down") == true
+		or hud.get_tree() == null
+		or hud.get_tree().paused
+		or bool(hud.call("_results_visible"))
+	):
+		return
 	var cam := hud.get("_hostile_camera") as Camera3D
 	if not is_instance_valid(cam):
 		return
@@ -179,10 +188,12 @@ static func draw_tactical_compass(hud: Control) -> void:
 	var has_obj := false
 	var obj_pos := Vector3.ZERO
 	if state_obj != null:
-		has_obj = bool(state_obj.get("objective_has_target"))
-		obj_pos = state_obj.get("objective_world_pos") as Vector3
+		has_obj = state_obj.get("objective_has_target") == true
+		var raw_pos: Variant = state_obj.get("objective_world_pos")
+		if raw_pos is Vector3:
+			obj_pos = raw_pos
 
-	compass_strip(hud, cam, enemies, has_obj, obj_pos, rect, scale)
+	compass_strip(surface, cam, enemies, has_obj, obj_pos, rect, scale)
 
 
 static func compass_strip(
@@ -295,7 +306,7 @@ static func compass_strip(
 		var enemy := item as Node3D
 		if enemy == null or not is_instance_valid(enemy):
 			continue
-		var is_boss := bool(enemy.get("is_guardian_boss"))
+		var is_boss: bool = enemy.get("is_guardian_boss") == true
 		_draw_compass_pip(
 			canvas,
 			cam_pos,

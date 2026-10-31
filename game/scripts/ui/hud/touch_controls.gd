@@ -232,6 +232,7 @@ var _soft_lock: bool = false:
 		queue_redraw()
 var _hostile_camera: Camera3D
 var _hostile_source: Node
+var _compass_layer: Control
 var _last_compass_yaw: float = -999.0
 var _help_remaining: float = HELP_VISIBLE_SECONDS
 
@@ -289,12 +290,18 @@ func _process(delta: float) -> void:
 			_help_panel.visible = false
 	if (_aiming or _state.play_phase == "defense") and not get_tree().paused:
 		needs_redraw = true
-	elif is_instance_valid(_hostile_camera) and not get_tree().paused:
+		if is_instance_valid(_compass_layer):
+			_compass_layer.queue_redraw()
+	elif (
+		is_instance_valid(_compass_layer)
+		and is_instance_valid(_hostile_camera)
+		and not get_tree().paused
+	):
 		var fwd := -_hostile_camera.global_transform.basis.z
 		var yaw := atan2(fwd.x, -fwd.z)
-		if absf(wrapf(yaw - _last_compass_yaw, -PI, PI)) > 0.005:
+		if absf(wrapf(yaw - _last_compass_yaw, -PI, PI)) > 0.02:
 			_last_compass_yaw = yaw
-			needs_redraw = true
+			_compass_layer.queue_redraw()
 	# A paused tree cannot change anything this HUD draws: cooldowns do not tick,
 	# the reticle does not breathe, the thumb pockets are empty. The docks are the
 	# most expensive thing `_draw` builds and they were being rebuilt every frame
@@ -386,8 +393,14 @@ func set_recovery_status(
 	has_target: bool = false,
 	target_pos: Vector3 = Vector3.ZERO,
 ) -> void:
+	var target_changed := (
+		_state.objective_has_target != has_target
+		or _state.objective_world_pos.distance_squared_to(target_pos) > 0.25
+	)
 	_state.objective_has_target = has_target
 	_state.objective_world_pos = target_pos
+	if target_changed and is_instance_valid(_compass_layer):
+		_compass_layer.queue_redraw()
 	if (
 		_state.recovery_title == title
 		and _state.recovery_detail == detail
@@ -773,6 +786,15 @@ func _build_ui() -> void:
 	_top_bar.anchor_bottom = 0.0
 	_top_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_top_bar)
+
+	_compass_layer = Control.new()
+	_compass_layer.name = "TacticalCompassLayer"
+	_compass_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_compass_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_compass_layer.draw.connect(
+		func() -> void: HudRenderer.draw_tactical_compass(self, _compass_layer)
+	)
+	_top_bar.add_child(_compass_layer)
 
 	_build_health_card()
 	_build_wave_card()
@@ -1338,8 +1360,8 @@ func _draw() -> void:
 		)
 		for bearing in bearings:
 			HudHostileBearings.draw_marker(self, bearing, _to_layout(1.0))
-	if not _player_down and not get_tree().paused and not _results_visible():
-		HudRenderer.draw_tactical_compass(self)
+	if is_instance_valid(_compass_layer):
+		_compass_layer.queue_redraw()
 	if not _player_down and not get_tree().paused:
 		var spread := 5.0 + (_fire_flash_remaining / 0.15) * 6.0
 		if _move_touch_id != -1:
