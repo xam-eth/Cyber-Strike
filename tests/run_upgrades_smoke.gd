@@ -3,6 +3,7 @@ extends SceneTree
 ## Run-adaptation contract: content registry, exactly-once choice, runtime-only
 ## modifier composition with permanent tiers, real projectile data, and reset.
 const MainScene = preload("res://scenes/main.tscn")
+const PROFILE_PATH := "user://run-upgrades-smoke.cfg"
 
 var _failures := 0
 
@@ -82,22 +83,32 @@ func _check_service() -> void:
 
 
 func _check_weapon_effects() -> void:
+	_remove_profile()
+	# Main deliberately restores permanent ownership/tiers whenever weapon
+	# selection changes the profile. Build that permanent fixture through the
+	# real service first; injecting WeaponController directly would be erased.
+	var profile := ProgressionService.new()
+	profile.profile_path = PROFILE_PATH
+	root.add_child(profile)
+	await process_frame
+	profile.balance = 10000
+	profile.secure_cache(&"run_upgrade_fixture", &"arc_blueprint", &"arc_shooter")
+	profile.unlock_weapon(&"nova_launcher")
+	profile.unlock_weapon(&"arc_shooter")
+	for weapon_id in WeaponDefinition.DEFINITION_IDS:
+		profile.upgrade_weapon(weapon_id)
+		profile.upgrade_weapon(weapon_id)
+	profile.queue_free()
+	await process_frame
+
 	var main := MainScene.instantiate()
 	main.set("start_wave_session_on_ready", false)
-	main.get_node("ProgressionService").set("profile_path", "")
+	main.get_node("ProgressionService").set("profile_path", PROFILE_PATH)
 	root.add_child(main)
 	await process_frame
 	var player := main.get_node("Player") as PlayerController
 	player.set_physics_process(false)
 	var controller := player.weapon_controller
-	var tiers: Dictionary = {}
-	var availability: Dictionary = {}
-	for weapon_id in WeaponDefinition.DEFINITION_IDS:
-		tiers[String(weapon_id)] = 3
-		availability[String(weapon_id)] = true
-	controller.set_weapon_tiers(tiers)
-	controller.set_available_weapon_ids(availability)
-
 	for index in range(WeaponDefinition.DEFINITION_IDS.size()):
 		var expected_id: StringName = WeaponDefinition.DEFINITION_IDS[index]
 		_expect(player.select_weapon(index), "%s is available in the combat fixture" % expected_id)
@@ -170,6 +181,12 @@ func _check_weapon_effects() -> void:
 	)
 	main.queue_free()
 	await process_frame
+	_remove_profile()
+
+
+func _remove_profile() -> void:
+	if FileAccess.file_exists(PROFILE_PATH):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(PROFILE_PATH))
 
 
 func _expect(condition: bool, message: String) -> void:
