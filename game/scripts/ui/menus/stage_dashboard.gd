@@ -75,6 +75,10 @@ var _arsenal_state: Label
 var _hero_caption: Label
 var _mission_caption: Label
 var _arsenal_caption: Label
+var _hero_badge: Label
+var _mission_badge: Label
+var _arsenal_badge: Label
+var _ribbon_rule: ColorRect
 var _numerals: Array[Label] = []
 
 # --- the ribbon and the actions -------------------------------------------- #
@@ -100,11 +104,10 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(make_backdrop(BACKDROP))
 
-	# Flatter than OPERATIVE's scrim on purpose. That page is lit 3D and needs
-	# the backdrop dimmed behind a model; this one is a board, so the plate is
-	# nearly opaque and the key art only survives as texture under the rows.
+	# Let the hangar key art breathe behind the machined rows instead of drowning
+	# in a near-opaque black sheet.
 	var plate := ColorRect.new()
-	plate.color = Color(AegisTokens.VOID, 0.86)
+	plate.color = Color(AegisTokens.VOID, 0.74)
 	plate.set_anchors_preset(Control.PRESET_FULL_RECT)
 	plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(plate)
@@ -213,6 +216,7 @@ func _build_rows() -> void:
 	_hero_row = hero["panel"]
 	_hero_plate = hero["plate"]
 	_hero_caption = hero["caption"]
+	_hero_badge = hero["badge"]
 	_hero_name_label = hero["name"]
 	_hero_status = hero["detail"]
 	_rows.add_child(_hero_row)
@@ -221,14 +225,16 @@ func _build_rows() -> void:
 	_mission_row = mission["panel"]
 	_mission_plate = mission["plate"]
 	_mission_caption = mission["caption"]
+	_mission_badge = mission["badge"]
 	_mission_name = mission["name"]
 	_mission_brief = mission["detail"]
 	_rows.add_child(_mission_row)
 
-	var arsenal := _make_row("03", "dash.row_arsenal", AegisTokens.INK_2)
+	var arsenal := _make_row("03", "dash.row_arsenal", AegisTokens.OK)
 	_arsenal_row = arsenal["panel"]
 	_arsenal_plate = arsenal["plate"]
 	_arsenal_caption = arsenal["caption"]
+	_arsenal_badge = arsenal["badge"]
 	_arsenal_name = arsenal["name"]
 	_arsenal_state = arsenal["detail"]
 	_rows.add_child(_arsenal_row)
@@ -245,9 +251,11 @@ func _make_row(number: String, caption_key: String, accent: Color) -> Dictionary
 	# Each row is a plate cut on its trailing corner, so the three rows read as
 	# one machined stack rather than three rounded cards.
 	panel.bezel = true
-	panel.cut_top_right = AegisBezel.CUT
+	panel.cut_top_right = AegisBezel.CUT_LG
+	panel.cut_bottom_left = AegisBezel.CUT_SM
 	panel.accent_side = "left"
 	panel.accent_color = accent
+	panel.accent_width = 4.0
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var row := HBoxContainer.new()
@@ -255,26 +263,46 @@ func _make_row(number: String, caption_key: String, accent: Color) -> Dictionary
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.add_child(row)
 
-	var numeral := make_label(number, "display_m", AegisTokens.INK_3)
+	var numeral := make_label(number, "display_m", Color(accent, 0.72))
 	numeral.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	row.add_child(numeral)
 	_numerals.append(numeral)
+
+	var frame := PanelContainer.new()
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	frame.add_theme_stylebox_override(
+		"panel",
+		AegisTheme.panel_style(Color(AegisTokens.VOID, 0.85), Color(accent, 0.45), 1, 0, 1.0)
+	)
+	row.add_child(frame)
 
 	var plate := TextureRect.new()
 	plate.name = &"StepPlate" + number
 	plate.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	plate.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(plate)
+	frame.add_child(plate)
 
 	var column := VBoxContainer.new()
 	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	column.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	physical_separation(column, 4)
+	physical_separation(column, 3)
 	row.add_child(column)
 
-	var caption_label := make_label_key(caption_key, "label", AegisTokens.INK_3)
-	column.add_child(caption_label)
+	var head := HBoxContainer.new()
+	head.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	head.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	physical_separation(head, 8)
+	column.add_child(head)
+
+	var caption_label := make_label_key(caption_key, "label_s", accent)
+	caption_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	head.add_child(caption_label)
+
+	var badge_label := make_label("", "mono_s", AegisTokens.ACCENT)
+	badge_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	head.add_child(badge_label)
 
 	var name_label := make_label("", "title", AegisTokens.INK)
 	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -290,6 +318,7 @@ func _make_row(number: String, caption_key: String, accent: Color) -> Dictionary
 		"panel": panel,
 		"plate": plate,
 		"caption": caption_label,
+		"badge": badge_label,
 		"name": name_label,
 		"detail": detail,
 	}
@@ -309,21 +338,27 @@ func _build_ribbon() -> void:
 	_ribbon.cut_bottom_right = AegisBezel.CUT_LG
 	_ribbon.accent_side = "top"
 	_ribbon.accent_color = AegisTokens.INFO
+	_ribbon.accent_width = 3.0
 	_ribbon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_ribbon.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 	var column := VBoxContainer.new()
-	physical_separation(column, 6)
+	physical_separation(column, 5)
 	_ribbon.add_child(column)
 
-	_best = make_label("", "label_s", AegisTokens.INK)
+	_best = make_label("", "mono", AegisTokens.ACCENT)
 	_best_key = "dash.best_score"
 	_best.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(_best)
-	_runs = make_label("", "label_s", AegisTokens.INK)
+	_runs = make_label("", "mono_s", AegisTokens.INFO)
 	_runs_key = "dash.runs_completed"
 	_runs.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(_runs)
+	_ribbon_rule = ColorRect.new()
+	_ribbon_rule.color = Color(AegisTokens.LINE_HI, 0.55)
+	_ribbon_rule.custom_minimum_size = Vector2(0.0, 1.0)
+	_ribbon_rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(_ribbon_rule)
 	# "LOADOUT  hero / weapon / theatre" was one line that ran out of a 340 px
 	# rail mid-word ("PULSE…"). The receipt names the three things on three
 	# lines instead, each short enough to print whole.
@@ -435,20 +470,21 @@ func refresh_profile() -> void:
 	_hero_status.text = AegisText.t(
 		"dash.hero_summary", [hero_tier, hero_vitals, hero_reduction, hero_ready]
 	)
+	_hero_badge.text = "T%d" % hero_tier
 	_hero_plate.texture = (
 		try_texture(hero_definition.portrait_path) if hero_definition != null else null
 	)
 	var world_definition := WorldDefinition.load_definition(progression.selected_world_id)
 	if world_definition != null:
-		_mission_brief.text = (
-			"%s · %s"
-			% [
-				world_definition.display_mode_label(),
-				world_definition.display_reward_summary(),
-			]
+		var is_rec := String(progression.selected_world_id) == "verdant_bloom"
+		_mission_badge.text = world_definition.display_mode_label().to_upper()
+		_mission_badge.add_theme_color_override(
+			"font_color", AegisTokens.OK if is_rec else AegisTokens.INFO
 		)
+		_mission_brief.text = world_definition.display_reward_summary()
 		_mission_plate.texture = try_texture(world_definition.plate_path)
 	else:
+		_mission_badge.text = ""
 		_mission_brief.text = ""
 		_mission_plate.texture = null
 	_arsenal_plate.texture = try_texture(
@@ -458,10 +494,12 @@ func refresh_profile() -> void:
 	var owned_count := progression.unlocked_ids.size()
 	var total_weapons := maxi(WeaponDefinition.load_all_definitions().size(), 1)
 	if progression.is_unlocked(progression.selected_weapon_id):
+		_arsenal_badge.text = "T%d · %d/%d" % [wpn_tier, owned_count, total_weapons]
 		_arsenal_state.text = AegisText.t(
 			"dash.arsenal_summary", [wpn_tier, owned_count, total_weapons]
 		)
 	else:
+		_arsenal_badge.text = "%d BP" % progression.unlock_cost(progression.selected_weapon_id)
 		(
 			AegisText
 			. apply(
@@ -578,7 +616,12 @@ func _apply_density() -> void:
 	# above already names it, so a compact screen keeps the name and drops this.
 	_mission_brief.visible = true
 	_arsenal_state.visible = true
+	if is_instance_valid(_ribbon_rule):
+		_ribbon_rule.visible = not compact
 	_loadout.visible = not compact
+	for badge in [_hero_badge, _mission_badge, _arsenal_badge]:
+		if is_instance_valid(badge):
+			badge.visible = not narrow
 	for item in _loadout_items:
 		item.visible = not compact
 		_limit_lines(item, 1)

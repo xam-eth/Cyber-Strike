@@ -37,12 +37,18 @@ static func update_objective(
 		if hud._state.recovery_active:
 			refresh_recovery_objective(hud)
 			return
+		hud._wave_card.accent_color = AegisTokens.INFO
+		if is_instance_valid(hud._wave_icon):
+			hud._wave_icon.modulate = AegisTokens.INFO
 		var copy: Array = zone_copy(hud)
 		hud._wave_title_label.text = copy[0]
 		hud._wave_enemy_label.text = copy[1]
 		AegisText.apply(hud._wave_state_label, "hud.no_hostiles")
 		AegisText.apply(hud._wave_chip_label, "hud.chip_explore")
 	elif hud._state.play_phase == "preparing":
+		hud._wave_card.accent_color = AegisTokens.ACCENT
+		if is_instance_valid(hud._wave_icon):
+			hud._wave_icon.modulate = AegisTokens.ACCENT
 		AegisText.apply(hud._wave_title_label, "hud.defense_in", [hud._state.preparation_seconds])
 		# Keep the promise readable in a 294 px objective card.
 		AegisText.apply(hud._wave_enemy_label, "hud.get_ready")
@@ -51,6 +57,10 @@ static func update_objective(
 			hud._wave_chip_label, "hud.chip_defense_in", [hud._state.preparation_seconds]
 		)
 	else:
+		var combat_col := AegisTokens.DANGER if hud._state.guardian_active else AegisTokens.ACCENT
+		hud._wave_card.accent_color = combat_col
+		if is_instance_valid(hud._wave_icon):
+			hud._wave_icon.modulate = combat_col
 		if wave_number > 0:
 			AegisText.apply(hud._wave_title_label, "hud.wave", [wave_number])
 		else:
@@ -81,6 +91,11 @@ static func refresh_recovery_objective(hud) -> void:
 		or not hud._state.recovery_active
 	):
 		return
+	var guard_combat: bool = hud._state.recovery_guard_count > 0
+	var rec_col := AegisTokens.ACCENT if guard_combat else AegisTokens.OK
+	hud._wave_card.accent_color = rec_col
+	if is_instance_valid(hud._wave_icon):
+		hud._wave_icon.modulate = rec_col
 	hud._wave_title_label.text = hud._state.recovery_title
 	hud._wave_enemy_label.text = hud._state.recovery_detail
 	hud._wave_state_label.text = hud._state.recovery_state
@@ -375,9 +390,27 @@ static func finish_layout(hud) -> void:
 	)
 
 
+static func set_operative_telemetry(hud, tier: int, armor_pct: int) -> void:
+	hud._state.operative_tier = clampi(tier, 1, 5)
+	hud._state.operative_armor_pct = maxi(armor_pct, 0)
+	var badge := hud.get("_health_tier_badge") as Label
+	if is_instance_valid(badge):
+		badge.text = (
+			"T%d · %d%%" % [hud._state.operative_tier, hud._state.operative_armor_pct]
+			if hud._state.operative_armor_pct > 0
+			else "T%d" % hud._state.operative_tier
+		)
+
+
 static func build_objective(hud) -> void:
 	hud._wave_card = AegisPanel.new()
 	hud._wave_card.name = "WaveCard"
+	hud._wave_card.cut_top_right = 10.0
+	hud._wave_card.cut_bottom_left = 6.0
+	hud._wave_card.accent_side = "left"
+	hud._wave_card.accent_color = AegisTokens.INFO
+	hud._wave_card.accent_width = 3.0
+	hud._wave_card.tactical_header = true
 	hud._wave_card.clip_contents = true
 	hud._top_bar.add_child(hud._wave_card)
 
@@ -390,7 +423,7 @@ static func build_objective(hud) -> void:
 	hud._wave_icon.custom_minimum_size = Vector2(16.0, 16.0)
 	hud._wave_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	hud._wave_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	hud._wave_icon.modulate = AegisTokens.INK_2
+	hud._wave_icon.modulate = AegisTokens.INFO
 	row.add_child(hud._wave_icon)
 
 	var text_col := VBoxContainer.new()
@@ -416,8 +449,12 @@ static func build_objective(hud) -> void:
 static func build_guardian_card(hud) -> void:
 	hud._guardian_card = AegisPanel.new()
 	hud._guardian_card.name = "GuardianCard"
+	hud._guardian_card.cut_top_left = 8.0
+	hud._guardian_card.cut_bottom_right = 8.0
 	hud._guardian_card.accent_side = "top"
 	hud._guardian_card.accent_color = AegisTokens.INFO
+	hud._guardian_card.accent_width = 3.0
+	hud._guardian_card.tactical_header = true
 	hud._guardian_card.clip_contents = true
 	hud._guardian_card.visible = false
 	hud._guardian_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -436,6 +473,7 @@ static func build_guardian_card(hud) -> void:
 	hud._guardian_title_label = hud._label_key("hud.guardian_name", "label_s", AegisTokens.INK)
 	hud._guardian_title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hud._guardian_title_label.clip_text = true
+	hud._guardian_title_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	header.add_child(hud._guardian_title_label)
 
 	hud._guardian_phase_label = hud._label_key("hud.guardian_shielded", "label_s", AegisTokens.INFO)
@@ -447,13 +485,16 @@ static func build_guardian_card(hud) -> void:
 	vitals_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	col.add_child(vitals_row)
 
-	hud._guardian_bar = ProgressBar.new()
-	hud._guardian_bar.name = "GuardianHealthBar"
-	hud._guardian_bar.show_percentage = false
-	hud._guardian_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	hud._guardian_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	hud._guardian_bar.custom_minimum_size = Vector2(0.0, 6.0)
-	hud._guardian_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var seg_bar := SegmentedBar.new()
+	seg_bar.name = "GuardianHealthBar"
+	seg_bar.show_percentage = false
+	seg_bar.segments = 4
+	seg_bar.gap_width = 2.0
+	seg_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	seg_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	seg_bar.custom_minimum_size = Vector2(0.0, 6.0)
+	seg_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hud._guardian_bar = seg_bar
 	vitals_row.add_child(hud._guardian_bar)
 
 	hud._guardian_hp_label = hud._label("135 / 135", "mono_s", AegisTokens.INK_2)

@@ -65,3 +65,9 @@ var guardian_active: bool = false
 var guardian_hp: float = 0.0
 var guardian_max_hp: float = 0.0
 var guardian_phase: String = "fortified"
+## Fielded operative telemetry supplied by Main/ProgressionService (presentation only).
+var operative_tier: int = 1
+var operative_armor_pct: int = 0
+## World-space waypoint supplied by Main for the top bearing compass (presentation only).
+var objective_has_target: bool = false
+var objective_world_pos: Vector3 = Vector3.ZERO

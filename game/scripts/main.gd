@@ -342,6 +342,10 @@ func _on_profile_changed() -> void:
 	player.weapon_controller.set_weapon_tiers(progression_service.weapon_tiers)
 	if is_instance_valid(run_upgrade_manager) and run_upgrade_manager.total_stacks() > 0:
 		player.apply_run_modifiers(run_upgrade_manager.get_modifiers(), 0.0, false)
+	var op_tier := progression_service.fieldable_tier()
+	HudEncounterUi.set_operative_telemetry(
+		touch_controls, op_tier, roundi(HeroTier.reduction(op_tier))
+	)
 	(
 		HudArmoryBridge
 		. refresh(
@@ -952,6 +956,7 @@ func _update_recovery_hud(
 				and _cache_state(cache.cache_id) != RecoveryState.SECURED
 			)
 			visual.call("set_guidance_focus", is_target, is_target and is_stuck)
+	var compass_cache: RecoveryCacheDefinition = nearest
 	if nearest != null:
 		title = nearest.display_name
 		var guards := wave_director.guard_group_size(nearest.cache_id)
@@ -977,6 +982,7 @@ func _update_recovery_hud(
 			detail = AegisText.t("recovery.all_secured")
 			state_text = AegisText.t("recovery.secured")
 			_recovery_guidance_stage = "complete"
+		compass_cache = target
 		if target != null:
 			var target_dist := _cache_distance(target)
 			var dist_m := roundi(target_dist)
@@ -1027,7 +1033,14 @@ func _update_recovery_hud(
 		else:
 			state_text = AegisText.t("recovery.guards_remaining", [active_guards])
 	touch_controls.set_recovery_status(
-		title, detail, state_text, action, active_guards, _recovery_guidance_stage
+		title,
+		detail,
+		state_text,
+		action,
+		active_guards,
+		_recovery_guidance_stage,
+		compass_cache != null and _cache_state(compass_cache.cache_id) != RecoveryState.SECURED,
+		compass_cache.position if compass_cache != null else Vector3.ZERO
 	)
 
 

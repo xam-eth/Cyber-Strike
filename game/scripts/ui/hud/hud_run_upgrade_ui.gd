@@ -24,8 +24,11 @@ var _column: VBoxContainer
 func _ready() -> void:
 	interactive = true
 	bezel = true
+	cut_top_left = AegisBezel.CUT_LG
+	cut_bottom_right = AegisBezel.CUT_LG
 	accent_side = "top"
-	accent_color = AegisTokens.INFO
+	accent_color = AegisTokens.ABILITY
+	accent_width = 3.0
 	super._ready()
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	visible = false
@@ -43,7 +46,7 @@ func _ready() -> void:
 	titles.add_theme_constant_override("separation", 2)
 	header.add_child(titles)
 
-	_eyebrow_label = _make_key("hud.upg_eyebrow", "label", AegisTokens.INFO)
+	_eyebrow_label = _make_key("hud.upg_eyebrow", "label", AegisTokens.ABILITY)
 	titles.add_child(_eyebrow_label)
 
 	_title_label = _make_key("hud.upg_title", "display_m", AegisTokens.INK)

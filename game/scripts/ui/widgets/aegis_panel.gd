@@ -74,9 +74,15 @@ extends PanelContainer
 	set(value):
 		accent_color = value
 		queue_redraw()
-@export var accent_width: float = AegisTokens.ACCENT_EDGE:
+@export var accent_width: float = 3.0:
 	set(value):
 		accent_width = value
+		queue_redraw()
+## Paints a subtle instrument header wash and optical chamfer wedges on
+## non-bezel HUD cards while leaving the StyleBoxFlat opacity intact.
+@export var tactical_header: bool = false:
+	set(value):
+		tactical_header = value
 		queue_redraw()
 
 ## 0.0 keeps whatever the caller set; anything else is drawn behind the content.
@@ -146,6 +152,16 @@ func _draw() -> void:
 	var width := bracket_width
 	var right := size.x - inset
 	var bottom := size.y - inset
+	if tactical_header and size.x > 8.0 and size.y > 12.0:
+		var tint: Color = accent_color if accent_side != "none" else AegisTokens.INFO
+		var band_h := minf(18.0, size.y * 0.42)
+		draw_rect(Rect2(1.0, 1.0, size.x - 2.0, band_h), Color(tint, 0.10), true)
+		draw_line(
+			Vector2(maxf(cut_top_left, 1.0), 1.0),
+			Vector2(size.x - maxf(cut_top_right, 1.0), 1.0),
+			Color(AegisTokens.LINE_HI, 0.65),
+			1.0
+		)
 	if show_brackets:
 		# Top-left
 		draw_line(Vector2(inset, inset), Vector2(inset + length, inset), bracket_color, width)
@@ -159,14 +175,64 @@ func _draw() -> void:
 		# Bottom-right
 		draw_line(Vector2(right - length, bottom), Vector2(right, bottom), bracket_color, width)
 		draw_line(Vector2(right, bottom - length), Vector2(right, bottom), bracket_color, width)
-	AegisBezel.draw_cut_marks(self, Rect2(Vector2.ZERO, size), cuts(), Color(bracket_color, 0.9))
+	_draw_optical_chamfers()
 	_draw_accent()
 
 
-## The status edge: the 2 px strip that carries health, readiness or selection.
-## Drawn from the cut shape's own edge so it stops where the plate stops.
+func _draw_optical_chamfers() -> void:
+	var c := cuts()
+	var edge_col: Color = (
+		Color(accent_color, 0.88) if accent_side != "none" else Color(bracket_color, 0.9)
+	)
+	var mask_col := Color(AegisTokens.VOID, 0.94)
+	if c.x > 0.5:
+		var tl := minf(c.x, minf(size.x, size.y) * 0.45)
+		draw_colored_polygon(
+			PackedVector2Array([Vector2.ZERO, Vector2(tl, 0.0), Vector2(0.0, tl)]), mask_col
+		)
+		draw_line(Vector2(0.0, tl), Vector2(tl, 0.0), edge_col, 1.5, true)
+	if c.y > 0.5:
+		var tr := minf(c.y, minf(size.x, size.y) * 0.45)
+		draw_colored_polygon(
+			PackedVector2Array(
+				[Vector2(size.x - tr, 0.0), Vector2(size.x, 0.0), Vector2(size.x, tr)]
+			),
+			mask_col
+		)
+		draw_line(Vector2(size.x - tr, 0.0), Vector2(size.x, tr), edge_col, 1.5, true)
+	if c.z > 0.5:
+		var br := minf(c.z, minf(size.x, size.y) * 0.45)
+		draw_colored_polygon(
+			PackedVector2Array(
+				[
+					Vector2(size.x, size.y - br),
+					Vector2(size.x, size.y),
+					Vector2(size.x - br, size.y)
+				]
+			),
+			mask_col
+		)
+		draw_line(Vector2(size.x, size.y - br), Vector2(size.x - br, size.y), edge_col, 1.5, true)
+	if c.w > 0.5:
+		var bl := minf(c.w, minf(size.x, size.y) * 0.45)
+		draw_colored_polygon(
+			PackedVector2Array(
+				[Vector2(0.0, size.y - bl), Vector2(bl, size.y), Vector2(0.0, size.y)]
+			),
+			mask_col
+		)
+		draw_line(Vector2(bl, size.y), Vector2(0.0, size.y - bl), edge_col, 1.5, true)
+
+
+## The status edge: the lit spine that carries health, readiness or selection.
 func _draw_accent() -> void:
 	if accent_side == "left":
-		draw_rect(Rect2(0.0, cut_top_left, accent_width, size.y - cut_top_left), accent_color, true)
+		var y0 := cut_top_left
+		var h := maxf(size.y - cut_top_left - cut_bottom_left, 0.0)
+		draw_rect(Rect2(0.0, y0, accent_width * 2.8, h), Color(accent_color, 0.16), true)
+		draw_rect(Rect2(0.0, y0, accent_width, h), accent_color, true)
 	elif accent_side == "top":
-		draw_rect(Rect2(cut_top_left, 0.0, size.x - cut_top_left, accent_width), accent_color, true)
+		var x0 := cut_top_left
+		var w := maxf(size.x - cut_top_left - cut_top_right, 0.0)
+		draw_rect(Rect2(x0, 0.0, w, accent_width * 2.6), Color(accent_color, 0.16), true)
+		draw_rect(Rect2(x0, 0.0, w, accent_width), accent_color, true)

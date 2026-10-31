@@ -10,10 +10,12 @@ static func apply(hud) -> void:
 	var tight: float = hud._to_layout(8.0)
 	var fill := Color(AegisTokens.PANEL, AegisTokens.PANEL_ALPHA * hud._hud_opacity)
 	hud._health_card.add_theme_stylebox_override(
-		"panel", AegisTheme.panel_style(fill, AegisTokens.LINE, 1, AegisTokens.RADIUS, pad)
+		"panel",
+		AegisTheme.panel_style(fill, Color(AegisTokens.LINE_HI, 0.82), 1, AegisTokens.RADIUS, pad)
 	)
 	hud._wave_card.add_theme_stylebox_override(
-		"panel", AegisTheme.panel_style(fill, AegisTokens.LINE, 1, AegisTokens.RADIUS, tight)
+		"panel",
+		AegisTheme.panel_style(fill, Color(AegisTokens.LINE_HI, 0.82), 1, AegisTokens.RADIUS, tight)
 	)
 	if is_instance_valid(hud._guardian_card):
 		hud._guardian_card.add_theme_stylebox_override(
@@ -33,35 +35,20 @@ static func apply(hud) -> void:
 	hud._help_panel.add_theme_stylebox_override(
 		"panel",
 		AegisTheme.panel_style(
-			Color(AegisTokens.VOID, 0.86), Color(AegisTokens.LINE, 0.9), 1, AegisTokens.RADIUS, pad
+			Color(AegisTokens.VOID, 0.88), Color(AegisTokens.INFO, 0.45), 1, AegisTokens.RADIUS, pad
 		)
 	)
-	hud._pause_panel.add_theme_stylebox_override(
-		"panel",
-		AegisTheme.panel_style(
-			Color(AegisTokens.PANEL, 0.97),
-			Color(AegisTokens.LINE_HI, 0.9),
-			1,
-			AegisTokens.RADIUS,
-			hud._to_layout(24.0)
-		)
-	)
-	hud._results_panel.add_theme_stylebox_override(
-		"panel",
-		AegisTheme.panel_style(
-			Color(AegisTokens.PANEL, 0.97),
-			Color(AegisTokens.LINE_HI, 0.9),
-			1,
-			AegisTokens.RADIUS,
-			hud._to_layout(24.0)
-		)
-	)
+	hud._pause_panel.set_surface_pad(hud._to_layout(24.0))
+	hud._results_panel.set_surface_pad(hud._to_layout(24.0))
 	if is_instance_valid(hud._health_bar):
 		hud._health_bar.custom_minimum_size = Vector2(0.0, hud._to_layout(6.0))
 		hud._health_bar.gap_width = maxf(hud._to_layout(2.0), 1.0)
 	if is_instance_valid(hud._upgrade_status_card):
 		hud._upgrade_status_card.add_theme_stylebox_override(
-			"panel", AegisTheme.panel_style(fill, AegisTokens.INFO, 1, AegisTokens.RADIUS, tight)
+			"panel",
+			AegisTheme.panel_style(
+				fill, Color(AegisTokens.ABILITY, 0.72), 1, AegisTokens.RADIUS, tight
+			)
 		)
 	if is_instance_valid(hud._upgrade_charge_bar):
 		hud._upgrade_charge_bar.custom_minimum_size = Vector2(0.0, hud._to_layout(5.0))

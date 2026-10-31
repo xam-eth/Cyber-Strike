@@ -61,7 +61,7 @@ func _build_contents() -> void:
 	_desc_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_box.add_child(_desc_label)
 
-	_scope_label = _make_line("", "label_s", AegisTokens.INFO, false)
+	_scope_label = _make_line("", "label_s", AegisTokens.ABILITY, false)
 	_box.add_child(_scope_label)
 
 

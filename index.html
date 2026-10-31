@@ -149,11 +149,14 @@
                   <p class="eyebrow" data-i18n="hub.eyebrow">OPERATIONS MAP</p>
                   <h1 class="hub__title" id="hub-title" data-i18n="hub.title">CHOOSE THEATRE</h1>
                 </div>
-                <span class="hub__wallet" id="hub-profile-strip">0 BP · 0 RUNS · BEST 0</span>
+                <div class="hub__telemetry">
+                  <span class="hub__cachechip" id="hub-cache-chip">BLUEPRINTS 0/1</span>
+                  <span class="hub__wallet" id="hub-profile-strip">0 BP · 0 RUNS · BEST 0</span>
+                </div>
               </div>
 
 <div class="carousel" id="world-carousel" role="listbox" data-i18n-aria="hub.carousel_label" aria-label="Theatres">
-                <button class="wcard" id="world-card-frostline-relay" data-world="frostline_relay" type="button" role="option" aria-selected="true">
+                <button class="wcard" id="world-card-frostline-relay" data-world="frostline_relay" data-mode="defense" type="button" role="option" aria-selected="true">
                   <span class="wcard__art wcard__art--frostline" aria-hidden="true"></span>
                   <span class="wcard__no" aria-hidden="true">01</span>
                   <span class="wcard__copy">
@@ -164,18 +167,18 @@
                   <span class="wcard__tick" aria-hidden="true"><svg class="ico"><use href="#i-check" /></svg></span>
                 </button>
 
-                <button class="wcard" id="world-card-verdant-bloom" data-world="verdant_bloom" type="button" role="option" aria-selected="false">
+                <button class="wcard" id="world-card-verdant-bloom" data-world="verdant_bloom" data-mode="recovery" type="button" role="option" aria-selected="false">
                   <span class="wcard__art wcard__art--verdant" aria-hidden="true"></span>
                   <span class="wcard__no" aria-hidden="true">02</span>
                   <span class="wcard__copy">
                     <span class="wcard__name">Verdant Bloom</span>
                     <span class="wcard__role" data-i18n="world.verdant_bloom.role">Recovery · Caches</span>
                   </span>
-                  <span class="wcard__state" data-i18n="world.state.open">OPEN</span>
+                  <span class="wcard__state" id="verdant-card-state" data-i18n="world.state.open">OPEN</span>
                   <span class="wcard__tick" aria-hidden="true"><svg class="ico"><use href="#i-check" /></svg></span>
                 </button>
 
-                <button class="wcard" id="world-card-emberfall-foundry" data-world="emberfall_foundry" type="button" role="option" aria-selected="false">
+                <button class="wcard" id="world-card-emberfall-foundry" data-world="emberfall_foundry" data-mode="defense" type="button" role="option" aria-selected="false">
                   <span class="wcard__art wcard__art--emberfall" aria-hidden="true"></span>
                   <span class="wcard__no" aria-hidden="true">03</span>
                   <span class="wcard__copy">
@@ -186,7 +189,7 @@
                   <span class="wcard__tick" aria-hidden="true"><svg class="ico"><use href="#i-check" /></svg></span>
                 </button>
 
-                <button class="wcard" id="world-card-vanguard-station" data-world="vanguard_station" type="button" role="option" aria-selected="false">
+                <button class="wcard" id="world-card-vanguard-station" data-world="vanguard_station" data-mode="defense" type="button" role="option" aria-selected="false">
                   <span class="wcard__art wcard__art--station" aria-hidden="true"></span>
                   <span class="wcard__no" aria-hidden="true">04</span>
                   <span class="wcard__copy">
@@ -197,7 +200,7 @@
                   <span class="wcard__tick" aria-hidden="true"><svg class="ico"><use href="#i-check" /></svg></span>
                 </button>
 
-                <button class="wcard" id="world-card-titans" data-world="titans" type="button" role="option" aria-selected="false">
+                <button class="wcard" id="world-card-titans" data-world="titans" data-mode="defense" type="button" role="option" aria-selected="false">
                   <span class="wcard__art wcard__art--titans" aria-hidden="true"></span>
                   <span class="wcard__no" aria-hidden="true">05</span>
                   <span class="wcard__copy">
@@ -209,15 +212,20 @@
                 </button>
               </div>
 
-              <div class="carousel__foot">
-                <button class="cbtn" id="world-prev" type="button" data-i18n-aria="hub.prev" aria-label="Previous theatre">
-                  <svg class="ico" aria-hidden="true"><use href="#i-chev-left" /></svg>
-                </button>
-<span class="dots" id="world-dots" aria-hidden="true"><i data-active="true"></i><i></i><i></i><i></i><i></i></span>
-                <button class="cbtn" id="world-next" type="button" data-i18n-aria="hub.next" aria-label="Next theatre">
-                  <svg class="ico" aria-hidden="true"><use href="#i-chev-right" /></svg>
-                </button>
+              <div class="hub__intel">
+                <div class="carousel__nav">
+                  <button class="cbtn" id="world-prev" type="button" data-i18n-aria="hub.prev" aria-label="Previous theatre">
+                    <svg class="ico" aria-hidden="true"><use href="#i-chev-left" /></svg>
+                  </button>
+                  <span class="dots" id="world-dots" aria-hidden="true"><i data-active="true"></i><i></i><i></i><i></i><i></i></span>
+                  <button class="cbtn" id="world-next" type="button" data-i18n-aria="hub.next" aria-label="Next theatre">
+                    <svg class="ico" aria-hidden="true"><use href="#i-chev-right" /></svg>
+                  </button>
+                </div>
+                <span class="intel__badge" id="hub-intel-mode" data-tone="defense" data-i18n="hub.intel.mode_defense">WAVE DEFENSE</span>
                 <span class="carousel__line" id="hub-world-line">Frostline Relay · frozen signal field</span>
+                <span class="intel__chip intel__chip--threat" id="hub-intel-threat" data-i18n="hub.intel.threat_defense">THREAT: RUNNER · SHOOTER · WARDEN W3</span>
+                <span class="intel__chip intel__chip--reward" id="hub-intel-reward" data-i18n="hub.intel.reward_defense">+10 BP/KO · +100 BP/WAVE · +15 ENDLESS</span>
               </div>
 
               <div class="hub__deploy">
@@ -226,25 +234,37 @@
                   <span class="btn__label" data-i18n="hub.deploy">DEPLOY</span>
                   <span class="btn__meta" id="hub-deploy-meta">Pulse Rifle</span>
                 </button>
-                <p class="hub__hint" data-i18n="hub.hint">Explore safe · [B] Defense / Cache · [V] Run Mod</p>
+                <p class="hub__hint" data-i18n="hub.hint">Explore safe · [B] Defense / Cache · [F] EMP · [V] Run Mod</p>
               </div>
             </div>
 
             <nav class="side" data-i18n-aria="hub.menu" aria-label="Menu">
-              <button class="tile" id="hub-card-operative" type="button">
-                <span class="tile__ico" aria-hidden="true"><svg class="ico"><use href="#i-operative" /></svg></span>
-                <span class="tile__label" data-i18n="hub.tile.operative">OPERATIVE</span>
-                <span class="tile__meta" id="hub-operative-meta">Pulse Rifle</span>
+              <button class="tile tile--op" id="hub-card-operative" type="button">
+                <span class="tile__portrait" aria-hidden="true">
+                  <img id="hub-op-portrait" src="./ui/art/web/hero/sable-tier-1.png" alt="" />
+                  <span class="tile__tier" id="hub-op-tier">T1</span>
+                </span>
+                <span class="tile__opbody">
+                  <span class="tile__eyebrow" data-i18n="hub.tile.operative">OPERATIVE</span>
+                  <span class="tile__opname" id="hub-op-callsign">SABLE</span>
+                  <span class="tile__stats" id="hub-op-stats">100 HP · 0% ARM</span>
+                  <span class="tile__meta" id="hub-operative-meta">Pulse Rifle</span>
+                  <span class="tile__cta"><span data-i18n="hub.op.action">LOADOUT & TIER</span> <svg class="ico" aria-hidden="true"><use href="#i-chev-right" /></svg></span>
+                </span>
               </button>
-              <button class="tile" id="hub-card-display" type="button">
+              <button class="tile tile--util" id="hub-card-display" type="button">
                 <span class="tile__ico" aria-hidden="true"><svg class="ico"><use href="#i-gear" /></svg></span>
-                <span class="tile__label" data-i18n="hub.tile.display">DISPLAY</span>
-                <span class="tile__meta" data-i18n="hub.tile.display_meta">HUD · motion</span>
+                <span class="tile__utilcopy">
+                  <span class="tile__label" data-i18n="hub.tile.display">DISPLAY</span>
+                  <span class="tile__meta" data-i18n="hub.tile.display_meta">HUD · motion</span>
+                </span>
               </button>
-              <button class="tile" id="hub-card-controls" type="button">
+              <button class="tile tile--util" id="hub-card-controls" type="button">
                 <span class="tile__ico" aria-hidden="true"><svg class="ico"><use href="#i-keys" /></svg></span>
-                <span class="tile__label" data-i18n="hub.tile.controls">CONTROLS</span>
-                <span class="tile__meta" data-i18n="hub.tile.controls_meta">Keys</span>
+                <span class="tile__utilcopy">
+                  <span class="tile__label" data-i18n="hub.tile.controls">CONTROLS</span>
+                  <span class="tile__meta" data-i18n="hub.tile.controls_meta">Keys</span>
+                </span>
               </button>
             </nav>
           </div>

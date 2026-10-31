@@ -8,8 +8,12 @@ extends RefCounted
 static func install_top_widgets(hud) -> void:
 	hud._upgrade_status_card = AegisPanel.new()
 	hud._upgrade_status_card.name = "UpgradeStatusCard"
+	hud._upgrade_status_card.cut_top_left = 8.0
+	hud._upgrade_status_card.cut_bottom_right = 6.0
 	hud._upgrade_status_card.accent_side = "left"
-	hud._upgrade_status_card.accent_color = AegisTokens.INFO
+	hud._upgrade_status_card.accent_color = AegisTokens.ABILITY
+	hud._upgrade_status_card.accent_width = 3.0
+	hud._upgrade_status_card.tactical_header = true
 	hud._upgrade_status_card.clip_contents = true
 	hud._upgrade_status_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hud._upgrade_status_card.visible = false
@@ -25,7 +29,7 @@ static func install_top_widgets(hud) -> void:
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	content.add_child(row)
 
-	var heading: Label = hud._label_key("hud.upg_chip_title", "label_s", AegisTokens.INFO)
+	var heading: Label = hud._label_key("hud.upg_chip_title", "label_s", AegisTokens.ABILITY)
 	row.add_child(heading)
 
 	hud._upgrade_status_value = hud._label("0 / 2", "mono_s", AegisTokens.INK)
@@ -47,7 +51,7 @@ static func install_top_widgets(hud) -> void:
 		"background", AegisTheme.flat_style(AegisTokens.PANEL_3)
 	)
 	hud._upgrade_charge_bar.add_theme_stylebox_override(
-		"fill", AegisTheme.flat_style(AegisTokens.INFO)
+		"fill", AegisTheme.flat_style(AegisTokens.ABILITY)
 	)
 	content.add_child(hud._upgrade_charge_bar)
 

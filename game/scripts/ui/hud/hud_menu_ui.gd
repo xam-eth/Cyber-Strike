@@ -16,6 +16,9 @@ static func build_pause(hud) -> void:
 	hud._pause_panel.bezel = true
 	hud._pause_panel.cut_top_left = AegisBezel.CUT_LG
 	hud._pause_panel.cut_bottom_right = AegisBezel.CUT_LG
+	hud._pause_panel.accent_side = "top"
+	hud._pause_panel.accent_color = AegisTokens.INFO
+	hud._pause_panel.accent_width = 3.0
 	# A modal is read, not seen through: at the soft fill the thumb stick and the
 	# fire tile drew a faint ring and a faint corner across the card's actions.
 	hud._pause_panel.surface_alpha = AegisTokens.PANEL_ALPHA
@@ -110,6 +113,9 @@ static func build_results(hud) -> void:
 	hud._results_panel.bezel = true
 	hud._results_panel.cut_top_left = AegisBezel.CUT_LG
 	hud._results_panel.cut_bottom_right = AegisBezel.CUT_LG
+	hud._results_panel.accent_side = "top"
+	hud._results_panel.accent_color = AegisTokens.ACCENT
+	hud._results_panel.accent_width = 3.0
 	hud._results_panel.visible = false
 	hud.add_child(hud._results_panel)
 

@@ -461,6 +461,21 @@ func _run_smoke_test() -> void:
 		),
 		"ADS uses an optic glyph and retains a discoverable help description",
 	)
+	var op_badge := controls.get("_health_tier_badge") as Label
+	var ammo_chip_ctrl := controls.get("_touch_ammo_chip") as Control
+	var mag_bar := ammo_chip_ctrl.get("mag_bar") as ProgressBar if ammo_chip_ctrl != null else null
+	var upg_card := controls.get("_upgrade_status_card") as Control
+	_expect(
+		(
+			is_instance_valid(op_badge)
+			and op_badge.text.begins_with("T")
+			and is_instance_valid(mag_bar)
+			and mag_bar.max_value >= 1.0
+			and is_instance_valid(upg_card)
+			and Color(upg_card.get("accent_color")) == Color("b79cff")
+		),
+		"HUD exposes live operative tier badge, magazine fill bar, and violet run-mod separation",
+	)
 
 	var rest_fov := player_camera.fov
 	_send_screen_touch(controls, 90, aim_button.get_global_rect().get_center(), true)

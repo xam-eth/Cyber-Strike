@@ -10,8 +10,12 @@ var _message: String = ""
 
 
 func _ready() -> void:
+	cut_top_left = 10.0
+	cut_bottom_right = 10.0
 	accent_color = AegisTokens.INFO
 	accent_side = "left"
+	accent_width = 3.0
+	tactical_header = true
 	super._ready()
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_message_label = Label.new()
@@ -84,7 +88,10 @@ func layout_for(hud) -> void:
 		right = minf(right, hud._skill_button.position.x - inset)
 	var height: float = hud._to_layout(48.0)
 	var top: float = hud.size.y - hud._safe_bottom - hud._to_layout(10.0) - height
-	var width: float = maxf(right - left, hud._to_layout(96.0))
-	UiLayout.place(hud, self, 0.0, 0.0, 0.0, 0.0, Rect2(left, top, width, height))
+	var lane_w: float = maxf(right - left, hud._to_layout(96.0))
+	var max_w: float = hud._to_layout(420.0)
+	var width: float = minf(lane_w, maxf(max_w, hud._to_layout(96.0)))
+	var x: float = left + maxf((lane_w - width) * 0.5, 0.0)
+	UiLayout.place(hud, self, 0.0, 0.0, 0.0, 0.0, Rect2(x, top, width, height))
 	if visible:
 		notification(Container.NOTIFICATION_SORT_CHILDREN)

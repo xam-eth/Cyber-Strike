@@ -158,6 +158,7 @@ var _scrim: ColorRect
 
 var _health_heading: Label
 var _health_value_label: Label
+var _health_tier_badge: Label
 var _health_bar: SegmentedBar
 var _wave_title_label: Label
 var _wave_state_label: Label
@@ -231,6 +232,7 @@ var _soft_lock: bool = false:
 		queue_redraw()
 var _hostile_camera: Camera3D
 var _hostile_source: Node
+var _last_compass_yaw: float = -999.0
 var _help_remaining: float = HELP_VISIBLE_SECONDS
 
 
@@ -287,6 +289,12 @@ func _process(delta: float) -> void:
 			_help_panel.visible = false
 	if (_aiming or _state.play_phase == "defense") and not get_tree().paused:
 		needs_redraw = true
+	elif is_instance_valid(_hostile_camera) and not get_tree().paused:
+		var fwd := -_hostile_camera.global_transform.basis.z
+		var yaw := atan2(fwd.x, -fwd.z)
+		if absf(wrapf(yaw - _last_compass_yaw, -PI, PI)) > 0.005:
+			_last_compass_yaw = yaw
+			needs_redraw = true
 	# A paused tree cannot change anything this HUD draws: cooldowns do not tick,
 	# the reticle does not breathe, the thumb pockets are empty. The docks are the
 	# most expensive thing `_draw` builds and they were being rebuilt every frame
@@ -375,7 +383,11 @@ func set_recovery_status(
 	action: String,
 	guard_count: int = 0,
 	guidance: String = "",
+	has_target: bool = false,
+	target_pos: Vector3 = Vector3.ZERO,
 ) -> void:
+	_state.objective_has_target = has_target
+	_state.objective_world_pos = target_pos
 	if (
 		_state.recovery_title == title
 		and _state.recovery_detail == detail
@@ -782,8 +794,12 @@ func _build_ui() -> void:
 func _build_health_card() -> void:
 	_health_card = AegisPanel.new()
 	_health_card.name = "HealthCard"
+	_health_card.cut_top_right = 10.0
+	_health_card.cut_bottom_left = 6.0
 	_health_card.accent_side = "left"
 	_health_card.accent_color = AegisTokens.OK
+	_health_card.accent_width = 3.0
+	_health_card.tactical_header = true
 	_health_card.clip_contents = true
 	_top_bar.add_child(_health_card)
 
@@ -792,10 +808,13 @@ func _build_health_card() -> void:
 	_health_card.add_child(content)
 
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 8)
+	row.add_theme_constant_override("separation", 6)
 	content.add_child(row)
-	_health_heading = _label_key("hud.vitals", "label", AegisTokens.INK_3)
+	_health_heading = _label_key("hud.vitals", "label", AegisTokens.OK)
 	row.add_child(_health_heading)
+	_health_tier_badge = _label("T1", "mono_s", AegisTokens.INFO)
+	_health_tier_badge.name = "OperativeTierBadge"
+	row.add_child(_health_tier_badge)
 	_health_value_label = _label("100 / 100", "mono_m", AegisTokens.INK)
 	_health_value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_health_value_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -1319,6 +1338,8 @@ func _draw() -> void:
 		)
 		for bearing in bearings:
 			HudHostileBearings.draw_marker(self, bearing, _to_layout(1.0))
+	if not _player_down and not get_tree().paused and not _results_visible():
+		HudRenderer.draw_tactical_compass(self)
 	if not _player_down and not get_tree().paused:
 		var spread := 5.0 + (_fire_flash_remaining / 0.15) * 6.0
 		if _move_touch_id != -1:
@@ -1335,7 +1356,8 @@ func _draw() -> void:
 			Color(AegisTokens.VOID, 0.7),
 			_hit_confirm_remaining > 0.0,
 			maxf(_to_layout(1.0), 0.75),
-			_soft_lock
+			_soft_lock,
+			_aiming
 		)
 	if _touch_mode or _move_touch_id != -1:
 		HudRenderer.joystick(

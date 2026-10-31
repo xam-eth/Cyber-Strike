@@ -7,9 +7,16 @@ extends AegisPanel
 var weapon_label: Label
 var tier_label: Label
 var value_label: Label
+var mag_bar: ProgressBar
 
 
 func _ready() -> void:
+	cut_top_left = 8.0
+	cut_top_right = 0.0
+	accent_side = "top"
+	accent_color = AegisTokens.INFO
+	accent_width = 2.0
+	tactical_header = true
 	super._ready()
 	show_brackets = false
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -17,15 +24,15 @@ func _ready() -> void:
 		"panel",
 		AegisTheme.panel_style(
 			Color(AegisTokens.PANEL, AegisTokens.PANEL_ALPHA),
-			AegisTokens.LINE,
+			AegisTokens.LINE_HI,
 			1,
 			AegisTokens.RADIUS,
-			2.0
+			3.0
 		)
 	)
 	var readout := VBoxContainer.new()
 	readout.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	readout.add_theme_constant_override("separation", 0)
+	readout.add_theme_constant_override("separation", 1)
 	add_child(readout)
 	weapon_label = Label.new()
 	weapon_label.name = "EquippedWeapon"
@@ -61,6 +68,20 @@ func _ready() -> void:
 	value_label.set_meta("aegis_scale", 1.0)
 	AegisTheme.style_label(value_label, "mono_s", AegisTokens.INK)
 	readout.add_child(value_label)
+	mag_bar = ProgressBar.new()
+	mag_bar.name = "MagazineBar"
+	mag_bar.show_percentage = false
+	mag_bar.min_value = 0.0
+	mag_bar.max_value = 24.0
+	mag_bar.value = 24.0
+	mag_bar.custom_minimum_size = Vector2(0.0, 3.0)
+	mag_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	mag_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	mag_bar.add_theme_stylebox_override(
+		"background", AegisTheme.flat_style(Color(AegisTokens.PANEL_3, 0.95))
+	)
+	mag_bar.add_theme_stylebox_override("fill", AegisTheme.flat_style(AegisTokens.INFO))
+	readout.add_child(mag_bar)
 
 
 func set_weapon(short_name: String) -> void:
@@ -80,6 +101,17 @@ func set_ammo(remaining: int, capacity: int, reloading: bool) -> void:
 		AegisText.apply(value_label, "hud.reloading")
 	else:
 		value_label.text = "%d/%d" % [remaining, capacity]
+	var low_ammo: bool = remaining > 0 and remaining <= maxi(capacity / 3, 1)
+	var bar_col: Color = AegisTokens.INFO
+	if reloading or low_ammo:
+		bar_col = AegisTokens.ACCENT
+	elif remaining <= 0:
+		bar_col = AegisTokens.DANGER
+	accent_color = bar_col
+	if is_instance_valid(mag_bar):
+		mag_bar.max_value = maxf(float(capacity), 1.0)
+		mag_bar.value = 0.0 if reloading else float(clampi(remaining, 0, maxi(capacity, 1)))
+		mag_bar.add_theme_stylebox_override("fill", AegisTheme.flat_style(bar_col))
 	value_label.add_theme_color_override(
 		"font_color",
 		(

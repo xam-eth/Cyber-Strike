@@ -554,8 +554,8 @@ body[data-screen='opening'] .plate--opening::after {
 
 .screen__inner.hub {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(88px, 12vw, 118px);
-  gap: clamp(8px, 1.4vw, 16px);
+  grid-template-columns: minmax(0, 1fr) clamp(144px, 19.5vw, 224px);
+  gap: clamp(10px, 1.6vw, 18px);
   align-items: stretch;
   width: 100%;
   padding-block: 0;
@@ -564,56 +564,97 @@ body[data-screen='opening'] .plate--opening::after {
 .hub__main {
   display: flex;
   flex-direction: column;
-  gap: clamp(6px, 1.2vh, 12px);
+  gap: clamp(6px, 1.3vh, 11px);
   min-width: 0;
   min-height: 0;
 }
 
 .hub__head {
-  display: flex;
-  align-items: baseline;
-  gap: var(--s3);
-  min-height: 0;
-}
-
-.hub__head .eyebrow {
-  color: var(--accent);
-}
-
-.hub__head {
+  position: relative;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 8px;
+  gap: 10px;
+  min-height: 0;
+  padding-bottom: 5px;
+  border-bottom: 1px solid rgba(84, 200, 255, 0.22);
+}
+
+.hub__head::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: 72px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), rgba(84, 200, 255, 0.65));
+}
+
+.hub__head .eyebrow {
+  color: var(--info);
+  letter-spacing: 0.24em;
 }
 
 .hub__titles {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
   min-width: 0;
+}
+
+.hub__telemetry {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.hub__cachechip {
+  padding: 4px 8px;
+  font-family: var(--font-ui);
+  font-size: clamp(8.5px, 1.4vh, 10.5px);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--info);
+  background: linear-gradient(180deg, rgba(16, 34, 48, 0.92), rgba(6, 13, 20, 0.94));
+  box-shadow:
+    inset 0 0 0 1px rgba(84, 200, 255, 0.42),
+    inset 2px 0 0 var(--info);
+  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 0 100%);
+  white-space: nowrap;
+}
+
+.hub__cachechip[data-complete='true'] {
+  color: var(--ok);
+  box-shadow:
+    inset 0 0 0 1px rgba(55, 224, 140, 0.48),
+    inset 2px 0 0 var(--ok);
 }
 
 .hub__wallet {
   flex: 0 0 auto;
-  padding: 3px 8px;
+  padding: 4px 10px;
   font-family: var(--font-mono, var(--font-ui));
   font-size: clamp(9px, 1.5vh, 11px);
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--accent);
-  background: rgba(6, 11, 17, 0.86);
-  box-shadow: inset 0 0 0 1px rgba(255, 176, 32, 0.36);
+  background: linear-gradient(180deg, rgba(28, 22, 10, 0.92), rgba(8, 12, 18, 0.95));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 176, 32, 0.48),
+    inset 0 1px 0 rgba(255, 220, 140, 0.22);
   clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+  white-space: nowrap;
 }
 
 .hub__title {
   margin: 0;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: clamp(15px, 2.7vh, 24px);
-  letter-spacing: 0.16em;
+  font-size: clamp(16px, 2.9vh, 26px);
+  letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--ink);
   text-shadow: 0 2px 14px rgba(0, 0, 0, 0.9);
@@ -624,9 +665,9 @@ body[data-screen='opening'] .plate--opening::after {
 .carousel {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: clamp(6px, 1.1vw, 12px);
+  gap: clamp(6px, 1vw, 11px);
   flex: 1 1 auto;
-  min-height: clamp(120px, 42vh, 240px);
+  min-height: clamp(122px, 41vh, 248px);
 }
 
 .wcard {
@@ -639,49 +680,58 @@ body[data-screen='opening'] .plate--opening::after {
   overflow: hidden;
   text-align: left;
   color: var(--ink);
-  background: rgba(6, 11, 17, 0.9);
+  background: rgba(6, 11, 17, 0.94);
   cursor: pointer;
+  filter: saturate(0.84) brightness(0.86);
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%);
   transition:
     transform var(--motion-base) var(--ease),
     filter var(--motion-base) var(--ease);
 }
 
+/* Top telemetry accent bar per card */
+.wcard::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  z-index: 3;
+  background: linear-gradient(90deg, rgba(84, 200, 255, 0.65), transparent 82%);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.wcard[data-mode='recovery']::before {
+  background: linear-gradient(90deg, var(--ok), var(--info) 65%, transparent);
+  opacity: 0.9;
+}
+
+.wcard[aria-selected='true']::before {
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), #ffd982 55%, var(--info));
+  opacity: 1;
+}
+
 /* The hub plate is the one screen the player sits on: the command deck is lit
    up so the theatre cards read as windows onto a world, not as swatches. */
 body[data-screen='hub'] .plate--hub {
-  filter: saturate(1.08) brightness(1.16);
-  filter: saturate(0.86) brightness(0.8);
-}
-
-/* Each theatre has its own silhouette, cut at the one 45 degree angle the
-   product uses: the frontier drops its trailing foot, the station shears its
-   leading top corner, the empty slot is notched on both diagonals. */
-.wcard {
-  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
-}
-
-.wcard:nth-of-type(2) {
-  clip-path: polygon(18px 0, 100% 0, 100% 100%, 0 100%, 0 18px);
-}
-
-.wcard:nth-of-type(3) {
-  clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 9px 100%, 0 calc(100% - 9px));
+  filter: saturate(0.95) brightness(0.84);
 }
 
 .wcard[aria-selected='true'] {
-  filter: none;
+  filter: saturate(1.08) brightness(1.04);
   transform: translateY(-2px);
 }
 
 .wcard:hover,
 .wcard:focus-visible {
-  filter: saturate(0.95) brightness(0.9);
+  filter: saturate(1) brightness(0.98);
   outline: none;
 }
 
 .wcard[aria-selected='true']:hover,
 .wcard[aria-selected='true']:focus-visible {
-  filter: none;
+  filter: saturate(1.1) brightness(1.06);
 }
 
 .wcard__art {
@@ -689,36 +739,36 @@ body[data-screen='hub'] .plate--hub {
   inset: 0;
   background-position: center;
   background-size: cover;
-  transform: scale(1.02);
+  transform: scale(1.03);
 }
 
 .wcard__art--frostline {
   background-image:
-    linear-gradient(160deg, rgba(84, 200, 255, 0.18), rgba(4, 7, 10, 0) 60%),
+    linear-gradient(160deg, rgba(84, 200, 255, 0.22), rgba(4, 7, 10, 0) 60%),
     url('./art/web/world-frostline-relay.jpg');
 }
 
 .wcard__art--verdant {
   background-image:
-    linear-gradient(160deg, rgba(55, 224, 140, 0.24), rgba(4, 7, 10, 0) 62%),
+    linear-gradient(160deg, rgba(55, 224, 140, 0.26), rgba(4, 7, 10, 0) 62%),
     url('./art/web/world-verdant-bloom.jpg');
 }
 
 .wcard__art--emberfall {
   background-image:
-    linear-gradient(160deg, rgba(255, 128, 36, 0.28), rgba(4, 7, 10, 0) 62%),
+    linear-gradient(160deg, rgba(255, 176, 32, 0.24), rgba(4, 7, 10, 0) 62%),
     url('./art/web/world-emberfall-foundry.jpg');
 }
 
 .wcard__art--station {
   background-image:
-    linear-gradient(160deg, rgba(130, 170, 255, 0.2), rgba(4, 7, 10, 0) 60%),
+    linear-gradient(160deg, rgba(84, 200, 255, 0.22), rgba(4, 7, 10, 0) 60%),
     url('./art/web/world-vanguard-station.jpg');
 }
 
 .wcard__art--titans {
   background-image:
-    linear-gradient(160deg, rgba(255, 196, 72, 0.22), rgba(4, 7, 10, 0) 60%),
+    linear-gradient(160deg, rgba(255, 196, 72, 0.24), rgba(4, 7, 10, 0) 60%),
     url('./art/web/world-titans.jpg');
 }
 
@@ -728,47 +778,61 @@ body[data-screen='hub'] .plate--hub {
     linear-gradient(180deg, rgba(12, 20, 28, 0.96), rgba(5, 8, 12, 0.98));
 }
 
-/* Grade so the name and the state stay legible at 150 px tall. */
+/* Grade + glass footer band so the sector title & role pop crisply */
 .wcard__art::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(4, 7, 10, 0.1) 0%, rgba(4, 7, 10, 0.42) 52%, rgba(4, 7, 10, 0.95) 100%);
+  background:
+    linear-gradient(180deg, rgba(4, 7, 10, 0.34) 0%, rgba(4, 7, 10, 0.06) 32%, rgba(4, 7, 10, 0.62) 66%, rgba(4, 8, 13, 0.97) 100%);
 }
 
 .wcard__no {
   position: absolute;
-  top: 6px;
-  left: 6px;
-  padding: 1px 5px;
+  top: 7px;
+  left: 7px;
+  z-index: 2;
+  padding: 2px 6px;
   font-family: var(--font-ui);
   font-size: 9px;
   font-weight: 600;
-  letter-spacing: 0.12em;
-  color: var(--ink-2);
-  background: rgba(4, 7, 10, 0.72);
-  box-shadow: inset 0 0 0 1px rgba(78, 106, 126, 0.5);
+  letter-spacing: 0.14em;
+  color: var(--info);
+  background: rgba(5, 10, 15, 0.86);
+  box-shadow: inset 0 0 0 1px rgba(84, 200, 255, 0.42);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%);
+}
+
+.wcard[aria-selected='true'] .wcard__no {
+  color: var(--accent-ink);
+  background: var(--accent);
+  box-shadow: none;
 }
 
 .wcard__copy {
   position: absolute;
   inset: auto 0 0 0;
+  z-index: 2;
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
   padding: clamp(6px, 1vw, 10px);
+  border-top: 1px solid rgba(84, 200, 255, 0.18);
+  background: linear-gradient(180deg, rgba(7, 13, 20, 0.56), rgba(5, 9, 14, 0.92));
   min-width: 0;
 }
 
 .wcard[aria-selected='true'] .wcard__copy {
-  padding-right: 24px;
+  padding-right: 26px;
+  border-top-color: rgba(255, 176, 32, 0.52);
+  background: linear-gradient(180deg, rgba(24, 20, 10, 0.68), rgba(7, 11, 16, 0.95));
 }
 
 .wcard__name {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: clamp(11px, 1.85vh, 15px);
-  line-height: 1.08;
+  font-size: clamp(11px, 1.9vh, 15.5px);
+  line-height: 1.06;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--ink);
@@ -783,30 +847,35 @@ body[data-screen='hub'] .plate--hub {
 .wcard__role {
   font-family: var(--font-ui);
   font-size: clamp(8px, 1.4vh, 10px);
-  letter-spacing: 0.1em;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
-  color: var(--ink-2);
+  color: var(--info);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+.wcard[data-mode='recovery'] .wcard__role {
+  color: var(--ok);
+}
+
 .wcard__state {
   position: absolute;
-  top: 6px;
-  right: 6px;
+  top: 7px;
+  right: 7px;
+  z-index: 2;
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 1px 5px;
+  padding: 2px 6px;
   font-family: var(--font-ui);
-  font-size: 9px;
+  font-size: 8.5px;
   font-weight: 600;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--ok);
-  background: rgba(4, 7, 10, 0.72);
-  box-shadow: inset 0 0 0 1px rgba(55, 224, 140, 0.38);
+  background: rgba(5, 10, 15, 0.86);
+  box-shadow: inset 0 0 0 1px rgba(55, 224, 140, 0.45);
 }
 
 .wcard__state .ico {
@@ -824,27 +893,28 @@ body[data-screen='hub'] .plate--hub {
   box-shadow: inset 0 0 0 1px rgba(78, 106, 126, 0.4);
 }
 
-/* The selection frame: an inset rim that follows the same cut as the card, and
-   a lit tick in the corner it cuts. */
+/* The selection frame: an inset rim + amber tactical glow */
 .wcard::after {
   content: '';
   position: absolute;
   inset: 0;
+  z-index: 3;
   pointer-events: none;
-  box-shadow: inset 0 0 0 1px rgba(78, 106, 126, 0.34);
+  box-shadow: inset 0 0 0 1px rgba(78, 106, 126, 0.42);
   transition: box-shadow var(--motion-base) var(--ease);
 }
 
 .wcard[aria-selected='true']::after {
   box-shadow:
     inset 0 0 0 2px var(--accent),
-    inset 0 0 34px -8px rgba(255, 176, 32, 0.55);
+    inset 0 0 32px -8px rgba(255, 176, 32, 0.62);
 }
 
 .wcard__tick {
   position: absolute;
   right: 7px;
   bottom: 7px;
+  z-index: 4;
   display: grid;
   place-items: center;
   width: 18px;
@@ -869,12 +939,27 @@ body[data-screen='hub'] .plate--hub {
   align-items: flex-start;
 }
 
-/* Carousel controls: two machined arrows, the position dots, and the reading. */
-.carousel__foot {
+/* Tactical Mission Briefing Strip under the theatre deck */
+.hub__intel {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: var(--s2);
-  min-height: 26px;
+  gap: clamp(6px, 1vw, 10px);
+  min-height: clamp(28px, 5.2vh, 38px);
+  padding: 4px 10px 4px 6px;
+  background: linear-gradient(90deg, rgba(13, 24, 34, 0.94), rgba(7, 13, 20, 0.9));
+  box-shadow:
+    inset 0 0 0 1px rgba(84, 200, 255, 0.28),
+    inset 3px 0 0 var(--info);
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
+  min-width: 0;
+}
+
+.carousel__nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
 }
 
 .cbtn {
@@ -886,8 +971,8 @@ body[data-screen='hub'] .plate--hub {
   border: 0;
   font-size: 12px;
   color: var(--ink-2);
-  background: rgba(8, 13, 19, 0.78);
-  clip-path: polygon(6px 0, 100% 0, 100% 100%, 0 100%, 0 6px);
+  background: rgba(5, 9, 14, 0.86);
+  clip-path: polygon(5px 0, 100% 0, 100% 100%, 0 100%, 0 5px);
   box-shadow: inset 0 0 0 1px var(--hair);
   cursor: pointer;
 }
@@ -903,12 +988,12 @@ body[data-screen='hub'] .plate--hub {
 .dots {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
 }
 
 .dots i {
   display: block;
-  width: 12px;
+  width: 10px;
   height: 3px;
   background: rgba(78, 106, 126, 0.55);
   transform: skewX(-24deg);
@@ -916,19 +1001,84 @@ body[data-screen='hub'] .plate--hub {
 }
 
 .dots i[data-active='true'] {
+  width: 16px;
   background: var(--accent);
-  box-shadow: 0 0 10px rgba(255, 176, 32, 0.6);
+  box-shadow: 0 0 10px rgba(255, 176, 32, 0.65);
+}
+
+.intel__badge {
+  flex: 0 0 auto;
+  padding: 2px 7px;
+  font-family: var(--font-display);
+  font-size: clamp(9px, 1.5vh, 11px);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: rgba(255, 176, 32, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(255, 176, 32, 0.45);
+  white-space: nowrap;
+}
+
+.intel__badge[data-tone='recovery'] {
+  color: var(--ok);
+  background: rgba(55, 224, 140, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(55, 224, 140, 0.48);
 }
 
 .carousel__line {
+  flex: 1 1 auto;
+  min-width: 0;
   font-family: var(--font-ui);
-  font-size: var(--text-micro);
-  letter-spacing: var(--track-label);
+  font-size: clamp(9px, 1.5vh, 11px);
+  font-weight: 500;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--ink-3);
+  color: var(--ink);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.intel__chip {
+  flex: 0 0 auto;
+  padding: 2px 7px;
+  font-family: var(--font-ui);
+  font-size: clamp(8px, 1.35vh, 9.5px);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+@media (max-width: 1180px) {
+  .intel__chip--reward {
+    display: none;
+  }
+}
+
+.intel__chip--threat {
+  color: var(--info);
+  background: rgba(84, 200, 255, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(84, 200, 255, 0.34);
+}
+
+.intel__chip--reward {
+  color: var(--accent);
+  background: rgba(255, 176, 32, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(255, 176, 32, 0.34);
+}
+
+@media (max-width: 1080px) {
+  .intel__chip--reward {
+    display: none;
+  }
+}
+
+@media (max-width: 880px) {
+  .intel__chip--threat {
+    display: none;
+  }
 }
 
 .hub__deploy {
@@ -942,54 +1092,172 @@ body[data-screen='hub'] .plate--hub {
   --tr: var(--cut-lg);
   --bl: var(--cut-xs);
   flex: 0 0 auto;
-  min-width: clamp(180px, 26vw, 260px);
+  min-width: clamp(190px, 28vw, 290px);
   justify-content: flex-start;
 }
 
 .hub__hint {
   margin: 0;
   min-width: 0;
+  padding: 5px 10px;
   font-family: var(--font-ui);
-  font-size: var(--text-micro);
+  font-size: clamp(8.5px, 1.4vh, 10px);
+  font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--ink-3);
+  color: var(--ink-2);
+  background: rgba(7, 13, 20, 0.78);
+  box-shadow:
+    inset 0 0 0 1px rgba(78, 106, 126, 0.34),
+    inset 2px 0 0 rgba(84, 200, 255, 0.55);
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* The side tiles: lobby menu entries, tall plates with the glyph over the word.
-   They are the only navigation on the hub, so they are the size of a thumb. */
+/* Command Deck Right Column: Live Operative Loadout Card + Utility Plates */
 .side {
   display: flex;
   flex-direction: column;
-  gap: clamp(6px, 1vh, 10px);
+  gap: clamp(6px, 1.1vh, 10px);
   min-width: 0;
 }
 
 .tile {
   position: relative;
-  flex: 1 1 0;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 2px;
-  min-height: 0;
-  padding: clamp(6px, 1.4vh, 12px) clamp(8px, 1.2vw, 12px);
   border: 0;
+  min-height: 0;
   text-align: left;
   color: var(--ink-2);
   background:
-    linear-gradient(180deg, rgba(22, 36, 48, 0.92), rgba(6, 11, 17, 0.94));
-  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
-  box-shadow: inset 0 0 0 1px var(--hair), inset 0 1px 0 rgba(160, 200, 225, 0.12);
+    linear-gradient(165deg, rgba(20, 34, 48, 0.95), rgba(6, 11, 17, 0.96));
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(84, 200, 255, 0.26),
+    inset 0 1px 0 rgba(160, 210, 238, 0.16);
   cursor: pointer;
   overflow: hidden;
   transition:
     color var(--motion-fast) var(--ease),
-    transform var(--motion-fast) var(--ease);
+    transform var(--motion-fast) var(--ease),
+    box-shadow var(--motion-fast) var(--ease);
+}
+
+.tile--op {
+  flex: 1.85 1 0;
+  flex-direction: row;
+  align-items: stretch;
+  gap: clamp(7px, 1vw, 11px);
+  padding: clamp(6px, 1.2vh, 10px);
+  background:
+    radial-gradient(circle at 18% 24%, rgba(84, 200, 255, 0.16), transparent 62%),
+    linear-gradient(165deg, rgba(22, 38, 54, 0.96), rgba(6, 11, 18, 0.98));
+  box-shadow:
+    inset 0 0 0 1px rgba(84, 200, 255, 0.42),
+    inset 3px 0 0 var(--info);
+}
+
+.tile--util {
+  flex: 0.82 1 0;
+  flex-direction: row;
+  align-items: center;
+  gap: clamp(8px, 1vw, 11px);
+  padding: clamp(5px, 1vh, 9px) clamp(8px, 1.1vw, 12px);
+}
+
+.tile__portrait {
+  position: relative;
+  flex: 0 0 clamp(44px, 6.2vw, 72px);
+  align-self: stretch;
+  background: linear-gradient(180deg, rgba(84, 200, 255, 0.14), rgba(4, 8, 13, 0.94));
+  box-shadow: inset 0 0 0 1px rgba(84, 200, 255, 0.36);
+  clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 5px);
+  overflow: hidden;
+}
+
+.tile__portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 15%;
+  display: block;
+}
+
+.tile__tier {
+  position: absolute;
+  left: 3px;
+  bottom: 3px;
+  padding: 1px 5px;
+  font-family: var(--font-display);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--accent-ink);
+  background: var(--accent);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%);
+}
+
+.tile__opbody {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+}
+
+.tile__eyebrow {
+  font-family: var(--font-ui);
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--info);
+}
+
+.tile__opname {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(13px, 2.4vh, 18px);
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.tile__stats {
+  font-family: var(--font-ui);
+  font-size: clamp(8.5px, 1.4vh, 10px);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--ok);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tile__cta {
+  margin-top: auto;
+  padding-top: 2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--font-ui);
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.tile__utilcopy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
 }
 
 /* An amber slug on the leading edge is what marks the hovered tile: the same
@@ -1008,6 +1276,9 @@ body[data-screen='hub'] .plate--hub {
 .tile:focus-visible {
   color: var(--ink);
   transform: translateX(-2px);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 176, 32, 0.65),
+    inset 0 1px 0 rgba(255, 224, 155, 0.25);
   outline: none;
 }
 
@@ -1017,9 +1288,23 @@ body[data-screen='hub'] .plate--hub {
 }
 
 .tile__ico {
-  font-size: clamp(16px, 3.4vh, 22px);
-  color: var(--accent);
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: clamp(24px, 4.4vh, 32px);
+  height: clamp(24px, 4.4vh, 32px);
+  font-size: clamp(13px, 2.4vh, 17px);
+  color: var(--info);
+  background: rgba(84, 200, 255, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(84, 200, 255, 0.32);
+  clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
   line-height: 0;
+}
+
+.tile:hover .tile__ico {
+  color: var(--accent);
+  background: rgba(255, 176, 32, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(255, 176, 32, 0.48);
 }
 
 .tile__label {
@@ -1028,16 +1313,17 @@ body[data-screen='hub'] .plate--hub {
   font-size: clamp(10px, 1.9vh, 13px);
   letter-spacing: 0.12em;
   text-transform: uppercase;
+  color: var(--ink);
   white-space: nowrap;
 }
 
 .tile__meta {
   max-width: 100%;
   font-family: var(--font-ui);
-  font-size: 8.5px;
-  letter-spacing: 0.03em;
+  font-size: clamp(8.5px, 1.4vh, 10px);
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--ink-3);
+  color: var(--ink-2);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1226,15 +1512,26 @@ body[data-screen='hero'] .plate--hero {
   }
 
   .carousel {
-    min-height: 124px;
+    min-height: 118px;
   }
 
   .wcard__role {
     display: none;
   }
 
-  .hub__hint {
+  .hub__hint,
+  .hub__cachechip,
+  .tile__cta,
+  .tile__stats {
     display: none;
+  }
+
+  .screen__inner.hub {
+    grid-template-columns: minmax(0, 1fr) 140px;
+  }
+
+  .tile__portrait {
+    flex-basis: 38px;
   }
 
   .carousel__line {
@@ -1246,7 +1543,7 @@ body[data-screen='hero'] .plate--hero {
     width: auto;
   }
 
-  .tile__meta {
+  .tile--util .tile__meta {
     display: none;
   }
 

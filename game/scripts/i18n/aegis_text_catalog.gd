@@ -103,8 +103,8 @@ const STRINGS := {
 		"dash.selected_cost": "SELECTED  ·  %d BP",
 		"dash.battle_points": "BATTLE POINTS",
 		"dash.runs": "RUNS",
-		"dash.hero_summary": "TIER %d  ·  HP %d  ·  ARMOUR %d%%  ·  %s",
-		"dash.arsenal_summary": "TIER %d EQUIPPED  ·  %d/%d OWNED",
+		"dash.hero_summary": "T%d · %d HP · %d%% ARM · %s",
+		"dash.arsenal_summary": "T%d EQUIPPED · %d/%d OWNED",
 		# --- operative -------------------------------------------------------
 		"hero.title": "SELECT OPERATIVE",
 		"hero.slot": "SLOT %02d",
@@ -502,8 +502,8 @@ const STRINGS := {
 		"dash.selected_cost": "DIPILIH  ·  %d BP",
 		"dash.battle_points": "BATTLE POINT",
 		"dash.runs": "SESI",
-		"dash.hero_summary": "TIER %d  ·  HP %d  ·  ZIRAH %d%%  ·  %s",
-		"dash.arsenal_summary": "TIER %d TERPASANG  ·  %d/%d DIMILIKI",
+		"dash.hero_summary": "T%d · %d HP · %d%% ZIRAH · %s",
+		"dash.arsenal_summary": "T%d TERPASANG · %d/%d MILIK",
 		# --- operative -------------------------------------------------------
 		"hero.title": "PILIH OPERATIF",
 		"hero.slot": "SLOT %02d",

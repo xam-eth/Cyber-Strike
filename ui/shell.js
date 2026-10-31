@@ -341,6 +341,21 @@ function paintWorld() {
     });
   }
   const snap = profileSnapshot();
+  const caches = snap.secured_caches && typeof snap.secured_caches === 'object'
+    ? Object.values(snap.secured_caches).filter(Boolean).length
+    : 0;
+  const blueprints = Array.isArray(snap.blueprint_ids) ? snap.blueprint_ids.length : 0;
+  const cacheChip = el('hub-cache-chip');
+  if (cacheChip) {
+    cacheChip.textContent = locale() === 'id'
+      ? `CACHE ${Math.min(caches, 2)}/2 · BP-TECH ${Math.min(blueprints, 1)}/1`
+      : `CACHES ${Math.min(caches, 2)}/2 · BLUEPRINT ${Math.min(blueprints, 1)}/1`;
+    cacheChip.dataset.complete = String(caches >= 2 && blueprints >= 1);
+  }
+  const verdantState = el('verdant-card-state');
+  if (verdantState) {
+    verdantState.textContent = caches > 0 ? `${Math.min(caches, 2)}/2` : t('world.state.open');
+  }
   const strip = el('hub-profile-strip');
   if (strip) {
     const bp = Number.isFinite(Number(snap.balance)) ? Math.max(0, Math.floor(Number(snap.balance))) : 0;
@@ -348,13 +363,24 @@ function paintWorld() {
     const best = Number.isFinite(Number(snap.best_score)) ? Math.max(0, Math.floor(Number(snap.best_score))) : 0;
     strip.textContent = t(runs === 1 ? 'hub.profile_strip_one' : 'hub.profile_strip', bp, runs, best);
   }
+  const selected = WORLDS[worldIndex()];
+  const isRecovery = selected.id === 'verdant_bloom';
+  const modeBadge = el('hub-intel-mode');
+  if (modeBadge) {
+    modeBadge.dataset.tone = isRecovery ? 'recovery' : 'defense';
+    modeBadge.textContent = t(isRecovery ? 'hub.intel.mode_recovery' : 'hub.intel.mode_defense');
+  }
+  const threatChip = el('hub-intel-threat');
+  if (threatChip) {
+    threatChip.textContent = t(isRecovery ? 'hub.intel.threat_recovery' : 'hub.intel.threat_defense');
+  }
+  const rewardChip = el('hub-intel-reward');
+  if (rewardChip) {
+    rewardChip.textContent = t(isRecovery ? 'hub.intel.reward_recovery' : 'hub.intel.reward_defense');
+  }
   const line = el('hub-world-line');
   if (line) {
-    const selected = WORLDS[worldIndex()];
-    if (selected.id === 'verdant_bloom') {
-      const caches = snap.secured_caches && typeof snap.secured_caches === 'object'
-        ? Object.values(snap.secured_caches).filter(Boolean).length
-        : 0;
+    if (isRecovery) {
       line.textContent = t(selected.lineKey, Math.min(caches, 2));
     } else {
       line.textContent = t(selected.lineKey);
@@ -1148,9 +1174,22 @@ function paintLoadout() {
     ? Math.min(Math.max(1, Number(prefs.tier) || 1), ownedTier())
     : Math.max(1, Math.min(Number(prefs.tier) || 1, completedRuns() >= 1 ? 2 : 1));
   const opCallsign = activeHero ? activeHero.callsign : 'Sable';
-  const shortWeapon = String(name).split(' ')[0] || name;
+  const activeRow = tierRow(activeOpTier);
+  const opVitals = activeRow ? activeRow.vitals : (activeOpTier >= 2 ? 106 : 100);
+  const opArmour = activeRow ? activeRow.reduction : (activeOpTier >= 2 ? 3 : 0);
+  const portraitSrc = (activeHero && tierArt(activeHero, activeOpTier)) || `./ui/art/web/hero/sable-tier-${activeOpTier}.png`;
+  const hubPortrait = el('hub-op-portrait');
+  if (hubPortrait && hubPortrait.getAttribute('src') !== portraitSrc) {
+    hubPortrait.setAttribute('src', portraitSrc);
+  }
+  const hubTier = el('hub-op-tier');
+  if (hubTier) hubTier.textContent = `T${activeOpTier}`;
+  const hubCallsign = el('hub-op-callsign');
+  if (hubCallsign) hubCallsign.textContent = String(opCallsign).toUpperCase();
+  const hubStats = el('hub-op-stats');
+  if (hubStats) hubStats.textContent = t('hub.op.stats', opVitals, opArmour);
   const hub = el('hub-operative-meta');
-  if (hub) hub.textContent = `${opCallsign} T${activeOpTier} · ${shortWeapon}`;
+  if (hub) hub.textContent = `${name} · T${tier}`;
   const deployMeta = el('hub-deploy-meta');
   if (deployMeta) deployMeta.textContent = `${opCallsign} T${activeOpTier} · ${name} T${tier}`;
   stageShow();
