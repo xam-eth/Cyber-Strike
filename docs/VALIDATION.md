@@ -4,6 +4,38 @@ This document records the latest relevant evidence and its limits. It is not a d
 
 For intended behavior, read [`GAMEPLAY_DESIGN.md`](GAMEPLAY_DESIGN.md). For required gates, read [`DEVELOPMENT.md`](DEVELOPMENT.md).
 
+## Phase 2.5 — Dashboard & Gameplay UI/UX Visual Overhaul checkpoint — 2026-10-31
+
+| Item | Current checkpoint |
+|---|---|
+| Runtime, Web Hub, Dashboard, and HUD source | `eebf957` (over `85b40d0` / `25295de` / `276b3b0`) |
+| Godot/Web CI | [41213031368](https://github.com/xam-eth/Cyber-Strike/actions/runs/41213031368) — **SUCCESS** (`Static checks`, `Headless smoke tests 39/39`, `Web preview build` including all 8 browser QA contracts) |
+| Committed Web payload | `202e7c5` |
+| `web/index.pck` | 95,466,360 bytes (`999` files); SHA-256 `2214e1d4dcb1e762ff3efcf9055c73b2a5721c1b347b178bcd2d1151af247e2e` |
+| `web/index.wasm` | 39,514,754 bytes; SHA-256 `fc74679e3b97f76878947fcd4fbe1268cbfa6188182a2e33bbc3f5dc9bfa57d0` |
+| Baseline runtime screenshots | [`../qa-evidence/ui-overhaul/before/`](../qa-evidence/ui-overhaul/before/hub-1280x720-en.png) (6 captures) |
+| Post-overhaul runtime screenshots | [`../qa-evidence/ui-overhaul/after/`](../qa-evidence/ui-overhaul/after/gameplay-1280x720-warden-combat.png) (8 captures) |
+
+### What this checkpoint verifies
+
+- **VERIFIED (Web Operations Hub Command Deck — `index.html`, `ui/art.css`, `ui/shell.js`, `ui/i18n.js`):**
+  - Upgraded the Web Hub from plain uniform boxes into a dark sci-fi Command Deck backed 100% by real `localStorage` / `roster.json` progression data across `1280×720` (EN), `844×390` (ID), and `667×375` (EN) with `scrollWidth == clientWidth` (`0` overflow) and all touch targets passing `qa_touch_scroll.mjs` & `web_qa.mjs`:
+    - Header telemetry chips (`CACHES n/2 · BLUEPRINT n/1` + `BP · RUNS · BEST`) ([`hub-1280x720-en.png`](../qa-evidence/ui-overhaul/after/hub-1280x720-en.png)).
+    - Mode-tinted chamfered theatre cards (`WAVE DEFENSE` vs `TECH HUNT` emerald) and a structured `.hub__intel` briefing strip with mode badge, theatre summary, threat composition, and milestone/blueprint reward chips ([`hub-844x390-id.png`](../qa-evidence/ui-overhaul/after/hub-844x390-id.png), [`hub-667x375-en.png`](../qa-evidence/ui-overhaul/after/hub-667x375-en.png)).
+    - Live right-rail **Operative Command Card** binding Sable's real tier portrait (`ui/art/web/hero/sable-tier-{1..5}.png`), rank chip (`T1`–`T5`), real HP/Armor stats from `tierRow()`, and equipped weapon tier.
+- **VERIFIED (Native Godot Dashboard — `stage_dashboard.gd`, `aegis_text_catalog.gd`):**
+  - Tuned hangar backdrop scrim (`0.74`) so the 3D hangar key art reads cleanly behind machined manifest plates; styled `01 OPERATIVE` (Cyan `INFO`), `02 DEPLOYMENT THEATRE` (Amber `ACCENT`), and `03 ARSENAL` (Emerald `OK`) with dual-layer glowing spines, optical thumbnail frames, right-aligned tier/mode badges (`DEFENSE` / `RECOVERY` compact mode at `<520px` height), non-truncated status copy (`TIER 1 · HP 100 · ARM 0% · FIELD READY`), and a structured `RecordRibbon` ([`godot-dashboard-1280x720.png`](../qa-evidence/ui-overhaul/after/godot-dashboard-1280x720.png), [`godot-dashboard-844x390.png`](../qa-evidence/ui-overhaul/after/godot-dashboard-844x390.png)).
+- **VERIFIED (Gameplay HUD, Tactical Compass, Modals, & Feedback — `aegis_panel.gd`, `segmented_bar.gd`, `aegis_ammo_chip.gd`, `hud_renderer.gd`, `hud_styles.gd`, `hud_encounter_ui.gd`, `hud_combat_feedback_ui.gd`, `hud_upgrade_bridge.gd`, `touch_controls.gd`):**
+  - Optical 45° corner chamfers, specular telemetry header bands, and dual-layer glowing status spines on `HealthCard`, `WaveCard`, `GuardianCard`, `UpgradeStatusCard`, and `CombatFeedback` while preserving `StyleBoxFlat` panel alpha scaling (`ui_settings_smoke.gd`) and `PausePanel`/`ResultsPanel` 22px `AegisBezel` silhouettes ([`gameplay-1280x720-en.png`](../qa-evidence/ui-overhaul/after/gameplay-1280x720-en.png)).
+  - Live **Tactical Azimuth Compass** (`TacticalCompassLayer` + `HudRenderer.draw_tactical_compass`) driven by real `Camera3D` yaw, live `WaveDirector` enemy bearings (`DANGER` / `ACCENT` boss pips), and active `RecoveryCache` world waypoints (`OK` emerald diamond), centered below `SystemRow` in normal play and automatically shifting into the left safe lane when `GuardianCard` is visible ([`gameplay-1280x720-warden-combat.png`](../qa-evidence/ui-overhaul/after/gameplay-1280x720-warden-combat.png), [`gameplay-844x390-id.png`](../qa-evidence/ui-overhaul/after/gameplay-844x390-id.png)).
+  - Live operative tier badge (`T1` / `T2 · 3%`) on `HealthCard`, specular 4-segment `SegmentedBar` on `HealthBar` & `GuardianHealthBar`, live `MagazineBar` on `TouchAmmoChip`, ADS framing brackets & vector joystick lines in `HudRenderer`, violet `AegisTokens.ABILITY` (`#b79cff`) visual separation on temporary `RUN MOD` widgets vs permanent `ACCENT`/`OK` progression, centered `420px`-capped `CombatFeedback` toast, and aligned `verdant_seed_vault` `interaction_radius = 6.0` matching `verdant_crashed_lab`.
+- **VERIFIED (Automated CI & Local Static Gates):**
+  - CI run [41213031368](https://github.com/xam-eth/Cyber-Strike/actions/runs/41213031368) passed `Static checks`, `Headless smoke tests` (**39/39 PASS** on Godot `4.7.2`), and `Web preview build` (**8/8 Browser QA suites PASS**, including full `Browser TECH HUNT E2E closure contract`).
+  - Local `./scripts/dev_check.sh` passed **7/7 groups (`0` failed steps)**: `97` GDScript files parsed/linted/formatted, `104` Python tests, `337/337` EN/ID keys, and `19/19` canonical docs.
+- **QUEUED / UNVERIFIED (roadmap boundaries):**
+  - **Queued next tracks:** Phase 3 (`Multi-Theatre & Tech Modules`) -> Phase 4 (`Kestrel`).
+  - **UNVERIFIED on physical Android hardware & human playtest:** native APK device testing and subjective human playtest sessions remain separate from automated Godot/Chromium verification.
+
 ## Track 2 — Endless Survival, Iron Warden Guardian, and EMP counterplay checkpoint — 2026-10-31
 
 | Item | Current checkpoint |
