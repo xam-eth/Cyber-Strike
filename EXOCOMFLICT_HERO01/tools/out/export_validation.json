@@ -42,7 +42,7 @@
      "TEXCOORD_0",
      "WEIGHTS_0"
     ],
-    "weight_sum_min": 0.9999998807907104,
+    "weight_sum_min": 0.9999998211860657,
     "weight_sum_max": 1.0000001192092896,
     "zero_weight_verts": 0
    },

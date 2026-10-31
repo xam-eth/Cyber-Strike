@@ -36,7 +36,6 @@ func _ready() -> void:
 	legacy_anim = _resolve_anim("Weapon_Raise_To_Aim")
 	_build_ui()
 	_run_checks()
-	_build_pivot_markers()
 	if _tree_enabled():
 		scrub.max_value = float(hero.call("get_current_animation_length"))
 	elif legacy_anim != "" and player != null:
@@ -79,7 +78,7 @@ func _tree_enabled() -> bool:
 
 func _run_checks() -> void:
 	var lines: Array = AutoRigCheck.run_checks(hero)
-	var text := "AUTO RIG CHECK — Hand_L rerig v2\nINFO  Pivot markers: white=elbow, green=NEW Hand_L wrist, red=OLD Hand_L point carried by Forearm_L\n"
+	var text := "AUTO RIG CHECK — Hand_L rerig v2 + jacket-lift weight fix (§5.14)\nINFO  Pivot markers are OFF by default (button toggles): white=elbow, green=NEW Hand_L wrist, red=OLD Hand_L point\n"
 	for l in lines:
 		text += String(l) + "\n"
 		print("[RigCheck] ", l)
@@ -267,7 +266,10 @@ func _build_pivot_markers() -> void:
 	print("[RigCheck] Hand_L pivot markers built: white=elbow green=NEW wrist red=OLD wrist")
 
 func _toggle_pivot_markers() -> void:
-	_build_pivot_markers()
+	# Markers are opt-in diagnostics only (off by default since §5.14).
+	if pivot_markers.is_empty():
+		_build_pivot_markers()
+		return
 	for marker in pivot_markers:
 		marker.visible = not marker.visible
 
