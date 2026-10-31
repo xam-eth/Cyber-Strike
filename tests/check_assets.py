@@ -263,6 +263,14 @@ assert 'position = Vector3(0, 28, 62)' in review_scene_source
 assert (root / 'source/aetherfall_connected_expanse.blend').is_file()
 assert (root / 'tools/blender/build_connected_expanse.py').is_file()
 assert (root / 'tests/world_expansion.gd').is_file()
+expanse_surfaces = {
+    # The runtime contract is Godot X/Y/Z: broad walk surfaces must be broad
+    # in X/Z and thin in Y. This catches the Blender glTF Y-up export that
+    # previously rotated the catch terrain into a blue wall.
+    'expanse_shelf.glb': ('ShelfMass', (27.0, 1.0, 23.0)),
+    'transit_spine.glb': ('TransitDeck', (11.0, 0.4, 5.0)),
+    'lowland_field.glb': ('LowlandBase', (79.0, 0.4, 71.0)),
+}
 for filename, minimum_meshes in [
     ('expanse_shelf.glb', 25),
     ('transit_spine.glb', 23),
@@ -275,6 +283,12 @@ for filename, minimum_meshes in [
     payload = json.loads(data[20:20 + json_len])
     assert len(payload.get('meshes', [])) >= minimum_meshes, filename
     assert payload.get('materials') and payload.get('textures'), filename
+    surface_name, minimum_extent = expanse_surfaces[filename]
+    surface_node = next(node for node in payload['nodes'] if node.get('name') == surface_name)
+    position_accessor = payload['accessors'][payload['meshes'][surface_node['mesh']]['primitives'][0]['attributes']['POSITION']]
+    extent = [maximum - minimum for minimum, maximum in zip(position_accessor['min'], position_accessor['max'])]
+    assert extent[0] >= minimum_extent[0] and extent[2] >= minimum_extent[2], (filename, extent)
+    assert 0.0 < extent[1] <= minimum_extent[1], f'walk surface is not Y-thin: {filename}/{extent}'
     for material in payload['materials']:
         pbr = material.get('pbrMetallicRoughness', {})
         assert material.get('normalTexture'), f'normal map missing: {filename}/{material["name"]}'

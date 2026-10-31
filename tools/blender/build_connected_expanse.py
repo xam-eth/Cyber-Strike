@@ -304,7 +304,17 @@ def export(collection, filename):
     for obj in collection.objects:
         obj.select_set(True)
     bpy.context.view_layer.objects.active = collection.objects[0]
-    bpy.ops.export_scene.gltf(filepath=os.path.join(OUT, filename), export_format="GLB", use_selection=True, export_materials="EXPORT")
+    # All runtime placement and collision contracts use Godot X/Y/Z, with Y as
+    # up. Blender's default Y-up glTF conversion swaps our authored Y/Z axes
+    # and turns the broad lowland sheet into a vertical wall in Godot. Keep the
+    # authored basis so shelf, spine, and catch field remain horizontal.
+    bpy.ops.export_scene.gltf(
+        filepath=os.path.join(OUT, filename),
+        export_format="GLB",
+        use_selection=True,
+        export_materials="EXPORT",
+        export_yup=False,
+    )
 
 
 shelf = expanse_shelf()
