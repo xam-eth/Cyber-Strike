@@ -93,6 +93,39 @@ def glb_payload(relative_path):
     chunk_size = struct.unpack_from('<I', blob, 12)[0]
     return json.loads(blob[20:20 + chunk_size])
 
+def glb_tiled_uv_max(relative_path):
+    """Read UV floats directly: accessors intentionally omit min/max in GLB."""
+    blob = (root / relative_path).read_bytes()
+    json_size = struct.unpack_from('<I', blob, 12)[0]
+    payload = json.loads(blob[20:20 + json_size])
+    binary_start = 20 + json_size + 8
+    maximum = 0.0
+    for mesh in payload.get('meshes', []):
+        for primitive in mesh.get('primitives', []):
+            index = primitive.get('attributes', {}).get('TEXCOORD_0')
+            if index is None:
+                continue
+            accessor = payload['accessors'][index]
+            if accessor.get('componentType') != 5126 or accessor.get('type') != 'VEC2':
+                continue
+            view = payload['bufferViews'][accessor['bufferView']]
+            offset = binary_start + view.get('byteOffset', 0) + accessor.get('byteOffset', 0)
+            stride = view.get('byteStride', 8)
+            for row in range(accessor['count']):
+                u, v = struct.unpack_from('<ff', blob, offset + row * stride)
+                maximum = max(maximum, abs(u), abs(v))
+    return maximum
+
+# Repeated, metre-scale UVs prevent the authored PBR maps from stretching once
+# across a large deck, terrain mass, bridge, or tower shell. This is a static
+# asset-data contract only; renderer appearance remains a Godot QA item.
+for asset in [
+    'terrain_chunk', 'cliff_face', 'rock_boulder', 'deck_6x6', 'deck_edge',
+    'beam', 'pillar', 'bridge_deck', 'bridge_support', 'walkway_deck',
+    'tower_foundation', 'tower_tier', 'tower_spire', 'energy_core',
+]:
+    assert glb_tiled_uv_max('assets/world/aetherfall/models/' + asset + '.glb') >= 1.5, asset
+
 def node_extent(payload, name):
     node = next(item for item in payload['nodes'] if item.get('name') == name)
     accessor = payload['accessors'][payload['meshes'][node['mesh']]['primitives'][0]['attributes']['POSITION']]

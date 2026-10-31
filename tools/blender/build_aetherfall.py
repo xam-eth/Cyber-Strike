@@ -456,8 +456,9 @@ def palette_materials():
 palette_materials()
 
 # ---------------------------------------------------------------------------
-# Primitive helpers. UVs come with the primitives; boxes keep their 0..1
-# per-face UV map, so the baked textures tile without a smart-project pass.
+# Primitive helpers. The former 0..1 primitive UVs made a full PBR map stretch
+# across an entire tower/bridge face. Scale UV density in authored metres so
+# the close-range material remains readable after GLB import into Godot.
 # ---------------------------------------------------------------------------
 def new_collection(name):
     c = bpy.data.collections.get(name)
@@ -469,6 +470,18 @@ def _relink(obj, coll):
     for c in list(obj.users_collection):
         c.objects.unlink(obj)
     coll.objects.link(obj)
+
+def tile_uv(obj, repeat):
+    layer = obj.data.uv_layers.active
+    if layer:
+        for item in layer.data:
+            item.uv *= repeat
+
+def material_repeat(dims, matname):
+    # Hard surface panels can carry dense paint/scratch detail; terrain remains
+    # broader so it does not look like stamped floor tiles.
+    base = 4.2 if matname in {"Rock", "Stratum", "Concrete"} else 2.35
+    return max(1.0, max(dims) / base)
 
 def mbox(coll, name, dims, pos=(0.0, 0.0, 0.0), matname="Steel", bevel=0.02,
          bevel_seg=3, rot=(0.0, 0.0, 0.0)):
@@ -487,6 +500,7 @@ def mbox(coll, name, dims, pos=(0.0, 0.0, 0.0), matname="Steel", bevel=0.02,
             mod.harden_normals = True
         except Exception:
             pass
+    tile_uv(o, material_repeat(dims, matname))
     o.data.materials.append(get_mat(matname))
     _relink(o, coll)
     return o
@@ -509,6 +523,7 @@ def mcyl(coll, name, radius, depth, pos=(0.0, 0.0, 0.0), matname="Steel",
             mod.harden_normals = True
         except Exception:
             pass
+    tile_uv(o, max(1.0, depth / (4.2 if matname in {"Rock", "Concrete"} else 2.35)))
     o.data.materials.append(get_mat(matname))
     _relink(o, coll)
     return o
@@ -519,6 +534,7 @@ def msphere(coll, name, radius, pos=(0.0, 0.0, 0.0), matname="Rock",
                                          segments=max(18, segments), ring_count=max(12, rings))
     o = bpy.context.active_object
     o.name = name
+    tile_uv(o, max(1.0, radius / 1.6))
     o.data.materials.append(get_mat(matname))
     _relink(o, coll)
     return o
@@ -622,6 +638,7 @@ def tapered_box(coll, name, w, h, d, top_scale=0.6, pos=(0.0, 0.0, 0.0),
         mod.width = bevel
         mod.segments = bevel_seg
         mod.limit_method = 'ANGLE'
+    tile_uv(o, material_repeat((w, h, d), matname))
     me.materials.append(get_mat(matname))
     _relink(o, coll)
     return o
@@ -1248,6 +1265,15 @@ def export_asset(key, coll):
         o.select_set(False)
     return None
 
+# Production rebuilds can export one visible asset family at a time while the
+# single editable .blend remains the source of truth. A blank value exports all.
+EXPORT_ONLY = {key for key in os.environ.get("AETHERFALL_EXPORT_ONLY", "").split(",") if key}
+if EXPORT_ONLY:
+    unknown = EXPORT_ONLY - set(ASSETS)
+    if unknown:
+        raise RuntimeError("Unknown AETHERFALL_EXPORT_ONLY keys: %s" % sorted(unknown))
+    print("== Aetherfall export filter: %s ==" % ", ".join(sorted(EXPORT_ONLY)))
+
 MEASUREMENTS = {}
 bpy.context.view_layer.update()
 print("== Aetherfall build: stage 5 centre + measure ==")
@@ -1267,8 +1293,9 @@ bpy.ops.file.pack_all()
 bpy.ops.wm.save_as_mainfile(filepath=os.path.join(ROOT, "source", "aetherfall_kit.blend"))
 print("== Aetherfall build: stage 5b export ==")
 for key, coll in ASSETS.items():
-    m = export_asset(key, coll)
-    m = MEASUREMENTS[key]
+    if EXPORT_ONLY and key not in EXPORT_ONLY:
+        continue
+    export_asset(key, coll)
 
 
 # ---------------------------------------------------------------------------
