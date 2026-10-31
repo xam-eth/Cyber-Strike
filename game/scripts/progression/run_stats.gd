@@ -5,6 +5,7 @@ signal stats_changed
 var run_score: int = 0
 var bp_earned: int = 0
 var eliminations: int = 0
+var guardians_defeated: int = 0
 var survival_seconds: float = 0.0
 var is_run_active: bool = false
 
@@ -38,7 +39,15 @@ func reset_run() -> void:
 	run_score = 0
 	bp_earned = 0
 	eliminations = 0
+	guardians_defeated = 0
 	survival_seconds = 0.0
+	stats_changed.emit()
+
+
+func record_guardian_defeated() -> void:
+	if not is_run_active:
+		return
+	guardians_defeated += 1
 	stats_changed.emit()
 
 

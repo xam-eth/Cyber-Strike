@@ -19,6 +19,7 @@ const WORLD_ROOTS: Array[String] = [
 ]
 const CHARACTER_ROOTS: Array[String] = [
 	"res://assets/characters/",
+	"res://assets/enemies/",
 	"res://assets/weapons/",
 	"res://content/characters/",
 	# Existing enemy actors still use this licensed shared kit. New external

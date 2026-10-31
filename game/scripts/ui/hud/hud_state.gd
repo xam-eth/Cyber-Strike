@@ -60,3 +60,8 @@ var upgrade_active_tags: String = ""
 var upgrade_charge: int = 0
 var upgrade_required: int = 2
 var upgrade_maxed: bool = false
+## Live Guardian encounter readout supplied by Main/WaveDirector (presentation only).
+var guardian_active: bool = false
+var guardian_hp: float = 0.0
+var guardian_max_hp: float = 0.0
+var guardian_phase: String = "fortified"

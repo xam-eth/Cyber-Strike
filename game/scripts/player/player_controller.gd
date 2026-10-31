@@ -220,6 +220,8 @@ func activate_skill() -> bool:
 		offset.y = 0.0
 		if offset.length_squared() > radius_squared or not enemy.has_method("apply_damage"):
 			continue
+		if enemy.has_method("apply_emp_disrupt"):
+			enemy.call("apply_emp_disrupt", self)
 		enemy.call("apply_damage", emp_pulse_damage, self)
 		targets_hit += 1
 

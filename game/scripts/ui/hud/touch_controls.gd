@@ -164,6 +164,11 @@ var _wave_state_label: Label
 var _wave_enemy_label: Label
 var _wave_chip_label: Label
 var _wave_icon: TextureRect
+var _guardian_card: AegisPanel
+var _guardian_title_label: Label
+var _guardian_phase_label: Label
+var _guardian_hp_label: Label
+var _guardian_bar: ProgressBar
 var _status_label: Label
 var _score_value_label: Label
 var _compact_label: Label
@@ -759,6 +764,7 @@ func _build_ui() -> void:
 
 	_build_health_card()
 	_build_wave_card()
+	HudEncounterUi.build_guardian_card(self)
 	_build_defense_action()
 	_build_system_row()
 	HudEncounterUi.build_run_data(self)

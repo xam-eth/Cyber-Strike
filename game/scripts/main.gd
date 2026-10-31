@@ -202,9 +202,9 @@ func _ready() -> void:
 	run_stats.stats_changed.connect(_update_status)
 	wave_director.wave_started.connect(_on_wave_started)
 	wave_director.wave_completed.connect(_on_wave_completed)
-	wave_director.wave_completed.connect(reward_service.award_wave_completion)
 	reward_service.wave_rewarded.connect(_on_wave_rewarded)
 	wave_director.enemy_spawned.connect(_on_wave_enemy_spawned)
+	wave_director.guardian_spawned.connect(_on_guardian_spawned)
 	wave_director.enemy_defeated.connect(reward_service.award_enemy_defeat)
 	reward_service.enemy_rewarded.connect(_on_enemy_rewarded)
 	wave_director.session_ended.connect(_on_wave_session_ended)
@@ -239,6 +239,13 @@ func _apply_qa_hooks() -> void:
 	if query.contains("qa_upgrade=1"):
 		run_upgrade_manager.set_seed(7)
 		run_upgrade_manager.record_milestone("qa_upgrade")
+	if query.contains("qa_guardian=1"):
+		wave_director.guardian_first_wave = 1
+		wave_director.guardian_every_n_waves = 1
+		wave_director.base_enemies_per_wave = 2
+		wave_director.initial_spawn_delay = 0.1
+		defense_preparation_seconds = 0.2
+		_request_defense()
 
 
 func _process(delta: float) -> void:
@@ -1175,6 +1182,7 @@ func _continue_to_endless() -> void:
 	if session_mode != SessionMode.MISSION_COMPLETE:
 		return
 	var return_mode := _recovery_return_mode
+	wave_director.set_endless_mode(true)
 	touch_controls.hide_results()
 	_is_paused = false
 	get_tree().paused = false
@@ -1262,6 +1270,10 @@ func _recovery_result_summary() -> String:
 		lines.append(AegisText.t("results.run_mods_summary", [run_mods]))
 	elif _extracting or not _recovery_notices.is_empty():
 		lines.append(AegisText.t("results.reset_clean"))
+	if run_stats.guardians_defeated > 0:
+		lines.append(AegisText.t("results.guardians_cleared", [run_stats.guardians_defeated]))
+	if wave_director.endless_mode and wave_director.current_wave >= 1:
+		lines.append(AegisText.t("results.endless_reached", [wave_director.current_wave]))
 	if _run_banked and _unlocked_tier_on_run > 1:
 		(
 			lines
@@ -1325,7 +1337,8 @@ func _on_wave_started(_wave_index: int, _enemy_count: int) -> void:
 	_update_status()
 
 
-func _on_wave_completed(_wave_index: int) -> void:
+func _on_wave_completed(wave_index: int) -> void:
+	reward_service.award_wave_completion(wave_index, wave_director.is_guardian_wave(wave_index))
 	_update_status()
 
 
@@ -1334,7 +1347,12 @@ func _on_enemy_rewarded(enemy: Node3D, _score_reward: int, bp_reward: int) -> vo
 	# the wave. The same earned reward appears in Results and the browser log.
 	touch_controls._feedback_panel.show_message(AegisText.t("hud.target_down_bp", [bp_reward]))
 	run_upgrade_manager.record_elimination(enemy)
-	var archetype := "SHOOTER" if enemy.is_in_group("shooter_enemies") else "RUNNER"
+	var archetype := "RUNNER"
+	if enemy.is_in_group("guardian_enemies"):
+		archetype = "GUARDIAN"
+		run_upgrade_manager.record_milestone("guardian_%d" % enemy.get_instance_id())
+	elif enemy.is_in_group("shooter_enemies"):
+		archetype = "SHOOTER"
 	print("Encounter: %s KO · +%d BP" % [archetype, bp_reward])
 
 
@@ -1349,6 +1367,29 @@ func _on_wave_rewarded(wave_index: int, bp_reward: int) -> void:
 func _on_wave_enemy_spawned(enemy: Node3D) -> void:
 	if enemy.has_signal("damage_received"):
 		enemy.connect("damage_received", _on_target_damage_received)
+	if enemy.is_in_group("guardian_enemies"):
+		if enemy.has_signal("health_changed"):
+			enemy.connect("health_changed", _on_combatant_health_changed)
+		if enemy.has_signal("phase_changed"):
+			enemy.connect("phase_changed", _on_guardian_phase_changed)
+		if enemy.has_signal("shield_broken"):
+			enemy.connect("shield_broken", _on_guardian_shield_broken)
+		_update_status()
+
+
+func _on_guardian_spawned(_guardian: Node3D, wave_index: int) -> void:
+	touch_controls._feedback_panel.show_message(AegisText.t("hud.guardian_alert"))
+	print("Encounter: Guardian deployed (wave %d)" % wave_index)
+	_update_status()
+
+
+func _on_guardian_phase_changed(_phase: StringName) -> void:
+	_update_status()
+
+
+func _on_guardian_shield_broken(_by_emp: bool) -> void:
+	touch_controls._feedback_panel.show_message(AegisText.t("hud.guardian_exposed_toast"))
+	_update_status()
 
 
 func _on_wave_session_ended(wave_index: int, _total_defeated: int) -> void:
@@ -1467,4 +1508,16 @@ func _update_status() -> void:
 		)
 	)
 	touch_controls.set_wave_status(wave_number, active_enemies, remaining_enemies, wave_state)
+	var guardian := wave_director.get_active_guardian()
+	if guardian != null:
+		var g_hp := float(guardian.get("current_health"))
+		var g_max := float(guardian.get("max_health"))
+		var g_phase: String = (
+			String(guardian.call("get_phase_id"))
+			if guardian.has_method("get_phase_id")
+			else "fortified"
+		)
+		HudEncounterUi.set_guardian_status(touch_controls, true, g_hp, g_max, g_phase)
+	else:
+		HudEncounterUi.set_guardian_status(touch_controls, false, 0.0, 0.0, "fortified")
 	touch_controls.set_status(status)

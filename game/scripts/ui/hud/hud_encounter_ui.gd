@@ -189,6 +189,67 @@ static func apply_context(hud) -> void:
 	# Re-anchor when the encounter changes phase, not only on window resize.
 	if is_instance_valid(hud._feedback_panel):
 		hud._feedback_panel.layout_for(hud)
+	refresh_guardian_card(hud)
+
+
+static func set_guardian_status(
+	hud, active: bool, current_hp: float, max_hp: float, phase: String
+) -> void:
+	if (
+		hud._state.guardian_active == active
+		and is_equal_approx(hud._state.guardian_hp, current_hp)
+		and is_equal_approx(hud._state.guardian_max_hp, max_hp)
+		and hud._state.guardian_phase == phase
+	):
+		return
+	hud._state.guardian_active = active
+	hud._state.guardian_hp = current_hp
+	hud._state.guardian_max_hp = max_hp
+	hud._state.guardian_phase = phase
+	refresh_guardian_card(hud)
+
+
+static func refresh_guardian_card(hud) -> void:
+	if not is_instance_valid(hud._guardian_card):
+		return
+	var shares_start_column: bool = (
+		hud.size.x < hud._to_layout(800.0)
+		and not hud._left_handed
+		and is_instance_valid(hud._defense_button)
+		and hud._defense_button.visible
+	)
+	var show_card: bool = (
+		hud._state.guardian_active
+		and hud._state.play_phase != "results"
+		and not hud._results_visible()
+		and not hud._player_down
+		and not hud.get_tree().paused
+		and not shares_start_column
+	)
+	hud._guardian_card.visible = show_card
+	if not show_card:
+		return
+	var phase_color: Color = AegisTokens.INFO
+	var phase_key := "hud.guardian_shielded"
+	if hud._state.guardian_phase == "windup":
+		phase_color = AegisTokens.WARN
+		phase_key = "hud.guardian_windup"
+	elif hud._state.guardian_phase == "exposed":
+		phase_color = AegisTokens.DANGER
+		phase_key = "hud.guardian_exposed"
+	hud._guardian_card.accent_color = phase_color
+	AegisText.apply(hud._guardian_title_label, "hud.guardian_name")
+	AegisText.apply(hud._guardian_phase_label, phase_key)
+	hud._guardian_phase_label.add_theme_color_override("font_color", phase_color)
+	var safe_max := maxf(hud._state.guardian_max_hp, 1.0)
+	var safe_cur := clampf(hud._state.guardian_hp, 0.0, safe_max)
+	hud._guardian_bar.max_value = safe_max
+	hud._guardian_bar.value = safe_cur
+	hud._guardian_bar.add_theme_stylebox_override("fill", AegisTheme.flat_style(phase_color))
+	hud._guardian_bar.add_theme_stylebox_override(
+		"background", AegisTheme.flat_style(Color(AegisTokens.PANEL_3, 0.95))
+	)
+	hud._guardian_hp_label.text = "%d / %d" % [roundi(safe_cur), roundi(safe_max)]
 
 
 static func weapon_acts_as_armory(hud) -> bool:
@@ -350,6 +411,54 @@ static func build_objective(hud) -> void:
 	hud._wave_state_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	hud._wave_state_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(hud._wave_state_label)
+
+
+static func build_guardian_card(hud) -> void:
+	hud._guardian_card = AegisPanel.new()
+	hud._guardian_card.name = "GuardianCard"
+	hud._guardian_card.accent_side = "top"
+	hud._guardian_card.accent_color = AegisTokens.INFO
+	hud._guardian_card.clip_contents = true
+	hud._guardian_card.visible = false
+	hud._guardian_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hud.add_child(hud._guardian_card)
+
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 3)
+	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hud._guardian_card.add_child(col)
+
+	var header := HBoxContainer.new()
+	header.add_theme_constant_override("separation", 6)
+	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	col.add_child(header)
+
+	hud._guardian_title_label = hud._label_key("hud.guardian_name", "label_s", AegisTokens.INK)
+	hud._guardian_title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hud._guardian_title_label.clip_text = true
+	header.add_child(hud._guardian_title_label)
+
+	hud._guardian_phase_label = hud._label_key("hud.guardian_shielded", "label_s", AegisTokens.INFO)
+	hud._guardian_phase_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	header.add_child(hud._guardian_phase_label)
+
+	var vitals_row := HBoxContainer.new()
+	vitals_row.add_theme_constant_override("separation", 8)
+	vitals_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	col.add_child(vitals_row)
+
+	hud._guardian_bar = ProgressBar.new()
+	hud._guardian_bar.name = "GuardianHealthBar"
+	hud._guardian_bar.show_percentage = false
+	hud._guardian_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hud._guardian_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	hud._guardian_bar.custom_minimum_size = Vector2(0.0, 6.0)
+	hud._guardian_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vitals_row.add_child(hud._guardian_bar)
+
+	hud._guardian_hp_label = hud._label("135 / 135", "mono_s", AegisTokens.INK_2)
+	hud._guardian_hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	vitals_row.add_child(hud._guardian_hp_label)
 
 
 static func build_start_action(hud) -> void:

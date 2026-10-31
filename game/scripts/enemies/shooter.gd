@@ -24,6 +24,7 @@ signal attack_resolved(hit_target: bool)
 @export_flags_3d_physics var attack_collision_mask: int = 5
 
 var current_health: float = 0.0
+var _base_max_health: float = 30.0
 var _target: Node3D
 var _is_downed: bool = false
 var _attack_cooldown: float = 0.0
@@ -45,6 +46,7 @@ func _ready() -> void:
 	add_to_group("enemies")
 	add_to_group("shooter_enemies")
 	_spawn_transform = global_transform
+	_base_max_health = max_health
 	_flank_sign = 1.0 if get_instance_id() % 2 == 0 else -1.0
 	_target = get_node_or_null(target_path) as Node3D
 	current_health = max_health
@@ -171,6 +173,14 @@ func apply_damage(amount: float, _source: Node = null) -> void:
 		visuals.play_hit_flash()
 
 
+func scale_max_health(multiplier: float) -> void:
+	var clamped := clampf(multiplier, 0.5, 3.0)
+	max_health = roundf(_base_max_health * clamped)
+	if not _is_downed:
+		current_health = max_health
+		health_changed.emit(current_health, max_health)
+
+
 func is_defeated() -> bool:
 	return _is_downed
 
@@ -184,6 +194,7 @@ func reset_shooter() -> void:
 	_attack_cooldown = 0.0
 	_windup_remaining = 0.0
 	_reset_cover_search()
+	max_health = _base_max_health
 	current_health = max_health
 	velocity = Vector3.ZERO
 	global_transform = _spawn_transform

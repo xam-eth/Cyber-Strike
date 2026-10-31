@@ -15,6 +15,7 @@ signal eliminated
 @export_range(3.0, 40.0, 1.0) var detection_range: float = 28.0
 
 var current_health: float = 0.0
+var _base_max_health: float = 36.0
 var _target: Node3D
 var _is_downed: bool = false
 var _attack_cooldown: float = 0.0
@@ -28,6 +29,7 @@ func _ready() -> void:
 	add_to_group("enemies")
 	add_to_group("runner_enemies")
 	_spawn_transform = global_transform
+	_base_max_health = max_health
 	_target = get_node_or_null(target_path) as Node3D
 	current_health = max_health
 	health_changed.emit(current_health, max_health)
@@ -92,6 +94,14 @@ func apply_damage(amount: float, _source: Node = null) -> void:
 		visuals.play_hit_flash()
 
 
+func scale_max_health(multiplier: float) -> void:
+	var clamped := clampf(multiplier, 0.5, 3.0)
+	max_health = roundf(_base_max_health * clamped)
+	if not _is_downed:
+		current_health = max_health
+		health_changed.emit(current_health, max_health)
+
+
 func is_defeated() -> bool:
 	return _is_downed
 
@@ -99,6 +109,7 @@ func is_defeated() -> bool:
 func reset_runner() -> void:
 	_is_downed = false
 	_attack_cooldown = 0.0
+	max_health = _base_max_health
 	current_health = max_health
 	velocity = Vector3.ZERO
 	global_transform = _spawn_transform

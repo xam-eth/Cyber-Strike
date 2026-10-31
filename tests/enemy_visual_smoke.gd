@@ -11,6 +11,7 @@ extends SceneTree
 
 const RunnerScene = preload("res://scenes/enemies/runner.tscn")
 const ShooterScene = preload("res://scenes/enemies/shooter.tscn")
+const GuardianScene = preload("res://scenes/enemies/guardian.tscn")
 const DroneScene = preload("res://scenes/enemies/training_drone.tscn")
 const ModelFitterScript = preload("res://scripts/visual/model_fitter.gd")
 const MainScene = preload("res://scenes/main.tscn")
@@ -101,6 +102,34 @@ func _run_smoke_test() -> void:
 		and test_passed
 	)
 	shooter.queue_free()
+	await process_frame
+
+	# --- Guardian (Iron Warden) -----------------------------------------------
+	var guardian := GuardianScene.instantiate() as Node3D
+	guardian.position = Vector3(2.0, 0.0, -6.0)
+	test_root.add_child(guardian)
+	await process_frame
+	test_passed = _check_visual(test_passed, guardian, "guardian", 2.35, false)
+	var guardian_visuals: Node = guardian.get_node("Visuals")
+	var guardian_shield := guardian.get_node_or_null("ShieldMesh") as MeshInstance3D
+	var guardian_aim := guardian.get_node_or_null("AimMarker") as MeshInstance3D
+	var guardian_ring := guardian.get_node_or_null("SalvoRing") as MeshInstance3D
+	test_passed = (
+		_expect(
+			(
+				guardian_visuals.get_node_or_null("Muzzle") is Marker3D
+				and guardian_shield != null
+				and guardian_shield.visible
+				and guardian_aim != null
+				and not guardian_aim.visible
+				and guardian_ring != null
+				and not guardian_ring.visible
+			),
+			"guardian renders Iron Warden with active barrier and hidden salvo telegraphs",
+		)
+		and test_passed
+	)
+	guardian.queue_free()
 	await process_frame
 
 	# --- Training drone -------------------------------------------------------

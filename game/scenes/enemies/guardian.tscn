@@ -1,0 +1,111 @@
+[gd_scene load_steps=14 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/guardian.gd" id="1_guardian"]
+[ext_resource type="Script" path="res://scripts/enemies/enemy_visual.gd" id="2_enemy_visual"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape_guardian"]
+radius = 0.56
+height = 2.35
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_guardian"]
+radius = 0.56
+height = 2.35
+
+[sub_resource type="StandardMaterial3D" id="Material_guardian"]
+albedo_color = Color(0.24, 0.28, 0.34, 1)
+metallic = 0.62
+roughness = 0.32
+emission_enabled = true
+emission = Color(0.18, 0.12, 0.03, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_core"]
+radius = 0.26
+height = 0.52
+
+[sub_resource type="StandardMaterial3D" id="Material_core"]
+resource_local_to_scene = true
+albedo_color = Color(0.14, 0.86, 1, 1)
+metallic = 0.15
+roughness = 0.18
+emission_enabled = true
+emission = Color(0.06, 0.68, 0.96, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_shield"]
+size = Vector3(1.42, 1.56, 0.08)
+
+[sub_resource type="StandardMaterial3D" id="Material_shield"]
+transparency = 1
+cull_mode = 2
+shading_mode = 0
+albedo_color = Color(0.16, 0.86, 1, 0.34)
+
+[sub_resource type="SphereMesh" id="SphereMesh_aim"]
+radius = 0.22
+height = 0.44
+
+[sub_resource type="StandardMaterial3D" id="Material_aim"]
+albedo_color = Color(1, 0.44, 0.08, 1)
+roughness = 0.22
+emission_enabled = true
+emission = Color(1, 0.22, 0.02, 1)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_salvo"]
+resource_local_to_scene = true
+top_radius = 2.4
+bottom_radius = 2.4
+height = 0.04
+radial_segments = 28
+
+[sub_resource type="StandardMaterial3D" id="Material_salvo"]
+transparency = 1
+cull_mode = 2
+shading_mode = 0
+albedo_color = Color(1, 0.38, 0.08, 0.32)
+
+[node name="Guardian" type="CharacterBody3D"]
+collision_layer = 2
+collision_mask = 5
+script = ExtResource("1_guardian")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+position = Vector3(0, 1.175, 0)
+shape = SubResource("CapsuleShape_guardian")
+
+[node name="Visuals" type="Node3D" parent="."]
+script = ExtResource("2_enemy_visual")
+model_scene_path = "res://assets/enemies/enemy_iron_warden_boss.glb"
+target_size = 2.35
+outline_color = Color(1, 0.72, 0.14, 1)
+outline_grow = 0.036
+bob_amplitude = 0.035
+bob_frequency = 5.2
+death_seconds = 0.72
+death_sink = 0.48
+
+[node name="BodyMesh" type="MeshInstance3D" parent="Visuals"]
+position = Vector3(0, 1.175, 0)
+mesh = SubResource("CapsuleMesh_guardian")
+material_override = SubResource("Material_guardian")
+
+[node name="CoreMesh" type="MeshInstance3D" parent="Visuals"]
+position = Vector3(0, 1.48, -0.34)
+mesh = SubResource("SphereMesh_core")
+material_override = SubResource("Material_core")
+
+[node name="Muzzle" type="Marker3D" parent="Visuals"]
+position = Vector3(0, 1.44, -0.62)
+
+[node name="ShieldMesh" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.28, -0.56)
+mesh = SubResource("BoxMesh_shield")
+material_override = SubResource("Material_shield")
+
+[node name="AimMarker" type="MeshInstance3D" parent="."]
+visible = false
+mesh = SubResource("SphereMesh_aim")
+material_override = SubResource("Material_aim")
+
+[node name="SalvoRing" type="MeshInstance3D" parent="."]
+visible = false
+mesh = SubResource("CylinderMesh_salvo")
+material_override = SubResource("Material_salvo")

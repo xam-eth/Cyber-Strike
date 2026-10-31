@@ -4,6 +4,7 @@ signal wave_started(wave_index: int, enemy_count: int)
 signal wave_completed(wave_index: int)
 signal progress_changed
 signal enemy_spawned(enemy: Node3D)
+signal guardian_spawned(guardian: Node3D, wave_index: int)
 signal enemy_defeated(enemy: Node3D)
 signal session_ended(wave_index: int, total_defeated: int)
 signal spawn_blocked(reason: String)
@@ -25,6 +26,12 @@ const EnemyDefinitionScript = preload("res://scripts/enemies/enemy_definition.gd
 @export_range(2, 12, 1) var shooter_first_wave: int = 2
 @export_range(1, 6, 1) var shooter_every_n_waves: int = 2
 @export_range(1, 6, 1) var max_shooters_per_wave: int = 3
+@export_range(2, 12, 1) var guardian_first_wave: int = 3
+@export_range(1, 8, 1) var guardian_every_n_waves: int = 3
+@export_range(0, 3, 1) var max_guardians_per_wave: int = 2
+@export_range(3, 12, 1) var endless_escalation_wave: int = 4
+@export_range(1.0, 2.0, 0.05) var endless_max_health_scale: float = 1.35
+@export_range(0.0, 0.2, 0.01) var endless_health_step: float = 0.07
 @export_range(1, 6, 1) var max_active_enemies: int = 3
 @export_range(0.0, 4.0, 0.05) var initial_spawn_delay: float = 0.75
 @export_range(0.0, 4.0, 0.05) var spawn_interval: float = 0.8
@@ -45,6 +52,8 @@ var state: WaveState = WaveState.IDLE
 var current_wave: int = 0
 var current_wave_enemy_count: int = 0
 var current_wave_shooter_count: int = 0
+var current_wave_guardian_count: int = 0
+var endless_mode: bool = false
 var session_defeated_count: int = 0
 var enemies_defeated_this_wave: int = 0
 var enemies_spawned_this_wave: int = 0
@@ -83,6 +92,7 @@ var _session_running: bool = false
 var _spawn_timer: float = 0.0
 var _intermission_timer: float = 0.0
 var _failed_spawn_attempts: int = 0
+var _last_spawn_marker: Marker3D
 ## Opt-in, read-only browser targeting evidence. It lets the real-input Recovery
 ## probe correct aim from rendered camera geometry instead of guessed mouse
 ## timings; it has no gameplay authority and is silent in ordinary play.
@@ -163,9 +173,16 @@ func _physics_process(delta: float) -> void:
 		return
 
 	_spawn_timer = maxf(_spawn_timer - delta, 0.0)
-	if active_enemy_count >= max_active_enemies or _spawn_timer > 0.0:
+	if active_enemy_count >= get_effective_max_active_enemies() or _spawn_timer > 0.0:
 		return
 	_attempt_spawn_enemy()
+
+
+func set_endless_mode(enabled: bool) -> void:
+	if endless_mode == enabled:
+		return
+	endless_mode = enabled
+	_emit_progress()
 
 
 func start_session() -> void:
@@ -180,23 +197,28 @@ func start_session() -> void:
 	current_wave = 0
 	current_wave_enemy_count = 0
 	current_wave_shooter_count = 0
+	current_wave_guardian_count = 0
 	session_defeated_count = 0
 	enemies_defeated_this_wave = 0
 	enemies_spawned_this_wave = 0
+	_last_spawn_marker = null
 	_start_next_wave()
 
 
 func reset_session() -> void:
 	_session_running = false
+	endless_mode = false
 	_spawn_timer = 0.0
 	_intermission_timer = 0.0
 	_failed_spawn_attempts = 0
+	_last_spawn_marker = null
 	_clear_active_enemies()
 	_clear_guard_groups()
 	state = WaveState.IDLE
 	current_wave = 0
 	current_wave_enemy_count = 0
 	current_wave_shooter_count = 0
+	current_wave_guardian_count = 0
 	session_defeated_count = 0
 	enemies_defeated_this_wave = 0
 	enemies_spawned_this_wave = 0
@@ -241,12 +263,63 @@ func guard_group_size(group_id: StringName) -> int:
 	return get_guard_group(group_id).size()
 
 
+func get_active_guardian() -> Node3D:
+	for enemy in get_active_enemies():
+		if not is_instance_valid(enemy) or not enemy.is_in_group("guardian_enemies"):
+			continue
+		if enemy.has_method("is_defeated") and bool(enemy.call("is_defeated")):
+			continue
+		return enemy
+	return null
+
+
+func get_effective_max_active_enemies() -> int:
+	if endless_mode and current_wave >= endless_escalation_wave and max_active_enemies >= 3:
+		return mini(max_active_enemies + 1, 5)
+	return max_active_enemies
+
+
+func get_enemy_count_for_wave(wave_index: int) -> int:
+	if wave_index < 1:
+		return 0
+	var cap := max_enemies_per_wave
+	if endless_mode and wave_index >= endless_escalation_wave:
+		cap += 2
+	return mini(base_enemies_per_wave + (wave_index - 1) * enemies_added_per_wave, cap)
+
+
+func get_guardian_count_for_wave(wave_index: int, enemy_count: int) -> int:
+	if max_guardians_per_wave <= 0 or wave_index < guardian_first_wave or enemy_count < 2:
+		return 0
+	if (wave_index - guardian_first_wave) % guardian_every_n_waves != 0:
+		return 0
+	if _get_enemy_definition(&"guardian") == null and not enemy_definitions.is_empty():
+		return 0
+	var milestone_step := floori(
+		float(wave_index - guardian_first_wave) / float(guardian_every_n_waves)
+	)
+	var desired := 2 if (milestone_step >= 2 and enemy_count >= 6) else 1
+	return mini(mini(desired, max_guardians_per_wave), maxi(enemy_count - 2, 1))
+
+
+func is_guardian_wave(wave_index: int) -> bool:
+	return get_guardian_count_for_wave(wave_index, get_enemy_count_for_wave(wave_index)) > 0
+
+
+func get_health_scale_for_wave(wave_index: int) -> float:
+	if wave_index < 6:
+		return 1.0
+	return minf(1.0 + float(wave_index - 5) * endless_health_step, endless_max_health_scale)
+
+
 func get_shooter_count_for_wave(wave_index: int, enemy_count: int) -> int:
 	if wave_index < shooter_first_wave or enemy_count <= 1:
 		return 0
 	var waves_since_first := wave_index - shooter_first_wave
 	var scheduled_count := 1 + floori(float(waves_since_first) / float(shooter_every_n_waves))
-	return mini(mini(scheduled_count, max_shooters_per_wave), enemy_count - 1)
+	var shooter_cap := max_shooters_per_wave + (1 if endless_mode and wave_index >= 5 else 0)
+	var reserved := 1 + get_guardian_count_for_wave(wave_index, enemy_count)
+	return maxi(mini(mini(scheduled_count, shooter_cap), enemy_count - reserved), 0)
 
 
 func get_state_label() -> String:
@@ -254,7 +327,7 @@ func get_state_label() -> String:
 		WaveState.IDLE:
 			return "READY"
 		WaveState.SPAWNING:
-			return "ACTIVE %d/%d" % [active_enemy_count, max_active_enemies]
+			return "ACTIVE %d/%d" % [active_enemy_count, get_effective_max_active_enemies()]
 		WaveState.INTERMISSION:
 			return "WAVE %d CLEAR · NEXT IN %d" % [current_wave, ceili(_intermission_timer)]
 		WaveState.GAME_OVER:
@@ -284,8 +357,9 @@ func _start_next_wave() -> void:
 		return
 
 	current_wave += 1
-	current_wave_enemy_count = mini(
-		base_enemies_per_wave + (current_wave - 1) * enemies_added_per_wave, max_enemies_per_wave
+	current_wave_enemy_count = get_enemy_count_for_wave(current_wave)
+	current_wave_guardian_count = get_guardian_count_for_wave(
+		current_wave, current_wave_enemy_count
 	)
 	current_wave_shooter_count = get_shooter_count_for_wave(current_wave, current_wave_enemy_count)
 	enemies_defeated_this_wave = 0
@@ -346,6 +420,8 @@ func spawn_guard_group(group_id: StringName, spawns: Array[Dictionary]) -> bool:
 		_guard_enemy_groups[enemy] = group_id
 		enemy.connect("eliminated", _on_guard_eliminated.bind(enemy), CONNECT_ONE_SHOT)
 		enemy_spawned.emit(enemy)
+		if enemy.is_in_group("guardian_enemies"):
+			guardian_spawned.emit(enemy, current_wave)
 	_guard_groups[group_id] = members
 	_emit_progress()
 	return true
@@ -371,6 +447,18 @@ func _spawn_enemy(
 	return enemy
 
 
+func _enemy_id_for_spawn_slot(slot_index: int) -> StringName:
+	if current_wave_guardian_count > 0:
+		var guardian_start := 1 if current_wave_enemy_count > 1 else 0
+		var guardian_end := guardian_start + current_wave_guardian_count
+		if slot_index >= guardian_start and slot_index < guardian_end:
+			return &"guardian"
+	var shooter_slot_start := current_wave_enemy_count - current_wave_shooter_count
+	if slot_index >= shooter_slot_start:
+		return &"shooter"
+	return &"runner"
+
+
 func _attempt_spawn_enemy() -> void:
 	var spawn_marker := _choose_valid_spawn_marker()
 	if spawn_marker == null:
@@ -381,27 +469,36 @@ func _attempt_spawn_enemy() -> void:
 			_spawn_timer = spawn_retry_delay
 		return
 
-	var shooter_slot_start := current_wave_enemy_count - current_wave_shooter_count
-	var is_shooter := enemies_spawned_this_wave >= shooter_slot_start
-	var enemy_id: StringName = &"shooter" if is_shooter else &"runner"
+	var enemy_id := _enemy_id_for_spawn_slot(enemies_spawned_this_wave)
 	var definition := _get_enemy_definition(enemy_id)
 	if definition == null or not definition.is_valid_definition():
 		_block_session("The configured %s enemy definition is missing or invalid." % enemy_id)
 		return
 	var enemy_name := (
-		"%s_Wave%d_%02d" % [definition.display_name, current_wave, enemies_spawned_this_wave + 1]
+		"%s_Wave%d_%02d"
+		% [
+			definition.display_name.replace(" ", ""),
+			current_wave,
+			enemies_spawned_this_wave + 1,
+		]
 	)
 	var enemy := _spawn_enemy(definition, enemy_name, spawn_marker.global_position)
 	if enemy == null:
 		_block_session("The configured %s scene could not be instantiated safely." % enemy_id)
 		return
+	var health_scale := get_health_scale_for_wave(current_wave)
+	if health_scale > 1.001 and enemy.has_method("scale_max_health"):
+		enemy.call("scale_max_health", health_scale)
 
+	_last_spawn_marker = spawn_marker
 	_active_enemies.append(enemy)
 	enemy.connect("eliminated", _on_enemy_eliminated.bind(enemy), CONNECT_ONE_SHOT)
 	enemies_spawned_this_wave += 1
 	_failed_spawn_attempts = 0
 	_spawn_timer = spawn_interval
 	enemy_spawned.emit(enemy)
+	if enemy.is_in_group("guardian_enemies"):
+		guardian_spawned.emit(enemy, current_wave)
 	_emit_progress()
 
 
@@ -436,6 +533,17 @@ func _choose_valid_spawn_marker() -> Marker3D:
 			if flank_marker != null:
 				return flank_marker
 	var candidates := preferred_markers if not preferred_markers.is_empty() else valid_markers
+	if (
+		(current_wave >= 3 or endless_mode)
+		and candidates.size() > 1
+		and is_instance_valid(_last_spawn_marker)
+	):
+		var rotated: Array[Marker3D] = []
+		for candidate in candidates:
+			if candidate != _last_spawn_marker:
+				rotated.append(candidate)
+		if not rotated.is_empty():
+			candidates = rotated
 	return candidates[_rng.randi_range(0, candidates.size() - 1)]
 
 

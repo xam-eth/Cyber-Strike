@@ -15,6 +15,12 @@ static func apply(hud) -> void:
 	hud._wave_card.add_theme_stylebox_override(
 		"panel", AegisTheme.panel_style(fill, AegisTokens.LINE, 1, AegisTokens.RADIUS, tight)
 	)
+	if is_instance_valid(hud._guardian_card):
+		hud._guardian_card.add_theme_stylebox_override(
+			"panel", AegisTheme.panel_style(fill, AegisTokens.LINE_HI, 1, AegisTokens.RADIUS, tight)
+		)
+	if is_instance_valid(hud._guardian_bar):
+		hud._guardian_bar.custom_minimum_size = Vector2(0.0, hud._to_layout(6.0))
 	hud._run_card.add_theme_stylebox_override(
 		"panel", AegisTheme.panel_style(fill, AegisTokens.LINE, 1, AegisTokens.RADIUS, pad)
 	)

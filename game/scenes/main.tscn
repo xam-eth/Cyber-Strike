@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/worlds/mission_world.tscn" id="2_world"]
@@ -13,6 +13,7 @@
 [ext_resource type="Resource" path="res://resources/enemies/runner.tres" id="12_runner_definition"]
 [ext_resource type="Resource" path="res://resources/enemies/shooter.tres" id="13_shooter_definition"]
 [ext_resource type="Script" path="res://scripts/progression/run_upgrade_manager.gd" id="14_run_upgrades"]
+[ext_resource type="Resource" path="res://resources/enemies/guardian.tres" id="15_guardian_definition"]
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_main")
@@ -61,7 +62,7 @@ position = Vector3(0.0, 0.0, 12.0)
 
 [node name="WaveDirector" type="Node" parent="."]
 script = ExtResource("6_wave_director")
-enemy_definitions = Array[EnemyDefinition]([ExtResource("12_runner_definition"), ExtResource("13_shooter_definition")])
+enemy_definitions = Array[EnemyDefinition]([ExtResource("12_runner_definition"), ExtResource("13_shooter_definition"), ExtResource("15_guardian_definition")])
 
 [node name="RunStats" type="Node" parent="."]
 script = ExtResource("7_run_stats")

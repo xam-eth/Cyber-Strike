@@ -378,7 +378,7 @@ Do not simultaneously increase health, damage, speed, count, and elite density. 
 
 ## 12. Guardians and future bosses
 
-A guardian is an exam of existing verbs, not a health-bar gate. A future encounter should:
+A guardian is an exam of existing verbs, not a health-bar gate. A guardian encounter must:
 
 - telegraph with the same readable language as ordinary enemies;
 - require relocation, cover, target priority, or EMP timing;
@@ -386,7 +386,12 @@ A guardian is an exam of existing verbs, not a health-bar gate. A future encount
 - escalate by recombining learned rules with limited pressure;
 - make its cache Ready, after which the actual secure interaction persists the reward.
 
-A new boss is **DEFERRED** until TECH HUNT 0 proves mission, cache, persistence, and redeploy with existing guards.
+Track 2 (`Endless & Guardian`) implements the **`Iron Warden` (`guardian`)** through `EnemyDefinition`, `GuardianEnemy`, `WaveDirector` milestone waves (`Wave 3, 6, 9, ...`), `RewardService`, and `HudEncounterUi.GuardianCard`:
+
+- **Fortified advance:** approaches behind a directional barrier (`0.45x` ordinary gunfire damage) that shatters immediately when struck by `EMP Pulse` (`apply_emp_disrupt`).
+- **Salvo lock telegraph:** marks the locked floor zone (`AimMarker` + `SalvoRing`) for `salvo_windup` seconds so lateral movement or cover cleanly avoids detonation.
+- **Core recovery punish window:** drops its barrier and enters a stationary `1.5x` critical window after firing its salvo or taking EMP disruption.
+- **Bounded Endless escalation:** post-cap waves rotate flank spawn markers, schedule milestone Guardians, expand active threat concurrency within bounded limits (`<= 5`), and cap late-wave health scaling at `1.35x` (`Wave 6+`) without inflating enemy move speed or telegraph speed.
 
 ## 13. Gameplay logic and ownership contracts
 

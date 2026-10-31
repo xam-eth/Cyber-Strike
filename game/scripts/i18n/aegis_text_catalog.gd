@@ -51,6 +51,7 @@ const SHARED_VALUES := [
 	"editor.group_run",
 	"editor.preset_advanced",
 	"hud.emp",
+	"hud.guardian_name",
 	"armory.upgrade_short",
 ]
 
@@ -445,6 +446,14 @@ const STRINGS := {
 		"editor.preset_tip_minimal": "Minimal HUD preset",
 		"editor.preset_tip_standard": "Standard HUD preset",
 		"editor.preset_tip_advanced": "Advanced HUD preset",
+		"hud.guardian_name": "IRON WARDEN",
+		"hud.guardian_shielded": "SHIELDED · EMP",
+		"hud.guardian_windup": "SALVO LOCK · DODGE",
+		"hud.guardian_exposed": "EXPOSED 1.5X!",
+		"hud.guardian_alert": "WARDEN DEPLOYED!",
+		"hud.guardian_exposed_toast": "SHIELD BROKEN 1.5X!",
+		"results.guardians_cleared": "GUARDIAN ELIMINATIONS: %d IRON WARDEN",
+		"results.endless_reached": "ENDLESS SURVIVAL: REACHED WAVE %d",
 	},
 	"id":
 	{
@@ -834,5 +843,13 @@ const STRINGS := {
 		"editor.preset_tip_minimal": "Preset HUD minimal",
 		"editor.preset_tip_standard": "Preset HUD standar",
 		"editor.preset_tip_advanced": "Preset HUD lengkap",
+		"hud.guardian_name": "IRON WARDEN",
+		"hud.guardian_shielded": "PERISAI · EMP",
+		"hud.guardian_windup": "SALVO · HINDAR",
+		"hud.guardian_exposed": "INTI 1.5X!",
+		"hud.guardian_alert": "WARDEN MUNCUL!",
+		"hud.guardian_exposed_toast": "PERISAI PECAH 1.5X!",
+		"results.guardians_cleared": "WARDEN DITUMBANGKAN: %d IRON WARDEN",
+		"results.endless_reached": "BERTAHAN TANPA AKHIR: GELOMBANG %d",
 	},
 }

@@ -175,6 +175,35 @@ static func landscape(hud) -> void:
 			hud._to_layout(56.0)
 		)
 	)
+	if is_instance_valid(hud._guardian_card):
+		var g_top: float = hud._top_inset + objective_top
+		if hud.size.x >= hud._to_layout(800.0):
+			var g_width: float = hud._to_layout(268.0)
+			var g_left: float = maxf(edge + hud._to_layout(304.0), (hud.size.x - g_width) * 0.5)
+			_place(
+				hud._guardian_card, 0, 0, 0, 0, Rect2(g_left, g_top, g_width, hud._to_layout(48.0))
+			)
+		elif hud._left_handed:
+			var g_w_lh: float = hud._to_layout(240.0)
+			_place(
+				hud._guardian_card,
+				0,
+				0,
+				0,
+				0,
+				Rect2(hud.size.x - edge - g_w_lh, g_top, g_w_lh, hud._to_layout(44.0))
+			)
+		else:
+			_place(
+				hud._guardian_card,
+				0,
+				0,
+				0,
+				0,
+				Rect2(
+					edge, g_top + hud._to_layout(66.0), hud._to_layout(244.0), hud._to_layout(44.0)
+				)
+			)
 
 	# One compact two-by-two action cluster. FIRE is primary; ammo is the same
 	# width as the cluster and sits directly above SWAP/ARMORY, so equipped
