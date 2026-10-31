@@ -143,12 +143,13 @@ Permanent profile, blueprint, BP, unlock, and weapon-tier APIs were not replaced
 
 The final evidence is tied to an explicit source/payload boundary:
 
-- corrected source: `673fcec9ca7813dd0a2ca0ed73c9808f6c8826b3`;
-- opt-in payload request: `34780db7d38f76e1dbbcb2ee2d1a4594e785ce06`;
+- Armory correction: `673fcec9ca7813dd0a2ca0ed73c9808f6c8826b3`;
+- feedback visibility correction: `9c19abaf74d70e1faf275b85043b27a90712cd81`;
+- opt-in payload request: `70eb5898634371da40ac0c2b65703cd82f04d9f8`;
 - generated payload used for both final browser routes:
-  `fcd28f3f1b579c04328ba8e75fca513474ec53ca`;
-- PCK: 90,719,604 bytes, SHA-256
-  `16ed7f04acd956beb64a1284d773ee73aef867b3645e57bfb110b98064c88019`;
+  `19852d7447cae0cca1419e98bdd97f9693fbc334`;
+- PCK: 90,719,636 bytes, SHA-256
+  `11e50265ccc1f479013438203dad2eb35543d1eddd332afc00d7eb2bc6f6a25b`;
 - WASM SHA-256:
   `fc74679e3b97f76878947fcd4fbe1268cbfa6188182a2e33bbc3f5dc9bfa57d0`.
 
@@ -161,10 +162,10 @@ request another binary refresh.
 - **VERIFIED — local static:** the changed GDScript passes `gdformat`/`gdlint`;
   localization has 274 EN and 274 ID keys with aligned placeholders; architecture,
   static-call, module-map, and diff checks pass.
-- **VERIFIED — corrected source CI `41206968887`:** Static, all **38/38** discovered
+- **VERIFIED — corrected source CI `41212868947`:** Static, all **38/38** discovered
   Headless smoke scripts, Web export, secure-context/audio/download/shell/Titans/
   ADS/Recovery browser gates.
-- **VERIFIED — final payload CI `41208052403`:** the same complete gate set passed
+- **VERIFIED — final payload CI `41213150955`:** the same complete gate set passed
   before the opt-in payload commit was generated.
 - The settled Armory assertions cover both **844×390** and **667×375**. An
   intermediate 667×375 failure was retained as a failure and corrected by
@@ -182,11 +183,11 @@ Its `manifest.json` records commits, payload hashes, route scope, and report has
 | Route | Exact build | Executed result |
 | --- | --- | --- |
 | Baseline Recovery | `5453420a39b186188bdee262878718eceb2e4b4b` | **PASS:** ordinary shell, Verdant landing/Engage, two real GLB guards, Secure locked during combat. Five frames are preserved in `baseline/`; this is not represented as the later adaptation route. |
-| Final English | `fcd28f3f1b579c04328ba8e75fca513474ec53ca` | **PASS:** 29 checks and 18 report-listed frames for the complete route below. |
-| Final Indonesian, visual-only | same final payload | **PASS:** 23 checks and 9 report-listed frames through Secure and scrolled Extraction. It intentionally does not claim the later EN persistence chain. |
+| Final English | `19852d7447cae0cca1419e98bdd97f9693fbc334` | **PASS:** 29 checks and 20 report-listed frames for the complete route below. |
+| Final Indonesian, visual-only | same final payload | **PASS:** 23 checks and 11 report-listed frames through Secure and scrolled Extraction. It intentionally does not claim the later EN persistence chain. |
 
-Only green-report frame lists were copied into the evidence directory. All 18 EN
-and all 9 ID frames were inspected; older failure captures were excluded.
+Only green-report frame lists were copied into the evidence directory. All 20 EN
+and all 11 ID frames were inspected; older failure captures were excluded.
 
 ### Verified gameplay and progression outcome
 
@@ -228,6 +229,10 @@ second, scripted death.
   this is a geometry assertion, not an additional screenshot claim.
 - Real wheel-scrolled `08b`/`11b` EN frames expose **RUN ADAPTATION · QUICK CYCLE
   · EXPIRES ON REDEPLOY** while Extraction/Results decisions remain pinned.
+- The previously empty feedback plate is **VERIFIED FIXED**: EN `07` shows
+  **QUICK CYCLE · -20% reload time · THIS RUN ONLY**, ID `07` shows the complete
+  Indonesian equivalent, and `07b`/`07c` retain its later disappearance. Headless
+  also checks non-zero label geometry and a positive visible-line count.
 - Armory retains real weapon art, identity, specs, tier/reload, ownership/price,
   and both footer actions inside the phone glass. Owned Pulse retains its real
   tier action; locked weapons do not show a misleading disabled tier purchase.
@@ -237,11 +242,6 @@ second, scripted death.
 
 ### Remaining limits and incomplete claims
 
-- **UNVERIFIED visually:** `07-secure-phone-en.png` and
-  `07-secure-phone-id.png` contain a transient empty feedback plate, so the
-  immediate toast copy is not claimed as visually verified. The actual modifier
-  is proven by runtime telemetry, and its Pause/Extraction/Results copy is
-  visible in separate inspected frames.
 - **UNKNOWN:** physical-device touch feel, audible output, GPU frame rate, and
   human playtest/balance approval. Chromium/software-WebGL automation is not a
   substitute for those checks.

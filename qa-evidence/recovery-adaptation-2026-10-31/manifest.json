@@ -2,16 +2,17 @@
   "date": "2026-10-31",
   "scope": "Website / Godot WebGL 2; no APK; automation is not physical-device or human approval",
   "source": {
-    "layout_fix_commit": "673fcec9ca7813dd0a2ca0ed73c9808f6c8826b3",
-    "payload_request_commit": "34780db7d38f76e1dbbcb2ee2d1a4594e785ce06",
-    "payload_commit": "fcd28f3f1b579c04328ba8e75fca513474ec53ca",
-    "source_verification_ci_run": 41206968887,
-    "payload_ci_run": 41208052403,
+    "armory_fix_commit": "673fcec9ca7813dd0a2ca0ed73c9808f6c8826b3",
+    "feedback_fix_commit": "9c19abaf74d70e1faf275b85043b27a90712cd81",
+    "payload_request_commit": "70eb5898634371da40ac0c2b65703cd82f04d9f8",
+    "payload_commit": "19852d7447cae0cca1419e98bdd97f9693fbc334",
+    "source_verification_ci_run": 41212868947,
+    "payload_ci_run": 41213150955,
     "ci_result": "PASS: Static; 38/38 Headless; Web export; all browser gates"
   },
   "served_payload": {
-    "pck_bytes": 90719604,
-    "pck_sha256": "16ed7f04acd956beb64a1284d773ee73aef867b3645e57bfb110b98064c88019",
+    "pck_bytes": 90719636,
+    "pck_sha256": "11e50265ccc1f479013438203dad2eb35543d1eddd332afc00d7eb2bc6f6a25b",
     "wasm_sha256": "fc74679e3b97f76878947fcd4fbe1268cbfa6188182a2e33bbc3f5dc9bfa57d0",
     "commit_bytes_match": true
   },
@@ -26,34 +27,34 @@
   },
   "routes": {
     "en": {
-      "payload_commit": "fcd28f3f1b579c04328ba8e75fca513474ec53ca",
+      "payload_commit": "19852d7447cae0cca1419e98bdd97f9693fbc334",
       "report": "en/report.json",
-      "report_sha256": "b0ed31af1ed32a388d742f95008dcb8a91d9f6b68ff88b23372d389c38aaf4be",
+      "report_sha256": "2bd10717e2b542fbbd3b239db9312c1d7f8b444635b6f35c557853681ddf951b",
       "contact_sheet": "en/contact-sheet.jpg",
-      "frames": 18,
+      "frames": 20,
       "checks": 29,
       "visual_only": false,
       "result": "PASS"
     },
     "id": {
-      "payload_commit": "fcd28f3f1b579c04328ba8e75fca513474ec53ca",
+      "payload_commit": "19852d7447cae0cca1419e98bdd97f9693fbc334",
       "report": "id/report.json",
-      "report_sha256": "c2b8a59702ce2fd2ae81e3af0e9545a5fb3ab9e7adc2616eca6f094f0ad533f5",
+      "report_sha256": "ea8d7988185c883f74e939b97a14548b13ca0f8112927853c76f6212ce351dad",
       "contact_sheet": "id/contact-sheet.jpg",
-      "frames": 9,
+      "frames": 11,
       "checks": 23,
       "visual_only": true,
       "result": "PASS"
     }
   },
   "visual_review": {
-    "en_report_listed_frames_inspected": 18,
-    "id_report_listed_frames_inspected": 9,
+    "en_report_listed_frames_inspected": 20,
+    "id_report_listed_frames_inspected": 11,
     "resolutions": [
       "1280x720 desktop browser",
       "844x390 touch phone browser",
       "667x375 Godot Headless settled bounds"
     ],
-    "unconfirmed": "Immediate post-selection toast copy is not visually confirmed in 07-secure-phone-*; the empty plate is retained in evidence."
+    "feedback": "VERIFIED: EN QUICK CYCLE and ID SIKLUS CEPAT toast copy is readable in 07-secure-phone-*; 07b/07c retain later disappearance."
   }
 }
