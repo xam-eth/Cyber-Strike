@@ -205,6 +205,14 @@ func _run_smoke_test() -> void:
 	var buy_button := armory.get("_weapon_buttons")[1] as Button
 	var buy_font := float(buy_button.get_theme_font_size("font_size")) * LANDSCAPE_STRETCH
 	_expect(buy_font >= 14.5, "armory UNLOCK/EQUIP text stays >=15 physical px")
+	_expect(
+		(
+			(armory.get("_upgrade_buttons")[0] as Control).visible
+			and not (armory.get("_upgrade_buttons")[1] as Control).visible
+			and not (armory.get("_upgrade_buttons")[2] as Control).visible
+		),
+		"Armory shows tier upgrades only for owned weapons",
+	)
 	# The field panel has both footer actions visible. Measure its settled
 	# container, not only the requested custom_minimum_size: an art minimum used
 	# to grow the real panel and push HOME / RETURN below the phone glass.

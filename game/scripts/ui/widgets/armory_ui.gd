@@ -251,6 +251,12 @@ func refresh_profile(
 			button.set_meta("armory_variant", variant)
 
 		var upgrade := _upgrade_buttons[index]
+		# A locked weapon has one decision: unlock it. Keeping a second, disabled
+		# tier action beside UNLOCK both implies an unavailable purchase and gives
+		# every card a two-button minimum width that can push the modal off a
+		# 667 px phone. Tier/specs stay visible; the real upgrade action appears
+		# as soon as the profile owns the weapon.
+		upgrade.visible = owned
 		upgrade.disabled = not owned or tier >= WeaponTier.tier_count()
 		if tier >= WeaponTier.tier_count():
 			AegisText.apply(upgrade, "armory.upgrade_max_short", [tier])
