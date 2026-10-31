@@ -172,7 +172,15 @@ assert spire_extent[2] >= 25.0 and abs(spire_node['rotation'][0]) >= 0.65
 archive_payload = glb_payload('assets/world/aetherfall/ice_planet/sentinel_archive.glb')
 archive_gate_extent, _ = node_extent(archive_payload, 'ArchiveGatePylon_-10.1')
 archive_receiver_extent, archive_receiver = node_extent(archive_payload, 'ArchiveCrownReceiver')
-assert len(archive_payload['meshes']) >= 60 and archive_gate_extent[1] >= 17.0
+# The final destination must read as a layered, operable Citadel at overview
+# scale: arrival apron, tiered dock frames, command spine and service bridge
+# are authored architecture, not loose detail props around a compact shell.
+archive_nodes = {node.get('name') for node in archive_payload.get('nodes', [])}
+assert len(archive_payload['meshes']) >= 150 and archive_gate_extent[1] >= 17.0
+assert {'CitadelArrivalApron', 'CitadelDockFrame_-1', 'CitadelDockFrame_1',
+        'ArchiveCommandSpine', 'ArchiveCommandHaloEnergy',
+        'CitadelTransverseServiceBridge', 'CitadelDishRing_-1',
+        'CitadelDishRing_1'} <= archive_nodes
 assert archive_receiver_extent[2] >= 8.5 and abs(archive_receiver['rotation'][0]) >= 0.7
 for required in [
     'scenes/aetherfall_player.tscn', 'scenes/props/tech_cache.tscn',

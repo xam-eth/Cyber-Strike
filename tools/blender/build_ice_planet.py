@@ -211,6 +211,56 @@ def ice_spike(collection, parent, name, radius, height, pos, material, lean=0.0)
     return attach(obj, collection, parent)
 
 
+def tapered_box(collection, parent, name, w, h, d, top_scale, pos, material,
+                bevel_size=.04, rotation=None, repeats=None):
+    """Tapered architectural shell for non-blockout tower and pylon silhouettes."""
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=pos)
+    obj = bpy.context.object
+    obj.name = name
+    obj.dimensions = (w, h, d)
+    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+    half_height = h * .5
+    for vertex in obj.data.vertices:
+        if vertex.co.y > 0.0:
+            blend = (vertex.co.y + half_height) / (2.0 * half_height)
+            vertex.co.x *= 1.0 - (1.0 - top_scale) * blend
+            vertex.co.z *= 1.0 - (1.0 - top_scale) * blend
+    obj.data.update()
+    if rotation:
+        obj.rotation_euler = rotation
+    if bevel_size:
+        bevel(obj, bevel_size)
+    if repeats is None:
+        repeats = max(1.0, max(w, h, d) / (4.2 if "Ice" in material.name else 2.35))
+    tile_uv(obj, repeats)
+    obj.data.materials.append(material)
+    return attach(obj, collection, parent)
+
+
+def brace_xy(collection, parent, name, a, b, thickness=.22, depth=.22, material=STEEL):
+    """Manufactured diagonal support in an X/Y facade plane."""
+    dx, dy = b[0] - a[0], b[1] - a[1]
+    length = math.hypot(dx, dy)
+    if length < .001:
+        return None
+    angle = math.atan2(-dx, dy)
+    return box(collection, parent, name, (thickness, length, depth),
+               ((a[0] + b[0]) * .5, (a[1] + b[1]) * .5, (a[2] + b[2]) * .5),
+               material, .032, (0.0, 0.0, angle))
+
+
+def torus(collection, parent, name, major_radius, minor_radius, pos, material, sides=40):
+    """Y-up energy/service ring; breaks the silhouette beyond stacked boxes."""
+    bpy.ops.mesh.primitive_torus_add(major_radius=major_radius, minor_radius=minor_radius,
+                                     major_segments=sides, minor_segments=8, location=pos,
+                                     rotation=(math.pi * .5, 0.0, 0.0))
+    obj = bpy.context.object
+    obj.name = name
+    tile_uv(obj, max(1.0, major_radius * 2.0 / 2.35))
+    obj.data.materials.append(material)
+    return attach(obj, collection, parent)
+
+
 def glacier_shelf():
     collection = new_collection("GlacierShelf")
     parent = root(collection, "GlacierShelfRoot")
@@ -305,6 +355,63 @@ def sentinel_archive():
     for angle in (0, math.pi * .5, math.pi, math.pi * 1.5):
         x, z = math.sin(angle) * 2.2, 2.15 + math.cos(angle) * 2.2
         box(collection, parent, "ArchiveCrownVane_" + str(angle), (.20, 4.0, 1.35), (x, 18.5, z), STEEL, .025, (0, -angle, 0), 1.5)
+
+    # ------------------------------------------------------------------
+    # Citadel production architecture: meaningful tiered construction,
+    # landing/service decks, support logic and a true command silhouette.
+    # All elements are visual-only relative to the retained Phase-3 shell
+    # collision, so the known vestibule threshold and traversal stay intact.
+    # ------------------------------------------------------------------
+    box(collection, parent, "CitadelArrivalApron", (24.5, .34, 7.6), (0, .26, -7.35), STEEL, .055, None, 5.2)
+    box(collection, parent, "CitadelArrivalIceFoot", (28.6, .56, 4.5), (0, -.04, -9.7), ICE_DARK, .075, None, 5.0)
+    for x in (-8.05, -4.05, 4.05, 8.05):
+        box(collection, parent, "CitadelArrivalPlate_" + str(x), (3.45, .07, 6.5), (x, .49, -7.35), DARK, .012, None, 2.2)
+        box(collection, parent, "CitadelArrivalGuide_" + str(x), (2.25, .025, .09), (x, .55, -9.95), CYAN, .006)
+    # Tiered wing terraces create the broad, inhabited base read instead of two loose towers.
+    for side in (-1.0, 1.0):
+        sx = side
+        box(collection, parent, "CitadelLowerTerrace_" + str(int(sx)), (6.3, .42, 4.25), (sx * 6.9, 1.65, -4.8), STEEL, .045, None, 3.0)
+        box(collection, parent, "CitadelMidTerrace_" + str(int(sx)), (5.3, .36, 3.45), (sx * 7.55, 4.85, -2.8), DARK, .045, None, 2.5)
+        box(collection, parent, "CitadelUpperTerrace_" + str(int(sx)), (4.45, .32, 3.10), (sx * 8.15, 8.05, -.5), STEEL, .040, None, 2.2)
+        box(collection, parent, "CitadelDockPod_" + str(int(sx)), (4.55, 2.35, 3.25), (sx * 6.85, 2.88, -3.32), DARK, .060, None, 2.5)
+        box(collection, parent, "CitadelDockRecess_" + str(int(sx)), (3.38, 1.28, .08), (sx * 6.85, 2.96, -5.00), ICE_DARK, .014, None, 1.6)
+        box(collection, parent, "CitadelDockLight_" + str(int(sx)), (2.75, .09, .045), (sx * 6.85, 3.82, -5.08), CYAN, .006)
+        # Open undersides and X-braces communicate a buildable, load-bearing platform.
+        for z in (-6.05, -3.45):
+            box(collection, parent, "CitadelTerraceSupport_" + str(int(sx)) + str(z), (.36, 3.0, .36), (sx * 8.9, 1.55, z), STEEL, .025, None, 1.8)
+        brace_xy(collection, parent, "CitadelTerraceBraceA_" + str(int(sx)), (sx * 8.9, .25, -6.05), (sx * 6.3, 3.1, -5.3), .24, .18, HAZARD)
+        brace_xy(collection, parent, "CitadelTerraceBraceB_" + str(int(sx)), (sx * 8.9, .25, -3.45), (sx * 6.3, 3.1, -4.25), .24, .18, STEEL)
+        # Layered mechanical facade: louver rows, side service trunk and status lights.
+        for level in (2.05, 3.1, 4.15, 5.2, 6.25, 7.3):
+            box(collection, parent, "CitadelWingLouver_" + str(int(sx)) + str(level), (2.48, .10, .13), (sx * 10.0, level, -4.65), DARK, .013, None, 1.7)
+        cylinder(collection, parent, "CitadelServiceTrunk_" + str(int(sx)), .34, 7.9, (sx * 11.82, 5.2, 4.18), STEEL, None, 16)
+        for y in (2.0, 4.25, 6.5, 8.75):
+            torus(collection, parent, "CitadelServiceCollar_" + str(int(sx)) + str(y), .48, .055, (sx * 11.82, y, 4.18), HAZARD, 24)
+        # Tall tapered front pylons frame the access rather than a single flat facade.
+        tapered_box(collection, parent, "CitadelDockFrame_" + str(int(sx)), 1.85, 11.8, 2.05, .56, (sx * 7.25, 5.95, -5.55), DARK, .065, None, 3.8)
+        box(collection, parent, "CitadelDockFrameLight_" + str(int(sx)), (.12, 8.3, .10), (sx * 7.25, 5.9, -6.62), CYAN, .010)
+        brace_xy(collection, parent, "CitadelDockBrace_" + str(int(sx)), (sx * 7.65, 1.0, -6.2), (sx * 9.45, 9.35, -5.45), .20, .16, STEEL)
+
+    # Layered central command tower: a tapered shell, armour bands, receiver rings and fins.
+    tapered_box(collection, parent, "ArchiveCommandSpine", 6.1, 13.6, 4.9, .36, (0, 14.3, 2.7), DARK, .085, None, 4.6)
+    tapered_box(collection, parent, "ArchiveCommandCore", 3.25, 14.5, 2.45, .44, (0, 15.05, 2.05), STEEL, .055, None, 4.2)
+    for y, width in ((9.2, 6.25), (11.55, 5.45), (13.9, 4.65), (16.25, 3.85), (18.6, 3.10)):
+        box(collection, parent, "ArchiveCommandBand_" + str(y), (width, .17, 4.15), (0, y, .18 + (y - 9.2) * .26), HAZARD if int(y * 10) % 2 else STEEL, .018, None, 2.4)
+    for side in (-1.0, 1.0):
+        box(collection, parent, "ArchiveCommandFin_" + str(int(side)), (.25, 10.6, 2.45), (side * 2.85, 15.45, 2.68), STEEL, .035, None, 2.8)
+        box(collection, parent, "ArchiveCommandLight_" + str(int(side)), (.055, 8.85, .12), (side * 1.38, 15.25, -.62), CYAN, .008)
+    torus(collection, parent, "ArchiveCommandHaloLower", 3.15, .13, (0, 18.65, 2.7), STEEL, 48)
+    torus(collection, parent, "ArchiveCommandHaloEnergy", 2.48, .09, (0, 20.35, 2.7), CYAN, 48)
+    # Two asymmetric communications dishes and a transverse maintenance bridge make a readable skyline.
+    for side in (-1.0, 1.0):
+        cylinder(collection, parent, "CitadelDishMast_" + str(int(side)), .20, 5.6, (side * 12.5, 13.65, 2.5), DARK, None, 16)
+        torus(collection, parent, "CitadelDishRing_" + str(int(side)), 1.48, .10, (side * 12.5, 16.35, 2.5), STEEL, 36)
+        box(collection, parent, "CitadelDishNeedle_" + str(int(side)), (.12, 3.25, .12), (side * 12.5, 18.05, 2.5), CYAN, .018)
+    box(collection, parent, "CitadelTransverseServiceBridge", (18.6, .38, 1.95), (0, 11.75, -1.1), STEEL, .045, None, 3.7)
+    for x in (-7.2, -3.6, 0.0, 3.6, 7.2):
+        box(collection, parent, "CitadelBridgeGrate_" + str(x), (2.55, .06, 1.68), (x, 12.00, -1.1), DARK, .008, None, 1.6)
+        box(collection, parent, "CitadelBridgeRail_" + str(x), (.09, 1.05, .09), (x, 12.46, -.18), HAZARD, .012)
+
     return collection
 
 
