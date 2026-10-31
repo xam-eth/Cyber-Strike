@@ -1,6 +1,14 @@
 # HERO_01 — Rig Specification (Phases B, C, E)
 
-## 1. Skeleton (24 bones)
+## 0. NEW_HERO_01 (current rig — read this first; replaces §§1–6 for the shipped files)
+The shipped character is **NEW_HERO_01** (owner-directed replacement, 2026-10-31; full record in VALIDATION_REPORT §5.15). Sections 1–6 below describe the **superseded** asset, including its "do not regress" notes — those apply to the old files only (recoverable at git commit `4577c60`) and must NOT be applied to NEW_HERO_01.
+- **Skeleton:** identical 24 names/hierarchy as §1 below. Differences: `Weapon_R` is a *deform* joint with an empty vertex group (so the GLB skin contains it and Godot `find_bone("Weapon_R")` works); `Root` carries no weights. Rest skeleton = the source's symmetric **A-pose** (not contrapposto). Key global rests (skeleton/glTF space): Hips (0, 0.505, 0.018); Head (0, 0.855, 0); shoulder joints (±0.135, 0.795, −0.008); elbows (±0.262, 0.655, 0.004); wrists (±0.355, 0.572, 0.062); `Weapon_R` (−0.377, 0.542, 0.067) on the right palm; knees (±0.097, 0.285, 0.020); ankles (±0.134, 0.105, −0.012). Segment lengths: upper arm 0.1894, forearm 0.1375, upper leg 0.2201, lower leg 0.1865 (L/R symmetric). Height 0.9813; `ScaleRoot` ×1.8 ≈ 1.766 m; faces +Z in Godot. Joint placement: medial-axis traces (script 65) + ghost overlays (`audit66_*`) + isolated-bend renders (`audit67_*`).
+- **Skinning (script 66, deterministic, rebuildable):** bone-heat fails on this scan, so weights are a geometric field: 5 bone polylines extended rootward (arms from UpperChest centre, legs from Hips centre), tent weights over arc length; per-island single-system lock with anatomical containment; blend+diffusion only for the 94 spanning suit islands; `UpperLeg` gated to 0 above z 0.52; gloves pure `Hand` beyond the wrist; rigid snap for near-constant armor islands; top-4, normalized. Guarantees audited by script 67: arm weight = 0.000 in all torso bands z 0.45–0.65; raised-arm waist displacement 0.00 mm.
+- **Weapon:** same separate rifle GLB/scene as §4, but it was authored against the *previous* character, so `hero_01.gd` now seats it by translating `GripPoint` → `Weapon_R` origin (authored orientation kept; offset printed at startup; verified 0.0000 m in-engine). Open hands, no finger bones: grip rests on the flat palm — no finger wrap claimed.
+- **Export:** `tools/blender/scripts/68_export_new_hero.py` (script-32 settings family) → `assets/characters/HERO_01_RIGGED.glb`, then automatic `doubleSided` patch (open shells; see §5 below — still required). Working file: `blender/NEW_HERO_01_working.blend`. Presentation requirement (metallic PBR needs sky reflections + MSAA) from §5 still applies.
+- **Retargeting:** BoneMap in §6 below remains valid (same bone names); NEW rest is a true A-pose, which retargets more conventionally; still UNVERIFIED until exercised.
+
+## 1. Skeleton (24 bones) — SUPERSEDED asset below this line
 ```
 Root (non-deform)
 └─ Hips

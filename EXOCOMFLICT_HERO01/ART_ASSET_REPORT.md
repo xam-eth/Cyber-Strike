@@ -3,6 +3,16 @@
 Project: EXOCONFLICT: STELLAR HORIZON — HERO_01 production preparation (external contribution, Milestone 1).
 Status labels used throughout: VERIFIED / LIKELY / ASSUMPTION / UNKNOWN / UNVERIFIED.
 
+## 0. NEW_HERO_01 — current authoritative source (owner-directed replacement, 2026-10-31)
+The sections below audit the **previous** asset (superseded; kept as history). The current hero is:
+- File: `assets/source/NEW_HERO_01.glb` — untouched copy of the owner's Drive file (Drive ID `1pJJ4DU8ChAUnVHxbX3q3v98SaWbGUT-9`); 41,555,532 B; MD5 `3b7559b8b3ca260f5d52cf6a102437b0`; SHA-256 `a0e06a5bdd6307e9ac9912f0b1d2dabae9173f7c92efabd25061b49b154d003a`. **VERIFIED**
+- glTF 2.0 (Tripo), 1 mesh / 1 primitive, 527,406 verts / 971,188 tris, POSITION/NORMAL/TEXCOORD_0 only; **no skins, no animations, no morphs**; 1 PBR material with baseColor + metallicRoughness + normal images; 1,055 disconnected islands (largest 21,271 verts), non-watertight shells. **VERIFIED** (script 64; renders `screenshots/rig/audit64_newhero_*`)
+- Character: helmeted hard-surface armored soldier (full helmet with emissive visor accents, chest/back armor, pauldrons, belts/pouches, thigh holsters, knee/shin armor, armored boots) in a clean **A-pose**; **hands open and empty — no weapon is modelled in the hands**, so the previously separated rifle GLB is reused via `Weapon_R` (finger wrap is not claimed). **VERIFIED**
+- Pose fitness for rigging (the reason for the replacement): measured horizontal air gap between arm and torso geometry ≈**185 mm** at waist heights, ≈110 mm mid-torso, ≈16–25 mm at the armpit — clean arm/torso weight separation is achievable, unlike the previous touching pose. **VERIFIED**
+- Bounds (Blender Z-up, as authored): x ±0.391, y −0.108…0.107, z 0…0.9813; faces −Y (= +Z glTF/Godot); anatomical left = +X. Real-world height: Godot `ScaleRoot` ×1.8 ≈ 1.766 m. **ASSUMPTION — owner to confirm.**
+- Visual preservation: no decimation/remesh/repaint/UV/material changes; rigged rest renders (`audit68_rest_*`) match the source baseline; exported rest bbox equals source within 2 mm; only skin weights were added. **VERIFIED**
+- Working files: `blender/NEW_HERO_01_working.blend` (Blender 4.5 LTS), pipeline scripts 64–68 in `tools/blender/scripts/`. Risks carried over from §6 below still apply (971k tris, no LODs, thin non-watertight shells at untested extremes, no finger bones in the 24-bone skeleton).
+
 ## 1. Authoritative source
 - File: `assets/source/HERO_01.glb` (untouched copy of the owner's Google Drive asset). **VERIFIED**
 - Size 18,888,488 bytes; MD5 `9d0ad8cd9e2bea0627a2275dafa19c30`; SHA-256 `f067d3f574e5fa0404b543fd9a86974e9a73f529a1a778fbd029debd20945d50`. **VERIFIED**
