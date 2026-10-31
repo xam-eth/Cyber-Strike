@@ -8,7 +8,7 @@ import unittest
 import zipfile
 from pathlib import Path
 
-from tools.check_payload import MAGIC, parse_pck
+from tools.check_payload import FORBIDDEN, MAGIC, parse_pck
 
 
 def make_pack(entries: list[tuple[str, int, int]], sparse: bool = False) -> bytes:
@@ -81,6 +81,18 @@ class CheckPayloadTests(unittest.TestCase):
             archive.writestr("assets/readme.txt", "not a pack")
         with self.assertRaisesRegex(SystemExit, "no .pck or .sparsepck"):
             parse_pck(str(apk))
+
+    def test_forbidden_allows_activated_guardian_and_rejects_unactivated_candidates(self) -> None:
+        hard_patterns = [p for p, (_, hard) in FORBIDDEN.items() if hard]
+        self.assertFalse(
+            any(p in "assets/enemies/enemy_iron_warden_boss.glb" for p in hard_patterns)
+        )
+        self.assertTrue(
+            any(p in "assets/enemies/enemy_robot_common.glb" for p in hard_patterns)
+        )
+        self.assertTrue(
+            any(p in "assets/enemies/enemy_iron_sentinel.glb" for p in hard_patterns)
+        )
 
 
 if __name__ == "__main__":

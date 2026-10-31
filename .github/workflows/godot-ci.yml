@@ -23,7 +23,7 @@ permissions:
 jobs:
   static:
     name: Static checks (gdtoolkit + project doctor)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
@@ -39,7 +39,7 @@ jobs:
 
   engine:
     name: Headless smoke tests (Godot 4.7.2)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # Backstop: the runner already times out each test, this bounds the whole job.
     timeout-minutes: 25
     steps:
@@ -115,7 +115,7 @@ jobs:
 
   web-preview:
     name: Web preview build (WebAssembly)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 40
     # contents: write is only used by the "commit the payload" step below, and
     # that step runs on push events to this repository only.
@@ -201,6 +201,7 @@ jobs:
               'held_weapon': 'assets/weapons/futuristic_rifle/rifle.glb',
               'runner': 'assets/world/kenney_space_kit/alien.glb',
               'shooter': 'assets/world/kenney_space_kit/astronauta.glb',
+              'guardian': 'assets/enemies/enemy_iron_warden_boss.glb',
               'training_drone': 'assets/world/kenney_space_kit/craft-miner.glb',
               'recovery_cache': 'assets/world/kenney_space_kit/station-computer-wide.glb',
           }
@@ -218,7 +219,7 @@ jobs:
               'pck_bytes': size,
               'files': len(entries),
               'worlds': ['frostline_relay', 'verdant_bloom', 'emberfall_foundry', 'vanguard_station', 'titans'],
-              'dynamic_character_visuals': ['hero', 'held_weapon', 'runner', 'shooter', 'training_drone'],
+              'dynamic_character_visuals': ['hero', 'held_weapon', 'runner', 'shooter', 'guardian', 'training_drone'],
               'dynamic_world_visuals': ['recovery_cache'],
               'largest': [{'path': path, 'bytes': size} for path, _, size in largest],
           }, indent=2) + '\n')
@@ -600,7 +601,7 @@ jobs:
     # Manual dispatch (any branch) or automatic after a push to main.
     if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
     needs: web-preview
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       pages: write
@@ -666,7 +667,7 @@ jobs:
     # sandbox cannot resolve; a runner can, and this job writes down what is
     # actually inside it.
     if: github.event_name == 'push' && contains(github.event.head_commit.message, '[lfs-inspect]')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:
       contents: write
@@ -767,7 +768,7 @@ jobs:
     # because GitHub refuses workflow_dispatch for workflows that only exist on
     # a side branch.
     if: github.event_name == 'push' && contains(github.event.head_commit.message, '[lfs-pack]')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     permissions:
       contents: write
@@ -865,7 +866,7 @@ jobs:
       github.event_name == 'push' &&
       github.ref == 'refs/heads/arena/5257bce8-cyber-strike' &&
       contains(github.event.head_commit.message, '[hero-blender]')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 35
     permissions:
       contents: write
@@ -954,7 +955,7 @@ jobs:
     if: >-
       github.event_name == 'push' &&
       contains(github.event.head_commit.message, '[forge-verify]')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
     permissions:
       contents: write
@@ -1058,7 +1059,7 @@ jobs:
       github.event_name == 'push' &&
       startsWith(github.ref, 'refs/heads/arena/') &&
       contains(github.event.head_commit.message, '[celebration]')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 35
     permissions:
       contents: write

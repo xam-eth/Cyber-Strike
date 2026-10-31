@@ -232,7 +232,7 @@ static func refresh_guardian_card(hud) -> void:
 	var phase_color: Color = AegisTokens.INFO
 	var phase_key := "hud.guardian_shielded"
 	if hud._state.guardian_phase == "windup":
-		phase_color = AegisTokens.WARN
+		phase_color = AegisTokens.ACCENT
 		phase_key = "hud.guardian_windup"
 	elif hud._state.guardian_phase == "exposed":
 		phase_color = AegisTokens.DANGER

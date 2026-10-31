@@ -265,6 +265,7 @@ func _test_endless_schedule_and_hud() -> void:
 		"Results summary reports real Guardian eliminations and Endless wave reached",
 	)
 
+	paused = false
 	main_scene.queue_free()
 	await process_frame
 

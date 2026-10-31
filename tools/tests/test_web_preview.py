@@ -62,7 +62,9 @@ class WebPresetTests(unittest.TestCase):
         excluded = web_preset.base.unquote(preset.header.get("exclude_filter", ""))
         self.assertIn("tests/*", excluded)
         self.assertIn("assets/world/real/*", excluded)
-        self.assertIn("assets/enemies/*", excluded)
+        self.assertIn("assets/enemies/enemy_robot_*", excluded)
+        self.assertIn("assets/enemies/enemy_iron_sentinel*", excluded)
+        self.assertNotIn("enemy_iron_warden_boss", excluded)
         self.assertNotIn("assets/forge/world/*", excluded)
 
     def test_ensure_is_idempotent_and_preserves_other_presets(self) -> None:

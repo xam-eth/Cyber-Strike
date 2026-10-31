@@ -77,16 +77,43 @@ if (!baseUrl) {
 }
 fs.mkdirSync(outDir, { recursive: true });
 
-const browser = await puppeteer.launch({
-  executablePath: await chromium.executablePath(),
-  args: [...chromium.args, '--no-sandbox', '--disable-dev-shm-usage'],
-  headless: true,
-  protocolTimeout: 300000,
-  env: { ...process.env, LD_LIBRARY_PATH: [LIB_DIR, process.env.LD_LIBRARY_PATH].filter(Boolean).join(':') },
-}).catch((error) => {
-  if (server) server.kill();
-  throw error;
-});
+const launchBrowser = async (protocolTimeout) => {
+  try {
+    return await puppeteer.launch({
+      executablePath: await chromium.executablePath(),
+      args: [...chromium.args, '--no-sandbox', '--disable-dev-shm-usage'],
+      headless: true,
+      protocolTimeout,
+      env: { ...process.env, LD_LIBRARY_PATH: [LIB_DIR, process.env.LD_LIBRARY_PATH].filter(Boolean).join(':') },
+    });
+  } catch (primaryErr) {
+    for (const candidate of ['/usr/bin/google-chrome', '/usr/bin/google-chrome-stable', '/usr/bin/chromium', '/usr/bin/chromium-browser']) {
+      if (!fs.existsSync(candidate)) continue;
+      try {
+        return await puppeteer.launch({
+          executablePath: candidate,
+          args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--use-gl=angle',
+            '--use-angle=swiftshader-webgl',
+            '--enable-unsafe-swiftshader',
+          ],
+          headless: true,
+          protocolTimeout,
+        });
+      } catch (_fallbackErr) {
+        // try next binary
+      }
+    }
+    if (server) server.kill();
+    console.error(`ERROR: Failed to launch headless Chromium: ${primaryErr?.message || primaryErr}`);
+    throw primaryErr;
+  }
+};
+
+const browser = await launchBrowser(300000);
 
 const report = { base: baseUrl, throughputMbps: throughputMbps || null, world, opening: null, cases: [] };
 const assets = selected === 'both' ? ['wasm', 'pck'] : selected === 'opening' ? [] : [selected];
