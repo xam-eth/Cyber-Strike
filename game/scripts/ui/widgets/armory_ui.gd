@@ -165,6 +165,15 @@ func _build_card(index: int) -> AegisPanel:
 	_tier_labels.append(tier_label)
 	column.add_child(tier_label)
 
+	# Label text is content, not a layout demand. At the compact physical-font
+	# floor, a single-line role/spec string otherwise becomes the minimum width
+	# of every card and pushes the whole PanelContainer past the phone glass.
+	# Wrap inside the card and let flexible art yield the extra vertical space.
+	for label: Label in [name_label, role_label, state, tier_label]:
+		label.custom_minimum_size.x = 0.0
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		label.max_lines_visible = 2
+
 	var actions := HBoxContainer.new()
 	actions.add_theme_constant_override("separation", 4)
 	actions.mouse_filter = Control.MOUSE_FILTER_IGNORE
