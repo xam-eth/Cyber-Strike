@@ -121,6 +121,32 @@ func _run() -> void:
 	var hand2 := _bone_global(skeleton, b_hand_r)
 	check(hand2.distance_to(hand0) <= 0.001, "rest pose restored after probe (drift %.4f m)" % hand2.distance_to(hand0))
 
+	# --- HITBOX SCAFFOLD (inactive Dynamic Injury volumes) ---
+	var hb_root = hero.get_node_or_null("HitboxScaffold")
+	check(hb_root != null, "HitboxScaffold node built")
+	if hb_root != null:
+		var hb_bones := ["Head", "Neck", "UpperChest", "Chest", "Spine", "Hips",
+			"UpperArm_L", "Forearm_L", "Hand_L", "UpperArm_R", "Forearm_R", "Hand_R",
+			"UpperLeg_L", "LowerLeg_L", "Foot_L", "UpperLeg_R", "LowerLeg_R", "Foot_R"]
+		var hb_ok := true
+		var hb_inactive := true
+		for bn in hb_bones:
+			var attach = skeleton.get_node_or_null("HB_" + bn) as BoneAttachment3D
+			if attach == null or attach.bone_name != bn:
+				hb_ok = false
+				continue
+			var area = attach.get_node_or_null("Hitbox") as Area3D
+			var shape_node = attach.get_node_or_null("Hitbox/Shape") as CollisionShape3D
+			if area == null or shape_node == null or shape_node.shape == null:
+				hb_ok = false
+				continue
+			if not shape_node.disabled or area.monitoring or area.monitorable:
+				hb_inactive = false
+			if not area.has_meta("hb_part") or bool(area.get_meta("hb_active", true)):
+				hb_inactive = false
+		check(hb_ok, "all 18 hitbox attachments present with shapes")
+		check(hb_inactive, "hitbox scaffold fully inactive (shapes disabled, no monitoring)")
+
 	# --- PHASE-1 CLIP SAMPLING (direct AnimationPlayer seeks) ---
 	# (the AnimationTree was already disabled above). Skipped with INFO in
 	# the rig-only stage (procedural clips owner-rejected 2026-10-31,

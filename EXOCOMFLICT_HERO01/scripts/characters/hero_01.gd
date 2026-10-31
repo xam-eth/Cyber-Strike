@@ -50,6 +50,11 @@ const AIM_ANIMATION := LEGACY_AIM_ANIMATION
 ## supply its own AnimationTree/locomotion blend graph.
 @export var use_animation_tree: bool = true
 @export var start_animation_state: String = ANIMATION_IDLE
+## Build the INACTIVE Dynamic-Injury hitbox scaffold (Hero01Hitboxes):
+## per-bone disabled collision volumes for a future injury system.
+## Pure structure/metadata for now - shapes are disabled and areas do
+## not monitor, so this has no gameplay or physics effect.
+@export var build_hitbox_scaffold: bool = true
 
 var skeleton: Skeleton3D
 var animation_player: AnimationPlayer
@@ -70,6 +75,11 @@ func _ready() -> void:
 	if animation_player == null:
 		push_warning("HERO_01: AnimationPlayer not found in imported GLB scene.")
 	_attach_weapon()
+	if build_hitbox_scaffold:
+		var hb := Hero01Hitboxes.new()
+		hb.name = "HitboxScaffold"
+		add_child(hb)
+		hb.build(skeleton)
 	if force_full_detail:
 		_apply_full_detail(self)
 	_resolve_animations()

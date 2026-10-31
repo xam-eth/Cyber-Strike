@@ -2,11 +2,13 @@ extends RefCounted
 ## Automated sanity checks for the NEW_HERO_01 rig (shared by the
 ## RigValidation scene and the headless CI scene). Returns PASS/FAIL/INFO
 ## lines. Skeleton expectations are skeleton-local global-rest values
-## measured from the shipped NEW_HERO_01 GLB (Blender scripts 66/68).
-## Animation clips for the new skeleton are not authored yet: while
-## EXPECT_CLIPS is false, missing clips/tree are INFO, never FAIL.
+## measured from the shipped NEW_HERO_01 GLB. Rig v2 (Hybrid Rig,
+## Blender scripts 79/81/83): 54 joints = original 24 (identical names
+## and rest transforms) + 30 finger bones. Animation clips for the new
+## skeleton are not authored yet: while EXPECT_CLIPS is false, missing
+## clips/tree are INFO, never FAIL.
 
-const EXPECTED_BONES := 24
+const EXPECTED_BONES := 54
 const EXPECT_CLIPS := false
 const CLIP_DURATIONS := {
 	"Idle": 3.0,
@@ -130,13 +132,18 @@ static func run_checks(hero: Node) -> Array:
 		_ok(lines, true, "AnimationPlayer located")
 	_ok(lines, weapon != null, "Weapon attached")
 	if skeleton != null:
-		_ok(lines, skeleton.get_bone_count() == EXPECTED_BONES, "Bone count == 24 (got %d)" % skeleton.get_bone_count())
+		_ok(lines, skeleton.get_bone_count() == EXPECTED_BONES, "Bone count == %d (got %d)" % [EXPECTED_BONES, skeleton.get_bone_count()])
 		for b in ["Root", "Hips", "Spine", "Chest", "UpperChest", "Neck", "Head",
 				"Clavicle_L", "UpperArm_L", "Forearm_L", "Hand_L",
 				"Clavicle_R", "UpperArm_R", "Forearm_R", "Hand_R", "Weapon_R",
 				"UpperLeg_L", "LowerLeg_L", "Foot_L", "Toe_L",
 				"UpperLeg_R", "LowerLeg_R", "Foot_R", "Toe_R"]:
 			_ok(lines, skeleton.find_bone(b) >= 0, "Bone %s exists" % b)
+		for side in ["L", "R"]:
+			for finger in ["Thumb", "Index", "Middle", "Ring", "Pinky"]:
+				for seg in [1, 2, 3]:
+					_ok(lines, skeleton.find_bone("%s%d_%s" % [finger, seg, side]) >= 0,
+						"Finger bone %s%d_%s exists" % [finger, seg, side])
 		_check_new_skeleton(lines, skeleton)
 	if player != null:
 		if EXPECT_CLIPS:
