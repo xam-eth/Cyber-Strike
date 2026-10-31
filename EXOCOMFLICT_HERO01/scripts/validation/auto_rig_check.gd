@@ -7,7 +7,7 @@ extends RefCounted
 ## EXPECT_CLIPS is false, missing clips/tree are INFO, never FAIL.
 
 const EXPECTED_BONES := 24
-const EXPECT_CLIPS := true
+const EXPECT_CLIPS := false
 const CLIP_DURATIONS := {
 	"Idle": 3.0,
 	"Weapon_Raise": 1.2,

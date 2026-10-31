@@ -122,9 +122,11 @@ func _run() -> void:
 	check(hand2.distance_to(hand0) <= 0.001, "rest pose restored after probe (drift %.4f m)" % hand2.distance_to(hand0))
 
 	# --- PHASE-1 CLIP SAMPLING (direct AnimationPlayer seeks) ---
-	# (the AnimationTree was already disabled above)
-	check(player != null, "AnimationPlayer present (Phase-1 clips exported)")
+	# (the AnimationTree was already disabled above). Skipped with INFO in
+	# the rig-only stage (procedural clips owner-rejected 2026-10-31,
+	# mocap-retargeted replacements pending; VALIDATION_REPORT 5.17).
 	if player == null:
+		print("CI INFO clip sampling skipped (no AnimationPlayer; rig-only stage)")
 		_finish()
 		return
 	var b_hand_l := skeleton.find_bone("Hand_L")
