@@ -205,6 +205,45 @@ func _run_smoke_test() -> void:
 	var buy_button := armory.get("_weapon_buttons")[1] as Button
 	var buy_font := float(buy_button.get_theme_font_size("font_size")) * LANDSCAPE_STRETCH
 	_expect(buy_font >= 14.5, "armory UNLOCK/EQUIP text stays >=15 physical px")
+	# The field panel has both footer actions visible. Measure its settled
+	# container, not only the requested custom_minimum_size: an art minimum used
+	# to grow the real panel and push HOME / RETURN below the phone glass.
+	armory.visible = true
+	armory.call("show_home", true)
+	controls.call("apply_layout_for_size", Vector2(844.0, 390.0), LANDSCAPE_STRETCH)
+	await process_frame
+	await process_frame
+	var landscape_armory_rect := Rect2(
+		armory.get_global_rect().position * LANDSCAPE_STRETCH,
+		armory.get_global_rect().size * LANDSCAPE_STRETCH
+	)
+	var landscape_footer_rect := Rect2(
+		(
+			(armory.find_child("ArmoryFooter", true, false) as Control).get_global_rect().position
+			* LANDSCAPE_STRETCH
+		),
+		(
+			(armory.find_child("ArmoryFooter", true, false) as Control).get_global_rect().size
+			* LANDSCAPE_STRETCH
+		)
+	)
+	_expect(
+		(
+			landscape_armory_rect.position.x >= 0.0
+			and landscape_armory_rect.position.y >= 0.0
+			and landscape_armory_rect.end.x <= 844.0
+			and landscape_armory_rect.end.y <= 390.0
+			and landscape_footer_rect.end.y <= landscape_armory_rect.end.y + 1.0
+		),
+		(
+			"844x390 Armory contains its panel and both footer actions: %s footer=%s"
+			% [landscape_armory_rect, landscape_footer_rect]
+		),
+	)
+	armory.visible = false
+	armory.call("show_home", false)
+	controls.call("apply_layout_for_size", Vector2(844.0, 390.0), LANDSCAPE_STRETCH)
+	await process_frame
 	_expect(
 		(
 			not feedback_panel.get_global_rect().intersects(weapon_button.get_global_rect())
@@ -419,6 +458,35 @@ func _run_smoke_test() -> void:
 	)
 	_tap_screen_button(controls, weapon_button, 94)
 	_expect(armory.visible and paused, "compact SWAP face opens Armory in Explore")
+	await process_frame
+	await process_frame
+	var compact_armory_rect := Rect2(
+		armory.get_global_rect().position * COMPACT_STRETCH,
+		armory.get_global_rect().size * COMPACT_STRETCH
+	)
+	var compact_footer_rect := Rect2(
+		(
+			(armory.find_child("ArmoryFooter", true, false) as Control).get_global_rect().position
+			* COMPACT_STRETCH
+		),
+		(
+			(armory.find_child("ArmoryFooter", true, false) as Control).get_global_rect().size
+			* COMPACT_STRETCH
+		)
+	)
+	_expect(
+		(
+			compact_armory_rect.position.x >= 0.0
+			and compact_armory_rect.position.y >= 0.0
+			and compact_armory_rect.end.x <= 667.0
+			and compact_armory_rect.end.y <= 375.0
+			and compact_footer_rect.end.y <= compact_armory_rect.end.y + 1.0
+		),
+		(
+			"667x375 Armory contains its panel and both footer actions: %s footer=%s"
+			% [compact_armory_rect, compact_footer_rect]
+		),
+	)
 	main_scene.call("_close_armory")
 	_expect(not paused, "closing compact Armory resumes safe Explore")
 	_expect(

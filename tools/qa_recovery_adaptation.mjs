@@ -57,7 +57,7 @@ const layouts = {};
 let completed = false;
 let failure = '';
 const page = await browser.newPage();
-await page.setViewport({ width: 1280, height: 720, hasTouch: false, isMobile: false, deviceScaleFactor: 1 });
+await page.setViewport({ width: 1280, height: 720, hasTouch: true, isMobile: false, deviceScaleFactor: 1 });
 page.on('console', (message) => {
   const text = message.text();
   lines.push({ text, at: Date.now() });
@@ -95,6 +95,13 @@ const shot = async (name) => {
   frames.push(path.relative(ROOT, file));
   console.log(`FRAME ${path.relative(ROOT, file)}`);
 };
+const scrollRunReport = async () => {
+  const canvas = await canvasMetrics();
+  if (!canvas) throw new Error('Cannot scroll a run report without a canvas');
+  await page.mouse.move(canvas.x + canvas.width * 0.5, canvas.y + canvas.height * 0.43);
+  await page.mouse.wheel({ deltaY: 620 });
+  await delay(700);
+};
 const canvasMetrics = () => page.evaluate(() => {
   const canvas = document.querySelector('canvas');
   if (!canvas) return null;
@@ -131,7 +138,7 @@ const parseRects = (line) => {
   }
   return rects;
 };
-const latestRects = (prefix) => parseRects(texts().reverse().find((line) => line.startsWith(prefix)));
+const latestRects = (prefix, from = 0) => parseRects(texts().slice(from).reverse().find((line) => line.startsWith(prefix)));
 const rectPoint = async (rect) => {
   const canvas = await canvasMetrics();
   if (!canvas || !rect) return null;
@@ -307,14 +314,17 @@ try {
   await shot(`05-adaptation-desktop-${LANG}`);
 
   const mobileMark = lines.length;
-  await page.setViewport({ width: 844, height: 390, hasTouch: true, isMobile: true, deviceScaleFactor: 1 });
+  // Keep the touch/device mode stable: changing isMobile can reload the shell.
+  // Only the physical viewport changes, so this remains the same paused run.
+  await page.setViewport({ width: 844, height: 390, hasTouch: true, isMobile: false, deviceScaleFactor: 1 });
   check('Phone adaptation layout is reported after resize', await until(() => {
-    if (lines.length <= mobileMark) return false;
-    const rects = latestRects('RunUpgrade QA:');
+    const rects = latestRects('RunUpgrade QA:', mobileMark);
     return rects.PANEL && rects.OVERCHARGE?.width > 100 && rects.QUICK_CYCLE?.width > 100;
   }, 20000));
+  check('Phone resize preserves the paused mission', !has('Godot Engine v', mobileMark)
+    && !has('Encounter: Explore safe', mobileMark));
   await delay(700);
-  layouts.phone = latestRects('RunUpgrade QA:');
+  layouts.phone = latestRects('RunUpgrade QA:', mobileMark);
   await checkLayout('Phone', layouts.phone, await canvasMetrics());
   await shot(`06-adaptation-phone-${LANG}`);
 
@@ -331,8 +341,10 @@ try {
   check('Secure has a measured phone control', startPoint !== null);
   await page.touchscreen.tap(startPoint.x, startPoint.y);
   await waitFor('Recovery: secured verdant_seed_vault', 20000);
-  check('Secure grants the real permanent Arc transaction', has('Recovery: secured verdant_seed_vault · reward verdant_arc_blueprint'));
+  check('Secure grants the real permanent Arc transaction', has('Recovery: secured verdant_seed_vault · reward arc_shooter_blueprint'));
   await shot(`08-extraction-phone-${LANG}`);
+  await scrollRunReport();
+  await shot(`08b-extraction-run-only-${LANG}`);
 
   if (!VISUAL_ONLY) {
     // Extraction's primary Extract button owns focus; the next control is Continue.
@@ -352,6 +364,8 @@ try {
     check('Finishing Endless reaches actual Results', has('Encounter: Results after wave 1'));
     check('The existing run banks exactly once', texts().filter((line) => line.includes('Progression: banked +')).length === 1);
     await shot(`11-results-run-only-${LANG}`);
+    await scrollRunReport();
+    await shot(`11b-results-run-only-${LANG}`);
 
     await page.keyboard.press('Tab');
     await page.keyboard.press('Enter');
@@ -362,16 +376,22 @@ try {
     await page.keyboard.press('Tab');
     await page.keyboard.press('Tab');
     await page.keyboard.press('Enter');
-    await page.waitForFunction(() => document.body.dataset.screen === 'hub', { timeout: 90000 });
-    check('Pause Home returns to the real hub', true);
+    await waitFor('FrontEnd: stage DASHBOARD', 90000);
+    check('Pause Home returns to the real Godot Command Hub', true);
     await shot(`12-hub-after-run-${LANG}`);
 
-    await page.waitForFunction(() => {
-      const deploy = document.getElementById('hub-deploy');
-      return deploy && !deploy.disabled;
-    }, { timeout: 180000 });
+    // HOME returns to the engine's deployment board, not the dormant HTML
+    // shell. DEPLOY then follows the ordinary Operative -> World -> Preload
+    // route with the persisted Verdant/Pulse profile already selected.
     const redeployMark = lines.length;
-    await page.click('#hub-deploy');
+    await page.keyboard.press('Enter');
+    await waitFor('FrontEnd: stage HERO', 30000, redeployMark);
+    await shot(`12b-operative-after-run-${LANG}`);
+    await page.keyboard.press('Enter');
+    await waitFor('FrontEnd: stage WORLD', 30000, redeployMark);
+    await shot(`12c-world-after-run-${LANG}`);
+    await page.keyboard.press('Enter');
+    await waitFor('FrontEnd: stage PRELOAD', 30000, redeployMark);
     await waitFor('Encounter: Explore safe', 300000, redeployMark);
     check('Redeploy starts a fresh playable deployment', has('Encounter: Explore safe', redeployMark));
     check('Redeploy does not inherit the old selection', !has('Run upgrade: selected', redeployMark));
