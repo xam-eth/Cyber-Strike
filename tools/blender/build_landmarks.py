@@ -119,8 +119,11 @@ def cylinder(collection, name, radius, depth, pos, mat, parent, rotation=None, v
     bpy.ops.mesh.primitive_cylinder_add(vertices=vertices, radius=radius, depth=depth, location=pos)
     obj = bpy.context.object
     obj.name = name
+    # Blender cylinders are Z-long. These assets export in Godot's authored
+    # X/Y/Z basis, so make the long axis Y before applying an authored offset.
+    obj.rotation_euler = (math.pi * .5, 0, 0)
     if rotation:
-        obj.rotation_euler = rotation
+        obj.rotation_euler = (math.pi * .5 + rotation[0], rotation[1], rotation[2])
     bevel(obj, min(radius * 0.18, 0.026), 2)
     obj.data.materials.append(mat)
     obj.parent = parent
@@ -249,6 +252,7 @@ def export(collection, filename):
         export_format="GLB",
         use_selection=True,
         export_materials="EXPORT",
+        export_yup=False,
     )
 
 

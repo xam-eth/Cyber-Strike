@@ -160,8 +160,10 @@ def cylinder(collection, parent, name, radius, depth, pos, material, rotation=No
     bpy.ops.mesh.primitive_cylinder_add(vertices=sides, radius=radius, depth=depth, location=pos)
     obj = bpy.context.object
     obj.name = name
+    # Preserve Godot Y-up in the raw GLB: Blender's cylinder depth starts on Z.
+    obj.rotation_euler = (math.pi * .5, 0, 0)
     if rotation:
-        obj.rotation_euler = rotation
+        obj.rotation_euler = (math.pi * .5 + rotation[0], rotation[1], rotation[2])
     bevel(obj, min(.028, radius * .18))
     obj.data.materials.append(material)
     return attach(obj, collection, parent)
@@ -284,7 +286,7 @@ def export(collection, filename):
     for obj in collection.objects:
         obj.select_set(True)
     bpy.context.view_layer.objects.active = collection.objects[0]
-    bpy.ops.export_scene.gltf(filepath=os.path.join(OUT, filename), export_format="GLB", use_selection=True, export_materials="EXPORT")
+    bpy.ops.export_scene.gltf(filepath=os.path.join(OUT, filename), export_format="GLB", use_selection=True, export_materials="EXPORT", export_yup=False)
 
 
 sets = [

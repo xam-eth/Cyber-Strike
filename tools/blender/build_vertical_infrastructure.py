@@ -114,8 +114,10 @@ def cylinder(col, parent, name, radius, depth, pos, mat, rot=None, sides=16):
     bpy.ops.mesh.primitive_cylinder_add(vertices=sides, radius=radius, depth=depth, location=pos)
     obj = bpy.context.object
     obj.name = name
+    # Keep the cylinder depth on Godot Y; Blender creates it on local Z.
+    obj.rotation_euler = (math.pi * .5, 0, 0)
     if rot:
-        obj.rotation_euler = rot
+        obj.rotation_euler = (math.pi * .5 + rot[0], rot[1], rot[2])
     bevel(obj, min(0.025, radius * 0.18))
     obj.data.materials.append(mat)
     return link(obj, col, parent)
@@ -210,7 +212,7 @@ def export(col, filename):
     for obj in col.objects:
         obj.select_set(True)
     bpy.context.view_layer.objects.active = col.objects[0]
-    bpy.ops.export_scene.gltf(filepath=os.path.join(OUT, filename), export_format="GLB", use_selection=True, export_materials="EXPORT")
+    bpy.ops.export_scene.gltf(filepath=os.path.join(OUT, filename), export_format="GLB", use_selection=True, export_materials="EXPORT", export_yup=False)
 
 
 sets = [(refinery_stack(), "refinery_stack.glb"), (overhead_gantry(), "overhead_gantry.glb"), (raised_ops_deck(), "raised_ops_deck.glb")]

@@ -85,8 +85,30 @@ cache_nodes = {node.get('name') for node in cache_payload['nodes']}
 for detail_node in ['TechCacheLidPivot', 'CacheDisplay', 'CacheLatch', 'CredentialDataCore', 'CredentialCradle']:
     assert detail_node in cache_nodes, detail_node
 assert len(cache_payload['materials']) >= 6 and len(cache_payload['textures']) >= 18
-for required in [
+# Landmark/ice/cover assets use the same Godot X/Y/Z basis as the main kit.
+# Guard major visible pieces against the old Blender Y-up export that made a
+# building's height read as depth, leaving the world visually flat.
+def glb_payload(relative_path):
+    blob = (root / relative_path).read_bytes()
+    chunk_size = struct.unpack_from('<I', blob, 12)[0]
+    return json.loads(blob[20:20 + chunk_size])
 
+def node_extent(payload, name):
+    node = next(item for item in payload['nodes'] if item.get('name') == name)
+    accessor = payload['accessors'][payload['meshes'][node['mesh']]['primitives'][0]['attributes']['POSITION']]
+    return [maximum - minimum for minimum, maximum in zip(accessor['min'], accessor['max'])], node
+
+for path, name, expected in [
+    ('assets/world/aetherfall/landmarks/field_outpost.glb', 'OutpostHull', (6.7, 3.0, 4.0)),
+    ('assets/world/aetherfall/vertical/refinery_stack.glb', 'MainCore', (5.8, 9.0, 3.6)),
+    ('assets/world/aetherfall/phase2/ice_terrace.glb', 'TerraceBase', (8.0, 0.3, 5.0)),
+    ('assets/world/aetherfall/ice_planet/sentinel_archive.glb', 'ArchiveRearShell', (11.0, 7.0, 0.5)),
+]:
+    extent, _ = node_extent(glb_payload(path), name)
+    assert all(actual >= minimum for actual, minimum in zip(extent, expected)), (path, name, extent)
+pylon_extent, pylon_node = node_extent(glb_payload('assets/world/aetherfall/ice_planet/cryo_pylon.glb'), 'PylonShaft')
+assert pylon_extent[2] >= 9.0 and abs(pylon_node['rotation'][0]) >= 0.7
+for required in [
     'scenes/aetherfall_player.tscn', 'scenes/props/tech_cache.tscn',
     'scenes/props/objective_device.tscn', 'scripts/progression_state.gd',
     'scripts/interaction_target.gd', 'scripts/tech_cache.gd',
