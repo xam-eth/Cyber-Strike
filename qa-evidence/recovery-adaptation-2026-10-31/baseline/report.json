@@ -1,0 +1,317 @@
+{
+  "base": "http://127.0.0.1:8010",
+  "pages": [
+    {
+      "target": "/",
+      "viewport": "1280x720",
+      "touchDevice": false,
+      "url": "http://127.0.0.1:8010/?qa_menu=1&qa_recovery=1",
+      "ms": 154318,
+      "booted": true,
+      "engine": "Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org",
+      "state": {
+        "title": "Exocomplict",
+        "hasCanvas": true,
+        "canvasSize": "1280x720",
+        "canvasHittable": true,
+        "hitTarget": "canvas",
+        "glContext": true,
+        "glLost": false,
+        "failureVisible": false,
+        "failureText": "",
+        "chip": null,
+        "bodyText": ""
+      },
+      "checks": [
+        {
+          "name": "engine booted (console banner)",
+          "ok": true
+        },
+        {
+          "name": "no Godot script/parse/format errors",
+          "ok": true
+        },
+        {
+          "name": "no page errors",
+          "ok": true
+        },
+        {
+          "name": "no failed requests",
+          "ok": true
+        },
+        {
+          "name": "no HTTP 4xx/5xx for page assets",
+          "ok": true
+        },
+        {
+          "name": "a canvas exists",
+          "ok": true
+        },
+        {
+          "name": "canvas is not the 300x150 default",
+          "ok": true
+        },
+        {
+          "name": "canvas accepts pointer input (no transparent loading overlay)",
+          "ok": true
+        },
+        {
+          "name": "WebGL context alive",
+          "ok": true
+        },
+        {
+          "name": "no failure card shown",
+          "ok": true
+        },
+        {
+          "name": "HERO shows the real rig and its authored celebration before the theatre map",
+          "ok": true
+        },
+        {
+          "name": "engine profile mirror is a readable object with weapon ownership and tiers",
+          "ok": true
+        },
+        {
+          "name": "front-end handoff reached the gameplay scene",
+          "ok": true
+        },
+        {
+          "name": "Recovery pass reached Verdant gameplay",
+          "ok": true
+        },
+        {
+          "name": "Seed Vault offered explicit Engage in interaction range",
+          "ok": true
+        },
+        {
+          "name": "Engage produced two live Recovery guards",
+          "ok": true
+        },
+        {
+          "name": "both Recovery guards loaded real GLB visuals without fallback",
+          "ok": true
+        },
+        {
+          "name": "active guards kept Secure locked and blocked generic Defense",
+          "ok": true
+        },
+        {
+          "name": "Recovery landing, offer, guarded and contact frames were captured",
+          "ok": true
+        },
+        {
+          "name": "shell verdant_bloom card was selected before DEPLOY",
+          "ok": true
+        },
+        {
+          "name": "engine accepted the shell verdant_bloom selection",
+          "ok": true
+        },
+        {
+          "name": "front-end selection built verdant_bloom gameplay",
+          "ok": true
+        },
+        {
+          "name": "shell DEPLOY bypassed the engine WORLD stage",
+          "ok": true
+        }
+      ],
+      "failed": [],
+      "screenshot": "exports/qa-baseline-recovery/root-1280x720.png",
+      "menuFrames": [],
+      "settingsTabFrames": [],
+      "accessBottomFrame": null,
+      "frames": [],
+      "tourFrames": [],
+      "encounterFrames": [],
+      "safeBeforeActivation": false,
+      "defenseObserved": false,
+      "encounterTransitions": [
+        "log: Encounter: Explore safe; activate Start Defense when ready"
+      ],
+      "recovery": {
+        "engageOffered": true,
+        "guardsActive": true,
+        "guardModels": [
+          "Guard_verdant_seed_vault_01",
+          "Guard_verdant_seed_vault_02"
+        ],
+        "finalState": {
+          "action": "none",
+          "guards": 2,
+          "line": "log: Recovery QA: phase=explore action=none guards=2 title=SEED VAULT detail=2 GUARDS ACTIVE · SECURE LOCKED state=2 GUARDS"
+        },
+        "secureLocked": true
+      },
+      "recoveryFrames": [
+        "exports/qa-baseline-recovery/root-1280x720-recovery-landing.png",
+        "exports/qa-baseline-recovery/root-1280x720-recovery-engage-offer.png",
+        "exports/qa-baseline-recovery/root-1280x720-recovery-guarded.png",
+        "exports/qa-baseline-recovery/root-1280x720-recovery-contact.png"
+      ],
+      "recoveryTransitions": [
+        "log: Recovery QA: phase=explore action=none guards=0 title=RECOVER · SEED VAULT detail=Arc Shooter BLUEPRINT · 9 m state=SHRINE",
+        "log: Recovery QA: phase=explore action=none guards=0 title=RECOVER · SEED VAULT detail=Arc Shooter BLUEPRINT · 8 m state=SHRINE",
+        "log: Recovery QA: phase=explore action=none guards=0 title=RECOVER · SEED VAULT detail=Arc Shooter BLUEPRINT · 7 m state=SHRINE",
+        "log: Recovery QA: phase=explore action=none guards=0 title=RECOVER · SEED VAULT detail=Arc Shooter BLUEPRINT · 6 m state=SHRINE",
+        "log: Recovery QA: phase=explore action=none guards=0 title=RECOVER · SEED VAULT detail=Arc Shooter BLUEPRINT · 5 m state=SHRINE",
+        "log: Recovery QA: phase=explore action=engage guards=0 title=SEED VAULT detail=Arc Shooter BLUEPRINT · 5 m state=GUARDED",
+        "log: Recovery QA: phase=explore action=engage guards=0 title=SEED VAULT detail=Arc Shooter BLUEPRINT · 4 m state=GUARDED",
+        "log: Recovery QA: phase=explore action=none guards=2 title=SEED VAULT detail=2 GUARDS ACTIVE · SECURE LOCKED state=2 GUARDS"
+      ],
+      "audio": [
+        "log: Audio: 14 sounds ready in 232 ms · muted=no · music=on",
+        "log: Audio: 14 sounds, 0 played, ready in 232 ms, muted=no, music=on/explore",
+        "log: Audio: first voice played (shot_pulse_rifle) 124938 ms after synthesis",
+        "log: Audio: first weapon voice played (shot_pulse_rifle)"
+      ],
+      "heroStage": {
+        "ready": true,
+        "model": "./game/assets/characters/human_hero_tiers/hero_human_tier_1.glb",
+        "clips": [
+          "idle",
+          "walk",
+          "run",
+          "raise_weapon",
+          "aim",
+          "aim_walk",
+          "aim_run",
+          "fire",
+          "reload",
+          "hit",
+          "death",
+          "lower_weapon"
+        ],
+        "bone": "R_Hand",
+        "tier": 1,
+        "modelUrl": "game/assets/characters/human_hero_tiers/hero_human_tier_1.glb",
+        "entrance": {
+          "mode": "right",
+          "offset": [
+            0.062,
+            0.005
+          ]
+        },
+        "celebration": "celebration",
+        "celebrationSeconds": 2.4,
+        "heroId": "sable",
+        "weaponId": "pulse_rifle",
+        "weaponTier": 1,
+        "weaponModel": "./game/assets/weapons/futuristic_rifle/rifle.glb",
+        "rifle": true,
+        "rifleVisible": true,
+        "socketParent": "R_Hand",
+        "socketPose": "carry",
+        "rifleWorld": [
+          -0.078,
+          0.49,
+          0.118
+        ],
+        "handWorld": [
+          -0.093,
+          0.533,
+          0.036
+        ],
+        "rifleSize": {
+          "x": 0.12,
+          "y": 0.397,
+          "z": 0.366
+        },
+        "bounds": {
+          "height": 0.999,
+          "width": 0.388
+        }
+      },
+      "profileMirror": {
+        "balance": 0,
+        "equipped": "pulse_rifle",
+        "runs": 0,
+        "unlocked": [
+          "pulse_rifle"
+        ],
+        "weapon_tiers": {
+          "arc_shooter": 1,
+          "nova_launcher": 1,
+          "pulse_rifle": 1
+        }
+      },
+      "ads": null,
+      "adsFrames": [],
+      "shellAudio": {
+        "hero": null,
+        "before": null,
+        "muted": null,
+        "unmuted": null,
+        "handoff": null,
+        "after": null,
+        "muteStored": null,
+        "unmuteStored": null,
+        "gameplayMuteStored": null,
+        "gameplayUnmuteStored": null
+      },
+      "menuTransitions": [],
+      "scriptErrors": [],
+      "console": [
+        "log: Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org",
+        "log: OpenGL API OpenGL ES 3.0 (WebGL 2.0 (OpenGL ES 3.0 Chromium)) - Compatibility - Using Device: WebKit - WebKit WebGL",
+        "log: Build configuration: Emscripten 4.0.20, single-threaded, no GDExtension support.",
+        "log: Audio: 14 sounds ready in 232 ms · muted=no · music=on",
+        "log: FrontEnd: qa_world selected verdant_bloom",
+        "log: MISSION WORLD: verdant_bloom (verdant.glb)",
+        "log: MISSION WORLD: 1275 verdant_bloom mesh colliders derived from the real world",
+        "log: MISSION WORLD: lit as Verdant Bloom — Sunset",
+        "log: CharacterVisual: model=CharacterModel fitted_height=1.780m scale=1.782 rig=Armature clips=12 fallback=no",
+        "log: EnemyVisual[TrainingDrone]: model=EnemyModel fitted_height=0.447m fallback=no",
+        "log: Recovery QA: phase=explore action=none guards=0 title=RECOVER · SEED VAULT detail=Arc Shooter BLUEPRINT · 9 m state=SHRINE",
+        "log: Encounter: Explore safe; activate Start Defense when ready",
+        "log: Progression: wallet 0 BP · 1 weapon(s) owned",
+        "log: Audio: 14 sounds, 0 played, ready in 232 ms, muted=no, music=on/explore",
+        "log: Recovery QA: phase=explore action=none guards=0 title=RECOVER · SEED VAULT detail=Arc Shooter BLUEPRINT · 8 m state=SHRINE",
+        "log: Recovery QA: phase=explore action=none guards=0 title=RECOVER · SEED VAULT detail=Arc Shooter BLUEPRINT · 7 m state=SHRINE",
+        "log: Recovery QA: phase=explore action=none guards=0 title=RECOVER · SEED VAULT detail=Arc Shooter BLUEPRINT · 6 m state=SHRINE",
+        "log: Recovery QA: phase=explore action=none guards=0 title=RECOVER · SEED VAULT detail=Arc Shooter BLUEPRINT · 5 m state=SHRINE",
+        "log: Recovery QA: phase=explore action=engage guards=0 title=SEED VAULT detail=Arc Shooter BLUEPRINT · 5 m state=GUARDED",
+        "log: Recovery QA: phase=explore action=engage guards=0 title=SEED VAULT detail=Arc Shooter BLUEPRINT · 4 m state=GUARDED",
+        "log: EnemyVisual[Guard_verdant_seed_vault_01]: model=EnemyModel fitted_height=1.720m fallback=no",
+        "log: EnemyVisual[Guard_verdant_seed_vault_02]: model=EnemyModel fitted_height=1.620m fallback=no",
+        "log: Recovery QA: phase=explore action=none guards=2 title=SEED VAULT detail=2 GUARDS ACTIVE · SECURE LOCKED state=2 GUARDS",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_01 x=-434.81 y=497.64 behind=no",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_02 x=1545.43 y=497.64 behind=no",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_01 x=-308.61 y=507.17 behind=no",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_02 x=1541.69 y=513.31 behind=no",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_01 x=-163.41 y=485.31 behind=no",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_02 x=1541.69 y=513.31 behind=no",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_01 x=-36.25 y=465.34 behind=no",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_02 x=1541.69 y=513.31 behind=no",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_01 x=91.75 y=458.25 behind=no",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_02 x=1541.69 y=513.31 behind=no",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_01 x=218.97 y=446.59 behind=no",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_02 x=1541.69 y=513.31 behind=no",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_01 x=350.79 y=446.49 behind=no",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_02 x=1541.69 y=513.31 behind=no",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_01 x=429.29 y=447.91 behind=no",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_02 x=1541.69 y=513.31 behind=no",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_01 x=430.15 y=447.91 behind=no",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_02 x=1541.69 y=513.31 behind=no",
+        "log: Audio: first voice played (shot_pulse_rifle) 124938 ms after synthesis",
+        "log: Audio: first weapon voice played (shot_pulse_rifle)",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_01 x=430.15 y=447.91 behind=no",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_02 x=1541.69 y=513.31 behind=no",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_01 x=430.15 y=447.91 behind=no",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_02 x=1541.69 y=513.31 behind=no",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_01 x=430.15 y=447.91 behind=no",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_02 x=1541.69 y=513.31 behind=no",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_01 x=430.15 y=447.91 behind=no",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_02 x=1541.69 y=513.31 behind=no",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_01 x=430.15 y=447.91 behind=no",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_02 x=1541.69 y=513.31 behind=no",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_01 x=430.15 y=447.91 behind=no",
+        "log: Recovery Target QA: id=Guard_verdant_seed_vault_02 x=1541.69 y=513.31 behind=no"
+      ],
+      "pageErrors": [],
+      "badResponses": [],
+      "failedRequests": []
+    }
+  ],
+  "ok": true
+}

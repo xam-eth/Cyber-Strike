@@ -131,9 +131,9 @@ hub return, and redeploy clear it.
 
 ## 3. Implementation and validation register
 
-### Source integration after the baseline
+### Implemented source and exact final payload
 
-**IMPLEMENTED IN SOURCE; RUNTIME UNVERIFIED:** `RunUpgradeService` owns the
+**VERIFIED IN SOURCE AND EXECUTED RUNTIME:** `RunUpgradeService` owns the
 exactly-once temporary offer/selection. Two resource-backed definitions feed a
 reusable modal card group in the existing HUD. Main grants the offer only after
 the real primary guard group clears, applies the validated modifier through
@@ -141,32 +141,127 @@ WeaponController, restores the interrupted play mode, and reports the selection
 in Pause/Extraction/Results. Continue retains it; run/player reset removes it.
 Permanent profile, blueprint, BP, unlock, and weapon-tier APIs were not replaced.
 
-### Executed local static evidence
+The final evidence is tied to an explicit source/payload boundary:
 
-- **VERIFIED — static:** all 92 game GDScript files pass `gdparse`, `gdlint`, and
-  `gdformat --check`; the three changed smoke scripts also pass those checks.
-- **VERIFIED — static:** localization has 274 EN and 274 ID keys with aligned
-  placeholders and no copied values. The checker now recognizes the `upgrade`
-  namespace and data-driven `.tres` key references.
-- **VERIFIED — static:** architecture boundaries, static calls, diff whitespace,
-  smoke inventory (38 scripts), and the generated module map pass.
-- **ENVIRONMENT LIMITED, NOT A SOURCE PASS:** the complete local development gate
-  cannot pass in this sparse code-only checkout. Excluded audio/icons/models and
-  generated manifests cause its asset/tooling/documentation groups to fail;
-  Godot and Web payloads are absent. The full local tooling run discovered 97
-  tests, with only the missing-audio error and missing-icon assertion plus one
-  existing skip. These limitations are not silently counted as successful tests.
+- corrected source: `673fcec9ca7813dd0a2ca0ed73c9808f6c8826b3`;
+- opt-in payload request: `34780db7d38f76e1dbbcb2ee2d1a4594e785ce06`;
+- generated payload used for both final browser routes:
+  `fcd28f3f1b579c04328ba8e75fca513474ec53ca`;
+- PCK: 90,719,604 bytes, SHA-256
+  `16ed7f04acd956beb64a1284d773ee73aef867b3645e57bfb110b98064c88019`;
+- WASM SHA-256:
+  `fc74679e3b97f76878947fcd4fbe1268cbfa6188182a2e33bbc3f5dc9bfa57d0`.
 
-### Runtime and visual evidence still required
+The served PCK/HTML bytes were compared with the generated commit before the
+final routes. Payload history remains opt-in; ordinary source/docs changes do not
+request another binary refresh.
 
-- **UNVERIFIED:** new upgrade resources/service and modifier composition.
-- **UNVERIFIED:** selection, duplicate-selection refusal, pause/resume, and reset.
-- **UNVERIFIED:** real projectile damage and reload behavior after selection.
-- **UNVERIFIED:** Recovery → upgrade → Secure → Extract/Endless regression path.
-- **UNVERIFIED:** persistent blueprint/BP/tier behavior after returning home.
-- **UNVERIFIED:** exported Website screenshots, touch targets, clipping, and EN/ID
-  presentation at desktop and small-landscape sizes.
-- **UNKNOWN:** physical-device controls, audible output, GPU frame rate, and human
-  playtest/balance approval; no local Godot executable is available in this
-  sandbox, so engine execution must come from CI or a subsequently available
-  runtime.
+### Executed static and CI evidence
+
+- **VERIFIED — local static:** the changed GDScript passes `gdformat`/`gdlint`;
+  localization has 274 EN and 274 ID keys with aligned placeholders; architecture,
+  static-call, module-map, and diff checks pass.
+- **VERIFIED — corrected source CI `41206968887`:** Static, all **38/38** discovered
+  Headless smoke scripts, Web export, secure-context/audio/download/shell/Titans/
+  ADS/Recovery browser gates.
+- **VERIFIED — final payload CI `41208052403`:** the same complete gate set passed
+  before the opt-in payload commit was generated.
+- The settled Armory assertions cover both **844×390** and **667×375**. An
+  intermediate 667×375 failure was retained as a failure and corrected by
+  wrapping card copy within the cards; the bounds assertion was not weakened.
+- **ENVIRONMENT LIMITED, NOT A SOURCE FAILURE:** no local Godot executable is
+  installed in the sparse edit checkout. CI Godot 4.7.2 is therefore the engine
+  authority; excluded local assets/manifests are not counted as local passes.
+
+### Executed before/after browser evidence
+
+Evidence root:
+[`qa-evidence/recovery-adaptation-2026-10-31/`](../qa-evidence/recovery-adaptation-2026-10-31/README.md).
+Its `manifest.json` records commits, payload hashes, route scope, and report hashes.
+
+| Route | Exact build | Executed result |
+| --- | --- | --- |
+| Baseline Recovery | `5453420a39b186188bdee262878718eceb2e4b4b` | **PASS:** ordinary shell, Verdant landing/Engage, two real GLB guards, Secure locked during combat. Five frames are preserved in `baseline/`; this is not represented as the later adaptation route. |
+| Final English | `fcd28f3f1b579c04328ba8e75fca513474ec53ca` | **PASS:** 29 checks and 18 report-listed frames for the complete route below. |
+| Final Indonesian, visual-only | same final payload | **PASS:** 23 checks and 9 report-listed frames through Secure and scrolled Extraction. It intentionally does not claim the later EN persistence chain. |
+
+Only green-report frame lists were copied into the evidence directory. All 18 EN
+and all 9 ID frames were inspected; older failure captures were excluded.
+
+### Verified gameplay and progression outcome
+
+The final EN driver used the ordinary Website, real keyboard/mouse/wheel input,
+and a measured touchscreen tap. It did not inject target health, an upgrade,
+a reward, or profile state.
+
+1. Verdant booted through the shell; Engage spawned one Runner and one Shooter,
+   and both attached real GLB visuals. Real ADS/projectile combat cleared them
+   with the player at 4/100 HP.
+2. The guard clear earned the two-card offer. Desktop and phone card/panel
+   rectangles were contained and non-overlapping. A real phone tap selected
+   **QUICK CYCLE**: Pulse stayed at 18 damage and reload became **1.08 s**
+   (1.35 × 0.80), explicitly run only.
+3. Secure performed the real `arc_shooter_blueprint` transaction. Continue
+   entered actual Endless Defense; Pause and voluntary finish reached Results.
+   One `Progression: banked +0 BP · wallet 0 · best 0` occurred. **+0 BP is the
+   honest result of a voluntary no-KO Endless finish**, not a placeholder reward.
+4. Pause Home reached the real Godot Dashboard, which showed Verdant, Pulse,
+   and one completed run. Dashboard → Operative → World → Preload started a
+   fresh deployment without another adaptation selection.
+5. Armory showed Arc Shooter **UNLOCK 250 BP** at 0 BP after blueprint
+   eligibility; Arc was not purchased. Fresh Pause showed 100/100 vitals,
+   24/24 ammo, and no adaptation line. Existing duplicate-reward/result guards
+   also remain covered by the green Headless suite; the browser route observed
+   one bank only.
+
+Defeat/retry is covered by the current Headless gameplay gates. This particular
+browser route deliberately uses a voluntary Endless finish and does not claim a
+second, scripted death.
+
+### Verified layout and localization evidence
+
+- **1280×720 desktop browser:** hub, gameplay, GLB guards, and the 720×340
+  adaptation panel/cards were inspected.
+- **844×390 touch phone browser:** adaptation cards, Secure, Extraction,
+  Endless, Pause, Results, Armory, and redeploy were inspected.
+- **667×375 Godot Headless:** settled Armory panel/footer physical bounds pass;
+  this is a geometry assertion, not an additional screenshot claim.
+- Real wheel-scrolled `08b`/`11b` EN frames expose **RUN ADAPTATION · QUICK CYCLE
+  · EXPIRES ON REDEPLOY** while Extraction/Results decisions remain pinned.
+- Armory retains real weapon art, identity, specs, tier/reload, ownership/price,
+  and both footer actions inside the phone glass. Owned Pulse retains its real
+  tier action; locked weapons do not show a misleading disabled tier purchase.
+- Indonesian title, instructions, both upgrade names/effects, compatibility,
+  run scope, PASANG, Secure, and scrolled Extraction copy are readable without
+  clipping. Localization remains 274/274 keys.
+
+### Remaining limits and incomplete claims
+
+- **UNVERIFIED visually:** `07-secure-phone-en.png` and
+  `07-secure-phone-id.png` contain a transient empty feedback plate, so the
+  immediate toast copy is not claimed as visually verified. The actual modifier
+  is proven by runtime telemetry, and its Pause/Extraction/Results copy is
+  visible in separate inspected frames.
+- **UNKNOWN:** physical-device touch feel, audible output, GPU frame rate, and
+  human playtest/balance approval. Chromium/software-WebGL automation is not a
+  substitute for those checks.
+- Only Verdant Bloom has the reviewed Recovery chain. No boss, cosmetic economy,
+  separate account currency, additional weapon/hero, or unique Recovery chain
+  for another theatre is claimed.
+- Website-only delivery is intentional; APK/native packaging remains paused.
+
+### Reproduce
+
+From a self-contained checkout, use the ordinary static server and locked browser
+tooling:
+
+```bash
+python3 -m http.server 800 --bind 0.0.0.0
+npm ci --prefix tools
+node tools/qa_recovery_adaptation.mjs --url=http://127.0.0.1:800/ --lang=en
+node tools/qa_recovery_adaptation.mjs --url=http://127.0.0.1:800/ --lang=id --visual-only
+```
+
+Use a fresh browser profile for each route. The reports and frames produced under
+`exports/` are execution output; the curated executed evidence is the directory
+linked above, not a design proposal.

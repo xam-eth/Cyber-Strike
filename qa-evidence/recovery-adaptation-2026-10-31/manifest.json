@@ -1,0 +1,59 @@
+{
+  "date": "2026-10-31",
+  "scope": "Website / Godot WebGL 2; no APK; automation is not physical-device or human approval",
+  "source": {
+    "layout_fix_commit": "673fcec9ca7813dd0a2ca0ed73c9808f6c8826b3",
+    "payload_request_commit": "34780db7d38f76e1dbbcb2ee2d1a4594e785ce06",
+    "payload_commit": "fcd28f3f1b579c04328ba8e75fca513474ec53ca",
+    "source_verification_ci_run": 41206968887,
+    "payload_ci_run": 41208052403,
+    "ci_result": "PASS: Static; 38/38 Headless; Web export; all browser gates"
+  },
+  "served_payload": {
+    "pck_bytes": 90719604,
+    "pck_sha256": "16ed7f04acd956beb64a1284d773ee73aef867b3645e57bfb110b98064c88019",
+    "wasm_sha256": "fc74679e3b97f76878947fcd4fbe1268cbfa6188182a2e33bbc3f5dc9bfa57d0",
+    "commit_bytes_match": true
+  },
+  "baseline": {
+    "commit": "5453420a39b186188bdee262878718eceb2e4b4b",
+    "scope": "Recovery engagement, real GLB guards, and locked Secure; not the later adaptation route",
+    "report": "baseline/report.json",
+    "report_sha256": "1ffca69605ff7ea661f1267788f0523611a999c647e9e3ca9ec1061228c5190a",
+    "contact_sheet": "baseline/contact-sheet.jpg",
+    "frames": 5,
+    "result": "PASS"
+  },
+  "routes": {
+    "en": {
+      "payload_commit": "fcd28f3f1b579c04328ba8e75fca513474ec53ca",
+      "report": "en/report.json",
+      "report_sha256": "b0ed31af1ed32a388d742f95008dcb8a91d9f6b68ff88b23372d389c38aaf4be",
+      "contact_sheet": "en/contact-sheet.jpg",
+      "frames": 18,
+      "checks": 29,
+      "visual_only": false,
+      "result": "PASS"
+    },
+    "id": {
+      "payload_commit": "fcd28f3f1b579c04328ba8e75fca513474ec53ca",
+      "report": "id/report.json",
+      "report_sha256": "c2b8a59702ce2fd2ae81e3af0e9545a5fb3ab9e7adc2616eca6f094f0ad533f5",
+      "contact_sheet": "id/contact-sheet.jpg",
+      "frames": 9,
+      "checks": 23,
+      "visual_only": true,
+      "result": "PASS"
+    }
+  },
+  "visual_review": {
+    "en_report_listed_frames_inspected": 18,
+    "id_report_listed_frames_inspected": 9,
+    "resolutions": [
+      "1280x720 desktop browser",
+      "844x390 touch phone browser",
+      "667x375 Godot Headless settled bounds"
+    ],
+    "unconfirmed": "Immediate post-selection toast copy is not visually confirmed in 07-secure-phone-*; the empty plate is retained in evidence."
+  }
+}
