@@ -1,8 +1,15 @@
 extends Node
-## Headless CI validation for HERO_01 (run with the CICheck scene):
+## Headless CI validation for NEW_HERO_01 (run with the CICheck scene):
 ##   godot --headless --path . res://tools/godot/CICheck.tscn
 ## Prints CI PASS / CI FAIL lines and exits 0 (all pass) or 1 (any fail).
-## Measures grips, barrel direction and root/feet stability in-engine.
+##
+## Stage: rig/skinning was proven at vertex level in Blender (scripts
+## 64-68). This CI proves the ENGINE side: GLB import, skeleton rests,
+## weapon seated on Weapon_R, and that posing the arm chain in-engine
+## moves the hand + weapon rigidly while hips/feet stay put. It does NOT
+## re-prove vertex deformation (that needs rendered pixels; see the
+## Blender battery in screenshots/rig/audit67_*). Animation clips do not
+## exist yet; clip checks return as INFO until the animation phase.
 
 const AutoRigCheck = preload("res://scripts/validation/auto_rig_check.gd")
 
@@ -15,6 +22,9 @@ func check(ok: bool, label: String) -> void:
 
 func _ready() -> void:
 	_run()
+
+func _bone_global(skeleton: Skeleton3D, bone: int) -> Vector3:
+	return (skeleton.global_transform * skeleton.get_bone_global_pose(bone)).origin
 
 func _run() -> void:
 	print("CI INFO Godot version: ", Engine.get_version_info())
@@ -40,10 +50,11 @@ func _run() -> void:
 	var player: AnimationPlayer = hero.get("animation_player") as AnimationPlayer
 	var weapon: Node3D = hero.get("weapon_instance") as Node3D
 	var attachment: BoneAttachment3D = hero.get("weapon_attachment") as BoneAttachment3D
-	check(skeleton != null and player != null and weapon != null, "hero skeleton/player/weapon resolved")
+	check(skeleton != null and weapon != null, "hero skeleton/weapon resolved")
+	print("CI INFO AnimationPlayer: ", "present" if player != null else "absent (no clips authored yet)")
 	if attachment != null:
 		check(attachment.bone_name == "Weapon_R", "attachment bound to Weapon_R (got '%s')" % attachment.bone_name)
-	if skeleton == null or player == null or weapon == null:
+	if skeleton == null or weapon == null:
 		_finish()
 		return
 
@@ -52,80 +63,52 @@ func _run() -> void:
 	var muzzle: Node3D = weapon.find_child("MuzzlePoint", true, false) as Node3D
 	var receiver: Node3D = weapon.find_child("ReceiverPoint", true, false) as Node3D
 	check(grip != null and fore != null and muzzle != null and receiver != null, "weapon markers found")
-
-	var anim := ""
-	for a in player.get_animation_list():
-		if String(a).ends_with("Weapon_Raise_To_Aim"):
-			anim = String(a)
-	check(anim != "", "Weapon_Raise_To_Aim present in AnimationPlayer")
-	if anim == "" or grip == null or fore == null or muzzle == null or receiver == null:
+	if grip == null or muzzle == null or receiver == null:
 		_finish()
 		return
 
-	# The wrapper now starts its Phase-1 AnimationTree automatically. Disable
-	# it before these direct AnimationPlayer seek measurements so the tree
-	# does not overwrite the sampled legacy clip pose.
-	if hero.has_method("set_animation_tree_enabled"):
-		hero.call("set_animation_tree_enabled", false)
-		await get_tree().process_frame
-	player.play(anim)
-	player.speed_scale = 0.0
+	var b_weapon := skeleton.find_bone("Weapon_R")
 	var b_hand_r := skeleton.find_bone("Hand_R")
-	var b_hand_l := skeleton.find_bone("Hand_L")
+	var b_ua_r := skeleton.find_bone("UpperArm_R")
 	var b_hips := skeleton.find_bone("Hips")
 	var b_foot_r := skeleton.find_bone("Foot_R")
 	var b_foot_l := skeleton.find_bone("Foot_L")
-	var hips0 := Vector3.INF
-	var foot_r0 := Vector3.INF
-	var foot_l0 := Vector3.INF
-	var dr_values: Array = []
-	var dl_hold_values: Array = []
-	for t in [0.0, 0.4, 0.8, 1.2, 1.5]:
-		player.seek(t, true)
-		await get_tree().process_frame
-		await get_tree().process_frame
-		var hr_g: Vector3 = (skeleton.global_transform * skeleton.get_bone_global_pose(b_hand_r)).origin
-		var hl_g: Vector3 = (skeleton.global_transform * skeleton.get_bone_global_pose(b_hand_l)).origin
-		var d_r: float = hr_g.distance_to(grip.global_position)
-		var d_l: float = hl_g.distance_to(fore.global_position)
-		dr_values.append(d_r)
-		var bdir: Vector3 = (muzzle.global_position - receiver.global_position).normalized()
-		print("CI SAMPLE t=%.2f  dHandR->grip=%.4f m  dWristL->foregrip=%.4f m  barrel=%s" % [t, d_r, d_l, str(bdir)])
-		if t == 0.0:
-			hips0 = (skeleton.global_transform * skeleton.get_bone_global_pose(b_hips)).origin
-			foot_r0 = (skeleton.global_transform * skeleton.get_bone_global_pose(b_foot_r)).origin
-			foot_l0 = (skeleton.global_transform * skeleton.get_bone_global_pose(b_foot_l)).origin
-		if t >= 1.2:
-			dl_hold_values.append(d_l)
-			# Script 60 moved Hand_L from the old IK point on the thigh to the
-			# anatomical glove wrist. At the preserved world-space grip, that
-			# wrist is 0.1017 normalized units from the old IK/foregrip point;
-			# at this wrapper's 1.8x scale the expected offset is ~0.183 m.
-			# Actual glove contact is geometry-validated in Blender/GLB.
-			check(absf(d_l - 0.183) <= 0.012,
-				"anatomical left wrist offset at hold t=%.1f (%.4f m, expected ~0.183 m)" % [t, d_l])
-			var ang: float = rad_to_deg(bdir.angle_to(Vector3(0, 0, 1)))
-			print("CI INFO  barrel angle to +Z at t=%.1f: %.1f deg" % [t, ang])
-			check(ang <= 6.0, "barrel aligned to character forward (+Z) at t=%.1f" % t)
+	check(b_weapon >= 0 and b_hand_r >= 0 and b_ua_r >= 0, "probe bones resolved")
 
-	var dr_min: float = dr_values.min()
-	var dr_max: float = dr_values.max()
-	check(dr_max - dr_min <= 0.004, "right grip constant across clip (spread %.4f m)" % (dr_max - dr_min))
-	check(absf(dr_max - 0.0306) <= 0.006, "right grip ~= 0.017 x 1.8 scale (max %.4f m)" % dr_max)
-	if dl_hold_values.size() >= 2:
-		var dl_min: float = dl_hold_values.min()
-		var dl_max: float = dl_hold_values.max()
-		check(dl_max - dl_min <= 0.004,
-			"left wrist/foregrip relation stable at hold (spread %.4f m)" % (dl_max - dl_min))
+	# --- REST measurements ---
+	await get_tree().process_frame
+	var grip_rest_d: float = _bone_global(skeleton, b_weapon).distance_to(grip.global_position)
+	var bdir: Vector3 = (muzzle.global_position - receiver.global_position).normalized()
+	print("CI INFO rest grip<->Weapon_R distance: %.4f m; barrel dir=%s" % [grip_rest_d, str(bdir)])
+	check(grip_rest_d <= 0.020, "grip seated on Weapon_R at rest (%.4f m)" % grip_rest_d)
+	var hand0 := _bone_global(skeleton, b_hand_r)
+	var hips0 := _bone_global(skeleton, b_hips)
+	var foot_r0 := _bone_global(skeleton, b_foot_r)
+	var foot_l0 := _bone_global(skeleton, b_foot_l)
 
-	player.seek(1.2, true)
+	# --- POSE PROBE: rotate the right upper arm in-engine ---
+	var q0: Quaternion = skeleton.get_bone_pose_rotation(b_ua_r)
+	skeleton.set_bone_pose_rotation(b_ua_r, q0 * Quaternion(Vector3.RIGHT, deg_to_rad(-95.0)))
 	await get_tree().process_frame
 	await get_tree().process_frame
-	var hips1: Vector3 = (skeleton.global_transform * skeleton.get_bone_global_pose(b_hips)).origin
-	var foot_r1: Vector3 = (skeleton.global_transform * skeleton.get_bone_global_pose(b_foot_r)).origin
-	var foot_l1: Vector3 = (skeleton.global_transform * skeleton.get_bone_global_pose(b_foot_l)).origin
-	check(hips1.distance_to(hips0) <= 0.001, "hips static (in-place clip, moved %.4f m)" % hips1.distance_to(hips0))
-	check(foot_r1.distance_to(foot_r0) <= 0.001 and foot_l1.distance_to(foot_l0) <= 0.001, "feet planted (no slide)")
+	var hand1 := _bone_global(skeleton, b_hand_r)
+	var hips1 := _bone_global(skeleton, b_hips)
+	var foot_r1 := _bone_global(skeleton, b_foot_r)
+	var foot_l1 := _bone_global(skeleton, b_foot_l)
+	var grip_pose_d: float = _bone_global(skeleton, b_weapon).distance_to(grip.global_position)
+	var hand_moved: float = hand1.distance_to(hand0)
+	print("CI INFO pose probe: Hand_R moved %.4f m; grip<->Weapon_R now %.4f m" % [hand_moved, grip_pose_d])
+	check(hand_moved >= 0.15, "arm chain drives Hand_R in-engine (moved %.4f m)" % hand_moved)
+	check(grip_pose_d <= 0.020, "weapon follows Weapon_R rigidly under pose (%.4f m)" % grip_pose_d)
+	check(hips1.distance_to(hips0) <= 0.001, "hips static during arm probe (moved %.4f m)" % hips1.distance_to(hips0))
+	check(foot_r1.distance_to(foot_r0) <= 0.001 and foot_l1.distance_to(foot_l0) <= 0.001, "feet static during arm probe")
+
+	# --- restore rest pose exactly ---
+	skeleton.set_bone_pose_rotation(b_ua_r, q0)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var hand2 := _bone_global(skeleton, b_hand_r)
+	check(hand2.distance_to(hand0) <= 0.001, "rest pose restored after probe (drift %.4f m)" % hand2.distance_to(hand0))
 	_finish()
 
 func _finish() -> void:

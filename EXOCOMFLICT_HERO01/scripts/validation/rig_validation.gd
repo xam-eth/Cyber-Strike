@@ -1,10 +1,10 @@
 extends Node3D
-## Rig validation controller: Phase-1 AnimationTree chain controls, legacy
-## clip playback/scrub, speed, camera presets, weapon toggle, skeleton dump
-## and automated checks (UI built in code).
-## Status: legacy controller runtime-validated on Godot 4.7.2 headless in
-## VALIDATION_REPORT 5.4; Phase-1 controls await the owner's desktop
-## Godot re-import pass in 5.10.
+## Rig validation controller for NEW_HERO_01: camera presets, weapon
+## toggle, skeleton dump and automated checks (UI built in code). The
+## Phase-1 chain controls remain wired to hero_01.gd's API and activate
+## once clips for the new skeleton are authored; until then the scene
+## validates the rig at rest (deformation proof lives in the Blender
+## battery, screenshots/rig/audit67_*).
 
 const AutoRigCheck = preload("res://scripts/validation/auto_rig_check.gd")
 
@@ -16,16 +16,16 @@ var checks_label: Label
 var scrub: HSlider
 var scrubbing := false
 var legacy_anim := ""
-var pivot_markers: Array[Node3D] = []
 
 var CAMERA_PRESETS := {
 	"Front": [Vector3(0, 1.05, 3.4), Vector3(0, 0.95, 0)],
 	"Side_R": [Vector3(-3.4, 1.05, 0), Vector3(0, 0.95, 0)],
 	"Back": [Vector3(0, 1.05, -3.4), Vector3(0, 0.95, 0)],
 	"ThreeQuarter": [Vector3(-2.3, 1.3, 2.3), Vector3(0, 0.9, 0)],
-	"CloseHands": [Vector3(-0.7, 1.45, 1.15), Vector3(-0.05, 1.3, 0.25)],
-	"CloseWeapon": [Vector3(-1.1, 1.4, 1.5), Vector3(-0.1, 1.3, 0.35)],
-	"CloseWristL": [Vector3(0.62, 1.02, 0.92), Vector3(0.43, 0.89, 0.03)],
+	# NEW_HERO_01 A-pose: hands rest at world (+-0.64, 1.03, 0.11).
+	"CloseHands": [Vector3(-1.15, 1.15, 0.75), Vector3(-0.60, 1.02, 0.10)],
+	"CloseWeapon": [Vector3(-1.35, 1.25, 1.05), Vector3(-0.58, 1.00, 0.10)],
+	"CloseShoulderR": [Vector3(-0.85, 1.55, 0.85), Vector3(-0.22, 1.38, 0.0)],
 }
 
 func _ready() -> void:
@@ -61,6 +61,8 @@ func _process(_delta: float) -> void:
 			legacy_anim, player.current_animation_position,
 			player.get_animation(legacy_anim).length, player.speed_scale,
 			"PLAYING" if player.is_playing() else "PAUSED"]
+	else:
+		status_label.text = "NEW_HERO_01 rig at rest - animation clips not authored yet. Inspect with camera presets; deformation battery lives in Blender (audit67)."
 
 func _resolve_anim(anim_name: String) -> String:
 	if player == null:
@@ -78,7 +80,7 @@ func _tree_enabled() -> bool:
 
 func _run_checks() -> void:
 	var lines: Array = AutoRigCheck.run_checks(hero)
-	var text := "AUTO RIG CHECK — Hand_L rerig v2 + jacket-lift weight fix (§5.14)\nINFO  Pivot markers are OFF by default (button toggles): white=elbow, green=NEW Hand_L wrist, red=OLD Hand_L point\n"
+	var text := "AUTO RIG CHECK - NEW_HERO_01 re-rig (2026-10-31)\n"
 	for l in lines:
 		text += String(l) + "\n"
 		print("[RigCheck] ", l)
@@ -90,7 +92,7 @@ func _build_ui() -> void:
 	root.position = Vector2(12, 10)
 	layer.add_child(root)
 	var title := Label.new()
-	title.text = "HERO_01 - Rig Validation (Phase-1 + Hand_L rerig v2)"
+	title.text = "HERO_01 - Rig Validation (NEW_HERO_01 re-rig)"
 	root.add_child(title)
 	status_label = Label.new()
 	root.add_child(status_label)
@@ -98,7 +100,7 @@ func _build_ui() -> void:
 	var chain_row := HBoxContainer.new()
 	root.add_child(chain_row)
 	var chain_label := Label.new()
-	chain_label.text = "Phase-1 chain:"
+	chain_label.text = "Phase-1 chain (clips pending):"
 	chain_row.add_child(chain_label)
 	for state_name in ["Idle", "Weapon_Raise", "Aim_Idle", "Fire", "Weapon_Lower"]:
 		var b := Button.new()
@@ -114,7 +116,6 @@ func _build_ui() -> void:
 	_add_button(row, "Restart", _on_restart)
 	_add_button(row, "Toggle weapon", _on_toggle_weapon)
 	_add_button(row, "Dump skeleton", _dump_skeleton)
-	_add_button(row, "Toggle wrist markers", _toggle_pivot_markers)
 	_add_button(row, "Re-run checks", _run_checks)
 
 	var speed_row := HBoxContainer.new()
@@ -163,6 +164,9 @@ func _add_button(parent: Control, text: String, fn: Callable) -> void:
 func _on_state_pressed(state_name: String) -> void:
 	if hero == null:
 		return
+	if hero.has_method("has_animation") and not bool(hero.call("has_animation", state_name)):
+		print("[RigCheck] Clip '%s' not authored for NEW_HERO_01 yet (animation phase pending)." % state_name)
+		return
 	if not _tree_enabled():
 		hero.call("set_animation_tree_enabled", true)
 	if state_name == "Fire":
@@ -189,8 +193,10 @@ func _on_pause() -> void:
 func _on_restart() -> void:
 	if _tree_enabled():
 		hero.call("raise_weapon")
-	else:
+	elif legacy_anim != "":
 		hero.play_aim(true)
+	else:
+		print("[RigCheck] No clips to restart yet (animation phase pending).")
 
 func _on_toggle_weapon() -> void:
 	var w: Node3D = hero.get("weapon_instance") as Node3D
@@ -217,61 +223,6 @@ func _apply_camera(preset_name: String) -> void:
 	var p: Array = CAMERA_PRESETS[preset_name]
 	camera.position = p[0]
 	camera.look_at(p[1], Vector3.UP)
-
-func _make_pivot_marker(parent: Node, marker_name: String, local_pos: Vector3, color: Color, radius: float) -> MeshInstance3D:
-	var sphere := SphereMesh.new()
-	sphere.radius = radius
-	sphere.height = radius * 2.0
-	sphere.radial_segments = 20
-	sphere.rings = 10
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = color
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.no_depth_test = true
-	sphere.material = mat
-	var instance := MeshInstance3D.new()
-	instance.name = marker_name
-	instance.mesh = sphere
-	instance.position = local_pos
-	parent.add_child(instance)
-	return instance
-
-func _build_pivot_markers() -> void:
-	if not pivot_markers.is_empty() or hero == null:
-		return
-	var skeleton: Skeleton3D = hero.get("skeleton") as Skeleton3D
-	if skeleton == null:
-		return
-	var fore_idx := skeleton.find_bone("Forearm_L")
-	var hand_idx := skeleton.find_bone("Hand_L")
-	if fore_idx < 0 or hand_idx < 0:
-		return
-	var fore_attachment := BoneAttachment3D.new()
-	fore_attachment.name = "PivotMarker_Forearm_L"
-	skeleton.add_child(fore_attachment)
-	fore_attachment.bone_name = "Forearm_L"
-	var hand_attachment := BoneAttachment3D.new()
-	hand_attachment.name = "PivotMarker_Hand_L"
-	skeleton.add_child(hand_attachment)
-	hand_attachment.bone_name = "Hand_L"
-	_make_pivot_marker(fore_attachment, "ElbowMarker", Vector3.ZERO, Color.WHITE, 0.012)
-	_make_pivot_marker(hand_attachment, "NewWristMarker", Vector3.ZERO, Color(0.1, 1.0, 0.35), 0.014)
-	# Old thigh-space wrist point, expressed in Forearm_L's rest frame so
-	# it follows the forearm deformation for a direct old/new comparison.
-	var fore_rest: Transform3D = skeleton.get_bone_global_rest(fore_idx)
-	var old_local: Vector3 = fore_rest.affine_inverse() * Vector3(0.190, 0.410, 0.015)
-	_make_pivot_marker(fore_attachment, "OldWristMarker", old_local, Color(1.0, 0.12, 0.08), 0.014)
-	pivot_markers.append(fore_attachment)
-	pivot_markers.append(hand_attachment)
-	print("[RigCheck] Hand_L pivot markers built: white=elbow green=NEW wrist red=OLD wrist")
-
-func _toggle_pivot_markers() -> void:
-	# Markers are opt-in diagnostics only (off by default since §5.14).
-	if pivot_markers.is_empty():
-		_build_pivot_markers()
-		return
-	for marker in pivot_markers:
-		marker.visible = not marker.visible
 
 func _dump_skeleton() -> void:
 	var skeleton: Skeleton3D = hero.get("skeleton") as Skeleton3D

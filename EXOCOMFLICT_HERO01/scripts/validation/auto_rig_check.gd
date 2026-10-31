@@ -1,9 +1,13 @@
 extends RefCounted
-## Automated sanity checks for the HERO_01 rig (shared by the RigValidation
-## scene and the headless CI scene). Returns PASS/FAIL/INFO lines; see
-## VALIDATION_REPORT.md sections 5.3-5.4 and 5.10.
+## Automated sanity checks for the NEW_HERO_01 rig (shared by the
+## RigValidation scene and the headless CI scene). Returns PASS/FAIL/INFO
+## lines. Skeleton expectations are skeleton-local global-rest values
+## measured from the shipped NEW_HERO_01 GLB (Blender scripts 66/68).
+## Animation clips for the new skeleton are not authored yet: while
+## EXPECT_CLIPS is false, missing clips/tree are INFO, never FAIL.
 
 const EXPECTED_BONES := 24
+const EXPECT_CLIPS := false
 const CLIP_DURATIONS := {
 	"Idle": 3.0,
 	"Weapon_Raise": 1.2,
@@ -13,12 +17,17 @@ const CLIP_DURATIONS := {
 	"Weapon_Raise_To_Aim": 1.5,
 }
 const LOOP_CLIPS := ["Idle", "Aim_Idle"]
-const RIG_BUILD := "Hand_L rerig v2 (2026-10-30)"
-# Skeleton-local glTF/global-rest measurements from the shipped GLB.
-# Old Hand_L origin was (0.190, 0.410, 0.015) and Forearm_L was 0.177 long.
-const EXPECTED_HANDL_REST := Vector3(0.2441, 0.4961, 0.0118)
-const EXPECTED_FOREARM_L_VECTOR := Vector3(0.0791, -0.0889, 0.0068)
-const EXPECTED_FOREARM_L_LENGTH := 0.1192
+const RIG_BUILD := "NEW_HERO_01 re-rig (2026-10-31)"
+# Skeleton-local global-rest measurements from the NEW_HERO_01 GLB.
+const EXPECTED_HANDL_REST := Vector3(0.3550, 0.5720, 0.0620)
+const EXPECTED_HANDR_REST := Vector3(-0.3550, 0.5720, 0.0620)
+const EXPECTED_WEAPONR_REST := Vector3(-0.3770, 0.5420, 0.0670)
+const EXPECTED_UPPERARM_LENGTH := 0.1894
+const EXPECTED_FOREARM_LENGTH := 0.1375
+const EXPECTED_UPPERLEG_LENGTH := 0.2201
+const EXPECTED_LOWERLEG_LENGTH := 0.1865
+const EXPECTED_HIPS_Y := 0.5050
+const EXPECTED_HEAD_Y := 0.8550
 
 static func _ok(lines: Array, cond: bool, label: String) -> void:
 	lines.append(("PASS  " if cond else "FAIL  ") + label)
@@ -60,61 +69,104 @@ static func _check_clip(lines: Array, player: AnimationPlayer, clip_name: String
 		loop_label = "linear loop"
 	_ok(lines, anim.loop_mode == expected_loop, "%s loop mode = %s" % [clip_name, loop_label])
 
-static func _check_handl_pivot(lines: Array, skeleton: Skeleton3D) -> void:
-	var fore_l := skeleton.find_bone("Forearm_L")
+static func _seg(lines: Array, skeleton: Skeleton3D, a: String, b: String, expected: float) -> float:
+	var ia := skeleton.find_bone(a)
+	var ib := skeleton.find_bone(b)
+	if ia < 0 or ib < 0:
+		_ok(lines, false, "Segment %s->%s bones resolved" % [a, b])
+		return -1.0
+	var d: float = skeleton.get_bone_global_rest(ia).origin.distance_to(skeleton.get_bone_global_rest(ib).origin)
+	_ok(lines, absf(d - expected) <= 0.010, "Segment %s->%s length %.4f (~%.4f)" % [a, b, d, expected])
+	return d
+
+static func _check_new_skeleton(lines: Array, skeleton: Skeleton3D) -> void:
 	var hand_l := skeleton.find_bone("Hand_L")
-	var fore_r := skeleton.find_bone("Forearm_R")
 	var hand_r := skeleton.find_bone("Hand_R")
-	_ok(lines, fore_l >= 0 and hand_l >= 0 and fore_r >= 0 and hand_r >= 0,
-		"%s: forearm/hand bones resolved for pivot measurement" % RIG_BUILD)
-	if fore_l < 0 or hand_l < 0 or fore_r < 0 or hand_r < 0:
-		return
-	var fore_l_rest: Vector3 = skeleton.get_bone_global_rest(fore_l).origin
-	var hand_l_rest: Vector3 = skeleton.get_bone_global_rest(hand_l).origin
-	var fore_r_rest: Vector3 = skeleton.get_bone_global_rest(fore_r).origin
-	var hand_r_rest: Vector3 = skeleton.get_bone_global_rest(hand_r).origin
-	var fore_l_vec: Vector3 = hand_l_rest - fore_l_rest
-	var len_l: float = fore_l_vec.length()
-	var len_r: float = hand_r_rest.distance_to(fore_r_rest)
-	lines.append("INFO  Hand_L global-rest origin=%s; Forearm_L origin=%s" % [str(hand_l_rest), str(fore_l_rest)])
-	lines.append("INFO  Forearm_L vector=%s length=%.4f; Forearm_R length=%.4f" % [str(fore_l_vec), len_l, len_r])
-	_ok(lines, absf(len_l - EXPECTED_FOREARM_L_LENGTH) <= 0.010,
-		"Hand_L rerig pivot: Forearm_L length %.4f (~0.119 new; 0.177 old)" % len_l)
-	_ok(lines, fore_l_vec.distance_to(EXPECTED_FOREARM_L_VECTOR) <= 0.020,
-		"Hand_L rerig pivot: Forearm_L rest vector matches shipped GLB")
-	_ok(lines, hand_l_rest.distance_to(EXPECTED_HANDL_REST) <= 0.020,
-		"Hand_L rerig pivot: origin matches (0.2441, 0.4961, 0.0118); old=(0.190, 0.410, 0.015)")
-	if len_r > 0.001:
-		_ok(lines, absf(len_l / len_r - 1.0) <= 0.10,
-			"Hand_L rerig pivot: L/R forearm length ratio %.3f" % (len_l / len_r))
+	var weapon_r := skeleton.find_bone("Weapon_R")
+	var hips := skeleton.find_bone("Hips")
+	var head := skeleton.find_bone("Head")
+	var foot_l := skeleton.find_bone("Foot_L")
+	var foot_r := skeleton.find_bone("Foot_R")
+	if hand_l >= 0:
+		var o: Vector3 = skeleton.get_bone_global_rest(hand_l).origin
+		lines.append("INFO  Hand_L global-rest origin=%s" % str(o))
+		_ok(lines, o.distance_to(EXPECTED_HANDL_REST) <= 0.020, "%s: Hand_L rest matches shipped GLB" % RIG_BUILD)
+	if hand_r >= 0:
+		var o: Vector3 = skeleton.get_bone_global_rest(hand_r).origin
+		_ok(lines, o.distance_to(EXPECTED_HANDR_REST) <= 0.020, "%s: Hand_R rest matches shipped GLB" % RIG_BUILD)
+	if weapon_r >= 0:
+		var o: Vector3 = skeleton.get_bone_global_rest(weapon_r).origin
+		_ok(lines, o.distance_to(EXPECTED_WEAPONR_REST) <= 0.020, "Weapon_R rest at right palm (dist %.4f)" % o.distance_to(EXPECTED_WEAPONR_REST))
+	if hips >= 0:
+		_ok(lines, absf(skeleton.get_bone_global_rest(hips).origin.y - EXPECTED_HIPS_Y) <= 0.010, "Hips rest height %.4f" % skeleton.get_bone_global_rest(hips).origin.y)
+	if head >= 0:
+		_ok(lines, absf(skeleton.get_bone_global_rest(head).origin.y - EXPECTED_HEAD_Y) <= 0.010, "Head rest height %.4f" % skeleton.get_bone_global_rest(head).origin.y)
+	var ua_l := _seg(lines, skeleton, "UpperArm_L", "Forearm_L", EXPECTED_UPPERARM_LENGTH)
+	var ua_r := _seg(lines, skeleton, "UpperArm_R", "Forearm_R", EXPECTED_UPPERARM_LENGTH)
+	var fa_l := _seg(lines, skeleton, "Forearm_L", "Hand_L", EXPECTED_FOREARM_LENGTH)
+	var fa_r := _seg(lines, skeleton, "Forearm_R", "Hand_R", EXPECTED_FOREARM_LENGTH)
+	var ul_l := _seg(lines, skeleton, "UpperLeg_L", "LowerLeg_L", EXPECTED_UPPERLEG_LENGTH)
+	var ul_r := _seg(lines, skeleton, "UpperLeg_R", "LowerLeg_R", EXPECTED_UPPERLEG_LENGTH)
+	var ll_l := _seg(lines, skeleton, "LowerLeg_L", "Foot_L", EXPECTED_LOWERLEG_LENGTH)
+	var ll_r := _seg(lines, skeleton, "LowerLeg_R", "Foot_R", EXPECTED_LOWERLEG_LENGTH)
+	for pair in [[ua_l, ua_r, "upper arm"], [fa_l, fa_r, "forearm"], [ul_l, ul_r, "upper leg"], [ll_l, ll_r, "lower leg"]]:
+		var l: float = pair[0]
+		var r: float = pair[1]
+		if l > 0.0 and r > 0.0:
+			_ok(lines, absf(l / r - 1.0) <= 0.03, "L/R %s symmetry ratio %.3f" % [String(pair[2]), l / r])
+	if foot_l >= 0 and foot_r >= 0:
+		var dy: float = absf(skeleton.get_bone_global_rest(foot_l).origin.y - skeleton.get_bone_global_rest(foot_r).origin.y)
+		_ok(lines, dy <= 0.005, "Feet rest heights equal (dy=%.4f)" % dy)
 
 static func run_checks(hero: Node) -> Array:
 	var lines: Array = []
 	var skeleton = hero.get("skeleton") as Skeleton3D
 	var player = hero.get("animation_player") as AnimationPlayer
 	var weapon = hero.get("weapon_instance") as Node3D
+	lines.append("INFO  Rig build: " + RIG_BUILD)
 	_ok(lines, skeleton != null, "Skeleton3D located")
-	_ok(lines, player != null, "AnimationPlayer located")
+	if player == null:
+		lines.append("INFO  AnimationPlayer absent (GLB has no animations yet - expected at this stage)" if not EXPECT_CLIPS else "FAIL  AnimationPlayer located")
+	else:
+		_ok(lines, true, "AnimationPlayer located")
 	_ok(lines, weapon != null, "Weapon attached")
 	if skeleton != null:
 		_ok(lines, skeleton.get_bone_count() == EXPECTED_BONES, "Bone count == 24 (got %d)" % skeleton.get_bone_count())
-		for b in ["Root", "Hips", "Head", "Hand_R", "Hand_L", "Weapon_R"]:
+		for b in ["Root", "Hips", "Spine", "Chest", "UpperChest", "Neck", "Head",
+				"Clavicle_L", "UpperArm_L", "Forearm_L", "Hand_L",
+				"Clavicle_R", "UpperArm_R", "Forearm_R", "Hand_R", "Weapon_R",
+				"UpperLeg_L", "LowerLeg_L", "Foot_L", "Toe_L",
+				"UpperLeg_R", "LowerLeg_R", "Foot_R", "Toe_R"]:
 			_ok(lines, skeleton.find_bone(b) >= 0, "Bone %s exists" % b)
-		_check_handl_pivot(lines, skeleton)
+		_check_new_skeleton(lines, skeleton)
 	if player != null:
-		var names: Array = []
-		for clip_name in CLIP_DURATIONS.keys():
-			names.append(String(clip_name))
-		names.sort()
-		for clip_name in names:
-			_check_clip(lines, player, String(clip_name), float(CLIP_DURATIONS[clip_name]))
+		if EXPECT_CLIPS:
+			var names: Array = []
+			for clip_name in CLIP_DURATIONS.keys():
+				names.append(String(clip_name))
+			names.sort()
+			for clip_name in names:
+				_check_clip(lines, player, String(clip_name), float(CLIP_DURATIONS[clip_name]))
+		else:
+			for clip_name in CLIP_DURATIONS.keys():
+				var rn := String(clip_name)
+				if _resolve_clip(player, rn) != "":
+					_check_clip(lines, player, rn, float(CLIP_DURATIONS[clip_name]))
+				else:
+					lines.append("INFO  Clip %s not authored yet (deferred)" % rn)
 		lines.append("INFO  AnimationPlayer clips: " + str(player.get_animation_list()))
 	var resolved_variant: Variant = hero.get("resolved_animations")
 	if resolved_variant is Dictionary:
 		var resolved: Dictionary = resolved_variant
-		_ok(lines, resolved.size() >= CLIP_DURATIONS.size(), "Hero resolved %d/%d named clips" % [resolved.size(), CLIP_DURATIONS.size()])
+		if EXPECT_CLIPS:
+			_ok(lines, resolved.size() >= CLIP_DURATIONS.size(), "Hero resolved %d/%d named clips" % [resolved.size(), CLIP_DURATIONS.size()])
+		else:
+			lines.append("INFO  Hero resolved %d named clips (animation phase pending)" % resolved.size())
 	var tree = hero.get("animation_tree") as AnimationTree
-	_ok(lines, tree != null, "Phase-1 AnimationTree built")
+	if EXPECT_CLIPS:
+		_ok(lines, tree != null, "Phase-1 AnimationTree built")
+	else:
+		lines.append("INFO  AnimationTree %s (built once clips exist)" % ("built" if tree != null else "not built yet"))
 	if hero.has_method("is_animation_tree_enabled") and hero.has_method("get_current_animation_state"):
 		lines.append("INFO  AnimationTree enabled=%s state=%s" % [
 			str(bool(hero.call("is_animation_tree_enabled"))),
@@ -127,4 +179,11 @@ static func run_checks(hero: Node) -> Array:
 			_ok(lines, attachment.bone_name == "Weapon_R", "Attachment bone == Weapon_R")
 		for marker_name in ["GripPoint", "ForegripPoint", "MuzzlePoint", "ReceiverPoint"]:
 			_ok(lines, weapon.find_child(marker_name, true, false) != null, "Marker %s present" % marker_name)
+		if skeleton != null:
+			var grip = weapon.find_child("GripPoint", true, false) as Node3D
+			var wr := skeleton.find_bone("Weapon_R")
+			if grip != null and wr >= 0:
+				var bone_g: Vector3 = (skeleton.global_transform * skeleton.get_bone_global_pose(wr)).origin
+				var d: float = bone_g.distance_to(grip.global_position)
+				_ok(lines, d <= 0.020, "GripPoint seated on Weapon_R at rest (d=%.4f m)" % d)
 	return lines

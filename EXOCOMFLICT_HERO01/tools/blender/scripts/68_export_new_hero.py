@@ -51,11 +51,22 @@ bpy.ops.export_scene.gltf(filepath=GLB_OUT, export_format="GLB", use_selection=T
                           export_materials="EXPORT")
 print(f"EXPORTED {GLB_OUT} {os.path.getsize(GLB_OUT)} bytes", flush=True)
 
+# Open-shell scan meshes need doubleSided materials in Godot or backface
+# culling makes fine detail vanish at glancing angles (VALIDATION_REPORT
+# 5.6). The patcher splices only the JSON chunk; BIN stays byte-identical.
+import subprocess, sys as _sys
+r = subprocess.run([_sys.executable, f"{PROJ}/tools/patch_glb_double_sided.py", GLB_OUT],
+                   capture_output=True, text=True)
+print(r.stdout.strip() or r.stderr.strip(), flush=True)
+assert r.returncode == 0, "doubleSided patch failed"
+
 # ---------------- roundtrip verify (pygltflib) ----------------
 from pygltflib import GLTF2
 g = GLTF2().load(GLB_OUT)
 print("meshes:", [(m.name, len(m.primitives)) for m in g.meshes], flush=True)
 print("materials:", [m.name for m in g.materials], "images:", len(g.images), "textures:", len(g.textures), flush=True)
+assert all(m.doubleSided for m in g.materials), "materials must be doubleSided for Godot"
+print("materials doubleSided: OK", flush=True)
 print("skins:", len(g.skins), "animations:", len(g.animations or []), flush=True)
 assert len(g.skins) == 1
 joints = [g.nodes[j].name for j in g.skins[0].joints]

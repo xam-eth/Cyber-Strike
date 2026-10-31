@@ -7,7 +7,7 @@ config_version=5
 [application]
 
 config/name="EXOCONFLICT_HERO01_RigValidation"
-config/description="Standalone HERO_01 rig, weapon-attachment and Weapon_Raise_To_Aim validation project."
+config/description="Standalone HERO_01 (NEW_HERO_01 re-rig) rig and weapon-attachment validation project."
 run/main_scene="res://scenes/main/RigValidation.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 

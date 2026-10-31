@@ -4,12 +4,16 @@ extends Node3D
 ## Phase-1 weapon chain through a code-built AnimationTree state machine:
 ##   Idle -> Weapon_Raise -> Aim_Idle -> Fire -> Aim_Idle
 ##   Aim_Idle -> Weapon_Lower -> Idle
-## The weapon GLB origin equals the character origin with identity transform
-## at rest (VERIFIED in Blender), so the attachment offset is solved from the
-## Weapon_R bone rest transform: offset = inverse(bone_global_rest).
-## Status: direct AnimationPlayer path runtime-validated on Godot 4.7.2
-## (headless) 2026-10-29; Phase-1 clips/AnimationTree are Blender+GLB
-## validated and await the owner's Godot re-import pass (VALIDATION_REPORT 5.10).
+## Weapon seating: the rifle GLB was authored against the PREVIOUS
+## character's rest pose, so since the NEW_HERO_01 re-rig (2026-10-31) the
+## offset additionally translates the weapon so its GripPoint marker lands
+## exactly on the (new) Weapon_R bone origin at rest, keeping the authored
+## world orientation: offset = inverse(bone_global_rest) * T(grip->palm).
+## The new hero's hands are open (no finger bones), so the grip rests
+## against the flat palm - finger wrap is not claimed.
+## Status: rig + skinning of NEW_HERO_01 are Blender/GLB-verified (scripts
+## 64-68); animation clips for the new skeleton are NOT authored yet, so the
+## AnimationTree stays unbuilt until the animation phase.
 
 const WEAPON_SCENE = preload("res://scenes/weapons/HERO_01_WEAPON.tscn")
 const LEGACY_AIM_ANIMATION := "Weapon_Raise_To_Aim"
@@ -68,7 +72,6 @@ func _ready() -> void:
 		_apply_full_detail(self)
 	_resolve_animations()
 	_configure_animation_loops()
-	_build_animation_tree()
 	if use_animation_tree:
 		set_animation_tree_enabled(true)
 
@@ -103,14 +106,20 @@ func _attach_weapon() -> void:
 	if use_manual_weapon_offset:
 		weapon_instance.transform = manual_weapon_offset
 	else:
-		# The weapon GLB is authored at the skeleton's origin (identity at
-		# rest), so the attachment-local offset is simply the inverse of the
-		# bone's global rest transform in skeleton space. This is invariant
-		# to character scale/placement. (Validated in Godot 4.7.2 headless:
-		# tools/godot/ci_check.gd — do NOT anchor to the hero root global,
-		# whose space differs by the ScaleRoot factor.)
+		# Attachment-local offset in skeleton space (invariant to character
+		# scale/placement - do NOT anchor to the hero root global, whose
+		# space differs by the ScaleRoot factor). The rifle scene is authored
+		# at the previous character's origin, so beyond the inverse bone
+		# rest we translate it in skeleton space by (palm - grip): at rest
+		# the GripPoint marker then sits exactly on the Weapon_R origin,
+		# with the weapon keeping its authored orientation. During future
+		# animation authoring this offset stays constant under Weapon_R.
 		var bone_rest: Transform3D = skeleton.get_bone_global_rest(bone_idx)
-		weapon_instance.transform = bone_rest.affine_inverse()
+		var align := Transform3D.IDENTITY
+		var grip: Node3D = weapon_instance.find_child("GripPoint", true, false) as Node3D
+		if grip != null:
+			align = Transform3D(Basis.IDENTITY, bone_rest.origin - grip.position)
+		weapon_instance.transform = bone_rest.affine_inverse() * align
 	calibrated_weapon_offset = weapon_instance.transform
 	print("HERO_01: weapon local offset under Weapon_R = ", calibrated_weapon_offset)
 
