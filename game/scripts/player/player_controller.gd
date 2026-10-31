@@ -308,6 +308,7 @@ func reset_player() -> void:
 	_touch_movement = Vector2.ZERO
 	_touch_fire_pressed = false
 	weapon_controller.reset_ammo()
+	weapon_controller.reset_run_modifiers()
 	_reload_was_active = false
 	visual_root.reset_action_state()
 	health_changed.emit(current_health, max_health)

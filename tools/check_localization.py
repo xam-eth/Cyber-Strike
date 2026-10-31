@@ -27,6 +27,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 CATALOG = ROOT / "game" / "scripts" / "i18n" / "aegis_text_catalog.gd"
 GAME = ROOT / "game" / "scripts"
+RESOURCES = ROOT / "game" / "resources"
 
 KEY_RE = re.compile(r'"([a-z_]+\.[a-z0-9_.]+)":\s*"((?:[^"\\]|\\.)*)"')
 PLACEHOLDER_RE = re.compile(r"%(?:\d+\$)?[sdfvx]")
@@ -35,7 +36,7 @@ PLACEHOLDER_RE = re.compile(r"%(?:\d+\$)?[sdfvx]")
 # every call site without guessing at function names.
 NAMESPACES = (
     "app", "boot", "loading", "chapter", "common", "nav", "dash", "hero",
-    "world", "hud", "pause", "results", "recovery", "armory", "wpn", "settings", "editor",
+    "world", "hud", "pause", "results", "recovery", "upgrade", "armory", "wpn", "settings", "editor",
 )
 KEY_LITERAL = re.compile(
     r'"((?:' + "|".join(NAMESPACES) + r')\.[a-z0-9_.\-]+)"'
@@ -60,15 +61,17 @@ def used_keys() -> tuple[set[str], set[str]]:
     """(keys the code names, key patterns it builds with a %s)."""
     found: set[str] = set()
     patterns: set[str] = set()
-    for path in GAME.rglob("*.gd"):
-        if path.name == "aegis_text_catalog.gd":
-            continue
-        source = path.read_text(encoding="utf-8")
-        patterns.update(m.group(1) for m in KEY_PATTERN.finditer(source))
-        for match in KEY_LITERAL.finditer(source):
-            literal = match.group(1)
-            if "%" not in literal:
-                found.add(literal)
+    # Data-driven UI keeps its catalog keys in resources, not only in scripts.
+    for root, pattern in ((GAME, "*.gd"), (RESOURCES, "*.tres")):
+        for path in root.rglob(pattern):
+            if path.name == "aegis_text_catalog.gd":
+                continue
+            source = path.read_text(encoding="utf-8")
+            patterns.update(m.group(1) for m in KEY_PATTERN.finditer(source))
+            for match in KEY_LITERAL.finditer(source):
+                literal = match.group(1)
+                if "%" not in literal:
+                    found.add(literal)
     return found, patterns
 
 

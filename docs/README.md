@@ -32,6 +32,7 @@ Repository-level reminders for coding agents and developers live in [`../AGENTS.
 | [`CONTENT_IMPORT.md`](CONTENT_IMPORT.md) | Integration + World/Character; external package, staging, fallback, and bundle contract | Package schema, target path, isolation rule, or activation workflow change |
 | [`DECISIONS.md`](DECISIONS.md) | Technical/domain owners; durable measured decisions and reversals | A costly technical lesson or explicit decision replaces an earlier rule |
 | [`VALIDATION.md`](VALIDATION.md) | Integration/QA; latest relevant evidence and evidence limits | A meaningful static, engine, browser, interactive, or device gate completes |
+| [`INTEGRATED_VERTICAL_SLICE.md`](INTEGRATED_VERTICAL_SLICE.md) | Integration/QA; inspected baseline, run-adaptation contract, explicit mission-state transitions, and slice evidence register | The baseline or run-adaptation scope changes, or a named slice gate executes |
 
 ### Experience and content
 

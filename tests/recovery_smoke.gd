@@ -54,6 +54,10 @@ func _exercise_continue_and_death() -> void:
 	)
 	(hud.get("_results_explore_button") as Button).pressed.emit()
 	_expect(not paused, "Continue releases the mission-complete overlay")
+	_expect(
+		(main.get_node("RunUpgrades") as RunUpgradeService).selected_id == &"quick_cycle",
+		"Continue preserves the selected adaptation for Endless",
+	)
 	for _frame in 30:
 		if int(wave.get("current_wave")) > 0:
 			break
@@ -150,6 +154,10 @@ func _exercise_death_retry_and_extract() -> void:
 		not progression.has_blueprint(&"arc_shooter") and progression.balance == 0,
 		"death before Secure grants no blueprint or cache BP",
 	)
+	_expect(
+		not main.call("_present_run_upgrade", main.call("_primary_cache")),
+		"a simultaneous guard clear cannot cover defeat with an adaptation offer",
+	)
 	var hud := main.get_node("HUD/TouchControls") as TouchControls
 	(hud.get("_results_retry_button") as Button).pressed.emit()
 	await process_frame
@@ -171,6 +179,23 @@ func _exercise_death_retry_and_extract() -> void:
 	)
 	main.call("_extract_from_recovery")
 	_expect(progression.completed_runs == 1, "repeated Extract cannot bank a second run")
+	main.call("_reset_session")
+	await process_frame
+	_expect(
+		(main.get_node("RunUpgrades") as RunUpgradeService).selected_id == &"",
+		"redeployment reset clears the temporary selection",
+	)
+	_expect(
+		(
+			(main.get_node("Player") as PlayerController).weapon_controller.get_run_modifiers()
+			== {"damage": 1.0, "reload": 1.0}
+		),
+		"redeployment reset restores neutral runtime weapon modifiers",
+	)
+	_expect(
+		progression.has_blueprint(&"arc_shooter") and progression.completed_runs == 1,
+		"run reset does not roll back permanent blueprint or run progression",
+	)
 	main.queue_free()
 	await process_frame
 	paused = false
@@ -239,6 +264,30 @@ func _secure_primary(main: Node) -> void:
 	_expect(
 		main.call("recovery_cache_state", PRIMARY) == "ready",
 		"real guard elimination changes primary to Ready",
+	)
+	_expect(paused, "primary guard clear opens the earned adaptation choice")
+	var upgrades := main.get_node("RunUpgrades") as RunUpgradeService
+	_expect(
+		upgrades.offer_available and upgrades.offer_consumed,
+		"the guard clear grants exactly one pending run adaptation",
+	)
+	var upgrade_panel := hud.get("_run_upgrade_panel") as RunUpgradeUi
+	_expect(upgrade_panel.visible, "the reusable upgrade-card modal is visible")
+	var cards := upgrade_panel._cards
+	if cards.size() == 2:
+		(cards[1] as Button).pressed.emit()
+		await process_frame
+	_expect(
+		upgrades.selected_id == &"quick_cycle" and not upgrades.offer_available,
+		"the real Quick Cycle card is consumed by Main",
+	)
+	_expect(not paused, "a valid card selection restores the mission")
+	var controller := (main.get_node("Player") as PlayerController).weapon_controller
+	var base := controller.get_current_definition()
+	var effective := controller.get_effective_definition()
+	_expect(
+		is_equal_approx(effective.reload_seconds, base.reload_seconds * 0.8),
+		"the selected card changes real reload data by twenty percent",
 	)
 	main.call("_update_recovery")
 	_expect(

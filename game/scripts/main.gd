@@ -1,6 +1,6 @@
 extends Node3D
 
-enum SessionMode { EXPLORE, PREPARING, DEFENSE, RESULTS, MISSION_COMPLETE }
+enum SessionMode { EXPLORE, PREPARING, DEFENSE, RESULTS, MISSION_COMPLETE, UPGRADE_SELECTION }
 enum RecoveryState { UNDISCOVERED, GUARDED, READY, SECURED }
 
 const PlayerControllerScript = preload("res://scripts/player/player_controller.gd")
@@ -41,6 +41,7 @@ var _recovery_action_cache: StringName = &""
 var _recovery_notices: Array[Dictionary] = []
 var _recovery_choice_presented: bool = false
 var _recovery_return_mode: SessionMode = SessionMode.EXPLORE
+var _upgrade_return_mode: SessionMode = SessionMode.EXPLORE
 var _extracting: bool = false
 var _run_banked: bool = false
 var _device_profiler: Node
@@ -51,6 +52,7 @@ var _profiler_context_seconds := 0.0
 @onready var training_drone: TrainingDroneScript = $TrainingDrone
 @onready var wave_director: WaveDirectorScript = $WaveDirector
 @onready var run_stats: RunStatsScript = $RunStats
+@onready var run_upgrades: RunUpgradeService = $RunUpgrades
 @onready var reward_service: RewardServiceScript = $RewardService
 @onready var progression_service: ProgressionServiceScript = $ProgressionService
 @onready var touch_controls: TouchControlsScript = $HUD/TouchControls
@@ -157,6 +159,7 @@ func _ready() -> void:
 	touch_controls.retry_requested.connect(_reset_session)
 	touch_controls.defense_start_requested.connect(_request_defense)
 	touch_controls.recovery_action_requested.connect(_on_recovery_action)
+	touch_controls.run_upgrade_selected.connect(_on_run_upgrade_selected)
 	touch_controls.extract_requested.connect(_extract_from_recovery)
 	touch_controls.continue_endless_requested.connect(_continue_to_endless)
 	touch_controls.return_to_explore_requested.connect(_return_to_explore)
@@ -413,7 +416,7 @@ func _on_armory_weapon_upgrade(weapon_id: StringName) -> void:
 
 
 func _toggle_pause() -> void:
-	if session_mode == SessionMode.MISSION_COMPLETE:
+	if session_mode in [SessionMode.MISSION_COMPLETE, SessionMode.UPGRADE_SELECTION]:
 		return
 	if player.is_defeated():
 		_reset_session()
@@ -453,6 +456,10 @@ func _reset_session() -> void:
 		session_mode == SessionMode.PREPARING
 		or session_mode == SessionMode.DEFENSE
 		or (session_mode == SessionMode.RESULTS and _retry_defense)
+		or (
+			session_mode == SessionMode.UPGRADE_SELECTION
+			and _upgrade_return_mode in [SessionMode.PREPARING, SessionMode.DEFENSE]
+		)
 	)
 	_return_to_explore()
 	if restart_defense:
@@ -471,6 +478,10 @@ func _return_to_explore() -> void:
 	_extracting = false
 	_run_banked = false
 	_recovery_return_mode = SessionMode.EXPLORE
+	_upgrade_return_mode = SessionMode.EXPLORE
+	run_upgrades.reset_run()
+	touch_controls._set_run_upgrade("", "")
+	touch_controls._hide_run_upgrade_choice()
 	wave_director.reset_session()
 	player.reset_player()
 	player.camera_rig.recenter_for_new_run()
@@ -615,7 +626,10 @@ func _active_recovery_guard_count() -> int:
 func _update_recovery() -> void:
 	if (
 		_recovery_caches.is_empty()
-		or session_mode in [SessionMode.MISSION_COMPLETE, SessionMode.RESULTS]
+		or (
+			session_mode
+			in [SessionMode.MISSION_COMPLETE, SessionMode.RESULTS, SessionMode.UPGRADE_SELECTION]
+		)
 		or player.is_defeated()
 	):
 		return
@@ -791,6 +805,74 @@ func _on_guard_group_cleared(group_id: StringName) -> void:
 	touch_controls._feedback_panel.show_message(
 		AegisText.t("recovery.ready_feedback", [cache.display_name])
 	)
+	if _present_run_upgrade(cache):
+		return
+	_update_recovery()
+	_update_status()
+
+
+func _present_run_upgrade(cache: RecoveryCacheDefinition) -> bool:
+	var primary := _primary_cache()
+	if primary == null or cache == null or cache.cache_id != primary.cache_id:
+		return false
+	if (
+		_is_paused
+		or player.is_defeated()
+		or session_mode not in [SessionMode.EXPLORE, SessionMode.PREPARING, SessionMode.DEFENSE]
+	):
+		# A last-hit trade with player death must resolve as defeat, never as a
+		# modal adaptation offer layered over an already finished run.
+		return false
+	if not run_upgrades.offer():
+		return false
+	# Secure was earned by the guard clear, but the adaptation choice owns input
+	# first. The underlying play mode is restored verbatim after a valid card.
+	_update_recovery()
+	_update_status()
+	_upgrade_return_mode = session_mode
+	session_mode = SessionMode.UPGRADE_SELECTION
+	_is_paused = true
+	get_tree().paused = true
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	touch_controls._show_run_upgrade_choice(
+		run_upgrades.definitions(), player.weapon_controller.get_current_definition().weapon_id
+	)
+	print("Run upgrade: primary guards cleared · adaptation offer earned")
+	return true
+
+
+func _on_run_upgrade_selected(upgrade_id: StringName) -> void:
+	if session_mode != SessionMode.UPGRADE_SELECTION:
+		return
+	var weapon_id := player.weapon_controller.get_current_definition().weapon_id
+	if not run_upgrades.choose(upgrade_id, weapon_id):
+		touch_controls._reject_run_upgrade_choice()
+		return
+	var modifiers := run_upgrades.modifiers()
+	player.weapon_controller.set_run_modifiers(
+		float(modifiers["damage"]), float(modifiers["reload"])
+	)
+	var definition := run_upgrades.selected_definition()
+	touch_controls._set_run_upgrade(definition.display_name(), definition.effect_description())
+	session_mode = _upgrade_return_mode
+	_is_paused = false
+	get_tree().paused = false
+	touch_controls._hide_run_upgrade_choice()
+	touch_controls.set_paused(false)
+	touch_controls._feedback_panel.show_message(
+		AegisText.t(
+			"upgrade.installed_feedback",
+			[definition.display_name(), definition.effect_description()]
+		)
+	)
+	Sfx.play_ui(&"session_clear")
+	var effective := player.weapon_controller.get_effective_definition()
+	print(
+		(
+			"Run upgrade: selected %s · weapon=%s damage=%.2f reload=%.2f · run only"
+			% [upgrade_id, weapon_id, effective.damage, effective.reload_seconds]
+		)
+	)
 	_update_recovery()
 	_update_status()
 
@@ -819,7 +901,9 @@ func _present_recovery_choice() -> void:
 	Sfx.set_music_mode(&"results")
 	touch_controls._set_play_phase("results")
 	touch_controls.show_extraction_choice(
-		progression_service.balance, progression_service.is_unlocked(&"arc_shooter")
+		progression_service.balance,
+		progression_service.is_unlocked(&"arc_shooter"),
+		_run_adaptation_result_line()
 	)
 
 
@@ -862,6 +946,13 @@ func _extract_from_recovery() -> void:
 		wave_director.end_session()
 
 
+func _run_adaptation_result_line() -> String:
+	var definition := run_upgrades.selected_definition()
+	if definition == null:
+		return ""
+	return AegisText.t("upgrade.results_line", [definition.display_name()])
+
+
 func _recovery_result_summary() -> String:
 	var lines := PackedStringArray()
 	for notice in _recovery_notices:
@@ -871,6 +962,9 @@ func _recovery_result_summary() -> String:
 				lines.append(AegisText.t("results.recovery_blueprint", [weapon.display_name]))
 		elif notice.get("kind", "") == "bp":
 			lines.append(AegisText.t("results.recovery_bp", [int(notice["amount"])]))
+	var adaptation := _run_adaptation_result_line()
+	if not adaptation.is_empty():
+		lines.append(adaptation)
 	return "\n".join(lines)
 
 

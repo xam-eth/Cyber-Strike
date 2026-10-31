@@ -19,6 +19,11 @@ var _available_ids: Dictionary = {"pulse_rifle": true}
 ## remain immutable registry data, including when a tier is upgraded mid-run.
 var _weapon_tiers: Dictionary = {}
 var _effective_definitions: Array[WeaponDefinition] = []
+## Temporary deployment modifiers, composed after permanent tiers on the same
+## runtime copies. Base resources are never mutated and reset_ammo() does not
+## silently clear an adaptation mid-run; reset_run_modifiers() is explicit.
+var _run_damage_multiplier: float = 1.0
+var _run_reload_multiplier: float = 1.0
 
 
 func _ready() -> void:
@@ -133,21 +138,46 @@ func set_available_weapon_ids(ids: Dictionary) -> void:
 
 func set_weapon_tiers(tiers: Dictionary) -> void:
 	_weapon_tiers.clear()
+	for base in weapon_definitions:
+		if base == null:
+			continue
+		var id := String(base.weapon_id)
+		_weapon_tiers[id] = clampi(int(tiers.get(id, 1)), 1, WeaponTier.tier_count())
+	_rebuild_effective_definitions()
+
+
+## Main applies only a validated RunUpgradeService selection. Keeping this API
+## numeric also lets isolated combat tests prove composition without a menu.
+func set_run_modifiers(damage_multiplier: float, reload_multiplier: float) -> void:
+	_run_damage_multiplier = clampf(damage_multiplier, 0.25, 4.0)
+	_run_reload_multiplier = clampf(reload_multiplier, 0.25, 2.0)
+	_rebuild_effective_definitions()
+
+
+func reset_run_modifiers() -> void:
+	set_run_modifiers(1.0, 1.0)
+
+
+func get_run_modifiers() -> Dictionary:
+	return {"damage": _run_damage_multiplier, "reload": _run_reload_multiplier}
+
+
+func _rebuild_effective_definitions() -> void:
 	_effective_definitions.clear()
 	for base in weapon_definitions:
 		if base == null:
 			_effective_definitions.append(null)
 			continue
 		var id := String(base.weapon_id)
-		var tier := clampi(int(tiers.get(id, 1)), 1, WeaponTier.tier_count())
-		_weapon_tiers[id] = tier
+		var tier := clampi(int(_weapon_tiers.get(id, 1)), 1, WeaponTier.tier_count())
+		var damage_scale := WeaponTier.damage_multiplier(tier) * _run_damage_multiplier
+		var reload_scale := WeaponTier.reload_multiplier(tier) * _run_reload_multiplier
 		var effective := base
-		if tier > 1:
+		if not is_equal_approx(damage_scale, 1.0) or not is_equal_approx(reload_scale, 1.0):
 			effective = base.duplicate(true) as WeaponDefinition
-			var damage_scale := WeaponTier.damage_multiplier(tier)
 			effective.damage = base.damage * damage_scale
 			effective.splash_damage = base.splash_damage * damage_scale
-			effective.reload_seconds = base.reload_seconds * WeaponTier.reload_multiplier(tier)
+			effective.reload_seconds = base.reload_seconds * reload_scale
 		_effective_definitions.append(effective)
 
 

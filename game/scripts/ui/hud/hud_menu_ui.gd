@@ -209,6 +209,13 @@ static func build_results(hud) -> void:
 	hud._touch_buttons.append(hud._results_home_button)
 
 
+static func build_run_upgrades(hud) -> void:
+	hud._run_upgrade_panel = RunUpgradeUi.new()
+	hud._run_upgrade_panel.name = "RunUpgradePanel"
+	hud._run_upgrade_panel.visible = false
+	hud.add_child(hud._run_upgrade_panel)
+
+
 ## Results makes the objective -> earned reward -> next loadout relationship
 ## visible. Purchases still live exclusively in ProgressionService/Main.
 static func update_results(
@@ -343,7 +350,6 @@ static func show_results(
 		return
 	hud._state.results_mode = "results"
 	hud._results_home_button.visible = true
-	hud._clear_touch_state()
 	update_results(
 		hud,
 		wave_reached,
@@ -361,9 +367,16 @@ static func show_results(
 	# The report is a layer like any other: ESC on it RETRYs (the path the pause
 	# card takes after a defeat), and it traps focus while it is up.
 	hud._overlays.push(hud._results_panel, hud._on_pause_pressed)
+	_conceal_play_for_modal(hud)
+	hud._results_retry_button.grab_focus()
+
+
+## Shared whole-screen modal policy. Results and the earned adaptation choice
+## must both disable live combat instead of merely drawing a panel over it.
+static func _conceal_play_for_modal(hud) -> void:
+	hud._clear_touch_state()
 	if is_instance_valid(hud._feedback_panel):
 		hud._feedback_panel.clear_message()
-	hud._results_retry_button.grab_focus()
 	if is_instance_valid(hud._scrim):
 		hud._scrim.visible = true
 	hud._top_bar.visible = false
@@ -393,9 +406,43 @@ static func show_results(
 	hud.queue_redraw()
 
 
+static func show_run_upgrades(
+	hud, definitions: Array[RunUpgradeDefinition], weapon_id: StringName
+) -> void:
+	if not is_instance_valid(hud._run_upgrade_panel):
+		return
+	hud._run_upgrade_panel.show_choices(definitions, weapon_id)
+	# Synthetic touches skip Godot's Button GUI in this project. Register every
+	# dynamic card with the same dispatcher used by Results and Armory.
+	for card in hud._run_upgrade_panel._cards:
+		if not hud._touch_buttons.has(card):
+			hud._touch_buttons.append(card)
+	hud._overlays.push(hud._run_upgrade_panel, hud._on_run_upgrade_back)
+	_conceal_play_for_modal(hud)
+	hud._run_upgrade_panel.focus_first()
+	hud._run_upgrade_panel.layout_for(hud)
+
+
+static func hide_run_upgrades(hud) -> void:
+	if not is_instance_valid(hud._run_upgrade_panel):
+		return
+	hud._overlays.remove(hud._run_upgrade_panel)
+	hud._run_upgrade_panel.visible = false
+	if is_instance_valid(hud._scrim):
+		hud._scrim.visible = hud.get_tree().paused
+	hud._top_bar.visible = true
+	hud._help_label.visible = true
+	hud._apply_input_mode()
+	hud._layout_controls()
+	hud._refresh_skill_button()
+	hud._apply_context_visibility()
+
+
 ## The primary secure opens a choice inside the existing Results surface. No
 ## banking happens until Extract; Continue keeps the current field and run.
-static func show_extraction_choice(hud, wallet_bp: int, arc_unlocked: bool) -> void:
+static func show_extraction_choice(
+	hud, wallet_bp: int, arc_unlocked: bool, adaptation_summary: String = ""
+) -> void:
 	var unlocked: Dictionary = {"arc_shooter": true} if arc_unlocked else {}
 	show_results(hud, 0, "00:00", 0, 0, 0, wallet_bp, 0, unlocked, false)
 	hud._state.results_mode = "extraction"
@@ -403,6 +450,9 @@ static func show_extraction_choice(hud, wallet_bp: int, arc_unlocked: bool) -> v
 	AegisText.apply(hud._results_title, "recovery.complete_title")
 	AegisText.apply(hud._results_reward_label, "recovery.primary_reward")
 	AegisText.apply(hud._results_summary, "recovery.choice_summary")
+	if not adaptation_summary.is_empty():
+		hud._results_summary.set_meta("i18n_skip", true)
+		hud._results_summary.text += "\n" + adaptation_summary
 	AegisText.apply(hud._results_hint_label, "recovery.choice_hint")
 	AegisText.apply(hud._results_retry_button, "recovery.extract")
 	AegisText.apply(hud._results_explore_button, "recovery.continue_endless")
@@ -466,6 +516,11 @@ static func apply_pause_stats(hud) -> void:
 				"hud.score_time",
 				[hud._format_number(hud._state.score), hud._state.run_time],
 			)
+		)
+	if not hud._state.run_upgrade_name.is_empty():
+		hud._pause_stats_label.set_meta("i18n_skip", true)
+		hud._pause_stats_label.text += (
+			"\n" + AegisText.t("upgrade.pause_line", [hud._state.run_upgrade_name])
 		)
 
 

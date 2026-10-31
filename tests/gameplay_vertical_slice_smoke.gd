@@ -3,8 +3,9 @@ extends SceneTree
 ## Representative content-to-outcome path: the existing hero fires two real
 ## Pulse Rifle projectiles at one wave-spawned Runner. The Runner must remain
 ## hittable after the first non-lethal hit, then produce one KO reward, one wave
-## reward, and one transition into the next wave. No upgrade is injected: the
-## milestone-choice system does not exist in this checkout.
+## reward, and one transition into the next wave. No upgrade is injected: this
+## test isolates the wave/combat contract; Recovery and run_upgrades smoke tests
+## exercise the earned temporary-adaptation path separately.
 
 const MainScene = preload("res://scenes/main.tscn")
 const PulseRifleDefinition = preload("res://resources/weapons/pulse_rifle.tres")

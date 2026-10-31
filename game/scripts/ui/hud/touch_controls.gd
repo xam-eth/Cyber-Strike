@@ -19,6 +19,7 @@ signal pause_requested
 signal retry_requested
 signal defense_start_requested
 signal recovery_action_requested
+signal run_upgrade_selected(upgrade_id: StringName)
 signal extract_requested
 signal continue_endless_requested
 signal return_to_explore_requested
@@ -192,6 +193,7 @@ var _aim_caption: Label
 var _skill_caption: Label
 var _touch_ammo_chip: AegisAmmoChip
 var _results_panel: AegisPanel
+var _run_upgrade_panel: RunUpgradeUi
 
 var _touch_buttons: Array[Button] = []
 var _compact_wave_text: String = ""
@@ -385,6 +387,12 @@ func set_run_summary(score: int, bp: int, kos: int, time_text: String, shots: in
 	_state.run_time = time_text
 	_state.shots = shots
 	_refresh_score_chip()
+
+
+func _set_run_upgrade(display_name: String, effect: String) -> void:
+	_state.run_upgrade_name = display_name
+	_state.run_upgrade_effect = effect
+	HudMenuUi.apply_pause_stats(self)
 
 
 func _refresh_score_chip() -> void:
@@ -686,8 +694,25 @@ func show_results(
 	)
 
 
-func show_extraction_choice(wallet_bp: int, arc_unlocked: bool) -> void:
-	HudMenuUi.show_extraction_choice(self, wallet_bp, arc_unlocked)
+func show_extraction_choice(
+	wallet_bp: int, arc_unlocked: bool, adaptation_summary: String = ""
+) -> void:
+	HudMenuUi.show_extraction_choice(self, wallet_bp, arc_unlocked, adaptation_summary)
+
+
+func _show_run_upgrade_choice(
+	definitions: Array[RunUpgradeDefinition], weapon_id: StringName
+) -> void:
+	HudMenuUi.show_run_upgrades(self, definitions, weapon_id)
+
+
+func _reject_run_upgrade_choice() -> void:
+	if is_instance_valid(_run_upgrade_panel):
+		_run_upgrade_panel.unlock_choices()
+
+
+func _hide_run_upgrade_choice() -> void:
+	HudMenuUi.hide_run_upgrades(self)
 
 
 func hide_results() -> void:
@@ -858,6 +883,8 @@ func _build_overlays() -> void:
 
 	HudMenuUi.build_pause(self)
 	HudMenuUi.build_results(self)
+	HudMenuUi.build_run_upgrades(self)
+	_run_upgrade_panel.upgrade_selected.connect(run_upgrade_selected.emit)
 	_settings_menu = AegisSettingsMenu.new()
 	_settings_menu.name = "SettingsMenu"
 	_settings_menu.visible = false
@@ -908,6 +935,9 @@ func _on_locale_changed(_code: String) -> void:
 	HudArmoryBridge.refresh_entry_label(self)
 	if is_instance_valid(_armory_panel):
 		_armory_panel.refresh_language()
+	if is_instance_valid(_run_upgrade_panel) and _run_upgrade_panel.visible:
+		_run_upgrade_panel.refresh_language()
+	HudMenuUi.apply_pause_stats(self)
 	if is_instance_valid(_settings_menu) and _settings_menu.visible:
 		# `open()` re-builds the active tab, which is where the labels live.
 		_settings_menu.open()
@@ -1087,6 +1117,8 @@ func _layout_overlays() -> void:
 		_feedback_panel.layout_for(self)
 	if is_instance_valid(_armory_panel):
 		_armory_panel.layout_for(self)
+	if is_instance_valid(_run_upgrade_panel):
+		_run_upgrade_panel.layout_for(self)
 	if is_instance_valid(_settings_menu):
 		var width := minf(_to_layout(700.0), size.x * 0.94)
 		var height := minf(_to_layout(520.0), size.y * 0.90)
@@ -1393,6 +1425,13 @@ func _on_defense_pressed() -> void:
 		return
 	Sfx.play_ui(&"ui_click")
 	defense_start_requested.emit()
+
+
+func _on_run_upgrade_back() -> void:
+	# The offer is already earned and has no cancel/reroll path. Escape retains
+	# focus inside the modal instead of skipping the choice or resuming combat.
+	if is_instance_valid(_run_upgrade_panel) and _run_upgrade_panel.visible:
+		_run_upgrade_panel.focus_first()
 
 
 ## HOME is answered by main.gd, which owns the scene: the HUD only knows that the

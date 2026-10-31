@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/worlds/mission_world.tscn" id="2_world"]
@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="5_hud"]
 [ext_resource type="Script" path="res://scripts/waves/wave_director.gd" id="6_wave_director"]
 [ext_resource type="Script" path="res://scripts/progression/run_stats.gd" id="7_run_stats"]
+[ext_resource type="Script" path="res://scripts/progression/run_upgrade_service.gd" id="14_run_upgrades"]
 [ext_resource type="Script" path="res://scripts/progression/reward_service.gd" id="8_reward_service"]
 [ext_resource type="Script" path="res://scripts/progression/progression_service.gd" id="10_progression"]
 [ext_resource type="Resource" path="res://resources/enemies/runner.tres" id="12_runner_definition"]
@@ -64,6 +65,9 @@ enemy_definitions = Array[EnemyDefinition]([ExtResource("12_runner_definition"),
 
 [node name="RunStats" type="Node" parent="."]
 script = ExtResource("7_run_stats")
+
+[node name="RunUpgrades" type="Node" parent="."]
+script = ExtResource("14_run_upgrades")
 
 [node name="RewardService" type="Node" parent="."]
 script = ExtResource("8_reward_service")

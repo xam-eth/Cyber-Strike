@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="RunUpgradeDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/run_upgrade_definition.gd" id="1_definition"]
+
+[resource]
+script = ExtResource("1_definition")
+upgrade_id = &"quick_cycle"
+display_name_key = "upgrade.quick_cycle.name"
+effect_key = "upgrade.quick_cycle.effect"
+damage_multiplier = 1.0
+reload_multiplier = 0.8
+compatible_weapons = Array[StringName](["pulse_rifle", "nova_launcher", "arc_shooter"])

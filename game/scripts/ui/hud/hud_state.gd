@@ -49,3 +49,7 @@ var weapon_display_name: String = ""
 ## Persistent rank of that equipped weapon; presentation only, never an upgrade
 ## authority. ProgressionService/WeaponController own the value and its effects.
 var weapon_tier: int = 1
+## Temporary adaptation presentation, supplied only after Main applies a valid
+## RunUpgradeService selection. Empty means no adaptation; never a save field.
+var run_upgrade_name: String = ""
+var run_upgrade_effect: String = ""
