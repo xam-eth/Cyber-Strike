@@ -4,6 +4,35 @@ This document records the latest relevant evidence and its limits. It is not a d
 
 For intended behavior, read [`GAMEPLAY_DESIGN.md`](GAMEPLAY_DESIGN.md). For required gates, read [`DEVELOPMENT.md`](DEVELOPMENT.md).
 
+## Track 2 — Endless Survival, Iron Warden Guardian, and EMP counterplay checkpoint — 2026-10-31
+
+| Item | Current checkpoint |
+|---|---|
+| Runtime, UI/UX, and smoke-test source | `485803c` (Track 2 implementation over `7530ee9` / `23daf25`) |
+| Godot/Web CI | [41193760549](https://github.com/xam-eth/Cyber-Strike/actions/runs/41193760549) — **SUCCESS** (`Static checks`, `Headless smoke tests 39/39`, `Web preview build` including all 8 browser QA contracts) |
+| Committed Web payload | `07af9a5` |
+| `web/index.pck` | 95,449,368 bytes (`999` files, `15` Guardian/`iron_warden` entries); SHA-256 `b9c4ca70263bf39ce68f312a38ad5246759052f80ddcdfdd5470e945e82193b1` |
+| `web/index.wasm` | 39,514,754 bytes; SHA-256 `fc74679e3b97f76878947fcd4fbe1268cbfa6188182a2e33bbc3f5dc9bfa57d0` |
+| Runtime Guardian & Endless QA evidence | [`../qa-evidence/endless-guardian/guardian-qa-summary.json`](../qa-evidence/endless-guardian/guardian-qa-summary.json) (5 multi-viewport WebAssembly captures) |
+
+### What this checkpoint verifies
+
+- **VERIFIED (Godot 4.7.2 headless engine suite — `39/39` PASS):**
+  - CI run [41193760549](https://github.com/xam-eth/Cyber-Strike/actions/runs/41193760549) executed all 39 smoke tests on Godot `4.7.2.stable.official.ed1daf0bf` with `0` failures and `0` script errors, including `tests/endless_guardian_smoke.gd` verifying:
+    1. **Rigged `Iron Warden` Guardian (`GuardianEnemy`):** Loads `enemy_iron_warden_boss.glb` (`fitted_height = 2.350m`, `fallback=no`), mitigates frontal damage to `0.45×` while fortified, amplifies exposed core damage to `1.5×`, projects a ground salvo hazard ring during `WINDUP`/`FIRING`, enters a natural `EXPOSED` recovery punish window after firing, and immediately shatters its shield when hit by the player's `EMP Pulse` (`disrupt_shield()`).
+    2. **Meaningful Endless Survival escalation (`WaveDirector`):** Scales wave composition (`Runner` + `Shooter` + `Guardian` every 3rd wave at Waves `3, 6, 9, …`), escalates HP smoothly (`scale_max_health` up to `2.2×`), grants `+15 BP` milestone bonuses at Waves `3, 5, 8, 10, …`, and enforces an anti-farming cap of `8` KOs per wave that charge `RunUpgradeManager`.
+    3. **Full vertical slice (`Recovery → Continue to Endless → Guardian KO → Exact-Once Finish Run`):** Verifies `Mission Complete` → `Continue to Endless`, multi-resolution `GuardianCard` layout bounds (`1280×720`, `844×390`, `667×375`) with zero overlap against `VitalsPanel`, `WavePanel`, `TopBar`, or touch controls, `+35 BP` + `+2` `RunUpgradeManager` KO charges on Guardian elimination, `GUARDIANS DEFEATED` + `ENDLESS MILESTONE BONUS` lines in `Mission Results`, exact-once `bank_run` idempotence on repeated `_finish_run()`, and clean temporary state reset on `_return_to_explore()`.
+- **VERIFIED (exported WebAssembly runtime & multi-viewport visual QA on payload `07af9a5`):**
+  - CI Web preview job ([41193760549](https://github.com/xam-eth/Cyber-Strike/actions/runs/41193760549)) passed all 8 browser suites including `Browser TECH HUNT E2E closure contract`.
+  - Direct Chromium WebAssembly runtime captures (`/?ui=hub&qa_guardian=1`) verified `Encounter: Guardian deployed (wave 1)` and `EnemyVisual[IronWarden_Wave1_02]: model=EnemyModel fitted_height=2.350m fallback=no` with **0 script/page errors**:
+    - Desktop `1280×720` (EN): fortified hexagonal shield (`IRON WARDEN · SHIELDED · EMP · 135 / 135`) ([`desktop-1280x720-warden-fortified.png`](../qa-evidence/endless-guardian/desktop-1280x720-warden-fortified.png)), post-salvo recovery punish state (`EXPOSED 1.5X!`) with glowing red-orange core ([`desktop-1280x720-warden-exposed.png`](../qa-evidence/endless-guardian/desktop-1280x720-warden-exposed.png)), and close-range `EMP PULSE · 2 TARGETS` core damage (`108 / 135`) ([`desktop-1280x720-warden-emp-shatter.png`](../qa-evidence/endless-guardian/desktop-1280x720-warden-emp-shatter.png)).
+    - Mobile landscape `844×390` (Bahasa Indonesia): localized `GELOMBANG 01`, `IRON WARDEN · PERISAI · EMP`, `MOD SESI 0 / 2`, `WARDEN MUNCUL!`, and touch controls (`ARSENAL`, `BIDIK`, `EMP`, `TEMBAK`) without overlap ([`mobile-844x390-id-warden-fortified.png`](../qa-evidence/endless-guardian/mobile-844x390-id-warden-fortified.png)).
+    - Compact mobile landscape `667×375` (EN): ground salvo telegraph ring, projectile hazard, and left-stacked `SALVO LOCK · DODGE` card leaving center reticle and right-hand touch cluster clear ([`mobile-667x375-en-warden-salvo-lock.png`](../qa-evidence/endless-guardian/mobile-667x375-en-warden-salvo-lock.png)).
+- **VERIFIED (local static gates):** `./scripts/dev_check.sh` passed with **0 failed steps and 2 expected local skips**: 97/97 GDScript files parsed/linted/formatted, `0 FAIL` in `project_doctor.py`, `19/19` canonical documents, `104` Python tooling unit tests, `39` smoke tests outside `res://`, `337/337` EN/ID localization keys, and synchronized `docs/ARCHITECTURE.md` (`19` modules, `96` files, `26,403` lines).
+- **QUEUED / UNVERIFIED (roadmap boundaries):**
+  - **Queued later tracks:** Track 3 (`Multi-Theatre & Tech Modules`) and Track 4 (`Kestrel`).
+  - **UNVERIFIED on physical Android hardware & human playtest:** native APK device testing remains paused; human balance/feel playtesting across deep Endless waves remains separate from automated headless/Chromium verification.
+
 ## Track 1 — TECH HUNT end-to-end expedition, lost-player guidance, and progression checkpoint — 2026-10-30
 
 | Item | Current checkpoint |

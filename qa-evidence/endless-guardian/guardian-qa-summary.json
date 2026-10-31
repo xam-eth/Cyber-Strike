@@ -1,0 +1,26 @@
+[
+  {
+    "name": "desktop_en",
+    "viewport": "1280x720",
+    "guardianLog": "Encounter: Guardian deployed (wave 1)",
+    "visualLine": "EnemyVisual[IronWarden_Wave1_02]: model=EnemyModel fitted_height=2.350m fallback=no",
+    "scriptErrs": [],
+    "pageErrors": []
+  },
+  {
+    "name": "mobile_id_844x390",
+    "viewport": "844x390",
+    "guardianLog": "Encounter: Guardian deployed (wave 1)",
+    "visualLine": "EnemyVisual[IronWarden_Wave1_02]: model=EnemyModel fitted_height=2.350m fallback=no",
+    "scriptErrs": [],
+    "pageErrors": []
+  },
+  {
+    "name": "mobile_en_667x375",
+    "viewport": "667x375",
+    "guardianLog": "Encounter: Guardian deployed (wave 1)",
+    "visualLine": "EnemyVisual[IronWarden_Wave1_02]: model=EnemyModel fitted_height=2.350m fallback=no",
+    "scriptErrs": [],
+    "pageErrors": []
+  }
+]
