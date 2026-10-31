@@ -5,6 +5,9 @@ extends Node3D
 ## once clips for the new skeleton are authored; until then the scene
 ## validates the rig at rest (deformation proof lives in the Blender
 ## battery, screenshots/rig/audit67_*).
+## UI is deliberately minimal (owner feedback 2026-10-31): the long check
+## log is collapsed behind a one-line PASS/FAIL summary, and pressing H
+## hides the entire UI for an unobstructed view of the hero.
 
 const AutoRigCheck = preload("res://scripts/validation/auto_rig_check.gd")
 
@@ -13,6 +16,10 @@ var player: AnimationPlayer
 var camera: Camera3D
 var status_label: Label
 var checks_label: Label
+var summary_label: Label
+var checks_toggle: Button
+var checks_scroll: ScrollContainer
+var ui_root: VBoxContainer
 var scrub: HSlider
 var scrubbing := false
 var legacy_anim := ""
@@ -36,6 +43,12 @@ func _ready() -> void:
 	legacy_anim = _resolve_anim("Weapon_Raise_To_Aim")
 	_build_ui()
 	_run_checks()
+	_apply_camera("Front")
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo:
+		if (event as InputEventKey).keycode == KEY_H and ui_root != null:
+			ui_root.visible = not ui_root.visible
 	if _tree_enabled():
 		scrub.max_value = float(hero.call("get_current_animation_length"))
 	elif legacy_anim != "" and player != null:
@@ -62,7 +75,7 @@ func _process(_delta: float) -> void:
 			player.get_animation(legacy_anim).length, player.speed_scale,
 			"PLAYING" if player.is_playing() else "PAUSED"]
 	else:
-		status_label.text = "NEW_HERO_01 rig at rest - animation clips not authored yet. Inspect with camera presets; deformation battery lives in Blender (audit67)."
+		status_label.text = "Rest pose (clips pending). Camera presets below; H hides UI."
 
 func _resolve_anim(anim_name: String) -> String:
 	if player == null:
@@ -81,21 +94,56 @@ func _tree_enabled() -> bool:
 func _run_checks() -> void:
 	var lines: Array = AutoRigCheck.run_checks(hero)
 	var text := "AUTO RIG CHECK - NEW_HERO_01 re-rig (2026-10-31)\n"
+	var pass_count := 0
+	var fail_count := 0
 	for l in lines:
-		text += String(l) + "\n"
+		var s := String(l)
+		text += s + "\n"
 		print("[RigCheck] ", l)
+		if s.begins_with("PASS"):
+			pass_count += 1
+		elif s.begins_with("FAIL"):
+			fail_count += 1
 	checks_label.text = text
+	if summary_label != null:
+		if fail_count == 0:
+			summary_label.text = "AUTO RIG CHECK: ALL PASS (%d checks)  -  details hidden; H hides the whole UI" % pass_count
+			summary_label.add_theme_color_override("font_color", Color(0.45, 1.0, 0.55))
+		else:
+			summary_label.text = "AUTO RIG CHECK: %d FAIL / %d PASS  -  press 'Show checks'" % [fail_count, pass_count]
+			summary_label.add_theme_color_override("font_color", Color(1.0, 0.45, 0.4))
+			_set_checks_visible(true)
+
+func _set_checks_visible(v: bool) -> void:
+	if checks_scroll != null:
+		checks_scroll.visible = v
+	if checks_toggle != null:
+		checks_toggle.text = "Hide checks" if v else "Show checks"
+
+func _on_toggle_checks() -> void:
+	if checks_scroll != null:
+		_set_checks_visible(not checks_scroll.visible)
 
 func _build_ui() -> void:
 	var layer := $UI as CanvasLayer
 	var root := VBoxContainer.new()
 	root.position = Vector2(12, 10)
 	layer.add_child(root)
+	ui_root = root
 	var title := Label.new()
-	title.text = "HERO_01 - Rig Validation (NEW_HERO_01 re-rig)"
+	title.text = "HERO_01 - Rig Validation (NEW_HERO_01 re-rig)   [H = hide/show UI]"
 	root.add_child(title)
 	status_label = Label.new()
 	root.add_child(status_label)
+	var summary_row := HBoxContainer.new()
+	root.add_child(summary_row)
+	summary_label = Label.new()
+	summary_label.text = "AUTO RIG CHECK: running..."
+	summary_row.add_child(summary_label)
+	checks_toggle = Button.new()
+	checks_toggle.text = "Show checks"
+	checks_toggle.pressed.connect(_on_toggle_checks)
+	summary_row.add_child(checks_toggle)
 
 	var chain_row := HBoxContainer.new()
 	root.add_child(chain_row)
@@ -149,11 +197,21 @@ func _build_ui() -> void:
 		b.pressed.connect(_apply_camera.bind(preset_name))
 		cam_row.add_child(b)
 
-	var scroll := ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(980, 330)
-	root.add_child(scroll)
+	checks_scroll = ScrollContainer.new()
+	checks_scroll.custom_minimum_size = Vector2(980, 330)
+	checks_scroll.visible = false
+	var bg := StyleBoxFlat.new()
+	bg.bg_color = Color(0, 0, 0, 0.55)
+	bg.content_margin_left = 8
+	bg.content_margin_top = 6
+	bg.content_margin_right = 8
+	bg.content_margin_bottom = 6
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", bg)
 	checks_label = Label.new()
-	scroll.add_child(checks_label)
+	panel.add_child(checks_label)
+	checks_scroll.add_child(panel)
+	root.add_child(checks_scroll)
 
 func _add_button(parent: Control, text: String, fn: Callable) -> void:
 	var b := Button.new()
