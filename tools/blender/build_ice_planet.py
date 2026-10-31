@@ -58,7 +58,43 @@ def build_ice_maps():
     Image.fromarray(orm, "RGB").save(paths[2], optimize=True)
 
 
+def build_citadel_metal_maps():
+    """Turn the authored weathered-panel albedo into a Citadel PBR material set.
+
+    The source albedo is deliberately separate from the generic kit metal: it
+    contains panel breaks, frost, abrasion and fasteners at a building-readable
+    scale. Normal and ORM are derived locally so this remains an actual PBR
+    material, not a colour-only swap.
+    """
+    source = os.path.join(ROOT, "assets", "world", "aetherfall", "source_textures", "citadel_weathered_metal_base.png")
+    paths = [os.path.join(MAPS, "aether_citadel_metal" + suffix + ".png") for suffix in ("", "_normal", "_orm")]
+    if not os.path.isfile(source):
+        raise RuntimeError("Missing Citadel source texture: " + source)
+    if all(os.path.isfile(path) for path in paths):
+        return
+    albedo = Image.open(source).convert("RGB").resize((1024, 1024), Image.Resampling.LANCZOS)
+    values = np.asarray(albedo, dtype=np.float32) / 255.0
+    # Frost and bright chipped edges become relief, while dark seams recess.
+    height = np.clip(values[:, :, 0] * .24 + values[:, :, 1] * .58 + values[:, :, 2] * .18, 0.0, 1.0)
+    height = np.clip((height - .24) * 1.45, 0.0, 1.0)
+    dx = np.gradient(height, axis=1)
+    dy = np.gradient(height, axis=0)
+    normal = np.dstack((-dx * 18.0, -dy * 18.0, np.ones_like(height)))
+    normal /= np.linalg.norm(normal, axis=2, keepdims=True)
+    normal = np.uint8(np.clip((normal * .5 + .5) * 255.0, 0, 255))
+    # Steel stays metallic, but frost/rubbed panels are visibly rougher; AO
+    # darkens the recessed panel seams instead of using a flat ORM constant.
+    brightness = values.mean(axis=2)
+    roughness = np.clip(.28 + brightness * .48 + (1.0 - height) * .12, 0.20, .88)
+    occlusion = np.uint8(np.clip(155 + height * 92, 0, 255))
+    orm = np.dstack((np.full_like(occlusion, 224), np.uint8(roughness * 255), occlusion))
+    albedo.save(paths[0], optimize=True)
+    Image.fromarray(normal, "RGB").save(paths[1], optimize=True)
+    Image.fromarray(orm, "RGB").save(paths[2], optimize=True)
+
+
 build_ice_maps()
+build_citadel_metal_maps()
 images = {}
 
 
@@ -107,8 +143,10 @@ def pbr(name, color, metal, rough, surface, emission=None):
 
 ICE = pbr("GlacialIce", (0.42, 0.68, 0.92), 0.02, 0.30, "aether_ice")
 ICE_DARK = pbr("BlueIceShadow", (0.11, 0.28, 0.52), 0.05, 0.40, "aether_ice")
-STEEL = pbr("ArchiveSteel", (0.10, 0.19, 0.26), 0.76, 0.43, "aether_metal")
-DARK = pbr("ArchiveDark", (0.03, 0.055, 0.080), 0.68, 0.31, "aether_metal")
+# Dedicated 1k Citadel exterior material: weathered structural panels, frost,
+# micro-scratches and fasteners, with locally derived normal/ORM maps.
+STEEL = pbr("ArchiveSteel", (0.10, 0.19, 0.26), 0.76, 0.43, "aether_citadel_metal")
+DARK = pbr("ArchiveDark", (0.03, 0.055, 0.080), 0.68, 0.31, "aether_citadel_metal")
 CYAN = pbr("ArchiveDiagnostic", (0.035, 0.48, 0.88), 0.26, 0.20, "aether_metal", (0.03, 0.70, 1.0))
 HAZARD = pbr("ArchiveHazard", (0.88, 0.30, 0.025), 0.18, 0.48, "aether_hazard")
 

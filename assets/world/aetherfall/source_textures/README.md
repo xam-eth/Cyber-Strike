@@ -1,9 +1,10 @@
 # Source texture provenance
 
-The three PNG files in this directory were generated during this Arena session as flat material-albedo inputs:
+The four PNG files in this directory were generated during Arena sessions as flat material-albedo inputs:
 
 - `ai_weathered_steel.png`
 - `ai_poured_concrete.png`
 - `ai_sedimentary_rock.png`
+- `citadel_weathered_metal_base.png`
 
-They are source inputs, not direct screenshots or third-party scans. `tools/blender/build_aetherfall.py` resizes and blends them with deterministic procedural patterns; it then generates normal and packed ORM maps, packs all referenced image inputs into `source/aetherfall_kit.blend`, and embeds the exported textures in every affected GLB. Do not call them seamless scans or externally licensed texture photographs.
+They are source inputs, not direct screenshots or third-party scans. The first three are resized/blended by `tools/blender/build_aetherfall.py`; the Citadel panel albedo is processed by `tools/blender/build_ice_planet.py` into `aether_citadel_metal` albedo + tangent-space normal + packed metallic/roughness/AO maps. The builders pack referenced image inputs into their editable `.blend` source and embed them in affected GLBs. Do not call them seamless scans or externally licensed texture photographs.

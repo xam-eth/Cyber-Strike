@@ -176,7 +176,10 @@ archive_receiver_extent, archive_receiver = node_extent(archive_payload, 'Archiv
 # scale: arrival apron, tiered dock frames, command spine and service bridge
 # are authored architecture, not loose detail props around a compact shell.
 archive_nodes = {node.get('name') for node in archive_payload.get('nodes', [])}
+archive_images = {image.get('name') for image in archive_payload.get('images', [])}
 assert len(archive_payload['meshes']) >= 150 and archive_gate_extent[1] >= 17.0
+assert {'aether_citadel_metal', 'aether_citadel_metal_normal',
+        'aether_citadel_metal_orm'} <= archive_images
 assert {'CitadelArrivalApron', 'CitadelDockFrame_-1', 'CitadelDockFrame_1',
         'ArchiveCommandSpine', 'ArchiveCommandHaloEnergy',
         'CitadelTransverseServiceBridge', 'CitadelDishRing_-1',

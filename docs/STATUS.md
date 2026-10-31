@@ -2,7 +2,7 @@
 
 ## Ringkasan
 
-Aetherfall sekarang adalah proyek Godot mandiri yang hanya berisi satu world review. Kit memiliki 27 modul GLB dan 251 placement dalam meter, dengan tiga ramp sambungan reusable. Geometri dan ekspor dibuat ulang melalui Blender `bpy`; source `.blend` disimpan di `source/`. Material kini memadukan detail prosedural dengan tiga albedo sumber AI-generated yang provenance-nya didokumentasikan. Phase 1 menambahkan exterior ice planet; Phase 2 menambahkan delapan setpiece cover/traversal yang sengaja sedikit dan purpose-defined; Phase 3 menempatkan satu vestibule Archive dan satu sumber Data Core yang persisted secara lokal; Connected Expanse menutup tiga endpoint jauh menjadi satu loop perimeter dengan lowland fisik di bawahnya.
+Aetherfall sekarang adalah proyek Godot mandiri yang hanya berisi satu world review. Kit memiliki 27 modul GLB dan 251 placement dalam meter, dengan tiga ramp sambungan reusable. Geometri dan ekspor dibuat ulang melalui Blender `bpy`; source `.blend` disimpan di `source/`. Material kini memadukan detail prosedural dengan empat albedo sumber AI-generated yang provenance-nya didokumentasikan. Phase 1 menambahkan exterior ice planet; Phase 2 menambahkan delapan setpiece cover/traversal yang sengaja sedikit dan purpose-defined; Phase 3 menempatkan satu vestibule Archive dan satu sumber Data Core yang persisted secara lokal; Connected Expanse menutup tiga endpoint jauh menjadi satu loop perimeter dengan lowland fisik di bawahnya.
 
 ## VERIFIED
 
@@ -27,10 +27,11 @@ Aetherfall sekarang adalah proyek Godot mandiri yang hanya berisi satu world rev
 - **Production UV-density pass — Citadel dan tujuan (2026-10-31):** Empat aset ice-planet, dua aset Archive, dan dua prop interaktif diekspor ulang. Sentinel Citadel, glacier shelf, frozen spire, cryo pylon, serta vestibule sekarang memakai repeat UV otomatis menurut skala material; Tech Cache mempertahankan repeat terarah dan silinder objective diberi mapping yang sama. Parser mengunci UV besar pada enam surface dominan (UV max 2,89–8,67). Tidak ada state, animasi, objective, interior route, atau collider config yang sengaja diubah; Godot visual/runtime masih belum diverifikasi.
 - **Connector material scale (2026-10-31):** `connector_ramp` mempertahankan detail I-beam/rib/bolt dan collision/placement yang ada, tetapi deck, chord, dan stripe kini memiliki enam repeat UV sebelum instance ramp diregangkan oleh layout Godot. Kontrak GLB membaca UV maksimum 5,25; ini mencegah satu peta PBR membesar sepanjang seluruh sambungan. `energy_orbit` tetap material emissive tanpa tekstur PBR dan tidak diubah.
 
-## LIKELY
+## USER VISUAL REVIEW — BLOCKING
 
-- `docs/previews/blender_design_preview.png` dan crop `docs/previews/blender_pbr_detail.png` adalah preview Cycles yang sudah diperiksa: tower tetap menjadi landmark pusat; deck, canyon, bridge, dan catwalk terbaca sebagai ruang berlapis. Baja, beton dan batu kini membawa albedo ber-detail, normal serta metallic-roughness yang terlihat pada preview Cycles; material batu tidak lagi memiliki pola RGB banding ekstrem. Ini mendukung penilaian komposisi, bukan validasi renderer Godot.
-- Tombol kamera review 1–0 ditambah **I** dan **O** menyediakan framing overview, landmark, Archive exterior/interior, skyline, Scrapper Basin, lower canyon, serta keseluruhan loop Expanse untuk inspeksi manual ketika project dibuka dalam editor Godot dengan renderer grafis.
+- Pengguna menilai world yang diimpor masih **sangat primitif/geometrik** dan sangat jauh dari referensi visual kota sci-fi bertingkat yang diberikan. Penilaian ini adalah hasil visual yang lebih relevan daripada count mesh, UV, PBR-map, atau preview Blender statis.
+- Karena itu, seluruh kontrak geometri/material di atas hanya membuktikan data build; **tidak satu pun adalah bukti bahwa visual telah diterima, realistis, atau mendekati reference**. Klaim inferensial sebelumnya tentang peningkatan keterbacaan artistik ditarik.
+- Tombol kamera review 1–0 ditambah **I** dan **O** tetap tersedia untuk inspeksi manual tanpa character default ketika project dibuka dengan renderer grafis.
 
 ## UNKNOWN / UNVERIFIED
 
