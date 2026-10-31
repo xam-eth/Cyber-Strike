@@ -58,7 +58,10 @@ for S, sx in (("L", 1.0), ("R", -1.0)):
         (f"Foot_{S}",     f"LowerLeg_{S}", (sx * 0.134, 0.012, 0.105), (sx * 0.150, -0.055, 0.040), True),
         (f"Toe_{S}",      f"Foot_{S}",     (sx * 0.150, -0.055, 0.040), (sx * 0.152, -0.105, 0.030), True),
     ]
-BONES.append(("Weapon_R", "Hand_R", (-0.377, -0.067, 0.542), (-0.385, -0.117, 0.522), False))
+# Weapon_R: deform=True with an always-empty vertex group so the glTF skin
+# contains it as a joint - Godot attaches the weapon via find_bone("Weapon_R")
+# (matches the old shipped GLB's 24-joint skin; verified at 4577c60).
+BONES.append(("Weapon_R", "Hand_R", (-0.377, -0.067, 0.542), (-0.385, -0.117, 0.522), True))
 BDICT = {b[0]: b for b in BONES}
 DEFORM = [b[0] for b in BONES if b[4]]
 
