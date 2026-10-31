@@ -14,6 +14,7 @@ func _initialize() -> void:
 
 func _run() -> void:
 	await _check_service()
+	await _check_card_layout()
 	await _check_weapon_effects()
 	paused = false
 	if _failures == 0:
@@ -79,6 +80,34 @@ func _check_service() -> void:
 	)
 	_expect(service.offer(), "a new deployment can earn one new offer")
 	service.queue_free()
+	await process_frame
+
+
+func _check_card_layout() -> void:
+	var definition := RunUpgradeDefinition.load_all_definitions()[0]
+	var card := RunUpgradeCard.new()
+	root.add_child(card)
+	card.configure(definition, &"pulse_rifle")
+	card.size = Vector2(320.0, 150.0)
+	await process_frame
+	await process_frame
+	var content := card.get_node("Content") as VBoxContainer
+	var card_rect := card.get_global_rect()
+	var content_rect := content.get_global_rect()
+	_expect(
+		is_equal_approx(content_rect.size.x, 296.0),
+		"card content follows the real button width instead of its longest word",
+	)
+	_expect(
+		(
+			content_rect.position.x >= card_rect.position.x
+			and content_rect.position.y >= card_rect.position.y
+			and content_rect.end.x <= card_rect.end.x + 1.0
+			and content_rect.end.y <= card_rect.end.y + 1.0
+		),
+		"card labels stay inside the measured touch target",
+	)
+	card.queue_free()
 	await process_frame
 
 

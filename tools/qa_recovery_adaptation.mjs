@@ -25,7 +25,7 @@ const args = process.argv.slice(2);
 const value = (name, fallback) => args.find((arg) => arg.startsWith(`${name}=`))?.slice(name.length + 1) || fallback;
 const LANG = value('--lang', 'en') === 'id' ? 'id' : 'en';
 const VISUAL_ONLY = args.includes('--visual-only');
-const URL = value('--url', 'http://127.0.0.1:800/');
+const BASE_URL = value('--url', 'http://127.0.0.1:800/');
 const OUT = path.resolve(ROOT, value('--out', `exports/qa-recovery-adaptation-${LANG}`));
 const LIB_DIR = path.join(ROOT, 'tools', '.cache', 'al2023-lib', 'lib');
 if (!fs.existsSync(path.join(LIB_DIR, 'libnss3.so'))) {
@@ -173,28 +173,37 @@ const dragLook = async (dx, dy) => {
   });
   await delay(65);
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
-  await delay(260);
 };
 const alignTarget = async (id) => {
   for (let iteration = 0; iteration < 45; iteration += 1) {
+    if (has('Encounter: Results after wave 0')) throw new Error('Operator died during guard alignment');
     const target = latestTarget(id);
     const canvas = await canvasMetrics();
     if (!canvas) throw new Error('Canvas disappeared during aim');
-    if (!target) {
-      await delay(300);
+    if (target && !target.behind) {
+      const errorX = target.x - canvas.bufferWidth / 2;
+      const errorY = target.y - canvas.bufferHeight / 2;
+      if (Math.abs(errorX) <= 12 && Math.abs(errorY) <= 24) {
+        console.log(`AIM ${id} ${target.line}`);
+        return target;
+      }
+      const telemetryMark = lines.length;
+      const secondary = id.endsWith('_02');
+      const horizontalGain = secondary ? 0.45 : 1.0;
+      const verticalGain = secondary ? 0.3 : 0.6;
+      await dragLook(
+        clamp(errorX * horizontalGain, -240, 240),
+        clamp(errorY * verticalGain, -60, 60),
+      );
+      // SwiftShader can take many real seconds for one rendered frame. Never
+      // reuse the pre-drag projection while that frame is still pending.
+      await until(() => texts().slice(telemetryMark).some((line) => line.includes(`Recovery Target QA: id=${id} `)), 60000);
       continue;
     }
-    if (target.behind) {
-      await dragLook(70, 0);
-      continue;
-    }
-    const errorX = target.x - canvas.bufferWidth / 2;
-    const errorY = target.y - canvas.bufferHeight / 2;
-    if (Math.abs(errorX) <= 12 && Math.abs(errorY) <= 24) {
-      console.log(`AIM ${id} ${target.line}`);
-      return target;
-    }
-    await dragLook(clamp(errorX, -55, 55), clamp(errorY * 0.3, -30, 30));
+    const telemetryMark = lines.length;
+    const behindDirection = target && target.x >= canvas.bufferWidth / 2 ? -240 : 240;
+    await dragLook(behindDirection, 0);
+    await until(() => texts().slice(telemetryMark).some((line) => line.includes(`Recovery Target QA: id=${id} `)), 60000);
   }
   throw new Error(`Could not align ${id}\n${lastLogs()}`);
 };
@@ -219,7 +228,7 @@ const eliminateGuard = async (id) => {
 };
 
 try {
-  const url = new URL(URL);
+  const url = new URL(BASE_URL);
   url.searchParams.set('qa_recovery', '1');
   url.searchParams.set('qa_touch', '1');
   url.searchParams.set('qa_camera', '1');
@@ -266,6 +275,10 @@ try {
   check('Both guards attach real GLB visuals', models.size === 2, [...models].join(', '));
   await shot(`04-guarded-${LANG}`);
 
+  // Use the operative's real, ready EMP once. It cannot kill either full-health
+  // guard, but it keeps this software-rendered aim run from becoming a test of
+  // how long the driver can stand still inside two attack ranges.
+  await page.keyboard.press('KeyF');
   const metrics = await canvasMetrics();
   await page.mouse.move(metrics.x + metrics.width / 2, metrics.y + metrics.height / 2);
   await page.mouse.down({ button: 'right' });
@@ -273,6 +286,11 @@ try {
     const match = line.match(/Camera QA: aim=true blend=([\d.]+)/);
     return match && Number(match[1]) >= 0.95;
   }), 30000));
+  // CDP mouse events do not carry movementX/Y under pointer lock, and a
+  // subsequent mouse press can deliver the pre-lock cursor warp. Exercise the
+  // supported held-ADS/no-lock route used by the existing browser ADS gate.
+  await page.evaluate(() => document.exitPointerLock?.());
+  await page.waitForFunction(() => document.pointerLockElement === null, { timeout: 10000 }).catch(() => {});
   await eliminateGuard('Guard_verdant_seed_vault_01');
   await eliminateGuard('Guard_verdant_seed_vault_02');
   await waitFor('Run upgrade: primary guards cleared', 20000);
@@ -383,12 +401,13 @@ try {
     ok: completed && errors.length === 0,
     lang: LANG,
     visualOnly: VISUAL_ONLY,
-    url: URL,
+    url: BASE_URL,
     checks,
     layouts,
     frames,
     errors,
     failure,
+    telemetry: texts().filter((line) => /Recovery Target QA:|Camera QA:|Recovery QA:|RunUpgrade QA:|Touch QA:/.test(line)).slice(-2000),
     transitions: texts().filter((line) => /Encounter:|Recovery:|Run upgrade:|Progression:/.test(line)),
   };
   fs.writeFileSync(path.join(OUT, 'report.json'), `${JSON.stringify(report, null, 2)}\n`);

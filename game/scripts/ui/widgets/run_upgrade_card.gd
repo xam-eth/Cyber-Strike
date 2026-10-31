@@ -27,8 +27,16 @@ func _ready() -> void:
 	var column := VBoxContainer.new()
 	column.name = "Content"
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	column.add_theme_constant_override("separation", 6)
+	column.add_theme_constant_override("separation", 4)
 	add_child(column)
+	# A Button is not a Container: without explicit anchors this VBox keeps its
+	# minimum width (the longest word) while the touch target expands around it.
+	# Fill the card independently of its minimum size, with a readable inset.
+	column.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	column.offset_left = 12.0
+	column.offset_top = 12.0
+	column.offset_right = -12.0
+	column.offset_bottom = -12.0
 
 	_name_label = _label("heading_s", AegisTokens.INK)
 	_name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

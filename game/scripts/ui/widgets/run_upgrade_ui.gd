@@ -13,6 +13,7 @@ var _cards: Array[RunUpgradeCard] = []
 var _definitions: Array[RunUpgradeDefinition] = []
 var _weapon_id: StringName = &"pulse_rifle"
 var _selection_locked: bool = false
+var _layout_report_pending: bool = false
 
 
 func _ready() -> void:
@@ -108,7 +109,23 @@ func layout_for(hud) -> void:
 			hud._to_layout(12.0)
 		)
 	)
-	_report_layout(hud)
+	_queue_layout_report(hud)
+
+
+func _queue_layout_report(hud) -> void:
+	if _layout_report_pending:
+		return
+	_layout_report_pending = true
+	_report_settled_layout.call_deferred(hud)
+
+
+func _report_settled_layout(hud) -> void:
+	# PanelContainer/HBox/VBox sorting is deferred. Reporting synchronously from
+	# layout_for captures the previous (sometimes enormous) intermediate size.
+	await get_tree().process_frame
+	_layout_report_pending = false
+	if is_inside_tree():
+		_report_layout(hud)
 
 
 func _on_card_chosen(upgrade_id: StringName) -> void:
