@@ -204,8 +204,9 @@ func _test_endless_schedule_and_hud() -> void:
 		"HUD GuardianCard appears automatically while a Guardian is alive",
 	)
 	# Verify non-overlap across desktop and mobile landscape viewports.
-	for vp in [Vector2(1280, 720), Vector2(844, 390), Vector2(667, 375)]:
-		var stretch := vp.y / 720.0
+	var viewports: Array[Vector2] = [Vector2(1280, 720), Vector2(844, 390), Vector2(667, 375)]
+	for vp in viewports:
+		var stretch: float = vp.y / 720.0
 		hud.size = Vector2(vp.x / stretch, vp.y / stretch)
 		hud.apply_layout_for_size(vp, stretch)
 		await process_frame
