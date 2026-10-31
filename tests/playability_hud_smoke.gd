@@ -272,13 +272,15 @@ func _run_smoke_test() -> void:
 			and feedback_label.is_visible_in_tree()
 			and feedback_label.get_global_rect().size.x > 0.0
 			and feedback_label.get_global_rect().size.y > 0.0
+			and feedback_label.get_visible_line_count() > 0
 		),
 		(
-			"Explore feedback has visible, laid-out text: panel=%s label=%s visible=%s text=%s"
+			"Explore feedback has visible, laid-out text: panel=%s label=%s visible=%s lines=%d text=%s"
 			% [
 				feedback_panel.get_global_rect(),
 				feedback_label.get_global_rect(),
 				feedback_label.is_visible_in_tree(),
+				feedback_label.get_visible_line_count(),
 				feedback_label.text,
 			]
 		),

@@ -26,7 +26,10 @@ func _ready() -> void:
 	# widening the panel over the thumb keys it must never cover.
 	_message_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_message_label.max_lines_visible = 2
-	_message_label.clip_text = true
+	# Autowrap and the two-line limit already bound the copy. An additional
+	# clip_text pass is redundant and can suppress wrapped feedback in the Web
+	# compatibility renderer while the containing plate remains visible.
+	_message_label.clip_text = false
 	add_child(_message_label)
 	visible = false
 

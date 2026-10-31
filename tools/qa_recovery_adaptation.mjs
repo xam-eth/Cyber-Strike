@@ -335,7 +335,13 @@ try {
   const selection = texts().reverse().find((line) => line.includes('Run upgrade: selected quick_cycle'));
   check('Real phone tap applies Quick Cycle reload scaling', /reload=1\.08/.test(selection || ''), selection || 'missing');
   check('Card selection restores earned Secure', await until(() => latestRecovery()?.action === 'secure', 15000));
+  // Inspect the actual feedback copy and its later disappearance. A visible
+  // empty plate is not evidence that the installed effect was communicated.
   await shot(`07-secure-phone-${LANG}`);
+  await delay(500);
+  await shot(`07b-secure-feedback-phone-${LANG}`);
+  await delay(700);
+  await shot(`07c-secure-feedback-expired-phone-${LANG}`);
 
   const startPoint = await rectPoint(latestRects('Touch QA:').START);
   check('Secure has a measured phone control', startPoint !== null);
