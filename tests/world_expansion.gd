@@ -45,6 +45,13 @@ func run_test() -> void:
 		if field == null or field.get_node_or_null("Collision/Surface") == null:
 			fail("catch terrain lowland hilang: " + field_name)
 			return
+		if not is_equal_approx(field.position.y, -18.5):
+			fail("elevasi catch terrain tidak sesuai: " + field_name)
+			return
+	var recovery := loop.get_node_or_null("lower_canyon_to_icefield") as Node3D
+	if recovery == null or recovery.position.distance_to(Vector3(0.0, -12.375, 58.0)) > 0.01:
+		fail("recovery slope panjang tidak dirakit pada posisi yang diharapkan")
+		return
 	print("PASS World Expansion: 9 lowland, 14 shelf, 18 route, 41 collision; loop endpoint terhubung")
 	world.queue_free()
 	quit(0)

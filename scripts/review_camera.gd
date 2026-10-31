@@ -10,8 +10,11 @@ var view_label: Label
 
 const VIEWS := {
 	KEY_1: {
-		"position": Vector3(0, 24, 55),
-		"target": Vector3(0, 7, -10),
+		# Keep the default overview focused above the lowered catch terrain.
+		# This prevents a near-horizontal opening frame from reading the distant
+		# lowland edge as a solid ice wall across the middle of the world.
+		"position": Vector3(0, 28, 62),
+		"target": Vector3(0, 10, -12),
 		"label": "01 — overview / skyline",
 	},
 	KEY_2: {
@@ -91,6 +94,15 @@ func _ready() -> void:
 	view_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
 	view_label.add_theme_constant_override("outline_size", 4)
 	overlay.add_child(view_label)
+	# The scene node transform is only an editor fallback. Always apply the same
+	# authored overview used by key 1 at startup so the opening frame is stable.
+	apply_review_view(VIEWS[KEY_1])
+
+func apply_review_view(view: Dictionary) -> void:
+	position = view["position"]
+	look_at(view["target"], Vector3.UP)
+	if view_label != null:
+		view_label.text = str(view["label"])
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
@@ -101,9 +113,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		rotation.x = clampf(rotation.x - event.relative.y * 0.002, -1.55, 1.55)
 	elif event is InputEventKey and event.pressed and not event.echo and VIEWS.has(event.keycode):
 		var view: Dictionary = VIEWS[event.keycode]
-		position = view["position"]
-		look_at(view["target"], Vector3.UP)
-		view_label.text = str(view["label"])
+		apply_review_view(view)
 	elif event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
 		looking = false
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE

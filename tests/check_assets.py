@@ -1,6 +1,7 @@
 """Static contract checks; no claim of rendering or gameplay validation."""
 import json
 import struct
+from math import hypot
 from pathlib import Path
 
 root = Path(__file__).resolve().parents[1]
@@ -233,6 +234,32 @@ assert coverage['lowland_x_range'] == [-120.0, 120.0]
 assert coverage['lowland_z_range'] == [-108.0, 108.0]
 assert coverage['outer_loop_x_range'] == [-102.0, 104.0]
 assert coverage['outer_loop_z_range'] == [-90.0, 80.0]
+# The catch terrain sits materially below the legacy basin. This preserves its
+# physical role while keeping the default overview from reading one far field
+# edge as an ice wall through the middle of the original world.
+lowland_y = coverage['lowland_surface_y']
+assert lowland_y == -18.5
+assert all(field['position'][1] == lowland_y for field in lowlands)
+recovery = recovery_routes[0]
+assert recovery['to'][1] == lowland_y
+recovery_run = hypot(recovery['to'][0] - recovery['from'][0], recovery['to'][2] - recovery['from'][2])
+recovery_grade = abs(recovery['to'][1] - recovery['from'][1]) / recovery_run
+assert recovery_run == 44.0
+assert recovery_grade <= coverage['recovery_max_grade']
+assert any(
+    abs(recovery['to'][0] - field['position'][0]) <= 40.0
+    and abs(recovery['to'][2] - field['position'][2]) <= 36.0
+    for field in lowlands
+)
+# The review scene used to display an "overview" label while retaining a
+# different near-horizontal scene transform. Keep the start frame bound to the
+# explicit key-1 overview contract instead.
+review_camera_source = (root / 'scripts/review_camera.gd').read_text()
+review_scene_source = (root / 'scenes/aetherfall.tscn').read_text()
+assert 'apply_review_view(VIEWS[KEY_1])' in review_camera_source
+assert '"position": Vector3(0, 28, 62)' in review_camera_source
+assert '"target": Vector3(0, 10, -12)' in review_camera_source
+assert 'position = Vector3(0, 28, 62)' in review_scene_source
 assert (root / 'source/aetherfall_connected_expanse.blend').is_file()
 assert (root / 'tools/blender/build_connected_expanse.py').is_file()
 assert (root / 'tests/world_expansion.gd').is_file()
