@@ -262,11 +262,26 @@ func _run_smoke_test() -> void:
 		"Explore feedback does not hide the SWAP/ammo dock or EMP",
 	)
 	feedback_panel.call("show_message", "EMP PULSE · NO TARGETS")
+	await process_frame
+	await process_frame
+	var feedback_label := controls.get("_feedback_panel").get("_message_label") as Label
 	_expect(
-		(controls.get("_feedback_panel").get("_message_label") as Label).text.contains(
-			"NO TARGETS"
+		(
+			feedback_label.text.contains("NO TARGETS")
+			and feedback_panel.visible
+			and feedback_label.is_visible_in_tree()
+			and feedback_label.get_global_rect().size.x > 0.0
+			and feedback_label.get_global_rect().size.y > 0.0
 		),
-		"Explore feedback stays legible in the lane between real buttons",
+		(
+			"Explore feedback has visible, laid-out text: panel=%s label=%s visible=%s text=%s"
+			% [
+				feedback_panel.get_global_rect(),
+				feedback_label.get_global_rect(),
+				feedback_label.is_visible_in_tree(),
+				feedback_label.text,
+			]
+		),
 	)
 	feedback_panel.call("clear_message")
 	_expect(
