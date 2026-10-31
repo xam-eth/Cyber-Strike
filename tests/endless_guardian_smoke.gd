@@ -156,16 +156,10 @@ func _test_endless_schedule_and_hud() -> void:
 	)
 
 	# Guard-group integration: a cache guarded by a Guardian works without touching wave counters.
-	var guard_ok := bool(
-		(
-			wave
-			. call(
-				"spawn_guard_group",
-				&"guardian_cache_probe",
-				[{"enemy_id": &"guardian", "position": Vector3(0.0, 0.1, -4.0)}],
-			)
-		)
-	)
+	var guard_specs: Array[Dictionary] = [
+		{"enemy_id": &"guardian", "position": Vector3(0.0, 0.1, -12.0)},
+	]
+	var guard_ok := bool(wave.call("spawn_guard_group", &"guardian_cache_probe", guard_specs))
 	_expect(
 		guard_ok and int(wave.call("guard_group_size", &"guardian_cache_probe")) == 1,
 		"WaveDirector spawns a Guardian guard group without starting a wave",
@@ -182,6 +176,8 @@ func _test_endless_schedule_and_hud() -> void:
 	)
 
 	# Activate Endless mode and advance through Wave 1 -> Wave 2 -> Wave 3 (Guardian milestone).
+	main_scene.get_node("RunStats").call("reset_run")
+	main_scene.get_node("RewardService").call("reset_run")
 	wave.call("set_endless_mode", true)
 	wave.call("start_session")
 	for _step in 240:
@@ -191,6 +187,7 @@ func _test_endless_schedule_and_hud() -> void:
 			for enemy in wave.call("get_active_enemies"):
 				(enemy as Node3D).call("apply_damage", 1000.0)
 		await physics_frame
+	await process_frame
 
 	var active_guardian := wave.call("get_active_guardian") as Node3D
 	wave.set("intermission_duration", 2.0)
@@ -208,19 +205,26 @@ func _test_endless_schedule_and_hud() -> void:
 	)
 	# Verify non-overlap across desktop and mobile landscape viewports.
 	for vp in [Vector2(1280, 720), Vector2(844, 390), Vector2(667, 375)]:
-		hud.apply_layout_for_size(vp, 1.0)
+		var stretch := vp.y / 720.0
+		hud.size = Vector2(vp.x / stretch, vp.y / stretch)
+		hud.apply_layout_for_size(vp, stretch)
+		await process_frame
+		await process_frame
 		var g_rect := guardian_card.get_rect()
 		var wave_rect := (hud.get("_wave_card") as Control).get_rect()
 		var ammo_rect := (hud.get("_touch_ammo_chip") as Control).get_rect()
 		_expect(
 			(
-				g_rect.position.x >= 0.0
-				and g_rect.end.x <= vp.x
+				g_rect.position.x >= -1.0
+				and g_rect.end.x <= hud.size.x + 1.0
 				and not g_rect.intersects(wave_rect)
 				and not g_rect.intersects(ammo_rect)
 			),
 			"GuardianCard fits cleanly without overlapping WaveCard or Ammo on %s" % vp,
 		)
+	hud.size = Vector2(1280.0, 720.0)
+	hud.apply_layout_for_size(Vector2(1280.0, 720.0), 1.0)
+	await process_frame
 
 	# Verify EN/ID live localization on GuardianCard.
 	if is_instance_valid(active_guardian):

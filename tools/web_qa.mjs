@@ -1275,19 +1275,27 @@ async function checkPage(target, viewport) {
       await releaseAds();
 
       // 2. Navigate back inside Seed Vault's 5m interaction radius if combat moved us out.
+      // Measure progress and sidestep distance in real Godot simulation ticks
+      // (`Recovery Cache QA:` emissions) rather than wall-clock milliseconds so 2 FPS
+      // SwiftShader and 60 FPS desktop move identical world-space distances!
       if (e2e.guardsCleared) {
         const approachDeadline = Date.now() + 120000;
         let approachStrides = 0;
         let approachBypasses = 0;
-        let bestDist = Infinity;
-        let stalledStrides = 0;
         let lastCacheDist = null;
         const parseHudDist = () => {
           const m = latestRecovery()?.line?.match(/(\d+)\s*m\b/i);
           const n = m ? Number(m[1]) : NaN;
           return Number.isFinite(n) ? n : null;
         };
-        const waitFreshCacheProj = async (maxMs = 950) => {
+        const countCacheEmissionsSince = (idx) => {
+          let n = 0;
+          for (let i = idx; i < consoleLines.length; i += 1) {
+            if (consoleLines[i].includes('Recovery Cache QA: id=verdant_seed_vault')) n += 1;
+          }
+          return n;
+        };
+        const waitNextCacheTick = async (maxMs = 2500) => {
           const startIdx = consoleLines.length;
           const deadline = Date.now() + maxMs;
           while (Date.now() < deadline) {
@@ -1298,104 +1306,263 @@ async function checkPage(target, viewport) {
           }
           return parseProjection('Recovery Cache QA: id=verdant_seed_vault', Math.max(0, startIdx - 6));
         };
-        const sprintTowardVault = async (durationMs, strafeKey = null) => {
+        // Sidestep to an exact ~3.2m lateral offset measured optically from Seed Vault's
+        // live screen projection (`lateralMeters = dist * ((cx - x) / focalPx)`), then
+        // sprint straight parallel without turning back into the center collider so the
+        // lane passes at 3.2m (< 5.0m interaction_radius) on both 2 FPS CI and 60 FPS!
+        const bypassViaParallelValley = async () => {
+          const alignProj = await waitNextCacheTick(1500);
+          if (alignProj && !alignProj.behind) {
+            const alignErr = alignProj.x - alignProj.vpW * 0.5;
+            if (Math.abs(alignErr) > 28) {
+              await steerAim(Math.max(-420, Math.min(420, alignErr * 0.8)), 0);
+            }
+          }
+          const plan = [
+            { key: 'KeyD', inward: 'KeyA', targetMeters: 3.25 },
+            { key: 'KeyD', inward: 'KeyA', targetMeters: 3.75 },
+            { key: 'KeyA', inward: 'KeyD', targetMeters: 3.25 },
+            { key: 'KeyD', inward: 'KeyA', targetMeters: 2.65 },
+          ][approachBypasses % 4];
+          approachBypasses += 1;
           await releaseAds();
+          // Back out 2 engine ticks (~2.2m) first so Sable exits the V-shaped pocket
+          // between adjacent hexagonal DeckPlates at dist~9.5m before sidestepping!
           await page.keyboard.down('ShiftLeft');
-          await page.keyboard.down('KeyW');
-          if (strafeKey) await page.keyboard.down(strafeKey);
-          const endAt = Date.now() + durationMs;
+          await page.keyboard.down('KeyS');
           try {
-            while (Date.now() < endAt) {
+            await waitNextCacheTick(2200);
+            await waitNextCacheTick(2200);
+          } finally {
+            await page.keyboard.up('KeyS').catch(() => {});
+            await page.keyboard.up('ShiftLeft').catch(() => {});
+          }
+          if (latestRecovery()?.action === 'secure') {
+            e2e.secureOffered = true;
+            return;
+          }
+          await page.keyboard.down('ShiftLeft');
+          await page.keyboard.down(plan.key);
+          try {
+            const sideDeadline = Date.now() + 12000;
+            while (Date.now() < sideDeadline && Date.now() < approachDeadline) {
               if (latestRecovery()?.action === 'secure') {
                 e2e.secureOffered = true;
-                break;
+                return;
               }
-              await new Promise((r) => setTimeout(r, 120));
+              const live = await waitNextCacheTick(1600);
+              if (latestRecovery()?.action === 'secure') {
+                e2e.secureOffered = true;
+                return;
+              }
+              if (live && live.dist !== null && !live.behind) {
+                const focalPx = live.vpW * 0.453;
+                const lateral = Math.abs(live.dist * ((live.vpW * 0.5 - live.x) / focalPx));
+                if (lateral >= plan.targetMeters) break;
+              }
             }
           } finally {
-            if (strafeKey) await page.keyboard.up(strafeKey).catch(() => {});
+            await page.keyboard.up(plan.key).catch(() => {});
+            await page.keyboard.up('ShiftLeft').catch(() => {});
+          }
+          if (e2e.secureOffered || latestRecovery()?.action === 'secure') {
+            e2e.secureOffered = true;
+            return;
+          }
+          // Sprint straight parallel up the 3.25m lane until Secure activates or forward
+          // distance stops shrinking for 3 engine ticks.
+          let laneBest = Infinity;
+          let laneStall = 0;
+          await page.keyboard.down('ShiftLeft');
+          await page.keyboard.down('KeyW');
+          try {
+            const fwdDeadline = Date.now() + 24000;
+            while (Date.now() < fwdDeadline && Date.now() < approachDeadline) {
+              if (latestRecovery()?.action === 'secure') {
+                e2e.secureOffered = true;
+                return;
+              }
+              const live = await waitNextCacheTick(1800);
+              if (latestRecovery()?.action === 'secure') {
+                e2e.secureOffered = true;
+                return;
+              }
+              if (live && live.dist !== null) {
+                lastCacheDist = live.dist;
+                if (live.dist < laneBest - 0.15) {
+                  laneBest = live.dist;
+                  laneStall = 0;
+                } else {
+                  laneStall += 1;
+                  if (laneStall >= 3) break;
+                }
+              }
+            }
+          } finally {
             await page.keyboard.up('KeyW').catch(() => {});
             await page.keyboard.up('ShiftLeft').catch(() => {});
           }
+          if (e2e.secureOffered || latestRecovery()?.action === 'secure') {
+            e2e.secureOffered = true;
+            return;
+          }
+          // If the parallel lane brought us right onto the 5.2m arch ring against one
+          // narrow rib, face Seed Vault and slip diagonally (`KeyD+KeyW`, then `KeyA+KeyW`)
+          // 0.5m through the open rib gap into the <=5.0m Secure trigger!
+          // Once on the raised shrine deck against the outer arch leg (~5.2m at
+          // `[+-3.2, +7.0]`), execute a clean L-hook in engine ticks: step back 1 tick
+          // (`KeyS`) off the arch leg, pure lateral strafe (`plan.inward` WITHOUT `KeyW`)
+          // into the `x ~ +-1.2m` central archway, then `KeyW` straight to Seed Vault!
+          if (lastCacheDist !== null && lastCacheDist <= 6.8) {
+            await releaseAds();
+            // Step A: 1 engine tick back off the arch leg collider.
+            await page.keyboard.down('ShiftLeft');
+            await page.keyboard.down('KeyS');
+            try {
+              await waitNextCacheTick(2200);
+            } finally {
+              await page.keyboard.up('KeyS').catch(() => {});
+              await page.keyboard.up('ShiftLeft').catch(() => {});
+            }
+            if (latestRecovery()?.action === 'secure') {
+              e2e.secureOffered = true;
+              return;
+            }
+            // Step B: pure inward strafe (`KeyA` from east, `KeyD` from west) until
+            // lateral offset shrinks to <= 1.35m (directly aligned with the open arch).
+            await page.keyboard.down('ShiftLeft');
+            await page.keyboard.down(plan.inward);
+            try {
+              const hookDeadline = Date.now() + 14000;
+              let hookTicks = 0;
+              while (Date.now() < hookDeadline && Date.now() < approachDeadline) {
+                if (latestRecovery()?.action === 'secure') {
+                  e2e.secureOffered = true;
+                  return;
+                }
+                const live = await waitNextCacheTick(2000);
+                if (latestRecovery()?.action === 'secure') {
+                  e2e.secureOffered = true;
+                  return;
+                }
+                hookTicks += 1;
+                if (live && live.dist !== null && !live.behind) {
+                  lastCacheDist = live.dist;
+                  const focalPx = live.vpW * 0.453;
+                  const lateral = Math.abs(live.dist * ((live.vpW * 0.5 - live.x) / focalPx));
+                  if (lateral <= 1.35 || hookTicks >= 4) break;
+                } else if (hookTicks >= 3) {
+                  break;
+                }
+              }
+            } finally {
+              await page.keyboard.up(plan.inward).catch(() => {});
+              await page.keyboard.up('ShiftLeft').catch(() => {});
+            }
+            if (latestRecovery()?.action === 'secure') {
+              e2e.secureOffered = true;
+              return;
+            }
+            // Step C: straight forward (`KeyW`) through the wide-open arch doorway!
+            await page.keyboard.down('ShiftLeft');
+            await page.keyboard.down('KeyW');
+            try {
+              const enterDeadline = Date.now() + 16000;
+              let enterTicks = 0;
+              while (Date.now() < enterDeadline && Date.now() < approachDeadline) {
+                if (latestRecovery()?.action === 'secure') {
+                  e2e.secureOffered = true;
+                  return;
+                }
+                const live = await waitNextCacheTick(2000);
+                if (latestRecovery()?.action === 'secure') {
+                  e2e.secureOffered = true;
+                  return;
+                }
+                if (live && live.dist !== null) lastCacheDist = live.dist;
+                enterTicks += 1;
+                if (enterTicks >= 5) break;
+              }
+            } finally {
+              await page.keyboard.up('KeyW').catch(() => {});
+              await page.keyboard.up('ShiftLeft').catch(() => {});
+            }
+          }
         };
-        // Same parallel-lane bypass used by initial landing approach: once facing
-        // Seed Vault, sidestep ~3.2m perpendicular WITHOUT turning back into the
-        // center collider, then sprint straight parallel into the 5m radius!
-        const bypassObstacleParallel = async () => {
-          const sideKey = approachBypasses % 2 === 0 ? 'KeyD' : 'KeyA';
-          const sideMs = approachBypasses >= 2 ? 3400 : 2500;
-          approachBypasses += 1;
-          stalledStrides = 0;
-          await releaseAds();
-          await page.keyboard.down('ShiftLeft');
-          await page.keyboard.down(sideKey);
-          await new Promise((r) => setTimeout(r, sideMs));
-          await page.keyboard.up(sideKey);
-          await page.keyboard.up('ShiftLeft');
-          await sprintTowardVault(5200, null);
-        };
+
         while (Date.now() < approachDeadline) {
           if (latestRecovery()?.action === 'secure') {
             e2e.secureOffered = true;
             break;
           }
-          const cacheProj = await waitFreshCacheProj(950);
+          const proj = await waitNextCacheTick(1800);
           if (latestRecovery()?.action === 'secure') {
             e2e.secureOffered = true;
             break;
           }
-          if (!cacheProj) {
-            const beforeHudDist = parseHudDist();
-            if (beforeHudDist !== null && beforeHudDist < bestDist) bestDist = beforeHudDist;
-            await sprintTowardVault(2400, null);
-            approachStrides += 1;
-            if (e2e.secureOffered || latestRecovery()?.action === 'secure') {
-              e2e.secureOffered = true;
-              break;
-            }
-            const afterHudDist = parseHudDist();
-            if (afterHudDist !== null) {
-              lastCacheDist = afterHudDist;
-              if (afterHudDist < bestDist - 0.6) {
-                bestDist = afterHudDist;
-                stalledStrides = 0;
-              } else {
-                stalledStrides += 1;
-              }
-            }
-          } else if (cacheProj.behind) {
+          if (proj?.behind) {
             await steerAim(680, 0);
             continue;
-          } else {
-            const errX = cacheProj.x - cacheProj.vpW * 0.5;
-            const aimTol = (cacheProj.dist ?? 20) <= 11.0 ? 55 : 95;
+          }
+          if (proj) {
+            const errX = proj.x - proj.vpW * 0.5;
+            const aimTol = (proj.dist ?? 20) <= 10.5 ? 50 : 90;
             if (Math.abs(errX) > aimTol) {
               await steerAim(Math.max(-520, Math.min(520, errX * 0.78)), 0);
               continue;
             }
-            const preDist = cacheProj.dist ?? parseHudDist();
-            if (preDist !== null && preDist < bestDist) bestDist = preDist;
-            await sprintTowardVault(2400, null);
-            approachStrides += 1;
-            if (e2e.secureOffered || latestRecovery()?.action === 'secure') {
-              e2e.secureOffered = true;
-              break;
-            }
-            const postProj = await waitFreshCacheProj(850);
-            const postDist = postProj?.dist ?? parseHudDist();
-            if (postDist !== null) {
-              lastCacheDist = postDist;
-              if (postDist < bestDist - 0.6) {
-                bestDist = postDist;
-                stalledStrides = 0;
-              } else {
-                stalledStrides += 1;
+          }
+          // Hold continuous forward sprint across engine ticks until either Secure
+          // activates, aim drifts >135 px off center, or 3 consecutive engine ticks
+          // make <0.15m forward progress (blocked by a dome rib or rock).
+          await releaseAds();
+          approachStrides += 1;
+          let runBest = proj?.dist ?? parseHudDist() ?? Infinity;
+          let stalledTicks = 0;
+          let stalledOnObstacle = false;
+          await page.keyboard.down('ShiftLeft');
+          await page.keyboard.down('KeyW');
+          try {
+            const burstEnd = Date.now() + 45000;
+            while (Date.now() < burstEnd && Date.now() < approachDeadline) {
+              if (latestRecovery()?.action === 'secure') {
+                e2e.secureOffered = true;
+                break;
+              }
+              const live = await waitNextCacheTick(2500);
+              if (latestRecovery()?.action === 'secure') {
+                e2e.secureOffered = true;
+                break;
+              }
+              if (!live) continue;
+              const curDist = live.dist ?? parseHudDist();
+              if (curDist !== null) {
+                lastCacheDist = curDist;
+                if (curDist < runBest - 0.15) {
+                  runBest = curDist;
+                  stalledTicks = 0;
+                } else {
+                  stalledTicks += 1;
+                }
+              }
+              if (live.behind || Math.abs(live.x - live.vpW * 0.5) > 135) {
+                break;
+              }
+              if (stalledTicks >= 3) {
+                stalledOnObstacle = true;
+                break;
               }
             }
+          } finally {
+            await page.keyboard.up('KeyW').catch(() => {});
+            await page.keyboard.up('ShiftLeft').catch(() => {});
           }
-          const nearLane = lastCacheDist !== null && lastCacheDist <= 11.0;
-          if (!e2e.secureOffered && (stalledStrides >= 2 || (nearLane && stalledStrides >= 1))) {
-            await bypassObstacleParallel();
+          if (e2e.secureOffered || latestRecovery()?.action === 'secure') {
+            e2e.secureOffered = true;
+            break;
+          }
+          if (stalledOnObstacle) {
+            await bypassViaParallelValley();
             if (e2e.secureOffered || latestRecovery()?.action === 'secure') {
               e2e.secureOffered = true;
               break;
