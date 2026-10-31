@@ -145,37 +145,55 @@ static func draw_tactical_compass(hud: Control, layer: Control = null) -> void:
 	var safe_l := float(hud.get("_safe_left"))
 	var health_c := hud.get("_health_card") as Control
 	var wave_c := hud.get("_wave_card") as Control
-	var left_bound := safe_l
-	for card in [health_c, wave_c]:
-		if is_instance_valid(card) and card.visible:
-			left_bound = maxf(left_bound, card.position.x + card.size.x)
-	left_bound += 12.0 * scale
-
-	var right_bound := hud.size.x - float(hud.get("_safe_right"))
-	for key in [
-		"_system_row",
-		"_upgrade_status_card",
-		"_upgrade_entry_button",
-		"_armory_entry_button",
-	]:
-		var right_ctrl := hud.get(key) as Control
-		if (
-			is_instance_valid(right_ctrl)
-			and right_ctrl.visible
-			and right_ctrl.position.y < float(hud.get("_top_inset")) + 54.0 * scale
-		):
-			right_bound = minf(right_bound, right_ctrl.position.x)
-	right_bound -= 12.0 * scale
-
-	var avail_w := right_bound - left_bound
-	var min_w := 124.0 * scale
-	if avail_w < min_w:
-		return
-	var target_w := minf(avail_w, 236.0 * scale)
-	var cx := clampf(hud.size.x * 0.5, left_bound + target_w * 0.5, right_bound - target_w * 0.5)
-	var top_y := float(hud.get("_top_inset"))
+	var guardian_c := hud.get("_guardian_card") as Control
+	var sys_row := hud.get("_system_row") as Control
+	var top_in := float(hud.get("_top_inset"))
 	var h := 20.0 * scale
-	var rect := Rect2(cx - target_w * 0.5, top_y, target_w, h)
+	var rect := Rect2()
+
+	var center_below_sys := (
+		hud.size.y >= 460.0
+		and (not is_instance_valid(guardian_c) or not guardian_c.visible)
+		and is_instance_valid(sys_row)
+		and sys_row.visible
+	)
+	if center_below_sys:
+		var target_w := minf(224.0 * scale, hud.size.x * 0.28)
+		var cx := hud.size.x * 0.5
+		var top_y := sys_row.position.y + sys_row.size.y + 14.0 * scale
+		rect = Rect2(cx - target_w * 0.5, top_y, target_w, h)
+	else:
+		var left_bound := safe_l
+		for card in [health_c, wave_c]:
+			if is_instance_valid(card) and card.visible:
+				left_bound = maxf(left_bound, card.position.x + card.size.x)
+		left_bound += 14.0 * scale
+
+		var right_bound := hud.size.x - float(hud.get("_safe_right"))
+		for key in [
+			"_system_row",
+			"_upgrade_status_card",
+			"_upgrade_entry_button",
+			"_armory_entry_button",
+		]:
+			var right_ctrl := hud.get(key) as Control
+			if (
+				is_instance_valid(right_ctrl)
+				and right_ctrl.visible
+				and right_ctrl.position.y < top_in + 54.0 * scale
+			):
+				var pad_r := 28.0 * scale if key == "_system_row" else 14.0 * scale
+				right_bound = minf(right_bound, right_ctrl.position.x - pad_r)
+
+		var avail_w := right_bound - left_bound
+		var min_w := 120.0 * scale
+		if avail_w < min_w:
+			return
+		var target_w := minf(avail_w, 220.0 * scale)
+		var cx := clampf(
+			hud.size.x * 0.5, left_bound + target_w * 0.5, right_bound - target_w * 0.5
+		)
+		rect = Rect2(cx - target_w * 0.5, top_in + 2.0 * scale, target_w, h)
 
 	var enemies: Array = []
 	var src := hud.get("_hostile_source") as Node

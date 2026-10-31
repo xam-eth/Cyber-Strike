@@ -477,7 +477,12 @@ func refresh_profile() -> void:
 	var world_definition := WorldDefinition.load_definition(progression.selected_world_id)
 	if world_definition != null:
 		var is_rec := String(progression.selected_world_id) == "verdant_bloom"
-		_mission_badge.text = world_definition.display_mode_label().to_upper()
+		var compact_h := physical_size().y < 520.0
+		_mission_badge.text = (
+			("RECOVERY" if is_rec else "DEFENSE")
+			if compact_h
+			else world_definition.display_mode_label().to_upper()
+		)
 		_mission_badge.add_theme_color_override(
 			"font_color", AegisTokens.OK if is_rec else AegisTokens.INFO
 		)
@@ -622,6 +627,16 @@ func _apply_density() -> void:
 	for badge in [_hero_badge, _mission_badge, _arsenal_badge]:
 		if is_instance_valid(badge):
 			badge.visible = not narrow
+	if is_instance_valid(_mission_badge) and progression_service() != null:
+		var wid := progression_service().selected_world_id
+		var wdef := WorldDefinition.load_definition(wid)
+		if wdef != null:
+			var is_rec := String(wid) == "verdant_bloom"
+			_mission_badge.text = (
+				("RECOVERY" if is_rec else "DEFENSE")
+				if compact
+				else wdef.display_mode_label().to_upper()
+			)
 	for item in _loadout_items:
 		item.visible = not compact
 		_limit_lines(item, 1)
