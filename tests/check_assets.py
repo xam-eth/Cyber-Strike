@@ -126,6 +126,7 @@ for asset in [
 ]:
     assert glb_tiled_uv_max('assets/world/aetherfall/models/' + asset + '.glb') >= 1.5, asset
 for relative_path, minimum in [
+    ('assets/world/aetherfall/models/connector_ramp.glb', 4.0),
     ('assets/world/aetherfall/ice_planet/glacier_shelf.glb', 4.0),
     ('assets/world/aetherfall/ice_planet/frozen_spire.glb', 4.0),
     ('assets/world/aetherfall/ice_planet/sentinel_archive.glb', 2.0),

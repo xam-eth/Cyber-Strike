@@ -53,22 +53,29 @@ def material(name, color, metal, rough, surface):
 
 steel = material('RampSteel', (0.15, 0.22, 0.27), 0.65, 0.6, 'aether_metal')
 hazard = material('RampHazard', (0.9, 0.5, 0.045), 0.2, 0.6, 'aether_hazard')
-def box(name, dims, location, mat):
+def tile_uv(obj, repeats):
+    layer = obj.data.uv_layers.active
+    if layer:
+        for item in layer.data:
+            item.uv *= repeats
+
+def box(name, dims, location, mat, repeats=1.0):
     bpy.ops.mesh.primitive_cube_add(size=1, location=location)
     obj = bpy.context.object
     obj.name = name
     obj.scale = dims
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+    tile_uv(obj, repeats)
     obj.data.materials.append(mat)
     return obj
 
 # Top surface is y=0, sharing exact endpoints with Godot collision.
-box('RampDeck', (1, 0.2, 1), (0, -0.1, 0), steel)
+box('RampDeck', (1, 0.2, 1), (0, -0.1, 0), steel, 6.0)
 # I-beam-like side chords and underside ribs make the connector read as a
 # manufactured bridge piece even after its length/width are scaled in Godot.
 for z in (-0.45, 0.45):
-    box('RampSideChord' + str(z), (1.0, 0.16, 0.075), (0, -0.23, z), steel)
-    box('SafetyStripe' + str(z), (1, 0.015, 0.035), (0, 0.0075, z), hazard)
+    box('RampSideChord' + str(z), (1.0, 0.16, 0.075), (0, -0.23, z), steel, 6.0)
+    box('SafetyStripe' + str(z), (1, 0.015, 0.035), (0, 0.0075, z), hazard, 6.0)
 for i in range(7):
     x = -0.42 + i * 0.14
     box('RampRib' + str(i), (0.028, 0.16, 0.84), (x, -0.23, 0), steel)
