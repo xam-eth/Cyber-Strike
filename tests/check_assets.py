@@ -63,7 +63,7 @@ assert len(interactives) == 2
 assert {item['kind'] for item in interactives} == {'tech_cache', 'objective_device'}
 assert (root / 'source/aetherfall_interactives.blend').is_file()
 for filename, animation, minimum_meshes in [
-    ('tech_cache.glb', 'TechCache_Open', 22),
+    ('tech_cache.glb', 'TechCache_Open', 60),
     ('objective_device.glb', 'ObjectiveDevice_Activate', 19),
 ]:
     data = (base / 'interactives' / filename).read_bytes()
@@ -78,7 +78,15 @@ for filename, animation, minimum_meshes in [
         pbr = material.get('pbrMetallicRoughness', {})
         assert material.get('normalTexture'), f'normal map missing: {filename}/{material["name"]}'
         assert pbr.get('metallicRoughnessTexture'), f'ORM map missing: {filename}/{material["name"]}'
+cache_data = (base / 'interactives' / 'tech_cache.glb').read_bytes()
+cache_json_length = struct.unpack_from('<I', cache_data, 12)[0]
+cache_payload = json.loads(cache_data[20:20 + cache_json_length])
+cache_nodes = {node.get('name') for node in cache_payload['nodes']}
+for detail_node in ['TechCacheLidPivot', 'CacheDisplay', 'CacheLatch', 'CredentialDataCore', 'CredentialCradle']:
+    assert detail_node in cache_nodes, detail_node
+assert len(cache_payload['materials']) >= 6 and len(cache_payload['textures']) >= 18
 for required in [
+
     'scenes/aetherfall_player.tscn', 'scenes/props/tech_cache.tscn',
     'scenes/props/objective_device.tscn', 'scripts/progression_state.gd',
     'scripts/interaction_target.gd', 'scripts/tech_cache.gd',

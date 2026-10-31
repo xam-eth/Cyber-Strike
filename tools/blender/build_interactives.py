@@ -75,7 +75,9 @@ def pbr(name, color, metallic, roughness, surface, emission=None):
 
 STEEL = pbr("InteractiveSteel", (0.17, 0.25, 0.31), 0.72, 0.49, "aether_metal")
 DARK = pbr("InteractiveDark", (0.055, 0.075, 0.09), 0.72, 0.36, "aether_metal")
+COMPOSITE = pbr("InteractiveComposite", (0.18, 0.31, 0.40), 0.34, 0.43, "aether_composite")
 HAZARD = pbr("InteractiveHazard", (0.92, 0.34, 0.035), 0.18, 0.49, "aether_hazard")
+WARNING = pbr("InteractiveWarning", (0.95, 0.58, 0.06), 0.13, 0.46, "aether_warning")
 ENERGY = pbr("InteractiveEnergy", (0.08, 0.55, 0.82), 0.28, 0.25, "aether_metal", (0.05, 0.72, 1.0))
 
 
@@ -95,14 +97,22 @@ def bevel(obj, amount=0.035, segments=2):
     return obj
 
 
-def box(collection, name, dimensions, location, material, parent=None, chamfer=0.025):
+def tile_uv(obj, repeats):
+    layer = obj.data.uv_layers.active
+    if layer:
+        for item in layer.data:
+            item.uv *= repeats
+
+
+def box(collection, name, dimensions, location, material, parent=None, chamfer=0.025, repeats=1.0):
     bpy.ops.mesh.primitive_cube_add(size=1.0, location=location)
     obj = bpy.context.object
     obj.name = name
     obj.dimensions = dimensions
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
     if chamfer:
-        bevel(obj, chamfer)
+        bevel(obj, chamfer, 3)
+    tile_uv(obj, repeats)
     obj.data.materials.append(material)
     if parent:
         obj.parent = parent
@@ -154,30 +164,71 @@ def export_collection(collection, filename):
 
 
 def build_tech_cache():
+    """Production-detail reference prop for the later kit refinement pass.
+
+    The collision/range remains deliberately simple in Godot. The visual itself
+    moves beyond a blockout: panel breaks, recessed controls, mechanical locks,
+    cable glands, cartridge cradle and a properly layered animated lid make the
+    cache readable as a field-built robot access device at close range.
+    """
     collection = bpy.data.collections.new("TechCache")
     bpy.context.scene.collection.children.link(collection)
     root = empty(collection, "TechCacheRoot")
-    # Footprint: 2.6 m wide, 1.5 m deep, 1.35 m tall. Bottom rests at Y=0.
-    box(collection, "CacheBase", (2.60, 0.22, 1.50), (0, 0.11, 0), DARK, root, 0.045)
-    box(collection, "CacheLowerHull", (2.42, 0.68, 1.34), (0, 0.49, 0), STEEL, root, 0.04)
-    box(collection, "CacheFacePanel", (1.46, 0.42, 0.045), (0, 0.64, -0.695), DARK, root, 0.01)
-    box(collection, "CacheStatusStrip", (1.13, 0.06, 0.055), (0, 0.78, -0.735), ENERGY, root, 0.008)
-    for x in (-1.08, 1.08):
-        box(collection, "CacheCornerRail_" + str(x), (0.10, 0.77, 0.12), (x, 0.59, -0.62), HAZARD, root, 0.018)
-    for x in (-0.86, -0.29, 0.29, 0.86):
-        box(collection, "CacheVent_" + str(x), (0.09, 0.31, 0.055), (x, 0.52, -0.76), DARK, root, 0.005)
-    for x in (-1.08, 1.08):
-        for z in (-0.56, 0.56):
-            cylinder(collection, "CacheFoot_" + str(x) + str(z), 0.105, 0.12, (x, 0.06, z), DARK, root, 12)
-    # Lid pivots from the rear edge and is keyed in Blender as the authored state animation.
-    pivot = empty(collection, "TechCacheLidPivot", (0, 1.13, 0.61), root)
-    lid = box(collection, "TechCacheLid", (2.38, 0.16, 1.28), (0, 0, -0.64), STEEL, pivot, 0.042)
-    box(collection, "LidEnergyRail", (1.62, 0.035, 0.065), (0, 0.105, -0.57), ENERGY, pivot, 0.008)
-    for x in (-0.95, 0.95):
-        rod(collection, "LidHinge_" + str(x), 0.065, 0.40, (x, -0.02, 0.01), (0, math.pi / 2, 0), DARK, pivot)
-    for x in (-0.89, 0.89):
-        for z in (-0.43, 0.35):
-            cylinder(collection, "LidBolt_" + str(x) + str(z), 0.045, 0.055, (x, 0.11, z), HAZARD, pivot, 12)
+    # 2.6m x 1.5m x 1.35m retained so the existing Godot collision proxy and
+    # interaction range stay valid. Every broad surface tiles its PBR map.
+    box(collection, "CacheBaseSkid", (2.60, 0.16, 1.50), (0, 0.08, 0), DARK, root, .055, 2.8)
+    box(collection, "CacheLowerHull", (2.42, 0.42, 1.34), (0, 0.37, 0), STEEL, root, .055, 3.2)
+    box(collection, "CacheUpperHull", (2.30, 0.42, 1.24), (0, 0.78, 0), COMPOSITE, root, .045, 3.0)
+    for x in (-1.12, 1.12):
+        box(collection, "CacheArmoredCorner_" + str(x), (.16, .88, .16), (x, .52, -.54), HAZARD, root, .022, 1.0)
+        box(collection, "CacheRearCorner_" + str(x), (.13, .76, .13), (x, .54, .54), DARK, root, .020, 1.0)
+    # Side seams, service rails and attachment plates break the former single box silhouette.
+    for side in (-1, 1):
+        x = side * 1.225
+        box(collection, "CacheSideRail_" + str(side), (.06, .58, 1.05), (x, .56, 0), DARK, root, .012, 2.5)
+        for z in (-.39, 0.0, .39):
+            box(collection, "CacheSideBrace_" + str(side) + str(z), (.09, .30, .07), (x * 1.02, .69, z), WARNING, root, .010, 1.0)
+        box(collection, "CacheCableGland_" + str(side), (.09, .14, .19), (x * 1.04, .35, .31), COMPOSITE, root, .014, 1.0)
+    # Front is an actual access panel: recessed screen, gasket, data slots, latch and vents.
+    box(collection, "CacheFaceRecess", (1.72, .48, .055), (0, .67, -.696), DARK, root, .014, 2.0)
+    box(collection, "CacheFacePanel", (1.53, .36, .038), (0, .67, -.735), COMPOSITE, root, .010, 1.6)
+    box(collection, "CacheDisplayFrame", (.78, .18, .030), (0, .81, -.762), DARK, root, .006, 1.0)
+    box(collection, "CacheDisplay", (.67, .09, .026), (0, .81, -.782), ENERGY, root, .004, 1.0)
+    box(collection, "CacheStatusStrip", (1.22, .045, .030), (0, .95, -.770), ENERGY, root, .004, 1.0)
+    box(collection, "CacheDataSlot", (.34, .08, .026), (-.53, .62, -.782), DARK, root, .004, 1.0)
+    box(collection, "CacheDataSlotGlow", (.20, .022, .022), (-.53, .62, -.800), ENERGY, root, .002, 1.0)
+    box(collection, "CacheLatchHousing", (.30, .20, .06), (.54, .65, -.770), DARK, root, .012, 1.0)
+    box(collection, "CacheLatch", (.14, .11, .042), (.54, .65, -.812), HAZARD, root, .008, 1.0)
+    for x in (-.82, -.65, -.31, -.14, .14, .31, .70, .87):
+        box(collection, "CacheVent_" + str(x), (.075, .22, .026), (x, .48, -.778), DARK, root, .004, 1.0)
+    # Reinforced feet and underside braces give it a functional placed-on-ground read.
+    for x in (-1.07, 1.07):
+        for z in (-.55, .55):
+            box(collection, "CacheFoot_" + str(x) + str(z), (.22, .15, .20), (x, .075, z), DARK, root, .025, 1.0)
+            box(collection, "CacheFootPad_" + str(x) + str(z), (.15, .035, .13), (x, .008, z), COMPOSITE, root, .008, 1.0)
+    for x in (-.72, .72):
+        box(collection, "CacheUndersideBrace_" + str(x), (.10, .18, 1.06), (x, .18, 0), DARK, root, .012, 2.2)
+    # Lid pivots from the rear edge and retains the named authored animation.
+    pivot = empty(collection, "TechCacheLidPivot", (0, 1.12, .61), root)
+    box(collection, "TechCacheLid", (2.38, .16, 1.28), (0, 0, -.64), STEEL, pivot, .052, 3.3)
+    box(collection, "LidInset", (1.92, .045, .91), (0, .095, -.62), COMPOSITE, pivot, .018, 3.0)
+    box(collection, "LidEnergyRail", (1.68, .028, .068), (0, .126, -.55), ENERGY, pivot, .006, 1.0)
+    for x in (-.78, 0, .78):
+        box(collection, "LidSpine_" + str(x), (.11, .075, 1.02), (x, .12, -.62), DARK, pivot, .012, 2.2)
+    for z in (-.94, -.30, .30):
+        box(collection, "LidCrossRail_" + str(z), (1.93, .062, .08), (0, .125, z), DARK, pivot, .010, 2.4)
+    for x in (-.98, .98):
+        box(collection, "LidHingeBlock_" + str(x), (.22, .18, .12), (x, -.02, .015), DARK, pivot, .025, 1.0)
+        box(collection, "LidHingePin_" + str(x), (.32, .07, .07), (x, -.095, .015), WARNING, pivot, .014, 1.0)
+    for x in (-.92, .92):
+        for z in (-.83, -.16, .48):
+            box(collection, "LidBolt_" + str(x) + str(z), (.09, .035, .09), (x, .13, z), HAZARD, pivot, .012, 1.0)
+    # The removable archive credential cartridge is visible only once the lid opens.
+    box(collection, "CredentialCradle", (1.46, .14, .52), (0, 1.05, .02), DARK, root, .026, 1.7)
+    box(collection, "CredentialDataCore", (.68, .22, .30), (0, 1.19, -.04), COMPOSITE, root, .028, 1.4)
+    box(collection, "CredentialEnergySeal", (.45, .030, .17), (0, 1.315, -.04), ENERGY, root, .006, 1.0)
+    for x in (-.48, .48):
+        box(collection, "CradleClamp_" + str(x), (.10, .25, .34), (x, 1.18, .01), WARNING, root, .012, 1.0)
     pivot.rotation_mode = "XYZ"
     pivot.rotation_euler = (0, 0, 0)
     pivot.keyframe_insert(data_path="rotation_euler", frame=1)
