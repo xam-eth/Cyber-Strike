@@ -7,14 +7,13 @@ extends RefCounted
 ## EXPECT_CLIPS is false, missing clips/tree are INFO, never FAIL.
 
 const EXPECTED_BONES := 24
-const EXPECT_CLIPS := false
+const EXPECT_CLIPS := true
 const CLIP_DURATIONS := {
 	"Idle": 3.0,
 	"Weapon_Raise": 1.2,
 	"Aim_Idle": 3.0,
 	"Fire": 0.4,
 	"Weapon_Lower": 0.8,
-	"Weapon_Raise_To_Aim": 1.5,
 }
 const LOOP_CLIPS := ["Idle", "Aim_Idle"]
 const RIG_BUILD := "NEW_HERO_01 re-rig (2026-10-31)"

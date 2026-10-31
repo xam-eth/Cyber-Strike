@@ -12,8 +12,9 @@ extends Node3D
 ## The new hero's hands are open (no finger bones), so the grip rests
 ## against the flat palm - finger wrap is not claimed.
 ## Status: rig + skinning of NEW_HERO_01 are Blender/GLB-verified (scripts
-## 64-68); animation clips for the new skeleton are NOT authored yet, so the
-## AnimationTree stays unbuilt until the animation phase.
+## 64-68); Phase-1 weapon chain (Idle/Weapon_Raise/Aim_Idle/Fire/
+## Weapon_Lower) authored for the new skeleton (scripts 69-72), so the
+## AnimationTree builds and starts at Idle. Locomotion etc. come later.
 
 const WEAPON_SCENE = preload("res://scenes/weapons/HERO_01_WEAPON.tscn")
 const LEGACY_AIM_ANIMATION := "Weapon_Raise_To_Aim"
