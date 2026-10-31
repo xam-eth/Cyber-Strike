@@ -831,6 +831,7 @@ func _present_run_upgrade(cache: RecoveryCacheDefinition) -> bool:
 	_update_status()
 	_upgrade_return_mode = session_mode
 	session_mode = SessionMode.UPGRADE_SELECTION
+	player.release_combat_input()
 	_is_paused = true
 	get_tree().paused = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE

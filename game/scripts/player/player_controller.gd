@@ -295,18 +295,25 @@ func is_defeated() -> bool:
 	return _is_defeated
 
 
-func reset_player() -> void:
-	_is_defeated = false
+## Modals must clear physical holds before pausing input callbacks. Otherwise a
+## killing shot made with ADS held can resume with a stale mouse/touch hold even
+## after the player has released the real button outside the paused canvas.
+func release_combat_input() -> void:
 	set_aiming(false)
 	_touch_aim_hold = false
 	_mouse_aim_hold = false
 	_ignore_initial_aim_motion = false
+	_touch_fire_pressed = false
+	_touch_movement = Vector2.ZERO
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
+
+func reset_player() -> void:
+	_is_defeated = false
+	release_combat_input()
 	current_health = max_health
 	_skill_cooldown_remaining = 0.0
 	velocity = Vector3.ZERO
-	_touch_movement = Vector2.ZERO
-	_touch_fire_pressed = false
 	weapon_controller.reset_ammo()
 	weapon_controller.reset_run_modifiers()
 	_reload_was_active = false

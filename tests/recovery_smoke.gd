@@ -258,6 +258,9 @@ func _secure_primary(main: Node) -> void:
 		not main.call("_secure_cache", primary),
 		"Secure cannot bypass incomplete guards",
 	)
+	player.set("_mouse_aim_hold", true)
+	player.call("set_touch_aim_held", true)
+	player.call("set_aiming", true)
 	for enemy in wave.call("get_guard_group", PRIMARY):
 		(enemy as Node3D).call("apply_damage", 1000.0)
 	await process_frame
@@ -266,6 +269,14 @@ func _secure_primary(main: Node) -> void:
 		"real guard elimination changes primary to Ready",
 	)
 	_expect(paused, "primary guard clear opens the earned adaptation choice")
+	_expect(
+		(
+			not player.call("is_aiming")
+			and not bool(player.get("_mouse_aim_hold"))
+			and not bool(player.get("_touch_aim_hold"))
+		),
+		"the adaptation modal releases held ADS before pausing input",
+	)
 	var upgrades := main.get_node("RunUpgrades") as RunUpgradeService
 	_expect(
 		upgrades.offer_available and upgrades.offer_consumed,
