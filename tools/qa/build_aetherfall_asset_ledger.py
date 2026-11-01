@@ -43,6 +43,18 @@ BATCHES = {
 STAGES = ("brief", "reference", "base_mesh", "high_poly", "retopology", "uv_unwrap", "bake", "pbr_texturing", "godot_visual", "target_device_profile", "export_release")
 PREFIX = "assets/world/aetherfall/"
 
+# These are deliberately drafts, not approvals. A Gate 01 brief makes the
+# modelling work reviewable; it does not promote a legacy GLB to production art.
+HERO_REFERENCE_DRAFTS = {
+    "ice_planet/sentinel_archive.glb": "docs/world/aetherfall/hero_destination/01_sentinel_archive.md",
+    "archive/archive_vestibule.glb": "docs/world/aetherfall/hero_destination/02_archive_vestibule.md",
+    "archive/archive_computer.glb": "docs/world/aetherfall/hero_destination/03_archive_computer.md",
+    "models/energy_core.glb": "docs/world/aetherfall/hero_destination/04_energy_core.md",
+    "models/tower_foundation.glb": "docs/world/aetherfall/hero_destination/05_tower_foundation.md",
+    "models/tower_tier.glb": "docs/world/aetherfall/hero_destination/06_tower_tier.md",
+    "models/tower_spire.glb": "docs/world/aetherfall/hero_destination/07_tower_spire.md",
+}
+
 
 def runtime_relative(path: str) -> str:
     if not path.startswith(PREFIX):
@@ -68,10 +80,16 @@ def main() -> None:
     for validation_asset in sorted(report["assets"], key=lambda item: item["runtime_path"]):
         relative_path = runtime_relative(validation_asset["runtime_path"])
         batch, batch_intent = batch_for(relative_path)
+        draft_brief = HERO_REFERENCE_DRAFTS.get(relative_path)
+        gate_state = {stage: "not_started" for stage in STAGES}
+        if draft_brief:
+            gate_state["brief"] = "draft"
+            gate_state["reference"] = "draft"
         assets.append({
             "asset_id": relative_path.removesuffix(".glb").replace("/", "__"),
             "runtime_path": validation_asset["runtime_path"],
             "source_path": validation_asset["source_path"],
+            "source_owner": "unassigned",
             "production_batch": batch,
             "batch_intent": batch_intent,
             "legacy_revision_sha256": validation_asset["sha256"],
@@ -80,17 +98,17 @@ def main() -> None:
                 "validator_issue_counts": validation_asset["issues"],
                 "stats": validation_asset["stats"],
             },
-            "human_art_gate": {stage: "not_started" for stage in STAGES},
+            "human_art_gate": gate_state,
             "release_decision": "unaccepted",
             "evidence": {
-                "brief_document": None,
-                "reference_images": [],
+                "brief_document": draft_brief,
+                "reference_images": ["docs/world/aetherfall/reference/01_archive_hero.png"] if draft_brief else [],
                 "clay_review_images": [],
                 "wireframe_review_images": [],
                 "uv_checker_review_images": [],
                 "bake_inspection_images": [],
                 "godot_review_images": [],
-                "target_device_profile": None,
+                "target_device_profile": "docs/world/aetherfall/ANDROID_TARGET_PROFILE.md",
                 "validator_exception": None,
                 "approved_by": None,
                 "revision": None,
@@ -100,7 +118,7 @@ def main() -> None:
     ledger = {
         "schema": "aetherfall.asset-production-ledger.v1",
         "purpose": "Human evidence tracker. Never infer art completion from a GLB, source script, or static validation result.",
-        "technical_target": {"platform": "unresolved", "renderer": "unresolved", "target_devices": [], "performance_budget": "unresolved", "camera_distance_policy": "unresolved"},
+        "technical_target": {"platform": "Android", "renderer": "Godot Mobile (configured; not performance-verified)", "target_devices": [], "performance_budget": "unresolved", "camera_distance_policy": "unresolved", "profile_document": "docs/world/aetherfall/ANDROID_TARGET_PROFILE.md"},
         "release_policy": {
             "format_validation": "zero errors and no untriaged warnings",
             "art": "each applicable human_art_gate is accepted with linked evidence",

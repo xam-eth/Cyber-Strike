@@ -1,6 +1,6 @@
 # Aetherfall — Production Art Pipeline
 
-**Status:** Gate 00 tracking complete — 51-entry evidence ledger exists; target hardware/profile and per-asset Gate 01 briefs are required before any Gate 03/04 asset can be accepted
+**Status:** Gate 01 draft — Android baseline recorded and seven Hero Destination briefs exist; device profile, scale-proxy review, and art-direction sign-off remain required before any asset can enter Gate 03
 
 This is the production sequence for Aetherfall. It replaces the incorrect practice of treating an extruded, generated, or multi-part mesh as a finished environment asset.
 
