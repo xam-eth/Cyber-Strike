@@ -81,7 +81,7 @@ func _ready() -> void:
 	add_child(overlay)
 	help_label = Label.new()
 	help_label.position = Vector2(16, 14)
-	help_label.text = "AETHERFALL QA CAMERA  |  Klik kanan: lihat  •  WASD: terbang  •  Q/E: turun/naik  •  Shift: cepat  •  F2: label object  •  1–0/I/O: framing detail"
+	help_label.text = "AETHERFALL QA CAMERA  |  Klik kanan: lihat  •  WASD: terbang  •  Q/E: turun/naik  •  Shift: cepat  •  F2: label focus  •  1–0/I/O: framing detail"
 	help_label.add_theme_font_size_override("font_size", 15)
 	help_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
 	help_label.add_theme_constant_override("outline_size", 5)

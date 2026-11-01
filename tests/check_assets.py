@@ -25,11 +25,13 @@ for debug_label_contract in [
     'aetherfall_object_id',
     'aetherfall_object_category',
     'func debug_label_lift(anchor: Node3D) -> float:',
+    'func update_debug_object_label_focus() -> void:',
+    'const DEBUG_LABEL_MAX_DISTANCE := 150.0',
 ]:
     assert debug_label_contract in aetherfall_source, debug_label_contract
 assert aetherfall_source.count('add_debug_object_label(') >= 13
 review_camera_source = (root / 'scripts/review_camera.gd').read_text()
-assert 'F2: label object' in review_camera_source
+assert 'F2: label focus' in review_camera_source
 base = root / 'assets/world/aetherfall'
 # Gate 01 visual studies are immutable evidence links for the seven selected
 # Hero assets. This verifies file identity and scope only; it cannot turn a

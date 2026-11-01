@@ -31,7 +31,9 @@ var expanse_collider_count := 0
 ## Debug-only world-space labels are deliberately opt-in: the complete object
 ## inventory is useful for placement review but would obscure normal gameplay.
 @export var debug_object_labels_visible := false
+const DEBUG_LABEL_MAX_DISTANCE := 150.0
 var debug_object_label_count := 0
+var debug_object_labels: Array[Label3D] = []
 
 func v3(value: Variant) -> Vector3:
 	if value is Array and value.size() >= 3:
@@ -169,10 +171,54 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
+func _process(_delta: float) -> void:
+	if debug_object_labels_visible:
+		update_debug_object_label_focus()
+
+
 func set_debug_object_labels_visible(enabled: bool) -> void:
 	debug_object_labels_visible = enabled
-	get_tree().call_group("aetherfall_debug_object_labels", "set_visible", enabled)
-	print("Aetherfall: debug object labels %s." % ("ON" if enabled else "OFF"))
+	for label in debug_object_labels:
+		if is_instance_valid(label):
+			label.visible = false
+	if enabled:
+		update_debug_object_label_focus()
+	print("Aetherfall: debug object label focus %s." % ("ON" if enabled else "OFF"))
+
+
+func update_debug_object_label_focus() -> void:
+	## Showing all labels at once makes an overview unreadable. In debug mode,
+	## expose exactly the labelled root nearest the active camera's reticle.
+	var camera := get_viewport().get_camera_3d()
+	if camera == null:
+		return
+	var viewport_rect := get_viewport().get_visible_rect()
+	if viewport_rect.size.x <= 0.0 or viewport_rect.size.y <= 0.0:
+		return
+	var screen_center := viewport_rect.get_center()
+	var candidate: Label3D
+	var best_score := INF
+	for label in debug_object_labels:
+		if not is_instance_valid(label):
+			continue
+		label.visible = false
+		var world_position := label.global_position
+		if camera.is_position_behind(world_position):
+			continue
+		var distance := camera.global_position.distance_to(world_position)
+		if distance > DEBUG_LABEL_MAX_DISTANCE:
+			continue
+		var screen_position := camera.unproject_position(world_position)
+		if not viewport_rect.grow(40.0).has_point(screen_position):
+			continue
+		# Reticle alignment dominates, with a small distance preference to avoid
+		# selecting an occluded far object over a near object in the same view.
+		var score := screen_position.distance_squared_to(screen_center) + distance * distance * 0.35
+		if score < best_score:
+			best_score = score
+			candidate = label
+	if candidate != null:
+		candidate.visible = true
 
 
 func add_debug_object_label(anchor: Node3D, object_id: String, category: String) -> void:
@@ -193,9 +239,11 @@ func add_debug_object_label(anchor: Node3D, object_id: String, category: String)
 	label.outline_size = 6
 	label.modulate = debug_label_color(category)
 	label.outline_modulate = Color(0.0, 0.015, 0.035, 0.96)
-	label.visible = debug_object_labels_visible
+	# Visibility is selected per-frame by reticle focus, never all-at-once.
+	label.visible = false
 	anchor.add_child(label)
 	label.add_to_group("aetherfall_debug_object_labels")
+	debug_object_labels.append(label)
 	debug_object_label_count += 1
 
 

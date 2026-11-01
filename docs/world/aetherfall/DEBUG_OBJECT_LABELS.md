@@ -7,7 +7,9 @@ Aetherfall now assigns an opt-in `Label3D` to every assembled **runtime placemen
 ## Use
 
 - Start the Aetherfall scene normally or enter **F1** review-camera mode.
-- Press **F2** to toggle labels **on/off**.
+- Aim the active camera reticle at the object being inspected.
+- Press **F2** to toggle **label-focus mode** on/off.
+- Label-focus mode displays **one** object label: the registered placement root nearest the reticle. Move/aim the camera to inspect another object.
 - Labels start **off** by default and are not intended for a player-facing build.
 - The active QA camera help strip also displays the F2 control.
 
@@ -47,7 +49,8 @@ A label represents one placed/assembled object, **not every GLB child mesh, bolt
 
 ## Rendering behavior
 
-- Labels billboard toward the active camera, have a dark outline, and are lifted above the highest imported mesh bound where one is available.
+- Every registered root owns a label node, but the debug system reveals only the one nearest the active camera reticle. It also limits candidates to 150 m, preventing the full-world overview from becoming an unreadable text wall.
+- The focused label billboards toward the active camera, has a dark outline, and is lifted above the highest imported mesh bound where one is available.
 - Color encodes category: cyan (`kit`/ice/expanse), amber (landmark/vertical), lime (Phase 2), magenta (Archive/interactives), and yellow (connectors/routes).
 - The feature adds no collision, navigation, material, mesh, gameplay state, or production-art claim.
 - Debug labels are a runtime visual aid only. Verify them in Godot after synchronization; static source tests cannot prove final label placement or mobile performance.
