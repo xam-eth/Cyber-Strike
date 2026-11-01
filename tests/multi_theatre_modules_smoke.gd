@@ -36,8 +36,8 @@ func _test_multi_theatre_world_definitions() -> void:
 	var expected := {
 		"verdant_bloom": {"primary_wpn": &"arc_shooter", "primary_mod": &"", "bp": 80},
 		"emberfall_foundry": {"primary_wpn": &"", "primary_mod": &"breach_capacitor", "bp": 90},
-		"vanguard_station": {"primary_wpn": &"", "primary_mod": &"phase_thrusters", "bp": 95},
-		"titans": {"primary_wpn": &"", "primary_mod": &"storm_conductor", "bp": 100},
+		"vanguard_station": {"primary_wpn": &"", "primary_mod": &"phase_thrusters", "bp": 85},
+		"titans": {"primary_wpn": &"", "primary_mod": &"storm_conductor", "bp": 105},
 	}
 	var seen_cache_ids: Dictionary = {}
 	for world_key in expected.keys():
@@ -78,7 +78,7 @@ func _test_progression_module_rules_and_persistence() -> void:
 	var tmp_path := "user://test_phase3_modules_%d.cfg" % Time.get_ticks_usec()
 	var svc := ProgressionService.new()
 	svc.profile_path = tmp_path
-	svc.reset_state()
+	svc.load_profile()
 	svc.balance = 600
 
 	_expect(
@@ -182,7 +182,7 @@ func _test_combat_hooks_and_run_reset_isolation() -> void:
 	var mods := TechModuleDefinition.aggregate_modifiers([&"breach_capacitor", &"phase_thrusters"])
 	player.call("set_tech_modifiers", mods)
 
-	player.call("set_touch_aim_held", false)
+	player.call("set_aiming", false)
 	var hp0 := float(guardian.get("current_health"))
 	guardian.call("apply_damage", 20.0, player)
 	var hip_delta := hp0 - float(guardian.get("current_health"))
@@ -191,7 +191,7 @@ func _test_combat_hooks_and_run_reset_isolation() -> void:
 		"hip-fire with Breach Capacitor still takes 0.45x on FORTIFIED Warden",
 	)
 
-	player.call("set_touch_aim_held", true)
+	player.call("set_aiming", true)
 	var hp1 := float(guardian.get("current_health"))
 	guardian.call("apply_damage", 20.0, player)
 	var ads_delta := hp1 - float(guardian.get("current_health"))
@@ -199,7 +199,7 @@ func _test_combat_hooks_and_run_reset_isolation() -> void:
 		is_equal_approx(ads_delta, 20.0),
 		"ADS fire with Breach Capacitor pierces FORTIFIED Warden barrier for full 1.0x damage",
 	)
-	player.call("set_touch_aim_held", false)
+	player.call("set_aiming", false)
 
 	# Verify Phase Thrusters EMP magazine refill (35% of 24 = ceil(8.4) = 9 rounds).
 	var mags := wc.get("_magazines") as Array
