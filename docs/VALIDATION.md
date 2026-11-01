@@ -4,6 +4,33 @@ This document records the latest relevant evidence and its limits. It is not a d
 
 For intended behavior, read [`GAMEPLAY_DESIGN.md`](GAMEPLAY_DESIGN.md). For required gates, read [`DEVELOPMENT.md`](DEVELOPMENT.md).
 
+## Phase 4 — Kestrel (Second Playable Scout Operative & Recon Overdrive) checkpoint — 2026-11-01
+
+| Item | Current checkpoint |
+|---|---|
+| Operative, Combat Runtime, 3D Livery, HUD, and Web Shell source | `0a82664` (over `801e342` / `e0232a1`) |
+| Godot/Web CI | [41294230867](https://github.com/xam-eth/Cyber-Strike/actions/runs/41294230867) — **SUCCESS** (`Static checks`, `Headless smoke tests 41/41`, `Web preview build` including all 8 browser QA contracts) |
+| Committed Web payload | `8d9ecec` |
+| `web/index.pck` | 95,576,292 bytes (`1,005` files); SHA-256 `22d8a0d2eca8348e77d6ccbb170167b06d8112843046c5a1dd19d38d2f4fa347` |
+| `web/index.wasm` | 39,514,754 bytes; SHA-256 `fc74679e3b97f76878947fcd4fbe1268cbfa6188182a2e33bbc3f5dc9bfa57d0` |
+| Phase 4 runtime visual QA screenshots | [`../qa-evidence/phase-4-kestrel/`](../qa-evidence/phase-4-kestrel/01-hero-kestrel-t1-desktop-en.png) (6 multi-viewport Web Hub & Godot 4.7.2 WebAssembly captures) |
+
+### What this checkpoint verifies
+
+- **VERIFIED (Single-Source Operative Registry & `<100 MB` PCK Budget — `roster.json`, `kestrel.tres`, `hero_definition.gd`, `hero_tier.gd`, `progression_service.gd`, `check_hero_roster.py`):**
+  - Promoted `kestrel` (`Dian Prameswari`, `SCOUT` / `PENINJAU`) from an `in_development` placeholder to a full `field_ready` second operative across `roster.json`, `game/resources/heroes/kestrel.tres`, `HeroDefinition.DEFINITION_IDS`, and `ProgressionService.HERO_IDS`, while adding `vanguard` (`Raka Pratama`, `BREACHER` / `PENDOBRAK`) as the honest `in_development` slot (`178/178` `check_hero_roster.py` checks PASS; `369/369` EN/ID keys in parity).
+  - Reused the committed rigged exo-suit `game/assets/characters/hero/hero.glb` + `hero_rig.json` with per-instance metallic alloy tier liveries (`T1` White-Cyan Recon Ceramic through `T5` Crimson-Titanium Sovereign) and rendered `340×460` RGBA portraits (`portrait_kestrel.png` + `kestrel-tier-{1..5}.png`), keeping `web/index.pck` at `95,576,292` bytes (`+80 KB` vs Phase 3, `4.42 MB` under the hard `100 MB` CI cap).
+- **VERIFIED (Real Scout Gameplay Mechanics & Recon Overdrive — `player_controller.gd`, `weapon_controller.gd`, `character_visual.gd`, `model_fitter.gd`):**
+  - Differentiated `Kestrel` from `Sable` (`100..126` HP, `1.00×` speed, `EMP Pulse` `9m` radial AoE) with real runtime trade-offs read directly from `roster.json` via `HeroTier`: `-10` base vitals (`90/96/102/108/116` HP across `T1..T5`), identical `0/3/6/9/12%` tier armor scaling, `+14%` base stride speed (`6.84 m/s`), and `-10%` weapon reload time without mutating shared `.tres` weapon resources.
+  - Implemented `recon_pulse` (**Recon Overdrive**, `10.5s` cooldown): fires an aimed `18.0 m` (`3.6 m` corridor + `4.8 m` impact pulse) forward disruption lance dealing `22` damage and triggering ranged `apply_emp_disrupt` (`is_exposed() == true`) against `Iron Warden` shields, while granting `3.5s` of `+20%` movement speed and `+22%` weapon fire rate ([`05-gameplay-kestrel-hud-desktop-en.png`](../qa-evidence/phase-4-kestrel/05-gameplay-kestrel-hud-desktop-en.png), [`06-gameplay-kestrel-overdrive-mobile-id.png`](../qa-evidence/phase-4-kestrel/06-gameplay-kestrel-overdrive-mobile-id.png)).
+  - Shared `ModelFitter.apply_livery` (`core` layer) cleanly across `CharacterVisual` (`systems`) and `ShowcaseViewport` (`ui`) using per-instance `set_surface_override_material` duplicates (`0` architecture boundary violations, `0` shared material mutations).
+- **VERIFIED (Cross-Surface Native FrontEnd, Web Operations Hub, & HUD Telemetry — `stage_hero_select.gd`, `stage_dashboard.gd`, `hud_state.gd`, `hud_encounter_ui.gd`, `touch_controls.gd`, `hud_menu_ui.gd`, `ui/hero_stage.js`, `ui/shell.js`, `ui/hero.css`):**
+  - Updated Web Operations Hub `#screen-hero` 3-column operative grid (`SABLE`, `KESTREL`, `VANGUARD`), Three.js `applyLivery` per-instance material cloning, `#screen-hub` Command Deck operative card & `DEPLOY | KESTREL Tn` action, Native `StageHeroSelect` / `StageDashboard`, HUD skill controls (`RECON` / `INTAI`), Overdrive status feedback (`OVERDRIVE INTAI · +20% GERAK`), and per-hero promotion copy across `1280×720`, `844×390`, and `667×375` ([`01-hero-kestrel-t1-desktop-en.png`](../qa-evidence/phase-4-kestrel/01-hero-kestrel-t1-desktop-en.png), [`02-hero-kestrel-t5-desktop-id.png`](../qa-evidence/phase-4-kestrel/02-hero-kestrel-t5-desktop-id.png), [`03-hero-kestrel-mobile-844x390-id.png`](../qa-evidence/phase-4-kestrel/03-hero-kestrel-mobile-844x390-id.png), [`04-hub-kestrel-command-deck-id.png`](../qa-evidence/phase-4-kestrel/04-hub-kestrel-command-deck-id.png)).
+- **VERIFIED (Automated Godot 4.7.2 Headless `41/41`, WebAssembly `8/8`, & Static `7/7` Gates):**
+  - CI run [41294230867](https://github.com/xam-eth/Cyber-Strike/actions/runs/41294230867) passed `Static checks`, **`41/41` Headless smoke tests** (including `tests/kestrel_operative_smoke.gd` + all 40 existing suites), and **all 8/8 Browser WebAssembly QA contracts** on payload `8d9ecec`.
+- **UNVERIFIED (hardware & human playtest boundaries):**
+  - **UNVERIFIED on physical Android hardware & human playtest:** native APK device testing and subjective human playtest sessions remain separate from automated Godot/Chromium verification.
+
 ## Phase 3 — Multi-Theatre Expeditions & Permanent Field Kit Tech Modules checkpoint — 2026-11-01
 
 | Item | Current checkpoint |
