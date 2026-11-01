@@ -4,6 +4,7 @@
 **Legacy source/export:** `source/aetherfall_kit.blend` → `assets/world/aetherfall/models/tower_foundation.glb`
 **Legacy measured envelope:** 19.263 m X × 6.300 m Y × 17.843 m Z.
 **Status:** draft brief; Base Mesh is **not authorized**.
+**Visual working reference:** [`reference/tower_foundation_concept.png`](reference/tower_foundation_concept.png) — original design study for silhouette/construction discussion only; it is not a texture, bake, geometry source, or Gate 01 approval.
 
 ## Role
 

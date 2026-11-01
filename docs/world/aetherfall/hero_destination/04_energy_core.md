@@ -4,6 +4,7 @@
 **Legacy source/export:** `source/aetherfall_kit.blend` → `assets/world/aetherfall/models/energy_core.glb`
 **Legacy measured envelope:** 12.233 m X × 7.700 m Y × 10.647 m Z.
 **Status:** draft brief; Base Mesh is **not authorized**.
+**Visual working reference:** [`reference/energy_core_concept.png`](reference/energy_core_concept.png) — original design study for silhouette/construction discussion only; it is not a texture, bake, geometry source, or Gate 01 approval.
 
 ## Role
 

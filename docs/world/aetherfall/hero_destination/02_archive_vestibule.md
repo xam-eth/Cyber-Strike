@@ -4,6 +4,7 @@
 **Legacy source/export:** `source/aetherfall_archive_interior.blend` → `assets/world/aetherfall/archive/archive_vestibule.glb`
 **Legacy measured envelope:** 10.50 m X × 5.43 m Y × 6.50 m Z.
 **Status:** draft brief; Base Mesh is **not authorized**.
+**Visual working reference:** [`reference/archive_vestibule_concept.png`](reference/archive_vestibule_concept.png) — original design study for silhouette/construction discussion only; it is not a texture, bake, geometry source, or Gate 01 approval.
 
 ## Role
 

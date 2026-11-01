@@ -1,0 +1,55 @@
+{
+  "schema": "aetherfall.hero-destination-reference/1",
+  "gate": "01_reference",
+  "status": "working_reference_pending_human_review",
+  "source": "Original Arena image-generation studies created for this repository. They are visual design references only.",
+  "usage_rules": [
+    "Do not use a concept image as a game texture, decal, bake, normal map, ORM map, alpha mask, or direct geometry source.",
+    "Treat each study as a silhouette, construction, material-breakdown, and functional-detail discussion aid.",
+    "The image does not approve Base Mesh, later production gates, or the legacy runtime GLB."
+  ],
+  "assets": [
+    {
+      "asset_id": "ice_planet__sentinel_archive",
+      "label": "Sentinel Archive exterior",
+      "file": "sentinel_archive_exterior_concept.png",
+      "sha256": "452a3723771321d9e2cbf01340db5ad370ebd4719bd2db11a10453597c5c645d"
+    },
+    {
+      "asset_id": "archive__archive_vestibule",
+      "label": "Archive Vestibule",
+      "file": "archive_vestibule_concept.png",
+      "sha256": "17d8682488c4cf4996bbdb6283f6d6bc86d705d0a4eb9458072093cd3aa80f5f"
+    },
+    {
+      "asset_id": "archive__archive_computer",
+      "label": "Archive Computer",
+      "file": "archive_computer_concept.png",
+      "sha256": "cb3a4df3aad4cf19700b561ebe841395f6452d8ef7d3773ba356b61d360665c8"
+    },
+    {
+      "asset_id": "models__energy_core",
+      "label": "Energy Core",
+      "file": "energy_core_concept.png",
+      "sha256": "1c830031c7925beab24d21a231d392d4438250482cfa639d5f9ac8d00aff0130"
+    },
+    {
+      "asset_id": "models__tower_foundation",
+      "label": "Tower Foundation",
+      "file": "tower_foundation_concept.png",
+      "sha256": "01407ea30aa373e88cc627c52510e4964f8f0b17558b90bed4248a29bf558fa3"
+    },
+    {
+      "asset_id": "models__tower_tier",
+      "label": "Tower Tier",
+      "file": "tower_tier_concept.png",
+      "sha256": "43e89411ebd450f68667ac0e557a55c91df8f8aa33041c1975f8a409934af999"
+    },
+    {
+      "asset_id": "models__tower_spire",
+      "label": "Tower Spire",
+      "file": "tower_spire_concept.png",
+      "sha256": "70bdda443613023651bcde1ae0ab3df57b4592f73c636be29eb266a7191a5b2e"
+    }
+  ]
+}

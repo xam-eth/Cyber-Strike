@@ -1,4 +1,5 @@
 """Static contract checks; no claim of rendering or gameplay validation."""
+import hashlib
 import json
 import re
 import struct
@@ -15,6 +16,30 @@ assert 'sky_material.sun_energy_multiplier' not in aetherfall_source
 assert 'sky_material.energy_multiplier = 0.55' in aetherfall_source
 assert not re.search(r'^\s*ww\s*$', aetherfall_source, flags=re.MULTILINE)
 base = root / 'assets/world/aetherfall'
+# Gate 01 visual studies are immutable evidence links for the seven selected
+# Hero assets. This verifies file identity and scope only; it cannot turn a
+# generated concept image into a texture, mesh, or human art-gate approval.
+hero_reference_root = root / 'docs/world/aetherfall/hero_destination/reference'
+hero_reference_manifest = json.loads((hero_reference_root / 'REFERENCE_MANIFEST.json').read_text())
+assert hero_reference_manifest['schema'] == 'aetherfall.hero-destination-reference/1'
+assert hero_reference_manifest['gate'] == '01_reference'
+assert hero_reference_manifest['status'] == 'working_reference_pending_human_review'
+expected_hero_reference_files = {
+    'ice_planet__sentinel_archive': 'sentinel_archive_exterior_concept.png',
+    'archive__archive_vestibule': 'archive_vestibule_concept.png',
+    'archive__archive_computer': 'archive_computer_concept.png',
+    'models__energy_core': 'energy_core_concept.png',
+    'models__tower_foundation': 'tower_foundation_concept.png',
+    'models__tower_tier': 'tower_tier_concept.png',
+    'models__tower_spire': 'tower_spire_concept.png',
+}
+manifest_reference_files = {entry['asset_id']: entry['file'] for entry in hero_reference_manifest['assets']}
+assert manifest_reference_files == expected_hero_reference_files
+for entry in hero_reference_manifest['assets']:
+    image = hero_reference_root / entry['file']
+    blob = image.read_bytes()
+    assert blob.startswith(b'\x89PNG\r\n\x1a\n'), image
+    assert hashlib.sha256(blob).hexdigest() == entry['sha256'], image
 layout = json.loads((base / 'layout.json').read_text())
 measures = json.loads((base / 'measurements.json').read_text())['assets']
 assert layout['unit'] == 'meters' and layout['up'] == 'Y'

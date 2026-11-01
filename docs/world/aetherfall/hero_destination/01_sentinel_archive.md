@@ -4,6 +4,7 @@
 **Legacy source/export:** `source/aetherfall_ice_planet.blend` → `assets/world/aetherfall/ice_planet/sentinel_archive.glb`
 **Legacy measured envelope:** 28.60 m X × 24.45 m Y × 21.30 m Z. This is a baseline measurement only, not an approved production dimension.
 **Status:** draft brief; Base Mesh is **not authorized**.
+**Visual working reference:** [`reference/sentinel_archive_exterior_concept.png`](reference/sentinel_archive_exterior_concept.png) — original design study for silhouette/construction discussion only; it is not a texture, bake, geometry source, or Gate 01 approval.
 
 ## Role and composition
 

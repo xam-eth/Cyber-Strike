@@ -90,7 +90,7 @@
       "evidence": {
         "brief_document": "docs/world/aetherfall/hero_destination/03_archive_computer.md",
         "reference_images": [
-          "docs/world/aetherfall/reference/01_archive_hero.png"
+          "docs/world/aetherfall/hero_destination/reference/archive_computer_concept.png"
         ],
         "clay_review_images": [],
         "wireframe_review_images": [],
@@ -151,7 +151,7 @@
       "evidence": {
         "brief_document": "docs/world/aetherfall/hero_destination/02_archive_vestibule.md",
         "reference_images": [
-          "docs/world/aetherfall/reference/01_archive_hero.png"
+          "docs/world/aetherfall/hero_destination/reference/archive_vestibule_concept.png"
         ],
         "clay_review_images": [],
         "wireframe_review_images": [],
@@ -569,7 +569,7 @@
       "evidence": {
         "brief_document": "docs/world/aetherfall/hero_destination/01_sentinel_archive.md",
         "reference_images": [
-          "docs/world/aetherfall/reference/01_archive_hero.png"
+          "docs/world/aetherfall/hero_destination/reference/sentinel_archive_exterior_concept.png"
         ],
         "clay_review_images": [],
         "wireframe_review_images": [],
@@ -1988,7 +1988,7 @@
       "evidence": {
         "brief_document": "docs/world/aetherfall/hero_destination/04_energy_core.md",
         "reference_images": [
-          "docs/world/aetherfall/reference/01_archive_hero.png"
+          "docs/world/aetherfall/hero_destination/reference/energy_core_concept.png"
         ],
         "clay_review_images": [],
         "wireframe_review_images": [],
@@ -2403,7 +2403,7 @@
       "evidence": {
         "brief_document": "docs/world/aetherfall/hero_destination/05_tower_foundation.md",
         "reference_images": [
-          "docs/world/aetherfall/reference/01_archive_hero.png"
+          "docs/world/aetherfall/hero_destination/reference/tower_foundation_concept.png"
         ],
         "clay_review_images": [],
         "wireframe_review_images": [],
@@ -2464,7 +2464,7 @@
       "evidence": {
         "brief_document": "docs/world/aetherfall/hero_destination/07_tower_spire.md",
         "reference_images": [
-          "docs/world/aetherfall/reference/01_archive_hero.png"
+          "docs/world/aetherfall/hero_destination/reference/tower_spire_concept.png"
         ],
         "clay_review_images": [],
         "wireframe_review_images": [],
@@ -2525,7 +2525,7 @@
       "evidence": {
         "brief_document": "docs/world/aetherfall/hero_destination/06_tower_tier.md",
         "reference_images": [
-          "docs/world/aetherfall/reference/01_archive_hero.png"
+          "docs/world/aetherfall/hero_destination/reference/tower_tier_concept.png"
         ],
         "clay_review_images": [],
         "wireframe_review_images": [],

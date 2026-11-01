@@ -4,6 +4,7 @@
 **Legacy source/export:** `source/aetherfall_archive_interior.blend` → `assets/world/aetherfall/archive/archive_computer.glb`
 **Legacy measured envelope:** 2.70 m X × 3.37 m Y × 2.52 m Z.
 **Status:** draft brief; Base Mesh is **not authorized**.
+**Visual working reference:** [`reference/archive_computer_concept.png`](reference/archive_computer_concept.png) — original design study for silhouette/construction discussion only; it is not a texture, bake, geometry source, or Gate 01 approval.
 
 ## Role
 

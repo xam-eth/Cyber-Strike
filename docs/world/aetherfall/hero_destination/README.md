@@ -12,6 +12,10 @@
 
 The documents in this directory are **draft production briefs**, not an acceptance stamp and not an authorization to start Retopology, UV, bake, PBR, or export. They turn the prior world-level concept into asset-specific modelling instructions, using the current runtime GLB only as a measured legacy envelope and placement baseline.
 
+## Visual working-reference packet added
+
+`reference/` now contains seven original, asset-specific concept studies and a hash manifest. They make construction, silhouette, material-breakdown, and functional-detail review concrete for every selected asset. They remain **working reference only**: they are not runtime art, texture input, baking input, or authorization to start Base Mesh. See [`reference/README.md`](reference/README.md) for the strict use boundary.
+
 ## Android baseline selected — device profile still required
 
 Android is the selected platform baseline. No actual mobile triangle, texture, material, draw-call, or memory number is entered here because a target device tier, resolution/render scale, frame-rate goal, renderer, and test build are not yet recorded. Inventing an “industry-standard” number would be less rigorous than leaving it unresolved. Those values become mandatory before an `LP_` budget or optimization decision.

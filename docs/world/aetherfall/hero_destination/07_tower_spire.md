@@ -4,6 +4,7 @@
 **Legacy source/export:** `source/aetherfall_kit.blend` → `assets/world/aetherfall/models/tower_spire.glb`
 **Legacy measured envelope:** 9.916 m X × 18.500 m Y × 9.278 m Z.
 **Status:** draft brief; Base Mesh is **not authorized**.
+**Visual working reference:** [`reference/tower_spire_concept.png`](reference/tower_spire_concept.png) — original design study for silhouette/construction discussion only; it is not a texture, bake, geometry source, or Gate 01 approval.
 
 ## Role
 

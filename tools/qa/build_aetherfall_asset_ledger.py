@@ -55,6 +55,18 @@ HERO_REFERENCE_DRAFTS = {
     "models/tower_spire.glb": "docs/world/aetherfall/hero_destination/07_tower_spire.md",
 }
 
+# These one-per-asset studies strengthen the Gate 01 draft discussion but do
+# not elevate it to an accepted reference gate or authorize Base Mesh work.
+HERO_WORKING_REFERENCE_IMAGES = {
+    "ice_planet/sentinel_archive.glb": "docs/world/aetherfall/hero_destination/reference/sentinel_archive_exterior_concept.png",
+    "archive/archive_vestibule.glb": "docs/world/aetherfall/hero_destination/reference/archive_vestibule_concept.png",
+    "archive/archive_computer.glb": "docs/world/aetherfall/hero_destination/reference/archive_computer_concept.png",
+    "models/energy_core.glb": "docs/world/aetherfall/hero_destination/reference/energy_core_concept.png",
+    "models/tower_foundation.glb": "docs/world/aetherfall/hero_destination/reference/tower_foundation_concept.png",
+    "models/tower_tier.glb": "docs/world/aetherfall/hero_destination/reference/tower_tier_concept.png",
+    "models/tower_spire.glb": "docs/world/aetherfall/hero_destination/reference/tower_spire_concept.png",
+}
+
 
 def runtime_relative(path: str) -> str:
     if not path.startswith(PREFIX):
@@ -70,6 +82,12 @@ def batch_for(relative_path: str) -> tuple[str, str]:
 
 
 def main() -> None:
+    if set(HERO_REFERENCE_DRAFTS) != set(HERO_WORKING_REFERENCE_IMAGES):
+        raise RuntimeError("Every Hero draft needs exactly one asset-specific working reference image")
+    for reference_path in HERO_WORKING_REFERENCE_IMAGES.values():
+        if not (ROOT / reference_path).is_file():
+            raise RuntimeError(f"Missing Hero working reference: {reference_path}")
+
     report = json.loads(VALIDATION.read_text())
     inventory = {runtime_relative(asset["runtime_path"]) for asset in report["assets"]}
     planned = set().union(*(assets for _, assets in BATCHES.values()))
@@ -102,7 +120,7 @@ def main() -> None:
             "release_decision": "unaccepted",
             "evidence": {
                 "brief_document": draft_brief,
-                "reference_images": ["docs/world/aetherfall/reference/01_archive_hero.png"] if draft_brief else [],
+                "reference_images": [HERO_WORKING_REFERENCE_IMAGES[relative_path]] if draft_brief else [],
                 "clay_review_images": [],
                 "wireframe_review_images": [],
                 "uv_checker_review_images": [],
