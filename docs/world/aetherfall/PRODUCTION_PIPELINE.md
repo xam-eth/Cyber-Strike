@@ -1,6 +1,6 @@
 # Aetherfall — Production Art Pipeline
 
-**Status:** Gate 01 — Reference and visual-language lock
+**Status:** Gate 03 — Base Mesh source authored; clay-review acceptance pending
 
 This is the production sequence for Aetherfall. It replaces the incorrect practice of treating an extruded, generated, or multi-part mesh as a finished environment asset.
 
@@ -145,9 +145,9 @@ Only after Godot visual approval:
 
 | Area | Status |
 |---|---|
-| Reference language | **IN PROGRESS** — three original studies recorded above |
+| Reference language | **LOCKED** — three original studies recorded above |
 | Gameplay blockout/connectivity | **RETAINED** |
-| Production Base Mesh | **NOT ACCEPTED** |
+| Production Base Mesh | **CLAY REVIEW PENDING** — authored Blender source and three core-family review renders are present; no final visual acceptance claimed |
 | High-poly / retopo / authored UV / bake | **NOT STARTED** |
 | Final PBR texture authoring | **NOT STARTED** |
 | Godot visual approval | **UNVERIFIED** |
