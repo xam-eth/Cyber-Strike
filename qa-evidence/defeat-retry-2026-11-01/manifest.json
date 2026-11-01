@@ -1,0 +1,45 @@
+{
+  "date": "2026-11-01",
+  "scope": "Website / Godot WebGL 2; supported 844x390 touch landscape; no APK; automation is not physical-device or human approval",
+  "runtime": {
+    "payload_commit": "19852d7447cae0cca1419e98bdd97f9693fbc334",
+    "payload_ci_run": 41213150955,
+    "payload_ci_result": "PASS: Static; 38/38 Headless; Web export; all browser gates",
+    "pck_bytes": 90719636,
+    "pck_sha256": "11e50265ccc1f479013438203dad2eb35543d1eddd332afc00d7eb2bc6f6a25b",
+    "wasm_sha256": "fc74679e3b97f76878947fcd4fbe1268cbfa6188182a2e33bbc3f5dc9bfa57d0",
+    "served_pck_matches_git_blob": true,
+    "gameplay_source_changed_for_this_evidence": false
+  },
+  "runner": {
+    "path": "tools/qa_death_touch.mjs",
+    "sha256": "f58ebe0af3a5ac1130e3ba189507c9a11e5ac9ea62cf899772666e3f53fcfef6",
+    "route": "direct exported engine /web/?qa_stage=GAMEPLAY&qa_camera",
+    "input": "real touchscreen Start; real Runner damage; keyboard Enter on the focused Retry button",
+    "viewport": "844x390, hasTouch=true, isMobile=true",
+    "state_injection": false
+  },
+  "report": {
+    "path": "report.json",
+    "sha256": "6d885e99c8791d93ee7e20c516c7fa8443ceb9a183c8eb072e9064780ff3ab52",
+    "result": "PASS",
+    "checks": 5,
+    "frames": 23,
+    "main_frames": 5,
+    "compositor_frames_before_results": 18,
+    "death_clip_samples": 4,
+    "bank_events": 1,
+    "browser_or_godot_errors": 0
+  },
+  "visual_review": {
+    "report_listed_frames_inspected": 23,
+    "main_contact_sheet": "contact-main.png",
+    "death_contact_sheet": "contact-death-compositor.png",
+    "observed": "Vitals fall to 0/100; the authored collapse remains visible before Results; Retry restores 100/100 and 24/24 and enters a fresh Wave 01 without another bank."
+  },
+  "limits": [
+    "Chromium software WebGL is not physical-device performance or touch-feel evidence.",
+    "Human visual, animation-quality, and audible-output approval remains UNKNOWN.",
+    "This is a focused defeat/retry route, not a second complete Recovery playthrough."
+  ]
+}

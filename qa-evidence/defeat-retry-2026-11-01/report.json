@@ -1,0 +1,64 @@
+{
+  "result": "PASS",
+  "url": "http://127.0.0.1:8020/web/",
+  "viewport": {
+    "width": 844,
+    "height": 390,
+    "hasTouch": true,
+    "isMobile": true
+  },
+  "checks": [
+    "real Runner damage reaches defeat and then Results",
+    "defeat banks the first attempt exactly once before Retry",
+    "focused Retry resets the attempt without banking it again",
+    "Retry enters a fresh Defense with no stale Results or duplicate bank",
+    "authored death clip renders and lowers the head bone before Results"
+  ],
+  "frames": [
+    "01-death-start.png",
+    "02-death-mid.png",
+    "03-results.png",
+    "04-retry-preparing.png",
+    "05-retry-defense.png",
+    "death-compositor-00.png",
+    "death-compositor-01.png",
+    "death-compositor-02.png",
+    "death-compositor-03.png",
+    "death-compositor-04.png",
+    "death-compositor-05.png",
+    "death-compositor-06.png",
+    "death-compositor-07.png",
+    "death-compositor-08.png",
+    "death-compositor-09.png",
+    "death-compositor-10.png",
+    "death-compositor-11.png",
+    "death-compositor-12.png",
+    "death-compositor-13.png",
+    "death-compositor-14.png",
+    "death-compositor-15.png",
+    "death-compositor-16.png",
+    "death-compositor-17.png"
+  ],
+  "bank_events": [
+    "Progression: banked +0 BP · wallet 0 · best 0"
+  ],
+  "death_clip_samples": 4,
+  "compositor_frames_before_results": 18,
+  "errors": [],
+  "relevant_log": [
+    "Encounter: Explore safe; activate Start Defense when ready",
+    "Progression: wallet 0 BP · 1 weapon(s) owned",
+    "Encounter: Preparing Defense (5 s)",
+    "Encounter: Defense started",
+    "Progression: banked +0 BP · wallet 0 · best 0",
+    "Encounter: Defeat reveal before Results",
+    "Encounter: Results after wave 1",
+    "Encounter: Returned to Explore",
+    "Encounter: Preparing Defense (5 s)",
+    "Encounter: Defense started"
+  ],
+  "limits": [
+    "Software WebGL automation is not physical-device validation.",
+    "Rendered motion quality and human audibility remain unverified."
+  ]
+}

@@ -185,9 +185,13 @@ Its `manifest.json` records commits, payload hashes, route scope, and report has
 | Baseline Recovery | `5453420a39b186188bdee262878718eceb2e4b4b` | **PASS:** ordinary shell, Verdant landing/Engage, two real GLB guards, Secure locked during combat. Five frames are preserved in `baseline/`; this is not represented as the later adaptation route. |
 | Final English | `19852d7447cae0cca1419e98bdd97f9693fbc334` | **PASS:** 29 checks and 20 report-listed frames for the complete route below. |
 | Final Indonesian, visual-only | same final payload | **PASS:** 23 checks and 11 report-listed frames through Secure and scrolled Extraction. It intentionally does not claim the later EN persistence chain. |
+| Defeat/Retry, direct exported engine | same final payload | **PASS:** 5 checks and 23 report-listed frames at supported 844×390 touch landscape; real Runner defeat, visible collapse, exactly one bank, focused Retry, and fresh Defense. |
 
-Only green-report frame lists were copied into the evidence directory. All 20 EN
-and all 11 ID frames were inspected; older failure captures were excluded.
+Only green-report frame lists were copied into the evidence directories. All 20 EN,
+all 11 ID, and all 23 Defeat/Retry frames were inspected; older failure captures
+and the unsupported direct-engine portrait attempt were excluded. The focused
+follow-up evidence is in
+[`qa-evidence/defeat-retry-2026-11-01/`](../qa-evidence/defeat-retry-2026-11-01/README.md).
 
 ### Verified gameplay and progression outcome
 
@@ -215,9 +219,15 @@ a reward, or profile state.
    also remain covered by the green Headless suite; the browser route observed
    one bank only.
 
-Defeat/retry is covered by the current Headless gameplay gates. This particular
-browser route deliberately uses a voluntary Endless finish and does not claim a
-second, scripted death.
+The full EN route deliberately uses a voluntary Endless finish. A separate final
+payload browser route now exercises the failure path without injecting damage:
+real Runner attacks reduce vitals to 0/100, eighteen compositor frames preserve
+the authored collapse before Results, and the no-KO attempt honestly banks +0 BP
+exactly once. Enter activates the genuinely focused Retry button; new Preparation
+and Defense events follow with no second bank or stale Results. Inspected retry
+frames show restored 100/100 vitals and 24/24 ammo. This focused direct-engine
+route uses the supported 844×390 landscape and does not claim a second Recovery
+clear. Headless duplicate/end-signal coverage remains in force.
 
 ### Verified layout and localization evidence
 
@@ -260,6 +270,7 @@ python3 -m http.server 800 --bind 0.0.0.0
 npm ci --prefix tools
 node tools/qa_recovery_adaptation.mjs --url=http://127.0.0.1:800/ --lang=en
 node tools/qa_recovery_adaptation.mjs --url=http://127.0.0.1:800/ --lang=id --visual-only
+node tools/qa_death_touch.mjs --url=http://127.0.0.1:800/web/
 ```
 
 Use a fresh browser profile for each route. The reports and frames produced under

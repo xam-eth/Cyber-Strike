@@ -39,9 +39,14 @@ fs.mkdirSync(OUT, { recursive: true });
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 try {
   const page = await browser.newPage();
-  await page.setViewport({ width: 390, height: 844, hasTouch: true, isMobile: true, deviceScaleFactor: 1 });
+  // The shipped product is landscape-only; portrait shows ROTATE DEVICE in the
+  // ordinary shell. Exercise the supported touch layout, not a direct-engine
+  // portrait arrangement that the UI contract intentionally does not provide.
+  await page.setViewport({ width: 844, height: 390, hasTouch: true, isMobile: true, deviceScaleFactor: 1 });
   const lines = [];
   const errors = [];
+  const checks = [];
+  const frames = [];
   const revealFrames = [];
   let revealAt = 0;
   let resultsAt = 0;
@@ -63,11 +68,11 @@ try {
   });
   await cdp.send('Page.startScreencast', { format: 'png', everyNthFrame: 1 });
   page.on('pageerror', error => errors.push(String(error)));
-  const waitFor = (text, ms) => new Promise((resolve, reject) => {
-    if (lines.some(line => line.includes(text))) return resolve();
-    const timer = setTimeout(() => { page.off('console', check); reject(new Error(`Timeout waiting for ${text}`)); }, ms);
+  const waitForCount = (text, count, ms) => new Promise((resolve, reject) => {
+    if (lines.filter(line => line.includes(text)).length >= count) return resolve();
+    const timer = setTimeout(() => { page.off('console', check); reject(new Error(`Timeout waiting for ${text} #${count}`)); }, ms);
     const check = () => {
-      if (lines.some(line => line.includes(text))) {
+      if (lines.filter(line => line.includes(text)).length >= count) {
         clearTimeout(timer);
         page.off('console', check);
         resolve();
@@ -75,11 +80,13 @@ try {
     };
     page.on('console', check);
   });
+  const waitFor = (text, ms) => waitForCount(text, 1, ms);
   const shot = async name => {
     await page.screenshot({ path: path.join(OUT, `${name}.png`) });
+    frames.push(`${name}.png`);
     console.log('FRAME', name);
   };
-  const preview = `${URL}${URL.includes('?') ? '&' : '?'}qa_camera`;
+  const preview = `${URL}${URL.includes('?') ? '&' : '?'}qa_stage=GAMEPLAY&qa_camera`;
   await page.goto(preview, { waitUntil: 'domcontentloaded', timeout: 90000 });
   await waitFor('Encounter: Explore safe', 90000);
   await page.touchscreen.tap(120, 195); // START, above enlarged SWAP.
@@ -94,9 +101,38 @@ try {
   await waitFor('Encounter: Results after wave', 60000);
   await cdp.send('Page.stopScreencast');
   await shot('03-results');
+  checks.push('real Runner damage reaches defeat and then Results');
+  const bankEvents = () => lines.filter(line => line.includes('Progression: banked +'));
+  if (bankEvents().length !== 1) {
+    throw new Error(`Defeat must bank its attempt exactly once; got ${bankEvents().length}`);
+  }
+  checks.push('defeat banks the first attempt exactly once before Retry');
+
+  // Results gives Retry focus. Activate that real focused button rather than
+  // calling a Godot reset API or guessing a canvas coordinate. The first run's
+  // Prepare/Defense logs already exist, so require their counts to increase.
+  const preparationCount = lines.filter(line => line.includes('Encounter: Preparing Defense')).length;
+  const defenseCount = lines.filter(line => line.includes('Encounter: Defense started')).length;
+  const resultCount = lines.filter(line => line.includes('Encounter: Results after wave')).length;
+  await page.keyboard.press('Enter');
+  await waitFor('Encounter: Returned to Explore', 15000);
+  await waitForCount('Encounter: Preparing Defense', preparationCount + 1, 15000);
+  await shot('04-retry-preparing');
+  if (bankEvents().length !== 1) throw new Error('Retry duplicated the previous attempt reward');
+  checks.push('focused Retry resets the attempt without banking it again');
+  await waitForCount('Encounter: Defense started', defenseCount + 1, 300000);
+  await delay(350);
+  await shot('05-retry-defense');
+  if (lines.filter(line => line.includes('Encounter: Results after wave')).length !== resultCount) {
+    throw new Error('Retry reopened stale Results instead of a live Defense');
+  }
+  if (bankEvents().length !== 1) throw new Error('Retry created a duplicate bank event');
+  checks.push('Retry enters a fresh Defense with no stale Results or duplicate bank');
+
   for (const [index, frame] of revealFrames.entries()) {
     const name = `death-compositor-${String(index).padStart(2, '0')}.png`;
     fs.writeFileSync(path.join(OUT, name), Buffer.from(frame.data, 'base64'));
+    frames.push(name);
     console.log(`CAPTURE ${name} +${frame.ms}ms`);
   }
   if (errors.length) throw new Error(errors.join('\n'));
@@ -112,7 +148,25 @@ try {
   if (clips.length < 2 || revealFrames.length < 2 || !collapsed) {
     throw new Error(`Need visible-time samples and a lowered Blender head bone before Results; got ${clips.length} clips, ${revealFrames.length} compositor frames, collapsed=${collapsed}`);
   }
-  console.log(`PASS: real Runner defeat; ${clips.length} death clip samples, lowered head bone, ${revealFrames.length} compositor frames before Results. Rendered motion quality remains OPEN.`);
+  checks.push('authored death clip renders and lowers the head bone before Results');
+  const report = {
+    result: 'PASS',
+    url: URL,
+    viewport: { width: 844, height: 390, hasTouch: true, isMobile: true },
+    checks,
+    frames,
+    bank_events: bankEvents(),
+    death_clip_samples: clips.length,
+    compositor_frames_before_results: revealFrames.length,
+    errors,
+    relevant_log: lines.filter(line => /Encounter:|Progression:/.test(line)),
+    limits: [
+      'Software WebGL automation is not physical-device validation.',
+      'Rendered motion quality and human audibility remain unverified.',
+    ],
+  };
+  fs.writeFileSync(path.join(OUT, 'report.json'), `${JSON.stringify(report, null, 2)}\n`);
+  console.log(`PASS: real Runner defeat; ${clips.length} death clip samples, lowered head bone, ${revealFrames.length} compositor frames before Results; focused Retry entered fresh Defense with one bank event. Rendered motion quality remains OPEN.`);
 } finally {
   await browser.close();
 }

@@ -4,6 +4,40 @@ This document records the latest relevant evidence and its limits. It is not a d
 
 For intended behavior, read [`GAMEPLAY_DESIGN.md`](GAMEPLAY_DESIGN.md). For required gates, read [`DEVELOPMENT.md`](DEVELOPMENT.md).
 
+## Website integrated loop and Defeat/Retry checkpoint — 2026-11-01
+
+The current integrated Recovery/adaptation evidence and exact source/payload
+boundary are consolidated in [`INTEGRATED_VERTICAL_SLICE.md`](INTEGRATED_VERTICAL_SLICE.md).
+The final runtime remains payload `19852d7447cae0cca1419e98bdd97f9693fbc334`:
+PCK 90,719,636 bytes, SHA-256
+`11e50265ccc1f479013438203dad2eb35543d1eddd332afc00d7eb2bc6f6a25b`.
+Its full payload CI `41213150955` passed Static, 38/38 Headless, Web export, and
+all registered browser gates. No new runtime payload was requested for this
+QA-only follow-up.
+
+- **VERIFIED (focused final-payload browser failure/retry):** the direct exported
+  engine ran at supported 844×390 touch landscape. A real touch started Defense;
+  real Runner attacks reduced vitals to 0/100; the collapse remained visible for
+  eighteen captured compositor frames before Results. The no-KO attempt produced
+  one honest `banked +0 BP` event. Enter activated the focused Retry control,
+  which reset the attempt and entered a second Preparation and Defense without
+  another bank or stale Results. Inspected frames show restored 100/100 vitals
+  and 24/24 ammo. Result: **PASS, 5 checks, 23 inspected frames, 0 Godot/browser
+  errors**. Evidence and exact runner/report hashes:
+  [`../qa-evidence/defeat-retry-2026-11-01/`](../qa-evidence/defeat-retry-2026-11-01/README.md).
+- **FIXED (QA harness only):** the legacy death runner now deep-links with
+  `qa_stage=GAMEPLAY` and uses the product's supported landscape rather than an
+  unsupported direct-engine portrait. This corrects test targeting; it does not
+  change gameplay, add portrait gameplay, or claim a new HUD fix.
+- **VERIFIED (existing complete loop, unchanged):** the separate EN route passed
+  29 checks/20 inspected frames through real GLB combat, earned adaptation,
+  Secure, Endless, Results, one bank, hub, Armory, and redeploy. The ID visual-
+  only route passed 23 checks/11 inspected frames through Secure/Extraction.
+  These are distinct routes; the Defeat/Retry pass is not a second Recovery clear.
+- **UNKNOWN:** physical-device feel/performance, human animation/visual/audio
+  approval, and human balance assessment. Software-WebGL automation is not
+  physical-device validation. APK/native work remains paused.
+
 ## Website Operator and Recovery gameplay checkpoint — 2026-10-28
 
 | Item | Current checkpoint |
