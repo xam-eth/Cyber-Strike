@@ -128,7 +128,7 @@ func _test_recon_overdrive_combat_and_livery_isolation() -> void:
 	var hp_before := float(guardian.get("current_health"))
 	var fired := player.activate_skill()
 	_expect(fired, "Kestrel activates Recon Overdrive")
-	var disrupted: bool = bool(guardian.call("is_shield_disrupted"))
+	var disrupted: bool = bool(guardian.call("is_exposed"))
 	var hp_after := float(guardian.get("current_health"))
 	_expect(
 		disrupted and hp_after < hp_before,
