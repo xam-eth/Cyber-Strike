@@ -611,12 +611,21 @@ func set_skill_cooldown(remaining_seconds: float, total_seconds: float) -> void:
 	_refresh_skill_button()
 
 
-func show_skill_feedback(targets_hit: int) -> void:
+func show_skill_feedback(targets_hit: int, skill_id: StringName = &"") -> void:
 	if not is_instance_valid(_skill_button):
 		return
 	_skill_feedback_remaining = 1.1
 	_skill_button.text = ""
 	_skill_button.disabled = (_player_down or get_tree().paused or _skill_cooldown_remaining > 0.0)
+	var active_skill := skill_id if skill_id != &"" else _state.operative_skill_id
+	if active_skill == &"recon_pulse":
+		if targets_hit == 1:
+			_feedback_panel.show_message(AegisText.t("hud.recon_hit_one", [targets_hit]))
+		elif targets_hit > 1:
+			_feedback_panel.show_message(AegisText.t("hud.recon_hit", [targets_hit]))
+		else:
+			_feedback_panel.show_message(AegisText.t("hud.recon_overdrive"))
+		return
 	if targets_hit == 1:
 		_feedback_panel.show_message(AegisText.t("hud.emp_hit_one", [targets_hit]))
 	elif targets_hit > 1:
@@ -632,16 +641,22 @@ func _refresh_skill_button() -> void:
 	if _skill_cooldown_total > 0.0:
 		fraction = clampf(_skill_cooldown_remaining / _skill_cooldown_total, 0.0, 1.0)
 	_skill_button.text = ""
+	var is_recon := _state.operative_skill_id == &"recon_pulse"
+	var skill_label := "Recon Overdrive" if is_recon else "EMP Pulse"
 	if _skill_cooldown_remaining > 0.0:
 		_skill_cooldown_label.text = "%ds" % ceili(_skill_cooldown_remaining)
 		_skill_cooldown_label.visible = true
 		_skill_button.tooltip_text = (
-			"EMP Pulse · %d s until ready" % ceili(_skill_cooldown_remaining)
+			"%s · %d s until ready" % [skill_label, ceili(_skill_cooldown_remaining)]
 		)
 	else:
 		_skill_cooldown_label.text = ""
 		_skill_cooldown_label.visible = false
-		_skill_button.tooltip_text = "EMP Pulse · ready · damages nearby enemies"
+		_skill_button.tooltip_text = (
+			"Recon Overdrive · 18m lance + Overdrive boost"
+			if is_recon
+			else "EMP Pulse · ready · damages nearby enemies"
+		)
 	_skill_button.disabled = (_player_down or get_tree().paused or _skill_cooldown_remaining > 0.0)
 	if is_instance_valid(_skill_ring):
 		_skill_ring.remaining = fraction

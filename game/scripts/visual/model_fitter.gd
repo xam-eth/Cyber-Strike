@@ -149,3 +149,41 @@ static func transform_aabb(bounds: AABB, transform: Transform3D) -> AABB:
 		min_corner = min_corner.min(transformed)
 		max_corner = max_corner.max(transformed)
 	return AABB(min_corner, max_corner - min_corner)
+
+
+## Applies per-tier alloy/visor livery using duplicated surface overrides so
+## shared Mesh/Material resources in `res://` remain untouched across viewports.
+static func apply_livery(root: Node3D, livery: Dictionary) -> int:
+	if root == null or livery.is_empty():
+		return 0
+	var tint_hex := str(livery.get("tint", ""))
+	if tint_hex.is_empty():
+		return 0
+	var tint := Color.html(tint_hex)
+	var emission := Color.html(str(livery.get("emission", "#000000")))
+	var energy := maxf(float(livery.get("energy", 0.0)), 0.0)
+	var metal := float(livery.get("metal", -1.0))
+	var rough := float(livery.get("rough", -1.0))
+	var overridden := 0
+	for mesh_inst in meshes_of(root):
+		if mesh_inst == null or mesh_inst.mesh == null:
+			continue
+		for surface_idx in range(mesh_inst.mesh.get_surface_count()):
+			var source := mesh_inst.mesh.surface_get_material(surface_idx)
+			if source == null:
+				source = mesh_inst.get_active_material(surface_idx)
+			if not source is BaseMaterial3D:
+				continue
+			var dup := (source as BaseMaterial3D).duplicate() as BaseMaterial3D
+			dup.albedo_color = dup.albedo_color * tint
+			if metal >= 0.0:
+				dup.metallic = clampf(metal, 0.0, 1.0)
+			if rough >= 0.0:
+				dup.roughness = clampf(rough, 0.0, 1.0)
+			if energy > 0.0:
+				dup.emission_enabled = true
+				dup.emission = emission
+				dup.emission_energy_multiplier = energy
+			mesh_inst.set_surface_override_material(surface_idx, dup)
+			overridden += 1
+	return overridden

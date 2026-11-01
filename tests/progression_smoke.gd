@@ -98,8 +98,19 @@ func _run() -> void:
 		"each rank has its own model",
 	)
 	_expect(
-		not HeroTier.is_field_ready(&"kestrel"),
-		"a hero with no rig cannot be fielded",
+		(
+			HeroTier.is_field_ready(&"sable")
+			and HeroTier.is_field_ready(&"kestrel")
+			and not HeroTier.is_field_ready(&"vanguard")
+		),
+		"field-ready operatives require a real rig; in-development slots remain blocked",
+	)
+	_expect(
+		(
+			roundi(HeroTier.vitals(1, &"kestrel")) == 90
+			and roundi(HeroTier.vitals(5, &"kestrel")) == 116
+		),
+		"kestrel vitals reflect her scout offset across tiers 1..5",
 	)
 	# The profile in this fixture has already banked two runs, so what it owns is
 	# the roster's answer for *its* count, and what it fields is the saved rank

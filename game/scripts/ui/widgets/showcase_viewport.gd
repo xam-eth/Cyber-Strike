@@ -96,6 +96,9 @@ func present(scene: PackedScene, options: Dictionary = {}) -> bool:
 	_pivot = fitted["pivot"] as Node3D
 	_model = fitted["model"] as Node3D
 	_model_path = scene.resource_path
+	var livery: Variant = options.get("livery", {})
+	if livery is Dictionary and not (livery as Dictionary).is_empty():
+		ModelFitterScript.apply_livery(_model, livery as Dictionary)
 	_anim = _find_animation_player(_model)
 	_clip_names = _animation_list(_anim)
 	_cycle = []

@@ -49,6 +49,16 @@
       "role_key": "hero.sable.role",
       "brief_key": "hero.sable.brief",
       "portrait": "ui/art/web/hero/sable-tier-1.png",
+      "vitals_offset": 0,
+      "speed_pct": 0,
+      "reload_pct": 0,
+      "skill_id": "emp_pulse",
+      "skill_cooldown": 12.0,
+      "skill_range": 9.0,
+      "skill_damage": 18,
+      "overdrive_seconds": 0.0,
+      "overdrive_speed_pct": 0,
+      "overdrive_rate_pct": 0,
       "tiers": [
         {
           "tier": 1,
@@ -86,9 +96,85 @@
       "id": "kestrel",
       "callsign": "KESTREL",
       "name": "Dian Prameswari",
-      "status": "in_development",
+      "status": "field_ready",
       "role_key": "hero.kestrel.role",
       "brief_key": "hero.kestrel.brief",
+      "portrait": "ui/art/web/hero/kestrel-tier-1.png",
+      "vitals_offset": -10,
+      "speed_pct": 14,
+      "reload_pct": -10,
+      "skill_id": "recon_pulse",
+      "skill_cooldown": 10.5,
+      "skill_range": 18.0,
+      "skill_damage": 22,
+      "overdrive_seconds": 3.5,
+      "overdrive_speed_pct": 20,
+      "overdrive_rate_pct": 22,
+      "tiers": [
+        {
+          "tier": 1,
+          "model": "game/assets/characters/hero/hero.glb",
+          "rig": "game/assets/characters/hero/hero_rig.json",
+          "art": "ui/art/web/hero/kestrel-tier-1.png",
+          "tint": "#ffffff",
+          "emission": "#000000",
+          "energy": 0.0,
+          "metal": 0.36,
+          "rough": 0.46
+        },
+        {
+          "tier": 2,
+          "model": "game/assets/characters/hero/hero.glb",
+          "rig": "game/assets/characters/hero/hero_rig.json",
+          "art": "ui/art/web/hero/kestrel-tier-2.png",
+          "tint": "#9ec6f5",
+          "emission": "#082440",
+          "energy": 0.03,
+          "metal": 0.48,
+          "rough": 0.40
+        },
+        {
+          "tier": 3,
+          "model": "game/assets/characters/hero/hero.glb",
+          "rig": "game/assets/characters/hero/hero_rig.json",
+          "art": "ui/art/web/hero/kestrel-tier-3.png",
+          "tint": "#7cd9c2",
+          "emission": "#062b22",
+          "energy": 0.03,
+          "metal": 0.56,
+          "rough": 0.36
+        },
+        {
+          "tier": 4,
+          "model": "game/assets/characters/hero/hero.glb",
+          "rig": "game/assets/characters/hero/hero_rig.json",
+          "art": "ui/art/web/hero/kestrel-tier-4.png",
+          "tint": "#ebb66e",
+          "emission": "#2e1804",
+          "energy": 0.03,
+          "metal": 0.64,
+          "rough": 0.32
+        },
+        {
+          "tier": 5,
+          "model": "game/assets/characters/hero/hero.glb",
+          "rig": "game/assets/characters/hero/hero_rig.json",
+          "art": "ui/art/web/hero/kestrel-tier-5.png",
+          "tint": "#ff7a6b",
+          "emission": "#280408",
+          "energy": 0.04,
+          "metal": 0.72,
+          "rough": 0.28
+        }
+      ]
+    },
+    {
+      "id": "vanguard",
+      "callsign": "VANGUARD",
+      "name": "Raka Pratama",
+      "status": "in_development",
+      "role_key": "hero.vanguard.role",
+      "brief_key": "hero.vanguard.brief",
       "portrait": null,
       "tiers": [
         {

@@ -316,11 +316,11 @@ func tier_rig_path() -> String:
 
 ## The rank's health pool and plate, as the arena applies them.
 func tier_vitals() -> float:
-	return HeroTier.vitals(fieldable_tier())
+	return HeroTier.vitals(fieldable_tier(), selected_hero_id)
 
 
 func tier_damage_reduction() -> float:
-	return HeroTier.reduction(fieldable_tier())
+	return HeroTier.reduction(fieldable_tier(), selected_hero_id)
 
 
 func is_cache_secured(cache_id: StringName) -> bool:

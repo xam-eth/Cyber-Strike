@@ -478,6 +478,7 @@ static func show_extraction_choice(
 	else:
 		AegisText.apply(hud._results_reward_label, "recovery.primary_reward")
 	var summary_lines := PackedStringArray([AegisText.t("recovery.choice_summary")])
+	var active_hero: StringName = hud._state.operative_id
 	var cur_tier := HeroTier.owned_tier(completed_runs)
 	var next_tier := HeroTier.owned_tier(completed_runs + 1)
 	if next_tier > cur_tier:
@@ -490,8 +491,8 @@ static func show_extraction_choice(
 						"recovery.choice_tier_unlock",
 						[
 							next_tier,
-							roundi(HeroTier.vitals(next_tier)),
-							roundi(HeroTier.reduction(next_tier)),
+							roundi(HeroTier.vitals(next_tier, active_hero)),
+							roundi(HeroTier.reduction(next_tier, active_hero)),
 						],
 					)
 				)
@@ -505,7 +506,11 @@ static func show_extraction_choice(
 					AegisText
 					. t(
 						"recovery.choice_tier_progress",
-						[completed_runs + 1, cur_tier, roundi(HeroTier.vitals(cur_tier))],
+						[
+							completed_runs + 1,
+							cur_tier,
+							roundi(HeroTier.vitals(cur_tier, active_hero)),
+						],
 					)
 				)
 			)
@@ -624,6 +629,8 @@ static func format_recovery_summary(payload: Dictionary) -> String:
 			lines.append(AegisText.t("results.recovery_bp", [int(notice["amount"])]))
 	var run_banked: bool = payload.get("run_banked") == true
 	var promoted_tier := int(payload.get("promoted_tier", 0))
+	var hero_id := StringName(str(payload.get("hero_id", "sable")))
+	var callsign := HeroTier.callsign(hero_id)
 	if run_banked:
 		if promoted_tier > 1:
 			(
@@ -634,9 +641,10 @@ static func format_recovery_summary(payload: Dictionary) -> String:
 						. t(
 							"results.tier_promoted",
 							[
+								callsign,
 								promoted_tier,
-								roundi(HeroTier.vitals(promoted_tier)),
-								roundi(HeroTier.reduction(promoted_tier)),
+								roundi(HeroTier.vitals(promoted_tier, hero_id)),
+								roundi(HeroTier.reduction(promoted_tier, hero_id)),
 							],
 						)
 					)
@@ -654,7 +662,7 @@ static func format_recovery_summary(payload: Dictionary) -> String:
 							[
 								int(payload.get("completed_runs", 0)),
 								owned,
-								roundi(HeroTier.vitals(owned)),
+								roundi(HeroTier.vitals(owned, hero_id)),
 							],
 						)
 					)
@@ -679,7 +687,7 @@ static func format_recovery_summary(payload: Dictionary) -> String:
 					AegisText
 					. t(
 						"results.next_redeploy_tier",
-						[promoted_tier, roundi(HeroTier.vitals(promoted_tier))],
+						[promoted_tier, roundi(HeroTier.vitals(promoted_tier, hero_id))],
 					)
 				)
 			)

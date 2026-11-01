@@ -465,7 +465,7 @@ let heroState = { heroId: '', tier: 1, ownedTier: 1 };
 function rosterUrl() {
   // Cache-busted: a stale roster next to a fresh render is the one way these
   // two can disagree.
-  return './game/resources/heroes/roster.json?v=3';
+  return './game/resources/heroes/roster.json?v=4';
 }
 
 async function loadRoster() {
@@ -514,6 +514,25 @@ function tierModel(hero, tier) {
 function tierRig(hero, tier) {
   const entry = hero && hero.tiers ? hero.tiers.find((item) => item.tier === tier) : null;
   return entry && entry.rig ? entry.rig : null;
+}
+
+function tierLivery(hero, tier) {
+  const entry = hero && hero.tiers ? hero.tiers.find((item) => item.tier === tier) : null;
+  return entry && entry.tint
+    ? {
+        tint: entry.tint,
+        emission: entry.emission || '#000000',
+        energy: Number(entry.energy) || 0,
+        metal: Number.isFinite(entry.metal) ? entry.metal : -1,
+        rough: Number.isFinite(entry.rough) ? entry.rough : -1,
+      }
+    : null;
+}
+
+function heroVitals(hero, row) {
+  const base = row ? row.vitals : 100;
+  const offset = hero && Number.isFinite(hero.vitals_offset) ? hero.vitals_offset : 0;
+  return Math.max(1, base + offset);
 }
 
 /* One card component, two groups. The difference between them is what the name
@@ -665,11 +684,20 @@ function paintOperative() {
     role.textContent = t(hero.brief_key);
   }
   const vitals = el('hero-stat-vitals');
-  if (vitals) vitals.textContent = String(row.vitals);
+  const opVitals = heroVitals(hero, row);
+  const baseVitals = heroVitals(hero, tierRow(1));
+  if (vitals) vitals.textContent = String(opVitals);
   const armour = el('hero-stat-armour');
   if (armour) armour.textContent = `${row.reduction}%`;
   const vitalsDelta = el('hero-stat-vitals-delta');
-  if (vitalsDelta) vitalsDelta.textContent = row.tier > 1 ? t('hero.stat.from_base', row.vitals - 100) : '';
+  if (vitalsDelta) {
+    vitalsDelta.textContent =
+      row.tier > 1
+        ? t('hero.stat.from_base', opVitals - baseVitals)
+        : hero && hero.speed_pct > 0
+          ? `+${hero.speed_pct}% SPD`
+          : '';
+  }
   const armourDelta = el('hero-stat-armour-delta');
   // The plate figure is already the big number, so its note says what the
   // figure *means* rather than repeating it.
@@ -779,6 +807,7 @@ function stageShow(entry) {
     tier: heroState.tier,
     model: tierModel(hero, heroState.tier),
     rig: tierRig(hero, heroState.tier),
+    livery: tierLivery(hero, heroState.tier),
     weaponId: prefs.weapon,
     weaponTier: weaponTierFor(prefs.weapon),
     weaponModel: weapon.model,
@@ -1313,7 +1342,9 @@ function paintLoadout() {
     : Math.max(1, Math.min(Number(prefs.tier) || 1, completedRuns() >= 1 ? 2 : 1));
   const opCallsign = activeHero ? activeHero.callsign : 'Sable';
   const activeRow = tierRow(activeOpTier);
-  const opVitals = activeRow ? activeRow.vitals : (activeOpTier >= 2 ? 106 : 100);
+  const opVitals = activeRow
+    ? heroVitals(activeHero, activeRow)
+    : Math.max(1, (activeOpTier >= 2 ? 106 : 100) + (activeHero?.vitals_offset || 0));
   const opArmour = activeRow ? activeRow.reduction : (activeOpTier >= 2 ? 3 : 0);
   const portraitSrc = (activeHero && tierArt(activeHero, activeOpTier)) || `./ui/art/web/hero/sable-tier-${activeOpTier}.png`;
   const hubPortrait = el('hub-op-portrait');

@@ -390,9 +390,25 @@ static func finish_layout(hud) -> void:
 	)
 
 
-static func set_operative_telemetry(hud, tier: int, armor_pct: int) -> void:
+static func set_operative_telemetry(
+	hud,
+	tier: int,
+	armor_pct: int,
+	hero_id: StringName = &"sable",
+	skill_id: StringName = &"emp_pulse"
+) -> void:
+	hud._state.operative_id = hero_id if hero_id != &"" else &"sable"
+	hud._state.operative_skill_id = skill_id if skill_id != &"" else &"emp_pulse"
 	hud._state.operative_tier = clampi(tier, 1, 5)
 	hud._state.operative_armor_pct = maxi(armor_pct, 0)
+	var skill_caption := hud.get("_skill_caption") as Label
+	if is_instance_valid(skill_caption):
+		AegisText.apply(
+			skill_caption,
+			"hud.recon" if hud._state.operative_skill_id == &"recon_pulse" else "hud.emp"
+		)
+	if hud.has_method("_refresh_skill_button"):
+		hud._refresh_skill_button()
 	refresh_operative_badge(hud)
 
 
@@ -400,10 +416,11 @@ static func refresh_operative_badge(hud) -> void:
 	var badge := hud.get("_health_tier_badge") as Label
 	if not is_instance_valid(badge):
 		return
+	var prefix := "KST " if hud._state.operative_id == &"kestrel" else ""
 	var text := (
-		"T%d · %d%%" % [hud._state.operative_tier, hud._state.operative_armor_pct]
+		"%sT%d · %d%%" % [prefix, hud._state.operative_tier, hud._state.operative_armor_pct]
 		if hud._state.operative_armor_pct > 0
-		else "T%d" % hud._state.operative_tier
+		else "%sT%d" % [prefix, hud._state.operative_tier]
 	)
 	if not hud._state.field_kit_tags.is_empty():
 		text = "%s · %s" % [text, hud._state.field_kit_tags]

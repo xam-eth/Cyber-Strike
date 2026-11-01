@@ -41,6 +41,14 @@ var _scene_emp_radius: float = 9.0
 var _scene_emp_damage: float = 18.0
 var _tier_vitals_base: float = 100.0
 var _tier_dr_base: float = 0.0
+var _hero_id: StringName = HeroDefinition.DEFAULT_HERO_ID
+var _skill_id: StringName = &"emp_pulse"
+var _hero_speed_multiplier: float = 1.0
+var _hero_reload_multiplier: float = 1.0
+var _overdrive_duration: float = 0.0
+var _overdrive_speed_multiplier: float = 1.0
+var _overdrive_fire_rate_multiplier: float = 1.0
+var _overdrive_remaining: float = 0.0
 var _tech_modifiers: Dictionary = {}
 var _run_modifiers: Dictionary = {}
 var _skill_cooldown_remaining: float = 0.0
@@ -85,6 +93,10 @@ func _physics_process(delta: float) -> void:
 		visual_root.update_pose(Vector3.ZERO, true, delta)
 		return
 	_update_movement(delta)
+	if _overdrive_remaining > 0.0:
+		_overdrive_remaining = maxf(_overdrive_remaining - delta, 0.0)
+		if _overdrive_remaining <= 0.0 and is_instance_valid(weapon_controller):
+			weapon_controller.set_overdrive_fire_rate(1.0)
 	if _skill_cooldown_remaining > 0.0:
 		var previous_cooldown_bucket := ceili(_skill_cooldown_remaining)
 		_skill_cooldown_remaining = maxf(_skill_cooldown_remaining - delta, 0.0)
@@ -210,6 +222,19 @@ func activate_skill() -> bool:
 	if _is_defeated or _skill_cooldown_remaining > 0.0:
 		return false
 
+	var targets_hit := (
+		_execute_recon_pulse() if _skill_id == &"recon_pulse" else _execute_emp_pulse()
+	)
+	_skill_cooldown_remaining = emp_pulse_cooldown
+	var refill_ratio := float(_tech_modifiers.get("emp_ammo_refill_ratio", 0.0))
+	if refill_ratio > 0.0 and is_instance_valid(weapon_controller):
+		weapon_controller.refill_active_magazine_ratio(refill_ratio)
+	skill_cooldown_changed.emit(_skill_cooldown_remaining, emp_pulse_cooldown)
+	skill_used.emit(targets_hit, emp_pulse_cooldown)
+	return true
+
+
+func _execute_emp_pulse() -> int:
 	var targets_hit := 0
 	var radius_squared := emp_pulse_radius * emp_pulse_radius
 	for enemy in get_tree().get_nodes_in_group("enemies"):
@@ -225,15 +250,71 @@ func activate_skill() -> bool:
 			enemy.call("apply_emp_disrupt", self)
 		enemy.call("apply_damage", emp_pulse_damage, self)
 		targets_hit += 1
-
-	_skill_cooldown_remaining = emp_pulse_cooldown
-	var refill_ratio := float(_tech_modifiers.get("emp_ammo_refill_ratio", 0.0))
-	if refill_ratio > 0.0 and is_instance_valid(weapon_controller):
-		weapon_controller.refill_active_magazine_ratio(refill_ratio)
 	_spawn_emp_pulse_effect()
-	skill_cooldown_changed.emit(_skill_cooldown_remaining, emp_pulse_cooldown)
-	skill_used.emit(targets_hit, emp_pulse_cooldown)
-	return true
+	return targets_hit
+
+
+func _execute_recon_pulse() -> int:
+	var aim_delta := _get_aim_point() - global_position
+	aim_delta.y = 0.0
+	var lance_dir := -camera_rig.get_yaw_basis().z
+	lance_dir.y = 0.0
+	var aim_dist := aim_delta.length()
+	if aim_dist > 0.05:
+		lance_dir = aim_delta / aim_dist
+	elif lance_dir.length_squared() > 0.0001:
+		lance_dir = lance_dir.normalized()
+	else:
+		lance_dir = Vector3.FORWARD
+
+	var lance_length := maxf(emp_pulse_radius, 8.0)
+	var impact_dist := clampf(aim_dist if aim_dist > 1.0 else lance_length, 3.0, lance_length)
+	var impact_point := global_position + lance_dir * impact_dist
+	var corridor_half_sq := 1.8 * 1.8
+	var impact_rad_sq := 4.8 * 4.8
+	var close_rad_sq := 3.2 * 3.2
+	var targets_hit := 0
+
+	for enemy in get_tree().get_nodes_in_group("enemies"):
+		if not enemy is Node3D or not is_instance_valid(enemy):
+			continue
+		if enemy.has_method("is_defeated") and bool(enemy.call("is_defeated")):
+			continue
+		if not enemy.has_method("apply_damage"):
+			continue
+		var enemy_pos := (enemy as Node3D).global_position
+		var offset := enemy_pos - global_position
+		offset.y = 0.0
+		var along := offset.dot(lance_dir)
+		var lateral_sq := maxf(offset.length_squared() - along * along, 0.0)
+		var impact_offset := enemy_pos - impact_point
+		impact_offset.y = 0.0
+		var in_corridor := (
+			along >= -1.0 and along <= lance_length and lateral_sq <= corridor_half_sq
+		)
+		var in_impact := impact_offset.length_squared() <= impact_rad_sq
+		var in_close := offset.length_squared() <= close_rad_sq
+		if not (in_corridor or in_impact or in_close):
+			continue
+		if enemy.has_method("apply_emp_disrupt"):
+			enemy.call("apply_emp_disrupt", self)
+		enemy.call("apply_damage", emp_pulse_damage, self)
+		targets_hit += 1
+
+	if _overdrive_duration > 0.0:
+		_overdrive_remaining = _overdrive_duration
+		if is_instance_valid(weapon_controller):
+			weapon_controller.set_overdrive_fire_rate(_overdrive_fire_rate_multiplier)
+	_spawn_recon_lance_effect(lance_dir, impact_dist)
+	return targets_hit
+
+
+func active_skill_id() -> StringName:
+	return _skill_id
+
+
+func is_overdrive_active() -> bool:
+	return _overdrive_remaining > 0.0
 
 
 func has_shield_pierce_active() -> bool:
@@ -290,17 +371,45 @@ func can_take_damage() -> bool:
 func _apply_progression_tier() -> void:
 	var progression := _progression_service()
 	if progression != null:
-		var vitals := progression.tier_vitals()
-		if vitals > 0.0:
-			_tier_vitals_base = vitals
-		_tier_dr_base = clampf(progression.tier_damage_reduction() / 100.0, 0.0, 0.9)
 		_tech_modifiers = TechModuleDefinition.aggregate_modifiers(progression.equipped_modules)
+		apply_operative_profile(progression.selected_hero_id, progression.fieldable_tier())
 	else:
 		_tier_vitals_base = _scene_max_health
 		_tier_dr_base = 0.0
-	_recompute_runtime_stats()
+		_recompute_runtime_stats()
 	if is_instance_valid(weapon_controller):
 		weapon_controller.set_tech_modifiers(_tech_modifiers)
+
+
+## Applies operative identity, vitals, handling, and active tactical capability
+## from `roster.json` via `HeroTier`. Usable by both live sessions and fixtures.
+func apply_operative_profile(hero_id: StringName, tier: int) -> void:
+	_hero_id = hero_id if HeroTier.is_field_ready(hero_id) else HeroDefinition.DEFAULT_HERO_ID
+	var clamped_tier := clampi(tier, 1, maxi(HeroTier.tier_count(), 1))
+	var vitals := HeroTier.vitals(clamped_tier, _hero_id)
+	_tier_vitals_base = vitals if vitals > 0.0 else _scene_max_health
+	_tier_dr_base = clampf(HeroTier.reduction(clamped_tier, _hero_id) / 100.0, 0.0, 0.9)
+	_hero_speed_multiplier = HeroTier.move_speed_multiplier(_hero_id)
+	_hero_reload_multiplier = HeroTier.reload_multiplier(_hero_id)
+	var spec := HeroTier.skill_spec(_hero_id)
+	_skill_id = spec.get("skill_id", &"emp_pulse")
+	_scene_emp_cooldown = float(spec.get("cooldown", 12.0))
+	_scene_emp_radius = float(spec.get("range", 9.0))
+	_scene_emp_damage = float(spec.get("damage", 18.0))
+	_overdrive_duration = float(spec.get("overdrive_seconds", 0.0))
+	_overdrive_speed_multiplier = float(spec.get("overdrive_speed_multiplier", 1.0))
+	_overdrive_fire_rate_multiplier = float(spec.get("overdrive_fire_rate_multiplier", 1.0))
+	_overdrive_remaining = 0.0
+	_recompute_runtime_stats()
+	if not _is_defeated:
+		current_health = max_health
+	if is_instance_valid(weapon_controller):
+		weapon_controller.set_overdrive_fire_rate(1.0)
+		weapon_controller.set_operative_modifiers(_hero_reload_multiplier)
+	if is_instance_valid(visual_root):
+		visual_root.set_hero_tier(_hero_id, clamped_tier)
+	health_changed.emit(current_health, max_health)
+	skill_cooldown_changed.emit(_skill_cooldown_remaining, emp_pulse_cooldown)
 
 
 ## Applies permanent Field Kit Tech Module modifiers directly (usable in both
@@ -345,7 +454,8 @@ func clear_run_modifiers() -> void:
 
 func _recompute_runtime_stats() -> void:
 	var speed_mult := (
-		float(_run_modifiers.get("move_speed_multiplier", 1.0))
+		_hero_speed_multiplier
+		* float(_run_modifiers.get("move_speed_multiplier", 1.0))
 		* float(_tech_modifiers.get("move_speed_multiplier", 1.0))
 	)
 	var health_bonus := float(_run_modifiers.get("max_health_bonus", 0.0))
@@ -415,6 +525,9 @@ func reset_player() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	current_health = max_health
 	_skill_cooldown_remaining = 0.0
+	_overdrive_remaining = 0.0
+	if is_instance_valid(weapon_controller):
+		weapon_controller.set_overdrive_fire_rate(1.0)
 	velocity = Vector3.ZERO
 	_touch_movement = Vector2.ZERO
 	_touch_fire_pressed = false
@@ -487,6 +600,53 @@ func _spawn_emp_pulse_effect() -> void:
 	pulse_tween.tween_callback(pulse.queue_free)
 
 
+func _spawn_recon_lance_effect(lance_dir: Vector3, lance_length: float) -> void:
+	var lance := Node3D.new()
+	lance.name = "ReconLanceEffect"
+	var scene_root: Node = get_tree().current_scene
+	if scene_root == null:
+		scene_root = get_parent()
+	if scene_root == null:
+		lance.free()
+		return
+	scene_root.add_child(lance)
+	lance.global_position = global_position + Vector3(0.0, 0.14, 0.0)
+	lance.rotation.y = atan2(-lance_dir.x, -lance_dir.z)
+
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.albedo_color = Color(0.20, 0.96, 0.82, 0.78)
+	mat.emission_enabled = true
+	mat.emission = Color(0.18, 0.96, 0.84)
+	mat.emission_energy_multiplier = 1.65
+
+	var beam_mesh := BoxMesh.new()
+	beam_mesh.size = Vector3(0.28, 0.03, lance_length)
+	var beam := MeshInstance3D.new()
+	beam.mesh = beam_mesh
+	beam.position = Vector3(0.0, 0.0, -lance_length * 0.5)
+	beam.material_override = mat
+	beam.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	lance.add_child(beam)
+
+	var ring_mesh := TorusMesh.new()
+	ring_mesh.inner_radius = 1.85
+	ring_mesh.outer_radius = 2.05
+	ring_mesh.rings = 24
+	ring_mesh.ring_segments = 6
+	var ring := MeshInstance3D.new()
+	ring.mesh = ring_mesh
+	ring.position = Vector3(0.0, 0.02, -lance_length)
+	ring.material_override = mat
+	ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	lance.add_child(ring)
+
+	var fade := create_tween()
+	fade.tween_property(mat, "albedo_color:a", 0.0, 0.42)
+	fade.tween_callback(lance.queue_free)
+
+
 func _update_movement(delta: float) -> void:
 	var input_vector := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 	if _touch_movement.length_squared() > 0.0001:
@@ -502,7 +662,8 @@ func _update_movement(delta: float) -> void:
 	var move_direction := (right * input_vector.x - forward * input_vector.y).limit_length(1.0)
 	var horizontal_velocity := Vector3(velocity.x, 0.0, velocity.z)
 	var sprinting := Input.is_action_pressed("sprint") and input_vector.length() > 0.2
-	var target_speed := move_speed * (sprint_multiplier if sprinting else 1.0)
+	var overdrive_mult := _overdrive_speed_multiplier if _overdrive_remaining > 0.0 else 1.0
+	var target_speed := move_speed * overdrive_mult * (sprint_multiplier if sprinting else 1.0)
 	var desired_velocity := move_direction * target_speed
 	horizontal_velocity = horizontal_velocity.move_toward(
 		desired_velocity, move_acceleration * delta

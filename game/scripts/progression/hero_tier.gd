@@ -5,14 +5,8 @@ extends RefCounted
 ##
 ## The roster is one file for both halves of the product: the web shell builds
 ## the operative page's tier cards and ladder from it, and this class gives the
-## engine the same numbers -- which model a tier wears, what it is worth in
-## health and damage reduction, and how many completed runs unlock it. Before
-## this file the tier ladder existed only in the shell's copy of the data, which
-## is exactly how a card ends up claiming a costume the arena cannot field.
-##
-## It never *awards* anything: `owned_tier()` is a function of the run count the
-## player already has, so a tier is either earned or it is not. Every caller that
-## can be reached from a URL passes the result through here.
+## engine the same numbers -- which model a tier wears, per-hero vitals/mobility,
+## tactical capability specs, and how many completed runs unlock each tier.
 
 const ROSTER_PATH := "res://resources/heroes/roster.json"
 
@@ -20,9 +14,6 @@ static var _roster: Dictionary = {}
 static var _loaded: bool = false
 
 
-## Read once. An unreadable or malformed roster yields an empty table rather than
-## a partially-invented one: every accessor below then answers with the tier-1
-## default, which is the only rank that needs no unlock.
 static func roster() -> Dictionary:
 	if _loaded:
 		return _roster
@@ -40,9 +31,6 @@ static func roster() -> Dictionary:
 	return _roster
 
 
-## Godot imports `.json` as a resource in 4.x, which means the file can also be
-## reached with `load()`; the plain read is tried first because it works in the
-## editor and in an exported build alike.
 static func _read(path: String) -> String:
 	if FileAccess.file_exists(path):
 		return FileAccess.get_file_as_string(path)
@@ -65,9 +53,6 @@ static func rows() -> Array:
 	return out
 
 
-## The row for [param tier], clamped into the ladder. A tier outside 1..count
-## answers with the nearest end rather than with nothing: the caller prints a
-## number, and a blank stat panel is worse than a clamped one.
 static func row(tier: int) -> Dictionary:
 	var table := rows()
 	if table.is_empty():
@@ -79,7 +64,6 @@ static func row(tier: int) -> Dictionary:
 	return table[clampi(want - 1, 0, table.size() - 1)]
 
 
-## The highest rank [param completed_runs] has earned. Tier 1 needs no runs.
 static func owned_tier(completed_runs: int) -> int:
 	var owned := 1
 	for entry in rows():
@@ -88,13 +72,20 @@ static func owned_tier(completed_runs: int) -> int:
 	return owned
 
 
-static func vitals(tier: int) -> float:
-	return float(row(tier).get("vitals", 100))
+static func vitals(tier: int, hero_id: StringName = &"") -> float:
+	var base := float(row(tier).get("vitals", 100))
+	if hero_id == &"":
+		return base
+	var offset := float(hero(hero_id).get("vitals_offset", 0))
+	return maxf(base + offset, 1.0)
 
 
-## Percent of incoming damage the tier's plate absorbs, 0..100.
-static func reduction(tier: int) -> float:
-	return float(row(tier).get("reduction", 0))
+static func reduction(tier: int, hero_id: StringName = &"") -> float:
+	var base := float(row(tier).get("reduction", 0))
+	if hero_id == &"":
+		return base
+	var offset := float(hero(hero_id).get("reduction_offset", 0))
+	return clampf(base + offset, 0.0, 90.0)
 
 
 static func hero(hero_id: StringName) -> Dictionary:
@@ -104,8 +95,58 @@ static func hero(hero_id: StringName) -> Dictionary:
 	return {}
 
 
-## The rig GLB a tier wears, as a `res://` path, or "" when the hero has no
-## model at that rank (an in-development slot).
+static func callsign(hero_id: StringName) -> String:
+	var entry := hero(hero_id)
+	var sign := str(entry.get("callsign", ""))
+	if not sign.is_empty():
+		return sign
+	return String(hero_id).to_upper()
+
+
+static func skill_id(hero_id: StringName) -> StringName:
+	var raw := str(hero(hero_id).get("skill_id", "emp_pulse"))
+	return StringName(raw if not raw.is_empty() else "emp_pulse")
+
+
+static func move_speed_multiplier(hero_id: StringName) -> float:
+	var pct := float(hero(hero_id).get("speed_pct", 0.0))
+	return clampf(1.0 + pct * 0.01, 0.5, 2.0)
+
+
+static func reload_multiplier(hero_id: StringName) -> float:
+	var pct := float(hero(hero_id).get("reload_pct", 0.0))
+	return clampf(1.0 + pct * 0.01, 0.4, 2.0)
+
+
+static func skill_spec(hero_id: StringName) -> Dictionary:
+	var entry := hero(hero_id)
+	return {
+		"skill_id": skill_id(hero_id),
+		"cooldown": maxf(float(entry.get("skill_cooldown", 12.0)), 1.0),
+		"range": maxf(float(entry.get("skill_range", 9.0)), 1.0),
+		"damage": maxf(float(entry.get("skill_damage", 18.0)), 0.0),
+		"overdrive_seconds": maxf(float(entry.get("overdrive_seconds", 0.0)), 0.0),
+		"overdrive_speed_multiplier":
+		1.0 + maxf(float(entry.get("overdrive_speed_pct", 0.0)), 0.0) * 0.01,
+		"overdrive_fire_rate_multiplier":
+		1.0 + maxf(float(entry.get("overdrive_rate_pct", 0.0)), 0.0) * 0.01,
+	}
+
+
+static func tier_livery(hero_id: StringName, tier: int) -> Dictionary:
+	var item := _tier_row(hero_id, tier)
+	var tint := str(item.get("tint", ""))
+	if tint.is_empty():
+		return {}
+	return {
+		"tint": tint,
+		"emission": str(item.get("emission", "#000000")),
+		"energy": float(item.get("energy", 0.0)),
+		"metal": float(item.get("metal", -1.0)),
+		"rough": float(item.get("rough", -1.0)),
+	}
+
+
 static func model_path(hero_id: StringName, tier: int) -> String:
 	return _engine_path(_tier_field(hero_id, tier, "model"))
 
@@ -118,31 +159,30 @@ static func art_path(hero_id: StringName, tier: int) -> String:
 	return _tier_field(hero_id, tier, "art")
 
 
-## The roster is also fetched by the HTML shell, so its authoring paths are
-## repository-relative (`game/assets/...`). Engine consumers alone translate
-## them to `res://`; the shell's art paths remain untouched.
 static func _engine_path(path: String) -> String:
 	if path.begins_with("game/"):
 		return "res://" + path.trim_prefix("game/")
 	return path
 
 
-static func _tier_field(hero_id: StringName, tier: int, field: String) -> String:
+static func _tier_row(hero_id: StringName, tier: int) -> Dictionary:
 	var entry := hero(hero_id)
 	var table: Array = entry.get("tiers", [])
 	if table.is_empty():
-		return ""
+		return {}
 	var want := clampi(tier, 1, table.size())
 	for item in table:
-		if int(item.get("tier", 0)) == want:
-			var value: Variant = item.get(field, null)
-			return str(value) if value is String else ""
-	return ""
+		if item is Dictionary and int(item.get("tier", 0)) == want:
+			return item
+	return {}
 
 
-## A hero can be fielded when the roster says so *and* a tier-1 model exists.
-## The status string alone is not enough: a slot marked field_ready with no rig
-## is a card that would spawn nothing.
+static func _tier_field(hero_id: StringName, tier: int, field: String) -> String:
+	var item := _tier_row(hero_id, tier)
+	var value: Variant = item.get(field, null)
+	return str(value) if value is String else ""
+
+
 static func is_field_ready(hero_id: StringName) -> bool:
 	var entry := hero(hero_id)
 	if entry.is_empty():

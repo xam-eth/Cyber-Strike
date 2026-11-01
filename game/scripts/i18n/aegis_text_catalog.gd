@@ -114,7 +114,8 @@ const STRINGS := {
 		"hero.confirm_tip": "Confirm %s",
 		"hero.equipped_tip": "%s is equipped",
 		"hero.continue_tip": "Choose a weapon",
-		"hero.vitals_line": "TIER %d  ·  HP %d  ·  ARMOUR %d%%  ·  EMP 7.5M",
+		"hero.vitals_line": "TIER %d  ·  HP %d  ·  ARMOUR %d%%  ·  EMP 9M",
+		"hero.vitals_line_recon": "TIER %d  ·  HP %d  ·  ARMOUR %d%%  ·  RECON 18M",
 		"hero.tier_btn": "TIER %d/%d",
 		"hero.tier_cycle_tip": "Cycle unlocked operative tier (%d / %d)",
 		"hero.tier_locked_tip": "Operative Tier %d / %d (complete runs to unlock higher plate)",
@@ -124,6 +125,13 @@ const STRINGS := {
 			+ "Her kit is the rank: every tier is plate welded over the last one."
 		),
 		"hero.sable.status": "FIELD READY",
+		"hero.kestrel.role":
+		(
+			"High-mobility recon scout built for long-sightline disruption. "
+			+ "Trades 10 base vitals for +14% stride speed, faster reloads, "
+			+ "and an 18m Recon Overdrive lance."
+		),
+		"hero.kestrel.status": "FIELD READY",
 		# The five ranks of SABLE. Names a player reads on the tier cards, so they
 		# live in the catalog like every other line of copy; the numbers beside
 		# them (runs, vitals, plate) live in resources/heroes/roster.json.
@@ -205,6 +213,7 @@ const STRINGS := {
 		"hud.aim": "AIM",
 		"hud.aim_active": "ADS ON",
 		"hud.emp": "EMP",
+		"hud.recon": "RECON",
 		"hud.swap": "SWAP",
 		"hud.armory_short": "ARMORY",
 		"hero.slots_development": "%d OPERATIVE SLOTS IN DEVELOPMENT",
@@ -279,6 +288,9 @@ const STRINGS := {
 		"hud.emp_hit": "EMP PULSE · %d TARGETS",
 		"hud.emp_hit_one": "EMP PULSE · %d TARGET",
 		"hud.emp_miss": "EMP PULSE · NO TARGETS",
+		"hud.recon_hit": "RECON LANCE · %d DISRUPTED · OVERDRIVE",
+		"hud.recon_hit_one": "RECON LANCE · %d DISRUPTED · OVERDRIVE",
+		"hud.recon_overdrive": "RECON OVERDRIVE · +20% SPEED",
 		"hud.target_down_bp": "TARGET DOWN · +%d BP",
 		"hud.wave_clear_bp": "WAVE %02d CLEAR · +%d BP",
 		"hud.pause_tip": "Pause (Esc)",
@@ -358,7 +370,7 @@ const STRINGS := {
 		"results.extracted_eyebrow": "EXPEDITION EXTRACTED · PROGRESS SAVED",
 		"results.extracted_title": "EXTRACTION COMPLETE",
 		"results.extracted_reward": "TECH SECURED · EXPEDITION BANKED",
-		"results.tier_promoted": "PROMOTED · SABLE TIER %d READY (%d HP · %d%% ARMOR)",
+		"results.tier_promoted": "PROMOTED · %s TIER %d READY (%d HP · %d%% ARMOR)",
 		"results.runs_tier_kept": "KEPT · %d RUNS BANKED · TIER %d OWNED (%d HP)",
 		"results.reset_clean": "RESET · FIELD ENEMIES & TEMP RUN STATE CLEARED",
 		"results.next_redeploy_tier": "NEXT · HOME > OPERATIVE > TIER %d (%d HP) > REDEPLOY",
@@ -538,7 +550,8 @@ const STRINGS := {
 		"hero.confirm_tip": "Konfirmasi %s",
 		"hero.equipped_tip": "%s sudah terpasang",
 		"hero.continue_tip": "Pilih senjata",
-		"hero.vitals_line": "TIER %d  ·  HP %d  ·  ZIRAH %d%%  ·  EMP 7.5M",
+		"hero.vitals_line": "TIER %d  ·  HP %d  ·  ZIRAH %d%%  ·  EMP 9M",
+		"hero.vitals_line_recon": "TIER %d  ·  HP %d  ·  ZIRAH %d%%  ·  INTAI 18M",
 		"hero.tier_btn": "TINGKAT %d/%d",
 		"hero.tier_cycle_tip": "Ganti tingkat operatif terbuka (%d / %d)",
 		"hero.tier_locked_tip": "Tingkat Operatif %d / %d (tuntaskan sesi untuk pelat berikutnya)",
@@ -549,6 +562,12 @@ const STRINGS := {
 			+ "dilas menutup pelat sebelumnya."
 		),
 		"hero.sable.status": "SIAP TURUN",
+		"hero.kestrel.role":
+		(
+			"Peninjau intai gesit untuk disrupsi jarak jauh. Menukar 10 HP dasar "
+			+ "demi +14% kecepatan gerak, isi ulang cepat, dan tombak Recon Overdrive 18m."
+		),
+		"hero.kestrel.status": "SIAP TURUN",
 		"hero.tier.1.name": "REKRUT LAPANGAN",
 		"hero.tier.2.name": "BERPELAT",
 		"hero.tier.3.name": "GARIS DEPAN",
@@ -628,6 +647,7 @@ const STRINGS := {
 		"hud.aim": "BIDIK",
 		"hud.aim_active": "ADS AKTIF",
 		"hud.emp": "EMP",
+		"hud.recon": "INTAI",
 		"hud.swap": "GANTI",
 		"hud.armory_short": "ARSENAL",
 		"hero.slots_development": "%d SLOT OPERATIF DALAM PENGEMBANGAN",
@@ -702,6 +722,9 @@ const STRINGS := {
 		"hud.emp_hit": "DENYUT EMP · %d SASARAN",
 		"hud.emp_hit_one": "DENYUT EMP · %d SASARAN",
 		"hud.emp_miss": "DENYUT EMP · TANPA SASARAN",
+		"hud.recon_hit": "TOMBAK INTAI · %d LUMPUH · OVERDRIVE",
+		"hud.recon_hit_one": "TOMBAK INTAI · %d LUMPUH · OVERDRIVE",
+		"hud.recon_overdrive": "OVERDRIVE INTAI · +20% GERAK",
 		"hud.target_down_bp": "MUSUH KO · +%d BP",
 		"hud.wave_clear_bp": "GEL %02d LULUS · +%d BP",
 		"hud.pause_tip": "Jeda (Esc)",
@@ -780,7 +803,7 @@ const STRINGS := {
 		"results.extracted_eyebrow": "EKSPEDISI DIEKSTRAK · PROGRES TERSIMPAN",
 		"results.extracted_title": "EKSTRAKSI SELESAI",
 		"results.extracted_reward": "TEKNOLOGI AMAN · EKSPEDISI TERSIMPAN",
-		"results.tier_promoted": "NAIK TIER · SABLE TIER %d SIAP (%d HP · %d%% ZIRAH)",
+		"results.tier_promoted": "NAIK TIER · %s TIER %d SIAP (%d HP · %d%% ZIRAH)",
 		"results.runs_tier_kept": "TERSIMPAN · %d RUN · TIER %d DIMILIKI (%d HP)",
 		"results.reset_clean": "DIRESET · MUSUH ARENA & MOD SEMENTARA DIHAPUS",
 		"results.next_redeploy_tier": "LANJUT · BERANDA > OPERATIF > TIER %d (%d HP) > DEPLOY",

@@ -20,6 +20,8 @@ var _available_ids: Dictionary = {"pulse_rifle": true}
 var _weapon_tiers: Dictionary = {}
 var _tech_modifiers: Dictionary = {}
 var _run_modifiers: Dictionary = {}
+var _operative_reload_multiplier: float = 1.0
+var _overdrive_fire_rate_multiplier: float = 1.0
 var _effective_definitions: Array[WeaponDefinition] = []
 
 
@@ -157,6 +159,21 @@ func set_tech_modifiers(modifiers: Dictionary) -> void:
 	_rebuild_effective_definitions(true, false)
 
 
+## Applies permanent operative handling traits (such as Kestrel's -10% reload)
+## alongside weapon tiers, Field Kit modules, and temporary run evolutions.
+func set_operative_modifiers(reload_multiplier: float) -> void:
+	var clamped := clampf(reload_multiplier, 0.4, 2.0)
+	if is_equal_approx(_operative_reload_multiplier, clamped):
+		return
+	_operative_reload_multiplier = clamped
+	_rebuild_effective_definitions(true, false)
+
+
+## Applies temporary Overdrive fire-rate boost during Kestrel's Recon Overdrive.
+func set_overdrive_fire_rate(multiplier: float) -> void:
+	_overdrive_fire_rate_multiplier = clampf(multiplier, 1.0, 2.5)
+
+
 ## Refills a fraction of the active weapon's magazine immediately (Phase
 ## Thrusters EMP synergy) and cancels an in-flight reload if full.
 func refill_active_magazine_ratio(ratio: float) -> int:
@@ -200,6 +217,7 @@ func _rebuild_effective_definitions(preserve_ammo: bool, refill_magazines: bool)
 	_effective_definitions.clear()
 	var has_run_mods := not _run_modifiers.is_empty()
 	var has_tech_mods := not _tech_modifiers.is_empty()
+	var has_op_mods := not is_equal_approx(_operative_reload_multiplier, 1.0)
 	var run_dmg := float(_run_modifiers.get("damage_multiplier", 1.0))
 	var run_rate := float(_run_modifiers.get("fire_rate_multiplier", 1.0))
 	var run_reload := float(_run_modifiers.get("reload_multiplier", 1.0))
@@ -219,13 +237,19 @@ func _rebuild_effective_definitions(preserve_ammo: bool, refill_magazines: bool)
 		var id := String(base.weapon_id)
 		var tier := clampi(int(_weapon_tiers.get(id, 1)), 1, WeaponTier.tier_count())
 		var effective := base
-		if tier > 1 or has_run_mods or has_tech_mods:
+		if tier > 1 or has_run_mods or has_tech_mods or has_op_mods:
 			effective = base.duplicate(true) as WeaponDefinition
 			var damage_scale := WeaponTier.damage_multiplier(tier) * run_dmg
 			effective.damage = base.damage * damage_scale
 			effective.splash_damage = base.splash_damage * damage_scale
 			effective.reload_seconds = maxf(
-				base.reload_seconds * WeaponTier.reload_multiplier(tier) * run_reload * tech_reload,
+				(
+					base.reload_seconds
+					* WeaponTier.reload_multiplier(tier)
+					* run_reload
+					* tech_reload
+					* _operative_reload_multiplier
+				),
 				0.25
 			)
 			effective.fire_rate = base.fire_rate * run_rate
@@ -331,7 +355,9 @@ func try_fire(shooter: CollisionObject3D, muzzle: Marker3D, aim_point: Vector3) 
 		projectile_parent = get_tree().root
 	projectile_parent.add_child(projectile)
 	projectile.call("launch", muzzle.global_position, aim_point, shooter, definition)
-	_cooldowns[_current_weapon_index] = 1.0 / definition.fire_rate
+	_cooldowns[_current_weapon_index] = (
+		1.0 / (definition.fire_rate * _overdrive_fire_rate_multiplier)
+	)
 	_magazines[_current_weapon_index] -= 1
 	if _magazines[_current_weapon_index] == 0:
 		request_reload()

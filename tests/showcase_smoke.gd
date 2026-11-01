@@ -95,13 +95,22 @@ func _check_hero_model_is_the_gameplay_model() -> void:
 		)
 		if not is_instance_valid(declared) or gameplay == null:
 			continue
+		var tier_one_model := HeroTier.model_path(definition.hero_id, 1)
 		_expect(
-			definition.resolved_model_path() == gameplay.resource_path,
+			definition.resolved_model_path() == tier_one_model,
 			(
-				"%s: the showcased model is the avatar's model (%s)"
-				% [definition.hero_id, gameplay.resource_path]
+				"%s: the showcased model matches HeroTier tier 1 (%s)"
+				% [definition.hero_id, tier_one_model]
 			)
 		)
+		if definition.hero_id == HeroDefinition.DEFAULT_HERO_ID:
+			_expect(
+				definition.resolved_model_path() == gameplay.resource_path,
+				(
+					"%s: default operative matches player.tscn default model (%s)"
+					% [definition.hero_id, gameplay.resource_path]
+				)
+			)
 		# A rig is what makes the showcase a character rather than a statue.
 		var instance := declared.instantiate()
 		root.add_child(instance)

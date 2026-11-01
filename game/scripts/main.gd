@@ -347,8 +347,13 @@ func _on_profile_changed() -> void:
 	if is_instance_valid(run_upgrade_manager) and run_upgrade_manager.total_stacks() > 0:
 		player.apply_run_modifiers(run_upgrade_manager.get_modifiers(), 0.0, false)
 	var op_tier := progression_service.fieldable_tier()
+	var op_hero := progression_service.selected_hero_id
 	HudEncounterUi.set_operative_telemetry(
-		touch_controls, op_tier, roundi(HeroTier.reduction(op_tier))
+		touch_controls,
+		op_tier,
+		roundi(HeroTier.reduction(op_tier, op_hero)),
+		op_hero,
+		HeroTier.skill_id(op_hero)
 	)
 	(
 		HudArmoryBridge
@@ -1298,6 +1303,7 @@ func _recovery_result_summary() -> String:
 				"notices": _recovery_notices,
 				"run_banked": _run_banked,
 				"promoted_tier": _unlocked_tier_on_run,
+				"hero_id": String(progression_service.selected_hero_id),
 				"has_caches": not _recovery_caches.is_empty(),
 				"completed_runs": progression_service.completed_runs,
 				"owned_tier": progression_service.owned_tier(),
@@ -1337,7 +1343,7 @@ func _on_target_damage_received(_amount: float, _current: float, _maximum: float
 
 func _on_skill_used(targets_hit: int, _cooldown_seconds: float) -> void:
 	Sfx.play_3d(&"skill_pulse", player.global_position)
-	touch_controls.show_skill_feedback(targets_hit)
+	touch_controls.show_skill_feedback(targets_hit, player.active_skill_id())
 
 
 func _on_combatant_health_changed(_current: float, _maximum: float) -> void:

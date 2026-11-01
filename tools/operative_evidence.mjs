@@ -103,6 +103,11 @@ for (const viewport of viewports) {
       if (message.type() === 'error') errors.push(message.text().slice(0, 160));
     });
     await page.setViewport({ width, height, deviceScaleFactor: 1, hasTouch: true });
+    await page.evaluateOnNewDocument(() => {
+      try {
+        window.localStorage.clear();
+      } catch (_err) {}
+    });
     await page.goto(`http://127.0.0.1:${port}/index.html?lang=${locale}&ui=hero&ui_hold=1`, {
       waitUntil: 'domcontentloaded',
     });
@@ -233,7 +238,7 @@ for (const viewport of viewports) {
     const before = await page.evaluate(() => ({
       tier: document.querySelector('#hero-tier-number').textContent,
     }));
-    await page.click('#hero-roster .card[data-hero="kestrel"]', { force: true }).catch(() => null);
+    await page.click('#hero-roster .card[data-hero="vanguard"]', { force: true }).catch(() => null);
     await sleep(160);
     const after = await page.evaluate(() => ({
       tier: document.querySelector('#hero-tier-number').textContent,
@@ -244,6 +249,27 @@ for (const viewport of viewports) {
       console.error(`FAIL ${viewport} ${locale}: a locked slot changed the operative to ${after.name}`);
     }
     frames.push({ name: 'locked-refused', viewport, locale, before, after });
+
+    // --- Kestrel operative switches rig, vitals, and livery --------------
+    await page.click('#hero-roster .card[data-hero="kestrel"]');
+    await sleep(600);
+    await stageReady(page);
+    const kestrelState = await page.evaluate(() => ({
+      name: document.querySelector('#hero-name')?.textContent,
+      callsign: document.querySelector('#hero-callsign')?.textContent,
+      vitals: document.querySelector('#hero-stat-vitals')?.textContent,
+      stage: window.AegisHeroStage?.describe?.(),
+    }));
+    await shot('kestrel-ready');
+    if (
+      kestrelState.name !== 'Dian Prameswari' ||
+      kestrelState.callsign !== 'KESTREL' ||
+      !kestrelState.stage?.modelUrl?.includes('hero.glb') ||
+      !kestrelState.stage?.rifleVisible
+    ) {
+      failures += 1;
+      console.error(`FAIL ${viewport} ${locale}: kestrel stage did not mount (${JSON.stringify(kestrelState)})`);
+    }
 
     // --- the rack --------------------------------------------------------
     await page.click('#hero-loadout');

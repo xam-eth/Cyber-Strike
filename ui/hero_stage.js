@@ -132,7 +132,32 @@ if (stage && canvas) {
   let socketNode = null;
   let handFound = false;
   let saluteTimer = 0;
+  let activeLivery = null;
+  let baseMaterials = [];
   const clock = new THREE.Clock();
+
+  function applyLivery(spec) {
+    activeLivery = spec || null;
+    if (!baseMaterials.length) return;
+    const tint = new THREE.Color((spec && spec.tint) || '#ffffff');
+    const emission = new THREE.Color((spec && spec.emission) || '#000000');
+    const energy = spec && Number.isFinite(spec.energy) ? Math.max(0, spec.energy) : 0;
+    const metal = spec && Number.isFinite(spec.metal) ? spec.metal : -1;
+    const rough = spec && Number.isFinite(spec.rough) ? spec.rough : -1;
+    for (const entry of baseMaterials) {
+      entry.mat.color.copy(entry.baseColor).multiply(tint);
+      if (entry.mat.emissive) {
+        entry.mat.emissive.copy(energy > 0 ? emission : entry.baseEmissive);
+        entry.mat.emissiveIntensity = energy > 0 ? energy : entry.baseEmissiveIntensity;
+      }
+      entry.mat.metalness = metal >= 0 ? metal : entry.baseMetalness;
+      entry.mat.roughness = rough >= 0 ? rough : entry.baseRoughness;
+      entry.mat.needsUpdate = true;
+    }
+    if (renderer && scene && camera && reduced()) {
+      renderer.render(scene, camera);
+    }
+  }
 
   function fail(reason) {
     // A silent empty stage is the worst outcome: say what happened, in the same
@@ -517,23 +542,36 @@ function loadModel(url) {
       (gltf) => {
         if (disposed || token !== loadToken) return;
         model = gltf.scene;
+        baseMaterials = [];
         model.traverse((node) => {
           if (node.isMesh) {
             node.frustumCulled = false; // skinned bounds lie; the stage is tiny
             node.castShadow = false;
             node.receiveShadow = false;
+            if (Array.isArray(node.material)) {
+              node.material = node.material.map((m) => (m ? m.clone() : m));
+            } else if (node.material) {
+              node.material = node.material.clone();
+            }
             for (const material of [].concat(node.material)) {
               if (!material) continue;
               material.envMapIntensity = 0.9;
-              // The rig ships as a single scanned material; give it the little
-              // bit of specular response that reads as armour under the beams.
               if (material.isMeshStandardMaterial) {
                 material.roughness = Math.min(material.roughness ?? 0.7, 0.55);
                 material.metalness = Math.max(material.metalness ?? 0.1, 0.35);
+                baseMaterials.push({
+                  mat: material,
+                  baseColor: material.color.clone(),
+                  baseEmissive: material.emissive ? material.emissive.clone() : new THREE.Color(0),
+                  baseEmissiveIntensity: material.emissiveIntensity ?? 0,
+                  baseMetalness: material.metalness,
+                  baseRoughness: material.roughness,
+                });
               }
             }
           }
         });
+        applyLivery(activeLivery);
         scene.add(model);
 
         mixer = new THREE.AnimationMixer(model);
@@ -675,15 +713,18 @@ function loadModel(url) {
       tier,
       model: url,
       rig,
+      livery,
       weaponId: id,
       weaponTier: rank,
       weaponModel,
       entry,
     } = {}) {
+      const heroChanged = typeof hero === 'string' && hero && hero !== heroId;
       if (typeof hero === 'string' && hero) heroId = hero;
       if (Number.isFinite(tier)) tierNumber = tier;
       if (typeof id === 'string' && id) weaponId = id;
       if (Number.isFinite(rank)) weaponTier = Math.max(1, Math.floor(rank));
+      activeLivery = livery || null;
       entrance.mode = entry === 'top' ? 'top' : entry === 'right' ? 'right' : entrance.mode;
       if (typeof rig === 'string' && rig && rig !== socketUrl) loadSocket(rig);
       let reload = false;
@@ -703,6 +744,11 @@ function loadModel(url) {
         loadModel(loadedUrl);
         return;
       }
+      if (heroChanged) {
+        celebration = null;
+        loadCelebration();
+      }
+      applyLivery(activeLivery);
       // Same assets, new beat: replay the entrance without another download.
       if (entry) applyEntrance(true);
       start();
@@ -789,6 +835,7 @@ function loadModel(url) {
         celebration: celebration ? celebration.getClip().name : null,
         celebrationSeconds: celebration ? Number(celebration.getClip().duration.toFixed(2)) : null,
         heroId,
+        livery: activeLivery ? activeLivery.tint : null,
         weaponId,
         weaponTier,
         weaponModel: weaponUrl,

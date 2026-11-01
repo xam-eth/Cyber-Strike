@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="HeroDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/hero_definition.gd" id="1_definition"]
+
+[resource]
+script = ExtResource("1_definition")
+hero_id = &"kestrel"
+display_name = "Dian Prameswari"
+role_description = "High-mobility recon scout built for long-sightline disruption. Trades 10 base vitals for +14% stride speed, faster reloads, and an 18m Recon Overdrive lance."
+portrait_path = "res://assets/ui/portrait_kestrel.png"
+status_line = "FIELD READY"
+field_ready = true
+model_scene_path = "res://assets/characters/hero/hero.glb"
+showcase_clips = Array[String](["idle", "aim", "fire"])

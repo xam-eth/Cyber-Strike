@@ -23,9 +23,8 @@ const ShowcaseViewportScript = preload("res://scripts/ui/widgets/showcase_viewpo
 ## The id the screen starts on. The roster is read from `HeroDefinition`, not
 ## from a second list kept here.
 const OPERATIVE_ID := ProgressionService.DEFAULT_HERO_ID
-## Placeholder slots, so the layout is not one lonely chip on a tablet. They are
-## disabled and never selectable: the project ships one operative.
-const LOCKED_SLOTS := 2
+## Placeholder slot after the two field-ready operatives (`sable`, `kestrel`).
+const LOCKED_SLOTS := 1
 ## Showcase model height in metres. The same value `CharacterVisual` fits the
 ## avatar to, so the showcase and the arena agree about how tall this hero is.
 const SHOWCASE_HEIGHT := 1.78
@@ -53,6 +52,7 @@ var _select_button: AegisButton
 var _continue: AegisButton
 var _selected := OPERATIVE_ID
 var _select_requested := false
+var _last_livery: Dictionary = {}
 
 # The two columns of the one (landscape) arrangement.
 var _stack: VBoxContainer
@@ -242,15 +242,19 @@ func _on_nav_requested(tab_id: StringName) -> void:
 			pass
 
 
-func enter(_stage_payload: Dictionary) -> void:
+func enter(stage_payload: Dictionary) -> void:
 	apply_safe_margins(_margin)
-	_selected = OPERATIVE_ID
+	var progression := progression_service()
+	var requested := StringName(str(stage_payload.get("hero_id", "")))
+	if ProgressionService.HERO_IDS.has(requested):
+		_selected = requested
+	elif progression != null and ProgressionService.HERO_IDS.has(progression.selected_hero_id):
+		_selected = progression.selected_hero_id
+	else:
+		_selected = OPERATIVE_ID
 	_select_requested = false
 	_on_resized()
 	_refresh()
-	# The reveal runs on entry, not only on a change: the brief's first beat is
-	# the hero arriving, and a screen that is already fully composed when the
-	# transition ends has no reveal at all.
 	_present_selected(true)
 	AegisText.watch(_on_language)
 
@@ -612,10 +616,15 @@ func _present_selected(reveal: bool) -> void:
 	_role_label.text = _first_sentence(definition.display_role())
 	var progression := progression_service()
 	var active_tier := progression.fieldable_tier() if progression != null else 1
-	var vitals := roundi(HeroTier.vitals(active_tier))
-	var reduction := roundi(HeroTier.reduction(active_tier))
+	var vitals := roundi(HeroTier.vitals(active_tier, definition.hero_id))
+	var reduction := roundi(HeroTier.reduction(active_tier, definition.hero_id))
+	var vitals_key := (
+		"hero.vitals_line_recon"
+		if HeroTier.skill_id(definition.hero_id) == &"recon_pulse"
+		else "hero.vitals_line"
+	)
 	if is_instance_valid(_tier_label):
-		_tier_label.text = AegisText.t("hero.vitals_line", [active_tier, vitals, reduction])
+		_tier_label.text = AegisText.t(vitals_key, [active_tier, vitals, reduction])
 	if progression != null:
 		var wpn_tier := progression.weapon_tier(progression.selected_weapon_id)
 		var kit_tags := TechModuleDefinition.active_tags_summary(progression.equipped_modules)
@@ -640,14 +649,11 @@ func _present_selected(reveal: bool) -> void:
 			)
 		)
 
-	# The stage shows the rank this profile would field, not always tier 1. Keep
-	# the path beside the PackedScene: the showcase uses it to avoid rebuilding
-	# an unchanged rig, and ContentModuleLoader preserves Character isolation.
 	var selected_path := definition.resolved_model_path()
-	if progression != null and progression.selected_hero_id == definition.hero_id:
-		var tier_path := HeroTier.model_path(definition.hero_id, progression.fieldable_tier())
-		if not tier_path.is_empty():
-			selected_path = tier_path
+	var tier_path := HeroTier.model_path(definition.hero_id, active_tier)
+	if not tier_path.is_empty():
+		selected_path = tier_path
+	var livery := HeroTier.tier_livery(definition.hero_id, active_tier)
 	var load_result := ContentModuleLoader.load_scene(
 		selected_path, ContentModuleLoader.CHARACTER_ROOTS
 	)
@@ -656,11 +662,13 @@ func _present_selected(reveal: bool) -> void:
 		selected_model = load_result["scene"] as PackedScene
 	if not is_instance_valid(selected_model):
 		_showcase.clear_model()
+		_last_livery = {}
 		_status_label.text = "VISUAL OFFLINE · GAMEPLAY FALLBACK"
 		_status_label.add_theme_color_override("font_color", AegisTokens.DANGER)
 		return
-	var already := _showcase.model_path() == selected_path
+	var already := _showcase.model_path() == selected_path and _last_livery == livery
 	if not already:
+		_last_livery = livery.duplicate()
 		var clips: Array = definition.showcase_clips
 		(
 			_showcase
@@ -669,10 +677,9 @@ func _present_selected(reveal: bool) -> void:
 				{
 					"fit_axis": 1,
 					"height": SHOWCASE_HEIGHT,
-					# The rig faces +Z; the camera sits on +Z looking at the origin,
-					# so no yaw is what turns the hero towards the viewer.
 					"yaw": 0.0,
 					"clips": clips,
+					"livery": livery,
 				}
 			)
 		)

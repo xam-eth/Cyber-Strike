@@ -155,7 +155,10 @@ const STRINGS = {
       'Raised on the frontier line and fielded as a strike lead. Her kit is the rank: every tier is plate welded over the last one, and the arena fields whichever tier you own.',
     'hero.kestrel.role': 'SCOUT',
     'hero.kestrel.brief':
-      'A scout with a rig still on the bench. The slot is real and its name is real; there is no body to render yet, so nothing here can be pressed.',
+      'High-mobility recon scout fielded in an alloy exo-rig. Trades 10 base vitals for +14% stride speed, faster reloads, and an 18m Recon Overdrive lance that shatters Iron Warden shields at range.',
+    'hero.vanguard.role': 'BREACHER',
+    'hero.vanguard.brief':
+      'Heavy breach specialist whose siege rig is still on the bench. The slot is reserved for a future drop; nothing here can be pressed yet.',
     'hero.ready_chip': 'READY',
     'hero.weapon.eyebrow': 'ARSENAL & FIELD KIT',
     'hero.weapon.title': 'CHOOSE LOADOUT',
@@ -373,7 +376,10 @@ const STRINGS = {
       'Besar di garis perbatasan, diterjunkan sebagai pemimpin serbu. Perlengkapannya adalah pangkatnya: tiap tingkat adalah pelat yang dilas menutup pelat sebelumnya, dan arena memakai tingkat yang sudah kamu punya.',
     'hero.kestrel.role': 'PENINJAU',
     'hero.kestrel.brief':
-      'Seorang peninjau yang rig-nya masih di meja kerja. Slotnya nyata dan namanya nyata; belum ada tubuh untuk dirender, jadi tidak ada yang bisa ditekan di sini.',
+      'Peninjau intai gesit dengan exo-rig alloy. Menukar 10 HP dasar demi +14% kecepatan gerak, isi ulang lebih cepat, dan tombak Recon Overdrive 18m yang melumpuhkan perisai Iron Warden dari jauh.',
+    'hero.vanguard.role': 'PENDOBRAK',
+    'hero.vanguard.brief':
+      'Spesialis pendobrak berat yang rig pengepungannya masih dirakit di meja kerja. Slot ini disiapkan untuk pembaruan mendatang.',
     'hero.ready_chip': 'SIAP',
     'hero.weapon.eyebrow': 'ARSENAL & FIELD KIT',
     'hero.weapon.title': 'PILIH PERLENGKAPAN',

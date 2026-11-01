@@ -254,7 +254,7 @@ func _check_selection_ids_are_known() -> void:
 			_expect(known.has(id), "%s: '%s' is an id the progression service knows" % [name, id])
 		_expect(offered > 0, "%s offers at least one card" % name)
 
-	# The one operative the project can render is the one the service starts on.
+	# Only field-ready operatives with real rigs in HeroDefinition are selectable.
 	_front_end.go_to(&"HERO", {})
 	await process_frame
 	var hero_stage: Control = _front_end.get_node_or_null("StageHost/HERO")
@@ -265,11 +265,15 @@ func _check_selection_ids_are_known() -> void:
 			if button == null or button.disabled or not button.has_meta("hero_id"):
 				continue
 			selectable += 1
+			var id := StringName(str(button.get_meta("hero_id")))
 			_expect(
-				StringName(str(button.get_meta("hero_id"))) == ProgressionService.DEFAULT_HERO_ID,
-				"the only selectable hero is the one with a rig behind it"
+				ProgressionService.HERO_IDS.has(id),
+				"every selectable hero (%s) is registered in ProgressionService.HERO_IDS" % id
 			)
-		_expect(selectable == 1, "exactly one hero is selectable (%d)" % selectable)
+		_expect(
+			selectable == HeroDefinition.DEFINITION_IDS.size(),
+			"every field-ready hero in HeroDefinition is selectable (%d)" % selectable
+		)
 
 
 ## The dashboard calls the weapon what the weapon calls itself.
@@ -566,6 +570,8 @@ func _check_hero_roster_is_one_list() -> void:
 		var definition := HeroDefinition.load_definition(hero_id)
 		if not _expect(definition != null, "%s: the card reads a hero from the registry" % hero_id):
 			continue
+		button.pressed.emit()
+		await process_frame
 		# The chip is a portrait, not a text card: the HERO screen moved the name
 		# and blurb into one detail panel beside the 3D showcase, so the copy is
 		# read off the stage instead of off the chip. The intent is unchanged --

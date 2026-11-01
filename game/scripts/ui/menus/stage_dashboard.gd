@@ -461,8 +461,8 @@ func refresh_profile() -> void:
 	# is ready when their card says otherwise.
 	var hero_definition := HeroDefinition.load_definition(progression.selected_hero_id)
 	var hero_tier := progression.fieldable_tier()
-	var hero_vitals := roundi(HeroTier.vitals(hero_tier))
-	var hero_reduction := roundi(HeroTier.reduction(hero_tier))
+	var hero_vitals := roundi(HeroTier.vitals(hero_tier, progression.selected_hero_id))
+	var hero_reduction := roundi(HeroTier.reduction(hero_tier, progression.selected_hero_id))
 	var hero_ready := (
 		hero_definition.display_status().to_upper()
 		if hero_definition != null

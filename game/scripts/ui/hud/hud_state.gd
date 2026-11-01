@@ -66,6 +66,8 @@ var guardian_hp: float = 0.0
 var guardian_max_hp: float = 0.0
 var guardian_phase: String = "fortified"
 ## Fielded operative telemetry supplied by Main/ProgressionService (presentation only).
+var operative_id: StringName = &"sable"
+var operative_skill_id: StringName = &"emp_pulse"
 var operative_tier: int = 1
 var operative_armor_pct: int = 0
 var field_kit_tags: String = ""

@@ -94,6 +94,8 @@ var _socket_aim_basis: Basis = Basis()
 var _socket_carry_basis: Basis = Basis()
 var _socket_offset: Vector3 = Vector3.ZERO
 var _last_speed_ratio: float = 0.0
+var _tier_livery: Dictionary = {}
+var _livery_override_count: int = 0
 
 @onready var _fallback_body: MeshInstance3D = get_node_or_null("BodyMesh")
 @onready var _weapon_socket: Node3D = get_node_or_null("WeaponSocket")
@@ -429,6 +431,7 @@ func _spawn_model() -> void:
 	# on the assumption that the GLB had no PBR block, and an A/B capture showed
 	# it changed the avatar's median luma by two points, i.e. nothing.
 	_add_character_fill()
+	_livery_override_count = ModelFitterScript.apply_livery(_model, _tier_livery)
 	var outline := ModelFitterScript.outline_material(OUTLINE_COLOR, OUTLINE_GROW)
 	ModelFitterScript.apply_overlay_material(_model, outline)
 	if is_instance_valid(_fallback_body):
@@ -475,9 +478,32 @@ func _apply_progression_tier() -> void:
 		return
 	model_scene = null
 	model_scene_path = path
+	_tier_livery = HeroTier.tier_livery(progression.selected_hero_id, progression.fieldable_tier())
 	var rig := progression.tier_rig_path()
 	if not rig.is_empty():
 		rig_path = rig
+
+
+func set_hero_tier(hero_id: StringName, tier: int) -> void:
+	var path := HeroTier.model_path(hero_id, tier)
+	if path.is_empty():
+		return
+	var next_rig := HeroTier.rig_path(hero_id, tier)
+	var next_livery := HeroTier.tier_livery(hero_id, tier)
+	if (
+		has_model()
+		and model_scene_path == path
+		and (next_rig.is_empty() or rig_path == next_rig)
+		and _tier_livery == next_livery
+	):
+		return
+	model_scene = null
+	model_scene_path = path
+	_tier_livery = next_livery
+	if not next_rig.is_empty():
+		rig_path = next_rig
+	_spawn_model()
+	_spawn_weapon()
 
 
 func _progression_service() -> ProgressionService:
