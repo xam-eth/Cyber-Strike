@@ -15,6 +15,21 @@ aetherfall_source = (root / 'scripts/aetherfall.gd').read_text()
 assert 'sky_material.sun_energy_multiplier' not in aetherfall_source
 assert 'sky_material.energy_multiplier = 0.55' in aetherfall_source
 assert not re.search(r'^\s*ww\s*$', aetherfall_source, flags=re.MULTILINE)
+# Each assembled placement root receives an opt-in Label3D and editor metadata.
+# These guards do not substitute for an in-engine render/interaction check.
+for debug_label_contract in [
+    '@export var debug_object_labels_visible := false',
+    'event.keycode == KEY_F2',
+    'Label3D.new()',
+    'aetherfall_debug_object_labels',
+    'aetherfall_object_id',
+    'aetherfall_object_category',
+    'func debug_label_lift(anchor: Node3D) -> float:',
+]:
+    assert debug_label_contract in aetherfall_source, debug_label_contract
+assert aetherfall_source.count('add_debug_object_label(') >= 13
+review_camera_source = (root / 'scripts/review_camera.gd').read_text()
+assert 'F2: label object' in review_camera_source
 base = root / 'assets/world/aetherfall'
 # Gate 01 visual studies are immutable evidence links for the seven selected
 # Hero assets. This verifies file identity and scope only; it cannot turn a

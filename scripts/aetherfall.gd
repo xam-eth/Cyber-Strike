@@ -28,6 +28,11 @@ var expanse_shelf_count := 0
 var expanse_route_count := 0
 var expanse_collider_count := 0
 
+## Debug-only world-space labels are deliberately opt-in: the complete object
+## inventory is useful for placement review but would obscure normal gameplay.
+@export var debug_object_labels_visible := false
+var debug_object_label_count := 0
+
 func v3(value: Variant) -> Vector3:
 	if value is Array and value.size() >= 3:
 		return Vector3(float(value[0]), float(value[1]), float(value[2]))
@@ -75,6 +80,7 @@ func _ready() -> void:
 		instance.rotation = rot
 		instance.scale = Vector3.ONE * scale_factor
 		modules.add_child(instance)
+		add_debug_object_label(instance, instance.name, "kit")
 		placement_count += 1
 		if key in NO_COLLISION:
 			continue
@@ -154,6 +160,75 @@ func _ready() -> void:
 	add_phase2_cover()
 	add_connected_expanse()
 	print("Aetherfall: %d kit / %d proxy colliders / %d vertical / %d landmark / %d ice-planet / %d archive interior / %d phase-2 cover / %d expanse route placement" % [placement_count, collider_count, verticality_count, landmark_count, ice_planet_count, archive_interior_count, phase2_cover_count, expanse_route_count])
+	print("Aetherfall: %d debug object labels ready (F2 to toggle)." % debug_object_label_count)
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F2:
+		set_debug_object_labels_visible(not debug_object_labels_visible)
+		get_viewport().set_input_as_handled()
+
+
+func set_debug_object_labels_visible(enabled: bool) -> void:
+	debug_object_labels_visible = enabled
+	get_tree().call_group("aetherfall_debug_object_labels", "set_visible", enabled)
+	print("Aetherfall: debug object labels %s." % ("ON" if enabled else "OFF"))
+
+
+func add_debug_object_label(anchor: Node3D, object_id: String, category: String) -> void:
+	## Registers a readable runtime label and editor metadata without touching
+	## render meshes, collision, navigation, or gameplay state.
+	if anchor == null or object_id.is_empty():
+		return
+	anchor.set_meta("aetherfall_object_id", object_id)
+	anchor.set_meta("aetherfall_object_category", category)
+	var label := Label3D.new()
+	label.name = "DebugLabel"
+	label.text = "[%s] %s" % [category.to_upper(), object_id]
+	label.position.y = debug_label_lift(anchor)
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.fixed_size = true
+	label.pixel_size = 0.004
+	label.font_size = 34
+	label.outline_size = 6
+	label.modulate = debug_label_color(category)
+	label.outline_modulate = Color(0.0, 0.015, 0.035, 0.96)
+	label.visible = debug_object_labels_visible
+	anchor.add_child(label)
+	label.add_to_group("aetherfall_debug_object_labels")
+	debug_object_label_count += 1
+
+
+func debug_label_lift(anchor: Node3D) -> float:
+	## Fit the label above the highest imported mesh. The conservative fallback
+	## keeps labels readable for nodes that currently have no mesh child.
+	var top := 0.75
+	for candidate in anchor.find_children("*", "MeshInstance3D", true, false):
+		var mesh := candidate as MeshInstance3D
+		if mesh == null or mesh.mesh == null:
+			continue
+		var relative := anchor.global_transform.affine_inverse() * mesh.global_transform
+		var bounds: AABB = relative * mesh.get_aabb()
+		top = maxf(top, bounds.end.y)
+	return top + 0.42
+
+
+func debug_label_color(category: String) -> Color:
+	match category:
+		"kit":
+			return Color(0.55, 0.86, 1.0)
+		"vertical", "landmark":
+			return Color(1.0, 0.73, 0.32)
+		"ice", "expanse":
+			return Color(0.45, 0.94, 1.0)
+		"phase2":
+			return Color(0.72, 0.92, 0.42)
+		"archive", "interactive":
+			return Color(1.0, 0.52, 0.83)
+		"connector", "route":
+			return Color(0.92, 0.86, 0.48)
+		_:
+			return Color.WHITE
 
 
 func add_connected_expanse() -> void:
@@ -204,6 +279,7 @@ func add_expanse_static(parent: Node3D, packed: PackedScene, spec: Dictionary, s
 	var visual := packed.instantiate() as Node3D
 	visual.name = "Visual"
 	setpiece.add_child(visual)
+	add_debug_object_label(setpiece, setpiece.name, "expanse")
 	var body := StaticBody3D.new()
 	body.name = "Collision"
 	setpiece.add_child(body)
@@ -239,6 +315,7 @@ func add_expanse_route(parent: Node3D, packed: PackedScene, spec: Dictionary) ->
 	# configured distance, retaining a deliberately walkable route width.
 	visual.scale = Vector3(length / 12.0, 1.0, float(spec.get("width", 5.2)) / 5.2)
 	route.add_child(visual)
+	add_debug_object_label(route, route.name, "route")
 	var body := StaticBody3D.new()
 	body.name = "Collision"
 	route.add_child(body)
@@ -273,6 +350,7 @@ func add_archive_interior() -> void:
 	var visual := packed.instantiate() as Node3D
 	visual.name = "VestibuleVisual"
 	archive.add_child(visual)
+	add_debug_object_label(archive, str(interior.get("id", "archive_vestibule")), "archive")
 	var collision := StaticBody3D.new()
 	collision.name = "Collision"
 	archive.add_child(collision)
@@ -315,6 +393,7 @@ func add_archive_interior() -> void:
 			computer.position = v3(computer_data.get("local_position", []))
 			computer.rotation = v3(computer_data.get("local_rotation_degrees", [])) * PI / 180.0
 			archive.add_child(computer)
+			add_debug_object_label(computer, computer.name, "interactive")
 			archive_computer_count += 1
 	archive_interior_count += 1
 
@@ -342,6 +421,7 @@ func add_phase2_cover() -> void:
 		var visual := packed.instantiate() as Node3D
 		visual.name = "Visual"
 		setpiece.add_child(visual)
+		add_debug_object_label(setpiece, setpiece.name, "phase2")
 		var boxes: Array = spec.get("collision_boxes", [])
 		if not boxes.is_empty():
 			var collision := StaticBody3D.new()
@@ -397,6 +477,7 @@ func add_ice_planet_phase1() -> void:
 		var visual := packed.instantiate() as Node3D
 		visual.name = "Visual"
 		setpiece.add_child(visual)
+		add_debug_object_label(setpiece, setpiece.name, "ice")
 		var boxes: Array = spec.get("collision_boxes", [])
 		if not boxes.is_empty():
 			var collision := StaticBody3D.new()
@@ -452,6 +533,7 @@ func add_vertical_infrastructure() -> void:
 		var visual := packed.instantiate() as Node3D
 		visual.name = "Visual"
 		structure.add_child(visual)
+		add_debug_object_label(structure, structure.name, "vertical")
 		var collision := StaticBody3D.new()
 		collision.name = "Collision"
 		structure.add_child(collision)
@@ -505,6 +587,7 @@ func add_structural_landmarks() -> void:
 		var visual := packed.instantiate() as Node3D
 		visual.name = "Visual"
 		landmark.add_child(visual)
+		add_debug_object_label(landmark, landmark.name, "landmark")
 		var collision := StaticBody3D.new()
 		collision.name = "Collision"
 		landmark.add_child(collision)
@@ -567,6 +650,7 @@ func add_stellar_horizon_slice(layout: Dictionary) -> void:
 			var device := instance as AetherfallObjectiveDevice
 			device.required_tech_data = int(spec.get("requires", {}).get("amount", device.required_tech_data))
 		group.add_child(instance)
+		add_debug_object_label(instance, instance.name, "interactive")
 
 
 func add_mesh_shape(body: StaticBody3D, instance: Node3D, mesh: MeshInstance3D, scale_factor: float) -> void:
@@ -615,6 +699,7 @@ func add_connectors() -> void:
 		visual.name = "Visual"
 		visual.scale = Vector3(length, 1.0, width)
 		root.add_child(visual)
+		add_debug_object_label(root, root.name, "connector")
 		var body := StaticBody3D.new()
 		body.name = "DeckCollision"
 		root.add_child(body)
@@ -690,6 +775,7 @@ func add_animation() -> void:
 	orbit.name = "EnergyOrbit"
 	orbit.position = Vector3(0, 20, -26)
 	add_child(orbit)
+	add_debug_object_label(orbit, orbit.name, "fx")
 	var players := orbit.find_children("*", "AnimationPlayer", true, false)
 	if not players.is_empty():
 		var player := players[0] as AnimationPlayer
