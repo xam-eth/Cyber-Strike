@@ -527,7 +527,11 @@ def mesh_object(coll, name, verts, faces, matnames, face_mats=None, uv_scale=0.1
             poly.material_index = face_mats[poly.index]
         for li in poly.loop_indices:
             v = me.vertices[me.loops[li].vertex_index].co
-            me.uv_layers.active.data[li].uv = (v.x * uv_scale, v.z * uv_scale + v.y * uv_scale * 0.15)
+            # One authored UV unit covers a compact service-scale region. The
+            # multiplier keeps PBR maps physically repeating on canyon-scale
+            # geometry instead of becoming a single stretched colour field.
+            metric_scale = uv_scale * 3.0
+            me.uv_layers.active.data[li].uv = (v.x * metric_scale, v.z * metric_scale + v.y * metric_scale * 0.15)
     me.update()
     obj = bpy.data.objects.new(name, me)
     coll.objects.link(obj)
@@ -631,7 +635,9 @@ def rock_boulder_mesh(coll, name, radius, matname="Rock", seed=1.0):
         for i in range(sides):
             a = j * sides + i; b = j * sides + (i + 1) % sides
             faces.append((a, b, b + sides, a + sides))
-    return mesh_object(coll, name, verts, faces, [matname], None, 0.14)
+    # A boulder still uses metre-scale texture density; its UVs must repeat
+    # across the large cryo faces instead of stretching one map over the shell.
+    return mesh_object(coll, name, verts, faces, [matname], None, 0.55)
 
 def facade_fin(coll, name, angle, radius, y0, y1, width, depth, matname="Steel"):
     """Tapered exterior fin with a deliberate radial orientation."""

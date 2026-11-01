@@ -15,22 +15,46 @@ assert len(layout['placements']) == 251
 assert {p['asset'] for p in layout['placements']} == set(measures)
 for p in layout['placements']:
     assert len(p['pos']) == len(p['rot']) == 3 and p['scale'] > 0
-# Geometry budget for every authored reusable object. This deliberately checks
-# form complexity rather than claiming visual realism or runtime performance.
-minimum_meshes = {
-    'access_gate': 25, 'background_silhouette': 14, 'beam': 14,
-    'bridge_deck': 32, 'bridge_support': 15, 'cable_bundle': 14,
-    'cliff_face': 20, 'cloud_puff': 12, 'conduit': 13,
-    'cooling_vent': 19, 'cover_barrier': 9, 'cover_machine': 13,
-    'damaged_slab': 15, 'debris_cluster': 14, 'deck_6x6': 30,
-    'deck_edge': 16, 'energy_core': 20, 'machinery': 24,
-    'pillar': 12, 'railing': 15, 'rock_boulder': 9,
-    'terrain_chunk': 25, 'tower_foundation': 36, 'tower_spire': 13,
-    'tower_tier': 35, 'walkway_deck': 28, 'wall_section': 19,
+# Static semantic markers for the re-authored exterior kit. These names verify
+# that each asset has a specific purpose-built volume (terrain mass, shell,
+# threshold, service feature, etc.), rather than accepting a generic primitive
+# just because it inflates a mesh count. This remains a data check, not visual QA.
+required_features = {
+    'access_gate': {'GateThreshold', 'GatePylon-10', 'GateSeal0'},
+    'background_silhouette': {'SkylineHabitat0', 'RemoteTransferRim'},
+    'beam': {'FacetedBeam', 'BeamCableRaceway'},
+    'bridge_deck': {'BridgeArmourDeck', 'BridgeServiceChannel', 'BridgeRail-10'},
+    'bridge_support': {'CanyonPylon', 'PylonFoot', 'PylonBrace0'},
+    'cable_bundle': {'CableTray', 'CableRun0'},
+    'cliff_face': {'EscarpmentVolume', 'ErosionLedge0', 'AnchorButtress0'},
+    'cloud_puff': {'VapourMass0'},
+    'conduit': {'ConduitArmour', 'ConduitEnergyCore'},
+    'cooling_vent': {'VentHousing', 'VentThroat', 'VentBlade0'},
+    'cover_barrier': {'ArmouredCover', 'CoverHazardMark'},
+    'cover_machine': {'MachineCoverFoot', 'MachineCoverShell'},
+    'damaged_slab': {'FracturedPlate0', 'CollapsedRib'},
+    'debris_cluster': {'WreckedHousing', 'ExposedCable'},
+    'deck_6x6': {'ChamferedDeckArmour', 'RecessedServiceBay', 'DeckUndersideRib0'},
+    'deck_edge': {'EdgeArmour', 'EdgeHazardInset'},
+    'energy_core': {'CorePlinth', 'CoreContainment', 'CoreEnergyColumn'},
+    'machinery': {'MachineFoot', 'MachineBody', 'MachineEnergyPanel'},
+    'pillar': {'PillarFoot', 'PillarTaper'},
+    'railing': {'RailTop-10', 'RailPost-100', 'RailKick'},
+    'rock_boulder': {'FacetedCryoBoulder', 'BoulderIcePlate', 'BoulderVein'},
+    'terrain_chunk': {'GlacialTerrainMass', 'StrataShelf_8_2', 'CryoSeam0'},
+    'tower_foundation': {'ArchivePlinthOuter', 'FoundationButtress0'},
+    'tower_spire': {'ArchiveSpireShell', 'SpireEnergyCollar', 'SensorVane0'},
+    'tower_tier': {'ArchiveTierShell', 'ArchiveRecessBelt', 'ArchiveVerticalFin0'},
+    'walkway_deck': {'CatwalkArmour', 'WalkwayRail-10', 'WalkwayCableTray'},
+    'wall_section': {'RecessedWallShell', 'WallServicePanel0', 'WallCrown'},
 }
-assert set(minimum_meshes) == set(measures)
-for asset, minimum in minimum_meshes.items():
-    assert measures[asset]['objects'] >= minimum, f'form detail missing: {asset}'
+assert set(required_features) == set(measures)
+for asset, required in required_features.items():
+    data = (base / 'models' / (asset + '.glb')).read_bytes()
+    json_len = struct.unpack_from('<I', data, 12)[0]
+    payload = json.loads(data[20:20 + json_len])
+    node_names = {node.get('name') for node in payload.get('nodes', [])}
+    assert required <= node_names, f'authored feature missing: {asset}'
 for name in [*measures, 'energy_orbit', 'connector_ramp']:
     data = (base / 'models' / (name + '.glb')).read_bytes()
     magic, version, length = struct.unpack_from('<4sII', data)
