@@ -1,6 +1,6 @@
 # Aetherfall — Production Art Pipeline
 
-**Status:** Production reset — asset-level brief and evidence ledger required before any Gate 03/04 asset can be accepted
+**Status:** Gate 00 tracking complete — 51-entry evidence ledger exists; target hardware/profile and per-asset Gate 01 briefs are required before any Gate 03/04 asset can be accepted
 
 This is the production sequence for Aetherfall. It replaces the incorrect practice of treating an extruded, generated, or multi-part mesh as a finished environment asset.
 

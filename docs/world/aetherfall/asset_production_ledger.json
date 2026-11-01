@@ -1,0 +1,3007 @@
+{
+  "schema": "aetherfall.asset-production-ledger.v1",
+  "purpose": "Human evidence tracker. Never infer art completion from a GLB, source script, or static validation result.",
+  "technical_target": {
+    "platform": "unresolved",
+    "renderer": "unresolved",
+    "target_devices": [],
+    "performance_budget": "unresolved",
+    "camera_distance_policy": "unresolved"
+  },
+  "release_policy": {
+    "format_validation": "zero errors and no untriaged warnings",
+    "art": "each applicable human_art_gate is accepted with linked evidence",
+    "engine": "exact export inspected in Godot",
+    "performance": "profile recorded on declared target device/build"
+  },
+  "batches": {
+    "01_hero_destination": {
+      "description": "Destination hierarchy and objective/interior read.",
+      "asset_count": 7
+    },
+    "02_primary_traversal": {
+      "description": "Primary deck, bridge, catwalk and service-routing construction language.",
+      "asset_count": 12
+    },
+    "03_macro_ice_recovery": {
+      "description": "Glacier, cliff, macro terrain and recovery-space geological language.",
+      "asset_count": 9
+    },
+    "04_operational_cover": {
+      "description": "Function-first gates, machinery, cover and interaction assets.",
+      "asset_count": 13
+    },
+    "05_settlement_vertical": {
+      "description": "Distinct industrial settlement and vertical/distant silhouette language.",
+      "asset_count": 8
+    },
+    "06_vfx_exceptions": {
+      "description": "VFX/animated assets require separate animation, overdraw and device review.",
+      "asset_count": 2
+    }
+  },
+  "assets": [
+    {
+      "asset_id": "archive__archive_computer",
+      "runtime_path": "assets/world/aetherfall/archive/archive_computer.glb",
+      "source_path": "source/aetherfall_archive_interior.blend",
+      "production_batch": "01_hero_destination",
+      "batch_intent": "Destination hierarchy and objective/interior read.",
+      "legacy_revision_sha256": "6e89ad5b40571c83d6c09ec22d3198e105931f1a44fd24dd13d055bcbb072a73",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 23,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 23
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 5,
+          "textures": true,
+          "draw_calls": 23,
+          "vertices": 6280,
+          "triangles": 3252,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 2
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "archive__archive_vestibule",
+      "runtime_path": "assets/world/aetherfall/archive/archive_vestibule.glb",
+      "source_path": "source/aetherfall_archive_interior.blend",
+      "production_batch": "01_hero_destination",
+      "batch_intent": "Destination hierarchy and objective/interior read.",
+      "legacy_revision_sha256": "40920249b4a599d33e55d8e9bc8732dcf5f868aee85a11a86e66590e7a5b23fa",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 55,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 55
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 5,
+          "textures": true,
+          "draw_calls": 55,
+          "vertices": 13240,
+          "triangles": 6740,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "expanse__expanse_shelf",
+      "runtime_path": "assets/world/aetherfall/expanse/expanse_shelf.glb",
+      "source_path": "source/aetherfall_connected_expanse.blend",
+      "production_batch": "03_macro_ice_recovery",
+      "batch_intent": "Glacier, cliff, macro terrain and recovery-space geological language.",
+      "legacy_revision_sha256": "2fff3a34754360550a0e85255bfd798ef182f0482b7e2730b23471ff8ff8d717",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 25,
+          "infos": 6,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 25,
+            "IMAGE_NPOT_DIMENSIONS": 6
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 5,
+          "textures": true,
+          "draw_calls": 25,
+          "vertices": 8878,
+          "triangles": 4430,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "expanse__lowland_field",
+      "runtime_path": "assets/world/aetherfall/expanse/lowland_field.glb",
+      "source_path": "source/aetherfall_connected_expanse.blend",
+      "production_batch": "03_macro_ice_recovery",
+      "batch_intent": "Glacier, cliff, macro terrain and recovery-space geological language.",
+      "legacy_revision_sha256": "dabba295f4832767b330b068580cf015f550e38b5c0340b5ee28d8a48680c9b9",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 23,
+          "infos": 6,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 23,
+            "IMAGE_NPOT_DIMENSIONS": 6
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 5,
+          "textures": true,
+          "draw_calls": 23,
+          "vertices": 9256,
+          "triangles": 4580,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "expanse__transit_spine",
+      "runtime_path": "assets/world/aetherfall/expanse/transit_spine.glb",
+      "source_path": "source/aetherfall_connected_expanse.blend",
+      "production_batch": "02_primary_traversal",
+      "batch_intent": "Primary deck, bridge, catwalk and service-routing construction language.",
+      "legacy_revision_sha256": "31e3c768074c503168646ee403c39bc6964ecb0e0786ae790cb1d94c7cba117e",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 23,
+          "infos": 9,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 23,
+            "IMAGE_NPOT_DIMENSIONS": 9
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 5,
+          "textures": true,
+          "draw_calls": 23,
+          "vertices": 5160,
+          "triangles": 2612,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "ice_planet__cryo_pylon",
+      "runtime_path": "assets/world/aetherfall/ice_planet/cryo_pylon.glb",
+      "source_path": "source/aetherfall_ice_planet.blend",
+      "production_batch": "04_operational_cover",
+      "batch_intent": "Function-first gates, machinery, cover and interaction assets.",
+      "legacy_revision_sha256": "005d20138f65005af4b93aadb792874b5245e3a6ab53bae1188a2e0b20b12c49",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 12,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 12
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 4,
+          "textures": true,
+          "draw_calls": 12,
+          "vertices": 3856,
+          "triangles": 2032,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "ice_planet__frozen_spire",
+      "runtime_path": "assets/world/aetherfall/ice_planet/frozen_spire.glb",
+      "source_path": "source/aetherfall_ice_planet.blend",
+      "production_batch": "03_macro_ice_recovery",
+      "batch_intent": "Glacier, cliff, macro terrain and recovery-space geological language.",
+      "legacy_revision_sha256": "9d825f3a4d4f73a5fce9ad5b8ed52f8472e3100e4ad9dac1d92a78447fd79594",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 8,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 8
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 2,
+          "textures": true,
+          "draw_calls": 8,
+          "vertices": 2376,
+          "triangles": 1200,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "ice_planet__glacier_shelf",
+      "runtime_path": "assets/world/aetherfall/ice_planet/glacier_shelf.glb",
+      "source_path": "source/aetherfall_ice_planet.blend",
+      "production_batch": "03_macro_ice_recovery",
+      "batch_intent": "Glacier, cliff, macro terrain and recovery-space geological language.",
+      "legacy_revision_sha256": "a69052abb5764039e4e36d4ca5ae645a218fc436bcf6611a62783ae02de2c21f",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 18,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 18
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 5,
+          "textures": true,
+          "draw_calls": 18,
+          "vertices": 8222,
+          "triangles": 4092,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "ice_planet__sentinel_archive",
+      "runtime_path": "assets/world/aetherfall/ice_planet/sentinel_archive.glb",
+      "source_path": "source/aetherfall_ice_planet.blend",
+      "production_batch": "01_hero_destination",
+      "batch_intent": "Destination hierarchy and objective/interior read.",
+      "legacy_revision_sha256": "bdd5ae0d8d11c84141820fcf53565eb9bd410159a51510e58c92e6678c7ab5e1",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 155,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 155
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 6,
+          "textures": true,
+          "draw_calls": 155,
+          "vertices": 44856,
+          "triangles": 22480,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "interactives__objective_device",
+      "runtime_path": "assets/world/aetherfall/interactives/objective_device.glb",
+      "source_path": "source/aetherfall_interactives.blend",
+      "production_batch": "04_operational_cover",
+      "batch_intent": "Function-first gates, machinery, cover and interaction assets.",
+      "legacy_revision_sha256": "d28cab0851ac9d8f553f99a9784710d92c34b8d4ad86bcc99d3bc251d0444e81",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 19,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 19
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 4,
+          "textures": true,
+          "draw_calls": 19,
+          "vertices": 7072,
+          "triangles": 3636,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 1
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "interactives__tech_cache",
+      "runtime_path": "assets/world/aetherfall/interactives/tech_cache.glb",
+      "source_path": "source/aetherfall_interactives.blend",
+      "production_batch": "04_operational_cover",
+      "batch_intent": "Function-first gates, machinery, cover and interaction assets.",
+      "legacy_revision_sha256": "58738a231809c01a85254e4c7d9b0b719781af2bea164100b256851443c297a0",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 68,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 68
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 6,
+          "textures": true,
+          "draw_calls": 68,
+          "vertices": 26112,
+          "triangles": 12784,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 1
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "landmarks__cargo_service_cluster",
+      "runtime_path": "assets/world/aetherfall/landmarks/cargo_service_cluster.glb",
+      "source_path": "source/aetherfall_landmarks.blend",
+      "production_batch": "05_settlement_vertical",
+      "batch_intent": "Distinct industrial settlement and vertical/distant silhouette language.",
+      "legacy_revision_sha256": "45f7885d8612c77b85b73db4bf060a2cccfce60ec1e0ffbd141609933b4fca10",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 13,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 13
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 5,
+          "textures": true,
+          "draw_calls": 13,
+          "vertices": 3292,
+          "triangles": 1724,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "landmarks__field_outpost",
+      "runtime_path": "assets/world/aetherfall/landmarks/field_outpost.glb",
+      "source_path": "source/aetherfall_landmarks.blend",
+      "production_batch": "05_settlement_vertical",
+      "batch_intent": "Distinct industrial settlement and vertical/distant silhouette language.",
+      "legacy_revision_sha256": "56c1bc3fdfdfa596d130fe17fc4f66220f3b39aad7f0d54994c38974f0d8b3a0",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 28,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 28
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 5,
+          "textures": true,
+          "draw_calls": 28,
+          "vertices": 6232,
+          "triangles": 3136,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "landmarks__relay_annex",
+      "runtime_path": "assets/world/aetherfall/landmarks/relay_annex.glb",
+      "source_path": "source/aetherfall_landmarks.blend",
+      "production_batch": "05_settlement_vertical",
+      "batch_intent": "Distinct industrial settlement and vertical/distant silhouette language.",
+      "legacy_revision_sha256": "1b792cbbbc4864cc3433373cc1b7aa4e75c399117a9d8331fe5fea4f309d33f4",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 30,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 30
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 5,
+          "textures": true,
+          "draw_calls": 30,
+          "vertices": 6936,
+          "triangles": 3512,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "landmarks__service_hangar",
+      "runtime_path": "assets/world/aetherfall/landmarks/service_hangar.glb",
+      "source_path": "source/aetherfall_landmarks.blend",
+      "production_batch": "05_settlement_vertical",
+      "batch_intent": "Distinct industrial settlement and vertical/distant silhouette language.",
+      "legacy_revision_sha256": "0c294e27cf8743133a0523eb485626cba4bbded77cef76d79dd08575f6ca3116",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 32,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 32
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 5,
+          "textures": true,
+          "draw_calls": 32,
+          "vertices": 8000,
+          "triangles": 4096,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "models__access_gate",
+      "runtime_path": "assets/world/aetherfall/models/access_gate.glb",
+      "source_path": "source/aetherfall_kit.blend",
+      "production_batch": "04_operational_cover",
+      "batch_intent": "Function-first gates, machinery, cover and interaction assets.",
+      "legacy_revision_sha256": "87a7d9a26c6debd3a4009079a585c1b6e9ddaf13c150de14dfbd97b85fafe053",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 12,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 12
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 5,
+          "textures": true,
+          "draw_calls": 16,
+          "vertices": 282,
+          "triangles": 148,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "models__background_silhouette",
+      "runtime_path": "assets/world/aetherfall/models/background_silhouette.glb",
+      "source_path": "source/aetherfall_kit.blend",
+      "production_batch": "05_settlement_vertical",
+      "batch_intent": "Distinct industrial settlement and vertical/distant silhouette language.",
+      "legacy_revision_sha256": "a3a4f6195f745aff7a5ba1e2aed27fae3db25094909fbcfc4defd426ae5f3588",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 25,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 25
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 3,
+          "textures": true,
+          "draw_calls": 30,
+          "vertices": 792,
+          "triangles": 416,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "models__beam",
+      "runtime_path": "assets/world/aetherfall/models/beam.glb",
+      "source_path": "source/aetherfall_kit.blend",
+      "production_batch": "02_primary_traversal",
+      "batch_intent": "Primary deck, bridge, catwalk and service-routing construction language.",
+      "legacy_revision_sha256": "8eaebd4bc2118df6ebf5124981fe82d33b395f1f2b73b0cdb0582776b5336fd8",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 4,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 4
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 2,
+          "textures": true,
+          "draw_calls": 4,
+          "vertices": 72,
+          "triangles": 40,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "models__bridge_deck",
+      "runtime_path": "assets/world/aetherfall/models/bridge_deck.glb",
+      "source_path": "source/aetherfall_kit.blend",
+      "production_batch": "02_primary_traversal",
+      "batch_intent": "Primary deck, bridge, catwalk and service-routing construction language.",
+      "legacy_revision_sha256": "661eb5e070c9c2fb531ce587107de8e2a5a82180cc778e445c02f5f4d78879eb",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 20,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 20
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 4,
+          "textures": true,
+          "draw_calls": 20,
+          "vertices": 300,
+          "triangles": 160,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "models__bridge_support",
+      "runtime_path": "assets/world/aetherfall/models/bridge_support.glb",
+      "source_path": "source/aetherfall_kit.blend",
+      "production_batch": "02_primary_traversal",
+      "batch_intent": "Primary deck, bridge, catwalk and service-routing construction language.",
+      "legacy_revision_sha256": "495d243692deae997d69aa2376c375949e2f488b8d75bfb06329dfbc9d4f031b",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 12,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 12
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 5,
+          "textures": true,
+          "draw_calls": 12,
+          "vertices": 246,
+          "triangles": 128,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "models__cable_bundle",
+      "runtime_path": "assets/world/aetherfall/models/cable_bundle.glb",
+      "source_path": "source/aetherfall_kit.blend",
+      "production_batch": "02_primary_traversal",
+      "batch_intent": "Primary deck, bridge, catwalk and service-routing construction language.",
+      "legacy_revision_sha256": "3744926ded446b2c0c5c46388004cbe2119701c47014f676f73c40a25614e9bf",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 12,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 12
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 3,
+          "textures": true,
+          "draw_calls": 12,
+          "vertices": 144,
+          "triangles": 72,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "models__cliff_face",
+      "runtime_path": "assets/world/aetherfall/models/cliff_face.glb",
+      "source_path": "source/aetherfall_kit.blend",
+      "production_batch": "03_macro_ice_recovery",
+      "batch_intent": "Glacier, cliff, macro terrain and recovery-space geological language.",
+      "legacy_revision_sha256": "bc93289dd2c3da3e6d3a94c91b202b49cb495eae39f8f95f68f2f52a86b19992",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 18,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 18
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 4,
+          "textures": true,
+          "draw_calls": 18,
+          "vertices": 2368,
+          "triangles": 1244,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "models__cloud_puff",
+      "runtime_path": "assets/world/aetherfall/models/cloud_puff.glb",
+      "source_path": "source/aetherfall_kit.blend",
+      "production_batch": "06_vfx_exceptions",
+      "batch_intent": "VFX/animated assets require separate animation, overdraw and device review.",
+      "legacy_revision_sha256": "91cff8d97798594e063a7116c362388d39d23a3c45a04182c9e4e93e7006a5fd",
+      "technical_baseline": {
+        "validator_status": "format_valid_no_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 0,
+          "infos": 6,
+          "hints": 0,
+          "by_code": {
+            "UNUSED_OBJECT": 6
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 1,
+          "textures": false,
+          "draw_calls": 6,
+          "vertices": 2496,
+          "triangles": 1248,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "models__conduit",
+      "runtime_path": "assets/world/aetherfall/models/conduit.glb",
+      "source_path": "source/aetherfall_kit.blend",
+      "production_batch": "02_primary_traversal",
+      "batch_intent": "Primary deck, bridge, catwalk and service-routing construction language.",
+      "legacy_revision_sha256": "5acf63a7ced4ad01857ca9c87afc8ec195fcb226991c47a83ad29fbda18e2415",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 9,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 9
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 4,
+          "textures": true,
+          "draw_calls": 10,
+          "vertices": 198,
+          "triangles": 112,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "models__connector_ramp",
+      "runtime_path": "assets/world/aetherfall/models/connector_ramp.glb",
+      "source_path": "source/connector_ramp.blend",
+      "production_batch": "02_primary_traversal",
+      "batch_intent": "Primary deck, bridge, catwalk and service-routing construction language.",
+      "legacy_revision_sha256": "12902b96164042233a2a5b88c2e7c7ea5abd56c6554beb2caf84e722c57186de",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 26,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 26
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 2,
+          "textures": true,
+          "draw_calls": 26,
+          "vertices": 624,
+          "triangles": 312,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "models__cooling_vent",
+      "runtime_path": "assets/world/aetherfall/models/cooling_vent.glb",
+      "source_path": "source/aetherfall_kit.blend",
+      "production_batch": "04_operational_cover",
+      "batch_intent": "Function-first gates, machinery, cover and interaction assets.",
+      "legacy_revision_sha256": "3a2cc6b8a180c0d5845b4a3b46715e284be48f70a75138b9f1ab5daa5128f605",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 20,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 20
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 3,
+          "textures": true,
+          "draw_calls": 20,
+          "vertices": 392,
+          "triangles": 208,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "models__cover_barrier",
+      "runtime_path": "assets/world/aetherfall/models/cover_barrier.glb",
+      "source_path": "source/aetherfall_kit.blend",
+      "production_batch": "04_operational_cover",
+      "batch_intent": "Function-first gates, machinery, cover and interaction assets.",
+      "legacy_revision_sha256": "e3d196623915c25f4b66a6ef26da274143efa173668284dd5c14c1cd7b5c7899",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 4,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 4
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 3,
+          "textures": true,
+          "draw_calls": 4,
+          "vertices": 60,
+          "triangles": 32,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "models__cover_machine",
+      "runtime_path": "assets/world/aetherfall/models/cover_machine.glb",
+      "source_path": "source/aetherfall_kit.blend",
+      "production_batch": "04_operational_cover",
+      "batch_intent": "Function-first gates, machinery, cover and interaction assets.",
+      "legacy_revision_sha256": "e7fb59086a7203163d488e88ce27e50fe593522f9d58b0af3358f0b775022e33",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 5,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 5
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 4,
+          "textures": true,
+          "draw_calls": 6,
+          "vertices": 164,
+          "triangles": 88,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "models__damaged_slab",
+      "runtime_path": "assets/world/aetherfall/models/damaged_slab.glb",
+      "source_path": "source/aetherfall_kit.blend",
+      "production_batch": "04_operational_cover",
+      "batch_intent": "Function-first gates, machinery, cover and interaction assets.",
+      "legacy_revision_sha256": "a08eba854fae3ade6f72579d132306e26b88593294b2c47d24042869319a042c",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 10,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 10
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 5,
+          "textures": true,
+          "draw_calls": 11,
+          "vertices": 144,
+          "triangles": 72,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "models__debris_cluster",
+      "runtime_path": "assets/world/aetherfall/models/debris_cluster.glb",
+      "source_path": "source/aetherfall_kit.blend",
+      "production_batch": "04_operational_cover",
+      "batch_intent": "Function-first gates, machinery, cover and interaction assets.",
+      "legacy_revision_sha256": "add38ff962047300bc29fae35a714edae25373b18ead060ec9cab86a17f9bd12",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 8,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 8
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 3,
+          "textures": true,
+          "draw_calls": 9,
+          "vertices": 530,
+          "triangles": 268,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "models__deck_6x6",
+      "runtime_path": "assets/world/aetherfall/models/deck_6x6.glb",
+      "source_path": "source/aetherfall_kit.blend",
+      "production_batch": "02_primary_traversal",
+      "batch_intent": "Primary deck, bridge, catwalk and service-routing construction language.",
+      "legacy_revision_sha256": "59f4ac0474aa10657598ae2a613996ad1f91d07c98ef8deac1293195297c81c8",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 18,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 18
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 3,
+          "textures": true,
+          "draw_calls": 18,
+          "vertices": 264,
+          "triangles": 140,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "models__deck_edge",
+      "runtime_path": "assets/world/aetherfall/models/deck_edge.glb",
+      "source_path": "source/aetherfall_kit.blend",
+      "production_batch": "02_primary_traversal",
+      "batch_intent": "Primary deck, bridge, catwalk and service-routing construction language.",
+      "legacy_revision_sha256": "f5a4c9db53da0fac23977101f1c8276ed68a48e11c77eb3de7174bf6432dac45",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 12,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 12
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 4,
+          "textures": true,
+          "draw_calls": 12,
+          "vertices": 162,
+          "triangles": 84,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "models__energy_core",
+      "runtime_path": "assets/world/aetherfall/models/energy_core.glb",
+      "source_path": "source/aetherfall_kit.blend",
+      "production_batch": "01_hero_destination",
+      "batch_intent": "Destination hierarchy and objective/interior read.",
+      "legacy_revision_sha256": "c0c3a23ea68394e5586bb48f7c84d63ce0dfa5e0bc0f49bc0cd8aa70a9bc0ad1",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 16,
+          "infos": 1,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 16,
+            "UNUSED_OBJECT": 1
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 5,
+          "textures": true,
+          "draw_calls": 18,
+          "vertices": 352,
+          "triangles": 188,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "models__energy_orbit",
+      "runtime_path": "assets/world/aetherfall/models/energy_orbit.glb",
+      "source_path": "source/energy_orbit.blend",
+      "production_batch": "06_vfx_exceptions",
+      "batch_intent": "VFX/animated assets require separate animation, overdraw and device review.",
+      "legacy_revision_sha256": "3828c99dc6a5b533990e339a6f8c8359120c5d568583ec75cbe7ac7d00d3fad8",
+      "technical_baseline": {
+        "validator_status": "format_valid_no_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 0,
+          "infos": 2,
+          "hints": 0,
+          "by_code": {
+            "UNUSED_OBJECT": 2
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 1,
+          "textures": false,
+          "draw_calls": 2,
+          "vertices": 2528,
+          "triangles": 1248,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 1
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "models__machinery",
+      "runtime_path": "assets/world/aetherfall/models/machinery.glb",
+      "source_path": "source/aetherfall_kit.blend",
+      "production_batch": "04_operational_cover",
+      "batch_intent": "Function-first gates, machinery, cover and interaction assets.",
+      "legacy_revision_sha256": "89970f19b907beda999661fe1184bdad16da44b9f584cb5995783f9cda30e86e",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 7,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 7
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 5,
+          "textures": true,
+          "draw_calls": 8,
+          "vertices": 200,
+          "triangles": 108,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "models__pillar",
+      "runtime_path": "assets/world/aetherfall/models/pillar.glb",
+      "source_path": "source/aetherfall_kit.blend",
+      "production_batch": "02_primary_traversal",
+      "batch_intent": "Primary deck, bridge, catwalk and service-routing construction language.",
+      "legacy_revision_sha256": "5714abde6507f71919b6197cb1b0478e49e3fb3822ecdd473a5a819a9e2b555f",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 10,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 10
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 4,
+          "textures": true,
+          "draw_calls": 10,
+          "vertices": 192,
+          "triangles": 100,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "models__railing",
+      "runtime_path": "assets/world/aetherfall/models/railing.glb",
+      "source_path": "source/aetherfall_kit.blend",
+      "production_batch": "02_primary_traversal",
+      "batch_intent": "Primary deck, bridge, catwalk and service-routing construction language.",
+      "legacy_revision_sha256": "f7d5f71bdf12c6fc869004f4cd7bd8f3ef10b617cc8a75dc84cdc4b79a4c67b4",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 26,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 26
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 3,
+          "textures": true,
+          "draw_calls": 26,
+          "vertices": 360,
+          "triangles": 188,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "models__rock_boulder",
+      "runtime_path": "assets/world/aetherfall/models/rock_boulder.glb",
+      "source_path": "source/aetherfall_kit.blend",
+      "production_batch": "03_macro_ice_recovery",
+      "batch_intent": "Glacier, cliff, macro terrain and recovery-space geological language.",
+      "legacy_revision_sha256": "9b03da8f1b76dc585066aca90fff386102eddf6508231175c585451367183ef4",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 4,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 4
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 3,
+          "textures": true,
+          "draw_calls": 4,
+          "vertices": 494,
+          "triangles": 252,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "models__terrain_chunk",
+      "runtime_path": "assets/world/aetherfall/models/terrain_chunk.glb",
+      "source_path": "source/aetherfall_kit.blend",
+      "production_batch": "03_macro_ice_recovery",
+      "batch_intent": "Glacier, cliff, macro terrain and recovery-space geological language.",
+      "legacy_revision_sha256": "dd62fa2008b220bfaf630a18671b31cdbd615996a0eb3510f2cce77ad7e67e99",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 12,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 12
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 3,
+          "textures": true,
+          "draw_calls": 12,
+          "vertices": 4575,
+          "triangles": 3576,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "models__tower_foundation",
+      "runtime_path": "assets/world/aetherfall/models/tower_foundation.glb",
+      "source_path": "source/aetherfall_kit.blend",
+      "production_batch": "01_hero_destination",
+      "batch_intent": "Destination hierarchy and objective/interior read.",
+      "legacy_revision_sha256": "8ebe603640e90f50aee62a20bde571dd40c5ad8c3c7f606e42c5f7eda0e2b9f8",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 26,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 26
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 5,
+          "textures": true,
+          "draw_calls": 30,
+          "vertices": 468,
+          "triangles": 252,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "models__tower_spire",
+      "runtime_path": "assets/world/aetherfall/models/tower_spire.glb",
+      "source_path": "source/aetherfall_kit.blend",
+      "production_batch": "01_hero_destination",
+      "batch_intent": "Destination hierarchy and objective/interior read.",
+      "legacy_revision_sha256": "bc25480a5a8ccaab22e33edb2ea89d1df8aaea285f0cbf3918a8b976279ab9e0",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 9,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 9
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 4,
+          "textures": true,
+          "draw_calls": 10,
+          "vertices": 406,
+          "triangles": 214,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "models__tower_tier",
+      "runtime_path": "assets/world/aetherfall/models/tower_tier.glb",
+      "source_path": "source/aetherfall_kit.blend",
+      "production_batch": "01_hero_destination",
+      "batch_intent": "Destination hierarchy and objective/interior read.",
+      "legacy_revision_sha256": "11f3ee8daa3a71ba879a75f69f0f9a460a9c0ad5d93e74aa1b42ebd28f5866af",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 29,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 29
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 4,
+          "textures": true,
+          "draw_calls": 34,
+          "vertices": 720,
+          "triangles": 372,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "models__walkway_deck",
+      "runtime_path": "assets/world/aetherfall/models/walkway_deck.glb",
+      "source_path": "source/aetherfall_kit.blend",
+      "production_batch": "02_primary_traversal",
+      "batch_intent": "Primary deck, bridge, catwalk and service-routing construction language.",
+      "legacy_revision_sha256": "6edade5a1d94661633c14aff47a67728ad53f980ad34a8d84932146de92a1399",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 30,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 30
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 4,
+          "textures": true,
+          "draw_calls": 30,
+          "vertices": 432,
+          "triangles": 228,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "models__wall_section",
+      "runtime_path": "assets/world/aetherfall/models/wall_section.glb",
+      "source_path": "source/aetherfall_kit.blend",
+      "production_batch": "04_operational_cover",
+      "batch_intent": "Function-first gates, machinery, cover and interaction assets.",
+      "legacy_revision_sha256": "bca60c3aa8d59254ca7c9659712c03a79d6c3f72ab2d4f47e9435ea0b30662d7",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 10,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 10
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 3,
+          "textures": true,
+          "draw_calls": 10,
+          "vertices": 132,
+          "triangles": 68,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "phase2__cryo_bulkhead",
+      "runtime_path": "assets/world/aetherfall/phase2/cryo_bulkhead.glb",
+      "source_path": "source/aetherfall_phase2_cover.blend",
+      "production_batch": "04_operational_cover",
+      "batch_intent": "Function-first gates, machinery, cover and interaction assets.",
+      "legacy_revision_sha256": "9883492faa7e7d047e109a110ba8c594c75a00b3b374166564c5426a850e610f",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 15,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 15
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 6,
+          "textures": true,
+          "draw_calls": 15,
+          "vertices": 3512,
+          "triangles": 1780,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "phase2__glacier_berm",
+      "runtime_path": "assets/world/aetherfall/phase2/glacier_berm.glb",
+      "source_path": "source/aetherfall_phase2_cover.blend",
+      "production_batch": "03_macro_ice_recovery",
+      "batch_intent": "Glacier, cliff, macro terrain and recovery-space geological language.",
+      "legacy_revision_sha256": "7231281a6dfb4f92ebccc4d35378c0642505170c3b73d02d490a13961054906f",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 10,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 10
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 4,
+          "textures": true,
+          "draw_calls": 10,
+          "vertices": 3500,
+          "triangles": 1700,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "phase2__ice_terrace",
+      "runtime_path": "assets/world/aetherfall/phase2/ice_terrace.glb",
+      "source_path": "source/aetherfall_phase2_cover.blend",
+      "production_batch": "03_macro_ice_recovery",
+      "batch_intent": "Glacier, cliff, macro terrain and recovery-space geological language.",
+      "legacy_revision_sha256": "f009e617f0c96ff051e6820774a9ce8ba62d36574fdc8dd81eff2f3a7a1ac090",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 11,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 11
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 4,
+          "textures": true,
+          "draw_calls": 11,
+          "vertices": 3818,
+          "triangles": 1866,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "phase2__salvage_pod",
+      "runtime_path": "assets/world/aetherfall/phase2/salvage_pod.glb",
+      "source_path": "source/aetherfall_phase2_cover.blend",
+      "production_batch": "04_operational_cover",
+      "batch_intent": "Function-first gates, machinery, cover and interaction assets.",
+      "legacy_revision_sha256": "8bf65b4efa9bfc451f2243089c6359f0689e78cf3fb6d35d37048c0e513e02fd",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 13,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 13
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 5,
+          "textures": true,
+          "draw_calls": 13,
+          "vertices": 3488,
+          "triangles": 1804,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "vertical__overhead_gantry",
+      "runtime_path": "assets/world/aetherfall/vertical/overhead_gantry.glb",
+      "source_path": "source/aetherfall_vertical_infrastructure.blend",
+      "production_batch": "05_settlement_vertical",
+      "batch_intent": "Distinct industrial settlement and vertical/distant silhouette language.",
+      "legacy_revision_sha256": "d5ba08810b6fb0ea5e2c265a8c27a8fb9af4f0c742a8ccc731ccceb59085860f",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 36,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 36
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 5,
+          "textures": true,
+          "draw_calls": 36,
+          "vertices": 7968,
+          "triangles": 4016,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "vertical__raised_ops_deck",
+      "runtime_path": "assets/world/aetherfall/vertical/raised_ops_deck.glb",
+      "source_path": "source/aetherfall_vertical_infrastructure.blend",
+      "production_batch": "05_settlement_vertical",
+      "batch_intent": "Distinct industrial settlement and vertical/distant silhouette language.",
+      "legacy_revision_sha256": "215fc4ab042dd2003077619d27a723d6174310aae2f1921043a10bcfefcd38f2",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 25,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 25
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 5,
+          "textures": true,
+          "draw_calls": 25,
+          "vertices": 6480,
+          "triangles": 3324,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    },
+    {
+      "asset_id": "vertical__refinery_stack",
+      "runtime_path": "assets/world/aetherfall/vertical/refinery_stack.glb",
+      "source_path": "source/aetherfall_vertical_infrastructure.blend",
+      "production_batch": "05_settlement_vertical",
+      "batch_intent": "Distinct industrial settlement and vertical/distant silhouette language.",
+      "legacy_revision_sha256": "456be9f39a50d780af7d422283e306848bc77c5cf30033d87bfc1cc27db9fe66",
+      "technical_baseline": {
+        "validator_status": "format_valid_with_warnings",
+        "validator_issue_counts": {
+          "errors": 0,
+          "warnings": 57,
+          "infos": 0,
+          "hints": 0,
+          "by_code": {
+            "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 57
+          }
+        },
+        "stats": {
+          "generator": "Khronos glTF Blender I/O v5.0.21",
+          "materials": 5,
+          "textures": true,
+          "draw_calls": 57,
+          "vertices": 15240,
+          "triangles": 7916,
+          "max_uv_sets": 1,
+          "max_attributes": 3,
+          "animations": 0
+        }
+      },
+      "human_art_gate": {
+        "brief": "not_started",
+        "reference": "not_started",
+        "base_mesh": "not_started",
+        "high_poly": "not_started",
+        "retopology": "not_started",
+        "uv_unwrap": "not_started",
+        "bake": "not_started",
+        "pbr_texturing": "not_started",
+        "godot_visual": "not_started",
+        "target_device_profile": "not_started",
+        "export_release": "not_started"
+      },
+      "release_decision": "unaccepted",
+      "evidence": {
+        "brief_document": null,
+        "reference_images": [],
+        "clay_review_images": [],
+        "wireframe_review_images": [],
+        "uv_checker_review_images": [],
+        "bake_inspection_images": [],
+        "godot_review_images": [],
+        "target_device_profile": null,
+        "validator_exception": null,
+        "approved_by": null,
+        "revision": null
+      }
+    }
+  ]
+}
