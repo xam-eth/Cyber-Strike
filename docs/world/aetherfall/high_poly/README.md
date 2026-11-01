@@ -1,6 +1,6 @@
 # Gate 04 — High-Poly detailing clay review
 
-These renders review physical **bake-source** geometry in `source/aetherfall_high_poly.blend`. The Gate 03 collections remain for silhouette context; all Gate 04 detail is kept separately in `HP_ARCHIVE`, `HP_TRAVERSAL`, and `HP_TERRAIN`. Nothing here is exported to the game.
+These renders review physical **bake-source** geometry in `source/aetherfall_high_poly.blend`. The Gate 03 collections remain for silhouette context; all Gate 04 detail is kept separately in `HP_ARCHIVE`, `HP_TRAVERSAL`, and `HP_TERRAIN`. This is an exploratory three-family study, not a completed High-Poly pass for the 51 runtime GLBs. Nothing here is exported to the game. See `../INDUSTRY_PRODUCTION_STANDARD.md` for the asset-level production requirement.
 
 | Review | Geometry verified in the source |
 |---|---|

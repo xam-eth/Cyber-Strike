@@ -1,6 +1,6 @@
 # Aetherfall — Production Art Pipeline
 
-**Status:** Gate 04 — High-Poly source authored; clay-review acceptance pending
+**Status:** Production reset — asset-level brief and evidence ledger required before any Gate 03/04 asset can be accepted
 
 This is the production sequence for Aetherfall. It replaces the incorrect practice of treating an extruded, generated, or multi-part mesh as a finished environment asset.
 
@@ -145,10 +145,11 @@ Only after Godot visual approval:
 
 | Area | Status |
 |---|---|
-| Reference language | **LOCKED** — three original studies recorded above |
+| Reference language | **WORLD LANGUAGE LOCKED; ASSET BRIEFS INCOMPLETE** — three studies exist, but they do not replace per-asset reference/scale/function sign-off |
 | Gameplay blockout/connectivity | **RETAINED** |
-| Production Base Mesh | **SOURCE AUTHORED** — three core-family clay reviews are present; no final visual approval claimed |
-| High-poly detailing | **CLAY REVIEW PENDING** — dedicated `HP_` bake-source collections and three core-family reviews are present |
-| Retopo / authored UV / bake | **NOT STARTED** |
-| Final PBR texture authoring | **NOT STARTED** |
-| Godot visual approval | **UNVERIFIED** |
+| Runtime asset inventory | **51 GLBs AUDITED; NONE PRODUCTION-ACCEPTED** — consult `INDUSTRY_PRODUCTION_STANDARD.md` and `validation/gltf_validation.json` |
+| Production Base Mesh | **EXPLORATORY STUDY ONLY** — `BM_*` covers three concept families and is not a full asset-library Gate 03 delivery |
+| High-poly detailing | **EXPLORATORY STUDY ONLY** — `HP_*` is bake-source research for three families, not an accepted Gate 04 delivery for 51 runtime assets |
+| Retopo / authored UV / bake | **NOT STARTED AS A REVIEWED ASSET PIPELINE** |
+| Final PBR texture authoring | **NOT STARTED AS A REVIEWED ASSET PIPELINE** |
+| Godot visual approval / target-device profile | **UNVERIFIED** |

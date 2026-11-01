@@ -1,6 +1,6 @@
 # Gate 03 — Base Mesh clay review
 
-These are **source-review renders only**, generated from `source/aetherfall_base_mesh.blend`. They show the current deliberately low-resolution, functional massing before High-Poly detailing, retopology, UVs, baking, or PBR work. They are not runtime art, final lighting, or evidence of Gate 09 visual approval.
+These are **source-review renders only**, generated from `source/aetherfall_base_mesh.blend`. They show a deliberately low-resolution, functional-massing **study for three concept families only** before High-Poly detailing, retopology, UVs, baking, or PBR work. They do not cover the 51 runtime GLBs and are not Gate 03 acceptance, runtime art, final lighting, or evidence of Gate 09 visual approval. See `../INDUSTRY_PRODUCTION_STANDARD.md` for the asset-level production requirement.
 
 | Review | Source family | What is being checked |
 |---|---|---|

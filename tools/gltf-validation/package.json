@@ -1,0 +1,13 @@
+{
+  "name": "aetherfall-gltf-validation",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Pinned Khronos glTF validation runner for the Aetherfall asset ledger.",
+  "type": "module",
+  "dependencies": {
+    "gltf-validator": "2.0.0-dev.3.10"
+  },
+  "scripts": {
+    "validate:aetherfall": "node validate_aetherfall.mjs"
+  }
+}
