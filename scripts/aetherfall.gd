@@ -5,8 +5,10 @@ const PROGRESSION_STATE := preload("res://scripts/progression_state.gd")
 const NO_COLLISION := ["terrain_chunk", "cliff_face", "rock_boulder", "background_silhouette", "cloud_puff", "debris_cluster", "cable_bundle", "energy_core", "railing"]
 # Surface meshes, not the enclosing AABB of railings or dangling cables.
 const WALKABLE_MESH := {
-	"deck_6x6": "DeckPlate", "deck_edge": "DeckEdgePlate",
-	"bridge_deck": "BridgeDeck", "walkway_deck": "WalkwayDeck",
+	# These are the actual upper armour meshes of the re-authored exterior kit;
+	# keeping collisions bound to them avoids turning rails/supports into floors.
+	"deck_6x6": "ChamferedDeckArmour", "deck_edge": "EdgeArmour",
+	"bridge_deck": "BridgeArmourDeck", "walkway_deck": "CatwalkArmour",
 }
 var placement_count := 0
 var collider_count := 0
@@ -630,27 +632,33 @@ func add_atmosphere() -> void:
 	var sky_material := ProceduralSkyMaterial.new()
 	# Cold open-sky planet palette: visible glacial horizon without a dense
 	# indoor-hangar haze. The blue shift belongs to the planet, not a post-FX tint.
-	sky_material.sky_top_color = Color(0.018, 0.065, 0.16)
-	sky_material.sky_horizon_color = Color(0.55, 0.76, 0.91)
-	sky_material.ground_bottom_color = Color(0.045, 0.075, 0.12)
-	sky_material.ground_horizon_color = Color(0.40, 0.57, 0.70)
+	# A much darker zenith and a cold lifted horizon frame the distant robot
+	# settlement; the sky is an atmosphere with depth, not a blue backdrop.
+	sky_material.sky_top_color = Color(0.006, 0.026, 0.070)
+	sky_material.sky_horizon_color = Color(0.135, 0.305, 0.445)
+	sky_material.ground_bottom_color = Color(0.008, 0.018, 0.042)
+	sky_material.ground_horizon_color = Color(0.052, 0.135, 0.215)
+	sky_material.sun_angle_max = 10.0
+	sky_material.sun_curve = 0.075
+	sky_material.sun_energy_multiplier = 0.55
 	var sky := Sky.new()
 	sky.sky_material = sky_material
 	environment.background_mode = Environment.BG_SKY
 	environment.sky = sky
+	environment.background_energy_multiplier = 0.74
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	environment.ambient_light_energy = 0.95
-	environment.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
+	environment.ambient_light_energy = 0.72
+	environment.reflected_light_source = Environment.REFLECTION_SOURCE_BG
 	environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	# Deliberately lean haze and restrained glow preserve canyon depth, PBR
 	# contrast and building silhouettes instead of flattening the scene.
 	environment.tonemap_exposure = 1.08
 	environment.tonemap_white = 1.22
 	environment.fog_enabled = true
-	environment.fog_light_color = Color(0.58, 0.75, 0.90)
-	environment.fog_density = 0.00082
-	environment.fog_aerial_perspective = 0.30
-	environment.fog_sky_affect = 0.18
+	environment.fog_light_color = Color(0.17, 0.34, 0.46)
+	environment.fog_density = 0.0022
+	environment.fog_aerial_perspective = 0.68
+	environment.fog_sky_affect = 0.58
 	environment.glow_enabled = true
 	environment.glow_intensity = 0.55
 	environment.glow_strength = 0.72

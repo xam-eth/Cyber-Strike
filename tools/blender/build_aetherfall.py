@@ -165,6 +165,33 @@ def tex_rock(size=512):
     base[..., 3] = 1.0
     return base
 
+def tex_ice_rock(size=512):
+    """Blue glacial mineral: layered ice, trapped particulate and fracture veins.
+    It is a surface source for the exterior geology rather than a flat colour."""
+    y, x = np.mgrid[0:size, 0:size].astype(np.float32) / size
+    rng = np.random.default_rng(61)
+    grain = rng.normal(0.0, 0.035, (size, size))
+    bands = 0.5 + 0.5 * np.sin((y * 13.0 + 0.35 * np.sin(x * 9.0)) * math.pi)
+    base = np.zeros((size, size, 4), np.float32)
+    base[..., 0] = 0.105 + bands * 0.10 + grain
+    base[..., 1] = 0.225 + bands * 0.20 + grain
+    base[..., 2] = 0.32 + bands * 0.28 + grain
+    # Long dark cryo-fractures prevent the ice from reading as a blue painted box.
+    for _ in range(22):
+        xx = rng.uniform(0, 1)
+        slope = rng.uniform(-0.24, 0.24)
+        width = rng.uniform(0.0015, 0.004)
+        line = np.abs(x - (xx + (y - 0.5) * slope))
+        crack = np.clip(1.0 - line / width, 0.0, 1.0)
+        base[..., :3] *= (1.0 - crack[..., None] * rng.uniform(0.28, 0.52))
+    # Thin pale pressure seams on several horizontal shelves.
+    seam = np.minimum.reduce([np.abs(y - v) for v in (0.16, 0.37, 0.61, 0.83)])
+    pale = np.clip(1.0 - seam / 0.007, 0.0, 1.0)
+    base[..., :3] += pale[..., None] * np.array([0.08, 0.18, 0.23])
+    base[..., 3] = 1.0
+    return base
+
+
 def tex_metal(size=512, seed=31):
     """Weathered brushed metal: scratches, edge wear, stains."""
     rng = np.random.default_rng(seed)
@@ -341,6 +368,7 @@ def bake_textures():
         "aether_deck": (lambda s=512: blend_source_texture(tex_deck(s), "ai_weathered_steel.png", 0.36), 0.48, 0.42, 10.0),
         "aether_concrete": (lambda s=512: blend_source_texture(tex_concrete(s), "ai_poured_concrete.png", 0.72), 0.87, 0.00, 5.0),
         "aether_rock": (lambda s=512: blend_source_texture(tex_rock(s), "ai_sedimentary_rock.png", 0.30), 0.93, 0.00, 7.0),
+        "aether_ice_rock": (tex_ice_rock, 0.78, 0.03, 8.5),
         "aether_metal": (lambda s=512: blend_source_texture(tex_metal(s), "ai_weathered_steel.png", 0.70), 0.38, 0.88, 5.5),
         "aether_metal2": (lambda s=512: blend_source_texture(tex_metal(s, seed=97), "ai_weathered_steel.png", 0.52), 0.28, 0.96, 4.0),
         "aether_composite": (tex_composite, 0.56, 0.12, 3.5),
@@ -441,8 +469,10 @@ def palette_materials():
     get_mat("Titanium", base=(0.55, 0.58, 0.62, 1.0), rough=0.35, metal=0.95, tex="aether_metal2")
     get_mat("Concrete", base=(0.52, 0.51, 0.50, 1.0), rough=0.85, metal=0.02, tex="aether_concrete")
     get_mat("Composite", base=(0.16, 0.19, 0.22, 1.0), rough=0.7, metal=0.1, tex="aether_composite")
-    get_mat("Rock", base=(0.44, 0.42, 0.39, 1.0), rough=0.95, metal=0.0, tex="aether_rock")
-    get_mat("Stratum", base=(0.50, 0.47, 0.43, 1.0), rough=0.92, metal=0.0, tex="aether_rock")
+    get_mat("Rock", base=(0.16, 0.29, 0.40, 1.0), rough=0.82, metal=0.03, tex="aether_ice_rock")
+    get_mat("Stratum", base=(0.10, 0.20, 0.29, 1.0), rough=0.90, metal=0.02, tex="aether_ice_rock")
+    get_mat("IceVein", base=(0.25, 0.62, 0.82, 1.0), rough=0.32, metal=0.05,
+            tex="aether_ice_rock", emission=(0.08, 0.26, 0.38), emission_strength=0.14)
     get_mat("Glass", base=(0.35, 0.55, 0.68, 0.35), rough=0.08, metal=0.05,
             emission=(0.35, 0.72, 1.0), emission_strength=0.35, transmission=0.6)
     get_mat("Rubber", base=(0.10, 0.10, 0.11, 1.0), rough=0.85, metal=0.0, tex="aether_rubber")
@@ -456,154 +486,14 @@ def palette_materials():
 palette_materials()
 
 # ---------------------------------------------------------------------------
-# Primitive helpers. The former 0..1 primitive UVs made a full PBR map stretch
-# across an entire tower/bridge face. Scale UV density in authored metres so
-# the close-range material remains readable after GLB import into Godot.
+# Authored mesh ownership. Aetherfall's visible kit is made of closed lofts,
+# extrusions and terrain volumes; no primitive blockout helpers remain.
 # ---------------------------------------------------------------------------
 def new_collection(name):
     c = bpy.data.collections.get(name)
     if c is None:
         c = bpy.data.collections.new(name)
     return c
-
-def _relink(obj, coll):
-    for c in list(obj.users_collection):
-        c.objects.unlink(obj)
-    coll.objects.link(obj)
-
-def tile_uv(obj, repeat):
-    layer = obj.data.uv_layers.active
-    if layer:
-        for item in layer.data:
-            item.uv *= repeat
-
-def material_repeat(dims, matname):
-    # Hard surface panels can carry dense paint/scratch detail; terrain remains
-    # broader so it does not look like stamped floor tiles.
-    base = 4.2 if matname in {"Rock", "Stratum", "Concrete"} else 2.35
-    return max(1.0, max(dims) / base)
-
-def mbox(coll, name, dims, pos=(0.0, 0.0, 0.0), matname="Steel", bevel=0.02,
-         bevel_seg=3, rot=(0.0, 0.0, 0.0)):
-    bpy.ops.mesh.primitive_cube_add(size=2.0, location=pos, rotation=rot)
-    o = bpy.context.active_object
-    o.name = name
-    o.scale = (dims[0] / 2.0, dims[1] / 2.0, dims[2] / 2.0)
-    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
-    if bevel > 0.0:
-        mod = o.modifiers.new("B", "BEVEL")
-        mod.width = bevel
-        mod.segments = max(3, bevel_seg)
-        mod.limit_method = 'ANGLE'
-        mod.angle_limit = math.radians(32.0)
-        try:
-            mod.harden_normals = True
-        except Exception:
-            pass
-    tile_uv(o, material_repeat(dims, matname))
-    o.data.materials.append(get_mat(matname))
-    _relink(o, coll)
-    return o
-
-def mcyl(coll, name, radius, depth, pos=(0.0, 0.0, 0.0), matname="Steel",
-         bevel=0.02, verts=16, rot=(0.0, 0.0, 0.0)):
-    bpy.ops.mesh.primitive_cylinder_add(radius=radius, depth=depth,
-                                        location=pos, vertices=max(12, verts), rotation=rot)
-    o = bpy.context.active_object
-    o.name = name
-    # Cylinder depth starts on Blender Z; author the kit with Y as height.
-    o.rotation_euler = (-math.pi / 2.0 + rot[0], rot[1], rot[2])
-    if bevel > 0.0:
-        mod = o.modifiers.new("B", "BEVEL")
-        mod.width = bevel
-        mod.segments = 3
-        mod.limit_method = 'ANGLE'
-        mod.angle_limit = math.radians(32.0)
-        try:
-            mod.harden_normals = True
-        except Exception:
-            pass
-    tile_uv(o, max(1.0, depth / (4.2 if matname in {"Rock", "Concrete"} else 2.35)))
-    o.data.materials.append(get_mat(matname))
-    _relink(o, coll)
-    return o
-
-def msphere(coll, name, radius, pos=(0.0, 0.0, 0.0), matname="Rock",
-            segments=16, rings=10):
-    bpy.ops.mesh.primitive_uv_sphere_add(radius=radius, location=pos,
-                                         segments=max(18, segments), ring_count=max(12, rings))
-    o = bpy.context.active_object
-    o.name = name
-    tile_uv(o, max(1.0, radius / 1.6))
-    o.data.materials.append(get_mat(matname))
-    _relink(o, coll)
-    return o
-
-def mtorus(coll, name, major, minor, pos=(0.0, 0.0, 0.0), matname="Steel",
-           major_segments=32, minor_segments=8, rot=(0.0, 0.0, 0.0)):
-    """A clean hard-surface ring in the kit's Y-up orientation."""
-    bpy.ops.mesh.primitive_torus_add(major_radius=major, minor_radius=minor,
-                                     major_segments=major_segments, minor_segments=minor_segments,
-                                     location=pos, rotation=(math.pi / 2.0 + rot[0], rot[1], rot[2]))
-    o = bpy.context.active_object
-    o.name = name
-    o.data.materials.append(get_mat(matname))
-    _relink(o, coll)
-    return o
-
-def add_bolt(coll, name, pos, radius=0.08, height=0.10, matname="Titanium"):
-    return mcyl(coll, name, radius, height, pos, matname, bevel=0.018, verts=12)
-
-def brace_xy(coll, name, a, b, thickness=0.18, depth=0.18, matname="Steel"):
-    """Rectangular diagonal brace between two points in the authored X/Y plane."""
-    dx, dy = b[0] - a[0], b[1] - a[1]
-    length = math.hypot(dx, dy)
-    if length < 0.001:
-        return None
-    angle = math.atan2(-dx, dy)
-    return mbox(coll, name, (thickness, length, depth),
-                ((a[0] + b[0]) * 0.5, (a[1] + b[1]) * 0.5, (a[2] + b[2]) * 0.5),
-                matname, bevel=0.045, rot=(0.0, 0.0, angle))
-
-def grid_mesh(coll, name, size, seg, pos, height_fn, matname,
-              base_rot=(0.0, 0.0, 0.0), uv_scale=0.5):
-    """A subdivided, displaced grid built directly with bmesh (Blender 4.5's
-    plane operator no longer takes a subdivision count). UVs are a metric grid
-    so the baked textures repeat on a fixed world scale."""
-    import bmesh
-    me = bpy.data.meshes.new(name)
-    bm = bmesh.new()
-    half = size / 2.0
-    grid = []
-    for i in range(seg + 1):
-        row = []
-        for j in range(seg + 1):
-            x = -half + (size * j / seg)
-            z = -half + (size * i / seg)
-            row.append(bm.verts.new((x, 0.0, z)))
-        grid.append(row)
-    bm.verts.ensure_lookup_table()
-    for row in grid:
-        for v in row:
-            v.co.y = height_fn(v.co.x, v.co.z)
-    for i in range(seg):
-        for j in range(seg):
-            a = grid[i][j]; b = grid[i][j + 1]
-            c = grid[i + 1][j + 1]; d = grid[i + 1][j]
-            bm.faces.new((a, d, c, b))
-    bm.normal_update()
-    uvl = bm.loops.layers.uv.new("UVMap")
-    for face in bm.faces:
-        for loop in face.loops:
-            loop[uvl].uv = (loop.vert.co.x * uv_scale, loop.vert.co.z * uv_scale)
-    bm.to_mesh(me)
-    bm.free()
-    o = bpy.data.objects.new(name, me)
-    o.location = pos
-    o.rotation_euler = base_rot
-    o.data.materials.append(get_mat(matname))
-    coll.objects.link(o)
-    return o
 
 ASSETS = {}          # key -> bpy.data.collections.new("A_<key>")
 
@@ -618,30 +508,151 @@ def noise2(x, z, oct=4, seed=7):
         freq *= 2.1
     return s / 1.7
 
-def tapered_box(coll, name, w, h, d, top_scale=0.6, pos=(0.0, 0.0, 0.0),
-                matname="Steel", bevel=0.05, bevel_seg=2):
-    bpy.ops.mesh.primitive_cube_add(size=2.0, location=pos)
-    o = bpy.context.active_object
-    o.name = name
-    o.scale = (w / 2.0, h / 2.0, d / 2.0)
-    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
-    me = o.data
-    top = h / 2.0
-    for v in me.vertices:
-        if v.co.y > 0.0:
-            t = (v.co.y + top) / (2.0 * top)
-            v.co.x *= (1.0 - (1.0 - top_scale) * t)
-            v.co.z *= (1.0 - (1.0 - top_scale) * t)
+
+# ---------------------------------------------------------------------------
+# Authored mesh helpers.  These deliberately make closed, shaped volumes (not
+# tiled planes nor scaled cubes) so the exterior reads as geology and machinery
+# from both ground-level and distant cameras.
+# ---------------------------------------------------------------------------
+def mesh_object(coll, name, verts, faces, matnames, face_mats=None, uv_scale=0.12):
+    me = bpy.data.meshes.new(name)
+    me.from_pydata(verts, [], faces)
+    me.materials.clear()
+    for matname in matnames:
+        me.materials.append(get_mat(matname))
+    me.uv_layers.new(name="UVMap")
+    for poly in me.polygons:
+        poly.use_smooth = False
+        if face_mats is not None and poly.index < len(face_mats):
+            poly.material_index = face_mats[poly.index]
+        for li in poly.loop_indices:
+            v = me.vertices[me.loops[li].vertex_index].co
+            me.uv_layers.active.data[li].uv = (v.x * uv_scale, v.z * uv_scale + v.y * uv_scale * 0.15)
     me.update()
-    if bevel > 0.0:
-        mod = o.modifiers.new("B", "BEVEL")
-        mod.width = bevel
-        mod.segments = bevel_seg
-        mod.limit_method = 'ANGLE'
-    tile_uv(o, material_repeat((w, h, d), matname))
-    me.materials.append(get_mat(matname))
-    _relink(o, coll)
-    return o
+    obj = bpy.data.objects.new(name, me)
+    coll.objects.link(obj)
+    return obj
+
+def irregular_outline(radius_x, radius_z, count=12, seed=1.0, phase=0.0):
+    out = []
+    for i in range(count):
+        a = phase + math.tau * i / count
+        jitter = 0.84 + 0.15 * (0.5 + 0.5 * noise2(math.cos(a) * 2.7, math.sin(a) * 2.7, 3, seed))
+        out.append((math.cos(a) * radius_x * jitter, math.sin(a) * radius_z * jitter))
+    return out
+
+def outline_prism(coll, name, outline, y0, y1, matname, side_mat=None, pos=(0.0, 0.0, 0.0), uv_scale=0.12):
+    """An extruded, non-rectilinear plate/ledge. Outline coordinates are X/Z."""
+    # Concise kit calls may pass UV scale as the final positional value.
+    if isinstance(pos, (int, float)):
+        uv_scale = float(pos)
+        pos = (0.0, 0.0, 0.0)
+    n = len(outline)
+    verts = [(x + pos[0], y0 + pos[1], z + pos[2]) for x, z in outline]
+    verts += [(x + pos[0], y1 + pos[1], z + pos[2]) for x, z in outline]
+    faces = [tuple(range(n - 1, -1, -1)), tuple(range(n, 2 * n))]
+    face_mats = [1 if side_mat else 0, 0]
+    for i in range(n):
+        j = (i + 1) % n
+        faces.append((i, j, n + j, n + i))
+        face_mats.append(1 if side_mat else 0)
+    return mesh_object(coll, name, verts, faces, [matname] + ([side_mat] if side_mat else []), face_mats, uv_scale)
+
+def loft_volume(coll, name, rings, matname, sides=8, phase=0.0, side_mat=None, uv_scale=0.12):
+    """Closed taper/stepped shell from (y, radius_x, radius_z, cx, cz) rings."""
+    verts = []
+    for y, rx, rz, cx, cz in rings:
+        for i in range(sides):
+            a = phase + math.tau * i / sides
+            # Controlled asymmetric wobble stops identical cylinders/cubes.
+            wobble = 1.0 + 0.045 * math.sin(i * 4.7 + y * 0.71)
+            verts.append((cx + math.cos(a) * rx * wobble, y, cz + math.sin(a) * rz * wobble))
+    faces = [tuple(range(sides - 1, -1, -1))]
+    face_mats = [1 if side_mat else 0]
+    for ring in range(len(rings) - 1):
+        off = ring * sides
+        for i in range(sides):
+            j = (i + 1) % sides
+            faces.append((off + i, off + j, off + sides + j, off + sides + i))
+            face_mats.append(0)
+    end = (len(rings) - 1) * sides
+    faces.append(tuple(end + i for i in range(sides)))
+    face_mats.append(1 if side_mat else 0)
+    return mesh_object(coll, name, verts, faces, [matname] + ([side_mat] if side_mat else []), face_mats, uv_scale)
+
+def terrain_volume(coll, name, size_x, size_z, seg, top_fn, bottom, matname="Rock"):
+    """Watertight displaced terrain: a top surface, deep mass, and visible cliff walls."""
+    verts = []
+    for layer in range(2):
+        for iz in range(seg + 1):
+            z = -size_z * 0.5 + size_z * iz / seg
+            for ix in range(seg + 1):
+                x = -size_x * 0.5 + size_x * ix / seg
+                y = top_fn(x, z) if layer == 0 else bottom
+                verts.append((x, y, z))
+    stride = seg + 1
+    top_offset = 0
+    bot_offset = stride * stride
+    faces = []; face_mats = []
+    def q(a, b, c, d, mi):
+        faces.append((a, b, c, d)); face_mats.append(mi)
+    for iz in range(seg):
+        for ix in range(seg):
+            a = top_offset + iz * stride + ix
+            q(a, a + stride, a + stride + 1, a + 1, 0)
+            b = bot_offset + iz * stride + ix
+            q(b + 1, b + stride + 1, b + stride, b, 1)
+    # Four sides give the terrain physical depth from the canyon and from the sky.
+    for ix in range(seg):
+        a = ix; b = ix + 1
+        q(a, b, bot_offset + b, bot_offset + a, 1)
+        a = seg * stride + ix; b = a + 1
+        q(b, a, bot_offset + a, bot_offset + b, 1)
+    for iz in range(seg):
+        a = iz * stride; b = a + stride
+        q(b, a, bot_offset + a, bot_offset + b, 1)
+        a = iz * stride + seg; b = a + stride
+        q(a, b, bot_offset + b, bot_offset + a, 1)
+    return mesh_object(coll, name, verts, faces, [matname, "Stratum"], face_mats, 0.095)
+
+def rock_boulder_mesh(coll, name, radius, matname="Rock", seed=1.0):
+    rings, sides = 8, 13
+    verts = []
+    for j in range(rings + 1):
+        v = j / rings
+        polar = math.pi * v
+        for i in range(sides):
+            a = math.tau * i / sides
+            irregular = 0.76 + 0.36 * (0.5 + 0.5 * noise2(math.cos(a) * 2.0 + v, math.sin(a) * 2.0, 3, seed))
+            r = radius * irregular
+            verts.append((math.cos(a) * math.sin(polar) * r, math.cos(polar) * radius * (0.9 + 0.15 * irregular), math.sin(a) * math.sin(polar) * r))
+    faces = []
+    for j in range(rings):
+        for i in range(sides):
+            a = j * sides + i; b = j * sides + (i + 1) % sides
+            faces.append((a, b, b + sides, a + sides))
+    return mesh_object(coll, name, verts, faces, [matname], None, 0.14)
+
+def facade_fin(coll, name, angle, radius, y0, y1, width, depth, matname="Steel"):
+    """Tapered exterior fin with a deliberate radial orientation."""
+    ca, sa = math.cos(angle), math.sin(angle)
+    tx, tz = -sa, ca
+    cx, cz = ca * radius, sa * radius
+    outline = [(-width, -depth), (width, -depth * 0.55), (width * 0.72, depth), (-width * 0.72, depth * 0.7)]
+    world = [(cx + tx * x + ca * z, cz + tz * x + sa * z) for x, z in outline]
+    return outline_prism(coll, name, world, y0, y1, matname, "Composite", uv_scale=0.18)
+def vertical_profile(coll, name, profile, z0, z1, matname, side_mat=None, uv_scale=0.18):
+    """Extrude an X/Y silhouette through Z for gates, walls and combat cover."""
+    n = len(profile)
+    verts = [(x, y, z0) for x, y in profile] + [(x, y, z1) for x, y in profile]
+    faces = [tuple(range(n - 1, -1, -1)), tuple(range(n, 2 * n))]
+    face_mats = [1 if side_mat else 0, 0]
+    for i in range(n):
+        j = (i + 1) % n
+        faces.append((i, j, n + j, n + i)); face_mats.append(1 if side_mat else 0)
+    return mesh_object(coll, name, verts, faces, [matname] + ([side_mat] if side_mat else []), face_mats, uv_scale)
+
+
 
 def reg(key, coll):
     ASSETS[key] = coll
@@ -652,103 +663,124 @@ def reg(key, coll):
 # ---------------------------- geology + architecture ----------------------
 def b_terrain_chunk():
     coll = new_collection("A_terrain_chunk")
-    grid_mesh(coll, "TerrainMass", 46.0, 32, (0.0, 0.0, 0.0),
-              lambda x, z: -3.0 + 2.6 * noise2(x * 0.17, z * 0.17, 4, 7.0),
-              "Rock", base_rot=(0.0, 0.0, 0.0), uv_scale=0.09)
-    for i in range(3):
-        a = math.radians(120.0 * i + 20.0)
-        r = 15.0 + i * 5.0
-        mbox(coll, "TerrainBlob%d" % i, (12.0, 3.0, 12.0),
-             (math.cos(a) * r, -1.0 + i * 0.7, math.sin(a) * r), "Rock", bevel=1.2)
-    mbox(coll, "TerrainScar", (18.0, 1.2, 6.0), (14.0, -0.4, -10.0), "Rock", bevel=0.6)
+    # This is a deep landform; the visible sides carry horizontal mineral strata.
+    def height(x, z):
+        rim = 1.9 * math.sin(z * 0.11) + 1.1 * math.cos(x * 0.13)
+        erosion = 3.1 * noise2(x * 0.11, z * 0.11, 5, 17.0)
+        shelf = 1.15 * math.sin((z + x * 0.22) * 0.34)
+        return 1.5 + rim + erosion + shelf
+    terrain_volume(coll, "GlacialTerrainMass", 48.0, 48.0, 28, height, -22.0)
+    # Receding shelves make the chunk read as a cut glacier rather than a noise plane.
+    for level, scale in [(-8.2, 0.91), (-13.2, 0.78), (-17.8, 0.63)]:
+        outline_prism(coll, "StrataShelf_%s" % str(abs(level)).replace('.', '_'),
+                      irregular_outline(22.5 * scale, 22.5 * scale, 15, 40.0 + level),
+                      level - 0.55, level, "Stratum", "Rock", uv_scale=0.09)
+    # Blue pressure seams have a narrative role: they lead toward the Archive tower.
+    for i, x in enumerate((-11.0, -3.5, 5.0, 13.0)):
+        outline_prism(coll, "CryoSeam%d" % i,
+                      [(x - 0.42, -18.0), (x + 0.22, -17.8), (x + 0.75, 13.0), (x - 0.25, 13.4)],
+                      -0.08, 0.12, "IceVein", uv_scale=0.2)
     reg("terrain_chunk", coll)
     return coll
-
 def b_cliff_face():
     coll = new_collection("A_cliff_face")
-    grid_mesh(coll, "CliffMass", 26.0, 32, (0.0, 0.0, 0.0),
-              lambda x, z: 3.0 - 9.0 * noise2(x * 0.22, z * 0.22, 4, 11.0),
-              "Rock", base_rot=(0.0, 0.0, 0.0), uv_scale=0.14)
-    mbox(coll, "CliffShelf", (26.0, 2.0, 7.0), (0.0, 1.0, -4.0), "Rock", bevel=1.0)
-    for i in range(5):
-        a = math.radians(20.0 + 32.0 * i)
-        mbox(coll, "CliffRock%d" % i, (3.0, 3.0, 3.0),
-             (math.cos(a) * 11.0, -2.0 + (i % 3), math.sin(a) * 11.0 - 2.0),
-             "Rock", bevel=0.8)
-    for i in range(4):
-        mcyl(coll, "CliffBolt%d" % i, 0.28, 2.6, (-9.0 + i * 6.0, 1.0, -3.2),
-             "Steel", bevel=0.06, verts=8)
+    # A stepped, irregular escarpment with real face depth; not a displaced plane.
+    sx, levels, rows = 30.0, 17, 15
+    verts = []
+    for back in (False, True):
+        for iy in range(levels + 1):
+            y = -12.0 + 20.0 * iy / levels
+            terrace = 1.25 * math.floor((y + 12.0) / 4.2)
+            for ix in range(rows + 1):
+                x = -sx * 0.5 + sx * ix / rows
+                broken = noise2(x * 0.23, y * 0.20, 4, 29.0) * 1.45
+                z = (-5.1 + terrace + broken) if not back else (7.0 + 0.38 * broken)
+                verts.append((x, y, z))
+    stride = rows + 1; half = (levels + 1) * stride
+    faces=[]; mats=[]
+    def q(a,b,c,d,mi): faces.append((a,b,c,d)); mats.append(mi)
+    for iy in range(levels):
+        for ix in range(rows):
+            a=iy*stride+ix; q(a,a+1,a+stride+1,a+stride,0)
+            b=half+iy*stride+ix; q(b+stride,b+stride+1,b+1,b,1)
+    for iy in range(levels):
+        a=iy*stride; b=a+stride; q(a,b,half+b,half+a,1)
+        a=iy*stride+rows; b=a+stride; q(b,a,half+a,half+b,1)
+    for ix in range(rows):
+        a=ix; b=ix+1; q(b,a,half+a,half+b,1)
+        a=levels*stride+ix; b=a+1; q(a,b,half+b,half+a,1)
+    mesh_object(coll,"EscarpmentVolume",verts,faces,["Rock","Stratum"],mats,0.11)
+    # Ice shelves and anchored extraction braces relate the cliff to robot occupation.
+    for i, y in enumerate((-6.6, -2.3, 2.1, 5.5)):
+        outline_prism(coll, "ErosionLedge%d" % i,
+                      [(-14.8, -5.7 + i * 0.35), (14.6, -5.1 + i * 0.28), (13.7, -3.8 + i * 0.25), (-13.9, -4.0 + i * 0.22)],
+                      y - 0.42, y, "Stratum", "Rock", uv_scale=0.11)
+    for i, x in enumerate((-10.0, -3.2, 4.0, 10.8)):
+        facade_fin(coll, "AnchorButtress%d" % i, math.pi, 4.8, -7.0, 4.2, 0.48, 0.55, "Steel")
     reg("cliff_face", coll)
     return coll
-
 def b_rock_boulder():
     coll = new_collection("A_rock_boulder")
-    o = msphere(coll, "BoulderMain", 3.0, (0.0, 1.5, 0.0), "Rock", segments=14, rings=10)
-    for v in o.data.vertices:
-        v.co *= (1.0 + 0.35 * noise2(v.co.x, v.co.y, 3, 3.0))
-    o.data.update()
-    mbox(coll, "BoulderChunkA", (2.2, 1.6, 2.0), (2.4, 0.6, 1.0), "Rock", bevel=0.5)
-    mbox(coll, "BoulderChunkB", (1.8, 1.2, 1.6), (-2.2, 0.5, -1.2), "Rock", bevel=0.4)
+    rock_boulder_mesh(coll, "FacetedCryoBoulder", 3.7, "Rock", 43.0)
+    outline_prism(coll, "BoulderIcePlate", irregular_outline(2.5, 1.5, 9, 4.0), -1.8, -1.45, "Stratum", "Rock")
+    # A fracture plate makes the boulder useful as both cover and direction marker.
+    outline_prism(coll, "BoulderVein", [(-0.24,-2.1),(0.42,-1.9),(0.62,2.0),(-0.12,2.3)], -0.15, 0.05, "IceVein")
     reg("rock_boulder", coll)
     return coll
-
 def b_deck_6x6():
     coll = new_collection("A_deck_6x6")
-    mbox(coll, "DeckPlate", (6.0, 0.5, 6.0), (0.0, 0.0, 0.0), "PaintedSteel", bevel=0.08)
-    mbox(coll, "DeckInset", (5.0, 0.08, 5.0), (0.0, 0.27, 0.0), "Concrete", bevel=0.04)
-    for i in range(2):
-        mbox(coll, "DeckSeam%d" % i, (6.2, 0.06, 0.16), (0.0, 0.28, -2.0 + i * 4.0), "Steel", bevel=0.03)
-        mbox(coll, "DeckSeamZ%d" % i, (0.16, 0.06, 6.2), (-2.0 + i * 4.0, 0.28, 0.0), "Steel", bevel=0.03)
-    for i in range(4):
-        mcyl(coll, "DeckBolt%d" % i, 0.14, 0.3,
-             ((-1.6 if i % 2 else 1.6), 0.3, (-1.6 if i < 2 else 1.6)), "Steel", bevel=0.03, verts=8)
+    # Chamfered armour plate plus recessed service bay and underside sub-frame.
+    outline = [(-2.55,-3.0),(2.25,-3.0),(3.0,-2.25),(3.0,2.4),(2.35,3.0),(-2.35,3.0),(-3.0,2.2),(-3.0,-2.35)]
+    outline_prism(coll, "ChamferedDeckArmour", outline, -0.38, 0.10, "PaintedSteel", "Steel", uv_scale=0.22)
+    inset = [(x * 0.78, z * 0.76) for x,z in outline]
+    outline_prism(coll, "RecessedServiceBay", inset, 0.08, 0.145, "Composite", "Steel", uv_scale=0.3)
+    # Four distinct retaining rails interrupt the tiled silhouette with functional seams.
+    for i, (x,z,w,d) in enumerate([(0,-2.34,4.0,0.16),(2.32,0,0.16,3.9),(0,2.28,3.7,0.14),(-2.35,0,0.14,3.8)]):
+        rail=[(x-w/2,z-d/2),(x+w/2,z-d/2),(x+w/2,z+d/2),(x-w/2,z+d/2)]
+        outline_prism(coll,"DeckRetention%d"%i,rail,0.13,0.24,"Steel","Composite",uv_scale=0.45)
+    for i, x in enumerate((-1.65, 0.0, 1.65)):
+        rail=[(x-0.13,-2.42),(x+0.13,-2.42),(x+0.13,2.38),(x-0.13,2.38)]
+        outline_prism(coll,"DeckUndersideRib%d"%i,rail,-0.64,-0.38,"Steel","Composite",uv_scale=0.3)
     reg("deck_6x6", coll)
     return coll
-
 def b_deck_edge():
     coll = new_collection("A_deck_edge")
-    mbox(coll, "DeckEdgePlate", (6.0, 0.5, 0.6), (0.0, 0.0, 0.0), "PaintedSteel", bevel=0.08)
-    mbox(coll, "DeckEdgeHazard", (6.0, 0.2, 0.64), (0.0, 0.3, 0.0), "Hazard", bevel=0.04)
-    mbox(coll, "DeckEdgeRim", (6.0, 0.5, 0.16), (0.0, 0.0, 0.34), "Steel", bevel=0.05)
-    for i in range(4):
-        mcyl(coll, "DeckEdgeBolt%d" % i, 0.12, 0.3,
-             ((-2.6 if i % 2 else 2.6), 0.3, 0.0), "Steel", bevel=0.03, verts=8)
+    # An angled safety fascia gives the platform a thick outer silhouette.
+    outline=[(-3.0,-0.48),(2.45,-0.48),(3.0,-0.20),(3.0,0.42),(-2.65,0.42),(-3.0,0.16)]
+    outline_prism(coll,"EdgeArmour",outline,-0.40,0.13,"PaintedSteel","Steel",uv_scale=0.26)
+    hazard=[(-2.76,-0.30),(2.25,-0.30),(2.72,-0.10),(2.72,0.04),(-2.7,0.04)]
+    outline_prism(coll,"EdgeHazardInset",hazard,0.13,0.20,"Hazard","Steel",uv_scale=0.5)
+    for i,x in enumerate((-2.15,-0.65,0.85,2.25)):
+        outline_prism(coll,"EdgeTie%d"%i,[(x-0.06,-0.54),(x+0.06,-0.54),(x+0.08,0.47),(x-0.08,0.47)],-0.55,-0.36,"Steel","Composite",uv_scale=0.4)
     reg("deck_edge", coll)
     return coll
-
 def b_pillar():
     coll = new_collection("A_pillar")
-    mbox(coll, "PillarBase", (1.8, 0.5, 1.8), (0.0, 0.25, 0.0), "Concrete", bevel=0.15)
-    mbox(coll, "PillarWeb", (1.0, 5.0, 1.0), (0.0, 3.0, 0.0), "Steel", bevel=0.1)
-    mbox(coll, "PillarFlangeA", (1.4, 0.35, 1.0), (0.0, 1.5, 0.0), "Steel", bevel=0.06)
-    mbox(coll, "PillarFlangeB", (1.4, 0.35, 1.0), (0.0, 4.5, 0.0), "Steel", bevel=0.06)
-    mbox(coll, "PillarCap", (1.6, 0.4, 1.6), (0.0, 5.7, 0.0), "Steel", bevel=0.12)
-    reg("pillar", coll)
+    outline_prism(coll,"PillarFoot",irregular_outline(1.05,1.05,6,12.0),0.0,0.45,"Concrete","Steel",uv_scale=0.3)
+    loft_volume(coll,"PillarTaper",[(0.4,0.65,0.65,0,0),(2.1,0.48,0.48,0,0),(4.9,0.54,0.54,0,0),(5.6,0.84,0.84,0,0)],"Steel",6,0.0,"Composite",0.3)
+    for i in range(3):
+        facade_fin(coll,"PillarClamp%d"%i,math.radians(90),0.50,1.35+i*1.45,1.62+i*1.45,0.12,0.16,"Titanium")
+    reg("pillar",coll)
     return coll
-
 def b_beam():
     coll = new_collection("A_beam")
-    mbox(coll, "BeamCore", (1.0, 0.7, 8.0), (0.0, 0.0, 0.0), "Steel", bevel=0.08)
-    mbox(coll, "BeamFlange", (0.35, 0.9, 8.0), (0.0, 0.0, 0.0), "Composite", bevel=0.05)
-    for i in range(4):
-        mbox(coll, "BeamClip%d" % i, (0.5, 0.3, 0.5), (0.0, 0.0, -3.0 + i * 2.0), "Steel", bevel=0.05)
-    reg("beam", coll)
+    # Hexagonal service girder has web and lower cable raceway, not a plain box.
+    outline=[(-0.48,-4.0),(0.30,-4.0),(0.52,-3.55),(0.52,3.55),(0.30,4.0),(-0.48,4.0),(-0.67,3.55),(-0.67,-3.55)]
+    outline_prism(coll,"FacetedBeam",outline,-0.35,0.32,"Steel","Composite",uv_scale=0.24)
+    outline_prism(coll,"BeamCableRaceway",[(-0.30,-3.75),(0.12,-3.75),(0.28,3.75),(-0.20,3.75)],-0.56,-0.34,"Composite","Steel",uv_scale=0.38)
+    reg("beam",coll)
     return coll
-
 def b_wall_section():
     coll = new_collection("A_wall_section")
-    mbox(coll, "WallBody", (4.0, 3.0, 0.4), (0.0, 1.5, 0.0), "Composite", bevel=0.06)
-    mbox(coll, "WallBase", (4.2, 0.4, 0.5), (0.0, 0.2, 0.0), "Concrete", bevel=0.08)
-    mbox(coll, "WallCap", (4.2, 0.3, 0.5), (0.0, 3.15, 0.0), "Steel", bevel=0.06)
-    for i in range(3):
-        mbox(coll, "WallPanel%d" % i, (1.0, 1.4, 0.1),
-             (-1.2 + i * 1.2, 1.6, 0.22), "Composite", bevel=0.04)
-    for i in range(3):
-        mcyl(coll, "WallBolt%d" % i, 0.1, 0.4, (-1.8 + i * 1.8, 3.4, 0.0),
-             "Steel", bevel=0.03, verts=8)
-    reg("wall_section", coll)
+    profile=[(-2.1,0.0),(-1.78,2.65),(-1.22,3.15),(1.45,3.15),(2.1,2.58),(1.9,0.0)]
+    vertical_profile(coll,"RecessedWallShell",profile,-0.26,0.16,"Composite","Steel",0.24)
+    # Layered service panels on the face form meaningful facade recesses.
+    for i,x in enumerate((-1.15,0.0,1.15)):
+        p=[(x-0.42,0.55),(x-0.30,2.22),(x+0.28,2.42),(x+0.44,0.6)]
+        vertical_profile(coll,"WallServicePanel%d"%i,p,0.14,0.29,"Steel","Composite",0.32)
+    vertical_profile(coll,"WallCrown",[(-1.7,2.65),(-1.05,3.38),(1.2,3.38),(1.75,2.62)],-0.32,0.29,"Titanium","Composite",0.24)
+    reg("wall_section",coll)
     return coll
-
 print("== Aetherfall build: stage 3 geology + architecture ==")
 b_terrain_chunk(); b_cliff_face(); b_rock_boulder()
 b_deck_6x6(); b_deck_edge(); b_pillar(); b_beam(); b_wall_section()
@@ -757,258 +789,214 @@ b_deck_6x6(); b_deck_edge(); b_pillar(); b_beam(); b_wall_section()
 # ---------------------------- tower --------------------------------------
 def b_tower_foundation():
     coll = new_collection("A_tower_foundation")
-    mbox(coll, "Footing", (16.0, 3.0, 16.0), (0.0, 1.5, 0.0), "Concrete", bevel=0.25)
-    mbox(coll, "FootingStep", (18.0, 1.0, 18.0), (0.0, 0.4, 0.0), "Concrete", bevel=0.2)
+    # Archive tower base is a multi-level docking plinth rather than a solid cube.
+    outline_prism(coll,"ArchivePlinthOuter",irregular_outline(10.7,10.0,10,8.0,0.15),-0.5,0.45,"Concrete","Stratum",uv_scale=0.11)
+    outline_prism(coll,"ArchivePlinthStep",irregular_outline(8.9,8.4,10,9.0,0.15),0.43,1.18,"Steel","Composite",uv_scale=0.16)
+    outline_prism(coll,"ArchiveSocket",irregular_outline(6.9,6.5,10,10.0,0.15),1.12,2.25,"Composite","Steel",uv_scale=0.18)
+    for i in range(8):
+        a=math.tau*i/8.0+math.pi/8.0
+        facade_fin(coll,"FoundationButtress%d"%i,a,8.6,0.0,5.8,0.72,0.72,"Steel")
+    # Inward cyan guidance segments identify the entrance-facing side of the landmark.
     for i in range(4):
-        a = math.radians(45.0 + 90.0 * i)
-        mcyl(coll, "Anchor%d" % i, 0.35, 1.6, (math.cos(a) * 7.0, 3.9, math.sin(a) * 7.0),
-             "Steel", bevel=0.05, verts=10)
-    mbox(coll, "FoundationRing", (14.0, 1.0, 14.0), (0.0, 3.2, 0.0), "Steel", bevel=0.12)
-    for i in range(4):
-        mbox(coll, "AccessStep%d" % i, (1.4, 0.5, 3.0), (-6.0 + i * 4.0, 1.0, 7.6), "Steel", bevel=0.1)
-    for i in range(4):
-        a = math.radians(45.0 + 90.0 * i)
-        mcyl(coll, "ServiceConduit%d" % i, 0.55, 5.0,
-             (math.cos(a) * 5.4, 5.5, math.sin(a) * 5.4), "Steel", bevel=0.08, verts=12)
-    reg("tower_foundation", coll)
+        a=math.radians(205+i*10)
+        facade_fin(coll,"FoundationGuide%d"%i,a,6.7,1.85,2.13,0.14,0.22,"Energy")
+    reg("tower_foundation",coll)
     return coll
-
 def b_tower_tier():
     coll = new_collection("A_tower_tier")
-    tapered_box(coll, "TierShaft", 12.0, 11.0, 12.0, 0.72, (0.0, 5.5, 0.0), "Steel", bevel=0.15)
-    mbox(coll, "TierRing", (13.0, 0.9, 13.0), (0.0, 0.7, 0.0), "Steel", bevel=0.12)
-    mbox(coll, "TierRing2", (12.4, 0.5, 12.4), (0.0, 1.2, 0.0), "Composite", bevel=0.08)
-    for i in range(3):
-        mbox(coll, "TierPanel%d" % i, (12.2, 1.1, 12.2), (0.0, 2.5 + i * 3.0, 0.0), "Composite", bevel=0.1)
-    for sx in (-1.0, 1.0):
-        mcyl(coll, "TierConduit%d" % int(sx * 10), 0.45, 11.0, (sx * 5.2, 5.5, 5.2), "Steel", bevel=0.07, verts=10)
-        mcyl(coll, "TierConduitE%d" % int(sx * 10), 0.32, 11.0, (sx * 5.2, 5.5, 5.4), "Energy", bevel=0.05, verts=10)
-    for i in range(4):
-        a = math.radians(45.0 + 90.0 * i)
-        mbox(coll, "TierStrut%d" % i, (0.5, 0.5, 9.0), (math.cos(a) * 6.0, 5.5, math.sin(a) * 6.0),
-             "Steel", bevel=0.08)
-    mbox(coll, "TierGlazing", (12.3, 1.6, 12.3), (0.0, 8.6, 0.0), "Glass", bevel=0.05)
-    reg("tower_tier", coll)
+    # Stepped ten-sided archive shell: silhouette, deep shadow bands, and exterior fins.
+    rings=[(0.0,6.45,6.15,0,0),(0.7,6.75,6.45,0,0),(1.25,5.95,5.65,0,0),(7.65,4.75,4.50,0,0),(8.25,5.25,4.98,0,0),(9.25,4.45,4.20,0,0)]
+    loft_volume(coll,"ArchiveTierShell",rings,"Steel",10,math.pi/10.0,"Composite",0.16)
+    # Recessed dark belt is intentionally set behind fins to create facade depth.
+    belt=[(1.65,5.77,5.48,0,0),(3.0,5.49,5.20,0,0),(3.4,5.52,5.23,0,0),(4.7,5.25,4.98,0,0)]
+    loft_volume(coll,"ArchiveRecessBelt",belt,"Composite",10,math.pi/10.0,"Steel",0.22)
+    for i in range(10):
+        a=math.tau*i/10.0+math.pi/10.0
+        facade_fin(coll,"ArchiveVerticalFin%d"%i,a,5.75,0.85,8.45,0.34,0.42,"Titanium")
+        # Narrow energy telltales create a readable hierarchy without flattening the facade.
+        if i in (0,1,4,5,8):
+            facade_fin(coll,"ArchiveEnergyTrace%d"%i,a,5.96,2.2,6.8,0.075,0.13,"Energy")
+    reg("tower_tier",coll)
     return coll
-
 def b_tower_spire():
     coll = new_collection("A_tower_spire")
-    tapered_box(coll, "SpireShaft", 6.0, 12.0, 6.0, 0.35, (0.0, 6.0, 0.0), "Steel", bevel=0.12)
-    mbox(coll, "SpireRing", (7.4, 0.7, 7.4), (0.0, 0.6, 0.0), "Steel", bevel=0.1)
-    mbox(coll, "SpireEnergyRing", (7.6, 0.5, 7.6), (0.0, 1.6, 0.0), "Energy", bevel=0.06)
-    for i in range(4):
-        a = math.radians(45.0 + 90.0 * i)
-        mcyl(coll, "SpireStrut%d" % i, 0.25, 12.0, (math.cos(a) * 3.0, 6.0, math.sin(a) * 3.0),
-             "Steel", bevel=0.04, verts=8)
-    mcyl(coll, "SpireAntenna", 0.18, 6.0, (0.0, 13.0, 0.0), "Steel", bevel=0.04, verts=8)
-    reg("tower_spire", coll)
+    rings=[(0.0,4.7,4.4,0,0),(0.6,5.15,4.85,0,0),(1.2,3.7,3.45,0,0),(8.6,2.05,1.85,0,0),(10.2,2.65,2.35,0,0),(12.4,1.15,1.0,0,0),(18.5,0.13,0.13,0,0)]
+    loft_volume(coll,"ArchiveSpireShell",rings,"Steel",8,math.pi/8.0,"Composite",0.18)
+    loft_volume(coll,"SpireEnergyCollar",[(1.35,4.0,3.7,0,0),(1.86,4.0,3.7,0,0)],"Energy",8,math.pi/8.0,"Steel",0.22)
+    # Three off-axis sensor vanes avoid a generic single-point tower silhouette.
+    for i,a in enumerate((math.radians(15),math.radians(135),math.radians(255))):
+        cx,cz=math.cos(a)*2.5,math.sin(a)*2.5
+        loft_volume(coll,"SensorVane%d"%i,[(5.0,0.38,0.28,cx,cz),(14.0,0.22,0.16,cx*1.65,cz*1.65),(16.0,0.05,0.05,cx*2.0,cz*2.0)],"Titanium",5,a,"Composite",0.25)
+    reg("tower_spire",coll)
     return coll
-
 def b_energy_core():
     coll = new_collection("A_energy_core")
-    mcyl(coll, "CoreCylinder", 2.4, 7.0, (0.0, 3.5, 0.0), "Energy", bevel=0.3, verts=20)
-    mcyl(coll, "CoreHousing", 3.4, 8.0, (0.0, 4.0, 0.0), "Glass", bevel=0.3, verts=20)
+    # A nested hex-core with containment petals provides the Archive objective landmark.
+    loft_volume(coll,"CorePlinth",[(0.0,5.8,5.35,0,0),(0.55,6.35,5.85,0,0),(1.1,5.15,4.75,0,0)],"Steel",8,math.pi/8,"Composite",0.2)
+    loft_volume(coll,"CoreContainment",[(1.0,4.3,3.9,0,0),(6.7,3.42,3.1,0,0),(7.7,2.52,2.28,0,0)],"Glass",8,math.pi/8,"Steel",0.22)
+    loft_volume(coll,"CoreEnergyColumn",[(1.25,2.62,2.35,0,0),(7.35,2.12,1.93,0,0)],"Energy",8,math.pi/8,"Steel",0.27)
     for i in range(6):
-        a = math.radians(60.0 * i)
-        mcyl(coll, "CoreRing%d" % i, 3.6, 0.4, (math.cos(a) * 3.6, 1.0 + i * 1.1, math.sin(a) * 3.6),
-             "Energy", bevel=0.08, verts=12)
-    mbox(coll, "CoreBase", (8.0, 1.0, 8.0), (0.0, 0.2, 0.0), "Steel", bevel=0.2)
-    reg("energy_core", coll)
+        a=math.tau*i/6.0
+        facade_fin(coll,"CorePetal%d"%i,a,4.65,1.15,6.75,0.3,0.34,"Titanium")
+    reg("energy_core",coll)
     return coll
-
 # ---------------------------- bridges / walkways -------------------------
 def b_bridge_deck():
     coll = new_collection("A_bridge_deck")
-    mbox(coll, "BridgeDeck", (6.0, 0.7, 8.0), (0.0, 0.0, 0.0), "PaintedSteel", bevel=0.08)
-    for i in range(4):
-        mbox(coll, "BridgeJoint%d" % i, (6.2, 0.25, 0.18), (0.0, 0.05, -3.2 + i * 2.1), "Steel", bevel=0.04)
-    mbox(coll, "BridgeHazard", (6.0, 0.12, 8.0), (0.0, 0.38, 0.0), "Hazard", bevel=0.02)
-    for side in (-1.0, 1.0):
-        for i in range(3):
-            mbox(coll, "BridgePost%d%d" % (int(side * 10), i), (0.24, 1.3, 0.24),
-                 (side * 2.9, 0.95, -2.5 + i * 2.5), "Steel", bevel=0.05)
-        mbox(coll, "BridgeRailTop%d" % int(side * 10), (0.16, 0.16, 8.0), (side * 2.9, 1.42, 0.0), "Steel", bevel=0.03)
-        mbox(coll, "BridgeRailMid%d" % int(side * 10), (0.12, 0.12, 8.0), (side * 2.9, 0.85, 0.0), "Steel", bevel=0.02)
-    mbox(coll, "BridgeDucting", (0.9, 0.5, 8.0), (-2.4, 0.75, 0.0), "Steel", bevel=0.06)
-    reg("bridge_deck", coll)
+    outline=[(-2.85,-4.0),(2.35,-4.0),(3.0,-3.25),(3.0,3.3),(2.35,4.0),(-2.45,4.0),(-3.0,3.15),(-3.0,-3.35)]
+    outline_prism(coll,"BridgeArmourDeck",outline,-0.46,0.16,"PaintedSteel","Steel",0.22)
+    outline_prism(coll,"BridgeServiceChannel",[(-0.44,-3.72),(0.45,-3.72),(0.55,3.7),(-0.32,3.7)],0.15,0.26,"Composite","Steel",0.34)
+    for side in (-1.0,1.0):
+        for i,z in enumerate((-2.9,0.0,2.9)):
+            loft_volume(coll,"BridgeRailPost%d%d"%(int(side*10),i),[(0.15,0.15,0.15,side*2.72,z),(1.55,0.11,0.11,side*2.72,z)],"Steel",5,0.0,"Composite",0.4)
+        outline_prism(coll,"BridgeRail%d"%int(side*10),[(side*2.88,-3.9),(side*2.88+side*0.12,-3.9),(side*2.88+side*0.12,3.9),(side*2.88,3.9)],1.43,1.58,"Titanium","Steel",0.35)
+    reg("bridge_deck",coll)
     return coll
-
 def b_bridge_support():
     coll = new_collection("A_bridge_support")
-    tapered_box(coll, "Pylon", 3.0, 14.0, 3.0, 0.75, (0.0, 7.0, 0.0), "Steel", bevel=0.15)
-    mbox(coll, "PylonFoot", (6.0, 2.0, 6.0), (0.0, 1.0, 0.0), "Concrete", bevel=0.3)
-    mbox(coll, "PylonCap", (5.0, 1.0, 5.0), (0.0, 14.5, 0.0), "Steel", bevel=0.15)
-    for i in range(3):
-        mbox(coll, "PylonBracer%d" % i, (0.4, 0.4, 4.0), (2.6, 4.0 + i * 3.0, 0.0), "Steel", bevel=0.06)
-        mbox(coll, "PylonBracerB%d" % i, (4.0, 0.4, 0.4), (0.0, 4.0 + i * 3.0, 2.6), "Steel", bevel=0.06)
-    for side in (-1.0, 1.0):
-        mbox(coll, "PylonBeam%d" % int(side * 10), (0.6, 0.9, 7.0), (side * 3.0, 13.0, 0.0), "Steel", bevel=0.1)
-    reg("bridge_support", coll)
+    loft_volume(coll,"CanyonPylon",[(0.0,3.15,2.8,0,0),(1.8,3.55,3.15,0,0),(3.0,1.7,1.55,0,0),(13.4,1.06,0.95,0,0),(14.6,2.25,2.0,0,0)],"Steel",6,math.pi/6,"Composite",0.18)
+    outline_prism(coll,"PylonFoot",irregular_outline(4.3,3.8,7,18.0),0.0,1.3,"Concrete","Stratum",0.14)
+    for i,a in enumerate((math.radians(45),math.radians(135),math.radians(225),math.radians(315))):
+        facade_fin(coll,"PylonBrace%d"%i,a,2.25,2.0,11.5,0.32,0.45,"Titanium")
+    reg("bridge_support",coll)
     return coll
-
 def b_walkway_deck():
     coll = new_collection("A_walkway_deck")
-    mbox(coll, "WalkwayDeck", (1.6, 0.35, 6.0), (0.0, 0.0, 0.0), "PaintedSteel", bevel=0.05)
-    for i in range(3):
-        mbox(coll, "WalkwayRib%d" % i, (1.7, 0.18, 0.2), (0.0, -0.12, -2.0 + i * 2.0), "Steel", bevel=0.03)
+    outline=[(-0.86,-3.0),(0.63,-3.0),(0.9,-2.65),(0.9,2.65),(0.58,3.0),(-0.7,3.0),(-0.92,2.62),(-0.92,-2.66)]
+    outline_prism(coll,"CatwalkArmour",outline,-0.30,0.13,"PaintedSteel","Steel",0.3)
+    for i,z in enumerate((-2.0,0.0,2.0)):
+        outline_prism(coll,"CatwalkTread%d"%i,[(-0.62,z-0.12),(0.62,z-0.12),(0.70,z+0.10),(-0.66,z+0.10)],0.13,0.19,"Titanium","Steel",0.45)
+    # Actual edge protection and cable tray give the recovery catwalk a purpose.
     for side in (-1.0, 1.0):
-        for i in range(3):
-            mbox(coll, "WalkwayPost%d%d" % (int(side * 10), i), (0.12, 1.2, 0.12),
-                 (side * 0.7, 0.9, -2.0 + i * 2.0), "Steel", bevel=0.03)
-        mbox(coll, "WalkwayRail%d" % int(side * 10), (0.09, 0.09, 6.0), (side * 0.7, 1.28, 0.0), "Steel", bevel=0.02)
-    mbox(coll, "WalkwayTray", (0.5, 0.35, 6.0), (0.0, 0.55, 0.0), "Steel", bevel=0.04)
-    for i in range(4):
-        mcyl(coll, "WalkwayCable%d" % i, 0.07, 6.0, (-0.1, 0.75, -2.4 + i * 1.6), "Cable", bevel=0.02, verts=6)
-    reg("walkway_deck", coll)
+        x = side * 0.73
+        for i,z in enumerate((-2.55, -0.85, 0.85, 2.55)):
+            loft_volume(coll,"WalkwayPost%d%d"%(int(side*10),i),[(0.0,0.075,0.075,x,z),(1.18,0.055,0.055,x,z)],"Steel",5,0.0,"Composite",0.55)
+        outline_prism(coll,"WalkwayRail%d"%int(side*10),[(x-0.05,-3.0),(x+0.05,-3.0),(x+0.05,3.0),(x-0.05,3.0)],1.10,1.20,"Titanium","Steel",0.45)
+    outline_prism(coll,"WalkwayCableTray",[(-0.18,-2.88),(0.18,-2.88),(0.18,2.88),(-0.18,2.88)],0.23,0.36,"Composite","Steel",0.55)
+    reg("walkway_deck",coll)
     return coll
-
 def b_damaged_slab():
     coll = new_collection("A_damaged_slab")
-    mbox(coll, "BrokenSlabA", (7.0, 0.8, 6.0), (-1.0, 1.0, 0.0), "Concrete", bevel=0.15,
-         rot=(0.0, 0.0, math.radians(6.0)))
-    mbox(coll, "BrokenSlabB", (5.0, 0.7, 5.0), (2.0, 0.4, 1.0), "Concrete", bevel=0.15,
-         rot=(0.0, 0.0, math.radians(-9.0)))
-    for i in range(4):
-        mcyl(coll, "BrokenRebar%d" % i, 0.08, 2.4, (-2.0 + i * 1.4, 1.6, -1.0), "Steel", bevel=0.02, verts=6)
-    mbox(coll, "BrokenDebris", (2.0, 1.0, 2.0), (3.4, 0.3, -2.0), "Rock", bevel=0.4)
-    reg("damaged_slab", coll)
+    # Broken route marker: separated plates create a navigable visual warning.
+    for i,(x,z,scale) in enumerate(((-2.5,-0.8,1.0),(0.5,0.25,1.2),(2.8,-1.2,0.78),(-1.2,1.6,0.85))):
+        outline=[(x-1.3*scale,z-1.0*scale),(x+1.15*scale,z-0.9*scale),(x+1.4*scale,z+0.75*scale),(x-1.0*scale,z+1.1*scale)]
+        outline_prism(coll,"FracturedPlate%d"%i,outline,-0.45-i*0.08,0.05,"PaintedSteel","Steel",0.24)
+    # A collapsed upright rib gives the route break a real vertical hazard silhouette.
+    vertical_profile(coll,"CollapsedRib",[(-1.7,0.0),(-1.2,2.65),(-0.72,2.88),(-0.3,0.0)],-1.6,-0.85,"Concrete","Stratum",0.22)
+    outline_prism(coll,"DamagedEnergyLeak",[(-0.18,-2.6),(0.35,-2.4),(0.52,2.3),(-0.08,2.6)],-0.06,0.05,"Energy",None,0.45)
+    reg("damaged_slab",coll)
     return coll
-
 # ---------------------------- industrial detail ---------------------------
 def b_machinery():
     coll = new_collection("A_machinery")
-    mbox(coll, "MachineHousing", (4.0, 3.0, 3.6), (0.0, 1.8, 0.0), "Steel", bevel=0.12)
-    mbox(coll, "MachineBase", (4.6, 0.7, 4.2), (0.0, 0.4, 0.0), "Concrete", bevel=0.15)
-    mbox(coll, "MachineTop", (3.6, 0.4, 3.2), (0.0, 3.2, 0.0), "Composite", bevel=0.1)
-    mcyl(coll, "MachineStack", 0.45, 3.0, (1.1, 3.9, 0.6), "Steel", bevel=0.1, verts=12)
-    mcyl(coll, "MachineStackTop", 0.7, 0.5, (1.1, 5.3, 0.6), "Composite", bevel=0.1, verts=12)
-    mcyl(coll, "MachinePipe", 0.3, 2.6, (-1.3, 2.2, 1.4), "Steel", bevel=0.06, verts=10)
-    mbox(coll, "MachinePanel", (1.6, 1.4, 0.15), (0.0, 2.0, 1.85), "Composite", bevel=0.06)
-    for i in range(2):
-        mcyl(coll, "MachineGauge%d" % i, 0.22, 0.12, (-0.5 + i * 1.0, 2.0, 1.95), "Titanium", bevel=0.04, verts=10)
-    reg("machinery", coll)
+    outline_prism(coll,"MachineFoot",irregular_outline(2.35,1.9,7,31.0),0.0,0.52,"Concrete","Steel",0.2)
+    loft_volume(coll,"MachineBody",[(0.48,2.1,1.75,0,0),(1.0,2.35,1.98,0,0),(3.4,1.65,1.42,0,0),(4.55,0.82,0.72,0,0)],"Steel",7,0.12,"Composite",0.22)
+    loft_volume(coll,"MachineCoolantNeck",[(3.1,0.64,0.55,0.82,0.2),(5.45,0.42,0.34,1.12,0.2)],"Titanium",6,0.0,"Steel",0.35)
+    facade_fin(coll,"MachineEnergyPanel",math.radians(90),2.02,1.25,3.35,0.24,0.13,"Energy")
+    reg("machinery",coll)
     return coll
-
 def b_cooling_vent():
     coll = new_collection("A_cooling_vent")
-    mcyl(coll, "VentHousing", 1.6, 3.4, (0.0, 1.7, 0.0), "Steel", bevel=0.15, verts=16)
-    mcyl(coll, "VentCap", 1.9, 0.6, (0.0, 3.6, 0.0), "Composite", bevel=0.15, verts=16)
-    mcyl(coll, "VentBase", 2.2, 0.6, (0.0, 0.3, 0.0), "Concrete", bevel=0.15, verts=16)
-    for i in range(6):
-        a = math.radians(60.0 * i)
-        mbox(coll, "VentLouver%d" % i, (0.9, 0.12, 0.3), (math.cos(a) * 1.6, 3.0, math.sin(a) * 1.6),
-             "Steel", bevel=0.04)
-    mcyl(coll, "VentFan", 0.9, 0.2, (0.0, 3.5, 0.0), "Steel", bevel=0.05, verts=12)
-    reg("cooling_vent", coll)
+    loft_volume(coll,"VentHousing",[(0.0,2.25,2.25,0,0),(0.45,2.55,2.55,0,0),(2.35,2.1,2.1,0,0),(3.3,1.62,1.62,0,0)],"Steel",10,math.pi/10,"Composite",0.24)
+    loft_volume(coll,"VentThroat",[(0.3,1.58,1.58,0,0),(2.52,1.30,1.30,0,0)],"Composite",10,math.pi/10,"Steel",0.35)
+    for i in range(8):
+        a=math.tau*i/8
+        facade_fin(coll,"VentBlade%d"%i,a,1.0,2.42,3.18,0.12,0.19,"Titanium")
+    reg("cooling_vent",coll)
     return coll
-
 def b_conduit():
     coll = new_collection("A_conduit")
-    mcyl(coll, "ConduitPipe", 0.34, 6.0, (0.0, 3.0, 0.0), "Steel", bevel=0.06, verts=12)
-    mcyl(coll, "ConduitInner", 0.24, 6.0, (0.0, 3.0, 0.0), "Energy", bevel=0.04, verts=12)
-    for i in range(3):
-        mbox(coll, "ConduitBracket%d" % i, (0.7, 0.18, 0.18), (0.0, 2.0 + i * 2.0, 0.5), "Steel", bevel=0.04)
-        mbox(coll, "ConduitStrap%d" % i, (0.16, 0.5, 0.16), (0.4, 2.0 + i * 2.0, 0.0), "Steel", bevel=0.04)
-    reg("conduit", coll)
+    loft_volume(coll,"ConduitArmour",[(0.0,0.45,0.45,0,0),(6.0,0.36,0.36,0,0)],"Steel",8,math.pi/8,"Composite",0.45)
+    loft_volume(coll,"ConduitEnergyCore",[(0.12,0.22,0.22,0,0),(5.88,0.18,0.18,0,0)],"Energy",7,0.0,"Steel",0.6)
+    for i,y in enumerate((1.0,3.0,5.0)):
+        outline_prism(coll,"ConduitCollar%d"%i,irregular_outline(0.62,0.62,6,44+i),y-0.10,y+0.10,"Titanium","Steel",0.8)
+    reg("conduit",coll)
     return coll
-
 def b_cable_bundle():
     coll = new_collection("A_cable_bundle")
-    mbox(coll, "CableTray", (0.8, 0.3, 6.0), (0.0, 0.0, 0.0), "Steel", bevel=0.06)
-    for i in range(5):
-        mcyl(coll, "Cable%d" % i, 0.11, 6.0, (-0.25 + i * 0.12, 0.22, 0.0), "Cable", bevel=0.03, verts=6)
-    for i in range(3):
-        mbox(coll, "CableTrayBracket%d" % i, (0.2, 0.5, 0.2), (0.0, -0.4, -2.0 + i * 2.0), "Steel", bevel=0.04)
-    reg("cable_bundle", coll)
+    # Five separated conduits on an armoured tray preserve the readable cable silhouette.
+    outline_prism(coll,"CableTray",[(-0.46,-3.0),(0.46,-3.0),(0.46,3.0),(-0.46,3.0)],-0.16,0.08,"Steel","Composite",0.45)
+    for i,x in enumerate((-0.28,-0.14,0.0,0.14,0.28)):
+        outline_prism(coll,"CableRun%d"%i,[(x-0.055,-2.88),(x+0.055,-2.88),(x+0.055,2.88),(x-0.055,2.88)],0.09,0.22,"Cable","Steel",0.7)
+    reg("cable_bundle",coll)
     return coll
-
 def b_railing():
     coll = new_collection("A_railing")
-    for i in range(4):
-        mbox(coll, "RailingPost%d" % i, (0.14, 1.3, 0.14), (-2.7 + i * 1.8, 0.65, 0.0), "Steel", bevel=0.04)
-    mbox(coll, "RailingTop", (0.1, 0.1, 6.0), (0.0, 1.28, 0.0), "Steel", bevel=0.03)
-    mbox(coll, "RailingMid", (0.08, 0.08, 6.0), (0.0, 0.72, 0.0), "Steel", bevel=0.02)
-    mbox(coll, "RailingBase", (0.5, 0.14, 6.0), (0.0, 0.05, 0.0), "Steel", bevel=0.03)
-    reg("railing", coll)
+    # Two complete edge rails span the 6 m bridge section; posts now connect to them.
+    for side in (-1.0, 1.0):
+        x = side * 2.7
+        for i,z in enumerate((-2.65,-0.88,0.88,2.65)):
+            loft_volume(coll,"RailPost%d%d"%(int(side*10),i),[(0.0,0.11,0.11,x,z),(1.32,0.075,0.075,x,z)],"Steel",5,0.0,"Composite",0.55)
+        for name,y,thick in (("RailTop",1.24,0.12),("RailMid",0.68,0.085)):
+            outline_prism(coll,name+str(int(side*10)),[(x-thick/2,-3.0),(x+thick/2,-3.0),(x+thick/2,3.0),(x-thick/2,3.0)],y-thick/2,y+thick/2,"Titanium","Steel",0.5)
+    outline_prism(coll,"RailKick",[(-2.9,-3.0),(2.9,-3.0),(2.9,3.0),(-2.9,3.0)],0.02,0.16,"Steel","Composite",0.5)
+    reg("railing",coll)
     return coll
-
 def b_debris_cluster():
     coll = new_collection("A_debris_cluster")
-    for i in range(5):
-        a = math.radians(30.0 + 70.0 * i)
-        r = 1.6 + (i % 3) * 0.8
-        mbox(coll, "Debris%d" % i, (1.4, 0.8, 1.4), (math.cos(a) * r, 0.4, math.sin(a) * r),
-             "Steel" if i % 2 else "Concrete", bevel=0.3,
-             rot=(0.0, math.radians(i * 37.0), math.radians(i * 21.0)))
-    mcyl(coll, "DebrisPipe", 0.3, 2.0, (0.0, 1.0, 0.0), "Steel", bevel=0.08, verts=10)
-    reg("debris_cluster", coll)
+    # Purposeful wreck pieces: an overturned housing, fractured plating, and a live cable end.
+    rock_boulder_mesh(coll,"WreckedHousing",1.95,"Steel",55.0)
+    for i,(x,z,sc) in enumerate(((-2.3,0.7,0.9),(1.7,-1.1,1.1),(0.9,1.9,0.7))):
+        outline_prism(coll,"WreckPlate%d"%i,[(x-1.0*sc,z-0.7*sc),(x+0.9*sc,z-0.9*sc),(x+1.1*sc,z+0.65*sc),(x-0.7*sc,z+0.8*sc)],0.05,0.34,"Steel","Composite",0.3)
+    loft_volume(coll,"ExposedCable",[(0.0,0.22,0.22,-0.55,0.0),(2.2,0.14,0.14,-0.2,0.6)],"Energy",7,0.0,"Steel",0.55)
+    reg("debris_cluster",coll)
     return coll
-
 # ---------------------------- gameplay objects -----------------------------
 def b_cover_barrier():
     coll = new_collection("A_cover_barrier")
-    mbox(coll, "CoverBody", (2.4, 1.2, 0.6), (0.0, 0.6, 0.0), "Steel", bevel=0.08)
-    mbox(coll, "CoverTop", (2.5, 0.2, 0.7), (0.0, 1.2, 0.0), "Composite", bevel=0.06)
-    mbox(coll, "CoverHazard", (2.4, 0.18, 0.62), (0.0, 1.15, 0.0), "Hazard", bevel=0.03)
-    for side in (-1.0, 1.0):
-        mbox(coll, "CoverEnd%d" % int(side * 10), (0.2, 1.2, 0.6), (side * 1.2, 0.6, 0.0), "Steel", bevel=0.06)
-    reg("cover_barrier", coll)
+    profile=[(-1.32,0.0),(-1.2,0.95),(-0.72,1.28),(0.88,1.28),(1.3,0.88),(1.18,0.0)]
+    vertical_profile(coll,"ArmouredCover",profile,-0.36,0.34,"Steel","Composite",0.32)
+    vertical_profile(coll,"CoverHazardMark",[(-0.92,0.83),(-0.70,1.10),(0.74,1.10),(0.98,0.83)],0.335,0.39,"Hazard","Steel",0.55)
+    reg("cover_barrier",coll)
     return coll
-
 def b_cover_machine():
     coll = new_collection("A_cover_machine")
-    mbox(coll, "CoverMachineBody", (4.0, 2.4, 2.6), (0.0, 1.2, 0.0), "Steel", bevel=0.12)
-    mbox(coll, "CoverMachineBase", (4.6, 0.6, 3.2), (0.0, 0.3, 0.0), "Concrete", bevel=0.15)
-    mbox(coll, "CoverMachineTop", (3.6, 0.3, 2.4), (0.0, 2.4, 0.0), "Composite", bevel=0.1)
-    mcyl(coll, "CoverMachineStack", 0.35, 1.6, (1.2, 2.9, 0.4), "Steel", bevel=0.08, verts=10)
-    mbox(coll, "CoverMachineHazard", (4.0, 0.2, 2.6), (0.0, 1.35, 0.0), "Hazard", bevel=0.04)
-    reg("cover_machine", coll)
+    outline_prism(coll,"MachineCoverFoot",irregular_outline(2.35,1.7,7,67.0),0.0,0.48,"Concrete","Steel",0.22)
+    loft_volume(coll,"MachineCoverShell",[(0.4,2.0,1.48,0,0),(1.15,2.18,1.62,0,0),(2.45,1.65,1.32,0,0),(3.2,1.15,0.94,0,0)],"Steel",7,0.15,"Composite",0.25)
+    facade_fin(coll,"MachineCoverTrace",math.radians(90),1.85,1.05,2.45,0.13,0.12,"Energy")
+    reg("cover_machine",coll)
     return coll
-
 def b_access_gate():
     coll = new_collection("A_access_gate")
-    mbox(coll, "GatePostL", (0.7, 5.0, 0.7), (-3.2, 2.5, 0.0), "Steel", bevel=0.1)
-    mbox(coll, "GatePostR", (0.7, 5.0, 0.7), (3.2, 2.5, 0.0), "Steel", bevel=0.1)
-    mbox(coll, "GateLintel", (7.2, 0.8, 0.8), (0.0, 5.0, 0.0), "Steel", bevel=0.1)
-    mbox(coll, "GateWarning", (7.2, 0.5, 0.1), (0.0, 4.4, 0.4), "Hazard", bevel=0.04)
-    for i in range(2):
-        mbox(coll, "GateStrut%d" % i, (0.4, 0.4, 6.0), (-1.6 + i * 3.2, 2.5, 0.0), "Steel", bevel=0.06)
-    mbox(coll, "GateBar", (6.0, 0.2, 0.2), (0.0, 3.0, 0.0), "Energy", bevel=0.04)
-    reg("access_gate", coll)
+    # Two tapered pylons frame a real threshold with a segmented energy seal.
+    outline_prism(coll,"GateThreshold",[(-3.9,-3.0),(3.75,-2.9),(4.05,-2.1),(4.05,2.3),(3.45,3.0),(-3.6,2.85),(-4.0,2.1)],-0.34,0.12,"PaintedSteel","Steel",0.20)
+    for side in (-1.0,1.0):
+        loft_volume(coll,"GatePylon%d"%int(side*10),[(0.0,0.54,0.54,side*3.15,0),(4.3,0.42,0.42,side*3.15,0),(5.25,0.78,0.68,side*3.15,0)],"Steel",6,0.0,"Composite",0.3)
+    vertical_profile(coll,"GateLintel",[(-3.72,4.45),(-3.12,5.4),(3.12,5.4),(3.72,4.45)],-0.45,0.42,"Titanium","Composite",0.22)
+    for i,x in enumerate((-2.1,-0.7,0.7,2.1)):
+        vertical_profile(coll,"GateSeal%d"%i,[(x-0.10,1.1),(x+0.10,1.1),(x+0.10,4.15),(x-0.10,4.15)],-0.04,0.08,"Energy","Steel",0.45)
+    reg("access_gate",coll)
     return coll
-
 # ---------------------------- environmental ------------------------------
 def b_background_silhouette():
     coll = new_collection("A_background_silhouette")
-    tapered_box(coll, "DistTower", 10.0, 34.0, 10.0, 0.5, (0.0, 17.0, 0.0), "Composite", bevel=0.4)
-    mbox(coll, "DistTowerTop", (6.0, 3.0, 6.0), (0.0, 35.0, 0.0), "Composite", bevel=0.4)
-    mbox(coll, "DistShedA", (16.0, 8.0, 10.0), (-14.0, 4.0, -6.0), "Composite", bevel=0.4)
-    mbox(coll, "DistShedB", (12.0, 6.0, 8.0), (16.0, 3.0, -4.0), "Composite", bevel=0.4)
-    mbox(coll, "DistPlatform", (24.0, 1.2, 6.0), (2.0, -1.0, 10.0), "Composite", bevel=0.4)
-    mcyl(coll, "DistStack", 0.9, 10.0, (12.0, 5.0, -6.0), "Composite", bevel=0.4, verts=10)
-    reg("background_silhouette", coll)
+    # Distributed robot settlement massing: several asymmetrical production silhouettes.
+    specs=[(-15,-6,15,23,10),(0,1,6,42,9),(15,-4,12,29,8),(27,5,7,19,6),(-29,4,8,25,7)]
+    for i,(x,z,base,h,r) in enumerate(specs):
+        rings=[(base,r,r*0.78,x,z),(base+2.0,r*1.14,r*0.94,x,z),(base+h*0.68,r*0.62,r*0.54,x,z),(base+h,r*0.27,r*0.21,x,z)]
+        loft_volume(coll,"SkylineHabitat%d"%i,rings,"Composite",7+(i%3),0.15*i,"Steel",0.075)
+        # A narrow cyan maintenance spine makes the distant mass legible through haze.
+        a=0.52+i*0.67
+        facade_fin(coll,"SkylineSpine%d"%i,a,r*0.76,base+2.5,base+h*0.76,0.12,0.2,"Energy")
+    # Broken elevated transfer rim provides a horizon line behind the main tower.
+    outline_prism(coll,"RemoteTransferRim",[(-34,-1.4),(32,-1.0),(35,1.0),(8,1.55),(-31,1.2)],-2.4,-1.0,"Steel","Composite",uv_scale=0.14)
+    for i,x in enumerate((-25,-8,11,27)):
+        outline_prism(coll,"RemoteRimPier%d"%i,[(x-0.8,-1.6),(x+0.7,-1.5),(x+0.45,1.4),(x-0.52,1.35)],-8.5,-1.0,"Composite","Steel",uv_scale=0.14)
+    reg("background_silhouette",coll)
     return coll
-
 def b_cloud_puff():
     coll = new_collection("A_cloud_puff")
-    m = get_mat("Cloud", base=(0.95, 0.96, 0.98, 1.0), rough=1.0, metal=0.0)
-    try:
-        m.blend_method = 'BLEND'
-    except Exception:
-        pass
-    try:
-        m.surface_render_method = 'DITHERED'
-    except Exception:
-        pass
-    for i in range(7):
-        a = math.radians(45.0 * i + 12.0)
-        r = 2.4 + (i % 3) * 1.1
-        o = msphere(coll, "CloudPuff%d" % i, 2.2 + (i % 3) * 0.7,
-                    (math.cos(a) * r, 0.0, math.sin(a) * r), "Cloud", segments=10, rings=6)
-        for v in o.data.vertices:
-            v.co *= (1.0 + 0.25 * noise2(v.co.x, v.co.z, 2, float(i)))
-        o.data.update()
-    reg("cloud_puff", coll)
+    m = get_mat("Cloud", base=(0.72, 0.86, 0.96, 1.0), rough=0.96, metal=0.0)
+    try: m.surface_render_method = 'DITHERED'
+    except Exception: pass
+    # Low-density irregular vapour masses supplement, rather than replace, the procedural sky.
+    for i in range(6):
+        a=math.tau*i/6.0+0.2
+        r=2.2+(i%3)*0.95
+        o=rock_boulder_mesh(coll,"VapourMass%d"%i,2.0+(i%2)*0.65,"Cloud",81+i)
+        o.location=(math.cos(a)*r, (i%2)*0.35, math.sin(a)*r)
+        o.scale=(1.45,0.42,1.0)
+    reg("cloud_puff",coll)
     return coll
 
 print("== Aetherfall build: stage 4 tower + bridges + details ==")
@@ -1019,193 +1007,81 @@ b_cover_barrier(); b_cover_machine(); b_access_gate()
 b_background_silhouette(); b_cloud_puff()
 
 
+def _rot_mat(r):
+    cx, sx = math.cos(r[0]), math.sin(r[0])
+    cy, sy = math.cos(r[1]), math.sin(r[1])
+    cz, sz = math.cos(r[2]), math.sin(r[2])
+    return ((cy * cz, cy * sz, -sy),
+            (sx * sy * cz - cx * sz, sx * sy * sz + cx * cz, sx * cy),
+            (cx * sy * cz + sx * sz, cx * sy * sz - sx * cz, cx * cy))
+
+def asset_bounds(coll):
+    """World-space AABB.  Pure property math — never touches matrix_world or the
+    dependency graph, which segfault in this headless/stubbed bpy build."""
+    lo = [1e9, 1e9, 1e9]
+    hi = [-1e9, -1e9, -1e9]
+    for o in coll.all_objects:
+        if o.type != 'MESH':
+            continue
+        R = _rot_mat(o.rotation_euler)
+        sx, sy, sz = o.scale
+        lx, ly, lz = o.location
+        for v in o.bound_box:
+            x, y, z = v[0], v[1], v[2]
+            wx = R[0][0] * x * sx + R[0][1] * y * sy + R[0][2] * z * sz + lx
+            wy = R[1][0] * x * sx + R[1][1] * y * sy + R[1][2] * z * sz + ly
+            wz = R[2][0] * x * sx + R[2][1] * y * sy + R[2][2] * z * sz + lz
+            for i, w in enumerate((wx, wy, wz)):
+                if w < lo[i]:
+                    lo[i] = w
+                if w > hi[i]:
+                    hi[i] = w
+    return lo, hi
+
+def center_collection(coll):
+    lo, hi = asset_bounds(coll)
+    cx = (lo[0] + hi[0]) / 2.0
+    cy = (lo[1] + hi[1]) / 2.0
+    cz = (lo[2] + hi[2]) / 2.0
+    for o in coll.all_objects:
+        if o.type == 'MESH':
+            o.location = (o.location[0] - cx, o.location[1] - cy, o.location[2] - cz)
+    lo2, hi2 = asset_bounds(coll)
+    return (hi2[0] - lo2[0], hi2[1] - lo2[1], hi2[2] - lo2[2])
+
+def export_asset(key, coll):
+    objs = [o for o in coll.all_objects if o.type == 'MESH']
+    bpy.ops.object.select_all(action='DESELECT')
+    for o in objs:
+        o.select_set(True)
+    path = os.path.join(MODEL_DIR, key + ".glb")
+    bpy.ops.export_scene.gltf(
+        filepath=path, export_format="GLB", export_yup=True,
+        export_apply=True, use_selection=True, export_materials="EXPORT")
+    for o in objs:
+        o.select_set(False)
+    return None
+
+MEASUREMENTS = {}
+bpy.context.view_layer.update()
+print("== Aetherfall build: stage 5 centre + measure ==")
+for key, coll in ASSETS.items():
+    size = center_collection(coll)
+    lo, hi = asset_bounds(coll)
+    MEASUREMENTS[key] = {
+        "size": [round(size[0], 3), round(size[1], 3), round(size[2], 3)],
+        "center": [round((lo[i] + hi[i]) / 2.0, 3) for i in range(3)],
+        "objects": sum(1 for o in coll.all_objects if o.type == 'MESH'),
+        "tris": sum(len(o.data.polygons) * 2 for o in coll.all_objects if o.type == 'MESH'),
+    }
+    print("  %-22s %s  %d meshes %d tris" % (key, MEASUREMENTS[key]["size"],
+                                              MEASUREMENTS[key]["objects"], MEASUREMENTS[key]["tris"]))
+
+print("== Aetherfall build: stage 5b export ==")
+for key, coll in ASSETS.items():
+    m = export_asset(key, coll)
+    m = MEASUREMENTS[key]
 # ---------------------------- form enrichment -----------------------------
-def enrich_asset_forms():
-    """Add silhouette, construction logic and close-range detail to all kit roles.
-
-    Existing named walking meshes and pivots remain untouched so the Godot
-    builder's floor/collider contract continues to work. Detail stays within
-    the authored footprint wherever that module receives a proxy collider.
-    """
-    # Geology: satellite rocks, shelves and visible strata break the primitive masses.
-    terrain = ASSETS["terrain_chunk"]
-    for i in range(20):
-        a = math.radians(i * 47.0 + 11.0)
-        radius = 6.0 + (i % 5) * 3.45
-        x, z = math.cos(a) * radius, math.sin(a) * radius
-        y = -2.45 + 2.6 * noise2(x * 0.17, z * 0.17, 4, 7.0)
-        rock = msphere(terrain, "TerrainOutcrop%02d" % i, 0.34 + (i % 4) * 0.16,
-                       (x, y, z), "Rock", segments=10, rings=7)
-        rock.scale = (1.0 + (i % 3) * 0.25, 0.55 + (i % 2) * 0.25, 0.8 + (i % 4) * 0.12)
-    cliff = ASSETS["cliff_face"]
-    for i in range(9):
-        x = -10.5 + i * 2.65
-        mbox(cliff, "CliffStrata%02d" % i, (2.1, 0.38 + (i % 3) * 0.12, 1.4),
-             (x, -0.6 + (i % 4) * 0.55, -5.5 + (i % 2) * 0.45), "Stratum", bevel=0.22,
-             rot=(0.0, math.radians(-8 + i * 6), math.radians((-1) ** i * 4)))
-    boulder = ASSETS["rock_boulder"]
-    for i in range(6):
-        a = math.radians(i * 58.0)
-        r = 2.0 + (i % 2) * 1.0
-        chip = msphere(boulder, "BoulderChip%02d" % i, 0.45 + (i % 3) * 0.17,
-                       (math.cos(a) * r, 0.35 + (i % 2) * 0.25, math.sin(a) * r),
-                       "Rock", segments=12, rings=8)
-        chip.scale = (1.3, 0.7, 1.0)
-
-    # Platform kit: panel rhythm, seat plates and a denser fastener language.
-    deck = ASSETS["deck_6x6"]
-    for ix in (-2.45, -0.82, 0.82, 2.45):
-        for iz in (-2.45, -0.82, 0.82, 2.45):
-            add_bolt(deck, "DeckFastener_%d_%d" % (int(ix * 10), int(iz * 10)), (ix, 0.33, iz), 0.075, 0.09)
-    for i in range(3):
-        mbox(deck, "DeckServiceChannel%d" % i, (0.10, 0.055, 4.85), (-1.65 + i * 1.65, 0.325, 0.0), "Titanium", bevel=0.018)
-    mbox(deck, "DeckServiceHatch", (1.18, 0.055, 0.82), (0.0, 0.33, -1.1), "Composite", bevel=0.035)
-    edge = ASSETS["deck_edge"]
-    for i in range(6):
-        add_bolt(edge, "EdgeFastener%02d" % i, (-2.35 + i * 0.94, 0.34, -0.18), 0.065, 0.08)
-    for i in range(3):
-        mbox(edge, "EdgeStiffener%d" % i, (0.17, 0.42, 0.17), (-2.0 + i * 2.0, 0.08, 0.0), "Steel", bevel=0.03)
-
-    # Structural kit: web stiffeners, gussets, recessed panels and anchor hardware.
-    pillar = ASSETS["pillar"]
-    for y in (1.0, 2.6, 4.1):
-        mbox(pillar, "PillarGusset%.0f" % (y * 10), (1.5, 0.12, 1.45), (0.0, y, 0.0), "Titanium", bevel=0.035)
-    for x in (-0.58, 0.58):
-        for z in (-0.58, 0.58):
-            add_bolt(pillar, "PillarAnchor_%d_%d" % (int(x * 10), int(z * 10)), (x, 0.54, z), 0.08, 0.11)
-    beam = ASSETS["beam"]
-    for z in (-3.2, -1.9, -0.6, 0.7, 2.0, 3.3):
-        mbox(beam, "BeamWebStiffener%d" % int((z + 4) * 10), (1.08, 0.95, 0.11), (0.0, 0.0, z), "Titanium", bevel=0.025)
-    mbox(beam, "BeamTopFlange", (1.32, 0.12, 8.0), (0.0, 0.39, 0.0), "Steel", bevel=0.025)
-    mbox(beam, "BeamBottomFlange", (1.32, 0.12, 8.0), (0.0, -0.39, 0.0), "Steel", bevel=0.025)
-    wall = ASSETS["wall_section"]
-    for i in range(5):
-        mbox(wall, "WallLouver%02d" % i, (2.9, 0.12, 0.16), (0.0, 0.72 + i * 0.34, 0.29), "Titanium", bevel=0.022)
-    for x in (-1.7, 1.7):
-        for y in (0.65, 2.55):
-            mbox(wall, "WallRivet_%d_%d" % (int(x*10), int(y*10)), (0.14, 0.14, 0.11), (x, y, 0.29), "Titanium", bevel=0.02)
-    mbox(wall, "WallStatusStrip", (2.8, 0.10, 0.10), (0.0, 2.72, 0.30), "Energy", bevel=0.018)
-
-    # Tower: ringed massing, exterior panel seams, anchors and readable energy hardware.
-    foundation = ASSETS["tower_foundation"]
-    for i in range(16):
-        a = math.tau * i / 16.0
-        add_bolt(foundation, "FoundationBolt%02d" % i, (math.cos(a) * 7.7, 3.96, math.sin(a) * 7.7), 0.12, 0.16)
-    for i in range(4):
-        a = math.tau * i / 4.0 + math.pi / 4.0
-        brace_xy(foundation, "FoundationBrace%d" % i,
-                 (math.cos(a) * 4.8, 3.4, math.sin(a) * 4.8),
-                 (math.cos(a) * 7.0, 6.2, math.sin(a) * 7.0), 0.25, 0.24, "Steel")
-    mtorus(foundation, "FoundationEnergyRing", 5.5, 0.13, (0.0, 4.1, 0.0), "Energy", 48, 10)
-    tier = ASSETS["tower_tier"]
-    for level in range(4):
-        y = 1.75 + level * 2.25
-        for side in (-1.0, 1.0):
-            mbox(tier, "TierRibX_%d_%d" % (level, int(side)), (0.28, 1.55, 10.8), (side * 5.72, y, 0.0), "Titanium", bevel=0.035)
-            mbox(tier, "TierRibZ_%d_%d" % (level, int(side)), (10.8, 1.55, 0.28), (0.0, y, side * 5.72), "Titanium", bevel=0.035)
-    for y in (1.5, 4.0, 6.5, 9.0):
-        mtorus(tier, "TierBand%d" % int(y * 10), 5.95, 0.11, (0.0, y, 0.0), "Steel", 40, 8)
-    spire = ASSETS["tower_spire"]
-    for i in range(4):
-        a = math.tau * i / 4.0 + math.pi / 4.0
-        mbox(spire, "SpireFin%d" % i, (0.22, 6.0, 2.4), (math.cos(a) * 2.2, 6.4, math.sin(a) * 2.2), "Titanium", bevel=0.05,
-             rot=(0.0, a, 0.0))
-    mtorus(spire, "SpireHalo", 2.7, 0.10, (0.0, 9.6, 0.0), "Energy", 36, 8)
-    core = ASSETS["energy_core"]
-    for y in (1.4, 3.5, 5.7):
-        mtorus(core, "CoreHalo%d" % int(y * 10), 3.0, 0.14, (0.0, y, 0.0), "Energy", 40, 8)
-    for i in range(8):
-        a = math.tau * i / 8.0
-        mbox(core, "CoreEmitter%02d" % i, (0.32, 0.55, 0.65), (math.cos(a) * 2.85, 3.5, math.sin(a) * 2.85), "Titanium", bevel=0.06,
-             rot=(0.0, -a, 0.0))
-
-    # Traversal structures: grating, bolts, diagonal braces and mount plates.
-    bridge = ASSETS["bridge_deck"]
-    for z in (-3.25, -2.15, -1.05, 0.05, 1.15, 2.25, 3.35):
-        mbox(bridge, "BridgeGrate%d" % int((z + 4) * 10), (5.35, 0.055, 0.075), (0.0, 0.415, z), "Titanium", bevel=0.012)
-    for x in (-2.45, 2.45):
-        for z in (-3.2, -1.1, 1.1, 3.2):
-            add_bolt(bridge, "BridgeBolt_%d_%d" % (int(x*10), int(z*10)), (x, 0.43, z), 0.065, 0.08)
-    support = ASSETS["bridge_support"]
-    for z in (-1.7, 1.7):
-        brace_xy(support, "PylonCrossA_%d" % int(z * 10), (-2.05, 2.2, z), (2.05, 11.8, z), 0.25, 0.22)
-        brace_xy(support, "PylonCrossB_%d" % int(z * 10), (2.05, 2.2, z), (-2.05, 11.8, z), 0.25, 0.22)
-    walkway = ASSETS["walkway_deck"]
-    for z in (-2.55, -1.7, -0.85, 0.0, 0.85, 1.7, 2.55):
-        mbox(walkway, "WalkwayGrate%d" % int((z + 3) * 10), (1.38, 0.045, 0.07), (0.0, 0.21, z), "Titanium", bevel=0.012)
-    for side in (-1.0, 1.0):
-        for z in (-1.0, 1.0):
-            brace_xy(walkway, "WalkwayBrace_%d_%d" % (int(side), int(z*10)), (side * 0.61, 0.25, z - 0.45), (side * 0.61, 1.05, z + 0.45), 0.055, 0.055)
-    slab = ASSETS["damaged_slab"]
-    for i in range(8):
-        mbox(slab, "SlabCrack%02d" % i, (0.06, 0.045, 1.3 + (i % 3) * 0.35), (-2.8 + i * 0.72, 1.46 - (i % 2) * 0.35, -0.7 + (i % 3) * 0.75), "Rubber", bevel=0.008,
-             rot=(0.0, math.radians(i * 21), math.radians((-1) ** i * 7)))
-
-    # Industrial props: service panels, louvers, clamps and readable controls.
-    machine = ASSETS["machinery"]
-    for i in range(8):
-        mbox(machine, "MachineLouver%02d" % i, (2.85, 0.11, 0.12), (0.0, 0.75 + i * 0.26, 1.88), "Titanium", bevel=0.018)
-    for x in (-1.62, 1.62):
-        for y in (0.75, 2.7):
-            add_bolt(machine, "MachineBolt_%d_%d" % (int(x*10), int(y*10)), (x, y, 1.98), 0.065, 0.075)
-    for i in range(3):
-        mbox(machine, "MachineIndicator%d" % i, (0.16, 0.16, 0.08), (-0.38 + i * 0.38, 2.85, 1.9), "Energy", bevel=0.025)
-    vent = ASSETS["cooling_vent"]
-    for i in range(8):
-        a = math.tau * i / 8.0
-        mbox(vent, "VentBlade%02d" % i, (0.22, 0.08, 1.15), (math.cos(a) * 0.38, 3.76, math.sin(a) * 0.38), "Titanium", bevel=0.03,
-             rot=(0.0, a, math.radians(15)))
-    mtorus(vent, "VentGuard", 1.35, 0.08, (0.0, 3.82, 0.0), "Steel", 32, 8)
-    conduit = ASSETS["conduit"]
-    for i in range(5):
-        mtorus(conduit, "ConduitCollar%d" % i, 0.38, 0.05, (0.0, 0.8 + i * 1.1, 0.0), "Titanium", 20, 6)
-    cables = ASSETS["cable_bundle"]
-    for z in (-2.4, -1.2, 0.0, 1.2, 2.4):
-        mbox(cables, "CableClamp%d" % int((z+3)*10), (0.72, 0.08, 0.16), (0.0, 0.43, z), "Titanium", bevel=0.02)
-    rail = ASSETS["railing"]
-    for i in range(4):
-        x = -2.7 + i * 1.8
-        mbox(rail, "RailingFoot%d" % i, (0.42, 0.08, 0.42), (x, 0.05, 0.0), "Titanium", bevel=0.025)
-        brace_xy(rail, "RailingBraceA%d" % i, (x, 0.16, -0.08), (x, 0.93, -0.08), 0.06, 0.06)
-    debris = ASSETS["debris_cluster"]
-    for i in range(8):
-        a = math.radians(i * 43.0)
-        shard = msphere(debris, "DebrisShard%02d" % i, 0.26 + (i % 3) * 0.10, (math.cos(a) * (1.0 + (i % 3)), 0.22, math.sin(a) * (1.0 + (i % 3))), "Rock", 10, 7)
-        shard.scale = (1.5, 0.55, 0.7)
-
-    # Cover/gate modules: panels, handles, gauges, mounts and control hardware.
-    barrier = ASSETS["cover_barrier"]
-    for x in (-0.75, 0.0, 0.75):
-        mbox(barrier, "BarrierRib%d" % int(x * 10), (0.12, 0.82, 0.14), (x, 0.65, 0.36), "Titanium", bevel=0.025)
-    mbox(barrier, "BarrierLight", (1.15, 0.10, 0.07), (0.0, 0.94, 0.37), "Energy", bevel=0.018)
-    cover_machine = ASSETS["cover_machine"]
-    for i in range(6):
-        mbox(cover_machine, "CoverVent%02d" % i, (2.8, 0.10, 0.13), (0.0, 0.48 + i * 0.25, 1.42), "Titanium", bevel=0.018)
-    for x in (-1.45, 1.45):
-        mcyl(cover_machine, "CoverPipe%d" % int(x * 10), 0.18, 2.2, (x, 2.85, -0.65), "Steel", bevel=0.035, verts=12)
-    gate = ASSETS["access_gate"]
-    for side in (-1.0, 1.0):
-        x = side * 3.2
-        for y in (0.55, 1.5, 2.45, 3.4):
-            mbox(gate, "GatePlate_%d_%d" % (int(side), int(y*10)), (0.78, 0.17, 0.82), (x, y, 0.0), "Titanium", bevel=0.025)
-            add_bolt(gate, "GateBolt_%d_%d" % (int(side), int(y*10)), (x + side * 0.38, y, 0.28), 0.055, 0.07)
-    mbox(gate, "GateControlBox", (0.62, 1.05, 0.46), (2.35, 1.05, 0.52), "Composite", bevel=0.06)
-    mbox(gate, "GateControlLight", (0.18, 0.18, 0.06), (2.35, 1.23, 0.77), "Energy", bevel=0.018)
-
-    # Distant assets get a little hierarchy but remain light-weight silhouettes.
-    background = ASSETS["background_silhouette"]
-    for i in range(3):
-        mbox(background, "DistAntenna%d" % i, (0.22, 6.0 + i * 1.8, 0.22), (-4.0 + i * 4.0, 35.0 + i, 0.0), "Steel", bevel=0.03)
-    for i in range(5):
-        mbox(background, "DistWindow%d" % i, (1.2, 0.3, 0.08), (-12.0 + i * 5.0, 5.0 + (i % 2), -11.05), "Energy", bevel=0.012)
-    cloud = ASSETS["cloud_puff"]
-    for i in range(5):
-        a = math.radians(72.0 * i + 18.0)
-        o = msphere(cloud, "CloudWisp%02d" % i, 0.9 + (i % 2) * 0.3, (math.cos(a) * 5.5, 0.5 + (i % 2), math.sin(a) * 4.3), "Cloud", 14, 8)
-        o.scale = (2.0, 0.5, 1.4)
-    print("== Aetherfall build: enhanced all 27 reusable asset forms ==")
-
-enrich_asset_forms()
 
 
 def _rot_mat(r):
