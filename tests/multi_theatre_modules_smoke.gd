@@ -273,7 +273,7 @@ func _test_live_expedition_and_armory_field_kit_ui() -> void:
 	var hud := main_scene.get_node("UI/TouchControls") as Control
 	var reward_lbl := hud.get("_results_reward_label") as Label
 	_expect(
-		hud.call("_results_visible") and reward_lbl.text.contains("BREACH CAPACITOR"),
+		bool(hud.call("_results_visible")) and reward_lbl.text.contains("BREACH CAPACITOR"),
 		"extraction choice displays Breach Capacitor schematic reward",
 	)
 

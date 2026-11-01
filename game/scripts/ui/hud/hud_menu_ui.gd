@@ -597,6 +597,13 @@ static func hide_results(hud) -> void:
 		hud._results_retry_button.release_focus()
 	if hud._results_explore_button.has_focus():
 		hud._results_explore_button.release_focus()
+	if is_instance_valid(hud._scrim):
+		hud._scrim.visible = hud.get_tree().paused
+	hud._top_bar.visible = true
+	hud._help_label.visible = true
+	hud._apply_input_mode()
+	hud._layout_controls()
+	hud._refresh_skill_button()
 
 
 static func format_recovery_summary(payload: Dictionary) -> String:
@@ -615,7 +622,7 @@ static func format_recovery_summary(payload: Dictionary) -> String:
 				)
 		elif notice.get("kind", "") == "bp":
 			lines.append(AegisText.t("results.recovery_bp", [int(notice["amount"])]))
-	var run_banked := payload.get("run_banked") == true
+	var run_banked: bool = payload.get("run_banked") == true
 	var promoted_tier := int(payload.get("promoted_tier", 0))
 	if run_banked:
 		if promoted_tier > 1:
@@ -678,13 +685,6 @@ static func format_recovery_summary(payload: Dictionary) -> String:
 			)
 		)
 	return "\n".join(lines)
-	if is_instance_valid(hud._scrim):
-		hud._scrim.visible = hud.get_tree().paused
-	hud._top_bar.visible = true
-	hud._help_label.visible = true
-	hud._apply_input_mode()
-	hud._layout_controls()
-	hud._refresh_skill_button()
 
 
 ## Pause is a whole-screen state, not one panel: it decides the scrim, the
