@@ -1,6 +1,6 @@
 # Aetherfall — Production Art Pipeline
 
-**Status:** Gate 03 — Base Mesh source authored; clay-review acceptance pending
+**Status:** Gate 04 — High-Poly source authored; clay-review acceptance pending
 
 This is the production sequence for Aetherfall. It replaces the incorrect practice of treating an extruded, generated, or multi-part mesh as a finished environment asset.
 
@@ -147,7 +147,8 @@ Only after Godot visual approval:
 |---|---|
 | Reference language | **LOCKED** — three original studies recorded above |
 | Gameplay blockout/connectivity | **RETAINED** |
-| Production Base Mesh | **CLAY REVIEW PENDING** — authored Blender source and three core-family review renders are present; no final visual acceptance claimed |
-| High-poly / retopo / authored UV / bake | **NOT STARTED** |
+| Production Base Mesh | **SOURCE AUTHORED** — three core-family clay reviews are present; no final visual approval claimed |
+| High-poly detailing | **CLAY REVIEW PENDING** — dedicated `HP_` bake-source collections and three core-family reviews are present |
+| Retopo / authored UV / bake | **NOT STARTED** |
 | Final PBR texture authoring | **NOT STARTED** |
 | Godot visual approval | **UNVERIFIED** |
