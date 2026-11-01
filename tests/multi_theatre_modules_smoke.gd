@@ -270,7 +270,7 @@ func _test_live_expedition_and_armory_field_kit_ui() -> void:
 		secured and prog.has_blueprint(&"breach_capacitor"),
 		"securing Emberfall Seam Core grants Breach Capacitor schematic and opens extraction choice",
 	)
-	var hud := main_scene.get_node("UI/TouchControls") as Control
+	var hud := main_scene.get_node("HUD/TouchControls") as Control
 	var reward_lbl := hud.get("_results_reward_label") as Label
 	_expect(
 		bool(hud.call("_results_visible")) and reward_lbl.text.contains("BREACH CAPACITOR"),

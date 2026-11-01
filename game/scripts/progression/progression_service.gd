@@ -372,29 +372,27 @@ func unlock_module(module_id: StringName) -> bool:
 		return false
 	balance -= cost
 	unlocked_modules[key] = true
-	if equipped_modules.size() < MAX_EQUIPPED_MODULES and not equipped_modules.has(module_id):
-		equipped_modules.append(module_id)
 	_save_profile()
 	profile_changed.emit()
 	return true
 
 
-func toggle_module(module_id: StringName) -> String:
+func toggle_module(module_id: StringName) -> bool:
 	var key := String(module_id)
 	if not MODULE_IDS.has(module_id) or not unlocked_modules.has(key):
-		return "locked"
+		return false
 	var idx := equipped_modules.find(module_id)
 	if idx >= 0:
 		equipped_modules.remove_at(idx)
 		_save_profile()
 		profile_changed.emit()
-		return "unequipped"
+		return true
 	if equipped_modules.size() >= MAX_EQUIPPED_MODULES:
-		return "slots_full"
+		return false
 	equipped_modules.append(module_id)
 	_save_profile()
 	profile_changed.emit()
-	return "equipped"
+	return true
 
 
 func unlock_cost(weapon_id: StringName) -> int:
