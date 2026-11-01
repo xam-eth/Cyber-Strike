@@ -618,13 +618,26 @@ func _present_selected(reveal: bool) -> void:
 		_tier_label.text = AegisText.t("hero.vitals_line", [active_tier, vitals, reduction])
 	if progression != null:
 		var wpn_tier := progression.weapon_tier(progression.selected_weapon_id)
+		var kit_tags := TechModuleDefinition.active_tags_summary(progression.equipped_modules)
 		_loadout_label.text = (
-			"%s T%d  ·  %s"
-			% [
-				_weapon_name(progression.selected_weapon_id).to_upper(),
-				wpn_tier,
-				_world_name(progression.selected_world_id).to_upper(),
-			]
+			(
+				"%s T%d  ·  KIT %s  ·  %s"
+				% [
+					_weapon_name(progression.selected_weapon_id).to_upper(),
+					wpn_tier,
+					kit_tags,
+					_world_name(progression.selected_world_id).to_upper(),
+				]
+			)
+			if not kit_tags.is_empty()
+			else (
+				"%s T%d  ·  %s"
+				% [
+					_weapon_name(progression.selected_weapon_id).to_upper(),
+					wpn_tier,
+					_world_name(progression.selected_world_id).to_upper(),
+				]
+			)
 		)
 
 	# The stage shows the rank this profile would field, not always tier 1. Keep

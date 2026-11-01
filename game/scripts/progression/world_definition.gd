@@ -105,13 +105,34 @@ func display_mode_label() -> String:
 
 
 func display_objective_summary() -> String:
-	return AegisText.t(
-		"world.objective_recovery" if has_recovery_caches() else "world.objective_defense"
-	)
+	if has_recovery_caches():
+		for cache in recovery_caches:
+			if cache != null and not cache.optional and cache.module_id != &"":
+				return AegisText.t("world.objective_module", [cache.display_name])
+		return AegisText.t("world.objective_recovery")
+	return AegisText.t("world.objective_defense")
 
 
 func display_reward_summary() -> String:
-	return AegisText.t("world.reward_recovery" if has_recovery_caches() else "world.reward_defense")
+	if has_recovery_caches():
+		var primary_mod: TechModuleDefinition = null
+		var total_bp := 0
+		for cache in recovery_caches:
+			if cache == null:
+				continue
+			total_bp += maxi(cache.bp_reward, 0)
+			if not cache.optional and cache.module_id != &"":
+				primary_mod = TechModuleDefinition.find(cache.module_id)
+		if primary_mod != null:
+			return (
+				AegisText
+				. t(
+					"world.reward_module",
+					[primary_mod.display_title(), total_bp],
+				)
+			)
+		return AegisText.t("world.reward_recovery")
+	return AegisText.t("world.reward_defense")
 
 
 func is_valid_definition() -> bool:

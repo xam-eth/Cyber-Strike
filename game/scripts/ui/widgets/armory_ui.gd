@@ -18,10 +18,12 @@ extends AegisPanel
 
 signal weapon_action_requested(weapon_id: StringName)
 signal weapon_upgrade_requested(weapon_id: StringName)
+signal module_action_requested(module_id: StringName)
 signal close_requested
 signal home_requested
 
 const ORDER := [&"pulse_rifle", &"nova_launcher", &"arc_shooter"]
+const MODULE_ICONS := ["optic", "pulse", "lightning"]
 ## Node names are built from these, so they keep the id: a test finds
 ## `ArcWeaponButton` by name, and a name is not copy.
 ## Node-name stems only. These are never drawn: `wpn.*.name` and `wpn.*.role`
@@ -42,12 +44,22 @@ const ART := [
 
 var _wallet_label: Label
 var _hint_label: Label
+var _weapons_tab_btn: AegisButton
+var _modules_tab_btn: AegisButton
+var _weapon_row: HBoxContainer
+var _module_row: HBoxContainer
+var _active_tab: String = "weapons"
 var _weapon_buttons: Array[AegisButton] = []
 var _upgrade_buttons: Array[AegisButton] = []
 var _cards: Array[AegisPanel] = []
 var _states: Array[Label] = []
 var _tier_labels: Array[Label] = []
 var _arts: Array[TextureRect] = []
+var _module_cards: Array[AegisPanel] = []
+var _module_buttons: Array[AegisButton] = []
+var _module_states: Array[Label] = []
+var _module_notes: Array[Label] = []
+var _module_icons: Array[TextureRect] = []
 var _close_button: AegisButton
 var _home_button: AegisButton
 var _column: VBoxContainer
@@ -59,6 +71,9 @@ var _last_unlocked: Dictionary = {}
 var _last_equipped := &""
 var _last_tiers: Dictionary = {}
 var _last_blueprints: Variant = null
+var _last_mod_blueprints: Dictionary = {}
+var _last_unlocked_mods: Dictionary = {}
+var _last_equipped_mods: Array[StringName] = []
 var _hint_key := ""
 var _hint_args: Array = []
 
@@ -72,19 +87,53 @@ func _ready() -> void:
 
 	_column = VBoxContainer.new()
 	add_child(_column)
-	_column.add_child(_label_key("armory.title", "display_l", AegisTokens.INK))
+	var header_row := HBoxContainer.new()
+	header_row.name = "ArmoryHeader"
+	header_row.add_theme_constant_override("separation", 8)
+	_column.add_child(header_row)
+	var title_lbl := _label_key("armory.title", "display_l", AegisTokens.INK)
+	title_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header_row.add_child(title_lbl)
+
+	_weapons_tab_btn = AegisButton.new()
+	_weapons_tab_btn.name = "WeaponsTabButton"
+	_weapons_tab_btn.focus_mode = Control.FOCUS_ALL
+	_weapons_tab_btn.mouse_filter = Control.MOUSE_FILTER_STOP
+	AegisTheme.set_button_variant(_weapons_tab_btn, "primary")
+	_weapons_tab_btn.pressed.connect(show_tab.bind("weapons"))
+	header_row.add_child(_weapons_tab_btn)
+
+	_modules_tab_btn = AegisButton.new()
+	_modules_tab_btn.name = "ModulesTabButton"
+	_modules_tab_btn.focus_mode = Control.FOCUS_ALL
+	_modules_tab_btn.mouse_filter = Control.MOUSE_FILTER_STOP
+	AegisTheme.set_button_variant(_modules_tab_btn, "ghost")
+	_modules_tab_btn.pressed.connect(show_tab.bind("modules"))
+	header_row.add_child(_modules_tab_btn)
+
 	_wallet_label = _label("", "mono_m", AegisTokens.ACCENT)
 	_column.add_child(_wallet_label)
 	_hint_label = _label_key("armory.hint", "label", AegisTokens.INK_2)
 	_column.add_child(_hint_label)
 
-	var row := HBoxContainer.new()
-	row.name = "WeaponCards"
-	row.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	row.add_theme_constant_override("separation", 8)
-	_column.add_child(row)
+	_weapon_row = HBoxContainer.new()
+	_weapon_row.name = "WeaponCards"
+	_weapon_row.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_weapon_row.add_theme_constant_override("separation", 8)
+	_column.add_child(_weapon_row)
 	for index in range(ORDER.size()):
-		row.add_child(_build_card(index))
+		_weapon_row.add_child(_build_card(index))
+
+	_module_row = HBoxContainer.new()
+	_module_row.name = "ModuleCards"
+	_module_row.visible = false
+	_module_row.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_module_row.add_theme_constant_override("separation", 8)
+	_column.add_child(_module_row)
+	var mod_defs := TechModuleDefinition.all_definitions()
+	for index in range(mod_defs.size()):
+		_module_row.add_child(_build_module_card(index, mod_defs[index]))
+	_refresh_tab_buttons()
 
 	# Two ways out, both explicit: back to the run, or back to the dashboard the
 	# run was launched from. RETURN TO FIELD stays the primary action because
@@ -193,6 +242,106 @@ func _build_card(index: int) -> AegisPanel:
 	return card
 
 
+func _build_module_card(index: int, def: TechModuleDefinition) -> AegisPanel:
+	var stem := def.short_tag.capitalize()
+	var card := AegisPanel.new()
+	card.name = "%sModuleCard" % stem
+	card.bezel = true
+	card.interactive = false
+	card.cut_top_right = 12.0
+	card.accent_side = "top"
+	card.accent_color = AegisTokens.INFO
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	card.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_module_cards.append(card)
+
+	var column := VBoxContainer.new()
+	column.add_theme_constant_override("separation", 4)
+	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card.add_child(column)
+
+	var icon_wrap := CenterContainer.new()
+	icon_wrap.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	icon_wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(icon_wrap)
+	var icon_rect := TextureRect.new()
+	icon_rect.name = "Icon"
+	var icon_key: String = MODULE_ICONS[index % MODULE_ICONS.size()]
+	icon_rect.texture = AegisTheme.icon(icon_key, true)
+	icon_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon_rect.custom_minimum_size = Vector2(36, 36)
+	icon_rect.modulate = AegisTokens.INFO
+	icon_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	icon_wrap.add_child(icon_rect)
+	_module_icons.append(icon_rect)
+
+	var name_label := _label_key(def.title_key, "mono_m", AegisTokens.INK)
+	column.add_child(name_label)
+	var summary_label := _label_key(def.summary_key, "label_s", AegisTokens.INK_2)
+	summary_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	summary_label.max_lines_visible = 2
+	column.add_child(summary_label)
+
+	var state := _label("", "label_s", AegisTokens.INFO)
+	state.autowrap_mode = TextServer.AUTOWRAP_OFF
+	state.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	_module_states.append(state)
+	column.add_child(state)
+	var note := _label("", "label_s", AegisTokens.INK_3)
+	note.autowrap_mode = TextServer.AUTOWRAP_OFF
+	note.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	_module_notes.append(note)
+	column.add_child(note)
+
+	var button := AegisButton.new()
+	button.name = "%sModuleButton" % stem
+	button.focus_mode = Control.FOCUS_ALL
+	button.mouse_filter = Control.MOUSE_FILTER_STOP
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	AegisTheme.set_button_variant(button, "card")
+	button.pressed.connect(_on_module_pressed.bind(def.module_id))
+	column.add_child(button)
+	_module_buttons.append(button)
+	return card
+
+
+func show_tab(tab_name: String) -> void:
+	_active_tab = "modules" if tab_name == "modules" else "weapons"
+	if is_instance_valid(_weapon_row):
+		_weapon_row.visible = _active_tab == "weapons"
+	if is_instance_valid(_module_row):
+		_module_row.visible = _active_tab == "modules"
+	_refresh_tab_buttons()
+
+
+func _refresh_tab_buttons() -> void:
+	var owned_weapons := maxi(_last_unlocked.size(), 1)
+	if is_instance_valid(_weapons_tab_btn):
+		AegisText.apply(_weapons_tab_btn, "armory.tab_weapons", [owned_weapons])
+		var w_var := "primary" if _active_tab == "weapons" else "ghost"
+		if _weapons_tab_btn.get_meta("armory_variant", "") != w_var:
+			var f_sz := _weapons_tab_btn.get_theme_font_size("font_size")
+			AegisTheme.set_button_variant(_weapons_tab_btn, w_var)
+			if f_sz > 0:
+				AegisTheme.resize_button_font(_weapons_tab_btn, "title", f_sz)
+			_weapons_tab_btn.set_meta("armory_variant", w_var)
+	if is_instance_valid(_modules_tab_btn):
+		AegisText.apply(
+			_modules_tab_btn,
+			"armory.tab_modules",
+			[_last_equipped_mods.size(), TechModuleDefinition.MAX_SLOTS]
+		)
+		var m_var := "primary" if _active_tab == "modules" else "ghost"
+		if _modules_tab_btn.get_meta("armory_variant", "") != m_var:
+			var f_sz := _modules_tab_btn.get_theme_font_size("font_size")
+			AegisTheme.set_button_variant(_modules_tab_btn, m_var)
+			if f_sz > 0:
+				AegisTheme.resize_button_font(_modules_tab_btn, "title", f_sz)
+			_modules_tab_btn.set_meta("armory_variant", m_var)
+
+
 func refresh_profile(
 	balance: int,
 	best_score: int,
@@ -281,6 +430,71 @@ func refresh_profile(
 			AegisTheme.set_button_variant(upgrade, upgrade_variant)
 			AegisTheme.resize_button_font(upgrade, "title", scaled_font)
 			upgrade.set_meta("armory_variant", upgrade_variant)
+	_refresh_tab_buttons()
+	refresh_modules(_last_mod_blueprints, _last_unlocked_mods, _last_equipped_mods)
+
+
+func refresh_modules(
+	module_blueprints: Dictionary,
+	unlocked_modules: Dictionary,
+	equipped_modules: Array[StringName],
+) -> void:
+	_last_mod_blueprints = module_blueprints.duplicate()
+	_last_unlocked_mods = unlocked_modules.duplicate()
+	_last_equipped_mods = equipped_modules.duplicate()
+	_refresh_tab_buttons()
+	var defs := TechModuleDefinition.all_definitions()
+	for index in range(mini(defs.size(), _module_cards.size())):
+		var def := defs[index]
+		var key := String(def.module_id)
+		var owned := unlocked_modules.has(key)
+		var has_bp := owned or module_blueprints.has(key)
+		var eq_slot := equipped_modules.find(def.module_id)
+		var is_eq := eq_slot >= 0
+		var state := _module_states[index]
+		var note := _module_notes[index]
+		var button := _module_buttons[index]
+		var icon_rect := _module_icons[index]
+		note.text = def.display_role()
+		var variant := "card"
+		if is_eq:
+			state.text = AegisText.t(
+				"armory.mod_equipped_slot", [eq_slot + 1, TechModuleDefinition.MAX_SLOTS]
+			)
+			state.add_theme_color_override("font_color", AegisTokens.ACCENT)
+			_module_cards[index].accent_color = AegisTokens.ACCENT
+			icon_rect.modulate = AegisTokens.ACCENT
+			AegisText.apply(button, "armory.mod_unequip")
+			variant = "card"
+		elif owned:
+			state.text = AegisText.t("armory.mod_owned")
+			state.add_theme_color_override("font_color", AegisTokens.OK)
+			_module_cards[index].accent_color = AegisTokens.OK
+			icon_rect.modulate = AegisTokens.OK
+			AegisText.apply(button, "armory.equip")
+			variant = (
+				"primary" if equipped_modules.size() < TechModuleDefinition.MAX_SLOTS else "ghost"
+			)
+		elif not has_bp:
+			state.text = AegisText.t("armory.mod_source", [def.display_source_world()])
+			state.add_theme_color_override("font_color", AegisTokens.INFO)
+			_module_cards[index].accent_color = AegisTokens.INFO
+			icon_rect.modulate = Color(AegisTokens.INFO, 0.55)
+			AegisText.apply(button, "armory.blueprint_locked")
+			variant = "ghost"
+		else:
+			state.text = AegisText.t("armory.mod_source", [def.display_source_world()])
+			state.add_theme_color_override("font_color", AegisTokens.INK_2)
+			_module_cards[index].accent_color = AegisTokens.LINE_HI
+			icon_rect.modulate = AegisTokens.INFO
+			AegisText.apply(button, "armory.unlock", [def.unlock_cost])
+			variant = "primary" if _last_balance >= def.unlock_cost else "card"
+		if button.get_meta("armory_variant", "") != variant:
+			var scaled_font := button.get_theme_font_size("font_size")
+			AegisTheme.set_button_variant(button, variant)
+			if scaled_font > 0:
+				AegisTheme.resize_button_font(button, "title", scaled_font)
+			button.set_meta("armory_variant", variant)
 
 
 ## The in-world HUD is the only context where leaving for the dashboard is a
@@ -342,10 +556,27 @@ func layout_for(hud) -> void:
 	var art_min_h: float = float(hud._to_layout(art_floor))
 	for art in _arts:
 		art.custom_minimum_size = Vector2(0.0, art_min_h)
+	var icon_sz: float = float(hud._to_layout(28.0 if compact_v else 38.0))
+	for m_card in _module_cards:
+		m_card.set_surface_pad(card_pad)
+		m_card.custom_minimum_size = Vector2(card_min_w, 0.0)
+		if m_card.get_child_count() > 0 and m_card.get_child(0) is VBoxContainer:
+			(m_card.get_child(0) as VBoxContainer).add_theme_constant_override(
+				"separation", col_sep
+			)
+	for m_icon in _module_icons:
+		m_icon.custom_minimum_size = Vector2(icon_sz, icon_sz)
 	var btn_h: float = float(hud._to_layout(32.0 if compact_v else 36.0))
+	var tab_h: float = float(hud._to_layout(26.0 if compact_v else 30.0))
+	if is_instance_valid(_weapons_tab_btn):
+		_weapons_tab_btn.custom_minimum_size = Vector2(0.0, tab_h)
+	if is_instance_valid(_modules_tab_btn):
+		_modules_tab_btn.custom_minimum_size = Vector2(0.0, tab_h)
 	for button in _weapon_buttons:
 		button.custom_minimum_size = Vector2(0.0, btn_h)
 	for button in _upgrade_buttons:
+		button.custom_minimum_size = Vector2(0.0, btn_h)
+	for button in _module_buttons:
 		button.custom_minimum_size = Vector2(0.0, btn_h)
 	var foot_h: float = float(hud._to_layout(34.0 if compact_v else 40.0))
 	var home_w: float = float(hud._to_layout(120.0))
@@ -372,7 +603,10 @@ func layout_for(hud) -> void:
 
 
 func focus_first() -> void:
-	_weapon_buttons[0].grab_focus()
+	if _active_tab == "modules" and not _module_buttons.is_empty():
+		_module_buttons[0].grab_focus()
+	else:
+		_weapon_buttons[0].grab_focus()
 
 
 func _on_home_pressed() -> void:
@@ -385,6 +619,10 @@ func _on_weapon_pressed(id: StringName) -> void:
 
 func _on_upgrade_pressed(id: StringName) -> void:
 	weapon_upgrade_requested.emit(id)
+
+
+func _on_module_pressed(id: StringName) -> void:
+	module_action_requested.emit(id)
 
 
 func _on_close_pressed() -> void:

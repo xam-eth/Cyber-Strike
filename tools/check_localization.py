@@ -35,7 +35,8 @@ PLACEHOLDER_RE = re.compile(r"%(?:\d+\$)?[sdfvx]")
 # every call site without guessing at function names.
 NAMESPACES = (
     "app", "boot", "loading", "chapter", "common", "nav", "dash", "hero",
-    "world", "hud", "pause", "results", "recovery", "armory", "wpn", "settings", "editor",
+    "world", "hud", "pause", "results", "recovery", "armory", "wpn", "mod",
+    "settings", "editor",
 )
 KEY_LITERAL = re.compile(
     r'"((?:' + "|".join(NAMESPACES) + r')\.[a-z0-9_.\-]+)"'

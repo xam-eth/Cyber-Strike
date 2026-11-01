@@ -18,6 +18,7 @@ var _available_ids: Dictionary = {"pulse_rifle": true}
 ## Runtime-only effective resources. Authored entries in weapon_definitions
 ## remain immutable registry data, including when a tier is upgraded mid-run.
 var _weapon_tiers: Dictionary = {}
+var _tech_modifiers: Dictionary = {}
 var _run_modifiers: Dictionary = {}
 var _effective_definitions: Array[WeaponDefinition] = []
 
@@ -149,6 +150,31 @@ func set_weapon_tiers(tiers: Dictionary) -> void:
 	_rebuild_effective_definitions(true, false)
 
 
+## Applies permanent Field Kit Tech Module modifiers without mutating authored
+## WeaponDefinition resources or conflicting with temporary run evolutions.
+func set_tech_modifiers(modifiers: Dictionary) -> void:
+	_tech_modifiers = modifiers.duplicate()
+	_rebuild_effective_definitions(true, false)
+
+
+## Refills a fraction of the active weapon's magazine immediately (Phase
+## Thrusters EMP synergy) and cancels an in-flight reload if full.
+func refill_active_magazine_ratio(ratio: float) -> int:
+	if ratio <= 0.0 or _current_weapon_index < 0 or _current_weapon_index >= _magazines.size():
+		return 0
+	var cap := get_current_magazine_size()
+	if cap <= 0:
+		return 0
+	var gain := maxi(int(ceil(float(cap) * clampf(ratio, 0.0, 1.0))), 2)
+	var before := _magazines[_current_weapon_index]
+	var after := clampi(before + gain, 0, cap)
+	_magazines[_current_weapon_index] = after
+	if after >= cap and _current_weapon_index < _reload_remaining.size():
+		_reload_remaining[_current_weapon_index] = 0.0
+	_emit_ammo()
+	return after - before
+
+
 ## Applies temporary run-only combat modifiers onto runtime copies without
 ## mutating authored WeaponDefinition resources or permanent weapon tiers.
 func apply_run_modifiers(modifiers: Dictionary, refill_magazines: bool = false) -> void:
@@ -173,11 +199,17 @@ func _rebuild_effective_definitions(preserve_ammo: bool, refill_magazines: bool)
 
 	_effective_definitions.clear()
 	var has_run_mods := not _run_modifiers.is_empty()
+	var has_tech_mods := not _tech_modifiers.is_empty()
 	var run_dmg := float(_run_modifiers.get("damage_multiplier", 1.0))
 	var run_rate := float(_run_modifiers.get("fire_rate_multiplier", 1.0))
 	var run_reload := float(_run_modifiers.get("reload_multiplier", 1.0))
 	var run_mag := float(_run_modifiers.get("magazine_multiplier", 1.0))
 	var run_range := float(_run_modifiers.get("range_multiplier", 1.0))
+	var tech_reload := float(_tech_modifiers.get("reload_multiplier", 1.0))
+	var tech_proj_speed := float(_tech_modifiers.get("projectile_speed_multiplier", 1.0))
+	var tech_splash_radius := float(_tech_modifiers.get("splash_radius_multiplier", 1.0))
+	var tech_chain_bonus := int(_tech_modifiers.get("chain_count_bonus", 0))
+	var tech_chain_rad := float(_tech_modifiers.get("chain_radius_bonus", 0.0))
 
 	for index in range(weapon_definitions.size()):
 		var base := weapon_definitions[index]
@@ -187,17 +219,25 @@ func _rebuild_effective_definitions(preserve_ammo: bool, refill_magazines: bool)
 		var id := String(base.weapon_id)
 		var tier := clampi(int(_weapon_tiers.get(id, 1)), 1, WeaponTier.tier_count())
 		var effective := base
-		if tier > 1 or has_run_mods:
+		if tier > 1 or has_run_mods or has_tech_mods:
 			effective = base.duplicate(true) as WeaponDefinition
 			var damage_scale := WeaponTier.damage_multiplier(tier) * run_dmg
 			effective.damage = base.damage * damage_scale
 			effective.splash_damage = base.splash_damage * damage_scale
 			effective.reload_seconds = maxf(
-				base.reload_seconds * WeaponTier.reload_multiplier(tier) * run_reload, 0.25
+				base.reload_seconds * WeaponTier.reload_multiplier(tier) * run_reload * tech_reload,
+				0.25
 			)
 			effective.fire_rate = base.fire_rate * run_rate
 			effective.magazine_size = maxi(int(round(float(base.magazine_size) * run_mag)), 1)
 			effective.max_range = base.max_range * run_range
+			if base.projectile_speed > 0.0:
+				effective.projectile_speed = base.projectile_speed * tech_proj_speed
+			if base.splash_radius > 0.0:
+				effective.splash_radius = base.splash_radius * tech_splash_radius
+			if base.chain_count > 0:
+				effective.chain_count = mini(base.chain_count + tech_chain_bonus, 5)
+				effective.chain_radius = base.chain_radius + tech_chain_rad
 		_effective_definitions.append(effective)
 
 		if index < _magazines.size():

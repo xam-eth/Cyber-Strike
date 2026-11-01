@@ -68,6 +68,7 @@ var guardian_phase: String = "fortified"
 ## Fielded operative telemetry supplied by Main/ProgressionService (presentation only).
 var operative_tier: int = 1
 var operative_armor_pct: int = 0
+var field_kit_tags: String = ""
 ## World-space waypoint supplied by Main for the top bearing compass (presentation only).
 var objective_has_target: bool = false
 var objective_world_pos: Vector3 = Vector3.ZERO

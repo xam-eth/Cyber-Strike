@@ -1036,7 +1036,7 @@
 
 .wmodal__head {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 2px 8px;
 }
@@ -1058,8 +1058,36 @@
   color: var(--ink);
 }
 
-.wmodal__close {
+.wmodal__tabs {
   grid-column: 2;
+  grid-row: 1 / span 2;
+  display: flex;
+  gap: 4px;
+}
+
+.wmodal__tab {
+  height: 28px;
+  padding: 0 9px;
+  border: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  background: rgba(14, 24, 34, 0.85);
+  box-shadow: inset 0 0 0 1px var(--hair);
+  cursor: pointer;
+}
+
+.wmodal__tab[aria-selected='true'] {
+  color: #090d12;
+  background: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.wmodal__close {
+  grid-column: 3;
   grid-row: 1 / span 2;
   display: grid;
   place-items: center;
@@ -1069,6 +1097,26 @@
   color: var(--ink-2);
   background: rgba(14, 24, 34, 0.8);
   box-shadow: inset 0 0 0 1px var(--hair);
+}
+
+.rack[hidden] {
+  display: none;
+}
+
+.rackcard__art--module {
+  display: grid;
+  place-items: center;
+  background: radial-gradient(ellipse at 50% 55%, rgba(56, 189, 248, 0.24), rgba(4, 8, 12, 0.94));
+  color: #38bdf8;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.14em;
+}
+
+.rackcard[aria-pressed='true'] .rackcard__art--module {
+  background: radial-gradient(ellipse at 50% 55%, rgba(255, 176, 32, 0.3), rgba(4, 8, 12, 0.94));
+  color: var(--accent);
 }
 
 .wmodal__close:hover,

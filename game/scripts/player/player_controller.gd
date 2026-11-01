@@ -41,6 +41,7 @@ var _scene_emp_radius: float = 9.0
 var _scene_emp_damage: float = 18.0
 var _tier_vitals_base: float = 100.0
 var _tier_dr_base: float = 0.0
+var _tech_modifiers: Dictionary = {}
 var _run_modifiers: Dictionary = {}
 var _skill_cooldown_remaining: float = 0.0
 var _is_defeated: bool = false
@@ -226,10 +227,27 @@ func activate_skill() -> bool:
 		targets_hit += 1
 
 	_skill_cooldown_remaining = emp_pulse_cooldown
+	var refill_ratio := float(_tech_modifiers.get("emp_ammo_refill_ratio", 0.0))
+	if refill_ratio > 0.0 and is_instance_valid(weapon_controller):
+		weapon_controller.refill_active_magazine_ratio(refill_ratio)
 	_spawn_emp_pulse_effect()
 	skill_cooldown_changed.emit(_skill_cooldown_remaining, emp_pulse_cooldown)
 	skill_used.emit(targets_hit, emp_pulse_cooldown)
 	return true
+
+
+func has_shield_pierce_active() -> bool:
+	return _aiming and _tech_modifiers.get("ads_shield_pierce") == true
+
+
+func notify_arc_chain_hit() -> void:
+	var refund := float(_tech_modifiers.get("arc_chain_emp_refund", 0.0))
+	if refund <= 0.0 or _skill_cooldown_remaining <= 0.0:
+		return
+	var previous_bucket := ceili(_skill_cooldown_remaining)
+	_skill_cooldown_remaining = maxf(_skill_cooldown_remaining - refund, 0.0)
+	if ceili(_skill_cooldown_remaining) != previous_bucket or _skill_cooldown_remaining <= 0.0:
+		skill_cooldown_changed.emit(_skill_cooldown_remaining, emp_pulse_cooldown)
 
 
 func select_weapon(index: int) -> bool:
@@ -276,10 +294,26 @@ func _apply_progression_tier() -> void:
 		if vitals > 0.0:
 			_tier_vitals_base = vitals
 		_tier_dr_base = clampf(progression.tier_damage_reduction() / 100.0, 0.0, 0.9)
+		_tech_modifiers = TechModuleDefinition.aggregate_modifiers(progression.equipped_modules)
 	else:
 		_tier_vitals_base = _scene_max_health
 		_tier_dr_base = 0.0
 	_recompute_runtime_stats()
+	if is_instance_valid(weapon_controller):
+		weapon_controller.set_tech_modifiers(_tech_modifiers)
+
+
+## Applies permanent Field Kit Tech Module modifiers directly (usable in both
+## live sessions and isolated unit/smoke fixtures).
+func set_tech_modifiers(modifiers: Dictionary) -> void:
+	var prior_emp_cd := maxf(emp_pulse_cooldown, 0.01)
+	_tech_modifiers = modifiers.duplicate()
+	_recompute_runtime_stats()
+	if _skill_cooldown_remaining > 0.0 and emp_pulse_cooldown < prior_emp_cd:
+		_skill_cooldown_remaining *= emp_pulse_cooldown / prior_emp_cd
+	if is_instance_valid(weapon_controller):
+		weapon_controller.set_tech_modifiers(_tech_modifiers)
+	skill_cooldown_changed.emit(_skill_cooldown_remaining, emp_pulse_cooldown)
 
 
 ## Applies temporary run-scoped modifiers on top of permanent operative/weapon
@@ -310,11 +344,20 @@ func clear_run_modifiers() -> void:
 
 
 func _recompute_runtime_stats() -> void:
-	var speed_mult := float(_run_modifiers.get("move_speed_multiplier", 1.0))
+	var speed_mult := (
+		float(_run_modifiers.get("move_speed_multiplier", 1.0))
+		* float(_tech_modifiers.get("move_speed_multiplier", 1.0))
+	)
 	var health_bonus := float(_run_modifiers.get("max_health_bonus", 0.0))
 	var dr_bonus := float(_run_modifiers.get("damage_reduction_bonus", 0.0))
-	var emp_cd_mult := float(_run_modifiers.get("emp_cooldown_multiplier", 1.0))
-	var emp_rad_bonus := float(_run_modifiers.get("emp_radius_bonus", 0.0))
+	var emp_cd_mult := (
+		float(_run_modifiers.get("emp_cooldown_multiplier", 1.0))
+		* float(_tech_modifiers.get("emp_cooldown_multiplier", 1.0))
+	)
+	var emp_rad_bonus := (
+		float(_run_modifiers.get("emp_radius_bonus", 0.0))
+		+ float(_tech_modifiers.get("emp_radius_bonus", 0.0))
+	)
 	var emp_dmg_bonus := float(_run_modifiers.get("emp_damage_bonus", 0.0))
 
 	move_speed = _scene_move_speed * speed_mult

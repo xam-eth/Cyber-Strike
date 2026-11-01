@@ -140,6 +140,7 @@ func _ready() -> void:
 	touch_controls.armory_requested.connect(_open_armory)
 	touch_controls.armory_weapon_action_requested.connect(_on_armory_weapon_action)
 	touch_controls.armory_weapon_upgrade_requested.connect(_on_armory_weapon_upgrade)
+	touch_controls.armory_module_action_requested.connect(_on_armory_module_action)
 	touch_controls.armory_close_requested.connect(_close_armory)
 	touch_controls.upgrade_open_requested.connect(_open_run_upgrades)
 	touch_controls.upgrade_choice_requested.connect(_on_run_upgrade_chosen)
@@ -340,6 +341,9 @@ func _on_settings_changed(values: Dictionary) -> void:
 func _on_profile_changed() -> void:
 	player.weapon_controller.set_available_weapon_ids(progression_service.unlocked_ids)
 	player.weapon_controller.set_weapon_tiers(progression_service.weapon_tiers)
+	player.set_tech_modifiers(
+		TechModuleDefinition.aggregate_modifiers(progression_service.equipped_modules)
+	)
 	if is_instance_valid(run_upgrade_manager) and run_upgrade_manager.total_stacks() > 0:
 		player.apply_run_modifiers(run_upgrade_manager.get_modifiers(), 0.0, false)
 	var op_tier := progression_service.fieldable_tier()
@@ -356,6 +360,9 @@ func _on_profile_changed() -> void:
 			player.weapon_controller.get_current_definition().weapon_id,
 			progression_service.weapon_tiers,
 			progression_service.blueprint_ids,
+			progression_service.module_blueprints,
+			progression_service.unlocked_modules,
+			progression_service.equipped_modules,
 		)
 	)
 	touch_controls.set_weapon_label(player.get_current_weapon_name())
@@ -527,6 +534,42 @@ func _on_armory_weapon_upgrade(weapon_id: StringName) -> void:
 		print("Armory: upgraded %s to tier %d" % [String(weapon_id), next])
 		Sfx.play_ui(&"session_clear")
 		touch_controls._armory_panel.show_hint_key("armory.upgraded", [next])
+
+
+func _on_armory_module_action(module_id: StringName) -> void:
+	var def := TechModuleDefinition.get_definition(module_id)
+	if def == null or not touch_controls._armory_panel.visible:
+		return
+	var panel := touch_controls._armory_panel
+	if progression_service.unlocked_modules.has(String(module_id)):
+		var was_eq := progression_service.equipped_modules.has(module_id)
+		if (
+			not was_eq
+			and (
+				progression_service.equipped_modules.size()
+				>= ProgressionService.MAX_EQUIPPED_MODULES
+			)
+		):
+			panel.show_hint_key("armory.mod_slots_full", [ProgressionService.MAX_EQUIPPED_MODULES])
+			return
+		if progression_service.toggle_module(module_id):
+			Sfx.play_ui(&"ui_click")
+			panel.show_hint_key(
+				"armory.mod_unequipped" if was_eq else "armory.now_equipped", [def.display_title()]
+			)
+		return
+	if not progression_service.has_blueprint(module_id):
+		panel.show_hint_key("armory.mod_bp_required", [def.display_source_world()])
+		return
+	var missing := def.unlock_cost - progression_service.balance
+	if missing > 0:
+		panel.show_hint_key("armory.need_bp", [missing])
+		return
+	if progression_service.unlock_module(module_id):
+		if progression_service.equipped_modules.size() < ProgressionService.MAX_EQUIPPED_MODULES:
+			progression_service.toggle_module(module_id)
+		Sfx.play_ui(&"session_clear")
+		panel.show_hint_key("armory.now_unlocked", [def.display_title()])
 
 
 func _toggle_pause() -> void:
@@ -1056,6 +1099,12 @@ func _recovery_state_text(cache: RecoveryCacheDefinition) -> String:
 
 
 func _recovery_reward_text(cache: RecoveryCacheDefinition) -> String:
+	if cache.module_id != &"":
+		var mod_def := TechModuleDefinition.get_definition(cache.module_id)
+		var mod_name := (
+			mod_def.display_title() if mod_def != null else String(cache.module_id).to_upper()
+		)
+		return AegisText.t("recovery.module_reward", [mod_name])
 	if cache.blueprint_id != &"":
 		var weapon := WeaponDefinition.load_definition(cache.blueprint_id)
 		var weapon_name := (
@@ -1119,11 +1168,13 @@ func _secure_cache(cache: RecoveryCacheDefinition) -> bool:
 	):
 		return false
 	if not progression_service.secure_cache(
-		cache.cache_id, cache.reward_id, cache.blueprint_id, cache.bp_reward
+		cache.cache_id, cache.reward_id, cache.blueprint_id, cache.bp_reward, cache.module_id
 	):
 		return false
 	_recovery_states[cache.cache_id] = RecoveryState.SECURED
-	if cache.blueprint_id != &"":
+	if cache.module_id != &"":
+		_recovery_notices.append({"kind": "module", "module": cache.module_id})
+	elif cache.blueprint_id != &"":
 		_recovery_notices.append({"kind": "blueprint", "weapon": cache.blueprint_id})
 	elif cache.bp_reward > 0:
 		_recovery_notices.append({"kind": "bp", "amount": cache.bp_reward})
@@ -1179,14 +1230,22 @@ func _present_recovery_choice() -> void:
 	Sfx.set_music_mode(&"results")
 	touch_controls._set_play_phase("results")
 	var opt := _optional_cache()
-	var opt_secured := opt != null and progression_service.is_cache_secured(opt.cache_id)
+	var opt_bp := (
+		opt.bp_reward if opt != null and progression_service.is_cache_secured(opt.cache_id) else 0
+	)
+	var primary_unlocked := (
+		progression_service.unlocked_modules.has(String(primary.module_id))
+		if primary.module_id != &""
+		else progression_service.is_unlocked(&"arc_shooter")
+	)
 	(
 		touch_controls
 		. show_extraction_choice(
 			progression_service.balance,
-			progression_service.is_unlocked(&"arc_shooter"),
+			primary_unlocked,
 			progression_service.completed_runs,
-			opt_secured,
+			opt_bp,
+			primary.module_id,
 		)
 	)
 
@@ -1232,75 +1291,23 @@ func _extract_from_recovery() -> void:
 
 
 func _recovery_result_summary() -> String:
-	var lines := PackedStringArray()
-	for notice in _recovery_notices:
-		if notice.get("kind", "") == "blueprint":
-			var weapon := WeaponDefinition.load_definition(StringName(notice["weapon"]))
-			if weapon != null:
-				lines.append(
-					AegisText.t("results.recovery_blueprint", [weapon.display_name.to_upper()])
-				)
-		elif notice.get("kind", "") == "bp":
-			lines.append(AegisText.t("results.recovery_bp", [int(notice["amount"])]))
-	if _run_banked:
-		if _unlocked_tier_on_run > 1:
-			(
-				lines
-				. append(
-					(
-						AegisText
-						. t(
-							"results.tier_promoted",
-							[
-								_unlocked_tier_on_run,
-								roundi(HeroTier.vitals(_unlocked_tier_on_run)),
-								roundi(HeroTier.reduction(_unlocked_tier_on_run)),
-							],
-						)
-					)
-				)
-			)
-		elif not _recovery_caches.is_empty():
-			var owned := progression_service.owned_tier()
-			(
-				lines
-				. append(
-					(
-						AegisText
-						. t(
-							"results.runs_tier_kept",
-							[
-								progression_service.completed_runs,
-								owned,
-								roundi(HeroTier.vitals(owned)),
-							],
-						)
-					)
-				)
-			)
-	var run_mods := run_upgrade_manager.active_tags_summary()
-	if not run_mods.is_empty():
-		lines.append(AegisText.t("results.run_mods_summary", [run_mods]))
-	elif _extracting or not _recovery_notices.is_empty():
-		lines.append(AegisText.t("results.reset_clean"))
-	if run_stats.guardians_defeated > 0:
-		lines.append(AegisText.t("results.guardians_cleared", [run_stats.guardians_defeated]))
-	if wave_director.endless_mode and wave_director.current_wave >= 1:
-		lines.append(AegisText.t("results.endless_reached", [wave_director.current_wave]))
-	if _run_banked and _unlocked_tier_on_run > 1:
-		(
-			lines
-			. append(
-				(
-					AegisText
-					. t(
-						"results.next_redeploy_tier",
-						[_unlocked_tier_on_run, roundi(HeroTier.vitals(_unlocked_tier_on_run))],
-					)
-				)
-			)
+	return (
+		HudMenuUi
+		. format_recovery_summary(
+			{
+				"notices": _recovery_notices,
+				"run_banked": _run_banked,
+				"promoted_tier": _unlocked_tier_on_run,
+				"has_caches": not _recovery_caches.is_empty(),
+				"completed_runs": progression_service.completed_runs,
+				"owned_tier": progression_service.owned_tier(),
+				"run_mods": run_upgrade_manager.active_tags_summary(),
+				"extracting": _extracting,
+				"guardians_defeated": run_stats.guardians_defeated,
+				"endless_wave": wave_director.current_wave if wave_director.endless_mode else 0,
+			}
 		)
-	return "\n".join(lines)
+	)
 
 
 func _on_shot_fired() -> void:

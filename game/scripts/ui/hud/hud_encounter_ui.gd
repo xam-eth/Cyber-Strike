@@ -393,13 +393,22 @@ static func finish_layout(hud) -> void:
 static func set_operative_telemetry(hud, tier: int, armor_pct: int) -> void:
 	hud._state.operative_tier = clampi(tier, 1, 5)
 	hud._state.operative_armor_pct = maxi(armor_pct, 0)
+	refresh_operative_badge(hud)
+
+
+static func refresh_operative_badge(hud) -> void:
 	var badge := hud.get("_health_tier_badge") as Label
-	if is_instance_valid(badge):
-		badge.text = (
-			"T%d · %d%%" % [hud._state.operative_tier, hud._state.operative_armor_pct]
-			if hud._state.operative_armor_pct > 0
-			else "T%d" % hud._state.operative_tier
-		)
+	if not is_instance_valid(badge):
+		return
+	var text := (
+		"T%d · %d%%" % [hud._state.operative_tier, hud._state.operative_armor_pct]
+		if hud._state.operative_armor_pct > 0
+		else "T%d" % hud._state.operative_tier
+	)
+	if not hud._state.field_kit_tags.is_empty():
+		text = "%s · %s" % [text, hud._state.field_kit_tags]
+	badge.text = text
+	badge.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 
 
 static func build_objective(hud) -> void:

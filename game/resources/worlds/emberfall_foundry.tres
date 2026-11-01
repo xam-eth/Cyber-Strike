@@ -1,13 +1,56 @@
-[gd_resource type="Resource" script_class="WorldDefinition" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="WorldDefinition" load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/progression/world_definition.gd" id="1_definition"]
 [ext_resource type="PackedScene" path="res://scenes/worlds/mission_world.tscn" id="2_world"]
+[ext_resource type="Script" path="res://scripts/progression/recovery_cache_definition.gd" id="3_cache"]
+
+[sub_resource type="Resource" id="Resource_seam_core"]
+script = ExtResource("3_cache")
+cache_id = &"emberfall_seam_core"
+display_name = "SEAM CORE"
+landmark_name = "SEAM DRILL"
+position = Vector3(8, 0.1, 34)
+interaction_radius = 6.0
+discovery_radius = 28.0
+model_scene_path = "res://assets/world/kenney_space_kit/machine-generator.glb"
+reward_id = &"breach_capacitor_blueprint"
+module_id = &"breach_capacitor"
+bp_reward = 30
+guard_spawns = Array[Dictionary]([{
+"enemy_id": &"runner",
+"position": Vector3(2, 0.1, 38)
+}, {
+"enemy_id": &"shooter",
+"position": Vector3(14, 0.1, 38)
+}, {
+"enemy_id": &"guardian",
+"position": Vector3(8, 0.1, 40)
+}])
+
+[sub_resource type="Resource" id="Resource_smelter_vault"]
+script = ExtResource("3_cache")
+cache_id = &"emberfall_smelter_vault"
+display_name = "SMELTER CACHE"
+landmark_name = "WEST SMELTER"
+position = Vector3(-38, 0.1, -6)
+optional = true
+interaction_radius = 6.0
+discovery_radius = 26.0
+reward_id = &"emberfall_smelter_bp"
+bp_reward = 90
+guard_spawns = Array[Dictionary]([{
+"enemy_id": &"runner",
+"position": Vector3(-44, 0.1, -2)
+}, {
+"enemy_id": &"shooter",
+"position": Vector3(-32, 0.1, -10)
+}])
 
 [resource]
 script = ExtResource("1_definition")
 world_id = &"emberfall_foundry"
 display_name = "Emberfall Foundry"
-role_description = "STELLAR HORIZON — Night. Cross a cinder yard of smelters, ore silos, crane gantries and slag pools, with marked haul routes and foundry cover supporting the existing Defense encounter."
+role_description = "STELLAR HORIZON — Night. Cross a cinder yard of smelters, ore silos, crane gantries and slag pools to breach the Seam Drill core and recover the Breach Capacitor schematic."
 world_scene = ExtResource("2_world")
 environment_scene_path = "res://assets/forge/worlds/emberfall.glb"
 field_size = Vector2(328, 204)
@@ -15,6 +58,7 @@ field_center = Vector2(42, -10)
 plate_path = "res://assets/ui/world_emberfall_foundry.jpg"
 status_line = "OPEN"
 zone_title = "EXPLORE THE FOUNDRY"
-zone_subtitle = "SAFE ZONE · NIGHT ROUTE"
+zone_subtitle = "RECOVERY · SEAM DRILL SIGNAL"
 field_ready = true
 player_spawn = Vector3(0, 0.1, 10)
+recovery_caches = Array[RecoveryCacheDefinition]([SubResource("Resource_seam_core"), SubResource("Resource_smelter_vault")])

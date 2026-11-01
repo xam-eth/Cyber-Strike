@@ -404,6 +404,7 @@ func _build_modals() -> void:
 	_armory_ui.visible = false
 	_armory_ui.weapon_action_requested.connect(_on_weapon_action)
 	_armory_ui.weapon_upgrade_requested.connect(_on_weapon_upgrade)
+	_armory_ui.module_action_requested.connect(_on_module_action)
 	_armory_ui.close_requested.connect(_on_armory_close)
 	add_child(_armory_ui)
 
@@ -476,7 +477,7 @@ func refresh_profile() -> void:
 	)
 	var world_definition := WorldDefinition.load_definition(progression.selected_world_id)
 	if world_definition != null:
-		var is_rec := String(progression.selected_world_id) == "verdant_bloom"
+		var is_rec := world_definition.has_recovery_caches()
 		var compact_h := physical_size().y < 520.0
 		_mission_badge.text = (
 			("RECOVERY" if is_rec else "DEFENSE")
@@ -498,10 +499,27 @@ func refresh_profile() -> void:
 	var wpn_tier := progression.weapon_tier(progression.selected_weapon_id)
 	var owned_count := progression.unlocked_ids.size()
 	var total_weapons := maxi(WeaponDefinition.load_all_definitions().size(), 1)
+	var kit_tags := TechModuleDefinition.active_tags_summary(progression.equipped_modules)
 	if progression.is_unlocked(progression.selected_weapon_id):
-		_arsenal_badge.text = "T%d · %d/%d" % [wpn_tier, owned_count, total_weapons]
-		_arsenal_state.text = AegisText.t(
+		_arsenal_badge.text = (
+			(
+				"T%d · %d/%d · KIT %d/%d"
+				% [
+					wpn_tier,
+					owned_count,
+					total_weapons,
+					progression.equipped_modules.size(),
+					ProgressionService.MAX_EQUIPPED_MODULES,
+				]
+			)
+			if not progression.equipped_modules.is_empty()
+			else "T%d · %d/%d" % [wpn_tier, owned_count, total_weapons]
+		)
+		var base_arsenal := AegisText.t(
 			"dash.arsenal_summary", [wpn_tier, owned_count, total_weapons]
+		)
+		_arsenal_state.text = (
+			"%s · KIT %s" % [base_arsenal, kit_tags] if not kit_tags.is_empty() else base_arsenal
 		)
 	else:
 		_arsenal_badge.text = "%d BP" % progression.unlock_cost(progression.selected_weapon_id)
@@ -523,6 +541,14 @@ func refresh_profile() -> void:
 				progression.selected_weapon_id,
 				progression.weapon_tiers,
 				progression.blueprint_ids,
+			)
+		)
+		(
+			_armory_ui
+			. refresh_modules(
+				progression.module_blueprints,
+				progression.unlocked_modules,
+				progression.equipped_modules,
 			)
 		)
 
@@ -631,7 +657,7 @@ func _apply_density() -> void:
 		var wid := progression_service().selected_world_id
 		var wdef := WorldDefinition.load_definition(wid)
 		if wdef != null:
-			var is_rec := String(wid) == "verdant_bloom"
+			var is_rec := wdef.has_recovery_caches()
 			_mission_badge.text = (
 				("RECOVERY" if is_rec else "DEFENSE")
 				if compact
@@ -777,6 +803,48 @@ func _on_weapon_upgrade(weapon_id: StringName) -> void:
 		var next_tier := progression.weapon_tier(weapon_id)
 		Sfx.play_ui(&"session_clear")
 		_armory_ui.show_hint_key("armory.upgraded", [next_tier])
+	refresh_profile()
+
+
+func _on_module_action(module_id: StringName) -> void:
+	var progression := progression_service()
+	var def := TechModuleDefinition.get_definition(module_id)
+	if progression == null or def == null:
+		return
+	var key := String(module_id)
+	if progression.unlocked_modules.has(key):
+		var was_equipped := progression.equipped_modules.has(module_id)
+		if (
+			not was_equipped
+			and progression.equipped_modules.size() >= ProgressionService.MAX_EQUIPPED_MODULES
+		):
+			_armory_ui.show_hint_key(
+				"armory.mod_slots_full", [ProgressionService.MAX_EQUIPPED_MODULES]
+			)
+			return
+		if progression.toggle_module(module_id):
+			Sfx.play_ui(&"ui_click")
+			(
+				_armory_ui
+				. show_hint_key(
+					"armory.mod_unequipped" if was_equipped else "armory.now_equipped",
+					[def.display_title()],
+				)
+			)
+		refresh_profile()
+		return
+	if not progression.has_blueprint(module_id):
+		_armory_ui.show_hint_key("armory.mod_bp_required", [def.display_source_world()])
+		return
+	var missing := def.unlock_cost - progression.balance
+	if missing > 0:
+		_armory_ui.show_hint_key("armory.need_bp", [missing])
+		return
+	if progression.unlock_module(module_id):
+		if progression.equipped_modules.size() < ProgressionService.MAX_EQUIPPED_MODULES:
+			progression.toggle_module(module_id)
+		Sfx.play_ui(&"session_clear")
+		_armory_ui.show_hint_key("armory.now_unlocked", [def.display_title()])
 	refresh_profile()
 
 

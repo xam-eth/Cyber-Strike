@@ -458,17 +458,25 @@ static func show_results(
 static func show_extraction_choice(
 	hud,
 	wallet_bp: int,
-	arc_unlocked: bool,
+	item_unlocked: bool,
 	completed_runs: int = 0,
-	optional_secured: bool = false,
+	optional_secured: Variant = false,
+	module_id: StringName = &"",
 ) -> void:
 	hud._state.results_extracted = false
-	var unlocked: Dictionary = {"arc_shooter": true} if arc_unlocked else {}
+	var mod_def := TechModuleDefinition.get_definition(module_id)
+	var unlocked: Dictionary = {"arc_shooter": true} if item_unlocked and mod_def == null else {}
 	show_results(hud, 0, "00:00", 0, 0, 0, wallet_bp, 0, unlocked, false)
 	hud._state.results_mode = "extraction"
 	AegisText.apply(hud._results_eyebrow, "recovery.complete_eyebrow")
 	AegisText.apply(hud._results_title, "recovery.complete_title")
-	AegisText.apply(hud._results_reward_label, "recovery.primary_reward")
+	if mod_def != null:
+		hud._results_reward_label.set_meta("i18n_skip", true)
+		hud._results_reward_label.text = AegisText.t(
+			"recovery.module_primary_reward", [mod_def.display_title()]
+		)
+	else:
+		AegisText.apply(hud._results_reward_label, "recovery.primary_reward")
 	var summary_lines := PackedStringArray([AegisText.t("recovery.choice_summary")])
 	var cur_tier := HeroTier.owned_tier(completed_runs)
 	var next_tier := HeroTier.owned_tier(completed_runs + 1)
@@ -502,8 +510,13 @@ static func show_extraction_choice(
 				)
 			)
 		)
-	if optional_secured:
-		summary_lines.append(AegisText.t("results.recovery_bp", [80]))
+	var bonus_bp := 0
+	if optional_secured is bool:
+		bonus_bp = 80 if optional_secured else 0
+	elif optional_secured is int:
+		bonus_bp = int(optional_secured)
+	if bonus_bp > 0:
+		summary_lines.append(AegisText.t("results.recovery_bp", [bonus_bp]))
 	hud._results_summary.set_meta("i18n_skip", true)
 	hud._results_summary.text = "\n".join(summary_lines)
 	AegisText.apply(hud._results_hint_label, "recovery.choice_hint")
@@ -511,21 +524,38 @@ static func show_extraction_choice(
 	hud._results_retry_button.icon = AegisTheme.icon("check", true)
 	AegisText.apply(hud._results_explore_button, "recovery.continue_endless")
 	hud._results_home_button.visible = false
-	if arc_unlocked:
-		AegisText.apply(hud._results_goal_label, "recovery.arc_owned")
-		AegisText.apply(hud._results_goal_progress_label, "recovery.arc_ready")
-	else:
-		AegisText.apply(hud._results_goal_label, "recovery.arc_blueprint")
-		(
-			AegisText
-			. apply(
-				hud._results_goal_progress_label,
-				"recovery.armory_cost",
-				[ProgressionService.COSTS["arc_shooter"]],
+	if mod_def != null:
+		hud._results_goal_label.set_meta("i18n_skip", true)
+		if item_unlocked:
+			hud._results_goal_label.text = AegisText.t(
+				"recovery.module_owned", [mod_def.display_title()]
 			)
-		)
-	hud._results_goal_bar.max_value = ProgressionService.COSTS["arc_shooter"]
-	hud._results_goal_bar.value = mini(wallet_bp, int(hud._results_goal_bar.max_value))
+			AegisText.apply(hud._results_goal_progress_label, "recovery.module_ready")
+		else:
+			hud._results_goal_label.text = AegisText.t(
+				"recovery.module_blueprint", [mod_def.display_title(), mod_def.display_summary()]
+			)
+			AegisText.apply(
+				hud._results_goal_progress_label, "recovery.armory_cost", [mod_def.unlock_cost]
+			)
+		hud._results_goal_bar.max_value = mod_def.unlock_cost
+		hud._results_goal_bar.value = mini(wallet_bp, mod_def.unlock_cost)
+	else:
+		if item_unlocked:
+			AegisText.apply(hud._results_goal_label, "recovery.arc_owned")
+			AegisText.apply(hud._results_goal_progress_label, "recovery.arc_ready")
+		else:
+			AegisText.apply(hud._results_goal_label, "recovery.arc_blueprint")
+			(
+				AegisText
+				. apply(
+					hud._results_goal_progress_label,
+					"recovery.armory_cost",
+					[ProgressionService.COSTS["arc_shooter"]],
+				)
+			)
+		hud._results_goal_bar.max_value = ProgressionService.COSTS["arc_shooter"]
+		hud._results_goal_bar.value = mini(wallet_bp, int(hud._results_goal_bar.max_value))
 	hud.call_deferred("_report_results_qa")
 
 
@@ -567,6 +597,87 @@ static func hide_results(hud) -> void:
 		hud._results_retry_button.release_focus()
 	if hud._results_explore_button.has_focus():
 		hud._results_explore_button.release_focus()
+
+
+static func format_recovery_summary(payload: Dictionary) -> String:
+	var lines := PackedStringArray()
+	var notices: Array = payload.get("notices", [])
+	for notice in notices:
+		if notice.get("kind", "") == "module":
+			var mod_def := TechModuleDefinition.get_definition(StringName(notice["module"]))
+			if mod_def != null:
+				lines.append(AegisText.t("results.recovery_module", [mod_def.display_title()]))
+		elif notice.get("kind", "") == "blueprint":
+			var weapon := WeaponDefinition.load_definition(StringName(notice["weapon"]))
+			if weapon != null:
+				lines.append(
+					AegisText.t("results.recovery_blueprint", [weapon.display_name.to_upper()])
+				)
+		elif notice.get("kind", "") == "bp":
+			lines.append(AegisText.t("results.recovery_bp", [int(notice["amount"])]))
+	var run_banked := payload.get("run_banked") == true
+	var promoted_tier := int(payload.get("promoted_tier", 0))
+	if run_banked:
+		if promoted_tier > 1:
+			(
+				lines
+				. append(
+					(
+						AegisText
+						. t(
+							"results.tier_promoted",
+							[
+								promoted_tier,
+								roundi(HeroTier.vitals(promoted_tier)),
+								roundi(HeroTier.reduction(promoted_tier)),
+							],
+						)
+					)
+				)
+			)
+		elif payload.get("has_caches") == true:
+			var owned := int(payload.get("owned_tier", 1))
+			(
+				lines
+				. append(
+					(
+						AegisText
+						. t(
+							"results.runs_tier_kept",
+							[
+								int(payload.get("completed_runs", 0)),
+								owned,
+								roundi(HeroTier.vitals(owned)),
+							],
+						)
+					)
+				)
+			)
+	var run_mods := String(payload.get("run_mods", ""))
+	if not run_mods.is_empty():
+		lines.append(AegisText.t("results.run_mods_summary", [run_mods]))
+	elif payload.get("extracting") == true or not notices.is_empty():
+		lines.append(AegisText.t("results.reset_clean"))
+	var guardians := int(payload.get("guardians_defeated", 0))
+	if guardians > 0:
+		lines.append(AegisText.t("results.guardians_cleared", [guardians]))
+	var endless_wave := int(payload.get("endless_wave", 0))
+	if endless_wave >= 1:
+		lines.append(AegisText.t("results.endless_reached", [endless_wave]))
+	if run_banked and promoted_tier > 1:
+		(
+			lines
+			. append(
+				(
+					AegisText
+					. t(
+						"results.next_redeploy_tier",
+						[promoted_tier, roundi(HeroTier.vitals(promoted_tier))],
+					)
+				)
+			)
+		)
+	return "\n".join(lines)
 	if is_instance_valid(hud._scrim):
 		hud._scrim.visible = hud.get_tree().paused
 	hud._top_bar.visible = true

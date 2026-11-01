@@ -27,6 +27,7 @@ signal sound_mute_requested
 signal armory_requested
 signal armory_weapon_action_requested(weapon_id: StringName)
 signal armory_weapon_upgrade_requested(weapon_id: StringName)
+signal armory_module_action_requested(module_id: StringName)
 signal armory_close_requested
 signal upgrade_open_requested
 signal upgrade_choice_requested(index: int)
@@ -745,10 +746,11 @@ func show_extraction_choice(
 	wallet_bp: int,
 	arc_unlocked: bool,
 	completed_runs: int = 0,
-	optional_secured: bool = false,
+	optional_secured: Variant = false,
+	module_id: StringName = &"",
 ) -> void:
 	HudMenuUi.show_extraction_choice(
-		self, wallet_bp, arc_unlocked, completed_runs, optional_secured
+		self, wallet_bp, arc_unlocked, completed_runs, optional_secured, module_id
 	)
 
 

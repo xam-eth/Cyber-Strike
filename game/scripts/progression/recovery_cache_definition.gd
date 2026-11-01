@@ -14,9 +14,10 @@ extends Resource
 var model_scene_path: String = "res://assets/world/kenney_space_kit/station-computer-wide.glb"
 
 ## Stable reward transaction fields. A cache has one known reward; there is no
-## rarity roll, random currency, or inventory payload in TECH HUNT 0.
+## rarity roll, random currency, or inventory payload in TECH HUNT.
 @export var reward_id: StringName = &""
 @export var blueprint_id: StringName = &""
+@export var module_id: StringName = &""
 @export_range(0, 10000, 1) var bp_reward: int = 0
 
 ## Each entry is { enemy_id: StringName, position: Vector3 }. WaveDirector

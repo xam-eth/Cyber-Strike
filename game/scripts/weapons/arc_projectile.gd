@@ -96,6 +96,8 @@ func _resolve_shot() -> void:
 			var chain_damage := _damage * pow(_chain_damage_multiplier, chain_index + 1)
 			if not _apply_damage_once(next_target, chain_damage, damaged_targets):
 				break
+			if is_instance_valid(_shooter) and _shooter.has_method("notify_arc_chain_hit"):
+				_shooter.call("notify_arc_chain_hit")
 			_visual_points.append(next_target.global_position)
 			previous_target = next_target
 

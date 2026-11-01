@@ -314,11 +314,11 @@ function showNote(text) {
  * theatre the player selected.
  */
 const WORLDS = [
-{ id: 'frostline_relay', name: 'Frostline Relay', lineKey: 'world.frostline_relay.line' },
-  { id: 'verdant_bloom', name: 'Verdant Bloom', lineKey: 'world.verdant_bloom.line' },
-  { id: 'emberfall_foundry', name: 'Emberfall Foundry', lineKey: 'world.emberfall_foundry.line' },
-  { id: 'vanguard_station', name: 'Vanguard Station', lineKey: 'world.vanguard_station.line' },
-  { id: 'titans', name: 'THE TITANS', lineKey: 'world.titans.line' },
+  { id: 'frostline_relay', name: 'Frostline Relay', lineKey: 'world.frostline_relay.line', caches: [], rewardKey: 'hub.intel.reward_defense' },
+  { id: 'verdant_bloom', name: 'Verdant Bloom', lineKey: 'world.verdant_bloom.line', caches: ['verdant_seed_vault', 'verdant_canopy_relay'], stateId: 'verdant-card-state', rewardKey: 'hub.intel.reward_recovery' },
+  { id: 'emberfall_foundry', name: 'Emberfall Foundry', lineKey: 'world.emberfall_foundry.line', caches: ['emberfall_seam_core', 'emberfall_smelter_vault'], stateId: 'emberfall-card-state', rewardKey: 'hub.intel.reward_emberfall' },
+  { id: 'vanguard_station', name: 'Vanguard Station', lineKey: 'world.vanguard_station.line', caches: ['vanguard_reactor_core', 'vanguard_cargo_manifest'], stateId: 'vanguard-card-state', rewardKey: 'hub.intel.reward_vanguard' },
+  { id: 'titans', name: 'THE TITANS', lineKey: 'world.titans.line', caches: ['titans_storm_spire', 'titans_east_wreck'], stateId: 'titans-card-state', rewardKey: 'hub.intel.reward_titans' },
 ];
 
 // A saved Neon selection predates the new registry. Migrate it explicitly so
@@ -341,20 +341,28 @@ function paintWorld() {
     });
   }
   const snap = profileSnapshot();
-  const caches = snap.secured_caches && typeof snap.secured_caches === 'object'
-    ? Object.values(snap.secured_caches).filter(Boolean).length
-    : 0;
-  const blueprints = Array.isArray(snap.blueprint_ids) ? snap.blueprint_ids.length : 0;
+  const securedMap = snap.secured_caches && typeof snap.secured_caches === 'object' ? snap.secured_caches : {};
+  const totalCaches = Object.values(securedMap).filter(Boolean).length;
+  const wpnBlueprints = Array.isArray(snap.blueprints)
+    ? snap.blueprints.length
+    : Array.isArray(snap.blueprint_ids)
+      ? snap.blueprint_ids.length
+      : 0;
+  const modBlueprints = Array.isArray(snap.module_blueprints) ? snap.module_blueprints.length : 0;
+  const totalSchematics = Math.min(4, wpnBlueprints + modBlueprints);
   const cacheChip = el('hub-cache-chip');
   if (cacheChip) {
     cacheChip.textContent = locale() === 'id'
-      ? `CACHE ${Math.min(caches, 2)}/2 · BP-TECH ${Math.min(blueprints, 1)}/1`
-      : `CACHES ${Math.min(caches, 2)}/2 · BLUEPRINT ${Math.min(blueprints, 1)}/1`;
-    cacheChip.dataset.complete = String(caches >= 2 && blueprints >= 1);
+      ? `CACHE ${Math.min(totalCaches, 8)}/8 · SKEMA ${totalSchematics}/4`
+      : `CACHES ${Math.min(totalCaches, 8)}/8 · SCHEMATICS ${totalSchematics}/4`;
+    cacheChip.dataset.complete = String(totalCaches >= 8 && totalSchematics >= 4);
   }
-  const verdantState = el('verdant-card-state');
-  if (verdantState) {
-    verdantState.textContent = caches > 0 ? `${Math.min(caches, 2)}/2` : t('world.state.open');
+  for (const world of WORLDS) {
+    if (!world.stateId || !world.caches.length) continue;
+    const stateNode = el(world.stateId);
+    if (!stateNode) continue;
+    const done = world.caches.filter((cid) => Boolean(securedMap[cid])).length;
+    stateNode.textContent = done > 0 ? `${done}/${world.caches.length}` : t('world.state.open');
   }
   const strip = el('hub-profile-strip');
   if (strip) {
@@ -364,7 +372,8 @@ function paintWorld() {
     strip.textContent = t(runs === 1 ? 'hub.profile_strip_one' : 'hub.profile_strip', bp, runs, best);
   }
   const selected = WORLDS[worldIndex()];
-  const isRecovery = selected.id === 'verdant_bloom';
+  const isRecovery = selected.caches.length > 0;
+  const worldDone = selected.caches.filter((cid) => Boolean(securedMap[cid])).length;
   const modeBadge = el('hub-intel-mode');
   if (modeBadge) {
     modeBadge.dataset.tone = isRecovery ? 'recovery' : 'defense';
@@ -376,12 +385,12 @@ function paintWorld() {
   }
   const rewardChip = el('hub-intel-reward');
   if (rewardChip) {
-    rewardChip.textContent = t(isRecovery ? 'hub.intel.reward_recovery' : 'hub.intel.reward_defense');
+    rewardChip.textContent = t(selected.rewardKey);
   }
   const line = el('hub-world-line');
   if (line) {
     if (isRecovery) {
-      line.textContent = t(selected.lineKey, Math.min(caches, 2));
+      line.textContent = t(selected.lineKey, worldDone);
     } else {
       line.textContent = t(selected.lineKey);
     }
@@ -896,6 +905,23 @@ window.addEventListener('aegis:hero-stage-mounted', () => {
  * priced weapon is listed, priced and refused here — the same rule the in-game
  * armory follows, and the reason the shell cannot become a shop.
  */
+let rackTab = 'weapons';
+
+function showRackTab(tab) {
+  rackTab = tab === 'modules' ? 'modules' : 'weapons';
+  const wBtn = el('rack-tab-weapons');
+  const mBtn = el('rack-tab-modules');
+  const wRack = el('hero-rack');
+  const mRack = el('hero-modules');
+  if (wBtn) wBtn.setAttribute('aria-selected', String(rackTab === 'weapons'));
+  if (mBtn) {
+    mBtn.setAttribute('aria-selected', String(rackTab === 'modules'));
+    mBtn.textContent = t('hero.kit.tab_modules', activeModules().length);
+  }
+  if (wRack) wRack.hidden = rackTab !== 'weapons';
+  if (mRack) mRack.hidden = rackTab !== 'modules';
+}
+
 function buildRack() {
   const host = el('hero-rack');
   if (!host) return;
@@ -933,11 +959,51 @@ function buildRack() {
     item.appendChild(button);
     host.appendChild(item);
   }
+  const modHost = el('hero-modules');
+  if (modHost) {
+    modHost.replaceChildren();
+    const equippedMods = activeModules();
+    for (const [id, mod] of Object.entries(TECH_MODULES)) {
+      const item = document.createElement('li');
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'rackcard';
+      button.dataset.module = id;
+      const owned = moduleOwned(id);
+      const hasBp = moduleHasBlueprint(id);
+      const slotIdx = equippedMods.indexOf(id);
+      const isEq = slotIdx >= 0;
+      const canToggle = owned && (isEq || equippedMods.length < 2);
+      button.setAttribute('aria-pressed', String(isEq));
+      if (!canToggle) button.setAttribute('aria-disabled', 'true');
+      const stateText = isEq
+        ? t('hero.kit.slot', slotIdx + 1)
+        : owned
+          ? equippedMods.length >= 2
+            ? t('hero.kit.full')
+            : t('hero.kit.ready')
+          : hasBp
+            ? t('hero.kit.armory_cost', mod.cost)
+            : t('hero.kit.schematic_cost', mod.source, mod.cost);
+      button.innerHTML = `
+        <span class="rackcard__art rackcard__art--module">${t(mod.tagKey)}</span>
+        <span class="rackcard__row">
+          <span class="rackcard__name">${t(mod.nameKey)}</span>
+          <span class="rackcard__tier">${mod.cost} BP</span>
+        </span>
+        <span class="rackcard__state">${stateText}</span>
+        <span class="rackcard__spec">${t(mod.specKey)}</span>`;
+      item.appendChild(button);
+      modHost.appendChild(item);
+    }
+  }
+  showRackTab(rackTab);
 }
 
 function openWeaponModal() {
   const modal = el('weapon-modal');
   if (!modal) return;
+  rackTab = 'weapons';
   buildRack();
   modal.hidden = false;
   const first = modal.querySelector('.rackcard:not([aria-disabled="true"])');
@@ -978,6 +1044,8 @@ function trapWeaponModal(event) {
 
 el('hero-loadout')?.addEventListener('click', openWeaponModal);
 el('weapon-modal-close')?.addEventListener('click', closeWeaponModal);
+el('rack-tab-weapons')?.addEventListener('click', () => showRackTab('weapons'));
+el('rack-tab-modules')?.addEventListener('click', () => showRackTab('modules'));
 el('weapon-modal')?.addEventListener('click', (event) => {
   if (event.target === el('weapon-modal')) closeWeaponModal();
 });
@@ -989,6 +1057,19 @@ el('hero-rack')?.addEventListener('click', (event) => {
   paintLoadout();
   buildRack();
   closeWeaponModal();
+});
+el('hero-modules')?.addEventListener('click', (event) => {
+  const card = event.target.closest('.rackcard[data-module]');
+  if (!card || card.getAttribute('aria-disabled') === 'true') return;
+  const modId = card.dataset.module;
+  const current = [...activeModules()];
+  const idx = current.indexOf(modId);
+  if (idx >= 0) current.splice(idx, 1);
+  else if (current.length < 2 && moduleOwned(modId)) current.push(modId);
+  prefs.modules = current;
+  savePrefs();
+  paintLoadout();
+  buildRack();
 });
 
 /* Boot: the roster is one fetch, and the screen waits for it rather than
@@ -1049,6 +1130,30 @@ const WEAPONS = {
   },
 };
 
+const TECH_MODULES = {
+  breach_capacitor: {
+    nameKey: 'mod.breach.name',
+    tagKey: 'mod.breach.tag',
+    specKey: 'mod.breach.spec',
+    source: 'Emberfall',
+    cost: 140,
+  },
+  phase_thrusters: {
+    nameKey: 'mod.phase.name',
+    tagKey: 'mod.phase.tag',
+    specKey: 'mod.phase.spec',
+    source: 'Vanguard',
+    cost: 120,
+  },
+  storm_conductor: {
+    nameKey: 'mod.storm.name',
+    tagKey: 'mod.storm.tag',
+    specKey: 'mod.storm.spec',
+    source: 'Titans',
+    cost: 160,
+  },
+};
+
 /* This is a read-only mirror of ProgressionService, never a shell save. The
    shared JSON supplies ranks/costs; the .tres files refresh base stats below. */
 let weaponTierData = {
@@ -1062,6 +1167,33 @@ function profileSnapshot() {
   } catch {
     return {};
   }
+}
+
+function moduleOwned(id) {
+  const unlocked = profileSnapshot().unlocked_modules;
+  return Array.isArray(unlocked) && unlocked.includes(id);
+}
+
+function moduleHasBlueprint(id) {
+  if (moduleOwned(id)) return true;
+  const bps = profileSnapshot().module_blueprints;
+  return Array.isArray(bps) && bps.includes(id);
+}
+
+function activeModules() {
+  const snap = profileSnapshot();
+  const base = Array.isArray(prefs.modules)
+    ? prefs.modules
+    : Array.isArray(snap.equipped_modules)
+      ? snap.equipped_modules
+      : [];
+  const valid = [];
+  for (const id of base) {
+    if (TECH_MODULES[id] && moduleOwned(id) && !valid.includes(id) && valid.length < 2) {
+      valid.push(id);
+    }
+  }
+  return valid;
 }
 
 function weaponOwned(id) {
@@ -1145,7 +1277,13 @@ function paintLoadout() {
   const art = el('hero-weapon-art');
   if (art) art.src = weapon.art;
   const stats = el('hero-weapon-stats');
-  if (stats) stats.textContent = `${numbers.damage} DMG · ${numbers.reload}s`;
+  const eqMods = activeModules();
+  const kitTags = eqMods.map((mid) => t(TECH_MODULES[mid].tagKey)).join('+');
+  if (stats) {
+    stats.textContent = kitTags
+      ? `${numbers.damage} DMG · ${numbers.reload}s · KIT ${kitTags}`
+      : `${numbers.damage} DMG · ${numbers.reload}s`;
+  }
   const next = el('hero-weapon-next');
   if (next) {
     const cost = Number(weaponTierRow(tier + 1)?.costs?.[id]);
@@ -1189,9 +1327,17 @@ function paintLoadout() {
   const hubStats = el('hub-op-stats');
   if (hubStats) hubStats.textContent = t('hub.op.stats', opVitals, opArmour);
   const hub = el('hub-operative-meta');
-  if (hub) hub.textContent = `${name} · T${tier}`;
+  if (hub) {
+    hub.textContent = eqMods.length
+      ? `${name} · T${tier} · KIT ${eqMods.length}/2`
+      : `${name} · T${tier}`;
+  }
   const deployMeta = el('hub-deploy-meta');
-  if (deployMeta) deployMeta.textContent = `${opCallsign} T${activeOpTier} · ${name} T${tier}`;
+  if (deployMeta) {
+    deployMeta.textContent = kitTags
+      ? `${opCallsign} T${activeOpTier} · ${name} T${tier} · ${kitTags}`
+      : `${opCallsign} T${activeOpTier} · ${name} T${tier}`;
+  }
   stageShow();
 }
 
@@ -1261,6 +1407,11 @@ void audio.play('deploy');
   url.searchParams.set('hero', prefs.hero || 'sable');
   url.searchParams.set('tier', String(Math.min(Number(prefs.tier) || 1, ownedTier())));
   url.searchParams.set('qa_world', prefs.world);
+  if (Array.isArray(prefs.modules) || Array.isArray(profileSnapshot().unlocked_modules)) {
+    url.searchParams.set('modules', activeModules().join(','));
+  } else {
+    url.searchParams.delete('modules');
+  }
   history.replaceState(null, '', url);
 
   bootEngine();

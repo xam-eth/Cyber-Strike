@@ -24,6 +24,7 @@ static func install_panel(hud) -> void:
 	hud.add_child(hud._armory_panel)
 	hud._armory_panel.weapon_action_requested.connect(hud.armory_weapon_action_requested.emit)
 	hud._armory_panel.weapon_upgrade_requested.connect(hud.armory_weapon_upgrade_requested.emit)
+	hud._armory_panel.module_action_requested.connect(hud.armory_module_action_requested.emit)
 	hud._armory_panel.close_requested.connect(hud.armory_close_requested.emit)
 	hud._armory_panel.home_requested.connect(hud._on_home_pressed)
 
@@ -36,11 +37,17 @@ static func refresh(
 	equipped: StringName,
 	tiers: Dictionary = {},
 	blueprints: Variant = null,
+	module_blueprints: Dictionary = {},
+	unlocked_modules: Dictionary = {},
+	equipped_modules: Array[StringName] = [],
 ) -> void:
 	hud._state.wallet_bp = balance
 	hud._state.available_weapons = unlocked.size()
+	hud._state.field_kit_tags = TechModuleDefinition.active_tags_summary(equipped_modules)
+	HudEncounterUi.refresh_operative_badge(hud)
 	refresh_entry_label(hud)
 	hud._armory_panel.refresh_profile(balance, best, unlocked, equipped, tiers, blueprints)
+	hud._armory_panel.refresh_modules(module_blueprints, unlocked_modules, equipped_modules)
 
 
 static func refresh_entry_label(hud) -> void:

@@ -178,36 +178,36 @@
                   <span class="wcard__tick" aria-hidden="true"><svg class="ico"><use href="#i-check" /></svg></span>
                 </button>
 
-                <button class="wcard" id="world-card-emberfall-foundry" data-world="emberfall_foundry" data-mode="defense" type="button" role="option" aria-selected="false">
+                <button class="wcard" id="world-card-emberfall-foundry" data-world="emberfall_foundry" data-mode="recovery" type="button" role="option" aria-selected="false">
                   <span class="wcard__art wcard__art--emberfall" aria-hidden="true"></span>
                   <span class="wcard__no" aria-hidden="true">03</span>
                   <span class="wcard__copy">
                     <span class="wcard__name">Emberfall Foundry</span>
-                    <span class="wcard__role" data-i18n="world.emberfall_foundry.role">Defense · Foundry</span>
+                    <span class="wcard__role" data-i18n="world.emberfall_foundry.role">Recovery · Foundry</span>
                   </span>
-                  <span class="wcard__state" data-i18n="world.state.open">OPEN</span>
+                  <span class="wcard__state" id="emberfall-card-state" data-i18n="world.state.open">OPEN</span>
                   <span class="wcard__tick" aria-hidden="true"><svg class="ico"><use href="#i-check" /></svg></span>
                 </button>
 
-                <button class="wcard" id="world-card-vanguard-station" data-world="vanguard_station" data-mode="defense" type="button" role="option" aria-selected="false">
+                <button class="wcard" id="world-card-vanguard-station" data-world="vanguard_station" data-mode="recovery" type="button" role="option" aria-selected="false">
                   <span class="wcard__art wcard__art--station" aria-hidden="true"></span>
                   <span class="wcard__no" aria-hidden="true">04</span>
                   <span class="wcard__copy">
                     <span class="wcard__name">Vanguard Station</span>
-                    <span class="wcard__role" data-i18n="world.vanguard_station.role">Defense · Dock 07</span>
+                    <span class="wcard__role" data-i18n="world.vanguard_station.role">Recovery · Dock 07</span>
                   </span>
-                  <span class="wcard__state" data-i18n="world.state.open">OPEN</span>
+                  <span class="wcard__state" id="vanguard-card-state" data-i18n="world.state.open">OPEN</span>
                   <span class="wcard__tick" aria-hidden="true"><svg class="ico"><use href="#i-check" /></svg></span>
                 </button>
 
-                <button class="wcard" id="world-card-titans" data-world="titans" data-mode="defense" type="button" role="option" aria-selected="false">
+                <button class="wcard" id="world-card-titans" data-world="titans" data-mode="recovery" type="button" role="option" aria-selected="false">
                   <span class="wcard__art wcard__art--titans" aria-hidden="true"></span>
                   <span class="wcard__no" aria-hidden="true">05</span>
                   <span class="wcard__copy">
 <span class="wcard__name">THE TITANS</span>
-                    <span class="wcard__role" data-i18n="world.titans.role">Defense · Storm</span>
+                    <span class="wcard__role" data-i18n="world.titans.role">Recovery · Storm</span>
                   </span>
-                  <span class="wcard__state" data-i18n="world.state.open">OPEN</span>
+                  <span class="wcard__state" id="titans-card-state" data-i18n="world.state.open">OPEN</span>
                   <span class="wcard__tick" aria-hidden="true"><svg class="ico"><use href="#i-check" /></svg></span>
                 </button>
               </div>
@@ -450,16 +450,20 @@
           <div class="wmodal" id="weapon-modal" role="dialog" aria-modal="true" aria-labelledby="weapon-modal-title" hidden>
             <div class="wmodal__panel">
               <header class="wmodal__head">
-                <p class="eyebrow" data-i18n="hero.weapon.eyebrow">WEAPON RACK</p>
-                <h2 class="wmodal__title" id="weapon-modal-title" data-i18n="hero.weapon.title">CHOOSE A WEAPON</h2>
+                <p class="eyebrow" data-i18n="hero.weapon.eyebrow">ARSENAL &amp; FIELD KIT</p>
+                <h2 class="wmodal__title" id="weapon-modal-title" data-i18n="hero.weapon.title">CHOOSE LOADOUT</h2>
+                <div class="wmodal__tabs" role="tablist">
+                  <button class="wmodal__tab" id="rack-tab-weapons" type="button" role="tab" aria-selected="true" data-i18n="hero.kit.tab_weapons">WEAPONS</button>
+                  <button class="wmodal__tab" id="rack-tab-modules" type="button" role="tab" aria-selected="false">FIELD KIT 0/2</button>
+                </div>
                 <button class="wmodal__close" id="weapon-modal-close" type="button" aria-label="Close" data-i18n-aria="common.close">
                   <svg class="ico" aria-hidden="true"><use href="#i-back" /></svg>
                 </button>
               </header>
               <ul class="rack" id="hero-rack"></ul>
+              <ul class="rack" id="hero-modules" hidden></ul>
               <p class="wmodal__note" data-i18n="hero.weapon.note">
-                The selected weapon travels with you on Deploy. Priced weapons are bought in
-                the arena, with the BP the arena pays.
+                Selected weapon and Field Kit modules (up to 2 slots) deploy with you. Schematics are unlocked with BP in the arena Armory.
               </p>
             </div>
           </div>

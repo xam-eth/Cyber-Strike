@@ -142,8 +142,10 @@ const STRINGS := {
 		"world.mode_recovery": "TECH RECOVERY + WAVE DEFENSE",
 		"world.mode_defense": "FRONTIER WAVE DEFENSE",
 		"world.objective_recovery": "CLEAR GUARDS & SECURE %d CACHES",
+		"world.objective_module": "CLEAR GUARDS & SECURE %s",
 		"world.objective_defense": "EXPLORE ZONE · START WAVE DEFENSE",
 		"world.reward_recovery": "BLUEPRINT + PERMANENT BP",
+		"world.reward_module": "SCHEMATIC · %s + %d BP",
 		"world.reward_defense": "10 BP / KO · 100 BP / WAVE",
 		"world.caches_progress": "CACHES %d/%d",
 		"world.neon_frontier.role":
@@ -173,29 +175,28 @@ const STRINGS := {
 		"world.verdant_bloom.zone_subtitle": "RECOVERY · SEED VAULT SIGNAL",
 		"world.emberfall_foundry.role":
 		(
-			"Cross a cinder yard of smelters, ore silos, crane gantries and slag pools, "
-			+ "with marked haul routes and foundry cover supporting Defense."
+			"Cross a cinder yard of smelters, ore silos, crane gantries and slag pools "
+			+ "to breach the Seam Drill core and recover the Breach Capacitor schematic."
 		),
 		"world.emberfall_foundry.status": "OPEN",
 		"world.emberfall_foundry.zone_title": "EXPLORE THE FOUNDRY",
-		"world.emberfall_foundry.zone_subtitle": "SAFE ZONE · NIGHT ROUTE",
+		"world.emberfall_foundry.zone_subtitle": "RECOVERY · SEAM DRILL SIGNAL",
 		"world.titans.role":
 		(
-			"The canyon, central tower, sky bridges and interior bases beneath low storm "
-			+ "cloud, with Titans wreckage and lightning-rim dressing."
+			"Fight down the storm-lashed south shelter beneath the central tower to "
+			+ "secure the Storm Conductor schematic and search the eastern wreck."
 		),
 		"world.titans.status": "OPEN",
 		"world.titans.zone_title": "EXPLORE THE TITANS",
-		"world.titans.zone_subtitle": "SAFE ZONE · STORM ROUTE",
+		"world.titans.zone_subtitle": "RECOVERY · STORM SPIRE SIGNAL",
 		"world.vanguard_station.role":
 		(
-			"Dock 07 of a dead orbital station: a gantry hall under a glass roof, "
-			+ "a reactor hall behind a pressure door, a cargo bay and a corridor "
-			+ "that runs out of light."
+			"Dock 07 of a dead orbital station: breach the Reactor Hall behind the "
+			+ "pressure door to secure the Phase Thrusters schematic and Cargo Bay BP."
 		),
 		"world.vanguard_station.status": "OPEN",
 		"world.vanguard_station.zone_title": "DOCK 07 · STATION",
-		"world.vanguard_station.zone_subtitle": "SAFE ZONE · SEALS OPEN",
+		"world.vanguard_station.zone_subtitle": "RECOVERY · REACTOR CORE SIGNAL",
 		# --- in-run HUD ------------------------------------------------------
 		"hud.help": "STICK MOVE · DRAG LOOK · HOLD AIM\nFIRE · EMP · SWAP · V EVOLVE · B DEFENSE",
 		"hud.vitals": "VITALS",
@@ -454,6 +455,30 @@ const STRINGS := {
 		"hud.guardian_exposed_toast": "SHIELD BROKEN 1.5X!",
 		"results.guardians_cleared": "GUARDIAN ELIMINATIONS: %d IRON WARDEN",
 		"results.endless_reached": "ENDLESS SURVIVAL: REACHED WAVE %d",
+		"mod.breach.name": "BREACH CAPACITOR",
+		"mod.breach.role": "ADS pierces Warden shield",
+		"mod.breach.summary": "ADS shots ignore Warden shield · +18% bolt speed · +20% Nova blast",
+		"mod.phase.name": "PHASE THRUSTERS",
+		"mod.phase.role": "Mobility & EMP mag refill",
+		"mod.phase.summary": "+14% move speed · -12% reload · EMP refills 35% active magazine",
+		"mod.storm.name": "STORM CONDUCTOR",
+		"mod.storm.role": "+1 Arc chain & EMP cycling",
+		"mod.storm.summary": "+1 Arc chain (+2.5m) · chain hits cut EMP CD · +2.5m EMP radius",
+		"armory.tab_weapons": "WEAPONS (%d)",
+		"armory.tab_modules": "FIELD KIT (%d/%d)",
+		"armory.mod_unequip": "UNEQUIP",
+		"armory.mod_slots_full": "SLOTS FULL (2/2) · UNEQUIP ONE FIRST",
+		"armory.mod_source": "RECOVER IN %s",
+		"armory.mod_equipped_slot": "EQUIPPED · SLOT %d/%d",
+		"armory.mod_owned": "OWNED · READY TO EQUIP",
+		"armory.mod_bp_required": "SECURE SCHEMATIC IN %s FIRST",
+		"armory.mod_unequipped": "%s UNEQUIPPED",
+		"recovery.module_reward": "%s MODULE",
+		"recovery.module_primary_reward": "%s SCHEMATIC SECURED",
+		"recovery.module_owned": "%s OWNED IN FIELD KIT",
+		"recovery.module_ready": "READY TO EQUIP IN FIELD KIT",
+		"recovery.module_blueprint": "NEW FIELD KIT MODULE · %s — %s",
+		"results.recovery_module": "SECURED · %s MODULE · FIELD KIT ELIGIBILITY SAVED",
 	},
 	"id":
 	{
@@ -539,8 +564,10 @@ const STRINGS := {
 		"world.mode_recovery": "PEMULIHAN TEKNOLOGI + PERTAHANAN",
 		"world.mode_defense": "PERTAHANAN GELOMBANG",
 		"world.objective_recovery": "KALAHKAN PENJAGA & AMANKAN %d CACHE",
+		"world.objective_module": "KALAHKAN PENJAGA & AMANKAN %s",
 		"world.objective_defense": "JELAJAHI ZONA · MULAI PERTAHANAN",
 		"world.reward_recovery": "BLUEPRINT + BP PERMANEN",
+		"world.reward_module": "SKEMA · %s + %d BP",
 		"world.reward_defense": "10 BP / KO · 100 BP / GELOMBANG",
 		"world.caches_progress": "CACHE %d/%d",
 		"world.neon_frontier.role":
@@ -570,29 +597,28 @@ const STRINGS := {
 		"world.verdant_bloom.zone_subtitle": "PEMULIHAN · SINYAL SEED VAULT",
 		"world.emberfall_foundry.role":
 		(
-			"Lintasi halaman bara berisi pelebur, silo bijih, gantry derek, dan kolam "
-			+ "slag, dengan jalur angkut serta perlindungan untuk Defense."
+			"Lintasi halaman bara pelebur dan silo bijih untuk menembus inti Seam Drill "
+			+ "serta memulihkan skema Breach Capacitor."
 		),
 		"world.emberfall_foundry.status": "TERBUKA",
 		"world.emberfall_foundry.zone_title": "JELAJAHI FOUNDRY",
-		"world.emberfall_foundry.zone_subtitle": "ZONA AMAN · JALUR MALAM",
+		"world.emberfall_foundry.zone_subtitle": "PEMULIHAN · SINYAL SEAM DRILL",
 		"world.titans.role":
 		(
-			"Ngarai, menara pusat, jembatan langit, dan basis interior di bawah awan "
-			+ "badai, dengan reruntuhan Titans dan cahaya petir."
+			"Tembus basis perlindungan selatan di bawah menara pusat badai untuk "
+			+ "mengamankan skema Storm Conductor dan bangkai transpor timur."
 		),
 		"world.titans.status": "TERBUKA",
 		"world.titans.zone_title": "JELAJAHI TITANS",
-		"world.titans.zone_subtitle": "ZONA AMAN · JALUR BADAI",
+		"world.titans.zone_subtitle": "PEMULIHAN · SINYAL STORM SPIRE",
 		"world.vanguard_station.role":
 		(
-			"Dermaga 07 di stasiun orbit yang sudah mati: lorong gantry di bawah "
-			+ "atap kaca, aula reaktor di balik pintu tekan, ruang kargo, dan "
-			+ "koridor yang kehabisan cahaya."
+			"Dermaga 07 stasiun orbit mati: tembus Aula Reaktor di balik pintu tekan "
+			+ "untuk mengamankan skema Phase Thrusters dan kargo BP."
 		),
 		"world.vanguard_station.status": "TERBUKA",
 		"world.vanguard_station.zone_title": "DERMAGA 07 · STASIUN",
-		"world.vanguard_station.zone_subtitle": "ZONA AMAN · SEGEL TERBUKA",
+		"world.vanguard_station.zone_subtitle": "PEMULIHAN · SINYAL INTI REAKTOR",
 		# --- in-run HUD ------------------------------------------------------
 		"hud.help":
 		"STIK GERAK · GESER PANDANG · TAHAN BIDIK\nTEMBAK · EMP · GANTI · V EVOLUSI · B BERTAHAN",
@@ -851,5 +877,29 @@ const STRINGS := {
 		"hud.guardian_exposed_toast": "PERISAI PECAH 1.5X!",
 		"results.guardians_cleared": "WARDEN DITUMBANGKAN: %d IRON WARDEN",
 		"results.endless_reached": "BERTAHAN TANPA AKHIR: GELOMBANG %d",
+		"mod.breach.name": "KAPASITOR TEMBUS",
+		"mod.breach.role": "ADS tembus perisai Warden",
+		"mod.breach.summary": "ADS abaikan perisai Warden · +18% laju peluru · +20% ledak Nova",
+		"mod.phase.name": "PENDORONG FASE",
+		"mod.phase.role": "Mobilitas & isi peluru EMP",
+		"mod.phase.summary": "+14% laju gerak · -12% isi ulang · EMP isi 35% magasin aktif",
+		"mod.storm.name": "KONDUKTOR BADAI",
+		"mod.storm.role": "+1 rantai Arc & siklus EMP",
+		"mod.storm.summary": "+1 rantai Arc (+2.5m) · rantai potong CD EMP · +2.5m radius EMP",
+		"armory.tab_weapons": "SENJATA (%d)",
+		"armory.tab_modules": "MODUL KIT (%d/%d)",
+		"armory.mod_unequip": "LEPAS",
+		"armory.mod_slots_full": "SLOT PENUH (2/2) · LEPAS SATU MODUL DULU",
+		"armory.mod_source": "PULIHKAN DI %s",
+		"armory.mod_equipped_slot": "TERPASANG · SLOT %d/%d",
+		"armory.mod_owned": "DIMILIKI · SIAP DIPASANG",
+		"armory.mod_bp_required": "AMANKAN SKEMA DI %s DULU",
+		"armory.mod_unequipped": "%s DILEPAS",
+		"recovery.module_reward": "MODUL %s",
+		"recovery.module_primary_reward": "SKEMA %s TERAMANKAN",
+		"recovery.module_owned": "%s DIMILIKI DI FIELD KIT",
+		"recovery.module_ready": "SIAP DIPASANG DI FIELD KIT",
+		"recovery.module_blueprint": "MODUL FIELD KIT BARU · %s — %s",
+		"results.recovery_module": "TERAMANKAN · MODUL %s · ELIGIBILITAS FIELD KIT DISIMPAN",
 	},
 }

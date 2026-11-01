@@ -28,6 +28,8 @@ const MAX_VALUE := 99999999
 ## these constants still describe the same content.
 const HERO_IDS: Array[StringName] = HeroDefinition.DEFINITION_IDS
 const WEAPON_IDS: Array[StringName] = WeaponDefinition.DEFINITION_IDS
+const MODULE_IDS: Array[StringName] = TechModuleDefinition.MODULE_IDS
+const MAX_EQUIPPED_MODULES: int = TechModuleDefinition.MAX_SLOTS
 const WORLD_IDS: Array[StringName] = WorldDefinition.DEFINITION_IDS
 const DEFAULT_HERO_ID := HeroDefinition.DEFAULT_HERO_ID
 const DEFAULT_WEAPON_ID := WeaponDefinition.DEFAULT_WEAPON_ID
@@ -44,9 +46,12 @@ var unlocked_ids: Dictionary = {"pulse_rifle": true}
 ## migrate to tier 1 on read; only upgrade_weapon() spends BP to advance one.
 var weapon_tiers: Dictionary = {}
 ## Permanent Recovery transactions. `secured_caches` maps cache id to its known
-## reward id; `blueprint_ids` is the eligibility record used by the Armory.
+## reward id; `blueprint_ids` and `module_blueprints` gate Armory fabrication.
 var secured_caches: Dictionary = {}
 var blueprint_ids: Dictionary = {}
+var module_blueprints: Dictionary = {}
+var unlocked_modules: Dictionary = {}
+var equipped_modules: Array[StringName] = []
 ## Front-end state that has to outlive the session: whether the opening
 ## cinematic has been played, and the loadout the player last launched with.
 var intro_seen: bool = false
@@ -75,6 +80,9 @@ func load_profile() -> void:
 	weapon_tiers = _default_weapon_tiers()
 	secured_caches.clear()
 	blueprint_ids.clear()
+	module_blueprints.clear()
+	unlocked_modules.clear()
+	equipped_modules.clear()
 	intro_seen = false
 	selected_hero_id = DEFAULT_HERO_ID
 	selected_tier = 1
@@ -113,6 +121,30 @@ func load_profile() -> void:
 				var key := str(blueprint_id)
 				if WEAPON_IDS.has(StringName(key)):
 					blueprint_ids[key] = true
+		var saved_mod_bp: Variant = config.get_value(PROFILE_SECTION, "module_blueprints", [])
+		if saved_mod_bp is Array or saved_mod_bp is PackedStringArray:
+			for mod_id in saved_mod_bp:
+				var key := str(mod_id)
+				if MODULE_IDS.has(StringName(key)):
+					module_blueprints[key] = true
+		var saved_mods: Variant = config.get_value(PROFILE_SECTION, "unlocked_modules", [])
+		if saved_mods is Array or saved_mods is PackedStringArray:
+			for mod_id in saved_mods:
+				var key := str(mod_id)
+				if MODULE_IDS.has(StringName(key)):
+					unlocked_modules[key] = true
+					module_blueprints[key] = true
+		var saved_eq_mods: Variant = config.get_value(PROFILE_SECTION, "equipped_modules", [])
+		if saved_eq_mods is Array or saved_eq_mods is PackedStringArray:
+			for mod_id in saved_eq_mods:
+				var m_name := StringName(str(mod_id))
+				if (
+					MODULE_IDS.has(m_name)
+					and unlocked_modules.has(String(m_name))
+					and not equipped_modules.has(m_name)
+					and equipped_modules.size() < MAX_EQUIPPED_MODULES
+				):
+					equipped_modules.append(m_name)
 		intro_seen = bool(config.get_value(PROFILE_SECTION, "intro_seen", false))
 		var saved_hero := StringName(str(config.get_value(PROFILE_SECTION, "selected_hero", "")))
 		# SABLE replaces the former EXO presentation, not the player's profile.
@@ -180,6 +212,24 @@ func _apply_web_loadout() -> void:
 			JavaScriptBridge.eval("new URLSearchParams(location.search).get('tier') || '1'")
 		)
 		selected_tier = clampi(requested_tier, 1, owned_tier())
+	var has_requested_mods := bool(
+		JavaScriptBridge.eval("new URLSearchParams(location.search).has('modules')")
+	)
+	if has_requested_mods:
+		var raw_mods := str(
+			JavaScriptBridge.eval("new URLSearchParams(location.search).get('modules') || ''")
+		)
+		var parsed: Array[StringName] = []
+		for token in raw_mods.split(",", false):
+			var candidate := StringName(token.strip_edges())
+			if (
+				MODULE_IDS.has(candidate)
+				and unlocked_modules.has(String(candidate))
+				and not parsed.has(candidate)
+				and parsed.size() < MAX_EQUIPPED_MODULES
+			):
+				parsed.append(candidate)
+		equipped_modules = parsed
 
 
 ## An edited user:// file must not be able to invent a hero, weapon or world.
@@ -277,27 +327,74 @@ func is_cache_secured(cache_id: StringName) -> bool:
 	return secured_caches.has(String(cache_id))
 
 
-func has_blueprint(weapon_id: StringName) -> bool:
-	return blueprint_ids.has(String(weapon_id))
+func has_blueprint(tech_id: StringName) -> bool:
+	var key := String(tech_id)
+	return blueprint_ids.has(key) or module_blueprints.has(key)
 
 
 ## One permanent Recovery transaction. The caller still has to prove that the
 ## guard is cleared and the player performed Secure; this service owns the
 ## idempotency, immediate profile write, and any direct BP reward.
 func secure_cache(
-	cache_id: StringName, reward_id: StringName, blueprint_id: StringName = &"", bp_reward: int = 0
+	cache_id: StringName,
+	reward_id: StringName,
+	blueprint_id: StringName = &"",
+	bp_reward: int = 0,
+	module_id: StringName = &""
 ) -> bool:
 	if cache_id == &"" or reward_id == &"" or bp_reward < 0 or is_cache_secured(cache_id):
 		return false
 	if blueprint_id != &"" and not WEAPON_IDS.has(blueprint_id):
 		return false
+	if module_id != &"" and not MODULE_IDS.has(module_id):
+		return false
 	secured_caches[String(cache_id)] = String(reward_id)
 	if blueprint_id != &"":
 		blueprint_ids[String(blueprint_id)] = true
+	if module_id != &"":
+		module_blueprints[String(module_id)] = true
 	balance = mini(balance + _bounded_int(bp_reward), MAX_VALUE)
 	_save_profile()
 	profile_changed.emit()
 	return true
+
+
+func unlock_module(module_id: StringName) -> bool:
+	var key := String(module_id)
+	var cost := TechModuleDefinition.cost_for(module_id)
+	if (
+		not MODULE_IDS.has(module_id)
+		or cost <= 0
+		or unlocked_modules.has(key)
+		or not module_blueprints.has(key)
+		or balance < cost
+	):
+		return false
+	balance -= cost
+	unlocked_modules[key] = true
+	if equipped_modules.size() < MAX_EQUIPPED_MODULES and not equipped_modules.has(module_id):
+		equipped_modules.append(module_id)
+	_save_profile()
+	profile_changed.emit()
+	return true
+
+
+func toggle_module(module_id: StringName) -> String:
+	var key := String(module_id)
+	if not MODULE_IDS.has(module_id) or not unlocked_modules.has(key):
+		return "locked"
+	var idx := equipped_modules.find(module_id)
+	if idx >= 0:
+		equipped_modules.remove_at(idx)
+		_save_profile()
+		profile_changed.emit()
+		return "unequipped"
+	if equipped_modules.size() >= MAX_EQUIPPED_MODULES:
+		return "slots_full"
+	equipped_modules.append(module_id)
+	_save_profile()
+	profile_changed.emit()
+	return "equipped"
 
 
 func unlock_cost(weapon_id: StringName) -> int:
@@ -383,6 +480,9 @@ func bank_run(run_score: int, earned_bp: int) -> void:
 func _mirror_runs_to_shell() -> void:
 	if not OS.has_feature("web"):
 		return
+	var equipped_mod_strings: Array[String] = []
+	for m_id in equipped_modules:
+		equipped_mod_strings.append(String(m_id))
 	var snapshot := (
 		JSON
 		. stringify(
@@ -394,6 +494,9 @@ func _mirror_runs_to_shell() -> void:
 				"equipped": String(selected_weapon_id),
 				"weapon_tiers": weapon_tiers,
 				"blueprints": blueprint_ids.keys(),
+				"module_blueprints": module_blueprints.keys(),
+				"unlocked_modules": unlocked_modules.keys(),
+				"equipped_modules": equipped_mod_strings,
 				"secured_caches": secured_caches,
 			}
 		)
@@ -418,6 +521,9 @@ func _bounded_int(value: Variant) -> int:
 func _save_profile() -> void:
 	if profile_path.is_empty():
 		return
+	var equipped_mod_strings: Array[String] = []
+	for m_id in equipped_modules:
+		equipped_mod_strings.append(String(m_id))
 	var config := ConfigFile.new()
 	config.set_value(PROFILE_SECTION, "balance", balance)
 	config.set_value(PROFILE_SECTION, "best_score", best_score)
@@ -426,6 +532,9 @@ func _save_profile() -> void:
 	config.set_value(PROFILE_SECTION, "weapon_tiers", weapon_tiers)
 	config.set_value(PROFILE_SECTION, "secured_caches", secured_caches)
 	config.set_value(PROFILE_SECTION, "blueprint_ids", blueprint_ids.keys())
+	config.set_value(PROFILE_SECTION, "module_blueprints", module_blueprints.keys())
+	config.set_value(PROFILE_SECTION, "unlocked_modules", unlocked_modules.keys())
+	config.set_value(PROFILE_SECTION, "equipped_modules", equipped_mod_strings)
 	config.set_value(PROFILE_SECTION, "intro_seen", intro_seen)
 	config.set_value(PROFILE_SECTION, "selected_hero", String(selected_hero_id))
 	config.set_value(PROFILE_SECTION, "selected_tier", fieldable_tier())

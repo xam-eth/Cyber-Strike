@@ -300,13 +300,18 @@ func apply_emp_disrupt(_source: Node = null) -> void:
 		shield_broken.emit(true)
 
 
-func apply_damage(amount: float, _source: Node = null) -> void:
+func apply_damage(amount: float, source: Node = null) -> void:
 	if _is_downed or amount <= 0.0:
 		return
 
 	var multiplier := 1.0
 	if _phase == Phase.FORTIFIED:
-		multiplier = fortified_damage_multiplier
+		var pierced := (
+			source != null
+			and source.has_method("has_shield_pierce_active")
+			and bool(source.call("has_shield_pierce_active"))
+		)
+		multiplier = 1.0 if pierced else fortified_damage_multiplier
 	elif _phase == Phase.EXPOSED:
 		multiplier = exposed_damage_multiplier
 	var scaled_amount := amount * multiplier
