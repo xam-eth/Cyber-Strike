@@ -174,7 +174,7 @@ func _test_recon_overdrive_combat_and_livery_isolation() -> void:
 
 
 func _test_hud_results_and_front_end_selection() -> void:
-	AegisI18n.set_locale("en")
+	AegisText.set_locale("en", false)
 	var sable_promo := (
 		HudMenuUi
 		. format_recovery_summary(

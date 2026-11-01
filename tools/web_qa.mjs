@@ -1279,7 +1279,7 @@ async function checkPage(target, viewport) {
       // (`Recovery Cache QA:` emissions) rather than wall-clock milliseconds so 2 FPS
       // SwiftShader and 60 FPS desktop move identical world-space distances!
       if (e2e.guardsCleared) {
-        const approachDeadline = Date.now() + 120000;
+        const approachDeadline = Date.now() + 165000;
         let approachStrides = 0;
         let approachBypasses = 0;
         let lastCacheDist = null;

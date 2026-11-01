@@ -650,9 +650,10 @@ func _present_selected(reveal: bool) -> void:
 		)
 
 	var selected_path := definition.resolved_model_path()
-	var tier_path := HeroTier.model_path(definition.hero_id, active_tier)
-	if not tier_path.is_empty():
-		selected_path = tier_path
+	if progression == null or ProgressionService.HERO_IDS.has(progression.selected_hero_id):
+		var tier_path := HeroTier.model_path(definition.hero_id, active_tier)
+		if not tier_path.is_empty():
+			selected_path = tier_path
 	var livery := HeroTier.tier_livery(definition.hero_id, active_tier)
 	var load_result := ContentModuleLoader.load_scene(
 		selected_path, ContentModuleLoader.CHARACTER_ROOTS
