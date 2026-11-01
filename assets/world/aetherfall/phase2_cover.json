@@ -48,7 +48,7 @@
     {
       "id": "basin_east_salvage_pod",
       "asset": "salvage_pod",
-      "position": [4.0, 0.25, 2.0],
+      "position": [2.0, 0.25, 9.0],
       "rotation_degrees": [0.0, 148.0, 0.0],
       "purpose": "Robot salvage hard cover on the east basin lane. The visible repair arm and diagnostic strip explain why machinery is in the basin; it is a future cover anchor, not an enemy.",
       "collision_boxes": [
@@ -59,7 +59,7 @@
     {
       "id": "basin_east_cryo_bulkhead",
       "asset": "cryo_bulkhead",
-      "position": [13.0, 0.25, -4.0],
+      "position": [18.0, 0.25, 4.0],
       "rotation_degrees": [0.0, 90.0, 0.0],
       "purpose": "Tall east-side cryogenic bulkhead that interrupts a long basin-to-archive sightline while preserving the central and east-bridge lanes around it.",
       "collision_boxes": [
@@ -70,7 +70,7 @@
     {
       "id": "archive_west_berm",
       "asset": "glacier_berm",
-      "position": [-6.0, 0.25, -8.0],
+      "position": [-16.0, 0.25, -14.0],
       "rotation_degrees": [0.0, -36.0, 0.0],
       "purpose": "Archive approach terrain cover. It gives the western approach a distinct pre-Archive angle without occupying the open Sentinel door line.",
       "collision_boxes": [
@@ -80,7 +80,7 @@
     {
       "id": "west_basin_ice_terrace",
       "asset": "ice_terrace",
-      "position": [-16.0, 0.25, -3.0],
+      "position": [-27.0, 0.25, -1.0],
       "rotation_degrees": [0.0, 18.0, 0.0],
       "purpose": "West Scrapper Basin terrace: three physical ice steps turn the basin edge into readable high ground beside, not across, the preserved central route.",
       "collision_boxes": [
@@ -92,7 +92,7 @@
     {
       "id": "east_flank_ice_terrace",
       "asset": "ice_terrace",
-      "position": [15.0, 0.25, 7.0],
+      "position": [10.0, 0.25, 10.0],
       "rotation_degrees": [0.0, -22.0, 0.0],
       "purpose": "East basin terrace visually connects the open bridge flank to a raised ice shelf, giving a high/low read without blocking the east bridge connector.",
       "collision_boxes": [

@@ -1,5 +1,6 @@
 """Static contract checks; no claim of rendering or gameplay validation."""
 import json
+import re
 import struct
 from math import hypot
 from pathlib import Path
@@ -7,6 +8,12 @@ from pathlib import Path
 root = Path(__file__).resolve().parents[1]
 project_config = (root / 'project.godot').read_text()
 assert 'textures/default_filters/anisotropic_filtering_level=2' in project_config
+# Regression guards for the checked-in Aetherfall assembler. They are source
+# checks only; a Godot editor/engine parse is still required for runtime proof.
+aetherfall_source = (root / 'scripts/aetherfall.gd').read_text()
+assert 'sky_material.sun_energy_multiplier' not in aetherfall_source
+assert 'sky_material.energy_multiplier = 0.55' in aetherfall_source
+assert not re.search(r'^\s*ww\s*$', aetherfall_source, flags=re.MULTILINE)
 base = root / 'assets/world/aetherfall'
 layout = json.loads((base / 'layout.json').read_text())
 measures = json.loads((base / 'measurements.json').read_text())['assets']

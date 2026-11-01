@@ -24,42 +24,42 @@
     {
       "id": "west_glacier_wall",
       "asset": "glacier_shelf",
-      "position": [-33.0, 0.2, -18.0],
+      "position": [-52.0, 0.2, -24.0],
       "rotation_degrees": [0.0, 70.0, 0.0],
       "purpose": "West/north glacial perimeter makes the deck read as a basin rather than a floating rectangle. It stays outside the main tested route."
     },
     {
       "id": "east_glacier_wall",
       "asset": "glacier_shelf",
-      "position": [34.0, 0.2, -19.0],
+      "position": [52.0, 0.2, -24.0],
       "rotation_degrees": [0.0, -68.0, 0.0],
       "purpose": "East/north glacial perimeter and counterweight to the archive silhouette, kept outside the bridge approach."
     },
     {
       "id": "west_outer_glacier",
       "asset": "glacier_shelf",
-      "position": [-48.0, 2.0, -8.0],
+      "position": [-86.0, 2.0, -16.0],
       "rotation_degrees": [0.0, 16.0, 0.0],
       "purpose": "Far west ice mass for wide QA views and open-world depth, beyond the primary deck edge."
     },
     {
       "id": "east_outer_glacier",
       "asset": "glacier_shelf",
-      "position": [49.0, 3.0, -5.0],
+      "position": [86.0, 3.0, -16.0],
       "rotation_degrees": [0.0, -18.0, 0.0],
       "purpose": "Far east ice mass to frame the raised bridge and avoid a bare horizon."
     },
     {
       "id": "tower_glacier_spire_west",
       "asset": "frozen_spire",
-      "position": [-30.0, 0.2, -35.0],
+      "position": [-65.0, 0.2, -55.0],
       "rotation_degrees": [0.0, 11.0, 0.0],
       "purpose": "Tall glacial silhouette behind the tower, visible above mid-ground facilities."
     },
     {
       "id": "tower_glacier_spire_east",
       "asset": "frozen_spire",
-      "position": [34.0, 0.2, -34.0],
+      "position": [65.0, 0.2, -55.0],
       "rotation_degrees": [0.0, -22.0, 0.0],
       "purpose": "Tall glacial silhouette balancing the tower skyline from the east side."
     },

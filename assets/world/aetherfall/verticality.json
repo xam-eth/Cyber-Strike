@@ -6,7 +6,7 @@
     {
       "id": "west_refinery_stack",
       "asset": "refinery_stack",
-      "position": [-21.0, 0.25, -10.0],
+      "position": [-27.0, 0.25, -11.0],
       "rotation_degrees": [0.0, 12.0, 0.0],
       "purpose": "West industrial anchor: tall process silhouette, pipes and control faces create mid-ground occlusion and a clear sector identity.",
       "collision_boxes": [
@@ -17,9 +17,9 @@
     {
       "id": "east_refinery_stack",
       "asset": "refinery_stack",
-      "position": [20.0, 0.25, -10.0],
+      "position": [30.0, 0.25, -10.0],
       "rotation_degrees": [0.0, -12.0, 0.0],
-      "purpose": "East counterpart: closes the large flat horizon with an asymmetrical but related industrial mass beside the hangar sector.",
+      "purpose": "East perimeter industrial anchor: a related but separate process silhouette beyond the Archive flank, leaving the southeast hangar/relay sector readable instead of stacking both landmarks together.",
       "collision_boxes": [
         {"center": [0.0, 5.1, 0.15], "size": [8.9, 10.2, 5.9]},
         {"center": [0.0, 10.0, 0.2], "size": [7.3, 0.35, 4.9]}
@@ -41,7 +41,7 @@
     {
       "id": "west_raised_ops_deck",
       "asset": "raised_ops_deck",
-      "position": [-9.0, 0.25, -10.0],
+      "position": [-16.0, 0.25, -4.0],
       "rotation_degrees": [0.0, 0.0, 0.0],
       "purpose": "Second-level operations deck: introduces a readable elevation change and dense machinery silhouette without obstructing the central direct lane.",
       "collision_boxes": [

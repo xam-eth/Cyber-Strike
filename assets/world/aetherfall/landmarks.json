@@ -17,9 +17,9 @@
     {
       "id": "horizon_relay_annex",
       "asset": "relay_annex",
-      "position": [16.0, 0.25, -4.0],
+      "position": [19.0, 0.25, 13.0],
       "rotation_degrees": [0.0, 180.0, 0.0],
-      "purpose": "Tall support building that gives the central relay a credible physical destination and creates a visible mid-field landmark off the main route.",
+      "purpose": "Southeast support building that gives the relay a credible physical destination without competing with the Archive threshold or the east refinery silhouette.",
       "collision_boxes": [
         {"center": [0.0, 3.1, 0.0], "size": [4.85, 6.2, 4.85]}
       ],
@@ -28,9 +28,9 @@
     {
       "id": "east_service_hangar",
       "asset": "service_hangar",
-      "position": [30.0, 0.25, -10.0],
+      "position": [30.0, 0.25, 12.0],
       "rotation_degrees": [0.0, 0.0, 0.0],
-      "purpose": "East-deck industrial building and secondary-spawn silhouette; its open front provides readable sheltered cover rather than a solid navigation wall.",
+      "purpose": "Southeast industrial building and secondary-spawn silhouette; its open front provides readable sheltered cover without stacking against the Archive-side refinery.",
       "collision_boxes": [
         {"center": [0.0, 2.0, 2.45], "size": [10.25, 3.7, 0.42]},
         {"center": [-4.85, 2.0, -0.1], "size": [0.42, 3.9, 5.1]},
@@ -52,7 +52,7 @@
     {
       "id": "hangar_cargo_stack",
       "asset": "cargo_service_cluster",
-      "position": [23.0, 0.25, -10.0],
+      "position": [23.0, 0.25, 7.0],
       "rotation_degrees": [0.0, -90.0, 0.0],
       "purpose": "Hangar loading cluster that adds operational context and a compact hard-cover option on the east deck.",
       "collision_boxes": [
@@ -62,7 +62,7 @@
     {
       "id": "relay_service_stack",
       "asset": "cargo_service_cluster",
-      "position": [20.0, 0.25, 1.0],
+      "position": [14.0, 0.25, 14.0],
       "rotation_degrees": [0.0, 120.0, 0.0],
       "purpose": "Relay maintenance supplies at the annex flank; placed outside the direct route to the central objective.",
       "collision_boxes": [
