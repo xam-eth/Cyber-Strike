@@ -640,7 +640,10 @@ func add_atmosphere() -> void:
 	sky_material.ground_horizon_color = Color(0.052, 0.135, 0.215)
 	sky_material.sun_angle_max = 10.0
 	sky_material.sun_curve = 0.075
-	sky_material.sun_energy_multiplier = 0.55
+	# ProceduralSkyMaterial takes sun colour, direction and energy from the
+	# DirectionalLight3D. There is no per-sun energy property in Godot 4;
+	# energy_multiplier controls the generated sky contribution.
+	sky_material.energy_multiplier = 0.55
 	var sky := Sky.new()
 	sky.sky_material = sky_material
 	environment.background_mode = Environment.BG_SKY
