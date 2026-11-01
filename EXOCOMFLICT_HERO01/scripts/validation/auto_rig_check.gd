@@ -14,7 +14,7 @@ const CLIP_DURATIONS := {
 	"Idle": 3.0,
 	"Weapon_Raise": 1.2,
 	"Aim_Idle": 3.0,
-	"Fire": 0.4,
+	"Fire": 1.4,  # script 86: owner Mixamo 'Firing Rifle' mocap (42f @30fps), retargeted + foregrip-seated, in-place
 	"Weapon_Lower": 0.8,
 }
 const LOOP_CLIPS := ["Idle", "Aim_Idle"]

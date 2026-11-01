@@ -9,8 +9,10 @@ extends Node3D
 ## offset additionally translates the weapon so its GripPoint marker lands
 ## exactly on the (new) Weapon_R bone origin at rest, keeping the authored
 ## world orientation: offset = inverse(bone_global_rest) * T(grip->palm).
-## The new hero's hands are open (no finger bones), so the grip rests
-## against the flat palm - finger wrap is not claimed.
+## Since Hybrid Rig Stage A (script 79) the hero has 30 finger bones;
+## mocap finger tracks curl them around the grips, and the shipped
+## `Fire` clip (script 86) seats both hands on the rifle (foregrip
+## contact solved to 0.0 mm in Blender; see VALIDATION_REPORT 5.22).
 ## Status: rig + skinning of NEW_HERO_01 are Blender/GLB-verified (scripts
 ## 64-68). The first procedural Phase-1 clips were OWNER-REJECTED for
 ## wrong anatomy and reverted (VALIDATION_REPORT 5.17); replacement clips
