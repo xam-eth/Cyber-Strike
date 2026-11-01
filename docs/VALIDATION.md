@@ -4,6 +4,41 @@ This document records the latest relevant evidence and its limits. It is not a d
 
 For intended behavior, read [`GAMEPLAY_DESIGN.md`](GAMEPLAY_DESIGN.md). For required gates, read [`DEVELOPMENT.md`](DEVELOPMENT.md).
 
+## Phase 3 — Multi-Theatre Expeditions & Permanent Field Kit Tech Modules checkpoint — 2026-11-01
+
+| Item | Current checkpoint |
+|---|---|
+| Runtime, Multi-Theatre Worlds, Field Kit Modules, and HUD/Shell source | `39f2973` (over `7345a12` / `b3e1dc6` / `a7ffda6`) |
+| Godot/Web CI | [41259486079](https://github.com/xam-eth/Cyber-Strike/actions/runs/41259486079) — **SUCCESS** (`Static checks`, `Headless smoke tests 40/40`, `Web preview build` including all 8 browser QA contracts) |
+| Committed Web payload | `6ef1b14` |
+| `web/index.pck` | 95,496,076 bytes (`1,001` files); SHA-256 `8b51ab2b9561894ff3d300d68b96339a8fe859d4080f1339ad51167de5836ab5` |
+| `web/index.wasm` | 39,514,754 bytes; SHA-256 `fc74679e3b97f76878947fcd4fbe1268cbfa6188182a2e33bbc3f5dc9bfa57d0` |
+| Phase 3 runtime visual QA screenshots | [`../qa-evidence/phase-3-modules/`](../qa-evidence/phase-3-modules/hub-expeditions-1280x720-en.png) (4 multi-viewport WebAssembly & Hub captures) |
+
+### What this checkpoint verifies
+
+- **VERIFIED (Multi-Theatre Expeditions across 4 Worlds + Defense Baseline — `world_definition.gd`, `recovery_cache_definition.gd`, `game/resources/worlds/*.tres`):**
+  - Extended authored `RecoveryCacheDefinition` expeditions across four distinct 3D theatres (`8` total caches, `4` recoverable schematics) anchored to real landmark coordinates inside each world's GLB layout while keeping `frostline_relay.tres` strictly `Defense`-only (empty `recovery_caches`, no auto-wave, full regression preservation):
+    - **Verdant Bloom:** `verdant_seed_vault` (`arc_shooter` weapon blueprint) + optional `verdant_crashed_lab` (`+80 BP`).
+    - **Emberfall Foundry:** `emberfall_seam_core` (`breach_capacitor` module schematic + `30 BP`) + optional `emberfall_slag_vault` (`+90 BP`, `120 BP` theatre total) ([`gameplay-emberfall-expedition-1280x720.png`](../qa-evidence/phase-3-modules/gameplay-emberfall-expedition-1280x720.png)).
+    - **Vanguard Station:** `vanguard_dock_manifest` (`phase_thrusters` module schematic + `25 BP`) + optional `vanguard_reactor_core` (`+85 BP`, `110 BP` theatre total, keeping the `x = 0, z ∈ [8..34]` sightline corridor clear).
+    - **The Titans:** `titans_storm_vault` (`storm_conductor` module schematic + `35 BP`) + optional `titans_spire_relay` (`+105 BP`, `140 BP` theatre total).
+- **VERIFIED (Permanent Field Kit Tech Modules & Real Tactical Combat Hooks — `tech_module_definition.gd`, `progression_service.gd`, `player_controller.gd`, `weapon_controller.gd`, `arc_projectile.gd`, `guardian.gd`):**
+  - Authored 3 permanent Field Kit Tech Modules unlocked with existing Battle Points (`BP`) after recovering their theatre schematic, with a strict **2-slot (`MAX_EQUIPPED_MODULES = 2`)** tactical cap persisted in `user://progression.cfg`, mirrored read-only to Web `localStorage` (`aegis.progress`), and validated on `?modules=` URL handoff:
+    1. **`breach_capacitor` (`140 BP`, Emberfall Foundry):** Precision ADS shots bypass `Iron Warden` frontal shield mitigation (`1.0×` vs `0.45×` hip-fire), `+18%` projectile speed, and `+20%` Nova splash radius.
+    2. **`phase_thrusters` (`120 BP`, Vanguard Station):** `+14%` movement speed, `-12%` reload duration, and casting `EMP Pulse` immediately refills `35%` of the active magazine.
+    3. **`storm_conductor` (`160 BP`, The Titans):** `+1` `Arc Shooter` chain target (`+2.5m` chain reach), `-18%` `EMP` cooldown, and `-0.65s` `EMP` cooldown refunded per Arc chain hit.
+  - Verified architectural and visual separation between permanent Cyan/Amber Field Kit Tech Modules (`set_tech_modifiers`) and temporary Violet (`#b79cff`) in-run evolutions (`RunUpgradeManager` / `set_run_modifiers`): death/retry/explore resets wipe temporary run evolutions while keeping permanent Field Kit modules, schematics, and banked BP intact.
+- **VERIFIED (Cross-Surface Armory, HUD, Native Dashboard, & Bilingual EN/ID Shell — `armory_ui.gd`, `hud_armory_bridge.gd`, `hud_encounter_ui.gd`, `hud_menu_ui.gd`, `stage_dashboard.gd`, `stage_hero_select.gd`, `aegis_text_catalog.gd`, `index.html`, `ui/shell.js`, `ui/i18n.js`, `ui/hero.css`):**
+  - Upgraded `ArmoryUi` into a 2-tab tactical loadout (`WEAPONS` / `FIELD KIT (n/2)`) fitting cleanly inside `667×375` mobile landscape with procedural cyan module vector icons, blueprint lock states, live BP unlock, and `Slot 1/2` / `Slot 2/2` equip toggling ([`gameplay-armory-field-kit-667x375.png`](../qa-evidence/phase-3-modules/gameplay-armory-field-kit-667x375.png)).
+  - Upgraded Web Hub (`CACHES x/8 · SCHEMATICS y/4` + per-theatre expedition intel) and `#weapon-modal` (`ARSENAL & FIELD KIT` -> `WEAPONS` / `FIELD KIT n/2`) across `1280×720`, `844×390`, and `667×375` in both English and Bahasa Indonesia (`363/363` EN/ID catalog keys) ([`hub-expeditions-1280x720-en.png`](../qa-evidence/phase-3-modules/hub-expeditions-1280x720-en.png), [`hub-field-kit-modal-844x390-id.png`](../qa-evidence/phase-3-modules/hub-field-kit-modal-844x390-id.png)).
+- **VERIFIED (Automated Godot 4.7.2 Headless `40/40`, WebAssembly `8/8`, & Static `7/7` Gates):**
+  - CI run [41259486079](https://github.com/xam-eth/Cyber-Strike/actions/runs/41259486079) passed `Static checks`, **`40/40` Headless smoke tests** (including `tests/multi_theatre_modules_smoke.gd` + all 39 regression suites), and **all 8/8 Browser WebAssembly QA suites** on payload `6ef1b14`.
+  - Local `./scripts/dev_check.sh` passed **7/7 check groups (`0` failed steps)** across `98` GDScript files, `104` Python tests, `363/363` EN/ID keys, and `19/19` canonical docs.
+- **QUEUED / UNVERIFIED (roadmap boundaries):**
+  - **Queued next track:** Phase 4 (`Kestrel` — second playable operative).
+  - **UNVERIFIED on physical Android hardware & human playtest:** native APK device testing and subjective human playtest sessions remain separate from automated Godot/Chromium verification.
+
 ## Phase 2.5 — Dashboard & Gameplay UI/UX Visual Overhaul checkpoint — 2026-10-31
 
 | Item | Current checkpoint |
