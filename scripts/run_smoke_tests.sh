@@ -194,10 +194,10 @@ for test_path in "${TESTS[@]}"; do
       ERROR_ANNOTATIONS+=("::error title=Script error in ${test_name%.gd}::${error_digest:-see log}")
     fi
   fi
-  if grep -qiE 'FAIL:|smoke test failed:' "$test_log"; then
+  if grep -qiE 'FAIL:|smoke .*failed:' "$test_log"; then
     printf '    assertion failures; see %s\n' "${test_log#"$ROOT_DIR"/}"
     if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
-      assertion_digest="$(grep -im6 -E 'FAIL:|smoke test failed:' "$test_log" | tr '\n' '|' | cut -c1-1400)"
+      assertion_digest="$(grep -im6 -E 'FAIL:|smoke .*failed:' "$test_log" | tr '\n' '|' | cut -c1-1400)"
       ERROR_ANNOTATIONS+=("::error title=Assertion failed in ${test_name%.gd}::${assertion_digest:-see log}")
     fi
   fi

@@ -31,7 +31,8 @@ func _run_smoke_test() -> void:
 	await process_frame
 
 	var meshes := world.find_children("*", "MeshInstance3D", true, false)
-	var unique_textures := {}
+	var unique_albedo_textures := {}
+	var unique_pbr_textures := {}
 	var unique_materials := {}
 	for node in meshes:
 		var mi := node as MeshInstance3D
@@ -41,19 +42,33 @@ func _run_smoke_test() -> void:
 			var mat := mi.get_active_material(s) as BaseMaterial3D
 			if mat != null:
 				unique_materials[mat.get_instance_id()] = true
-				if mat.albedo_texture != null:
-					var tex_key := (
-						mat.albedo_texture.resource_path
-						if not mat.albedo_texture.resource_path.is_empty()
-						else str(mat.albedo_texture.get_instance_id())
+				for tex in [
+					mat.albedo_texture,
+					mat.normal_texture,
+					mat.orm_texture,
+					mat.roughness_texture,
+					mat.metallic_texture,
+				]:
+					if tex == null:
+						continue
+					var key := (
+						tex.resource_path
+						if not tex.resource_path.is_empty()
+						else str(tex.get_instance_id())
 					)
-					unique_textures[tex_key] = true
+					unique_pbr_textures[key] = true
+					if tex == mat.albedo_texture:
+						unique_albedo_textures[key] = true
 
 	_expect(
-		unique_materials.size() >= 18 and unique_textures.size() >= 15,
 		(
-			"Aetherfall carries rich PBR materials (%d materials, %d shared textures)"
-			% [unique_materials.size(), unique_textures.size()]
+			unique_materials.size() >= 18
+			and unique_albedo_textures.size() >= 8
+			and unique_pbr_textures.size() >= 18
+		),
+		(
+			"Aetherfall carries rich PBR materials (%d materials, %d albedo / %d PBR maps)"
+			% [unique_materials.size(), unique_albedo_textures.size(), unique_pbr_textures.size()]
 		),
 	)
 

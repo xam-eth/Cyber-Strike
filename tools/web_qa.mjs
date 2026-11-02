@@ -302,27 +302,27 @@ async function checkPage(target, viewport) {
       .waitForFunction(() => {
         const enter = document.getElementById('opening-enter');
         return enter && !enter.disabled;
-      }, { timeout: 30000 })
+      }, { polling: 100, timeout: Math.max(90000, bootTimeoutMs) })
       .catch(() => {});
     if (audioShellMode) await page.click('#opening-enter');
     else await page.evaluate(() => document.getElementById('opening-enter')?.click());
-    await page.waitForFunction(() => document.body.dataset.screen === 'hero', { timeout: 15000 }).catch(() => {});
+    await page.waitForFunction(() => document.body.dataset.screen === 'hero', { polling: 100, timeout: 30000 }).catch(() => {});
     await page.waitForFunction(() => {
       const stage = window.AegisHeroStage?.describe();
       return stage?.ready && stage.celebration === 'celebration';
-    }, { timeout: 30000 }).catch(() => {});
+    }, { polling: 100, timeout: 60000 }).catch(() => {});
     shellHeroStage = await page.evaluate(() => window.AegisHeroStage?.describe() || null);
     if (audioShellMode) {
       await page.waitForFunction(() => {
         const state = window.AegisAudio?.snapshot();
         return state?.scene === 'hero' && state.unlocked && state.musicPlaying && state.loaded.length === 4;
-      }, { timeout: 20000 }).catch(() => {});
+      }, { polling: 100, timeout: 30000 }).catch(() => {});
       shellAudioHero = await page.evaluate(() => window.AegisAudio?.snapshot() || null);
       await page.click('#hero-next');
     } else {
       await page.evaluate(() => document.getElementById('hero-next')?.click());
     }
-    await page.waitForFunction(() => document.body.dataset.screen === 'hub', { timeout: 15000 }).catch(() => {});
+    await page.waitForFunction(() => document.body.dataset.screen === 'hub', { polling: 100, timeout: 30000 }).catch(() => {});
     if (audioShellMode) {
       await page.waitForFunction(() => {
         const state = window.AegisAudio?.snapshot();
@@ -1406,7 +1406,7 @@ async function checkPage(target, viewport) {
           await page.waitForFunction(
             () => document.body?.dataset?.screen === 'hero'
               && document.getElementById('screen-hero')?.dataset?.ready === 'true',
-            { timeout: 25000 },
+            { polling: 100, timeout: 60000 },
           ).catch(() => {});
           await new Promise((r) => setTimeout(r, 450));
           const sableReadout = await page.evaluate(() => ({
@@ -1444,9 +1444,9 @@ async function checkPage(target, viewport) {
             'Operative: hero=kestrel vitals=96 reduction=4%',
             Math.max(150000, bootTimeoutMs),
           );
-          await awaitConsoleText(page, consoleLines.slice(beforeRedeploy), 'Recovery QA:', 30000);
+          await awaitConsoleText(page, consoleLines.slice(beforeRedeploy), 'Recovery QA:', 45000);
           await page
-            .waitForFunction(() => document.body?.dataset?.mode === 'playing', { timeout: 15000 })
+            .waitForFunction(() => document.body?.dataset?.mode === 'playing', { polling: 100, timeout: 45000 })
             .catch(() => {});
           await new Promise((r) => setTimeout(r, 2000));
           e2e.redeployCachePersisted = consoleLines

@@ -59,7 +59,8 @@ func _run() -> void:
 		rig.yaw_pivot.rotation.y = 0.0
 		rig.pitch_pivot.rotation.x = 0.0
 		controls.set_touch_mode(false)
-		var center_pos := root.get_visible_rect().get_center()
+		var vp_rect := root.get_visible_rect()
+		var center_pos := vp_rect.get_center()
 		var center_motion := InputEventMouseMotion.new()
 		center_motion.position = center_pos
 		center_motion.relative = Vector2.ZERO
@@ -68,7 +69,7 @@ func _run() -> void:
 		await physics_frame
 		var aim_center: Vector3 = player.call("_get_aim_point")
 
-		var off_pos := Vector2(center_pos.x + 180.0, center_pos.y - 70.0)
+		var off_pos := center_pos + Vector2(vp_rect.size.x * 0.28, -vp_rect.size.y * 0.22)
 		var cursor_move := InputEventMouseMotion.new()
 		cursor_move.position = off_pos
 		cursor_move.relative = Vector2.ZERO

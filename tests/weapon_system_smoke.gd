@@ -30,8 +30,6 @@ func _run_smoke_test() -> void:
 	var arc_unlocked := progression.unlock_weapon(&"arc_shooter")
 
 	var player: Node3D = main_scene.get_node("Player")
-	player.global_position = Vector3(0.0, 1.2, 0.0)
-	await physics_frame
 	var weapon_controller: Node = player.get_node("WeaponController")
 	var muzzle: Marker3D = player.get_node("VisualRoot/WeaponSocket/Muzzle")
 	var controls: Node = main_scene.get_node("HUD/TouchControls")
@@ -146,6 +144,7 @@ func _run_smoke_test() -> void:
 
 	weapon_button.emit_signal("pressed")
 	weapon_button.emit_signal("pressed")
+	player.global_position = Vector3(0.0, 1.2, 0.0)
 	var pulse_target := _create_receiver(main_scene, Vector3(0.34, 1.18, -4.2))
 	var blocker := _create_blocker(main_scene, Vector3(0.34, 1.18, -2.0))
 	await physics_frame
