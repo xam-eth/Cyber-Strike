@@ -120,7 +120,7 @@ jobs:
   web-preview:
     name: Web preview build (WebAssembly)
     runs-on: ubuntu-24.04
-    timeout-minutes: 40
+    timeout-minutes: 75
     # contents: write is only used by the "commit the payload" step below, and
     # that step runs on push events to this repository only.
     permissions:

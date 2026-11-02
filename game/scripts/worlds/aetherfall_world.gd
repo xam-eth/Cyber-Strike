@@ -36,6 +36,7 @@ var expanse_route_count: int = 0
 
 func _ready() -> void:
 	set_meta("world_id", "aetherfall")
+	_apply_web_render_budget()
 	_build_kit_and_routes()
 	_add_connectors()
 	_add_animation()
@@ -71,6 +72,18 @@ func provides_authored_colliders() -> bool:
 
 func provides_authored_lighting() -> bool:
 	return true
+
+
+func _apply_web_render_budget() -> void:
+	if not OS.has_feature("web"):
+		return
+	var sun := get_node_or_null("Sun") as DirectionalLight3D
+	if sun != null:
+		sun.shadow_enabled = false
+	var world_env := get_node_or_null("WorldEnvironment") as WorldEnvironment
+	if world_env != null and world_env.environment != null:
+		world_env.environment.ssao_enabled = false
+		world_env.environment.glow_enabled = false
 
 
 func get_world_summary() -> Dictionary:
