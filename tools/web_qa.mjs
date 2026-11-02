@@ -380,6 +380,20 @@ async function checkPage(target, viewport) {
     if (version) { booted = true; break; }
     if (failureVisible) break;
   }
+  // When launched through the integrated shell (`/`), ENGINE_BANNER is already
+  // logged during Opening preparation before `#hub-deploy` starts the world.
+  // Wait for `revealCanvas()` (`mode === 'playing'` and `#app` hidden) before
+  // sampling `elementFromPoint` on large 1280x720 SwiftShader viewports.
+  if (booted && isFrontEnd) {
+    await page
+      .waitForFunction(
+        () =>
+          document.body?.dataset?.mode === 'playing' &&
+          getComputedStyle(document.getElementById('app')).display === 'none',
+        { polling: 100, timeout: bootTimeoutMs },
+      )
+      .catch(() => {});
+  }
   // give the first frames a moment to render before inspecting the canvas
   if (booted) await new Promise((r) => setTimeout(r, 5000));
   if (audioShellMode && isFrontEnd) {

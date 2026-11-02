@@ -57,30 +57,33 @@ func _run() -> void:
 			"%s right-mouse ADS updates the HUD state" % id
 		)
 		rig.yaw_pivot.rotation.y = 0.0
-		rig.pitch_pivot.rotation.x = 0.0
+		rig.pitch_pivot.rotation.x = 0.12
 		controls.set_touch_mode(false)
-		var vp_rect := root.get_visible_rect()
+		var vp_rect := camera.get_viewport().get_visible_rect()
 		var center_pos := vp_rect.get_center()
 		var center_motion := InputEventMouseMotion.new()
 		center_motion.position = center_pos
 		center_motion.relative = Vector2.ZERO
-		Input.parse_input_event(center_motion)
 		controls.call("_input", center_motion)
+		player.call("_unhandled_input", center_motion)
 		await physics_frame
 		var aim_center: Vector3 = player.call("_get_aim_point")
 
-		var off_pos := center_pos + Vector2(vp_rect.size.x * 0.28, -vp_rect.size.y * 0.22)
+		var off_pos := Vector2(vp_rect.size.x * 0.90, vp_rect.size.y * 0.10)
 		var cursor_move := InputEventMouseMotion.new()
 		cursor_move.position = off_pos
 		cursor_move.relative = Vector2.ZERO
-		Input.parse_input_event(cursor_move)
 		controls.call("_input", cursor_move)
+		player.call("_unhandled_input", cursor_move)
 		await physics_frame
 		var reticle_now: Vector2 = player.call("_reticle_screen_position")
 		var aim_off: Vector3 = player.call("_get_aim_point")
 		_expect(
 			reticle_now.distance_to(off_pos) < 2.0 and aim_off.distance_to(aim_center) > 2.5,
-			"%s movable [+] reticle tracks cursor position and steers 3D aim point" % id
+			(
+				"%s movable [+] reticle tracks cursor position and steers 3D aim point (ret=%s off=%s d3=%.2f)"
+				% [id, reticle_now, off_pos, aim_off.distance_to(aim_center)]
+			)
 		)
 
 		rig.yaw_pivot.rotation.y = 0.0

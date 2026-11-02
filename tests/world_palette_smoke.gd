@@ -42,16 +42,17 @@ func _run_smoke_test() -> void:
 			var mat := mi.get_active_material(s) as BaseMaterial3D
 			if mat != null:
 				unique_materials[mat.get_instance_id()] = true
-				for tex in [
+				var slots: Array[Texture2D] = [
 					mat.albedo_texture,
 					mat.normal_texture,
 					mat.orm_texture,
 					mat.roughness_texture,
 					mat.metallic_texture,
-				]:
+				]
+				for tex in slots:
 					if tex == null:
 						continue
-					var key := (
+					var key: String = (
 						tex.resource_path
 						if not tex.resource_path.is_empty()
 						else str(tex.get_instance_id())
