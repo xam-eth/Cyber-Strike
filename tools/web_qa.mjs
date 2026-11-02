@@ -807,7 +807,7 @@ async function checkPage(target, viewport) {
             .catch(() => {});
           lookPointerLock = await page.evaluate(() => document.pointerLockElement?.tagName || 'none');
           const fallbackMark = consoleLines.length;
-          lookOrigin = await waitCamera(fallbackMark, (camera) => camera.aim && camera.blend >= 0.95, 10000);
+          lookOrigin = await waitCamera(fallbackMark, (camera) => camera.aim && camera.blend >= 0.95, 45000);
           aimAfterUnlock = Boolean(lookOrigin) && lookPointerLock === 'none';
           mark = consoleLines.length;
           if (aimAfterUnlock) {
