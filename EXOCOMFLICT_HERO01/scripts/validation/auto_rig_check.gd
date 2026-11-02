@@ -11,7 +11,7 @@ extends RefCounted
 const EXPECTED_BONES := 54
 const EXPECT_CLIPS := false
 const CLIP_DURATIONS := {
-	"Idle": 3.0,
+	"Idle": 2.5,  # script 87: measured 2.500s in exported GLB (UAL test battery)
 	"Weapon_Raise": 1.2,
 	"Aim_Idle": 3.0,
 	"Fire": 1.4,  # script 86: owner Mixamo 'Firing Rifle' mocap (42f @30fps), retargeted + foregrip-seated, in-place

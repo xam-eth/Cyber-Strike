@@ -148,7 +148,7 @@ func _build_ui() -> void:
 	var chain_row := HBoxContainer.new()
 	root.add_child(chain_row)
 	var chain_label := Label.new()
-	chain_label.text = "Phase-1 chain (clips pending):"
+	chain_label.text = "Phase-1 chain:"
 	chain_row.add_child(chain_label)
 	for state_name in ["Idle", "Weapon_Raise", "Aim_Idle", "Fire", "Weapon_Lower"]:
 		var b := Button.new()
@@ -156,6 +156,22 @@ func _build_ui() -> void:
 		b.pressed.connect(_on_state_pressed.bind(state_name))
 		chain_row.add_child(b)
 	_add_button(chain_row, "Tree on/off", _on_toggle_tree)
+
+	# Generic clip-test row (script 87 battery + any future clips):
+	# one button per animation found in the player, played directly so
+	# every shipped clip can be exercised without the Phase-1 tree.
+	if player != null and player.get_animation_list().size() > 0:
+		var clips_row := HBoxContainer.new()
+		root.add_child(clips_row)
+		var clips_label := Label.new()
+		clips_label.text = "Play clip:"
+		clips_row.add_child(clips_label)
+		for full_name in player.get_animation_list():
+			var parts := String(full_name).split("/")
+			var b := Button.new()
+			b.text = String(parts[parts.size() - 1])
+			b.pressed.connect(_on_clip_pressed.bind(String(full_name)))
+			clips_row.add_child(b)
 
 	var row := HBoxContainer.new()
 	root.add_child(row)
@@ -235,6 +251,13 @@ func _on_state_pressed(state_name: String) -> void:
 func _on_toggle_tree() -> void:
 	if hero != null and hero.has_method("set_animation_tree_enabled"):
 		hero.call("set_animation_tree_enabled", not _tree_enabled())
+
+func _on_clip_pressed(full_name: String) -> void:
+	if _tree_enabled():
+		hero.call("set_animation_tree_enabled", false)
+	if player != null:
+		player.play(full_name)
+		status_label.text = "Playing clip: %s" % full_name
 
 func _on_play() -> void:
 	if _tree_enabled():

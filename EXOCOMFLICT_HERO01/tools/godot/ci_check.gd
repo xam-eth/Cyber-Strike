@@ -147,61 +147,41 @@ func _run() -> void:
 		check(hb_ok, "all 18 hitbox attachments present with shapes")
 		check(hb_inactive, "hitbox scaffold fully inactive (shapes disabled, no monitoring)")
 
-	# --- PHASE-1 CLIP SAMPLING (direct AnimationPlayer seeks) ---
-	# (the AnimationTree was already disabled above). Skipped with INFO in
-	# the rig-only stage (procedural clips owner-rejected 2026-10-31,
-	# mocap-retargeted replacements pending; VALIDATION_REPORT 5.17).
+	# --- CLIP SAMPLING (direct AnimationPlayer seeks, clip-agnostic) ---
+	# Rewritten for the mocap era (2026-11-02, scripts 86/87): the
+	# previous version encoded the owner-rejected PROCEDURAL clips'
+	# choreography (barrel-climb windows, planted feet during Raise,
+	# bind-pose Idle frame 0) and fail-checked unauthored clips.
+	# Shipped clips are retargeted mocap whose choreography is judged
+	# from Blender filmstrips; CI asserts only the invariant that must
+	# hold under ANY clip: the weapon grip stays seated on Weapon_R
+	# while the skeleton is being driven. Unauthored clips are INFO.
 	if player == null:
 		print("CI INFO clip sampling skipped (no AnimationPlayer; rig-only stage)")
 		_finish()
 		return
-	var b_hand_l := skeleton.find_bone("Hand_L")
 	var wr_g = func() -> Vector3: return _bone_global(skeleton, b_weapon)
-	# Raise end == aim: barrel forward, grips seated, feet planted.
-	var raise_anim := String(hero.call("get_resolved_animation", "Weapon_Raise"))
-	check(raise_anim != "", "Weapon_Raise resolved")
-	if raise_anim != "":
-		player.play(raise_anim)
-		player.seek(1.2, true)
-		await get_tree().process_frame
-		await get_tree().process_frame
-		var bd: Vector3 = (muzzle.global_position - receiver.global_position).normalized()
-		var ang: float = rad_to_deg(bd.angle_to(Vector3(0, 0, 1)))
-		var lw: float = _bone_global(skeleton, b_hand_l).distance_to(fore.global_position)
-		print("CI INFO Raise@1.2s barrel=%.2f deg off +Z; L wrist->foregrip=%.4f m; grip=%.4f m" % [ang, lw, wr_g.call().distance_to(grip.global_position)])
-		check(ang <= 4.0, "barrel on character forward at aim (%.2f deg)" % ang)
-		check(wr_g.call().distance_to(grip.global_position) <= 0.005, "grip stays seated at aim")
-		check(absf(lw - 0.119) <= 0.025, "left wrist at foregrip hold (%.4f m, ~0.119 = 66mm x1.8)" % lw)
-		check(_bone_global(skeleton, b_foot_r).distance_to(foot_r0) <= 0.002 and _bone_global(skeleton, b_foot_l).distance_to(foot_l0) <= 0.002, "feet planted during Raise")
-		check(_bone_global(skeleton, b_hips).distance_to(hips0) <= 0.002, "hips static during Raise")
-	# Fire recoil: muzzle climbs then the clip recovers (sampled at peak).
-	var fire_anim := String(hero.call("get_resolved_animation", "Fire"))
-	check(fire_anim != "", "Fire resolved")
-	if fire_anim != "":
-		player.play(fire_anim)
-		player.seek(0.07, true)
-		await get_tree().process_frame
-		await get_tree().process_frame
-		var bd2: Vector3 = (muzzle.global_position - receiver.global_position).normalized()
-		var ang2: float = rad_to_deg(bd2.angle_to(Vector3(0, 0, 1)))
-		print("CI INFO Fire@0.07s barrel climb=%.2f deg; grip=%.4f m" % [ang2, wr_g.call().distance_to(grip.global_position)])
-		check(ang2 >= 0.7 and ang2 <= 4.0, "Fire recoil climb present and bounded (%.2f deg)" % ang2)
-		check(wr_g.call().distance_to(grip.global_position) <= 0.005, "grip stays seated during Fire")
-	# Lower ends exactly at rest; Idle frame 0 is the bind pose.
-	var lower_anim := String(hero.call("get_resolved_animation", "Weapon_Lower"))
-	if lower_anim != "":
-		player.play(lower_anim)
-		player.seek(0.8, true)
-		await get_tree().process_frame
-		await get_tree().process_frame
-		check(_bone_global(skeleton, b_hand_r).distance_to(hand0) <= 0.005, "Weapon_Lower ends at carry/rest hand")
-	var idle_anim := String(hero.call("get_resolved_animation", "Idle"))
-	if idle_anim != "":
-		player.play(idle_anim)
-		player.seek(0.0, true)
-		await get_tree().process_frame
-		await get_tree().process_frame
-		check(_bone_global(skeleton, b_hand_r).distance_to(hand0) <= 0.002, "Idle frame 0 == bind pose hand")
+	var by_base: Dictionary = {}
+	for full in player.get_animation_list():
+		var parts := String(full).split("/")
+		by_base[String(parts[parts.size() - 1])] = String(full)
+	for clip_name in ["Idle", "Weapon_Raise", "Aim_Idle", "Fire", "Weapon_Lower", "Walk", "Run", "Reload", "Roll"]:
+		if not by_base.has(clip_name):
+			print("CI INFO clip '%s' not authored yet (deferred)" % clip_name)
+			continue
+		var anim_name := String(by_base[clip_name])
+		var anim := player.get_animation(anim_name)
+		check(anim != null, "clip '%s' resource loads" % clip_name)
+		if anim == null:
+			continue
+		for frac in [0.25, 0.6]:
+			player.play(anim_name)
+			player.seek(anim.length * frac, true)
+			await get_tree().process_frame
+			await get_tree().process_frame
+			var gd: float = wr_g.call().distance_to(grip.global_position)
+			print("CI INFO %s @%.0f%% (t=%.2fs) grip=%.4f m" % [clip_name, frac * 100.0, anim.length * frac, gd])
+			check(gd <= 0.005, "grip stays seated during %s @%.0f%%" % [clip_name, frac * 100.0])
 	_finish()
 
 func _finish() -> void:
