@@ -13,18 +13,16 @@ extends RefCounted
 ## error. External packages therefore forbid runtime scripts; their source
 ## tooling is reviewed separately before an internal adapter is changed.
 const WORLD_ROOTS: Array[String] = [
-	"res://assets/forge/worlds/",
-	"res://assets/world/kenney_space_kit/",
+	"res://assets/world/aetherfall/",
+	"res://scenes/worlds/",
 	"res://content/worlds/",
 ]
 const CHARACTER_ROOTS: Array[String] = [
 	"res://assets/characters/",
 	"res://assets/enemies/",
 	"res://assets/weapons/",
+	"res://assets/world/aetherfall/interactives/",
 	"res://content/characters/",
-	# Existing enemy actors still use this licensed shared kit. New external
-	# packages belong under content/characters, not the World source library.
-	"res://assets/world/kenney_space_kit/",
 ]
 
 

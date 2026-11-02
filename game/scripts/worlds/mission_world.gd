@@ -3,68 +3,24 @@ extends Node3D
 signal world_ready(world_id: String)
 signal world_load_failed(world_id: String, reason: String)
 
+## mission_world.gd — canonical world adapter for SH-01 Aetherfall.
 ##
-## mission_world.gd — one of the mission worlds, loaded from one GLB.
-##
-## This file used to *build* the Frontier Outpost out of GDScript primitives: a
-## procedural floor plane, procedurally generated component scenes, dressers and
-## a bay builder. Every one of those surfaces was code, not art. It is gone.
-##
-## What runs now are the mission worlds assembled by `tools/asset-forge`, in
-## which every visible mesh is a real licensed GLB:
-##
-##   game/assets/forge/worlds/frostline.glb   — relay layout + authored clips
-##   game/assets/forge/worlds/verdant.glb     — grove layout + authored clips
-##   game/assets/forge/worlds/emberfall.glb   — foundry layout + authored clips
-##   game/assets/forge/worlds/titans.glb      — storm layout + authored clips
-##
-## Byte-identical photographic maps are staged once in `assets/forge/textures/`
-## and referenced by the mission GLBs; measured geometry and clip counts live in
-## `assets/forge/forge_manifest.json` rather than drifting in this comment.
-##
-## Exactly one is loaded: the theatre the launcher selected, or Frostline Relay
-## when nothing has been selected yet. There is one scene file for every mission
-## because the *scene* is the same node graph — what differs is the GLB, and
-## building near-identical .tscn files would only give more places for that graph
-## to drift.
-##
-## This script only *places* that scene and lights it. It creates no geometry: the
-## only nodes it adds to the tree itself are invisible collision bodies, the
-## lighting rig and two non-visual waypoint markers.
-##
-## Provenance: tools/asset-forge/real/real-manifest.json
-##   Kenney Space Kit + Nature Kit (CC0-1.0, kenney.nl)
-##   Cinder Yard Power Plant + ground plate (CC-BY-4.0, Kammertonus)
-##
-## Mission worlds, each one GLB assembled from licensed real assets by
-## `tools/asset-forge`. Only the selected one is instantiated for gameplay; the
-## complete pack is already resident from the opening payload.
-## Environment paths and field bounds live in WorldDefinition. This adapter
-## owns only the default used by a fresh profile or an isolated test fixture.
-const DEFAULT_MISSION_WORLD_ID := "frostline_relay"
-## The forge's theme ids, accepted as aliases for the world ids. The registry
-## selects with the world id itself (they are the same strings), so the map is
-## not a second list of ids to keep in sync — it only adds the short names the
-## capture tooling uses.
+## Instantiates the declared theatre scene (`res://scenes/worlds/aetherfall_world.tscn`)
+## through `ContentModuleLoader`, supplies last-resort safety bounds below the
+## glacial lowland floor, and keeps fallback lighting/wayfinders active even if
+## a test fixture injects a failing environment path.
+const DEFAULT_MISSION_WORLD_ID := "aetherfall"
 const SELECTION_ALIASES := {
-	"frostline": "frostline_relay",
-	"verdant": "verdant_bloom",
-	"emberfall": "emberfall_foundry",
+	"sh01": "aetherfall",
+	"sentinel_citadel": "aetherfall",
 }
 
-## Fallback field, used only when a test override has no WorldDefinition.
-## The safety floor sits below authored geometry; real GLB triangles provide
-## normal walking surfaces, cover, bridges, and interiors.
-const WORLD_WIDTH: float = 192.0
-const WORLD_DEPTH: float = 180.0
-const WORLD_CENTER_Z: float = -10.0
+const WORLD_WIDTH: float = 360.0
+const WORLD_DEPTH: float = 320.0
+const WORLD_CENTER_Z: float = -4.0
 
-## The GLB carries its own clips (spinning dishes, sweeping turrets, pulsing
-## crystals). Turn them off for a static capture or a screenshot test.
 @export var animate_components: bool = true
-## Playback speed multiplier for the authored clips.
 @export var animation_speed: float = 1.0
-## Force a world (tests and captures). Empty = follow the launcher selection.
 @export var world_override: String = ""
 
 var load_error: String = ""
@@ -76,11 +32,7 @@ var _world: Node3D
 func _ready() -> void:
 	if _built or get_node_or_null("RealFrontierWorld") != null:
 		return
-	# Both theatres are instanced by `main.tscn` so the launcher can name either
-	# one; only the selected one builds.
 	if not _is_selected():
-		# Say why, with the id: the launcher and this script disagreeing is the
-		# one failure here that leaves no trace in the scene.
 		print(
 			(
 				"MISSION WORLD: not building %s (launcher selected '%s')"
@@ -93,11 +45,15 @@ func _ready() -> void:
 		return
 	_built = true
 	var loaded := _instance_real_world()
-	# A rejected environment still gets safe bounds, lighting, wayfinders, and a
-	# working HUD/player. Only the failed visual/collision module is absent.
 	_add_collision_floor()
 	if loaded:
-		_add_mesh_colliders()
+		if (
+			_world.has_method("provides_authored_colliders")
+			and bool(_world.call("provides_authored_colliders"))
+		):
+			print("MISSION WORLD: precision colliders provided by %s" % _world_id())
+		else:
+			_add_mesh_colliders()
 	_build_lighting_and_atmosphere()
 	_add_wayfinders()
 	if loaded:
@@ -105,19 +61,12 @@ func _ready() -> void:
 
 
 func _is_selected() -> bool:
-	# An explicit override (captures, tests) always builds: it names the world it
-	# wants and does not care what the launcher remembered.
 	if not world_override.is_empty():
 		return true
-	# Otherwise only the selected theatre builds. An empty selection means a
-	# fresh profile, which loads the first mission.
 	var selected := String(WorldSelection.selected(self))
 	return selected == "" or not world_for_selection(selected).is_empty()
 
 
-## Which world a launcher selection means. A world id is its own selection; the
-## forge's theme ids are aliases. Anything else — the station's id, a stale save
-## — means this node is not the theatre the player chose, and it stays empty.
 static func world_for_selection(selected: String) -> String:
 	var candidate := String(SELECTION_ALIASES.get(selected, selected))
 	var definition := WorldDefinition.load_definition(StringName(candidate))
@@ -126,8 +75,6 @@ static func world_for_selection(selected: String) -> String:
 	return ""
 
 
-## Which mission world this node is. An explicit override wins; otherwise the
-## launcher's selection decides, and an empty selection means the default world.
 func _world_id() -> String:
 	if not world_override.is_empty():
 		return world_override
@@ -138,8 +85,6 @@ func _world_id() -> String:
 	return DEFAULT_MISSION_WORLD_ID
 
 
-## Place the declared real asset. Loading is dynamic and failure-returning so
-## an external World cannot prevent the main scene or UI from loading.
 func _instance_real_world() -> bool:
 	var world_id := _world_id()
 	loaded_world_id = ""
@@ -179,10 +124,6 @@ func has_world_geometry() -> bool:
 	return is_instance_valid(_world)
 
 
-## One AnimationPlayer can only run one clip, and the world ships 119 of them --
-## one per moving part (a dish here, a turret there). Each clip therefore gets its
-## own player, rooted at the GLB so the tracks resolve, so every district moves at
-## the same time instead of one prop winning the whole animation.
 func _start_authored_motion() -> void:
 	if not is_instance_valid(_world):
 		return
@@ -209,8 +150,6 @@ func _start_authored_motion() -> void:
 		imported.speed_scale = 0.0
 
 
-## Last-resort safety floor and outer bounds. Invisible: normal walking surfaces
-## come from the authored GLB triangles, not from a flat plane covering routes.
 func _field_size() -> Vector2:
 	var definition := WorldDefinition.load_definition(StringName(_world_id()))
 	if definition != null:
@@ -235,9 +174,9 @@ func _add_collision_floor() -> void:
 	var center_z := center.y
 	var floor_body := StaticBody3D.new()
 	floor_body.name = "ArenaFloor"
-	# Its top is y=-3, below every staged world's lowest mesh (about y=-0.6).
-	# A safety plane at y=0 would hide missing or misplaced authored surfaces.
-	floor_body.position = Vector3(center.x, -3.4, center_z)
+	# Sits below Aetherfall's glacial lowland (-18.5 m) so ramps and lower valleys
+	# remain fully traversable while guaranteeing a last-resort void catch.
+	floor_body.position = Vector3(center.x, -22.4, center_z)
 	floor_body.collision_layer = 1
 	floor_body.collision_mask = 0
 	var floor_shape := CollisionShape3D.new()
@@ -248,7 +187,6 @@ func _add_collision_floor() -> void:
 	floor_body.add_child(floor_shape)
 	add_child(floor_body)
 
-	# A ring of invisible walls keeps the player inside the fenced field.
 	var walls := StaticBody3D.new()
 	walls.name = "FrontierBounds"
 	walls.collision_layer = 1
@@ -257,28 +195,24 @@ func _add_collision_floor() -> void:
 	var half_w := field.x * 0.5
 	var half_d := field.y * 0.5
 	for side in [
-		{"name": "North", "pos": Vector3(0.0, 3.0, center_z - half_d)},
-		{"name": "South", "pos": Vector3(0.0, 3.0, center_z + half_d)},
-		{"name": "West", "pos": Vector3(center.x - half_w, 3.0, center_z)},
-		{"name": "East", "pos": Vector3(center.x + half_w, 3.0, center_z)},
+		{"name": "North", "pos": Vector3(center.x, 2.0, center_z - half_d)},
+		{"name": "South", "pos": Vector3(center.x, 2.0, center_z + half_d)},
+		{"name": "West", "pos": Vector3(center.x - half_w, 2.0, center_z)},
+		{"name": "East", "pos": Vector3(center.x + half_w, 2.0, center_z)},
 	]:
 		var wall := CollisionShape3D.new()
 		wall.name = "%sWall" % side["name"]
 		var wall_shape := BoxShape3D.new()
 		wall_shape.size = (
-			Vector3(field.x, 6.0, 1.0)
+			Vector3(field.x, 48.0, 1.0)
 			if side["name"] in ["North", "South"]
-			else Vector3(1.0, 6.0, field.y)
+			else Vector3(1.0, 48.0, field.y)
 		)
 		wall.shape = wall_shape
 		wall.position = side["pos"]
 		walls.add_child(wall)
 
 
-## Every STELLAR HORIZON variant shares the same physical layout. Use the
-## authored triangles for all four: a box derived from a whole bridge, island or
-## interior would fill the volume the player must occupy, while a box around a
-## small rock or cover module would not match its visible silhouette.
 func _add_mesh_colliders() -> void:
 	if not is_instance_valid(_world):
 		return
@@ -287,25 +221,21 @@ func _add_mesh_colliders() -> void:
 		var mesh_instance := candidate as MeshInstance3D
 		if mesh_instance.mesh == null:
 			continue
-		# DeckEdge is low decorative trim placed continuously across the declared
-		# MainNorth/MainSouth routes. Keep it visible, but do not turn that trim
-		# into a 0.6 m wall through the route (measured at z=15…20 in the GLB).
-		if String(mesh_instance.get_path()).contains("/DeckEdge_"):
-			continue
 		mesh_instance.create_trimesh_collision()
 		made += 1
 	print("MISSION WORLD: %d %s mesh colliders derived from the real world" % [made, _world_id()])
 
 
-## Lighting rig, built from the world's own mood. Light is not an asset; it is
-## how the licensed surfaces are read, and it is the single strongest signal that
-## the player has changed theatre: bright daytime, warm sunset, cyan night and
-## a colder storm all illuminate the same STELLAR HORIZON route.
 func _build_lighting_and_atmosphere() -> void:
-	var mood := WorldMood.mood(_world_id())
+	if (
+		is_instance_valid(_world)
+		and _world.has_method("provides_authored_lighting")
+		and bool(_world.call("provides_authored_lighting"))
+	):
+		print("MISSION WORLD: lit as %s" % WorldMood.label(_world_id()))
+		return
 
-	# Three directional lights: key (casts), fill and rim (do not). Each is aimed
-	# at the field centre from the position the theme gives it.
+	var mood := WorldMood.mood(_world_id())
 	for role in ["key", "fill", "rim"]:
 		var spec: Dictionary = mood[role]
 		var light := DirectionalLight3D.new()
@@ -320,14 +250,11 @@ func _build_lighting_and_atmosphere() -> void:
 		var target := Vector3(0.0, 0.0, _field_center_z())
 		var light_position: Vector3 = spec["position"]
 		var up := Vector3.UP
-		# The tower rim is directly overhead. Godot rejects a look-at whose up
-		# vector is parallel to its direction, so choose a stable roll reference.
 		if absf((target - light_position).normalized().dot(up)) > 0.999:
 			up = Vector3.FORWARD
 		light.look_at_from_position(light_position, target, up)
 		light.rotation.z = 0.0
 
-	# The landmark's own light: an emissive accent that blooms in the haze.
 	var accent := OmniLight3D.new()
 	accent.name = "MissionAccentLight"
 	accent.position = Vector3(0.0, 5.4, 0.0)
@@ -365,14 +292,10 @@ func _build_lighting_and_atmosphere() -> void:
 	print("MISSION WORLD: lit as %s" % WorldMood.label(_world_id()))
 
 
-## Non-visual waypoints the HUD and the route hint read. Marker3D draws nothing.
 func _add_wayfinders() -> void:
-	# Match the forge's MainNorth (+Z) and MainSouth (-Z) route sockets.
-	var north_z := 62.0
-	var south_z := -62.0
 	for entry in [
-		{"name": "NorthRouteWayfinder", "pos": Vector3(0.0, 1.6, north_z)},
-		{"name": "SouthRouteWayfinder", "pos": Vector3(0.0, 1.6, south_z)},
+		{"name": "NorthRouteWayfinder", "pos": Vector3(8.0, 1.6, -14.3)},
+		{"name": "SouthRouteWayfinder", "pos": Vector3(0.0, 1.6, 18.0)},
 	]:
 		var marker := Marker3D.new()
 		marker.name = entry["name"]

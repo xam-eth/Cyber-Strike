@@ -1490,7 +1490,7 @@
 
 .op__tracks {
   display: grid;
-  grid-template-columns: auto minmax(350px, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   align-items: end;
   gap: 12px;
   overflow-x: auto;
@@ -1728,19 +1728,14 @@
 }
 
 .op__tracks {
-  grid-template-columns: minmax(260px, 32%) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   align-items: end;
   gap: 12px;
   overflow: visible;
 }
 
-.op__group--tiers {
-  grid-column: 1;
-  grid-row: 1;
-}
-
 .op__group--heroes {
-  grid-column: 2;
+  grid-column: 1 / -1;
   grid-row: 1;
 }
 
@@ -1856,7 +1851,7 @@
   }
 
   .op__tracks {
-    grid-template-columns: minmax(190px, 32%) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
     gap: 8px;
   }
 

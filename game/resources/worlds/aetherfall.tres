@@ -1,0 +1,122 @@
+[gd_resource type="Resource" script_class="WorldDefinition" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/world_definition.gd" id="1_definition"]
+[ext_resource type="PackedScene" path="res://scenes/worlds/mission_world.tscn" id="2_world"]
+[ext_resource type="Script" path="res://scripts/progression/recovery_cache_definition.gd" id="3_cache"]
+
+[sub_resource type="Resource" id="Resource_horizon_relay"]
+script = ExtResource("3_cache")
+cache_id = &"aetherfall_horizon_relay"
+display_name = "HORIZON RELAY"
+landmark_name = "CENTRAL SPINE"
+position = Vector3(8, 0.25, 7)
+interaction_radius = 5.5
+discovery_radius = 30.0
+model_scene_path = "res://assets/world/aetherfall/interactives/objective_device.glb"
+reward_id = &"breach_capacitor_blueprint"
+module_id = &"breach_capacitor"
+bp_reward = 50
+guard_spawns = Array[Dictionary]([{
+"enemy_id": &"runner",
+"position": Vector3(1, 0.25, 9.5)
+}, {
+"enemy_id": &"shooter",
+"position": Vector3(13, 0.25, 10.5)
+}, {
+"enemy_id": &"shooter",
+"position": Vector3(5, 0.25, 2)
+}, {
+"enemy_id": &"runner",
+"position": Vector3(14, 0.25, 4.5)
+}])
+
+[sub_resource type="Resource" id="Resource_archive_vault"]
+script = ExtResource("3_cache")
+cache_id = &"aetherfall_archive_vault"
+display_name = "ARCHIVE CORE"
+landmark_name = "SENTINEL ARCHIVE"
+position = Vector3(8, 0.25, -14.3)
+interaction_radius = 5.5
+discovery_radius = 32.0
+model_scene_path = "res://assets/world/aetherfall/interactives/archive_computer.glb"
+reward_id = &"storm_conductor_blueprint"
+module_id = &"storm_conductor"
+bp_reward = 75
+guard_spawns = Array[Dictionary]([{
+"enemy_id": &"enforcer",
+"position": Vector3(8, 0.25, -8.5)
+}, {
+"enemy_id": &"shooter",
+"position": Vector3(2.5, 0.25, -9.5)
+}, {
+"enemy_id": &"shooter",
+"position": Vector3(13.5, 0.25, -9.5)
+}, {
+"enemy_id": &"runner",
+"position": Vector3(5, 0.25, -5.5)
+}, {
+"enemy_id": &"guardian",
+"position": Vector3(11.5, 0.25, -6)
+}])
+
+[sub_resource type="Resource" id="Resource_primary_cache"]
+script = ExtResource("3_cache")
+cache_id = &"aetherfall_primary_tech_cache"
+display_name = "OUTPOST CACHE"
+landmark_name = "ARRIVAL OUTPOST"
+position = Vector3(-24.5, 0.25, 10.5)
+optional = true
+interaction_radius = 5.5
+discovery_radius = 24.0
+model_scene_path = "res://assets/world/aetherfall/interactives/tech_cache.glb"
+reward_id = &"phase_thrusters_blueprint"
+module_id = &"phase_thrusters"
+bp_reward = 45
+guard_spawns = Array[Dictionary]([{
+"enemy_id": &"runner",
+"position": Vector3(-19.5, 0.25, 11.5)
+}, {
+"enemy_id": &"shooter",
+"position": Vector3(-21, 0.25, 6.5)
+}])
+
+[sub_resource type="Resource" id="Resource_hangar_cache"]
+script = ExtResource("3_cache")
+cache_id = &"aetherfall_hangar_cache"
+display_name = "HANGAR SALVAGE"
+landmark_name = "EAST SERVICE HANGAR"
+position = Vector3(30, 0.25, 9.5)
+optional = true
+interaction_radius = 5.5
+discovery_radius = 28.0
+model_scene_path = "res://assets/world/aetherfall/interactives/tech_cache.glb"
+reward_id = &"arc_shooter_blueprint"
+blueprint_id = &"arc_shooter"
+bp_reward = 95
+guard_spawns = Array[Dictionary]([{
+"enemy_id": &"enforcer",
+"position": Vector3(26.5, 0.25, 8)
+}, {
+"enemy_id": &"shooter",
+"position": Vector3(33.5, 0.25, 8)
+}, {
+"enemy_id": &"runner",
+"position": Vector3(24.5, 0.25, 11.5)
+}])
+
+[resource]
+script = ExtResource("1_definition")
+world_id = &"aetherfall"
+display_name = "AETHERFALL"
+role_description = "SH-01 Sentinel Citadel. Advance from the western Arrival Outpost across the snow-swept central spine to bring the Horizon Relay online, breach the Sentinel Archive interior against armored robot squads, and sweep the Outpost & East Hangar caches."
+world_scene = ExtResource("2_world")
+environment_scene_path = "res://scenes/worlds/aetherfall_world.tscn"
+field_size = Vector2(360, 320)
+field_center = Vector2(0, -4)
+plate_path = "res://assets/ui/world_aetherfall.jpg"
+status_line = "OPEN"
+zone_title = "SH-01 · AETHERFALL"
+zone_subtitle = "CITADEL ASSAULT · RELAY & ARCHIVE"
+field_ready = true
+player_spawn = Vector3(-30, 1.2, 14)
+recovery_caches = Array[RecoveryCacheDefinition]([SubResource("Resource_horizon_relay"), SubResource("Resource_archive_vault"), SubResource("Resource_primary_cache"), SubResource("Resource_hangar_cache")])

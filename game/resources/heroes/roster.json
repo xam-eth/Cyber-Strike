@@ -1,45 +1,6 @@
 {
-  "schema_version": 1,
-  "note": "The operative roster, one file for both halves of the product. The shell reads it to build the hero cards and the tier ladder; the engine's HeroDefinition reads the same ids. Every model, rig and card-art path here is a file that exists -- tools/check_hero_roster.py fails the build otherwise, which is what stops a card promising a costume nobody rendered.",
-  "tier_count": 5,
-  "tier_ladder_key": "hero.tier.ladder",
-  "tiers": [
-    {
-      "tier": 1,
-      "name_key": "hero.tier.1.name",
-      "runs_required": 0,
-      "vitals": 100,
-      "reduction": 0
-    },
-    {
-      "tier": 2,
-      "name_key": "hero.tier.2.name",
-      "runs_required": 1,
-      "vitals": 106,
-      "reduction": 3
-    },
-    {
-      "tier": 3,
-      "name_key": "hero.tier.3.name",
-      "runs_required": 3,
-      "vitals": 112,
-      "reduction": 6
-    },
-    {
-      "tier": 4,
-      "name_key": "hero.tier.4.name",
-      "runs_required": 6,
-      "vitals": 118,
-      "reduction": 9
-    },
-    {
-      "tier": 5,
-      "name_key": "hero.tier.5.name",
-      "runs_required": 10,
-      "vitals": 126,
-      "reduction": 12
-    }
-  ],
+  "schema_version": 2,
+  "note": "Operative roster shared by the Web shell and Godot engine. Hero Tiers (T1-T5) have been permanently removed; each field-ready operative carries a single combat-ready rig, portrait, vitals/armour profile, mobility modifiers, and tactical skill.",
   "heroes": [
     {
       "id": "sable",
@@ -48,8 +9,11 @@
       "status": "field_ready",
       "role_key": "hero.sable.role",
       "brief_key": "hero.sable.brief",
-      "portrait": "ui/art/web/hero/sable-tier-1.png",
-      "vitals_offset": 0,
+      "portrait": "ui/art/web/hero/sable.png",
+      "model": "game/assets/characters/human_hero_tiers/hero_human_tier_1.glb",
+      "rig": "game/assets/characters/human_hero_tiers/hero_human_tier_1_rig.json",
+      "vitals": 110,
+      "reduction": 6,
       "speed_pct": 0,
       "reload_pct": 0,
       "skill_id": "emp_pulse",
@@ -58,39 +22,7 @@
       "skill_damage": 18,
       "overdrive_seconds": 0.0,
       "overdrive_speed_pct": 0,
-      "overdrive_rate_pct": 0,
-      "tiers": [
-        {
-          "tier": 1,
-          "model": "game/assets/characters/human_hero_tiers/hero_human_tier_1.glb",
-          "rig": "game/assets/characters/human_hero_tiers/hero_human_tier_1_rig.json",
-          "art": "ui/art/web/hero/sable-tier-1.png"
-        },
-        {
-          "tier": 2,
-          "model": "game/assets/characters/human_hero_tiers/hero_human_tier_2.glb",
-          "rig": "game/assets/characters/human_hero_tiers/hero_human_tier_2_rig.json",
-          "art": "ui/art/web/hero/sable-tier-2.png"
-        },
-        {
-          "tier": 3,
-          "model": "game/assets/characters/human_hero_tiers/hero_human_tier_3.glb",
-          "rig": "game/assets/characters/human_hero_tiers/hero_human_tier_3_rig.json",
-          "art": "ui/art/web/hero/sable-tier-3.png"
-        },
-        {
-          "tier": 4,
-          "model": "game/assets/characters/human_hero_tiers/hero_human_tier_4.glb",
-          "rig": "game/assets/characters/human_hero_tiers/hero_human_tier_4_rig.json",
-          "art": "ui/art/web/hero/sable-tier-4.png"
-        },
-        {
-          "tier": 5,
-          "model": "game/assets/characters/human_hero_tiers/hero_human_tier_5.glb",
-          "rig": "game/assets/characters/human_hero_tiers/hero_human_tier_5_rig.json",
-          "art": "ui/art/web/hero/sable-tier-5.png"
-        }
-      ]
+      "overdrive_rate_pct": 0
     },
     {
       "id": "kestrel",
@@ -99,8 +31,11 @@
       "status": "field_ready",
       "role_key": "hero.kestrel.role",
       "brief_key": "hero.kestrel.brief",
-      "portrait": "ui/art/web/hero/kestrel-tier-1.png",
-      "vitals_offset": -10,
+      "portrait": "ui/art/web/hero/kestrel.png",
+      "model": "game/assets/characters/hero/hero.glb",
+      "rig": "game/assets/characters/hero/hero_rig.json",
+      "vitals": 96,
+      "reduction": 4,
       "speed_pct": 14,
       "reload_pct": -10,
       "skill_id": "recon_pulse",
@@ -110,63 +45,11 @@
       "overdrive_seconds": 3.5,
       "overdrive_speed_pct": 20,
       "overdrive_rate_pct": 22,
-      "tiers": [
-        {
-          "tier": 1,
-          "model": "game/assets/characters/hero/hero.glb",
-          "rig": "game/assets/characters/hero/hero_rig.json",
-          "art": "ui/art/web/hero/kestrel-tier-1.png",
-          "tint": "#ffffff",
-          "emission": "#000000",
-          "energy": 0.0,
-          "metal": 0.36,
-          "rough": 0.46
-        },
-        {
-          "tier": 2,
-          "model": "game/assets/characters/hero/hero.glb",
-          "rig": "game/assets/characters/hero/hero_rig.json",
-          "art": "ui/art/web/hero/kestrel-tier-2.png",
-          "tint": "#9ec6f5",
-          "emission": "#082440",
-          "energy": 0.03,
-          "metal": 0.48,
-          "rough": 0.40
-        },
-        {
-          "tier": 3,
-          "model": "game/assets/characters/hero/hero.glb",
-          "rig": "game/assets/characters/hero/hero_rig.json",
-          "art": "ui/art/web/hero/kestrel-tier-3.png",
-          "tint": "#7cd9c2",
-          "emission": "#062b22",
-          "energy": 0.03,
-          "metal": 0.56,
-          "rough": 0.36
-        },
-        {
-          "tier": 4,
-          "model": "game/assets/characters/hero/hero.glb",
-          "rig": "game/assets/characters/hero/hero_rig.json",
-          "art": "ui/art/web/hero/kestrel-tier-4.png",
-          "tint": "#ebb66e",
-          "emission": "#2e1804",
-          "energy": 0.03,
-          "metal": 0.64,
-          "rough": 0.32
-        },
-        {
-          "tier": 5,
-          "model": "game/assets/characters/hero/hero.glb",
-          "rig": "game/assets/characters/hero/hero_rig.json",
-          "art": "ui/art/web/hero/kestrel-tier-5.png",
-          "tint": "#ff7a6b",
-          "emission": "#280408",
-          "energy": 0.04,
-          "metal": 0.72,
-          "rough": 0.28
-        }
-      ]
+      "tint": "#9ec6f5",
+      "emission": "#082440",
+      "energy": 0.03,
+      "metal": 0.46,
+      "rough": 0.42
     },
     {
       "id": "vanguard",
@@ -176,38 +59,8 @@
       "role_key": "hero.vanguard.role",
       "brief_key": "hero.vanguard.brief",
       "portrait": null,
-      "tiers": [
-        {
-          "tier": 1,
-          "model": null,
-          "rig": null,
-          "art": null
-        },
-        {
-          "tier": 2,
-          "model": null,
-          "rig": null,
-          "art": null
-        },
-        {
-          "tier": 3,
-          "model": null,
-          "rig": null,
-          "art": null
-        },
-        {
-          "tier": 4,
-          "model": null,
-          "rig": null,
-          "art": null
-        },
-        {
-          "tier": 5,
-          "model": null,
-          "rig": null,
-          "art": null
-        }
-      ]
+      "model": null,
+      "rig": null
     }
   ]
 }

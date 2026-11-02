@@ -373,3 +373,51 @@ static func _draw_compass_pip(
 			Color(color, alpha)
 		)
 	)
+
+
+static func draw_reticle(hud: Control, layer: Control = null) -> void:
+	var surface: Control = layer if is_instance_valid(layer) else hud
+	if (
+		hud.get("_player_down") == true
+		or hud.get_tree() == null
+		or hud.get_tree().paused
+		or bool(hud.call("_results_visible"))
+	):
+		return
+	var scrim := hud.get("_scrim") as Control
+	var editor := hud.get("_hud_editor") as Control
+	if (
+		(is_instance_valid(scrim) and scrim.visible)
+		or (is_instance_valid(editor) and editor.visible)
+	):
+		return
+	var state = hud.get("_state")
+	var touch_mode := bool(hud.call("is_touch_mode"))
+	var center := hud.size * 0.5
+	if (
+		not touch_mode
+		and state != null
+		and bool(state.cursor_aim_active)
+		and state.reticle_pos.x >= 0.0
+	):
+		center = state.reticle_pos.clamp(Vector2.ZERO, hud.size)
+	var fire_rem := float(hud.get("_fire_flash_remaining"))
+	var aiming := hud.get("_aiming") == true
+	var spread := 5.0 + (fire_rem / 0.15) * 6.0
+	if int(hud.get("_move_touch_id")) != -1:
+		spread += 4.0
+	if aiming:
+		spread *= 0.45
+	crosshair(
+		surface,
+		center,
+		float(hud.call("_to_layout", 12.0 + spread)),
+		maxf(float(hud.call("_to_layout", 6.5)), 2.5),
+		maxf(float(hud.call("_to_layout", 1.6)), 1.1),
+		AegisTokens.INK,
+		Color(AegisTokens.VOID, 0.78),
+		float(hud.get("_hit_confirm_remaining")) > 0.0,
+		maxf(float(hud.call("_to_layout", 1.0)), 0.75),
+		hud.get("_soft_lock") == true,
+		aiming
+	)

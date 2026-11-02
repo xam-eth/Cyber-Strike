@@ -67,7 +67,6 @@ var _pulse_clock: float = 0.0
 @onready var collision_shape: CollisionShape3D = $CollisionShape3D
 @onready var visuals: EnemyVisual = $Visuals
 @onready var muzzle: Marker3D = $Visuals/Muzzle
-@onready var core: MeshInstance3D = get_node_or_null("Visuals/CoreMesh") as MeshInstance3D
 @onready var shield_mesh: MeshInstance3D = get_node_or_null("ShieldMesh") as MeshInstance3D
 @onready var aim_marker: MeshInstance3D = $AimMarker
 @onready var salvo_ring: MeshInstance3D = get_node_or_null("SalvoRing") as MeshInstance3D
@@ -208,6 +207,7 @@ func _begin_salvo_windup() -> void:
 	_locked_ground_y = _target.global_position.y
 	_locked_attack_point = _target.global_position + Vector3.UP * 0.9
 	_set_phase(Phase.WINDUP)
+	visuals.set_aiming(true)
 	_refresh_locked_markers()
 	aim_marker.visible = true
 	if is_instance_valid(salvo_ring):
@@ -225,6 +225,7 @@ func _refresh_locked_markers() -> void:
 
 
 func _resolve_salvo() -> void:
+	visuals.play_attack()
 	var hit_target := false
 	if is_instance_valid(_target) and not _target_is_defeated():
 		var flat_offset := Vector2(
@@ -280,6 +281,7 @@ func _has_line_of_sight() -> bool:
 
 func _cancel_salvo() -> void:
 	_windup_remaining = 0.0
+	visuals.set_aiming(false)
 	if is_instance_valid(aim_marker):
 		aim_marker.visible = false
 	if is_instance_valid(salvo_ring):
@@ -392,37 +394,10 @@ func _set_phase(next_phase: Phase, force_emit: bool = false) -> void:
 	_phase = next_phase
 	if is_instance_valid(shield_mesh):
 		shield_mesh.visible = not _is_downed and _phase == Phase.FORTIFIED
-	_update_core_color()
 	phase_changed.emit(get_phase_id())
 
 
-func _update_core_color() -> void:
-	if not is_instance_valid(core):
-		return
-	var mat := core.material_override as StandardMaterial3D
-	if mat == null:
-		return
-	match _phase:
-		Phase.FORTIFIED:
-			mat.albedo_color = Color(0.14, 0.86, 1.0, 1.0)
-			mat.emission = Color(0.06, 0.68, 0.96, 1.0)
-		Phase.WINDUP:
-			mat.albedo_color = Color(1.0, 0.72, 0.14, 1.0)
-			mat.emission = Color(1.0, 0.52, 0.06, 1.0)
-		Phase.EXPOSED:
-			mat.albedo_color = Color(1.0, 0.24, 0.12, 1.0)
-			mat.emission = Color(1.0, 0.18, 0.05, 1.0)
-
-
-func _update_phase_visuals(delta: float) -> void:
-	if is_instance_valid(core):
-		var target_scale := Vector3.ONE
-		if _phase == Phase.WINDUP:
-			var charge := 1.0 - clampf(_windup_remaining / maxf(salvo_windup, 0.001), 0.0, 1.0)
-			target_scale = Vector3.ONE * (1.1 + 0.65 * charge)
-		elif _phase == Phase.EXPOSED:
-			target_scale = Vector3.ONE * (1.35 + 0.18 * sin(_pulse_clock * 2.0))
-		core.scale = core.scale.lerp(target_scale, minf(delta * 14.0, 1.0))
+func _update_phase_visuals(_delta: float) -> void:
 	if is_instance_valid(shield_mesh) and shield_mesh.visible:
 		var pulse := 1.0 + 0.03 * sin(_pulse_clock)
 		shield_mesh.scale = Vector3(pulse, pulse, 1.0)

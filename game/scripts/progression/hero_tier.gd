@@ -1,12 +1,11 @@
 class_name HeroTier
 extends RefCounted
 
-## The five ranks of a hero, read from `resources/heroes/roster.json`.
+## Operative profile catalog read from `resources/heroes/roster.json`.
 ##
-## The roster is one file for both halves of the product: the web shell builds
-## the operative page's tier cards and ladder from it, and this class gives the
-## engine the same numbers -- which model a tier wears, per-hero vitals/mobility,
-## tactical capability specs, and how many completed runs unlock each tier.
+## Hero Tiers (`T1-T5`) have been removed. Each operative defines fixed combat
+## vitals, armor damage reduction, mobility/reload modifiers, active tactical
+## skill specs, and a single rigged 3D model + sidecar rig.
 
 const ROSTER_PATH := "res://resources/heroes/roster.json"
 
@@ -21,7 +20,7 @@ static func roster() -> Dictionary:
 	_roster = {}
 	var text := _read(ROSTER_PATH)
 	if text.is_empty():
-		push_warning("HeroTier: %s could not be read; the ladder is empty." % ROSTER_PATH)
+		push_warning("HeroTier: %s could not be read; roster is empty." % ROSTER_PATH)
 		return _roster
 	var parsed: Variant = JSON.parse_string(text)
 	if not parsed is Dictionary:
@@ -44,55 +43,21 @@ static func has_roster() -> bool:
 	return not roster().is_empty()
 
 
-static func tier_count() -> int:
-	return int(roster().get("tier_count", 0))
-
-
-static func rows() -> Array:
-	var out: Array = roster().get("tiers", [])
-	return out
-
-
-static func row(tier: int) -> Dictionary:
-	var table := rows()
-	if table.is_empty():
-		return {}
-	var want := clampi(tier, 1, table.size())
-	for entry in table:
-		if int(entry.get("tier", 0)) == want:
-			return entry
-	return table[clampi(want - 1, 0, table.size() - 1)]
-
-
-static func owned_tier(completed_runs: int) -> int:
-	var owned := 1
-	for entry in rows():
-		if completed_runs >= int(entry.get("runs_required", 0)):
-			owned = maxi(owned, int(entry.get("tier", 1)))
-	return owned
-
-
-static func vitals(tier: int, hero_id: StringName = &"") -> float:
-	var base := float(row(tier).get("vitals", 100))
-	if hero_id == &"":
-		return base
-	var offset := float(hero(hero_id).get("vitals_offset", 0))
-	return maxf(base + offset, 1.0)
-
-
-static func reduction(tier: int, hero_id: StringName = &"") -> float:
-	var base := float(row(tier).get("reduction", 0))
-	if hero_id == &"":
-		return base
-	var offset := float(hero(hero_id).get("reduction_offset", 0))
-	return clampf(base + offset, 0.0, 90.0)
-
-
 static func hero(hero_id: StringName) -> Dictionary:
 	for entry in roster().get("heroes", []):
 		if StringName(str(entry.get("id", ""))) == hero_id:
 			return entry
 	return {}
+
+
+static func vitals(hero_id: StringName = &"sable") -> float:
+	var entry := hero(hero_id if hero_id != &"" else &"sable")
+	return maxf(float(entry.get("vitals", 110.0)), 1.0)
+
+
+static func reduction(hero_id: StringName = &"sable") -> float:
+	var entry := hero(hero_id if hero_id != &"" else &"sable")
+	return clampf(float(entry.get("reduction", 6.0)), 0.0, 90.0)
 
 
 static func callsign(hero_id: StringName) -> String:
@@ -133,8 +98,8 @@ static func skill_spec(hero_id: StringName) -> Dictionary:
 	}
 
 
-static func tier_livery(hero_id: StringName, tier: int) -> Dictionary:
-	var item := _tier_row(hero_id, tier)
+static func livery(hero_id: StringName) -> Dictionary:
+	var item := hero(hero_id)
 	var tint := str(item.get("tint", ""))
 	if tint.is_empty():
 		return {}
@@ -147,16 +112,16 @@ static func tier_livery(hero_id: StringName, tier: int) -> Dictionary:
 	}
 
 
-static func model_path(hero_id: StringName, tier: int) -> String:
-	return _engine_path(_tier_field(hero_id, tier, "model"))
+static func model_path(hero_id: StringName) -> String:
+	return _engine_path(_hero_field(hero_id, "model"))
 
 
-static func rig_path(hero_id: StringName, tier: int) -> String:
-	return _engine_path(_tier_field(hero_id, tier, "rig"))
+static func rig_path(hero_id: StringName) -> String:
+	return _engine_path(_hero_field(hero_id, "rig"))
 
 
-static func art_path(hero_id: StringName, tier: int) -> String:
-	return _tier_field(hero_id, tier, "art")
+static func art_path(hero_id: StringName) -> String:
+	return _hero_field(hero_id, "portrait")
 
 
 static func _engine_path(path: String) -> String:
@@ -165,20 +130,8 @@ static func _engine_path(path: String) -> String:
 	return path
 
 
-static func _tier_row(hero_id: StringName, tier: int) -> Dictionary:
-	var entry := hero(hero_id)
-	var table: Array = entry.get("tiers", [])
-	if table.is_empty():
-		return {}
-	var want := clampi(tier, 1, table.size())
-	for item in table:
-		if item is Dictionary and int(item.get("tier", 0)) == want:
-			return item
-	return {}
-
-
-static func _tier_field(hero_id: StringName, tier: int, field: String) -> String:
-	var item := _tier_row(hero_id, tier)
+static func _hero_field(hero_id: StringName, field: String) -> String:
+	var item := hero(hero_id)
 	var value: Variant = item.get(field, null)
 	return str(value) if value is String else ""
 
@@ -187,4 +140,4 @@ static func is_field_ready(hero_id: StringName) -> bool:
 	var entry := hero(hero_id)
 	if entry.is_empty():
 		return false
-	return str(entry.get("status", "")) == "field_ready" and not model_path(hero_id, 1).is_empty()
+	return str(entry.get("status", "")) == "field_ready" and not model_path(hero_id).is_empty()

@@ -230,10 +230,13 @@ var _soft_lock: bool = false:
 		if _soft_lock == value:
 			return
 		_soft_lock = value
+		if is_instance_valid(_reticle_layer):
+			_reticle_layer.queue_redraw()
 		queue_redraw()
 var _hostile_camera: Camera3D
 var _hostile_source: Node
 var _compass_layer: Control
+var _reticle_layer: Control
 var _last_compass_yaw: float = -999.0
 var _help_remaining: float = HELP_VISIBLE_SECONDS
 
@@ -310,6 +313,8 @@ func _process(delta: float) -> void:
 	# the pause path clears the touch state and asks for it.
 	if needs_redraw and not get_tree().paused:
 		queue_redraw()
+		if is_instance_valid(_reticle_layer):
+			_reticle_layer.queue_redraw()
 
 
 func _input(event: InputEvent) -> void:
@@ -320,7 +325,14 @@ func _input(event: InputEvent) -> void:
 	):
 		# Editor GUI owns touch drags, not the gameplay thumb-zone dispatcher.
 		return
-	if event is InputEventScreenTouch:
+	if event is InputEventMouseMotion and not _touch_mode:
+		var clamped := event.position.clamp(Vector2.ZERO, size)
+		if not _state.cursor_aim_active or _state.reticle_pos.distance_squared_to(clamped) > 0.05:
+			_state.cursor_aim_active = true
+			_state.reticle_pos = clamped
+			if is_instance_valid(_reticle_layer) and not get_tree().paused and not _player_down:
+				_reticle_layer.queue_redraw()
+	elif event is InputEventScreenTouch:
 		if event.pressed and not _touch_mode:
 			# A hybrid laptop or a browser that starts reporting touch after the
 			# first tap should still get the thumb controls.
@@ -476,8 +488,13 @@ func set_touch_mode(enabled: bool) -> void:
 	if _touch_mode == enabled:
 		return
 	_touch_mode = enabled
+	if _touch_mode:
+		_state.cursor_aim_active = false
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	_apply_input_mode()
 	_layout_controls()
+	if is_instance_valid(_reticle_layer):
+		_reticle_layer.queue_redraw()
 	queue_redraw()
 
 
@@ -719,11 +736,8 @@ func set_player_down(down: bool) -> void:
 	_apply_context_visibility()
 
 
-func set_results_context(
-	extracted: bool, promoted_tier: int = 0, arc_blueprint: bool = false
-) -> void:
+func set_results_context(extracted: bool, arc_blueprint: bool = false) -> void:
 	_state.results_extracted = extracted
-	_state.results_promoted_tier = promoted_tier
 	_state.results_arc_blueprint = arc_blueprint
 
 
@@ -825,6 +839,12 @@ func _build_ui() -> void:
 	_build_touch_buttons()
 	HudArmoryBridge.install_entry(self)
 	HudUpgradeBridge.install_top_widgets(self)
+	_reticle_layer = Control.new()
+	_reticle_layer.name = "ReticleLayer"
+	_reticle_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_reticle_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_reticle_layer.draw.connect(func() -> void: HudRenderer.draw_reticle(self, _reticle_layer))
+	add_child(_reticle_layer)
 	_build_overlays()
 	HudArmoryBridge.install_panel(self)
 	HudUpgradeBridge.install_overlays(self)
@@ -1379,25 +1399,8 @@ func _draw() -> void:
 			HudHostileBearings.draw_marker(self, bearing, _to_layout(1.0))
 	if is_instance_valid(_compass_layer):
 		_compass_layer.queue_redraw()
-	if not _player_down and not get_tree().paused:
-		var spread := 5.0 + (_fire_flash_remaining / 0.15) * 6.0
-		if _move_touch_id != -1:
-			spread += 4.0
-		if _aiming:
-			spread *= 0.45
-		HudRenderer.crosshair(
-			self,
-			size * 0.5,
-			_to_layout(12.0 + spread),
-			maxf(_to_layout(6.0), 2.0),
-			maxf(_to_layout(1.5), 1.0),
-			AegisTokens.INK,
-			Color(AegisTokens.VOID, 0.7),
-			_hit_confirm_remaining > 0.0,
-			maxf(_to_layout(1.0), 0.75),
-			_soft_lock,
-			_aiming
-		)
+	if is_instance_valid(_reticle_layer):
+		_reticle_layer.queue_redraw()
 	if _touch_mode or _move_touch_id != -1:
 		HudRenderer.joystick(
 			self,

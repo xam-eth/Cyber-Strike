@@ -174,8 +174,8 @@ static func _ensure_cache() -> void:
 			"mod.breach.role",
 			"mod.breach.summary",
 			"BREACH",
-			&"emberfall_foundry",
-			&"emberfall_seam_core",
+			&"aetherfall",
+			&"aetherfall_horizon_relay",
 			140,
 			{
 				"ads_shield_pierce": true,
@@ -189,8 +189,8 @@ static func _ensure_cache() -> void:
 			"mod.phase.role",
 			"mod.phase.summary",
 			"PHASE",
-			&"vanguard_station",
-			&"vanguard_reactor_core",
+			&"aetherfall",
+			&"aetherfall_primary_tech_cache",
 			120,
 			{
 				"move_speed_multiplier": 1.14,
@@ -204,8 +204,8 @@ static func _ensure_cache() -> void:
 			"mod.storm.role",
 			"mod.storm.summary",
 			"STORM",
-			&"titans",
-			&"titans_storm_spire",
+			&"aetherfall",
+			&"aetherfall_archive_vault",
 			160,
 			{
 				"chain_count_bonus": 1,

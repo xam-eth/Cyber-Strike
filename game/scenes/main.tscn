@@ -2,7 +2,6 @@
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/worlds/mission_world.tscn" id="2_world"]
-[ext_resource type="PackedScene" path="res://scenes/worlds/vanguard_station.tscn" id="11_station"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="3_player"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/training_drone.tscn" id="4_drone"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="5_hud"]
@@ -14,6 +13,7 @@
 [ext_resource type="Resource" path="res://resources/enemies/shooter.tres" id="13_shooter_definition"]
 [ext_resource type="Script" path="res://scripts/progression/run_upgrade_manager.gd" id="14_run_upgrades"]
 [ext_resource type="Resource" path="res://resources/enemies/guardian.tres" id="15_guardian_definition"]
+[ext_resource type="Resource" path="res://resources/enemies/enforcer.tres" id="16_enforcer_definition"]
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_main")
@@ -23,46 +23,44 @@ script = ExtResource("10_progression")
 
 [node name="MissionWorld" parent="." instance=ExtResource("2_world")]
 
-[node name="VanguardStation" parent="." instance=ExtResource("11_station")]
-
 [node name="Player" parent="." instance=ExtResource("3_player")]
-position = Vector3(0, 0, 8)
+position = Vector3(-30, 1.2, 14)
 
-; Clear line of sight from the STELLAR tower spawn; (0, -8) is behind the tower.
+; Recon sentinel drone stationed on the central Aetherfall lane ahead of primary spawn.
 [node name="TrainingDrone" parent="." instance=ExtResource("4_drone")]
-position = Vector3(18, 0.18, -8)
+position = Vector3(-16.5, 0.25, 11.5)
 
 [node name="WaveEnemies" type="Node3D" parent="."]
 
 [node name="SpawnPoints" type="Node3D" parent="."]
 
 [node name="SpawnNorthWest" type="Marker3D" parent="SpawnPoints"]
-position = Vector3(-11.0, 0.0, -11.0)
+position = Vector3(-16.0, 0.25, -4.0)
 
 [node name="SpawnNorthEast" type="Marker3D" parent="SpawnPoints"]
-position = Vector3(11.0, 0.0, -11.0)
+position = Vector3(18.0, 0.25, -3.5)
 
 [node name="SpawnSouthWest" type="Marker3D" parent="SpawnPoints"]
-position = Vector3(-11.0, 0.0, 11.0)
+position = Vector3(-15.0, 0.25, 13.5)
 
 [node name="SpawnSouthEast" type="Marker3D" parent="SpawnPoints"]
-position = Vector3(11.0, 0.0, 11.0)
+position = Vector3(22.0, 0.25, 12.5)
 
 [node name="SpawnWest" type="Marker3D" parent="SpawnPoints"]
-position = Vector3(-12.0, 0.0, 0.0)
+position = Vector3(-24.0, 0.25, 2.0)
 
 [node name="SpawnEast" type="Marker3D" parent="SpawnPoints"]
-position = Vector3(12.0, 0.0, 0.0)
+position = Vector3(28.0, 0.25, 3.0)
 
 [node name="SpawnNorth" type="Marker3D" parent="SpawnPoints"]
-position = Vector3(0.0, 0.0, -12.0)
+position = Vector3(4.0, 0.25, -6.5)
 
 [node name="SpawnSouth" type="Marker3D" parent="SpawnPoints"]
-position = Vector3(0.0, 0.0, 12.0)
+position = Vector3(0.0, 0.25, 14.5)
 
 [node name="WaveDirector" type="Node" parent="."]
 script = ExtResource("6_wave_director")
-enemy_definitions = Array[EnemyDefinition]([ExtResource("12_runner_definition"), ExtResource("13_shooter_definition"), ExtResource("15_guardian_definition")])
+enemy_definitions = Array[EnemyDefinition]([ExtResource("12_runner_definition"), ExtResource("13_shooter_definition"), ExtResource("16_enforcer_definition"), ExtResource("15_guardian_definition")])
 
 [node name="RunStats" type="Node" parent="."]
 script = ExtResource("7_run_stats")

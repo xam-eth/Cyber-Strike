@@ -21,16 +21,13 @@
  *   node tools/web_qa.mjs --encounter --explore-wait 8000 --encounter-timeout 600
  *       # strict: await a real Defense transition (software WebGL can be slow)
  *   node tools/web_qa.mjs --page / --recovery
- *       # Verdant Explore -> Engage -> two GLB guards + Secure-locked HUD
- *       # (does not claim guard clear, Secure, Extract, or mission completion)
- *   node tools/web_qa.mjs --page / --journey --select-vanguard
- *       # choose Vanguard in the shell and verify its real gameplay build
- *   node tools/web_qa.mjs --page / --journey --select-world titans --audio-shell
- *       # choose any registry world and verify selection, runtime and audio
+ *       # Aetherfall Explore -> Engage -> two rigged 3D robot guards + Secure-locked HUD
+ *   node tools/web_qa.mjs --page / --journey --select-world aetherfall --audio-shell
+ *       # choose SH-01 Aetherfall in the shell and verify selection, runtime and audio
  *   node tools/web_qa.mjs --page / --journey --audio-shell
  *       # real-gesture shell music, mute persistence and DEPLOY audio handoff
- *   node tools/web_qa.mjs --page / --encounter --select-vanguard
- *       # additionally request Defense in that selected theatre
+ *   node tools/web_qa.mjs --page / --encounter --select-world aetherfall
+ *       # additionally request Defense in SH-01 Aetherfall
  *
  * `--hold` exists because the touch HUD lives inside the WebGL canvas: the AIM
  * button cannot be found with a DOM selector, so its canvas coordinates (read
@@ -98,22 +95,21 @@ const requireDefense = has('--encounter');
 const encounterMode = requireDefense || has('--encounter-prep');
 const encounterTimeoutMs = Math.max(0, Number(flag('--encounter-timeout', '600')) || 0) * 1000;
 const exploreWaitMs = Number(flag('--explore-wait', '8000'));
-// --recovery proves the real Verdant landing → Engage → guarded state.
-// --recovery-e2e drives the full Verdant clear → Arc Blueprint secure →
-// Extract → Tier-2 selection → 106-vital redeploy loop via real inputs.
+// --recovery proves the real Aetherfall landing → Engage → guarded robot state.
+// --recovery-e2e drives the full Aetherfall Arrival Tech Cache clear via movable
+// [+] cursor aiming → Phase Thrusters schematic secure → Hub tier-free Operative
+// switch (Sable 110 HP → Kestrel 96 HP) → 96-vital redeploy loop via real inputs.
 const recoveryE2eMode = has('--recovery-e2e');
 const recoveryMode = has('--recovery') || recoveryE2eMode;
 const upgradesMode = has('--upgrades');
 const selectVanguard = has('--select-vanguard');
 const selectedWorld = String(
-  flag('--select-world', selectVanguard ? 'vanguard_station' : recoveryMode ? 'verdant_bloom' : ''),
+  flag('--select-world', selectVanguard || recoveryMode ? 'aetherfall' : ''),
 );
 const selectWorld = selectedWorld.length > 0;
 const selectedWorldCard = `world-card-${selectedWorld.replaceAll('_', '-')}`;
 const selectedWorldPin = `${selectedWorld.split('_').map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join('')}Pin`;
-const selectedWorldBuildLog = selectedWorld === 'vanguard_station'
-  ? 'VanguardStation:'
-  : `MISSION WORLD: ${selectedWorld} (`;
+const selectedWorldBuildLog = `MISSION WORLD: ${selectedWorld} (`;
 // Journey mode proves the root shell's direct theatre hand-off, and retains
 // the measured WORLD-stage route for raw engine journeys. --select-vanguard
 // remains the original compatibility spelling of --select-world vanguard_station.
@@ -915,6 +911,7 @@ async function checkPage(target, viewport) {
     }
   }
   if (booted && recoveryMode && inGameplay) {
+    const RECOVERY_CACHE_ID = 'aetherfall_primary_tech_cache';
     const canvas = await page.$('canvas');
     if (canvas) await canvas.click();
     const capture = async (name) => {
@@ -923,15 +920,6 @@ async function checkPage(target, viewport) {
       recoveryFrames.push(path.relative(ROOT, file));
     };
     await capture('landing');
-    // The straight landing lane contains real world collision. Move around it
-    // with ordinary keyboard input, then let the actual HUD action—not a wall-
-    // clock guess—decide when the cache is inside its interaction radius.
-    await page.keyboard.down('KeyW');
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    await page.keyboard.up('KeyW');
-    await page.keyboard.down('KeyD');
-    await new Promise((resolve) => setTimeout(resolve, 2500));
-    await page.keyboard.up('KeyD');
     const latestRecovery = () => {
       const line = [...consoleLines].reverse().find((entry) => entry.includes('Recovery QA:'));
       if (!line) return null;
@@ -942,13 +930,34 @@ async function checkPage(target, viewport) {
       };
     };
     const engageOffered = () => latestRecovery()?.action === 'engage';
+    // Arrival Outpost spawn (-30, 1.2, 14) sits 6.5m SW of Arrival Tech Cache
+    // (-24.5, 0.25, 10.5). Diagonal W+D passes within 1.4m of the cache center
+    // across an 8.7m capture window regardless of frame rate.
     if (!engageOffered()) {
-      const beforeApproach = consoleLines.length;
+      const approachLimit = Date.now() + 35000;
       await page.keyboard.down('KeyW');
+      await page.keyboard.down('KeyD');
       try {
-        await awaitConsoleText(page, consoleLines.slice(beforeApproach), 'action=engage', 60000);
+        while (Date.now() < approachLimit && !engageOffered()) {
+          await new Promise((r) => setTimeout(r, 60));
+        }
       } finally {
-        await page.keyboard.up('KeyW');
+        await page.keyboard.up('KeyD').catch(() => {});
+        await page.keyboard.up('KeyW').catch(() => {});
+      }
+    }
+    if (!engageOffered()) {
+      // Fallback sweep if initial stride overshot or fell short on extreme tick delta.
+      for (const [k1, k2, ms] of [['KeyS', 'KeyA', 900], ['KeyD', null, 1100], ['KeyW', null, 900]]) {
+        if (engageOffered()) break;
+        await page.keyboard.down(k1);
+        if (k2) await page.keyboard.down(k2);
+        const tEnd = Date.now() + ms;
+        while (Date.now() < tEnd && !engageOffered()) {
+          await new Promise((r) => setTimeout(r, 50));
+        }
+        if (k2) await page.keyboard.up(k2).catch(() => {});
+        await page.keyboard.up(k1).catch(() => {});
       }
     }
     recoveryEvidence = { engageOffered: engageOffered(), guardsActive: false, guardModels: [] };
@@ -960,9 +969,6 @@ async function checkPage(target, viewport) {
         page, consoleLines.slice(beforeEngage), 'guards=2', 15000,
       );
       if (recoveryE2eMode && recoveryEvidence.guardsActive) {
-        // Hold sprint-backpedal across guarded/contact PNG captures so Sable
-        // enters combat at 100/100 HP ~12 m south in the wide-open clearing with
-        // both guards centered horizontally at y ~ 348!
         await page.keyboard.down('ShiftLeft');
         await page.keyboard.down('KeyS');
       }
@@ -982,8 +988,9 @@ async function checkPage(target, viewport) {
       await page.keyboard.up('ShiftLeft').catch(() => {});
     }
     const models = new Set();
+    const guardRegex = new RegExp(`EnemyVisual\\[(Guard_${RECOVERY_CACHE_ID}_[^\\]]+)\\].*fallback=no`);
     for (const line of consoleLines) {
-      const match = line.match(/EnemyVisual\[(Guard_verdant_seed_vault_[^\]]+)\].*fallback=no/);
+      const match = line.match(guardRegex);
       if (match) models.add(match[1]);
     }
     recoveryEvidence.guardModels = [...models];
@@ -997,29 +1004,25 @@ async function checkPage(target, viewport) {
 
     if (recoveryE2eMode && recoveryEvidence.guardsActive) {
       const e2e = {
-        initialTier1Vitals100: consoleLines.some((line) =>
-          line.includes('Operative: hero=sable tier=1/1 vitals=100')),
+        initialVitals110: consoleLines.some((line) =>
+          line.includes('Operative: hero=sable vitals=110 reduction=6%')),
         guidanceObserved: consoleLines.some((line) =>
           line.includes('Recovery QA:') && /\bguidance=(area|local|interact|combat)\b/.test(line)),
+        cursorAimFired: false,
         guardsCleared: false,
         secureOffered: false,
         blueprintSecured: false,
-        missionCompleteShown: false,
-        extractedResultsShown: false,
-        runBankedOnce: false,
         returnedToHub: false,
         mirrorSynced: false,
-        tier2Selected: false,
-        tier2VitalsReadout: null,
-        arcBlueprintEligibleInRack: false,
-        redeployedTier2Vitals106: false,
-        redeploySeedVaultSecured: false,
+        heroTiersRemovedInDom: false,
+        kestrelSelected: false,
+        kestrelReadout: null,
+        redeployedKestrelVitals96: false,
+        redeployCachePersisted: false,
       };
       recoveryEvidence.e2e = e2e;
       let cdp = null;
       try {
-      const cx = Math.round(viewport.width * 0.5);
-      const cy = Math.round(viewport.height * 0.5);
       const parseVector = (raw) => {
         if (!raw || raw === 'none') return null;
         const parts = raw.split(',').map(Number);
@@ -1074,10 +1077,8 @@ async function checkPage(target, viewport) {
         }
         if (!recent.size) return { target: null, anyClose: false };
         const all = [...recent.values()];
-        // Only flag genuine close melee proximity (< 5 m / y > 540) so Sable
-        // stays inside Pulse Carbine's 12-18 m sweet spot in the open clearing!
         const anyClose = all.some((g) =>
-          (g.dist !== null ? g.dist < 5.0 : (!g.behind && g.y > 540)));
+          (g.dist !== null ? g.dist < 4.5 : (!g.behind && g.y > 545)));
         all.sort((a, b) => {
           if (a.id.endsWith('_01') !== b.id.endsWith('_01')) {
             return a.id.endsWith('_01') ? -1 : 1;
@@ -1122,23 +1123,18 @@ async function checkPage(target, viewport) {
         if (!aimHeld) return;
         await cdpButton('mouseReleased', curX, curY, 'right', 0);
         aimHeld = false;
-        // Wait >1 full SwiftShader frame before moving cursor with buttons=0 so
-        // Godot flushes MOUSE_BUTTON_RIGHT release and never un-rotates the camera.
-        await new Promise((r) => setTimeout(r, 420));
+        await new Promise((r) => setTimeout(r, 380));
       };
-      // Park near the left edge (x=80) before turning right (dx>=0) for 950 px
-      // (+105 deg) of uninterrupted clockwise travel, or near x=880 before turning
-      // left (dx<0) for 840 px (-93 deg) of uninterrupted counter-clockwise travel!
       const reanchorAds = async (preferRightTurn = true) => {
         await releaseAds();
-        const startX = preferRightTurn ? 80 : 880;
+        const startX = preferRightTurn ? 90 : 880;
         const startY = 360;
         await cdpMove(startX, startY, 0);
-        await new Promise((r) => setTimeout(r, 360));
+        await new Promise((r) => setTimeout(r, 320));
         await cdpButton('mousePressed', startX, startY, 'right', 2);
-        await new Promise((r) => setTimeout(r, 340));
+        await new Promise((r) => setTimeout(r, 300));
         await cdpMove(startX + 1, startY, 2);
-        await new Promise((r) => setTimeout(r, 360));
+        await new Promise((r) => setTimeout(r, 320));
         curX = startX + 1;
         curY = startY;
         aimHeld = true;
@@ -1146,16 +1142,15 @@ async function checkPage(target, viewport) {
       const steerAim = async (dx, dy) => {
         if (
           !aimHeld
-          || curX + dx < 36
+          || curX + dx < 40
           || curX + dx > 1030
-          || curY + dy < 125
-          || curY + dy > 655
+          || curY + dy < 120
+          || curY + dy > 650
         ) {
           await reanchorAds(dx >= 0);
         }
-        const nextX = Math.max(36, Math.min(1030, Math.round(curX + dx)));
-        let nextY = Math.max(125, Math.min(655, Math.round(curY + dy)));
-        if (nextX < 355 && nextY < 182) nextY = 182;
+        const nextX = Math.max(40, Math.min(1030, Math.round(curX + dx)));
+        const nextY = Math.max(120, Math.min(650, Math.round(curY + dy)));
         for (let step = 1; step <= 3; step += 1) {
           const ix = curX + ((nextX - curX) * step) / 3;
           const iy = curY + ((nextY - curY) * step) / 3;
@@ -1164,19 +1159,21 @@ async function checkPage(target, viewport) {
         }
         curX = nextX;
         curY = nextY;
-        await new Promise((r) => setTimeout(r, 380));
+        await new Promise((r) => setTimeout(r, 350));
       };
 
-      // Prime ADS for Runner (_01) on the left (-268 px) from the open clearing.
-      await reanchorAds(false);
+      const canvasBounds = await page.evaluate(() => {
+        const r = document.querySelector('canvas')?.getBoundingClientRect();
+        return r ? { left: r.left, top: r.top } : { left: 0, top: 0 };
+      });
 
-      // 1. Defeat both live Seed Vault guards using real ADS camera steering,
-      // gunfire bursts, circle-strafe footwork between bursts, and EMP Pulse.
-      const combatDeadline = Date.now() + 160000;
+      // 1. Defeat both live Arrival Tech Cache robot guards by placing the
+      // movable [+] reticle directly over each guard's screen projection and
+      // firing left-mouse bursts + EMP Pulse (only rotating camera when off-screen).
+      const combatDeadline = Date.now() + 135000;
       let lastEmpAt = 0;
-      let burstsSinceKo = 0;
+      let burstsSinceReload = 0;
       let loopTick = 0;
-      let knownKos = 0;
       while (Date.now() < combatDeadline) {
         loopTick += 1;
         const rec = latestRecovery();
@@ -1186,13 +1183,6 @@ async function checkPage(target, viewport) {
         if ((rec && rec.guards === 0) || readySeen) {
           e2e.guardsCleared = true;
           break;
-        }
-        const kosNow = consoleLines
-          .slice(beforeEngage)
-          .filter((l) => l.includes('KO') || l.includes('hit_confirm') || l.includes('guards=1')).length;
-        if (kosNow > knownKos) {
-          knownKos = kosNow;
-          burstsSinceKo = 0;
         }
         const markIdx = Math.max(beforeEngage, consoleLines.length - 8);
         await waitEngineTick(340);
@@ -1204,298 +1194,79 @@ async function checkPage(target, viewport) {
           lastEmpAt = Date.now();
         }
         if (!guard) continue;
-        const tooFar = !snap.anyClose && (guard.dist !== null
-          ? guard.dist > 22.0
-          : (!guard.behind && guard.y < 346));
         if (snap.anyClose) {
+          await releaseAds();
           await page.keyboard.down('ShiftLeft');
           await page.keyboard.down('KeyS');
-          await new Promise((r) => setTimeout(r, 520));
+          await new Promise((r) => setTimeout(r, 480));
           await page.keyboard.up('KeyS');
           await page.keyboard.up('ShiftLeft');
-        } else if (tooFar && Math.abs(guard.x - guard.vpW * 0.5) < 120) {
+        } else if (guard.dist !== null && guard.dist > 22.0 && !guard.behind) {
+          await releaseAds();
           await page.keyboard.down('KeyW');
           await new Promise((r) => setTimeout(r, 380));
           await page.keyboard.up('KeyW');
         }
         if (guard.behind) {
-          const dodgeKey = loopTick % 4 < 2 ? 'KeyD' : 'KeyA';
+          const dodgeKey = loopTick % 2 === 0 ? 'KeyD' : 'KeyA';
           await page.keyboard.down(dodgeKey);
-          await new Promise((r) => setTimeout(r, 180));
+          await new Promise((r) => setTimeout(r, 150));
           await page.keyboard.up(dodgeKey);
-          await steerAim(780, 0);
+          await steerAim(760, 0);
           continue;
         }
-        const errX = guard.x - guard.vpW * 0.5;
-        const errY = guard.y - guard.vpH * 0.5;
-        if (Math.abs(errX) > 8 || Math.abs(errY) > 10) {
-          if (Math.abs(errX) > 120) {
-            const dodgeKey = loopTick % 4 < 2 ? 'KeyD' : 'KeyA';
-            await page.keyboard.down(dodgeKey);
-            await new Promise((r) => setTimeout(r, 140));
-            await page.keyboard.up(dodgeKey);
-          }
-          // Measured ADS gain is ~1.265 screen px per mouse px -> 0.78 critically
-          // damps onto (640, 360) down to <= 8 px (inside distant guard hitbox!).
-          const rawX = errX * 0.78;
-          const rawY = errY * 0.78;
-          const stepX = Math.abs(errX) > 8
-            ? Math.max(-720, Math.min(720, Math.sign(rawX) * Math.max(6, Math.abs(rawX))))
-            : 0;
-          const stepY = Math.abs(errY) > 10
-            ? Math.max(-220, Math.min(220, Math.sign(rawY) * Math.max(6, Math.abs(rawY))))
-            : 0;
+        const inSafeReticleWindow = guard.x >= 95
+          && guard.x <= guard.vpW - 190
+          && guard.y >= 95
+          && guard.y <= guard.vpH - 135;
+        if (!inSafeReticleWindow) {
+          const errX = guard.x - guard.vpW * 0.5;
+          const errY = guard.y - guard.vpH * 0.5;
+          const stepX = Math.abs(errX) > 25 ? Math.max(-680, Math.min(680, errX * 0.75)) : 0;
+          const stepY = Math.abs(errY) > 25 ? Math.max(-200, Math.min(200, errY * 0.75)) : 0;
           await steerAim(stepX, stepY);
           continue;
         }
-        // Locked dead-center on guard capsule (<= 11 px error): release right-mouse
-        // cleanly first, then hold the HUD FIRE control via the same CDP session
-        // (buttons: 0 -> 1 -> 0) for 950 ms (~8 rounds = 144 dmg through (640, 360))!
+        // Place the movable [+] crosshair directly onto the guard's 3D screen
+        // coordinates and fire a left-mouse burst straight at [+]!
         await releaseAds();
-        const fireX = viewport.width - 55;
-        const fireY = viewport.height - 60;
-        await cdpMove(fireX, fireY, 0);
+        const aimX = canvasBounds.left + guard.x;
+        const aimY = canvasBounds.top + guard.y;
+        await cdpMove(aimX, aimY, 0);
         await new Promise((r) => setTimeout(r, 140));
-        await cdpButton('mousePressed', fireX, fireY, 'left', 1);
-        await new Promise((r) => setTimeout(r, 950));
-        await cdpButton('mouseReleased', fireX, fireY, 'left', 0);
-        await new Promise((r) => setTimeout(r, 160));
-        burstsSinceKo += 1;
-        if (burstsSinceKo >= 2) {
-          // Advance slightly forward to close distance if >20 m away
-          await page.keyboard.down('KeyW');
-          await new Promise((r) => setTimeout(r, 420));
-          await page.keyboard.up('KeyW');
-        }
-        if (burstsSinceKo >= 3) {
+        await cdpButton('mousePressed', aimX, aimY, 'left', 1);
+        e2e.cursorAimFired = true;
+        await new Promise((r) => setTimeout(r, 900));
+        await cdpButton('mouseReleased', aimX, aimY, 'left', 0);
+        await new Promise((r) => setTimeout(r, 150));
+        burstsSinceReload += 1;
+        if (burstsSinceReload >= 3) {
           await page.keyboard.press('KeyG');
-          burstsSinceKo = 0;
+          burstsSinceReload = 0;
         }
       }
       await releaseAds();
 
-      // 2. Navigate back inside Seed Vault's 5m interaction radius if combat moved us out.
-      // Measure progress and sidestep distance in real Godot simulation ticks
-      // (`Recovery Cache QA:` emissions) rather than wall-clock milliseconds so 2 FPS
-      // SwiftShader and 60 FPS desktop move identical world-space distances!
+      // 2. Approach the now-READY Arrival Tech Cache and press B to Secure.
       if (e2e.guardsCleared) {
-        const approachDeadline = Date.now() + 165000;
-        let approachStrides = 0;
-        let approachBypasses = 0;
-        let lastCacheDist = null;
-        const parseHudDist = () => {
-          const m = latestRecovery()?.line?.match(/(\d+)\s*m\b/i);
-          const n = m ? Number(m[1]) : NaN;
-          return Number.isFinite(n) ? n : null;
-        };
-        const countCacheEmissionsSince = (idx) => {
-          let n = 0;
-          for (let i = idx; i < consoleLines.length; i += 1) {
-            if (consoleLines[i].includes('Recovery Cache QA: id=verdant_seed_vault')) n += 1;
-          }
-          return n;
-        };
-        const waitNextCacheTick = async (maxMs = 2500) => {
+        const waitReadyCacheTick = async (maxMs = 2000) => {
           const startIdx = consoleLines.length;
           const deadline = Date.now() + maxMs;
           while (Date.now() < deadline) {
             if (latestRecovery()?.action === 'secure') return null;
-            const fresh = parseProjection('Recovery Cache QA: id=verdant_seed_vault', startIdx);
+            const fresh = parseProjection(`Recovery Cache QA: id=${RECOVERY_CACHE_ID}`, startIdx);
             if (fresh) return fresh;
             await new Promise((r) => setTimeout(r, 45));
           }
-          return parseProjection('Recovery Cache QA: id=verdant_seed_vault', Math.max(0, startIdx - 6));
+          return parseProjection(`Recovery Cache QA: id=${RECOVERY_CACHE_ID}`, Math.max(0, startIdx - 6));
         };
-        // Sidestep to an exact ~3.2m lateral offset measured optically from Seed Vault's
-        // live screen projection (`lateralMeters = dist * ((cx - x) / focalPx)`), then
-        // sprint straight parallel without turning back into the center collider so the
-        // lane passes at 3.2m (< 5.0m interaction_radius) on both 2 FPS CI and 60 FPS!
-        const bypassViaParallelValley = async () => {
-          const alignProj = await waitNextCacheTick(1500);
-          if (alignProj && !alignProj.behind) {
-            const alignErr = alignProj.x - alignProj.vpW * 0.5;
-            if (Math.abs(alignErr) > 28) {
-              await steerAim(Math.max(-420, Math.min(420, alignErr * 0.8)), 0);
-            }
-          }
-          const plan = [
-            { key: 'KeyD', inward: 'KeyA', targetMeters: 3.25 },
-            { key: 'KeyD', inward: 'KeyA', targetMeters: 3.75 },
-            { key: 'KeyA', inward: 'KeyD', targetMeters: 3.25 },
-            { key: 'KeyD', inward: 'KeyA', targetMeters: 2.65 },
-          ][approachBypasses % 4];
-          approachBypasses += 1;
-          await releaseAds();
-          // Back out 2 engine ticks (~2.2m) first so Sable exits the V-shaped pocket
-          // between adjacent hexagonal DeckPlates at dist~9.5m before sidestepping!
-          await page.keyboard.down('ShiftLeft');
-          await page.keyboard.down('KeyS');
-          try {
-            await waitNextCacheTick(2200);
-            await waitNextCacheTick(2200);
-          } finally {
-            await page.keyboard.up('KeyS').catch(() => {});
-            await page.keyboard.up('ShiftLeft').catch(() => {});
-          }
-          if (latestRecovery()?.action === 'secure') {
-            e2e.secureOffered = true;
-            return;
-          }
-          await page.keyboard.down('ShiftLeft');
-          await page.keyboard.down(plan.key);
-          try {
-            const sideDeadline = Date.now() + 12000;
-            while (Date.now() < sideDeadline && Date.now() < approachDeadline) {
-              if (latestRecovery()?.action === 'secure') {
-                e2e.secureOffered = true;
-                return;
-              }
-              const live = await waitNextCacheTick(1600);
-              if (latestRecovery()?.action === 'secure') {
-                e2e.secureOffered = true;
-                return;
-              }
-              if (live && live.dist !== null && !live.behind) {
-                const focalPx = live.vpW * 0.453;
-                const lateral = Math.abs(live.dist * ((live.vpW * 0.5 - live.x) / focalPx));
-                if (lateral >= plan.targetMeters) break;
-              }
-            }
-          } finally {
-            await page.keyboard.up(plan.key).catch(() => {});
-            await page.keyboard.up('ShiftLeft').catch(() => {});
-          }
-          if (e2e.secureOffered || latestRecovery()?.action === 'secure') {
-            e2e.secureOffered = true;
-            return;
-          }
-          // Sprint straight parallel up the 3.25m lane until Secure activates or forward
-          // distance stops shrinking for 3 engine ticks.
-          let laneBest = Infinity;
-          let laneStall = 0;
-          await page.keyboard.down('ShiftLeft');
-          await page.keyboard.down('KeyW');
-          try {
-            const fwdDeadline = Date.now() + 24000;
-            while (Date.now() < fwdDeadline && Date.now() < approachDeadline) {
-              if (latestRecovery()?.action === 'secure') {
-                e2e.secureOffered = true;
-                return;
-              }
-              const live = await waitNextCacheTick(1800);
-              if (latestRecovery()?.action === 'secure') {
-                e2e.secureOffered = true;
-                return;
-              }
-              if (live && live.dist !== null) {
-                lastCacheDist = live.dist;
-                if (live.dist < laneBest - 0.15) {
-                  laneBest = live.dist;
-                  laneStall = 0;
-                } else {
-                  laneStall += 1;
-                  if (laneStall >= 3) break;
-                }
-              }
-            }
-          } finally {
-            await page.keyboard.up('KeyW').catch(() => {});
-            await page.keyboard.up('ShiftLeft').catch(() => {});
-          }
-          if (e2e.secureOffered || latestRecovery()?.action === 'secure') {
-            e2e.secureOffered = true;
-            return;
-          }
-          // If the parallel lane brought us right onto the 5.2m arch ring against one
-          // narrow rib, face Seed Vault and slip diagonally (`KeyD+KeyW`, then `KeyA+KeyW`)
-          // 0.5m through the open rib gap into the <=5.0m Secure trigger!
-          // Once on the raised shrine deck against the outer arch leg (~5.2m at
-          // `[+-3.2, +7.0]`), execute a clean L-hook in engine ticks: step back 1 tick
-          // (`KeyS`) off the arch leg, pure lateral strafe (`plan.inward` WITHOUT `KeyW`)
-          // into the `x ~ +-1.2m` central archway, then `KeyW` straight to Seed Vault!
-          if (lastCacheDist !== null && lastCacheDist <= 6.8) {
-            await releaseAds();
-            // Step A: 1 engine tick back off the arch leg collider.
-            await page.keyboard.down('ShiftLeft');
-            await page.keyboard.down('KeyS');
-            try {
-              await waitNextCacheTick(2200);
-            } finally {
-              await page.keyboard.up('KeyS').catch(() => {});
-              await page.keyboard.up('ShiftLeft').catch(() => {});
-            }
-            if (latestRecovery()?.action === 'secure') {
-              e2e.secureOffered = true;
-              return;
-            }
-            // Step B: pure inward strafe (`KeyA` from east, `KeyD` from west) until
-            // lateral offset shrinks to <= 1.35m (directly aligned with the open arch).
-            await page.keyboard.down('ShiftLeft');
-            await page.keyboard.down(plan.inward);
-            try {
-              const hookDeadline = Date.now() + 14000;
-              let hookTicks = 0;
-              while (Date.now() < hookDeadline && Date.now() < approachDeadline) {
-                if (latestRecovery()?.action === 'secure') {
-                  e2e.secureOffered = true;
-                  return;
-                }
-                const live = await waitNextCacheTick(2000);
-                if (latestRecovery()?.action === 'secure') {
-                  e2e.secureOffered = true;
-                  return;
-                }
-                hookTicks += 1;
-                if (live && live.dist !== null && !live.behind) {
-                  lastCacheDist = live.dist;
-                  const focalPx = live.vpW * 0.453;
-                  const lateral = Math.abs(live.dist * ((live.vpW * 0.5 - live.x) / focalPx));
-                  if (lateral <= 1.35 || hookTicks >= 4) break;
-                } else if (hookTicks >= 3) {
-                  break;
-                }
-              }
-            } finally {
-              await page.keyboard.up(plan.inward).catch(() => {});
-              await page.keyboard.up('ShiftLeft').catch(() => {});
-            }
-            if (latestRecovery()?.action === 'secure') {
-              e2e.secureOffered = true;
-              return;
-            }
-            // Step C: straight forward (`KeyW`) through the wide-open arch doorway!
-            await page.keyboard.down('ShiftLeft');
-            await page.keyboard.down('KeyW');
-            try {
-              const enterDeadline = Date.now() + 16000;
-              let enterTicks = 0;
-              while (Date.now() < enterDeadline && Date.now() < approachDeadline) {
-                if (latestRecovery()?.action === 'secure') {
-                  e2e.secureOffered = true;
-                  return;
-                }
-                const live = await waitNextCacheTick(2000);
-                if (latestRecovery()?.action === 'secure') {
-                  e2e.secureOffered = true;
-                  return;
-                }
-                if (live && live.dist !== null) lastCacheDist = live.dist;
-                enterTicks += 1;
-                if (enterTicks >= 5) break;
-              }
-            } finally {
-              await page.keyboard.up('KeyW').catch(() => {});
-              await page.keyboard.up('ShiftLeft').catch(() => {});
-            }
-          }
-        };
-
+        const approachDeadline = Date.now() + 75000;
         while (Date.now() < approachDeadline) {
           if (latestRecovery()?.action === 'secure') {
             e2e.secureOffered = true;
             break;
           }
-          const proj = await waitNextCacheTick(1800);
+          const proj = await waitReadyCacheTick(1800);
           if (latestRecovery()?.action === 'secure') {
             e2e.secureOffered = true;
             break;
@@ -1506,156 +1277,75 @@ async function checkPage(target, viewport) {
           }
           if (proj) {
             const errX = proj.x - proj.vpW * 0.5;
-            const aimTol = (proj.dist ?? 20) <= 10.5 ? 50 : 90;
-            if (Math.abs(errX) > aimTol) {
+            if (Math.abs(errX) > 75) {
               await steerAim(Math.max(-520, Math.min(520, errX * 0.78)), 0);
               continue;
             }
           }
-          // Hold continuous forward sprint across engine ticks until either Secure
-          // activates, aim drifts >135 px off center, or 3 consecutive engine ticks
-          // make <0.15m forward progress (blocked by a dome rib or rock).
           await releaseAds();
-          approachStrides += 1;
-          let runBest = proj?.dist ?? parseHudDist() ?? Infinity;
-          let stalledTicks = 0;
-          let stalledOnObstacle = false;
           await page.keyboard.down('ShiftLeft');
           await page.keyboard.down('KeyW');
           try {
-            const burstEnd = Date.now() + 45000;
-            while (Date.now() < burstEnd && Date.now() < approachDeadline) {
+            const strideEnd = Date.now() + 900;
+            while (Date.now() < strideEnd) {
               if (latestRecovery()?.action === 'secure') {
                 e2e.secureOffered = true;
                 break;
               }
-              const live = await waitNextCacheTick(2500);
-              if (latestRecovery()?.action === 'secure') {
-                e2e.secureOffered = true;
-                break;
-              }
-              if (!live) continue;
-              const curDist = live.dist ?? parseHudDist();
-              if (curDist !== null) {
-                lastCacheDist = curDist;
-                if (curDist < runBest - 0.15) {
-                  runBest = curDist;
-                  stalledTicks = 0;
-                } else {
-                  stalledTicks += 1;
-                }
-              }
-              if (live.behind || Math.abs(live.x - live.vpW * 0.5) > 135) {
-                break;
-              }
-              if (stalledTicks >= 3) {
-                stalledOnObstacle = true;
-                break;
-              }
+              await new Promise((r) => setTimeout(r, 50));
             }
           } finally {
             await page.keyboard.up('KeyW').catch(() => {});
             await page.keyboard.up('ShiftLeft').catch(() => {});
           }
-          if (e2e.secureOffered || latestRecovery()?.action === 'secure') {
-            e2e.secureOffered = true;
-            break;
-          }
-          if (stalledOnObstacle) {
-            await bypassViaParallelValley();
-            if (e2e.secureOffered || latestRecovery()?.action === 'secure') {
-              e2e.secureOffered = true;
-              break;
-            }
-          }
         }
         await releaseAds();
-        e2e.diag = { lastCacheDist, approachStrides, approachBypasses };
       }
       await capture('ready-to-secure');
 
-      // 3. Explicit Secure -> Mission Complete (Extract vs Continue to Endless).
+      // 3. Explicit Secure -> persists Phase Thrusters schematic + 45 permanent BP.
       const beforeSecure = consoleLines.length;
       if (e2e.secureOffered) {
         await page.keyboard.press('KeyB');
-        e2e.missionCompleteShown = await awaitConsoleText(
+        e2e.blueprintSecured = await awaitConsoleText(
           page,
           consoleLines.slice(beforeSecure),
-          'Recovery Results QA: mode=extraction',
-          15000,
+          `Recovery: secured ${RECOVERY_CACHE_ID} · reward phase_thrusters_blueprint`,
+          12000,
         );
-        e2e.blueprintSecured = consoleLines
-          .slice(beforeSecure)
-          .some((l) => l.includes('Recovery: secured verdant_seed_vault · reward arc_shooter_blueprint'));
-        await new Promise((r) => setTimeout(r, 450));
+        // Allow Emscripten IDBFS + ProgressionService localStorage sync to flush.
+        await new Promise((r) => setTimeout(r, 1500));
       }
-      await capture('mission-complete');
+      await capture('cache-secured');
 
-      // 4. Choose Extract -> Mission Results (banked run #1 + Tier-2 promotion).
+      // 4. Open Pause menu -> Return HOME -> Shell Hub -> Verify Hero Tiers removed ->
+      // Select Scout Kestrel (96 HP / 4% DR) -> Redeploy into SH-01 Aetherfall.
       const clickCanvasPoint = async (pt) => {
-        const bounds = await page.evaluate(() => {
-          const r = document.querySelector('canvas')?.getBoundingClientRect();
-          return r ? { left: r.left, top: r.top } : { left: 0, top: 0 };
-        });
-        const px = bounds.left + pt.x;
-        const py = bounds.top + pt.y;
+        const px = canvasBounds.left + pt.x;
+        const py = canvasBounds.top + pt.y;
         await cdpMove(px, py, 0);
         await new Promise((r) => setTimeout(r, 90));
         await cdpButton('mousePressed', px, py, 'left', 1);
         await new Promise((r) => setTimeout(r, 90));
         await cdpButton('mouseReleased', px, py, 'left', 0);
       };
-      const latestResultsQa = (mode, fromIdx) => {
-        const line = [...consoleLines.slice(fromIdx)]
+      if (e2e.blueprintSecured && isFrontEnd) {
+        const beforePause = consoleLines.length;
+        await page.keyboard.press('Escape');
+        await awaitConsoleText(page, consoleLines.slice(beforePause), 'Pause QA:', 6000);
+        await capture('pause-menu');
+        const pauseLine = [...consoleLines.slice(beforePause)]
           .reverse()
-          .find((l) => l.includes(`Recovery Results QA: mode=${mode}`));
-        if (!line) return null;
-        return {
-          primary: parseVector(line.match(/\bprimary=([^\s]+)/)?.[1]),
-          home: parseVector(line.match(/\bhome=([^\s]+)/)?.[1]),
-          line,
-        };
-      };
-      const beforeExtract = consoleLines.length;
-      if (e2e.missionCompleteShown) {
-        const extUi = latestResultsQa('extraction', beforeSecure);
-        if (extUi?.primary) await clickCanvasPoint(extUi.primary);
-        else await page.keyboard.press('Enter');
-        e2e.extractedResultsShown = await awaitConsoleText(
-          page,
-          consoleLines.slice(beforeExtract),
-          'Recovery Results QA: mode=results',
-          5000,
-        );
-        if (!e2e.extractedResultsShown) {
-          await page.keyboard.press('Enter');
-          e2e.extractedResultsShown = await awaitConsoleText(
-            page,
-            consoleLines.slice(beforeExtract),
-            'Recovery Results QA: mode=results',
-            12000,
-          );
-        }
-        const bankLines = consoleLines
-          .slice(beforeExtract)
-          .filter((l) => l.includes('Progression: banked'));
-        e2e.runBankedOnce = bankLines.length === 1 && bankLines[0].includes('runs 1 · tier 2');
-        // Allow Emscripten IDBFS to commit user://progression.cfg to IndexedDB before reload.
-        await new Promise((r) => setTimeout(r, 1500));
-      }
-      await capture('results-extracted');
-
-      // 5. Return HOME -> Shell Hub -> Operative Tier 2 -> Redeploy at 106 vitals.
-      if (e2e.extractedResultsShown && isFrontEnd) {
-        const resUi = latestResultsQa('results', beforeExtract);
-        // ResultsRetryButton owns GUI focus on open; keep focus intact (clicking
-        // non-button panel surface clears focus) and step down to ResultsHomeButton
-        // with >=500ms spacing so SwiftShader processes each key event cleanly.
+          .find((l) => l.includes('Pause QA:'));
+        const pauseHomePt = parseVector(pauseLine?.match(/\bhome=([^\s]+)/)?.[1]);
         await page.keyboard.press('ArrowDown').catch(() => {});
-        await new Promise((r) => setTimeout(r, 520));
+        await new Promise((r) => setTimeout(r, 420));
         await page.keyboard.press('ArrowDown').catch(() => {});
-        await new Promise((r) => setTimeout(r, 520));
+        await new Promise((r) => setTimeout(r, 420));
+        await page.keyboard.press('ArrowRight').catch(() => {});
+        await new Promise((r) => setTimeout(r, 420));
         await page.keyboard.press('Enter').catch(() => {});
+
         const hubDeadline = Date.now() + 45000;
         let triedClickFallback = false;
         while (Date.now() < hubDeadline) {
@@ -1666,10 +1356,10 @@ async function checkPage(target, viewport) {
             e2e.returnedToHub = true;
             break;
           }
-          if (!triedClickFallback && hubDeadline - Date.now() < 22000) {
+          if (!triedClickFallback && hubDeadline - Date.now() < 28000) {
             triedClickFallback = true;
-            if (resUi?.home && cdp) {
-              await clickCanvasPoint(resUi.home).catch(() => {});
+            if (pauseHomePt && cdp) {
+              await clickCanvasPoint(pauseHomePt).catch(() => {});
             }
           }
           await new Promise((r) => setTimeout(r, 350));
@@ -1680,30 +1370,27 @@ async function checkPage(target, viewport) {
         }
 
         if (e2e.returnedToHub) {
-          const mirrorCheck = await page.evaluate(() => {
-            const runsRaw = localStorage.getItem('aegis.runs');
+          const mirrorCheck = await page.evaluate((cacheId) => {
             let progress = null;
             try {
               progress = JSON.parse(localStorage.getItem('aegis.progress') || 'null');
             } catch {
               progress = null;
             }
-            const blueprints = progress?.blueprints;
-            const arcBlueprint = Array.isArray(blueprints)
-              ? blueprints.includes('arc_shooter')
-              : Boolean(blueprints?.arc_shooter);
+            const modBps = progress?.module_blueprints;
+            const hasPhase = Array.isArray(modBps)
+              ? modBps.includes('phase_thrusters')
+              : Boolean(modBps?.phase_thrusters);
             return {
-              runsRaw,
-              runs: progress?.runs ?? null,
-              arcBlueprint,
-              seedSecured: Boolean(progress?.secured_caches?.verdant_seed_vault),
+              balance: Number(progress?.balance ?? 0),
+              hasPhase,
+              cacheSecured: Boolean(progress?.secured_caches?.[cacheId]),
             };
-          });
+          }, RECOVERY_CACHE_ID);
           e2e.mirrorCheck = mirrorCheck;
-          e2e.mirrorSynced = mirrorCheck.runsRaw === '1'
-            && mirrorCheck.runs === 1
-            && mirrorCheck.arcBlueprint
-            && mirrorCheck.seedSecured;
+          e2e.mirrorSynced = mirrorCheck.balance >= 45
+            && mirrorCheck.hasPhase
+            && mirrorCheck.cacheSecured;
 
           await page.evaluate(() => document.getElementById('hub-card-operative')?.click());
           await page.waitForFunction(
@@ -1711,57 +1398,51 @@ async function checkPage(target, viewport) {
               && document.getElementById('screen-hero')?.dataset?.ready === 'true',
             { timeout: 25000 },
           ).catch(() => {});
-          await page.evaluate(() =>
-            document.querySelector('#hero-tiers .tierstep[data-tier="2"]')?.click());
           await new Promise((r) => setTimeout(r, 450));
-          const tierReadout = await page.evaluate(() => {
-            const step = document.querySelector('#hero-tiers .tierstep[data-tier="2"]');
-            return {
-              checked: step?.getAttribute('aria-checked') === 'true',
-              locked: step?.dataset?.locked === 'true',
-              vitals: document.getElementById('hero-stat-vitals')?.textContent?.trim() || '',
-              armour: document.getElementById('hero-stat-armour')?.textContent?.trim() || '',
-            };
-          });
-          e2e.tier2Selected = tierReadout.checked && !tierReadout.locked && tierReadout.vitals === '106' && tierReadout.armour === '3%';
-          e2e.tier2VitalsReadout = tierReadout;
-          await capture('operative-tier2');
+          const sableReadout = await page.evaluate(() => ({
+            tierSteps: document.querySelectorAll('#hero-tiers .tierstep').length,
+            vitals: document.getElementById('hero-stat-vitals')?.textContent?.trim() || '',
+            armour: document.getElementById('hero-stat-armour')?.textContent?.trim() || '',
+          }));
+          e2e.heroTiersRemovedInDom = sableReadout.tierSteps === 0
+            && sableReadout.vitals === '110'
+            && sableReadout.armour === '6%';
+          await capture('operative-sable-tierfree');
 
-          await page.evaluate(() => document.getElementById('hero-loadout')?.click());
-          await new Promise((r) => setTimeout(r, 400));
-          const arcRackState = await page.evaluate(() => {
-            const node = document.querySelector('#hero-rack .rackcard[data-weapon="arc_shooter"] .rackcard__state');
-            return node ? node.textContent.trim() : '';
-          });
-          e2e.arcRackState = arcRackState;
-          e2e.arcBlueprintEligibleInRack = arcRackState.includes('250') && !/blueprint/i.test(arcRackState);
-          await capture('rack-arc-eligible');
-          await page.evaluate(() => document.getElementById('weapon-modal-close')?.click());
-          await new Promise((r) => setTimeout(r, 250));
+          await page.evaluate(() =>
+            document.querySelector('#hero-roster [data-hero="kestrel"]')?.click());
+          await new Promise((r) => setTimeout(r, 500));
+          const kestrelReadout = await page.evaluate(() => ({
+            vitals: document.getElementById('hero-stat-vitals')?.textContent?.trim() || '',
+            armour: document.getElementById('hero-stat-armour')?.textContent?.trim() || '',
+          }));
+          e2e.kestrelReadout = kestrelReadout;
+          e2e.kestrelSelected = kestrelReadout.vitals === '96' && kestrelReadout.armour === '4%';
+          await capture('operative-kestrel-96hp');
 
           await page.evaluate(() => document.getElementById('hero-next')?.click());
           await page.waitForFunction(() => document.body?.dataset?.screen === 'hub', { timeout: 15000 }).catch(() => {});
-          await capture('hub-tier2-ready');
+          await capture('hub-kestrel-ready');
           await page.evaluate(() => {
-            document.getElementById('world-card-verdant-bloom')?.click();
+            document.getElementById('world-card-aetherfall')?.click();
           });
           const beforeRedeploy = consoleLines.length;
           await page.evaluate(() => document.getElementById('hub-deploy')?.click());
-          e2e.redeployedTier2Vitals106 = await awaitConsoleText(
+          e2e.redeployedKestrelVitals96 = await awaitConsoleText(
             page,
             consoleLines.slice(beforeRedeploy),
-            'Operative: hero=sable tier=2/2 vitals=106 reduction=3%',
+            'Operative: hero=kestrel vitals=96 reduction=4%',
             Math.max(150000, bootTimeoutMs),
           );
           await awaitConsoleText(page, consoleLines.slice(beforeRedeploy), 'Recovery QA:', 30000);
           await page
             .waitForFunction(() => document.body?.dataset?.mode === 'playing', { timeout: 15000 })
             .catch(() => {});
-          await new Promise((r) => setTimeout(r, 2500));
-          e2e.redeploySeedVaultSecured = consoleLines
+          await new Promise((r) => setTimeout(r, 2000));
+          e2e.redeployCachePersisted = consoleLines
             .slice(beforeRedeploy)
-            .some((l) => l.includes('Recovery QA:') && l.includes('LAB CACHE'));
-          await capture('redeploy-tier2-106hp');
+            .some((l) => l.includes('Recovery QA:') && l.includes('HORIZON RELAY'));
+          await capture('redeploy-kestrel-96hp');
         }
       }
       } catch (e2eErr) {
@@ -2031,29 +1712,28 @@ async function checkPage(target, viewport) {
     checks.push(['ADS hold/look/release frames were captured', adsFrames.length === 3]);
   }
   if (recoveryMode) {
-    checks.push(['Recovery pass reached Verdant gameplay', inGameplay && selectedWorld === 'verdant_bloom']);
-    checks.push(['Seed Vault offered explicit Engage in interaction range', recoveryEvidence?.engageOffered === true]);
-    checks.push(['Engage produced two live Recovery guards', recoveryEvidence?.guardsActive === true]);
-    checks.push(['both Recovery guards loaded real GLB visuals without fallback', recoveryEvidence?.guardModels?.length === 2]);
+    checks.push(['Recovery pass reached SH-01 Aetherfall gameplay', inGameplay && selectedWorld === 'aetherfall']);
+    checks.push(['Arrival Tech Cache offered explicit Engage in interaction range', recoveryEvidence?.engageOffered === true]);
+    checks.push(['Engage produced two live Recovery robot guards', recoveryEvidence?.guardsActive === true]);
+    checks.push(['both Recovery guards loaded rigged 3D robot GLBs without fallback', recoveryEvidence?.guardModels?.length === 2]);
     checks.push(['active guards kept Secure locked and blocked generic Defense', recoveryEvidence?.secureLocked === true]);
     checks.push([
       recoveryE2eMode
-        ? 'Recovery E2E frames captured across combat, secure, extract, Tier-2, and redeploy'
+        ? 'Recovery E2E frames captured across combat, secure, pause, tier-free Kestrel switch, and redeploy'
         : 'Recovery landing, offer, guarded and contact frames were captured',
-      recoveryE2eMode ? recoveryFrames.length >= 9 : recoveryFrames.length === 4,
+      recoveryE2eMode ? recoveryFrames.length >= 8 : recoveryFrames.length === 4,
     ]);
     if (recoveryE2eMode) {
       const e2e = recoveryEvidence?.e2e;
-      checks.push(['Run 1 spawned Sable at Tier 1 with 100 vitals', e2e?.initialTier1Vitals100 === true]);
+      checks.push(['Run 1 spawned Sable with canonical tier-free 110 vitals and 6% armor', e2e?.initialVitals110 === true]);
       checks.push(['Escalating directional guidance reported active stage in HUD', e2e?.guidanceObserved === true]);
-      checks.push(['Both live Seed Vault guards were defeated via real combat input', e2e?.guardsCleared === true]);
-      checks.push(['Seed Vault transitioned to explicit Secure offer after guard clear', e2e?.secureOffered === true]);
-      checks.push(['Explicit Secure persisted Arc Shooter blueprint and opened Mission Complete', e2e?.blueprintSecured === true && e2e?.missionCompleteShown === true]);
-      checks.push(['Extract banked Run #1 once and presented Extraction Results', e2e?.extractedResultsShown === true && e2e?.runBankedOnce === true]);
-      checks.push(['Results HOME returned to shell Hub with synced localStorage progress', e2e?.returnedToHub === true && e2e?.mirrorSynced === true]);
-      checks.push(['Operative Tier 2 unlocked and selected with 106 vitals and 3% armor', e2e?.tier2Selected === true]);
-      checks.push(['Weapon rack reflects unlocked Arc Shooter blueprint eligibility (250 BP)', e2e?.arcBlueprintEligibleInRack === true]);
-      checks.push(['Redeploy spawned Sable at Tier 2 with 106 vitals and preserved Seed Vault secure state', e2e?.redeployedTier2Vitals106 === true && e2e?.redeploySeedVaultSecured === true]);
+      checks.push(['Movable [+] cursor crosshair aimed and defeated both 3D robot guards', e2e?.cursorAimFired === true && e2e?.guardsCleared === true]);
+      checks.push(['Arrival Tech Cache transitioned to explicit Secure offer after guard clear', e2e?.secureOffered === true]);
+      checks.push(['Explicit Secure persisted Phase Thrusters schematic and 45 permanent BP', e2e?.blueprintSecured === true]);
+      checks.push(['Pause HOME returned to shell Hub with synced localStorage progress', e2e?.returnedToHub === true && e2e?.mirrorSynced === true]);
+      checks.push(['Web Hub Operative stage has zero Hero Tier controls and shows Sable 110 HP / 6% DR', e2e?.heroTiersRemovedInDom === true]);
+      checks.push(['Selecting Scout Kestrel updates Web Hub vitals to 96 HP and 4% armor', e2e?.kestrelSelected === true]);
+      checks.push(['Redeploy spawned Kestrel at 96 vitals and preserved Aetherfall cache state', e2e?.redeployedKestrelVitals96 === true && e2e?.redeployCachePersisted === true]);
     }
   }
   if (selectWorld) {

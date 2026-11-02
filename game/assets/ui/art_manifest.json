@@ -97,78 +97,22 @@
       "within_palette": true
     },
     {
-      "key": "world_frostline_relay",
-      "file": "res://assets/ui/world_frostline_relay.jpg",
+      "key": "world_aetherfall",
+      "file": "res://assets/ui/world_aetherfall.jpg",
       "format": "JPEG",
-      "source": "res://assets/ui/generated/world_frostline_relay.png",
+      "source": "res://assets/ui/generated/world_aetherfall.png",
       "size": [
         1600,
         900
       ],
       "mode": "cover",
       "palette": {
-        "navy": 0.7338,
-        "cyan": 0.1396,
-        "steel": 0.1266
-      },
-      "off_palette_share": 0.0,
-      "within_palette": true
-    },
-    {
-      "key": "world_verdant_bloom",
-      "file": "res://assets/ui/world_verdant_bloom.jpg",
-      "format": "JPEG",
-      "source": "res://assets/ui/generated/world_verdant_bloom.png",
-      "size": [
-        1600,
-        900
-      ],
-      "mode": "cover",
-      "palette": {
-        "amber": 0.5054,
-        "red": 0.49,
-        "steel": 0.004,
-        "off-palette": 0.0006
-      },
-      "off_palette_share": 0.0006,
-      "within_palette": true
-    },
-    {
-      "key": "world_emberfall_foundry",
-      "file": "res://assets/ui/world_emberfall_foundry.jpg",
-      "format": "JPEG",
-      "source": "res://assets/ui/generated/world_emberfall_foundry.png",
-      "size": [
-        1600,
-        900
-      ],
-      "mode": "cover",
-      "palette": {
-        "cyan": 0.5009,
-        "navy": 0.4966,
-        "shadow": 0.0017,
-        "green": 0.0005,
-        "amber": 0.0002,
-        "off-palette": 0.0001
-      },
-      "off_palette_share": 0.0001,
-      "within_palette": true
-    },
-    {
-      "key": "world_titans",
-      "file": "res://assets/ui/world_titans.jpg",
-      "format": "JPEG",
-      "source": "res://assets/ui/generated/world_titans.png",
-      "size": [
-        1600,
-        900
-      ],
-      "mode": "cover",
-      "palette": {
-        "cyan": 0.9346,
-        "navy": 0.0653,
-        "steel": 0.0001,
-        "green": 0.0
+        "navy": 0.8837,
+        "cyan": 0.0605,
+        "steel": 0.0497,
+        "amber": 0.0044,
+        "shadow": 0.0013,
+        "green": 0.0004
       },
       "off_palette_share": 0.0,
       "within_palette": true

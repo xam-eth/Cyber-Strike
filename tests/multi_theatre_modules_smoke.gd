@@ -28,50 +28,46 @@ func _run() -> void:
 
 
 func _test_multi_theatre_world_definitions() -> void:
-	var frostline := WorldDefinition.load_definition(&"frostline_relay")
 	_expect(
-		frostline != null and not frostline.has_recovery_caches(),
-		"Frostline Relay remains a pure Wave Defense baseline theatre",
+		(
+			WorldDefinition.DEFINITION_IDS.size() == 1
+			and WorldDefinition.DEFINITION_IDS[0] == &"aetherfall"
+		),
+		"WorldDefinition registry ships SH-01 Aetherfall as the single canonical campaign world",
 	)
+	var aetherfall := WorldDefinition.load_definition(&"aetherfall")
+	if not _expect(
+		aetherfall != null and aetherfall.recovery_caches.size() == 4,
+		"SH-01 Aetherfall defines 4 landmark expedition caches",
+	):
+		return
 	var expected := {
-		"verdant_bloom": {"primary_wpn": &"arc_shooter", "primary_mod": &"", "bp": 80},
-		"emberfall_foundry": {"primary_wpn": &"", "primary_mod": &"breach_capacitor", "bp": 90},
-		"vanguard_station": {"primary_wpn": &"", "primary_mod": &"phase_thrusters", "bp": 85},
-		"titans": {"primary_wpn": &"", "primary_mod": &"storm_conductor", "bp": 105},
+		"aetherfall_horizon_relay":
+		{"optional": false, "wpn": &"", "mod": &"breach_capacitor", "bp": 50},
+		"aetherfall_archive_vault":
+		{"optional": false, "wpn": &"", "mod": &"storm_conductor", "bp": 75},
+		"aetherfall_primary_tech_cache":
+		{"optional": true, "wpn": &"", "mod": &"phase_thrusters", "bp": 45},
+		"aetherfall_hangar_cache": {"optional": true, "wpn": &"arc_shooter", "mod": &"", "bp": 95},
 	}
 	var seen_cache_ids: Dictionary = {}
-	for world_key in expected.keys():
-		var wdef := WorldDefinition.load_definition(StringName(world_key))
-		var spec: Dictionary = expected[world_key]
-		if not _expect(
-			wdef != null and wdef.recovery_caches.size() == 2,
-			"%s defines exactly 2 authored expedition caches" % world_key,
-		):
+	for item in aetherfall.recovery_caches:
+		var c := item as RecoveryCacheDefinition
+		if not _expect(c != null and expected.has(String(c.cache_id)), "known Aetherfall cache"):
 			continue
-		var primary := wdef.recovery_caches[0] as RecoveryCacheDefinition
-		var optional := wdef.recovery_caches[1] as RecoveryCacheDefinition
+		var spec: Dictionary = expected[String(c.cache_id)]
 		_expect(
 			(
-				primary != null
-				and not primary.optional
-				and primary.blueprint_id == spec["primary_wpn"]
-				and primary.module_id == spec["primary_mod"]
+				c.optional == bool(spec["optional"])
+				and c.blueprint_id == spec["wpn"]
+				and c.module_id == spec["mod"]
+				and c.bp_reward == int(spec["bp"])
+				and not seen_cache_ids.has(c.cache_id)
 			),
-			"%s primary cache maps to canonical schematic reward" % world_key,
+			"%s matches Aetherfall landmark reward contract" % c.cache_id,
 		)
-		_expect(
-			optional != null and optional.optional and optional.bp_reward == int(spec["bp"]),
-			"%s optional cache grants %d permanent BP" % [world_key, int(spec["bp"])],
-		)
-		for item in wdef.recovery_caches:
-			var c := item as RecoveryCacheDefinition
-			_expect(
-				c != null and not seen_cache_ids.has(c.cache_id),
-				"cache_id %s is globally unique across theatres" % c.cache_id,
-			)
-			if c != null:
-				seen_cache_ids[c.cache_id] = true
-	_expect(seen_cache_ids.size() == 8, "frontier defines 8 distinct expedition caches in total")
+		seen_cache_ids[c.cache_id] = true
+	_expect(seen_cache_ids.size() == 4, "Aetherfall defines all 4 unique schematics + BP rewards")
 
 
 func _test_progression_module_rules_and_persistence() -> void:
@@ -244,7 +240,7 @@ func _test_combat_hooks_and_run_reset_isolation() -> void:
 
 func _test_live_expedition_and_armory_field_kit_ui() -> void:
 	root.size = Vector2i(667, 375)
-	var prev_world := WorldSelection.override_selection(&"emberfall_foundry")
+	var prev_world := WorldSelection.override_selection(&"aetherfall")
 	var main_scene := MainScene.instantiate()
 	main_scene.set("start_wave_session_on_ready", false)
 	var prog: ProgressionService = main_scene.get_node("ProgressionService")
@@ -256,25 +252,34 @@ func _test_live_expedition_and_armory_field_kit_ui() -> void:
 
 	var caches_root := main_scene.get_node_or_null("RecoveryCaches")
 	_expect(
-		caches_root != null and caches_root.get_child_count() == 2,
-		"Emberfall Foundry spawns 2 live RecoveryCacheVisual landmarks outside MissionWorld",
+		caches_root != null and caches_root.get_child_count() == 4,
+		"SH-01 Aetherfall spawns 4 live RecoveryCacheVisual landmarks outside MissionWorld",
 	)
 
-	# Simulate clearing guards and securing Emberfall primary schematic cache.
-	var primary := (main_scene.get("_recovery_caches") as Array)[0] as RecoveryCacheDefinition
+	# Simulate clearing guards and securing both required Aetherfall landmarks.
+	var caches := main_scene.get("_recovery_caches") as Array
+	var relay := caches[0] as RecoveryCacheDefinition
+	var archive := caches[1] as RecoveryCacheDefinition
 	var player := main_scene.get_node("Player") as Node3D
-	player.global_position = primary.position + Vector3(0.0, 0.2, 1.5)
-	(main_scene.get("_recovery_states") as Dictionary)[primary.cache_id] = 2
-	var secured := bool(main_scene.call("_secure_cache", primary))
+	player.global_position = relay.position + Vector3(0.0, 0.2, 1.5)
+	(main_scene.get("_recovery_states") as Dictionary)[relay.cache_id] = 2
+	var secured_relay := bool(main_scene.call("_secure_cache", relay))
 	_expect(
-		secured and prog.has_blueprint(&"breach_capacitor"),
-		"securing Emberfall Seam Core grants Breach Capacitor schematic and opens extraction choice",
+		secured_relay and prog.has_blueprint(&"breach_capacitor") and not paused,
+		"securing Horizon Relay grants Breach Capacitor schematic and chains to Sentinel Archive",
+	)
+	player.global_position = archive.position + Vector3(0.0, 0.2, 1.5)
+	(main_scene.get("_recovery_states") as Dictionary)[archive.cache_id] = 2
+	var secured_archive := bool(main_scene.call("_secure_cache", archive))
+	_expect(
+		secured_archive and prog.has_blueprint(&"storm_conductor"),
+		"securing Sentinel Archive grants Storm Conductor schematic and opens extraction choice",
 	)
 	var hud := main_scene.get_node("HUD/TouchControls") as Control
 	var reward_lbl := hud.get("_results_reward_label") as Label
 	_expect(
-		bool(hud.call("_results_visible")) and reward_lbl.text.contains("BREACH CAPACITOR"),
-		"extraction choice displays Breach Capacitor schematic reward",
+		bool(hud.call("_results_visible")) and reward_lbl.text.contains("STORM CONDUCTOR"),
+		"extraction choice displays final required schematic reward",
 	)
 
 	# Continue to field, grant BP, open Armory on 667x375, switch to FIELD KIT tab, unlock + equip.

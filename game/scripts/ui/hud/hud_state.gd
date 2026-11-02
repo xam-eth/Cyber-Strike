@@ -34,7 +34,6 @@ var preparation_seconds: int = 0
 ## its two actions mean Extract and Continue, never Retry or abandon the run.
 var results_mode: String = "results"
 var results_extracted: bool = false
-var results_promoted_tier: int = 0
 var results_arc_blueprint: bool = false
 ## Main's current Recovery presentation. Empty action means no field interaction
 ## is available; these values never authorize a spawn, secure, or reward.
@@ -68,9 +67,11 @@ var guardian_phase: String = "fortified"
 ## Fielded operative telemetry supplied by Main/ProgressionService (presentation only).
 var operative_id: StringName = &"sable"
 var operative_skill_id: StringName = &"emp_pulse"
-var operative_tier: int = 1
 var operative_armor_pct: int = 0
 var field_kit_tags: String = ""
 ## World-space waypoint supplied by Main for the top bearing compass (presentation only).
 var objective_has_target: bool = false
 var objective_world_pos: Vector3 = Vector3.ZERO
+## Live screen-space reticle position driven by the cursor on desktop (center on touch).
+var reticle_pos: Vector2 = Vector2(-1.0, -1.0)
+var cursor_aim_active: bool = false

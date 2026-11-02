@@ -245,7 +245,7 @@ try {
     baseUrl: insecureUrl,
     locale: 'id',
     removeAudio: false,
-    query: '&ui=launch&qa_world=frostline_relay',
+    query: '&ui=launch&qa_world=aetherfall',
     expectedScreen: 'launch',
     expect: (state, check) => {
       check(state.secure === false, 'direct-DEPLOY URL was not a real insecure context');

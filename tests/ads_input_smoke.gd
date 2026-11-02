@@ -57,22 +57,32 @@ func _run() -> void:
 		)
 		rig.yaw_pivot.rotation.y = 0.0
 		rig.pitch_pivot.rotation.x = 0.0
+		controls.set_touch_mode(false)
+		var center_pos := root.get_visible_rect().get_center()
+		var center_motion := InputEventMouseMotion.new()
+		center_motion.position = center_pos
+		center_motion.relative = Vector2.ZERO
+		Input.parse_input_event(center_motion)
+		await physics_frame
+		var aim_center: Vector3 = player.call("_get_aim_point")
+
+		var off_pos := Vector2(center_pos.x + 180.0, center_pos.y - 70.0)
+		var cursor_move := InputEventMouseMotion.new()
+		cursor_move.position = off_pos
+		cursor_move.relative = off_pos - center_pos
+		Input.parse_input_event(cursor_move)
+		await physics_frame
+		var reticle_now: Vector2 = player.call("_reticle_screen_position")
+		var aim_off: Vector3 = player.call("_get_aim_point")
+		_expect(
+			reticle_now.distance_to(off_pos) < 2.0 and aim_off.distance_to(aim_center) > 2.5,
+			"%s movable [+] reticle tracks cursor position and steers 3D aim point" % id
+		)
+
 		var yaw_before: float = rig.yaw_pivot.rotation.y
 		var pitch_before: float = rig.pitch_pivot.rotation.x
-		var capture_warp := InputEventMouseMotion.new()
-		capture_warp.position = root.get_visible_rect().get_center()
-		capture_warp.relative = Vector2(640, 360)
-		Input.parse_input_event(capture_warp)
-		await physics_frame
-		_expect(
-			(
-				is_equal_approx(yaw_before, rig.yaw_pivot.rotation.y)
-				and is_equal_approx(pitch_before, rig.pitch_pivot.rotation.x)
-			),
-			"%s ignores the initial pointer-lock capture warp" % id
-		)
 		var motion := InputEventMouseMotion.new()
-		motion.position = root.get_visible_rect().get_center()
+		motion.position = off_pos + Vector2(28, -12)
 		motion.relative = Vector2(28, -12)
 		Input.parse_input_event(motion)
 		await physics_frame

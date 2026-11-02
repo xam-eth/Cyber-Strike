@@ -1,33 +1,20 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/enemies/shooter.gd" id="1_shooter"]
 [ext_resource type="Script" path="res://scripts/enemies/enemy_visual.gd" id="2_enemy_visual"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape_shooter"]
-radius = 0.36
-height = 1.65
+radius = 0.4
+height = 1.98
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_shooter"]
-radius = 0.36
-height = 1.65
+radius = 0.4
+height = 1.98
 
 [sub_resource type="StandardMaterial3D" id="Material_shooter"]
 albedo_color = Color(0.22, 0.18, 0.55, 1)
 metallic = 0.42
 roughness = 0.38
-emission_enabled = true
-emission = Color(0.12, 0.06, 0.28, 1)
-
-[sub_resource type="SphereMesh" id="SphereMesh_core"]
-radius = 0.22
-height = 0.44
-
-[sub_resource type="StandardMaterial3D" id="Material_core"]
-albedo_color = Color(0.12, 0.85, 1, 1)
-metallic = 0.18
-roughness = 0.2
-emission_enabled = true
-emission = Color(0.04, 0.75, 1, 1)
 
 [sub_resource type="SphereMesh" id="SphereMesh_aim"]
 radius = 0.18
@@ -45,30 +32,26 @@ collision_mask = 1
 script = ExtResource("1_shooter")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-position = Vector3(0, 0.825, 0)
+position = Vector3(0, 0.99, 0)
 shape = SubResource("CapsuleShape_shooter")
 
 [node name="Visuals" type="Node3D" parent="."]
 script = ExtResource("2_enemy_visual")
-model_scene_path = "res://assets/world/kenney_space_kit/astronauta.glb"
-target_size = 1.62
-outline_color = Color(0.72, 0.27, 0.94, 1)
-outline_grow = 0.032
-bob_amplitude = 0.04
-bob_frequency = 7.0
+model_scene_path = "res://assets/enemies/enemy_robot_tier_2_rare.glb"
+weapon_scene_path = "res://assets/weapons/futuristic_rifle/rifle.glb"
+target_size = 1.98
+outline_color = Color(0.32, 0.78, 1, 1)
+outline_grow = 0.02
+speed_reference = 3.2
 
 [node name="BodyMesh" type="MeshInstance3D" parent="Visuals"]
-position = Vector3(0, 0.825, 0)
+visible = false
+position = Vector3(0, 0.99, 0)
 mesh = SubResource("CapsuleMesh_shooter")
 material_override = SubResource("Material_shooter")
 
-[node name="CoreMesh" type="MeshInstance3D" parent="Visuals"]
-position = Vector3(0, 1.35, -0.14)
-mesh = SubResource("SphereMesh_core")
-material_override = SubResource("Material_core")
-
 [node name="Muzzle" type="Marker3D" parent="Visuals"]
-position = Vector3(0, 1.1, -0.48)
+position = Vector3(0, 1.24, -0.52)
 
 [node name="AimMarker" type="MeshInstance3D" parent="."]
 visible = false

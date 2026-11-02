@@ -74,7 +74,7 @@ try {
     console.log('FRAME', name);
   };
   const joiner = URL.includes('?') ? '&' : '?';
-  const preview = `${URL}${joiner}qa_stage=GAMEPLAY&qa_world=frostline_relay&qa_camera&qa_touch`;
+  const preview = `${URL}${joiner}qa_stage=GAMEPLAY&qa_world=aetherfall&qa_camera&qa_touch`;
   await page.goto(preview, { waitUntil: 'domcontentloaded', timeout: 120000 });
   await waitFor('Encounter: Explore safe', 150000);
   await page.waitForFunction(() => document.body?.dataset?.mode === 'playing', { timeout: 30000 });

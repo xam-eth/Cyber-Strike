@@ -18,11 +18,11 @@ func _initialize() -> void:
 
 func _run_smoke_test() -> void:
 	_check_loader_results()
-	var frostline := WorldDefinition.load_definition(&"frostline_relay")
-	var original_world_path := frostline.environment_scene_path
-	frostline.environment_scene_path = "res://content/worlds/missing/runtime/world.glb"
-	var broken_world: Node = await _make_main("frostline_relay")
-	frostline.environment_scene_path = original_world_path
+	var aetherfall := WorldDefinition.load_definition(&"aetherfall")
+	var original_world_path := aetherfall.environment_scene_path
+	aetherfall.environment_scene_path = "res://content/worlds/missing/runtime/world.glb"
+	var broken_world: Node = await _make_main("aetherfall")
+	aetherfall.environment_scene_path = original_world_path
 	var world := broken_world.get_node("MissionWorld")
 	var hero := broken_world.get_node("Player/VisualRoot")
 	_expect(not bool(world.call("has_world_geometry")), "the missing World geometry is rejected")
@@ -39,7 +39,7 @@ func _run_smoke_test() -> void:
 	await process_frame
 
 	var broken_characters: Node = await _make_main(
-		"frostline_relay", "res://content/characters/missing/runtime/hero.glb"
+		"aetherfall", "res://content/characters/missing/runtime/hero.glb"
 	)
 	world = broken_characters.get_node("MissionWorld")
 	hero = broken_characters.get_node("Player/VisualRoot")
@@ -81,7 +81,7 @@ func _run_smoke_test() -> void:
 	await process_frame
 
 	var broken_weapon: Node = await _make_main(
-		"frostline_relay", "", "res://content/characters/missing/runtime/rifle.glb"
+		"aetherfall", "", "res://content/characters/missing/runtime/rifle.glb"
 	)
 	world = broken_weapon.get_node("MissionWorld")
 	hero = broken_weapon.get_node("Player/VisualRoot")
@@ -186,7 +186,7 @@ func _check_loader_results() -> void:
 	)
 	_expect(not bool(missing["ok"]), "a missing package returns failure instead of a scene")
 	_expect(missing["code"] == "missing", "the missing-package result has a stable reason")
-	var character_path := HeroTier.model_path(HeroDefinition.DEFAULT_HERO_ID, 1)
+	var character_path := HeroTier.model_path(HeroDefinition.DEFAULT_HERO_ID)
 	var outside := ContentModuleLoader.load_scene(character_path, ContentModuleLoader.WORLD_ROOTS)
 	_expect(not bool(outside["ok"]), "a World loader cannot load a Character path")
 	_expect(outside["code"] == "outside_allowed_roots", "the domain boundary is explicit")
@@ -194,7 +194,7 @@ func _check_loader_results() -> void:
 		character_path, ContentModuleLoader.CHARACTER_ROOTS
 	)
 	var healthy_world := ContentModuleLoader.load_scene(
-		"res://assets/forge/worlds/frostline.glb", ContentModuleLoader.WORLD_ROOTS
+		"res://scenes/worlds/aetherfall_world.tscn", ContentModuleLoader.WORLD_ROOTS
 	)
 	_expect(
 		bool(healthy_character["ok"]), "a prior World failure does not poison Character loading"

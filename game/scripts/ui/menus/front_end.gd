@@ -137,7 +137,7 @@ func _enter_qa_stage() -> void:
 	call_deferred("_enter", stage_name, _qa_payload(stage_name))
 
 
-## QA hook, web only: `?qa_world=vanguard_station` selects a theatre before the
+## QA hook, web only: `?qa_world=aetherfall` selects a theatre before the
 ## launch, the same way pressing its card on the WORLD screen would. Without it a
 ## second world can only be photographed by clicking through the front end, which
 ## is exactly the kind of "it works, trust me" claim this project keeps paying for.

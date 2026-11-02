@@ -6,7 +6,7 @@
 script = ExtResource("1_definition")
 hero_id = &"sable"
 display_name = "Mara Voss"
-role_description = "Raised on the frontier line and fielded as a strike lead. Her kit is the rank: every tier is plate welded over the last one."
+role_description = "Frontline strike lead outfitted with composite tactical plating and a 9m radial EMP Pulse that shatters enemy shields and disrupts armored units."
 portrait_path = "res://assets/ui/portrait_sable.png"
 status_line = "FIELD READY"
 field_ready = true

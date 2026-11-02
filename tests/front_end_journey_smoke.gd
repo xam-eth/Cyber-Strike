@@ -408,7 +408,7 @@ func _check_saved_loadout_reaches_gameplay() -> void:
 	await process_frame
 	profile.unlocked_ids["arc_shooter"] = true
 	_expect(profile.select_weapon(&"arc_shooter"), "the profile accepts a weapon the player owns")
-	_expect(profile.select_world(&"vanguard_station"), "the profile accepts an open world")
+	_expect(profile.select_world(&"aetherfall"), "the profile accepts SH-01 Aetherfall")
 
 	var main: Node = GameplayScene.instantiate()
 	main.set("start_wave_session_on_ready", false)
@@ -427,12 +427,12 @@ func _check_saved_loadout_reaches_gameplay() -> void:
 		"gameplay starts with the weapon the front end saved (equipped %s)" % equipped
 	)
 	_expect(
-		main.get_node("VanguardStation").get_node_or_null("Station") != null,
-		"the saved world selection builds Vanguard Station through ProgressionService"
+		main.get_node("MissionWorld").get_node_or_null("RealFrontierWorld") != null,
+		"the saved world selection builds SH-01 Aetherfall through ProgressionService"
 	)
 	_expect(
-		main.get_node("MissionWorld").get_node_or_null("RealFrontierWorld") == null,
-		"the unselected mission world does not build over the chosen world"
+		main.get_node_or_null("VanguardStation") == null,
+		"retired legacy station node is no longer present in main.tscn"
 	)
 	main.free()
 	profile.free()

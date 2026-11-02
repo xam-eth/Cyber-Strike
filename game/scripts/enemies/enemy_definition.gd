@@ -9,10 +9,11 @@ extends Resource
 const DEFINITION_PATHS := {
 	&"runner": "res://resources/enemies/runner.tres",
 	&"shooter": "res://resources/enemies/shooter.tres",
+	&"enforcer": "res://resources/enemies/enforcer.tres",
 	&"guardian": "res://resources/enemies/guardian.tres",
 }
 
-const DEFINITION_IDS: Array[StringName] = [&"runner", &"shooter", &"guardian"]
+const DEFINITION_IDS: Array[StringName] = [&"runner", &"shooter", &"enforcer", &"guardian"]
 
 @export var enemy_id: StringName = &""
 @export var display_name: String = ""

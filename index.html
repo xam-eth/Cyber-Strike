@@ -150,106 +150,52 @@
                   <h1 class="hub__title" id="hub-title" data-i18n="hub.title">CHOOSE THEATRE</h1>
                 </div>
                 <div class="hub__telemetry">
-                  <span class="hub__cachechip" id="hub-cache-chip">BLUEPRINTS 0/1</span>
+                  <span class="hub__cachechip" id="hub-cache-chip">CACHES 0/4 · SCHEMATICS 0/4</span>
                   <span class="hub__wallet" id="hub-profile-strip">0 BP · 0 RUNS · BEST 0</span>
                 </div>
               </div>
 
-<div class="carousel" id="world-carousel" role="listbox" data-i18n-aria="hub.carousel_label" aria-label="Theatres">
-                <button class="wcard" id="world-card-frostline-relay" data-world="frostline_relay" data-mode="defense" type="button" role="option" aria-selected="true">
-                  <span class="wcard__art wcard__art--frostline" aria-hidden="true"></span>
-                  <span class="wcard__no" aria-hidden="true">01</span>
+              <div class="carousel" id="world-carousel" role="listbox" data-i18n-aria="hub.carousel_label" aria-label="Theatres">
+                <button class="wcard" id="world-card-aetherfall" data-world="aetherfall" data-mode="recovery" type="button" role="option" aria-selected="true">
+                  <span class="wcard__art wcard__art--aetherfall" aria-hidden="true"></span>
+                  <span class="wcard__no" aria-hidden="true">SH-01</span>
                   <span class="wcard__copy">
-                    <span class="wcard__name">Frostline Relay</span>
-                    <span class="wcard__role" data-i18n="world.frostline_relay.role">Defense · Relay</span>
+                    <span class="wcard__name">AETHERFALL</span>
+                    <span class="wcard__role" data-i18n="world.aetherfall.role">Sentinel Citadel · 4 Caches + Wave Defense</span>
                   </span>
-                  <span class="wcard__state" data-i18n="world.state.open">OPEN</span>
-                  <span class="wcard__tick" aria-hidden="true"><svg class="ico"><use href="#i-check" /></svg></span>
-                </button>
-
-                <button class="wcard" id="world-card-verdant-bloom" data-world="verdant_bloom" data-mode="recovery" type="button" role="option" aria-selected="false">
-                  <span class="wcard__art wcard__art--verdant" aria-hidden="true"></span>
-                  <span class="wcard__no" aria-hidden="true">02</span>
-                  <span class="wcard__copy">
-                    <span class="wcard__name">Verdant Bloom</span>
-                    <span class="wcard__role" data-i18n="world.verdant_bloom.role">Recovery · Caches</span>
-                  </span>
-                  <span class="wcard__state" id="verdant-card-state" data-i18n="world.state.open">OPEN</span>
-                  <span class="wcard__tick" aria-hidden="true"><svg class="ico"><use href="#i-check" /></svg></span>
-                </button>
-
-                <button class="wcard" id="world-card-emberfall-foundry" data-world="emberfall_foundry" data-mode="recovery" type="button" role="option" aria-selected="false">
-                  <span class="wcard__art wcard__art--emberfall" aria-hidden="true"></span>
-                  <span class="wcard__no" aria-hidden="true">03</span>
-                  <span class="wcard__copy">
-                    <span class="wcard__name">Emberfall Foundry</span>
-                    <span class="wcard__role" data-i18n="world.emberfall_foundry.role">Recovery · Foundry</span>
-                  </span>
-                  <span class="wcard__state" id="emberfall-card-state" data-i18n="world.state.open">OPEN</span>
-                  <span class="wcard__tick" aria-hidden="true"><svg class="ico"><use href="#i-check" /></svg></span>
-                </button>
-
-                <button class="wcard" id="world-card-vanguard-station" data-world="vanguard_station" data-mode="recovery" type="button" role="option" aria-selected="false">
-                  <span class="wcard__art wcard__art--station" aria-hidden="true"></span>
-                  <span class="wcard__no" aria-hidden="true">04</span>
-                  <span class="wcard__copy">
-                    <span class="wcard__name">Vanguard Station</span>
-                    <span class="wcard__role" data-i18n="world.vanguard_station.role">Recovery · Dock 07</span>
-                  </span>
-                  <span class="wcard__state" id="vanguard-card-state" data-i18n="world.state.open">OPEN</span>
-                  <span class="wcard__tick" aria-hidden="true"><svg class="ico"><use href="#i-check" /></svg></span>
-                </button>
-
-                <button class="wcard" id="world-card-titans" data-world="titans" data-mode="recovery" type="button" role="option" aria-selected="false">
-                  <span class="wcard__art wcard__art--titans" aria-hidden="true"></span>
-                  <span class="wcard__no" aria-hidden="true">05</span>
-                  <span class="wcard__copy">
-<span class="wcard__name">THE TITANS</span>
-                    <span class="wcard__role" data-i18n="world.titans.role">Recovery · Storm</span>
-                  </span>
-                  <span class="wcard__state" id="titans-card-state" data-i18n="world.state.open">OPEN</span>
+                  <span class="wcard__state" id="aetherfall-card-state" data-i18n="world.state.open">OPEN</span>
                   <span class="wcard__tick" aria-hidden="true"><svg class="ico"><use href="#i-check" /></svg></span>
                 </button>
               </div>
 
               <div class="hub__intel">
-                <div class="carousel__nav">
-                  <button class="cbtn" id="world-prev" type="button" data-i18n-aria="hub.prev" aria-label="Previous theatre">
-                    <svg class="ico" aria-hidden="true"><use href="#i-chev-left" /></svg>
-                  </button>
-                  <span class="dots" id="world-dots" aria-hidden="true"><i data-active="true"></i><i></i><i></i><i></i><i></i></span>
-                  <button class="cbtn" id="world-next" type="button" data-i18n-aria="hub.next" aria-label="Next theatre">
-                    <svg class="ico" aria-hidden="true"><use href="#i-chev-right" /></svg>
-                  </button>
-                </div>
-                <span class="intel__badge" id="hub-intel-mode" data-tone="defense" data-i18n="hub.intel.mode_defense">WAVE DEFENSE</span>
-                <span class="carousel__line" id="hub-world-line">Frostline Relay · frozen signal field</span>
-                <span class="intel__chip intel__chip--threat" id="hub-intel-threat" data-i18n="hub.intel.threat_defense">THREAT: RUNNER · SHOOTER · WARDEN W3</span>
-                <span class="intel__chip intel__chip--reward" id="hub-intel-reward" data-i18n="hub.intel.reward_defense">+10 BP/KO · +100 BP/WAVE · +15 ENDLESS</span>
+                <span class="intel__badge" id="hub-intel-mode" data-tone="recovery" data-i18n="hub.intel.mode_recovery">CITADEL ASSAULT</span>
+                <span class="carousel__line" id="hub-world-line">SH-01 Aetherfall · Horizon Relay &amp; Sentinel Archive</span>
+                <span class="intel__chip intel__chip--threat" id="hub-intel-threat" data-i18n="hub.intel.threat_recovery">ROBOT SQUADS · ENFORCER · IRON WARDEN</span>
+                <span class="intel__chip intel__chip--reward" id="hub-intel-reward" data-i18n="hub.intel.reward_aetherfall">ARC + 3 TECH SCHEMATICS · +265 BP</span>
               </div>
 
               <div class="hub__deploy">
                 <button class="btn btn--primary btn--deploy" id="hub-deploy" type="button">
                   <svg class="ico" aria-hidden="true"><use href="#i-deploy" /></svg>
                   <span class="btn__label" data-i18n="hub.deploy">DEPLOY</span>
-                  <span class="btn__meta" id="hub-deploy-meta">Pulse Rifle</span>
+                  <span class="btn__meta" id="hub-deploy-meta">Sable · Pulse Rifle T1</span>
                 </button>
-                <p class="hub__hint" data-i18n="hub.hint">Explore safe · [B] Defense / Cache · [F] EMP · [V] Run Mod</p>
+                <p class="hub__hint" data-i18n="hub.hint">Cursor [+] Aim · [B] Cache / Defense · [F] Skill · [V] Run Mod</p>
               </div>
             </div>
 
             <nav class="side" data-i18n-aria="hub.menu" aria-label="Menu">
               <button class="tile tile--op" id="hub-card-operative" type="button">
                 <span class="tile__portrait" aria-hidden="true">
-                  <img id="hub-op-portrait" src="./ui/art/web/hero/sable-tier-1.png" alt="" />
-                  <span class="tile__tier" id="hub-op-tier">T1</span>
+                  <img id="hub-op-portrait" src="./ui/art/web/hero/sable.png" alt="" />
                 </span>
                 <span class="tile__opbody">
                   <span class="tile__eyebrow" data-i18n="hub.tile.operative">OPERATIVE</span>
                   <span class="tile__opname" id="hub-op-callsign">SABLE</span>
-                  <span class="tile__stats" id="hub-op-stats">100 HP · 0% ARM</span>
-                  <span class="tile__meta" id="hub-operative-meta">Pulse Rifle</span>
-                  <span class="tile__cta"><span data-i18n="hub.op.action">LOADOUT & TIER</span> <svg class="ico" aria-hidden="true"><use href="#i-chev-right" /></svg></span>
+                  <span class="tile__stats" id="hub-op-stats">110 HP · 6% ARM</span>
+                  <span class="tile__meta" id="hub-operative-meta">Pulse Rifle · T1</span>
+                  <span class="tile__cta"><span data-i18n="hub.op.action">OPERATIVE &amp; ARSENAL</span> <svg class="ico" aria-hidden="true"><use href="#i-chev-right" /></svg></span>
                 </span>
               </button>
               <button class="tile tile--util" id="hub-card-display" type="button">
@@ -304,8 +250,6 @@
           <div class="op">
             <header class="op__head">
               <div class="op__lead">
-                <!-- Every gameplay page returns the way it came: this one back to
-                     the opening (and to the hub when it was opened from there). -->
                 <button class="cbtn op__back" id="hero-back" type="button" aria-label="Back" data-i18n-aria="hero.back">
                   <svg class="ico" aria-hidden="true"><use href="#i-chev-left" /></svg>
                 </button>
@@ -315,18 +259,12 @@
                   <span class="op__callsign" id="hero-callsign">SABLE</span>
                 </div>
               </div>
-              <span class="chip chip--tier" id="hero-tier-chip">
-                <b data-i18n="hero.tier.word">TIER</b><i id="hero-tier-number">1</i>
-                <span id="hero-tier-name">FIELD RECRUIT</span>
+              <span class="chip chip--tier" id="hero-role-chip">
+                <b data-i18n="hero.combat_role">COMBAT ROLE</b>
+                <span id="hero-role-badge">STRIKE LEAD</span>
               </span>
             </header>
 
-            <!-- The stage. The art is the screen's subject, so it gets its own
-                 column rather than being a plate behind the panels: a hero
-                 half-covered by a detail card is not a hero screen. The plate
-                 behind the canvas is the room; the deck, the operative and the
-                 shadow are all in the scene (the room does not animate, the
-                 figure does). -->
             <div class="op__stage" id="op-stage">
               <img class="stage__plate" src="./ui/art/web/hero-stage.jpg" alt="" aria-hidden="true" />
               <canvas
@@ -334,7 +272,7 @@
                 id="hero-canvas"
                 role="img"
                 data-i18n-aria="hero.stage_label"
-                aria-label="Mara Voss in SABLE tier 1, rendered live from her rig"
+                aria-label="Mara Voss (SABLE), rendered live from her rig"
               ></canvas>
               <span class="stage__note" id="hero-stage-note" hidden></span>
               <span class="stage__beam" aria-hidden="true"></span>
@@ -343,48 +281,35 @@
               <span class="stage__flash" aria-hidden="true"></span>
               <span class="stage__sparks" id="hero-sparks" aria-hidden="true"></span>
               <span class="stage__banner" id="hero-banner" aria-hidden="true">
-                <b id="hero-banner-title">TIER 1</b><i id="hero-banner-note">FIELD RECRUIT</i>
+                <b id="hero-banner-title">SABLE</b><i id="hero-banner-note">STRIKE LEAD</i>
               </span>
             </div>
 
-            <!-- The brief: one line about who this is, the two numbers the tier
-                 actually changes, and the loadout. Nothing here is decoration --
-                 vitals and armour reduction are read from the tier table and
-                 applied by the arena (?tier= -> ProgressionService -> the player
-                 controller), and "next tier" states the runs that unlock it. -->
             <div class="op__brief">
               <section class="op__progress" aria-labelledby="op-progress-label">
-                <h2 class="op__section-label" id="op-progress-label" data-i18n="hero.progress">HERO PROGRESSION</h2>
+                <h2 class="op__section-label" id="op-progress-label" data-i18n="hero.progress">OPERATIVE PROFILE</h2>
                 <div class="op__identity">
                   <span data-i18n="hero.combat_role">COMBAT ROLE</span>
                   <strong id="hero-role-title">STRIKE LEAD</strong>
                   <b id="hero-status">FIELD READY</b>
                 </div>
                 <p class="op__role" id="hero-role" data-i18n="hero.sable.brief">
-                  Raised on the frontier line, fielded as a strike lead. Her kit is the
-                  rank: every tier is plate welded over the last one.
+                  Frontline strike lead outfitted with composite tactical plating and a 9m radial EMP Pulse that shatters enemy shields and disrupts armor.
                 </p>
                 <dl class="op__stats">
                   <div class="op__stat">
                     <dt data-i18n="hero.stat.vitals">VITALS</dt>
-                    <dd><b id="hero-stat-vitals">100</b><i id="hero-stat-vitals-delta"></i></dd>
+                    <dd><b id="hero-stat-vitals">110</b><i id="hero-stat-vitals-delta"></i></dd>
                   </div>
                   <div class="op__stat">
                     <dt data-i18n="hero.stat.armour">ARMOUR</dt>
-                    <dd><b id="hero-stat-armour">0%</b><i id="hero-stat-armour-delta"></i></dd>
+                    <dd><b id="hero-stat-armour">6%</b><i id="hero-stat-armour-delta"></i></dd>
                   </div>
                   <div class="op__stat op__stat--next">
-                    <dt data-i18n="hero.stat.next">NEXT TIER</dt>
-                    <dd><b id="hero-stat-next">1 RUN</b></dd>
+                    <dt data-i18n="hero.stat.skill">TACTICAL</dt>
+                    <dd><b id="hero-stat-skill">EMP 9M</b></dd>
                   </div>
                 </dl>
-                <div class="op__ladder">
-                  <div class="op__ladder-head">
-                    <span data-i18n="hero.ladder.label">TIER LADDER</span>
-                    <b id="hero-ladder-note">1 / 5</b>
-                  </div>
-                  <ol class="ladder" id="hero-ladder" aria-hidden="true"></ol>
-                </div>
               </section>
 
               <section class="op__weapon" aria-labelledby="op-weapon-label">
@@ -428,16 +353,6 @@
                 <section class="op__group op__group--heroes" aria-labelledby="op-heroes-label">
                   <h2 class="op__label" id="op-heroes-label" data-i18n="hero.group.heroes">OPERATIVES</h2>
                   <ul class="cards cards--heroes" id="hero-roster"></ul>
-                </section>
-
-                <!-- Five compact steps for the selected hero's actual tier
-                     ladder. They are progression navigation, not hero cards. -->
-                <section class="op__group op__group--tiers" aria-labelledby="op-tiers-label">
-                  <h2 class="op__label" id="op-tiers-label">
-                    <span data-i18n="hero.group.tiers">TIER</span>
-                    <b id="hero-tier-count">1 / 5</b>
-                  </h2>
-                  <ol class="cards cards--tiers" id="hero-tiers"></ol>
                 </section>
               </div>
             </div>
@@ -556,7 +471,7 @@
                  theatre being entered, and the gantry's real byte count. -->
             <div class="launch">
               <div class="launch__bay">
-                <p class="eyebrow" id="launch-eyebrow">DEPLOY · Neon Frontier</p>
+                <p class="eyebrow" id="launch-eyebrow">DEPLOY · Aetherfall</p>
                 <h1 class="launch__title" id="launch-title" data-i18n="launch.title">PREPARING WORLD</h1>
                 <div class="rail rail--open" id="launch-progress" data-indeterminate="true" role="progressbar" aria-valuemin="0" aria-valuemax="100" data-i18n-aria="launch.rail_label" aria-label="Loading world assets">
                   <span class="rail__fill" id="launch-fill"></span>

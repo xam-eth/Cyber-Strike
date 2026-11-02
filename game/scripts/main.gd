@@ -53,7 +53,6 @@ var _recovery_qa_enabled: bool = false
 var _recovery_qa_timer: float = 0.0
 var _extracting: bool = false
 var _run_banked: bool = false
-var _unlocked_tier_on_run: int = 0
 var _device_profiler: Node
 var _profiler_context := ""
 var _profiler_context_seconds := 0.0
@@ -168,11 +167,9 @@ func _ready() -> void:
 	_setup_recovery()
 	print(
 		(
-			"Operative: hero=%s tier=%d/%d vitals=%d reduction=%d%%"
+			"Operative: hero=%s vitals=%d reduction=%d%%"
 			% [
 				progression_service.selected_hero_id,
-				progression_service.fieldable_tier(),
-				progression_service.owned_tier(),
 				roundi(player.max_health),
 				roundi(player.tier_damage_reduction() * 100.0),
 			]
@@ -346,14 +343,9 @@ func _on_profile_changed() -> void:
 	)
 	if is_instance_valid(run_upgrade_manager) and run_upgrade_manager.total_stacks() > 0:
 		player.apply_run_modifiers(run_upgrade_manager.get_modifiers(), 0.0, false)
-	var op_tier := progression_service.fieldable_tier()
 	var op_hero := progression_service.selected_hero_id
 	HudEncounterUi.set_operative_telemetry(
-		touch_controls,
-		op_tier,
-		roundi(HeroTier.reduction(op_tier, op_hero)),
-		op_hero,
-		HeroTier.skill_id(op_hero)
+		touch_controls, roundi(HeroTier.reduction(op_hero)), op_hero, HeroTier.skill_id(op_hero)
 	)
 	(
 		HudArmoryBridge
@@ -635,7 +627,6 @@ func _return_to_explore() -> void:
 	_retry_defense = false
 	_extracting = false
 	_run_banked = false
-	_unlocked_tier_on_run = 0
 	_recovery_return_mode = SessionMode.EXPLORE
 	wave_director.reset_session()
 	player.reset_player()
@@ -740,17 +731,33 @@ func _cache_by_id(cache_id: StringName) -> RecoveryCacheDefinition:
 
 
 func _primary_cache() -> RecoveryCacheDefinition:
+	var fallback: RecoveryCacheDefinition = null
 	for cache in _recovery_caches:
 		if not cache.optional:
-			return cache
-	return null
+			fallback = cache
+			if _cache_state(cache.cache_id) != RecoveryState.SECURED:
+				return cache
+	return fallback
 
 
 func _optional_cache() -> RecoveryCacheDefinition:
+	var fallback: RecoveryCacheDefinition = null
 	for cache in _recovery_caches:
 		if cache.optional:
-			return cache
-	return null
+			fallback = cache
+			if _cache_state(cache.cache_id) != RecoveryState.SECURED:
+				return cache
+	return fallback
+
+
+func _all_primary_caches_secured() -> bool:
+	var has_primary := false
+	for cache in _recovery_caches:
+		if not cache.optional:
+			has_primary = true
+			if not progression_service.is_cache_secured(cache.cache_id):
+				return false
+	return has_primary
 
 
 func _cache_state(cache_id: StringName) -> int:
@@ -795,6 +802,16 @@ func advance_recovery_guidance(seconds: float) -> void:
 
 
 func _active_guidance_cache() -> RecoveryCacheDefinition:
+	var ready_best: RecoveryCacheDefinition = null
+	var ready_dist := INF
+	for cache in _recovery_caches:
+		if _cache_state(cache.cache_id) == RecoveryState.READY:
+			var d := _cache_distance(cache)
+			if d < ready_dist:
+				ready_dist = d
+				ready_best = cache
+	if ready_best != null:
+		return ready_best
 	var primary := _primary_cache()
 	if primary != null and _cache_state(primary.cache_id) != RecoveryState.SECURED:
 		return primary
@@ -1220,11 +1237,7 @@ func _on_guard_group_spawn_failed(group_id: StringName, reason: String) -> void:
 
 func _present_recovery_choice() -> void:
 	var primary := _primary_cache()
-	if (
-		primary == null
-		or _recovery_choice_presented
-		or not progression_service.is_cache_secured(primary.cache_id)
-	):
+	if primary == null or _recovery_choice_presented or not _all_primary_caches_secured():
 		return
 	_recovery_choice_presented = true
 	_recovery_return_mode = session_mode
@@ -1234,10 +1247,10 @@ func _present_recovery_choice() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	Sfx.set_music_mode(&"results")
 	touch_controls._set_play_phase("results")
-	var opt := _optional_cache()
-	var opt_bp := (
-		opt.bp_reward if opt != null and progression_service.is_cache_secured(opt.cache_id) else 0
-	)
+	var opt_bp := 0
+	for cache in _recovery_caches:
+		if cache.optional and progression_service.is_cache_secured(cache.cache_id):
+			opt_bp += cache.bp_reward
 	var primary_unlocked := (
 		progression_service.unlocked_modules.has(String(primary.module_id))
 		if primary.module_id != &""
@@ -1302,11 +1315,9 @@ func _recovery_result_summary() -> String:
 			{
 				"notices": _recovery_notices,
 				"run_banked": _run_banked,
-				"promoted_tier": _unlocked_tier_on_run,
 				"hero_id": String(progression_service.selected_hero_id),
 				"has_caches": not _recovery_caches.is_empty(),
 				"completed_runs": progression_service.completed_runs,
-				"owned_tier": progression_service.owned_tier(),
 				"run_mods": run_upgrade_manager.active_tags_summary(),
 				"extracting": _extracting,
 				"guardians_defeated": run_stats.guardians_defeated,
@@ -1377,6 +1388,8 @@ func _on_enemy_rewarded(enemy: Node3D, _score_reward: int, bp_reward: int) -> vo
 	if enemy.is_in_group("guardian_enemies"):
 		archetype = "GUARDIAN"
 		run_upgrade_manager.record_milestone("guardian_%d" % enemy.get_instance_id())
+	elif enemy.is_in_group("enforcer_enemies"):
+		archetype = "ENFORCER"
 	elif enemy.is_in_group("shooter_enemies"):
 		archetype = "SHOOTER"
 	print("Encounter: %s KO · +%d BP" % [archetype, bp_reward])
@@ -1439,19 +1452,15 @@ func _on_wave_session_ended(wave_index: int, _total_defeated: int) -> void:
 		# Bank immediately, including Extract from a non-Defense Recovery. The
 		# guard covers duplicate end signals and all subsequent retry/reset paths.
 		_run_banked = true
-		var tier_before := progression_service.owned_tier()
 		progression_service.bank_run(run_stats.run_score, run_stats.bp_earned)
-		var tier_after := progression_service.owned_tier()
-		_unlocked_tier_on_run = tier_after if tier_after > tier_before else 0
 		print(
 			(
-				"Progression: banked +%d BP · wallet %d · best %d · runs %d · tier %d"
+				"Progression: banked +%d BP · wallet %d · best %d · runs %d"
 				% [
 					run_stats.bp_earned,
 					progression_service.balance,
 					progression_service.best_score,
 					progression_service.completed_runs,
-					tier_after,
 				]
 			)
 		)
@@ -1473,7 +1482,6 @@ func _present_results(wave_index: int) -> void:
 		touch_controls
 		. set_results_context(
 			_extracting,
-			_unlocked_tier_on_run,
 			progression_service.has_blueprint(&"arc_shooter"),
 		)
 	)

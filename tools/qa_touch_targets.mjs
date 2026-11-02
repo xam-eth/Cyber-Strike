@@ -40,7 +40,7 @@ try {
   const lines = [];
   const errors = [];
   const joiner = URL.includes('?') ? '&' : '?';
-  const preview = `${URL}${joiner}qa_stage=GAMEPLAY&qa_world=frostline_relay&qa_effect&qa_camera&qa_touch`;
+  const preview = `${URL}${joiner}qa_stage=GAMEPLAY&qa_world=aetherfall&qa_camera&qa_touch`;
   const listen = target => {
     target.on('console', message => {
       const line = message.text();

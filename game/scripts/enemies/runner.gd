@@ -133,5 +133,6 @@ func _has_line_of_sight() -> bool:
 
 func _attack_target() -> void:
 	_attack_cooldown = attack_interval
+	visuals.play_attack()
 	if _target.has_method("apply_damage"):
 		_target.call("apply_damage", attack_damage, self)

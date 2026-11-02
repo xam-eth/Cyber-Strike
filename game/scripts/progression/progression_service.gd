@@ -56,11 +56,6 @@ var equipped_modules: Array[StringName] = []
 ## cinematic has been played, and the loadout the player last launched with.
 var intro_seen: bool = false
 var selected_hero_id: StringName = DEFAULT_HERO_ID
-## The rank of the selected operative, 1..HeroTier.tier_count(). Never a value
-## the player has not earned: `select_tier()` and the URL intake both clamp it
-## to `owned_tier()`, and `load_profile()` re-clamps on every boot because runs
-## are not the only way a save can change.
-var selected_tier: int = 1
 var selected_weapon_id: StringName = DEFAULT_WEAPON_ID
 var selected_world_id: StringName = DEFAULT_WORLD_ID
 
@@ -85,7 +80,6 @@ func load_profile() -> void:
 	equipped_modules.clear()
 	intro_seen = false
 	selected_hero_id = DEFAULT_HERO_ID
-	selected_tier = 1
 	selected_weapon_id = DEFAULT_WEAPON_ID
 	selected_world_id = DEFAULT_WORLD_ID
 	if profile_path.is_empty():
@@ -153,7 +147,6 @@ func load_profile() -> void:
 		if saved_hero == &"exo_operative":
 			saved_hero = DEFAULT_HERO_ID
 		selected_hero_id = _known_id(saved_hero, HERO_IDS, DEFAULT_HERO_ID)
-		selected_tier = _bounded_int(config.get_value(PROFILE_SECTION, "selected_tier", 1))
 		selected_world_id = _known_id(
 			config.get_value(PROFILE_SECTION, "selected_world", ""), WORLD_IDS, DEFAULT_WORLD_ID
 		)
@@ -168,9 +161,6 @@ func load_profile() -> void:
 	# A weapon can be selected and then lost to a reset save, so re-gate it.
 	if not is_unlocked(selected_weapon_id):
 		selected_weapon_id = DEFAULT_WEAPON_ID
-	# Same for a rank: a save that remembers tier 4 means nothing if the runs
-	# that opened it are gone.
-	selected_tier = clampi(selected_tier, 1, owned_tier())
 	_apply_web_loadout()
 	_mirror_runs_to_shell()
 	profile_changed.emit()
@@ -204,14 +194,6 @@ func _apply_web_loadout() -> void:
 	)
 	if requested_hero != &"" and HeroTier.is_field_ready(requested_hero):
 		selected_hero_id = requested_hero
-	var has_requested_tier := bool(
-		JavaScriptBridge.eval("new URLSearchParams(location.search).has('tier')")
-	)
-	if has_requested_tier:
-		var requested_tier := _bounded_int(
-			JavaScriptBridge.eval("new URLSearchParams(location.search).get('tier') || '1'")
-		)
-		selected_tier = clampi(requested_tier, 1, owned_tier())
 	var has_requested_mods := bool(
 		JavaScriptBridge.eval("new URLSearchParams(location.search).has('modules')")
 	)
@@ -279,48 +261,23 @@ func upgrade_weapon(weapon_id: StringName) -> bool:
 	return true
 
 
-# --- the operative ladder ---------------------------------------------------
+# --- operative profile ------------------------------------------------------
 
 
-## The highest rank this profile has earned. Tier 1 at zero runs; the rest come
-## from the roster's own run prices, not from a second table kept here.
-func owned_tier() -> int:
-	return HeroTier.owned_tier(completed_runs)
+func hero_model_path() -> String:
+	return HeroTier.model_path(selected_hero_id)
 
 
-## Ranks the player may field right now. `clampi` because every caller -- a URL,
-## a saved file, a card -- can be wrong, and the run this launches cannot.
-func fieldable_tier() -> int:
-	return clampi(selected_tier, 1, owned_tier())
+func hero_rig_path() -> String:
+	return HeroTier.rig_path(selected_hero_id)
 
 
-## Moves the selected rank. Returns false for anything the player has not
-## earned, so a screen can say why instead of silently ignoring the press.
-func select_tier(tier: int) -> bool:
-	var wanted := clampi(tier, 1, HeroTier.tier_count())
-	if wanted > owned_tier() or wanted == selected_tier:
-		return false
-	selected_tier = wanted
-	_save_profile()
-	profile_changed.emit()
-	return true
+func hero_vitals() -> float:
+	return HeroTier.vitals(selected_hero_id)
 
 
-func tier_model_path() -> String:
-	return HeroTier.model_path(selected_hero_id, fieldable_tier())
-
-
-func tier_rig_path() -> String:
-	return HeroTier.rig_path(selected_hero_id, fieldable_tier())
-
-
-## The rank's health pool and plate, as the arena applies them.
-func tier_vitals() -> float:
-	return HeroTier.vitals(fieldable_tier(), selected_hero_id)
-
-
-func tier_damage_reduction() -> float:
-	return HeroTier.reduction(fieldable_tier(), selected_hero_id)
+func hero_damage_reduction() -> float:
+	return HeroTier.reduction(selected_hero_id)
 
 
 func is_cache_secured(cache_id: StringName) -> bool:
@@ -535,7 +492,6 @@ func _save_profile() -> void:
 	config.set_value(PROFILE_SECTION, "equipped_modules", equipped_mod_strings)
 	config.set_value(PROFILE_SECTION, "intro_seen", intro_seen)
 	config.set_value(PROFILE_SECTION, "selected_hero", String(selected_hero_id))
-	config.set_value(PROFILE_SECTION, "selected_tier", fieldable_tier())
 	config.set_value(PROFILE_SECTION, "selected_weapon", String(selected_weapon_id))
 	config.set_value(PROFILE_SECTION, "selected_world", String(selected_world_id))
 	var result := config.save(profile_path)

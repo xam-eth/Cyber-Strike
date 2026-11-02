@@ -1,0 +1,59 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/enforcer.gd" id="1_enforcer"]
+[ext_resource type="Script" path="res://scripts/enemies/enemy_visual.gd" id="2_enemy_visual"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape_enforcer"]
+radius = 0.46
+height = 2.1
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_enforcer"]
+radius = 0.46
+height = 2.1
+
+[sub_resource type="StandardMaterial3D" id="Material_enforcer"]
+albedo_color = Color(0.28, 0.18, 0.24, 1)
+metallic = 0.58
+roughness = 0.34
+
+[sub_resource type="SphereMesh" id="SphereMesh_aim"]
+radius = 0.16
+height = 0.32
+
+[sub_resource type="StandardMaterial3D" id="Material_aim"]
+albedo_color = Color(1, 0.28, 0.12, 1)
+roughness = 0.2
+emission_enabled = true
+emission = Color(1, 0.18, 0.06, 1)
+
+[node name="Enforcer" type="CharacterBody3D"]
+collision_layer = 2
+collision_mask = 5
+script = ExtResource("1_enforcer")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+position = Vector3(0, 1.05, 0)
+shape = SubResource("CapsuleShape_enforcer")
+
+[node name="Visuals" type="Node3D" parent="."]
+script = ExtResource("2_enemy_visual")
+model_scene_path = "res://assets/enemies/enemy_robot_tier_3_epic.glb"
+weapon_scene_path = "res://assets/weapons/futuristic_rifle/rifle.glb"
+target_size = 2.16
+outline_color = Color(1, 0.3, 0.18, 1)
+outline_grow = 0.022
+speed_reference = 3.4
+
+[node name="BodyMesh" type="MeshInstance3D" parent="Visuals"]
+visible = false
+position = Vector3(0, 1.05, 0)
+mesh = SubResource("CapsuleMesh_enforcer")
+material_override = SubResource("Material_enforcer")
+
+[node name="Muzzle" type="Marker3D" parent="Visuals"]
+position = Vector3(0, 1.32, -0.58)
+
+[node name="AimMarker" type="MeshInstance3D" parent="."]
+visible = false
+mesh = SubResource("SphereMesh_aim")
+material_override = SubResource("Material_aim")

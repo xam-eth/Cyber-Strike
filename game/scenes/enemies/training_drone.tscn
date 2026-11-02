@@ -4,19 +4,17 @@
 [ext_resource type="Script" path="res://scripts/enemies/enemy_visual.gd" id="2_enemy_visual"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape_drone"]
-radius = 0.48
-height = 1.8
+radius = 0.46
+height = 1.92
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_drone"]
-radius = 0.48
-height = 1.8
+radius = 0.46
+height = 1.92
 
 [sub_resource type="StandardMaterial3D" id="Material_drone"]
 albedo_color = Color(0.82, 0.19, 0.1, 1)
 metallic = 0.32
 roughness = 0.38
-emission_enabled = true
-emission = Color(0.35, 0.035, 0.01, 1)
 
 [node name="TrainingDrone" type="StaticBody3D"]
 collision_layer = 2
@@ -24,20 +22,22 @@ collision_mask = 1
 script = ExtResource("1_drone")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-position = Vector3(0, 0.9, 0)
+position = Vector3(0, 0.96, 0)
 shape = SubResource("CapsuleShape_drone")
 
 [node name="Visuals" type="Node3D" parent="."]
 script = ExtResource("2_enemy_visual")
-model_scene_path = "res://assets/world/kenney_space_kit/craft-miner.glb"
-fit_axis = 0
-target_size = 1.15
-hover = true
-bob_amplitude = 0.07
-bob_frequency = 2.6
-hover_lift = 0.72
+model_scene_path = "res://assets/enemies/enemy_iron_sentinel.glb"
+weapon_scene_path = "res://assets/weapons/futuristic_rifle/rifle.glb"
+target_size = 1.92
+outline_color = Color(0.28, 0.86, 1, 1)
+outline_grow = 0.018
+
+[node name="Muzzle" type="Marker3D" parent="Visuals"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.18, -0.56)
 
 [node name="BodyMesh" type="MeshInstance3D" parent="Visuals"]
-position = Vector3(0, 0.9, 0)
+visible = false
+position = Vector3(0, 0.96, 0)
 mesh = SubResource("CapsuleMesh_drone")
 material_override = SubResource("Material_drone")

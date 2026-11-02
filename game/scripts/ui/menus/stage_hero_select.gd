@@ -75,7 +75,6 @@ var _chrome: LobbyChrome
 var _weapon_row: Container
 var _weapon_stat: Label
 var _tier_label: Label
-var _tier_button: AegisButton
 var _weapon_pins: Array[AegisButton] = []
 
 
@@ -377,17 +376,8 @@ func _build_chip(definition: HeroDefinition) -> Control:
 	# The rank is named in the tooltip rather than in the 84 px chip: a tier name
 	# is two words, and it is already the caption of the tier cards on the
 	# operative page. The tooltip is where a screen-reader user meets it here.
-	var tier := 1
-	var progression := progression_service()
-	if progression != null and progression.selected_hero_id == definition.hero_id:
-		tier = progression.fieldable_tier()
 	chip.tooltip_text = (
-		"%s — %s — %s"
-		% [
-			definition.display_name,
-			definition.display_status().to_lower(),
-			AegisText.t("hero.tier.%s.name" % tier),
-		]
+		"%s — %s" % [definition.display_name, definition.display_status().to_lower()]
 	)
 	_size(chip, Vector2(84.0, 84.0))
 	AegisTheme.set_button_variant(chip, "round")
@@ -546,13 +536,6 @@ func _build_actions() -> void:
 	_select_button.pressed.connect(_on_select_pressed)
 	_actions.add_child(_select_button)
 
-	_tier_button = make_button("TIER 1", "card")
-	_tier_button.name = &"TierCycleButton"
-	_tier_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	physical_min_size(_tier_button, 0.0, AegisTokens.MIN_TOUCH_PX)
-	_tier_button.pressed.connect(_on_tier_cycle_pressed)
-	_actions.add_child(_tier_button)
-
 	_continue = make_button_key("common.continue", "primary", "hero.continue_tip")
 	_continue.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	physical_min_size(_continue, 0.0, AegisTokens.MIN_TOUCH_PX)
@@ -582,20 +565,6 @@ func _refresh() -> void:
 		AegisText.apply_tip(_select_button, "hero.confirm_tip", [_hero_name(_selected)])
 	else:
 		AegisText.apply_tip(_select_button, "hero.equipped_tip", [_hero_name(_selected)])
-	if is_instance_valid(_tier_button):
-		var cur_tier := progression.fieldable_tier() if progression != null else 1
-		var max_owned := progression.owned_tier() if progression != null else 1
-		_tier_button.text = AegisText.t("hero.tier_btn", [cur_tier, max_owned])
-		_tier_button.disabled = max_owned <= 1
-		_tier_button.edge_active = max_owned > 1
-		(
-			AegisText
-			. apply_tip(
-				_tier_button,
-				"hero.tier_cycle_tip" if max_owned > 1 else "hero.tier_locked_tip",
-				[cur_tier, max_owned],
-			)
-		)
 	_refresh_weapons(progression)
 
 
@@ -615,16 +584,15 @@ func _present_selected(reveal: bool) -> void:
 	_status_label.add_theme_color_override("font_color", AegisTokens.OK)
 	_role_label.text = _first_sentence(definition.display_role())
 	var progression := progression_service()
-	var active_tier := progression.fieldable_tier() if progression != null else 1
-	var vitals := roundi(HeroTier.vitals(active_tier, definition.hero_id))
-	var reduction := roundi(HeroTier.reduction(active_tier, definition.hero_id))
+	var vitals := roundi(HeroTier.vitals(definition.hero_id))
+	var reduction := roundi(HeroTier.reduction(definition.hero_id))
 	var vitals_key := (
 		"hero.vitals_line_recon"
 		if HeroTier.skill_id(definition.hero_id) == &"recon_pulse"
 		else "hero.vitals_line"
 	)
 	if is_instance_valid(_tier_label):
-		_tier_label.text = AegisText.t(vitals_key, [active_tier, vitals, reduction])
+		_tier_label.text = AegisText.t(vitals_key, [vitals, reduction])
 	if progression != null:
 		var wpn_tier := progression.weapon_tier(progression.selected_weapon_id)
 		var kit_tags := TechModuleDefinition.active_tags_summary(progression.equipped_modules)
@@ -651,10 +619,10 @@ func _present_selected(reveal: bool) -> void:
 
 	var selected_path := definition.resolved_model_path()
 	if progression == null or ProgressionService.HERO_IDS.has(progression.selected_hero_id):
-		var tier_path := HeroTier.model_path(definition.hero_id, active_tier)
-		if not tier_path.is_empty():
-			selected_path = tier_path
-	var livery := HeroTier.tier_livery(definition.hero_id, active_tier)
+		var roster_path := HeroTier.model_path(definition.hero_id)
+		if not roster_path.is_empty():
+			selected_path = roster_path
+	var livery := HeroTier.livery(definition.hero_id)
 	var load_result := ContentModuleLoader.load_scene(
 		selected_path, ContentModuleLoader.CHARACTER_ROOTS
 	)
@@ -741,17 +709,6 @@ func _on_select_pressed() -> void:
 	_select_requested = false
 	Sfx.play_ui(&"ui_click")
 	_refresh()
-
-
-func _on_tier_cycle_pressed() -> void:
-	var progression := progression_service()
-	if progression == null or progression.owned_tier() <= 1:
-		return
-	var next_tier := (progression.fieldable_tier() % progression.owned_tier()) + 1
-	if progression.select_tier(next_tier):
-		Sfx.play_ui(&"ui_click")
-		_refresh()
-		_present_selected(false)
 
 
 func _on_continue_pressed() -> void:

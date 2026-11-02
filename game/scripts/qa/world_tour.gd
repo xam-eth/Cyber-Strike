@@ -24,105 +24,54 @@ extends Node3D
 ## It is deliberately not part of the HUD: no touch player will ever press F10,
 ## and nothing in the combat code reads it.
 
-const FRONTIER_VANTAGES := [
+const AETHERFALL_VANTAGES := [
 	{
 		"name": "overview",
-		"from": Vector3(-110.0, 95.0, 125.0),
-		"at": Vector3(0.0, 4.0, 0.0),
-		"fov": 55.0,
+		"from": Vector3(-56.0, 34.0, 44.0),
+		"at": Vector3(6.0, 4.0, -4.0),
+		"fov": 56.0,
 	},
 	{
-		"name": "central_tower",
-		"from": Vector3(28.0, 22.0, 34.0),
-		"at": Vector3(0.0, 8.0, 0.0),
-		"fov": 58.0,
-	},
-	{
-		"name": "sky_bridge",
-		"from": Vector3(40.0, 22.0, 20.0),
-		"at": Vector3(22.0, 10.0, 0.0),
-		"fov": 58.0,
-	},
-	{
-		"name": "upper_platform",
-		"from": Vector3(64.0, 32.0, 54.0),
-		"at": Vector3(42.0, 13.0, 32.0),
-		"fov": 58.0,
-	},
-	{
-		"name": "canyon",
-		"from": Vector3(20.0, 14.0, 78.0),
-		"at": Vector3(0.0, 4.0, 58.0),
+		"name": "arrival_outpost",
+		"from": Vector3(-39.0, 6.5, 22.0),
+		"at": Vector3(-24.5, 2.2, 10.5),
 		"fov": 60.0,
 	},
 	{
-		"name": "interior",
-		"from": Vector3(12.0, 6.0, -24.0),
-		"at": Vector3(0.0, 2.0, -38.0),
-		"fov": 64.0,
+		"name": "horizon_relay",
+		"from": Vector3(-8.0, 6.5, 21.0),
+		"at": Vector3(8.0, 3.0, 7.0),
+		"fov": 58.0,
 	},
 	{
-		"name": "north_route",
-		"from": Vector3(-18.0, 10.0, 74.0),
-		"at": Vector3(0.0, 4.0, 42.0),
-		"fov": 60.0,
-	},
-	{
-		"name": "skyline",
-		"from": Vector3(4.0, 90.0, 125.0),
-		"at": Vector3(0.0, 0.0, 0.0),
+		"name": "archive_approach",
+		"from": Vector3(8.0, 5.2, 4.0),
+		"at": Vector3(8.0, 3.2, -14.3),
 		"fov": 62.0,
 	},
-]
-
-## Each theatre is reviewed from its own set. The frontier's vantages are outdoor
-## distances measured in tens of metres; the station is a roofed interior where
-## the same coordinates would be inside a wall.
-const STATION_VANTAGES := [
 	{
-		"name": "dock",
-		"from": Vector3(0.0, 2.6, 15.5),
-		"at": Vector3(0.0, 2.2, 0.0),
-		"fov": 72.0,
-	},
-	{
-		"name": "hall",
-		"from": Vector3(-14.5, 3.2, 13.0),
-		"at": Vector3(8.0, 2.0, -9.0),
+		"name": "archive_interior",
+		"from": Vector3(1.5, 3.2, -9.8),
+		"at": Vector3(8.0, 1.8, -14.8),
 		"fov": 68.0,
 	},
 	{
-		"name": "reactor",
-		"from": Vector3(0.0, 2.8, -21.5),
-		"at": Vector3(0.0, 2.6, -36.0),
-		"fov": 70.0,
+		"name": "east_hangar",
+		"from": Vector3(18.0, 6.0, 21.0),
+		"at": Vector3(30.0, 2.6, 9.5),
+		"fov": 60.0,
 	},
 	{
-		# Standing a metre inside the doorway put the room's own wall across half
-		# the frame; the cargo bay reads from its middle.
-		"name": "cargo",
-		"from": Vector3(-22.0, 2.7, 1.0),
-		"at": Vector3(-34.0, 1.0, 1.5),
-		"fov": 72.0,
+		"name": "citadel_spire",
+		"from": Vector3(-26.0, 14.0, 26.0),
+		"at": Vector3(8.0, 16.0, -16.0),
+		"fov": 58.0,
 	},
 	{
-		# A door's width into the corridor is 8 m of wall either side of the lens,
-		# so the old vantage photographed two wall faces and a slit of corridor.
-		# From 6 m in, the corridor is a corridor.
-		"name": "corridor",
-		"from": Vector3(26.0, 2.4, 0.0),
-		"at": Vector3(43.0, 2.0, 0.0),
-		"fov": 66.0,
-	},
-	{
-		# From the deck under the open roof, looking up at the east catwalk. A lens
-		# near roof height sits inside the run of ceiling lamps and photographs the
-		# light fittings rather than the walk; from head height it reads as a
-		# structure over the room.
-		"name": "catwalk",
-		"from": Vector3(-2.0, 2.0, 11.0),
-		"at": Vector3(15.5, 3.6, -4.0),
-		"fov": 76.0,
+		"name": "skyline",
+		"from": Vector3(0.0, 42.0, 62.0),
+		"at": Vector3(4.0, 6.0, -8.0),
+		"fov": 60.0,
 	},
 ]
 
@@ -171,9 +120,7 @@ func is_active() -> bool:
 
 
 func _vantages() -> Array:
-	return (
-		STATION_VANTAGES if WorldSelection.selected() == &"vanguard_station" else FRONTIER_VANTAGES
-	)
+	return AETHERFALL_VANTAGES
 
 
 func vantage_name() -> String:

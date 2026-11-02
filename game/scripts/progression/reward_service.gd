@@ -9,6 +9,8 @@ const RunStatsScript = preload("res://scripts/progression/run_stats.gd")
 @export_range(0, 1000, 1) var runner_bp_reward: int = 10
 @export_range(0, 10000, 1) var shooter_score_reward: int = 100
 @export_range(0, 1000, 1) var shooter_bp_reward: int = 10
+@export_range(0, 10000, 1) var enforcer_score_reward: int = 180
+@export_range(0, 1000, 1) var enforcer_bp_reward: int = 22
 @export_range(0, 10000, 1) var guardian_score_reward: int = 300
 @export_range(0, 1000, 1) var guardian_bp_reward: int = 45
 @export_range(0, 10000, 1) var wave_bp_reward: int = 100
@@ -37,6 +39,9 @@ func award_enemy_defeat(enemy: Node3D) -> void:
 	elif enemy.is_in_group("shooter_enemies"):
 		score_reward = shooter_score_reward
 		bp_reward = shooter_bp_reward
+	elif enemy.is_in_group("enforcer_enemies"):
+		score_reward = enforcer_score_reward
+		bp_reward = enforcer_bp_reward
 	elif enemy.is_in_group("guardian_enemies"):
 		score_reward = guardian_score_reward
 		bp_reward = guardian_bp_reward

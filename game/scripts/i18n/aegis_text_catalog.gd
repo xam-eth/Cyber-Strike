@@ -103,7 +103,7 @@ const STRINGS := {
 		"dash.selected_cost": "SELECTED  ·  %d BP",
 		"dash.battle_points": "BATTLE POINTS",
 		"dash.runs": "RUNS",
-		"dash.hero_summary": "TIER %d · HP %d · ARM %d%% · %s",
+		"dash.hero_summary": "HP %d · ARM %d%% · %s",
 		"dash.arsenal_summary": "T%d EQUIPPED · %d/%d OWNED",
 		# --- operative -------------------------------------------------------
 		"hero.title": "SELECT OPERATIVE",
@@ -114,32 +114,21 @@ const STRINGS := {
 		"hero.confirm_tip": "Confirm %s",
 		"hero.equipped_tip": "%s is equipped",
 		"hero.continue_tip": "Choose a weapon",
-		"hero.vitals_line": "TIER %d  ·  HP %d  ·  ARMOUR %d%%  ·  EMP 9M",
-		"hero.vitals_line_recon": "TIER %d  ·  HP %d  ·  ARMOUR %d%%  ·  RECON 18M",
-		"hero.tier_btn": "TIER %d/%d",
-		"hero.tier_cycle_tip": "Cycle unlocked operative tier (%d / %d)",
-		"hero.tier_locked_tip": "Operative Tier %d / %d (complete runs to unlock higher plate)",
+		"hero.vitals_line": "HP %d  ·  ARMOUR %d%%  ·  EMP 9M",
+		"hero.vitals_line_recon": "HP %d  ·  ARMOUR %d%%  ·  +14%% SPD  ·  RECON 18M",
 		"hero.sable.role":
 		(
-			"Raised on the frontier line and fielded as a strike lead. "
-			+ "Her kit is the rank: every tier is plate welded over the last one."
+			"Frontline strike lead outfitted with composite tactical plating and a "
+			+ "9m radial EMP Pulse that shatters enemy shields and disrupts armor."
 		),
 		"hero.sable.status": "FIELD READY",
 		"hero.kestrel.role":
 		(
 			"High-mobility recon scout built for long-sightline disruption. "
-			+ "Trades 10 base vitals for +14% stride speed, faster reloads, "
+			+ "Trades base vitals for +14% stride speed, faster reloads, "
 			+ "and an 18m Recon Overdrive lance."
 		),
 		"hero.kestrel.status": "FIELD READY",
-		# The five ranks of SABLE. Names a player reads on the tier cards, so they
-		# live in the catalog like every other line of copy; the numbers beside
-		# them (runs, vitals, plate) live in resources/heroes/roster.json.
-		"hero.tier.1.name": "FIELD RECRUIT",
-		"hero.tier.2.name": "PLATED",
-		"hero.tier.3.name": "FRONT LINE",
-		"hero.tier.4.name": "SPEARHEAD",
-		"hero.tier.5.name": "WARPLATE",
 		# --- theatre ---------------------------------------------------------
 		"world.kicker": "DEPLOYMENT THEATRE",
 		"world.not_deployable": "NOT YET DEPLOYABLE",
@@ -156,55 +145,16 @@ const STRINGS := {
 		"world.reward_module": "SCHEMATIC · %s + %d BP",
 		"world.reward_defense": "10 BP / KO · 100 BP / WAVE",
 		"world.caches_progress": "CACHES %d/%d",
-		"world.neon_frontier.role":
+		"world.aetherfall.role":
 		(
-			"An open training theatre: reactor, command centre, research lab, "
-			+ "depot and generator bank, with a boss gate that opens once the "
-			+ "generators are down."
+			"SH-01 Sentinel Citadel. Advance from the western Arrival Outpost across "
+			+ "the snow-swept central spine to bring the Horizon Relay online, breach "
+			+ "the Sentinel Archive interior against armored robot squads, and sweep "
+			+ "the Outpost & East Hangar caches."
 		),
-		"world.neon_frontier.status": "OPEN",
-		"world.neon_frontier.zone_title": "EXPLORE THE FRONTIER",
-		"world.neon_frontier.zone_subtitle": "SAFE ZONE · MOVE FREELY",
-		"world.frostline_relay.role":
-		(
-			"Defend the primary uplink across a frozen relay field, with causeways, "
-			+ "sentry towers, cryo condensers and four marked breach approaches."
-		),
-		"world.frostline_relay.status": "OPEN",
-		"world.frostline_relay.zone_title": "EXPLORE THE RELAY",
-		"world.frostline_relay.zone_subtitle": "SAFE ZONE · DAYTIME ROUTE",
-		"world.verdant_bloom.role":
-		(
-			"Enter an overgrown bio-research station, recover the Seed Vault blueprint "
-			+ "and search the crashed laboratory modules before security closes in."
-		),
-		"world.verdant_bloom.status": "OPEN",
-		"world.verdant_bloom.zone_title": "EXPLORE THE BLOOM",
-		"world.verdant_bloom.zone_subtitle": "RECOVERY · SEED VAULT SIGNAL",
-		"world.emberfall_foundry.role":
-		(
-			"Cross a cinder yard of smelters, ore silos, crane gantries and slag pools "
-			+ "to breach the Seam Drill core and recover the Breach Capacitor schematic."
-		),
-		"world.emberfall_foundry.status": "OPEN",
-		"world.emberfall_foundry.zone_title": "EXPLORE THE FOUNDRY",
-		"world.emberfall_foundry.zone_subtitle": "RECOVERY · SEAM DRILL SIGNAL",
-		"world.titans.role":
-		(
-			"Fight down the storm-lashed south shelter beneath the central tower to "
-			+ "secure the Storm Conductor schematic and search the eastern wreck."
-		),
-		"world.titans.status": "OPEN",
-		"world.titans.zone_title": "EXPLORE THE TITANS",
-		"world.titans.zone_subtitle": "RECOVERY · STORM SPIRE SIGNAL",
-		"world.vanguard_station.role":
-		(
-			"Dock 07 of a dead orbital station: breach the Reactor Hall behind the "
-			+ "pressure door to secure the Phase Thrusters schematic and Cargo Bay BP."
-		),
-		"world.vanguard_station.status": "OPEN",
-		"world.vanguard_station.zone_title": "DOCK 07 · STATION",
-		"world.vanguard_station.zone_subtitle": "RECOVERY · REACTOR CORE SIGNAL",
+		"world.aetherfall.status": "OPEN",
+		"world.aetherfall.zone_title": "SH-01 · CITADEL AETHERFALL",
+		"world.aetherfall.zone_subtitle": "CITADEL ASSAULT · RELAY & ARCHIVE",
 		# --- in-run HUD ------------------------------------------------------
 		"hud.help": "STICK MOVE · DRAG LOOK · HOLD AIM\nFIRE · EMP · SWAP · V EVOLVE · B DEFENSE",
 		"hud.vitals": "VITALS",
@@ -266,7 +216,7 @@ const STRINGS := {
 		"recovery.arc_ready": "BLUEPRINT RECORD ALSO SECURED",
 		"recovery.arc_blueprint": "NEW ARMORY ELIGIBILITY · ARC SHOOTER",
 		"recovery.armory_cost": "ARMORY UNLOCK COST · %d BP",
-		"recovery.blueprint_required": "SECURE THE SEED VAULT BLUEPRINT FIRST",
+		"recovery.blueprint_required": "SECURE THE EAST HANGAR BLUEPRINT IN AETHERFALL FIRST",
 		"recovery.dir_ahead": "AHEAD",
 		"recovery.dir_ahead_left": "AHEAD-L",
 		"recovery.dir_left": "LEFT",
@@ -277,9 +227,7 @@ const STRINGS := {
 		"recovery.guard_bearing": "HOSTILE · %s %dM",
 		"recovery.stuck_waypoint": "WAYPOINT · %s %dM",
 		"recovery.stuck_toast": "WAYPOINT · %s %dM",
-		"recovery.choice_tier_unlock":
-		"EXTRACT BANKS RUN #1 · UNLOCKS TIER %d (%d HP · %d%% ARMOR)",
-		"recovery.choice_tier_progress": "EXTRACT BANKS RUN #%d · TIER %d OWNED (%d HP)",
+		"recovery.choice_runs_logged": "EXTRACT BANKS %s EXPEDITION #%d",
 		"hud.left_ko_bp": "%d LEFT · %d KO · +%d BP",
 		"hud.pause_safe": "SAFE ZONE · NO WAVES UNTIL YOU START",
 		"hud.score_time": "SCORE %s  ·  %s",
@@ -370,10 +318,8 @@ const STRINGS := {
 		"results.extracted_eyebrow": "EXPEDITION EXTRACTED · PROGRESS SAVED",
 		"results.extracted_title": "EXTRACTION COMPLETE",
 		"results.extracted_reward": "TECH SECURED · EXPEDITION BANKED",
-		"results.tier_promoted": "PROMOTED · %s TIER %d READY (%d HP · %d%% ARMOR)",
-		"results.runs_tier_kept": "KEPT · %d RUNS BANKED · TIER %d OWNED (%d HP)",
+		"results.runs_logged": "LOGGED · %s EXPEDITIONS COMPLETED: %d",
 		"results.reset_clean": "RESET · FIELD ENEMIES & TEMP RUN STATE CLEARED",
-		"results.next_redeploy_tier": "NEXT · HOME > OPERATIVE > TIER %d (%d HP) > REDEPLOY",
 		# --- armory ----------------------------------------------------------
 		"armory.title": "ARMORY / FIELD LOADOUT",
 		"armory.hint": "EARN BP BY DEFEATING WAVES",
@@ -396,7 +342,7 @@ const STRINGS := {
 		"armory.now_equipped": "%s EQUIPPED",
 		"armory.now_unlocked": "%s UNLOCKED & EQUIPPED",
 		"armory.blueprint_locked": "BLUEPRINT LOCKED",
-		"armory.blueprint_tier_note": "RECOVER BLUEPRINT IN VERDANT BLOOM",
+		"armory.blueprint_tier_note": "RECOVER BLUEPRINT IN AETHERFALL EAST HANGAR",
 		# --- weapons ---------------------------------------------------------
 		"wpn.pulse.name": "PULSE RIFLE",
 		"wpn.pulse.role": "Fast, accurate rounds",
@@ -539,7 +485,7 @@ const STRINGS := {
 		"dash.selected_cost": "DIPILIH  ·  %d BP",
 		"dash.battle_points": "BATTLE POINT",
 		"dash.runs": "SESI",
-		"dash.hero_summary": "TIER %d · HP %d · ZIRAH %d%% · %s",
+		"dash.hero_summary": "HP %d · ZIRAH %d%% · %s",
 		"dash.arsenal_summary": "T%d TERPASANG · %d/%d MILIK",
 		# --- operative -------------------------------------------------------
 		"hero.title": "PILIH OPERATIF",
@@ -550,29 +496,20 @@ const STRINGS := {
 		"hero.confirm_tip": "Konfirmasi %s",
 		"hero.equipped_tip": "%s sudah terpasang",
 		"hero.continue_tip": "Pilih senjata",
-		"hero.vitals_line": "TIER %d  ·  HP %d  ·  ZIRAH %d%%  ·  EMP 9M",
-		"hero.vitals_line_recon": "TIER %d  ·  HP %d  ·  ZIRAH %d%%  ·  INTAI 18M",
-		"hero.tier_btn": "TINGKAT %d/%d",
-		"hero.tier_cycle_tip": "Ganti tingkat operatif terbuka (%d / %d)",
-		"hero.tier_locked_tip": "Tingkat Operatif %d / %d (tuntaskan sesi untuk pelat berikutnya)",
+		"hero.vitals_line": "HP %d  ·  ZIRAH %d%%  ·  EMP 9M",
+		"hero.vitals_line_recon": "HP %d  ·  ZIRAH %d%%  ·  +14%% GERAK  ·  INTAI 18M",
 		"hero.sable.role":
 		(
-			"Besar di garis perbatasan dan diterjunkan sebagai pemimpin serbu. "
-			+ "Perlengkapannya adalah pangkatnya: tiap tingkat adalah pelat yang "
-			+ "dilas menutup pelat sebelumnya."
+			"Pemimpin serbu garis depan dengan pelat komposit taktis dan Denyut EMP "
+			+ "radial 9m yang menghancurkan perisai serta melumpuhkan unit berlapis baja."
 		),
 		"hero.sable.status": "SIAP TURUN",
 		"hero.kestrel.role":
 		(
-			"Peninjau intai gesit untuk disrupsi jarak jauh. Menukar 10 HP dasar "
+			"Peninjau intai gesit untuk disrupsi jarak jauh. Menukar HP dasar "
 			+ "demi +14% kecepatan gerak, isi ulang cepat, dan tombak Recon Overdrive 18m."
 		),
 		"hero.kestrel.status": "SIAP TURUN",
-		"hero.tier.1.name": "REKRUT LAPANGAN",
-		"hero.tier.2.name": "BERPELAT",
-		"hero.tier.3.name": "GARIS DEPAN",
-		"hero.tier.4.name": "UJUNG TOMBAK",
-		"hero.tier.5.name": "ZIRAH PERANG",
 		# --- theatre ---------------------------------------------------------
 		"world.kicker": "TEATER PENGERAHAN",
 		"world.not_deployable": "BELUM BISA DITURUNKAN",
@@ -589,55 +526,15 @@ const STRINGS := {
 		"world.reward_module": "SKEMA · %s + %d BP",
 		"world.reward_defense": "10 BP / KO · 100 BP / GELOMBANG",
 		"world.caches_progress": "CACHE %d/%d",
-		"world.neon_frontier.role":
+		"world.aetherfall.role":
 		(
-			"Teater latihan terbuka: reaktor, pusat komando, laboratorium riset, "
-			+ "depo, dan deret generator, dengan gerbang bos yang terbuka "
-			+ "setelah semua generator jatuh."
+			"SH-01 Benteng Sentinel. Maju dari Pos Pendaratan barat melintasi koridor "
+			+ "tengah bersalju untuk menyalakan Relai Horizon, menembus interior Arsip "
+			+ "Sentinel melawan skuadron robot baja, dan menyapu cache Pos & Hangar Timur."
 		),
-		"world.neon_frontier.status": "TERBUKA",
-		"world.neon_frontier.zone_title": "JELAJAHI FRONTIER",
-		"world.neon_frontier.zone_subtitle": "ZONA AMAN · BEBAS BERGERAK",
-		"world.frostline_relay.role":
-		(
-			"Pertahankan uplink utama di ladang relai beku, dengan jalan lintas, "
-			+ "menara pengawas, kondensor cryo, dan empat jalur terobosan."
-		),
-		"world.frostline_relay.status": "TERBUKA",
-		"world.frostline_relay.zone_title": "JELAJAHI RELAY",
-		"world.frostline_relay.zone_subtitle": "ZONA AMAN · JALUR SIANG",
-		"world.verdant_bloom.role":
-		(
-			"Masuki stasiun bio-riset yang ditumbuhi, pulihkan blueprint Seed Vault, "
-			+ "dan periksa modul laboratorium jatuh sebelum keamanan mendekat."
-		),
-		"world.verdant_bloom.status": "TERBUKA",
-		"world.verdant_bloom.zone_title": "JELAJAHI BLOOM",
-		"world.verdant_bloom.zone_subtitle": "PEMULIHAN · SINYAL SEED VAULT",
-		"world.emberfall_foundry.role":
-		(
-			"Lintasi halaman bara pelebur dan silo bijih untuk menembus inti Seam Drill "
-			+ "serta memulihkan skema Breach Capacitor."
-		),
-		"world.emberfall_foundry.status": "TERBUKA",
-		"world.emberfall_foundry.zone_title": "JELAJAHI FOUNDRY",
-		"world.emberfall_foundry.zone_subtitle": "PEMULIHAN · SINYAL SEAM DRILL",
-		"world.titans.role":
-		(
-			"Tembus basis perlindungan selatan di bawah menara pusat badai untuk "
-			+ "mengamankan skema Storm Conductor dan bangkai transpor timur."
-		),
-		"world.titans.status": "TERBUKA",
-		"world.titans.zone_title": "JELAJAHI TITANS",
-		"world.titans.zone_subtitle": "PEMULIHAN · SINYAL STORM SPIRE",
-		"world.vanguard_station.role":
-		(
-			"Dermaga 07 stasiun orbit mati: tembus Aula Reaktor di balik pintu tekan "
-			+ "untuk mengamankan skema Phase Thrusters dan kargo BP."
-		),
-		"world.vanguard_station.status": "TERBUKA",
-		"world.vanguard_station.zone_title": "DERMAGA 07 · STASIUN",
-		"world.vanguard_station.zone_subtitle": "PEMULIHAN · SINYAL INTI REAKTOR",
+		"world.aetherfall.status": "TERBUKA",
+		"world.aetherfall.zone_title": "SH-01 · BENTENG AETHERFALL",
+		"world.aetherfall.zone_subtitle": "SERBUAN BENTENG · RELAI & ARSIP",
 		# --- in-run HUD ------------------------------------------------------
 		"hud.help":
 		"STIK GERAK · GESER PANDANG · TAHAN BIDIK\nTEMBAK · EMP · GANTI · V EVOLUSI · B BERTAHAN",
@@ -700,7 +597,7 @@ const STRINGS := {
 		"recovery.arc_ready": "CATATAN BLUEPRINT JUGA TERAMANKAN",
 		"recovery.arc_blueprint": "ELIGIBILITAS ARSENAL BARU · ARC SHOOTER",
 		"recovery.armory_cost": "BIAYA BUKA DI ARSENAL · %d BP",
-		"recovery.blueprint_required": "AMANKAN BLUEPRINT SEED VAULT TERLEBIH DAHULU",
+		"recovery.blueprint_required": "AMANKAN BLUEPRINT HANGAR TIMUR DI AETHERFALL DAHULU",
 		"recovery.dir_ahead": "DEPAN",
 		"recovery.dir_ahead_left": "DEPAN-KIRI",
 		"recovery.dir_left": "KIRI",
@@ -711,9 +608,7 @@ const STRINGS := {
 		"recovery.guard_bearing": "PENJAGA · %s %dM",
 		"recovery.stuck_waypoint": "ARAH · %s %dM",
 		"recovery.stuck_toast": "ARAH · %s %dM",
-		"recovery.choice_tier_unlock":
-		"EKSTRAKSI SIMPAN RUN #1 · BUKA TIER %d (%d HP · %d%% ZIRAH)",
-		"recovery.choice_tier_progress": "EKSTRAKSI SIMPAN RUN #%d · TIER %d AKTIF (%d HP)",
+		"recovery.choice_runs_logged": "EKSTRAKSI MENCATAT EKSPEDISI %s #%d",
 		"hud.left_ko_bp": "SISA %d · %d KO · +%d BP",
 		"hud.pause_safe": "ZONA AMAN · BELUM ADA GELOMBANG",
 		"hud.score_time": "SKOR %s  ·  %s",
@@ -803,10 +698,8 @@ const STRINGS := {
 		"results.extracted_eyebrow": "EKSPEDISI DIEKSTRAK · PROGRES TERSIMPAN",
 		"results.extracted_title": "EKSTRAKSI SELESAI",
 		"results.extracted_reward": "TEKNOLOGI AMAN · EKSPEDISI TERSIMPAN",
-		"results.tier_promoted": "NAIK TIER · %s TIER %d SIAP (%d HP · %d%% ZIRAH)",
-		"results.runs_tier_kept": "TERSIMPAN · %d RUN · TIER %d DIMILIKI (%d HP)",
+		"results.runs_logged": "TERCATAT · EKSPEDISI %s TUNTAS: %d",
 		"results.reset_clean": "DIRESET · MUSUH ARENA & MOD SEMENTARA DIHAPUS",
-		"results.next_redeploy_tier": "LANJUT · BERANDA > OPERATIF > TIER %d (%d HP) > DEPLOY",
 		# --- armory ----------------------------------------------------------
 		"armory.title": "ARSENAL / PERLENGKAPAN LAPANGAN",
 		"armory.hint": "KUMPULKAN BP DENGAN MENGALAHKAN GELOMBANG",
@@ -829,7 +722,7 @@ const STRINGS := {
 		"armory.now_equipped": "%s TERPASANG",
 		"armory.now_unlocked": "%s TERBUKA & TERPASANG",
 		"armory.blueprint_locked": "BLUEPRINT TERKUNCI",
-		"armory.blueprint_tier_note": "PULIHKAN BLUEPRINT DI VERDANT BLOOM",
+		"armory.blueprint_tier_note": "PULIHKAN BLUEPRINT DI HANGAR TIMUR AETHERFALL",
 		# --- weapons ---------------------------------------------------------
 		"wpn.pulse.name": "PULSE RIFLE",
 		"wpn.pulse.role": "Tembakan cepat dan akurat",

@@ -52,6 +52,7 @@ var state: WaveState = WaveState.IDLE
 var current_wave: int = 0
 var current_wave_enemy_count: int = 0
 var current_wave_shooter_count: int = 0
+var current_wave_enforcer_count: int = 0
 var current_wave_guardian_count: int = 0
 var endless_mode: bool = false
 var session_defeated_count: int = 0
@@ -362,6 +363,12 @@ func _start_next_wave() -> void:
 		current_wave, current_wave_enemy_count
 	)
 	current_wave_shooter_count = get_shooter_count_for_wave(current_wave, current_wave_enemy_count)
+	current_wave_enforcer_count = _enforcer_count_for_wave(
+		current_wave,
+		current_wave_enemy_count,
+		current_wave_guardian_count,
+		current_wave_shooter_count
+	)
 	enemies_defeated_this_wave = 0
 	enemies_spawned_this_wave = 0
 	_failed_spawn_attempts = 0
@@ -447,6 +454,17 @@ func _spawn_enemy(
 	return enemy
 
 
+func _enforcer_count_for_wave(
+	wave_index: int, enemy_count: int, guardians: int, shooters: int
+) -> int:
+	if wave_index < 2 or _get_enemy_definition(&"enforcer") == null:
+		return 0
+	var available := enemy_count - guardians - shooters - 1
+	if available <= 0:
+		return 0
+	return mini(2 if wave_index >= 4 else 1, available)
+
+
 func _enemy_id_for_spawn_slot(slot_index: int) -> StringName:
 	if current_wave_guardian_count > 0:
 		var guardian_start := 1 if current_wave_enemy_count > 1 else 0
@@ -456,6 +474,9 @@ func _enemy_id_for_spawn_slot(slot_index: int) -> StringName:
 	var shooter_slot_start := current_wave_enemy_count - current_wave_shooter_count
 	if slot_index >= shooter_slot_start:
 		return &"shooter"
+	var enforcer_slot_start := shooter_slot_start - current_wave_enforcer_count
+	if current_wave_enforcer_count > 0 and slot_index >= enforcer_slot_start:
+		return &"enforcer"
 	return &"runner"
 
 

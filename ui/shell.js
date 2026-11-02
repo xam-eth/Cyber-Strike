@@ -58,9 +58,8 @@ const prefs = Object.assign(
     motion: false,
     fullscreen: false,
     weapon: 'pulse_rifle',
-world: 'frostline_relay',
+    world: 'aetherfall',
     hero: 'sable',
-    tier: 1,
     muted: false,
   },
   readPrefs(),
@@ -314,15 +313,22 @@ function showNote(text) {
  * theatre the player selected.
  */
 const WORLDS = [
-  { id: 'frostline_relay', name: 'Frostline Relay', lineKey: 'world.frostline_relay.line', caches: [], rewardKey: 'hub.intel.reward_defense' },
-  { id: 'verdant_bloom', name: 'Verdant Bloom', lineKey: 'world.verdant_bloom.line', caches: ['verdant_seed_vault', 'verdant_canopy_relay'], stateId: 'verdant-card-state', rewardKey: 'hub.intel.reward_recovery' },
-  { id: 'emberfall_foundry', name: 'Emberfall Foundry', lineKey: 'world.emberfall_foundry.line', caches: ['emberfall_seam_core', 'emberfall_smelter_vault'], stateId: 'emberfall-card-state', rewardKey: 'hub.intel.reward_emberfall' },
-  { id: 'vanguard_station', name: 'Vanguard Station', lineKey: 'world.vanguard_station.line', caches: ['vanguard_reactor_core', 'vanguard_cargo_manifest'], stateId: 'vanguard-card-state', rewardKey: 'hub.intel.reward_vanguard' },
-  { id: 'titans', name: 'THE TITANS', lineKey: 'world.titans.line', caches: ['titans_storm_spire', 'titans_east_wreck'], stateId: 'titans-card-state', rewardKey: 'hub.intel.reward_titans' },
+  {
+    id: 'aetherfall',
+    name: 'Aetherfall',
+    lineKey: 'world.aetherfall.line',
+    caches: [
+      'aetherfall_horizon_relay',
+      'aetherfall_archive_vault',
+      'aetherfall_primary_tech_cache',
+      'aetherfall_hangar_cache',
+    ],
+    stateId: 'aetherfall-card-state',
+    rewardKey: 'hub.intel.reward_aetherfall',
+  },
 ];
 
-// A saved Neon selection predates the new registry. Migrate it explicitly so
-// the card, URL handoff, and ProgressionService all agree on the same default.
+// Any legacy theatre selection migrates cleanly to SH-01 Aetherfall.
 if (!WORLDS.some((world) => world.id === prefs.world)) prefs.world = WORLDS[0].id;
 
 function worldIndex() {
@@ -342,7 +348,8 @@ function paintWorld() {
   }
   const snap = profileSnapshot();
   const securedMap = snap.secured_caches && typeof snap.secured_caches === 'object' ? snap.secured_caches : {};
-  const totalCaches = Object.values(securedMap).filter(Boolean).length;
+  const selected = WORLDS[worldIndex()];
+  const worldDone = selected.caches.filter((cid) => Boolean(securedMap[cid])).length;
   const wpnBlueprints = Array.isArray(snap.blueprints)
     ? snap.blueprints.length
     : Array.isArray(snap.blueprint_ids)
@@ -353,9 +360,9 @@ function paintWorld() {
   const cacheChip = el('hub-cache-chip');
   if (cacheChip) {
     cacheChip.textContent = locale() === 'id'
-      ? `CACHE ${Math.min(totalCaches, 8)}/8 · SKEMA ${totalSchematics}/4`
-      : `CACHES ${Math.min(totalCaches, 8)}/8 · SCHEMATICS ${totalSchematics}/4`;
-    cacheChip.dataset.complete = String(totalCaches >= 8 && totalSchematics >= 4);
+      ? `CACHE ${worldDone}/${selected.caches.length} · SKEMA ${totalSchematics}/4`
+      : `CACHES ${worldDone}/${selected.caches.length} · SCHEMATICS ${totalSchematics}/4`;
+    cacheChip.dataset.complete = String(worldDone >= selected.caches.length && totalSchematics >= 4);
   }
   for (const world of WORLDS) {
     if (!world.stateId || !world.caches.length) continue;
@@ -371,9 +378,7 @@ function paintWorld() {
     const best = Number.isFinite(Number(snap.best_score)) ? Math.max(0, Math.floor(Number(snap.best_score))) : 0;
     strip.textContent = t(runs === 1 ? 'hub.profile_strip_one' : 'hub.profile_strip', bp, runs, best);
   }
-  const selected = WORLDS[worldIndex()];
   const isRecovery = selected.caches.length > 0;
-  const worldDone = selected.caches.filter((cid) => Boolean(securedMap[cid])).length;
   const modeBadge = el('hub-intel-mode');
   if (modeBadge) {
     modeBadge.dataset.tone = isRecovery ? 'recovery' : 'defense';
@@ -414,8 +419,8 @@ function stepWorld(delta) {
 for (const card of document.querySelectorAll('.wcard[data-world]')) {
   card.addEventListener('click', () => selectWorld(card.dataset.world));
 }
-el('world-prev').addEventListener('click', () => stepWorld(-1));
-el('world-next').addEventListener('click', () => stepWorld(1));
+el('world-prev')?.addEventListener('click', () => stepWorld(-1));
+el('world-next')?.addEventListener('click', () => stepWorld(1));
 
 /* ------------------------------------------------------------- operative */
 
@@ -460,12 +465,10 @@ function completedRuns() {
 }
 
 let roster = null;
-let heroState = { heroId: '', tier: 1, ownedTier: 1 };
+let heroState = { heroId: '' };
 
 function rosterUrl() {
-  // Cache-busted: a stale roster next to a fresh render is the one way these
-  // two can disagree.
-  return './game/resources/heroes/roster.json?v=4';
+  return './game/resources/heroes/roster.json?v=5';
 }
 
 async function loadRoster() {
@@ -481,43 +484,23 @@ function heroOf(id) {
   return roster.heroes.find((hero) => hero.id === id) || roster.heroes[0];
 }
 
-function tierTable() {
-  return roster ? roster.tiers : [];
+function heroArt(hero) {
+  if (!hero) return null;
+  const p = hero.portrait || hero.art || null;
+  if (!p) return null;
+  return p.startsWith('./') || p.startsWith('/') ? p : `./${p}`;
 }
 
-function tierRow(tier) {
-  return tierTable().find((row) => row.tier === tier) || tierTable()[0];
+function heroModel(hero) {
+  return hero && hero.model ? hero.model : null;
 }
 
-/** The highest tier the player's completed runs unlock. */
-function ownedTier() {
-  const runs = completedRuns();
-  let owned = 1;
-  for (const row of tierTable()) {
-    if (runs >= row.runs_required) owned = Math.max(owned, row.tier);
-  }
-  return owned;
+function heroRig(hero) {
+  return hero && hero.rig ? hero.rig : null;
 }
 
-function tierArt(hero, tier) {
-  const entry = hero && hero.tiers ? hero.tiers.find((item) => item.tier === tier) : null;
-  return entry && entry.art ? entry.art : null;
-}
-
-function tierModel(hero, tier) {
-  const entry = hero && hero.tiers ? hero.tiers.find((item) => item.tier === tier) : null;
-  return entry && entry.model ? entry.model : null;
-}
-
-/* The rig sidecar is where the rifle socket lives, so the stage hangs the
-   weapon exactly the way the engine does -- per tier, not per guess. */
-function tierRig(hero, tier) {
-  const entry = hero && hero.tiers ? hero.tiers.find((item) => item.tier === tier) : null;
-  return entry && entry.rig ? entry.rig : null;
-}
-
-function tierLivery(hero, tier) {
-  const entry = hero && hero.tiers ? hero.tiers.find((item) => item.tier === tier) : null;
+function heroLivery(hero) {
+  const entry = hero && (hero.livery || hero);
   return entry && entry.tint
     ? {
         tint: entry.tint,
@@ -529,10 +512,18 @@ function tierLivery(hero, tier) {
     : null;
 }
 
-function heroVitals(hero, row) {
-  const base = row ? row.vitals : 100;
-  const offset = hero && Number.isFinite(hero.vitals_offset) ? hero.vitals_offset : 0;
-  return Math.max(1, base + offset);
+function heroVitals(hero) {
+  return hero && Number.isFinite(hero.vitals) ? Math.max(1, hero.vitals) : 110;
+}
+
+function heroReduction(hero) {
+  return hero && Number.isFinite(hero.reduction) ? Math.max(0, hero.reduction) : 6;
+}
+
+function heroSkillSummary(hero) {
+  const id = hero && (hero.skill_id || (hero.skill && hero.skill.id)) ? (hero.skill_id || hero.skill.id) : '';
+  if (id === 'recon_pulse') return t('hero.skill.recon_short');
+  return t('hero.skill.emp_short');
 }
 
 /* One card component, two groups. The difference between them is what the name
@@ -598,9 +589,8 @@ function paintHeroCards() {
   host.replaceChildren();
   for (const hero of roster.heroes) {
     const playable = hero.status === 'field_ready';
-    const tier = playable ? Math.min(heroState.tier, ownedTier()) || 1 : 1;
     const card = buildCard({
-      art: playable ? tierArt(hero, Math.max(1, tier)) : null,
+      art: playable ? heroArt(hero) : null,
       name: hero.callsign,
       role: t(hero.role_key),
       state: hero.name,
@@ -612,68 +602,23 @@ function paintHeroCards() {
     card.classList.add('herocard');
     card.dataset.hero = hero.id;
     card.setAttribute('aria-pressed', String(hero.id === heroState.heroId));
-    // A hero without a rig is a slot with a name, not a button that pretends:
-    // `aria-disabled` keeps it reachable by a screen reader (so the player
-    // learns it exists) and the click handler refuses it.
     if (!playable) card.setAttribute('aria-disabled', 'true');
     host.appendChild(card);
   }
 }
 
-function paintTierCards() {
-  const host = el('hero-tiers');
-  if (!host || !roster) return;
-  const hero = heroOf(heroState.heroId);
-  const owned = ownedTier();
-  host.replaceChildren();
-  for (const row of tierTable()) {
-    const isOwned = row.tier <= owned;
-    const selected = row.tier === heroState.tier;
-    const card = buildCard({
-      art: null,
-      badge: `T${row.tier}`,
-      name: t(row.name_key),
-      state: isOwned
-        ? selected
-          ? t('hero.tier.equipped')
-          : t('hero.tier.owned')
-        : row.runs_required === 1
-          ? t('hero.tier.runs_one', row.runs_required)
-          : t('hero.tier.runs', row.runs_required),
-      locked: !isOwned,
-      empty: false,
-      lock: !isOwned,
-    });
-    card.classList.add('tierstep');
-    card.dataset.tier = String(row.tier);
-    card.setAttribute('role', 'radio');
-    card.setAttribute('aria-checked', String(selected));
-    if (!isOwned) {
-      // Reachable and previewable: looking at the armour is the reason to play
-      // the next run. It is not deployable, and the state line says why.
-      card.dataset.preview = String(selected);
-    }
-    host.appendChild(card);
-  }
-  const count = el('hero-tier-count');
-  if (count) count.textContent = `${heroState.tier} / ${roster.tier_count}`;
-}
-
 function paintOperative() {
   if (!roster) return;
   const hero = heroOf(heroState.heroId || roster.heroes[0].id);
-  const row = tierRow(heroState.tier);
-  const owned = ownedTier();
   const nameNode = el('hero-name');
   if (nameNode) nameNode.textContent = hero.name;
   const callsign = el('hero-callsign');
   if (callsign) callsign.textContent = hero.callsign;
-  const tierNumber = el('hero-tier-number');
-  if (tierNumber) tierNumber.textContent = String(row.tier);
-  const tierName = el('hero-tier-name');
-  if (tierName) tierName.textContent = t(row.name_key);
+  const roleText = t(hero.role_key);
   const roleTitle = el('hero-role-title');
-  if (roleTitle) roleTitle.textContent = t(hero.role_key);
+  if (roleTitle) roleTitle.textContent = roleText;
+  const roleBadge = el('hero-role-badge');
+  if (roleBadge) roleBadge.textContent = roleText;
   const status = el('hero-status');
   if (status) {
     status.textContent = hero.status === 'field_ready' ? t('hero.status') : t('common.in_development');
@@ -684,130 +629,45 @@ function paintOperative() {
     role.textContent = t(hero.brief_key);
   }
   const vitals = el('hero-stat-vitals');
-  const opVitals = heroVitals(hero, row);
-  const baseVitals = heroVitals(hero, tierRow(1));
+  const opVitals = heroVitals(hero);
+  const opArmour = heroReduction(hero);
   if (vitals) vitals.textContent = String(opVitals);
   const armour = el('hero-stat-armour');
-  if (armour) armour.textContent = `${row.reduction}%`;
+  if (armour) armour.textContent = `${opArmour}%`;
   const vitalsDelta = el('hero-stat-vitals-delta');
   if (vitalsDelta) {
-    vitalsDelta.textContent =
-      row.tier > 1
-        ? t('hero.stat.from_base', opVitals - baseVitals)
-        : hero && hero.speed_pct > 0
-          ? `+${hero.speed_pct}% SPD`
-          : '';
+    vitalsDelta.textContent = hero && hero.speed_pct > 0 ? `+${hero.speed_pct}% SPD` : '';
   }
   const armourDelta = el('hero-stat-armour-delta');
-  // The plate figure is already the big number, so its note says what the
-  // figure *means* rather than repeating it.
-  if (armourDelta) armourDelta.textContent = row.reduction > 0 ? t('hero.stat.armour_note') : '';
-  const next = el('hero-stat-next');
-  const upcoming = tierTable().find((item) => item.tier === row.tier + 1);
-  if (next) {
-    next.textContent = upcoming
-      ? upcoming.runs_required === 1
-        ? t('hero.tier.runs_one', upcoming.runs_required)
-        : t('hero.tier.runs', upcoming.runs_required)
-      : t('hero.tier.max');
-  }
+  if (armourDelta) armourDelta.textContent = opArmour > 0 ? t('hero.stat.armour_note') : '';
+  const skillStat = el('hero-stat-skill');
+  if (skillStat) skillStat.textContent = heroSkillSummary(hero);
   const banner = el('hero-banner-title');
-  if (banner) banner.textContent = `${t('hero.tier.word')} ${row.tier}`;
+  if (banner) banner.textContent = hero.callsign;
   const bannerNote = el('hero-banner-note');
-  if (bannerNote) bannerNote.textContent = t(row.name_key);
+  if (bannerNote) bannerNote.textContent = roleText;
   const canvas = el('hero-canvas');
   if (canvas) {
-    canvas.dataset.tier = String(row.tier);
     canvas.dataset.hero = hero.id;
-    canvas.setAttribute(
-      'aria-label',
-      t('hero.stage_label', hero.callsign, row.tier, t(row.name_key)),
-    );
-  }
-  // The tier badge on the header says whether what is selected is what the
-  // player owns, because a preview that looks identical to an equipped tier is
-  // a screen lying about the run.
-  const chip = el('hero-tier-chip');
-  if (chip) {
-    chip.dataset.owned = String(row.tier <= owned);
-    chip.dataset.preview = String(row.tier > owned);
+    canvas.setAttribute('aria-label', t('hero.stage_label', hero.callsign, roleText));
   }
   paintHeroCards();
-  paintTierCards();
-  paintLadder();
 }
 
-/* The rail under the numbers. `aegis.runs` is the arena's own mirror of how
-   many runs are finished, so the fill is the player's real progress and the
-   sentence is the real distance to the next rank. */
-function paintLadder() {
-  const host = el('hero-ladder');
-  if (!host) return;
-  const rows = tierTable();
-  const owned = ownedTier();
-  const runs = completedRuns();
-  if (host.childElementCount !== rows.length) {
-    host.replaceChildren();
-    for (const row of rows) {
-      const item = document.createElement('li');
-      item.dataset.tier = String(row.tier);
-      host.appendChild(item);
-    }
-  }
-  for (const item of host.children) {
-    const row = tierRow(Number(item.dataset.tier));
-    const isOwned = row.tier <= owned;
-    const previous = tierRow(row.tier - 1);
-    const floor = previous ? previous.runs_required : 0;
-    const span = Math.max(1, row.runs_required - floor);
-    item.dataset.state = isOwned ? 'owned' : 'locked';
-    // The bar is the fraction of this tier's price already paid, so the ladder
-    // grows with every run instead of jumping at the unlock.
-    item.style.setProperty(
-      '--fill',
-      String(isOwned ? 1 : Math.max(0, Math.min(1, (runs - floor) / span))),
-    );
-    item.dataset.current = String(row.tier === heroState.tier);
-  }
-  const note = el('hero-ladder-note');
-  if (note) {
-    const next = rows.find((row) => row.tier === heroState.tier + 1);
-    note.textContent = next
-      ? t(
-          next.runs_required === 1 ? 'hero.ladder.to_next_one' : 'hero.ladder.to_next',
-          runs,
-          next.runs_required,
-          next.tier,
-        )
-      : t('hero.ladder.max');
-  }
-}
-
-/* The stage. `ui/hero_stage.js` owns the rig, the deck, the light and the
-   entrance; this owns the decision of what to show and from where. */
-/* The beat the page is currently playing. It is remembered because the stage
-   announces itself twice -- when it mounts and when a model finishes loading --
-   and a tier press must still arrive from the TOP after its GLB has landed,
-   not restart as a hero selection. */
 let lastEntry = 'right';
 
 function stageShow(entry) {
   const stage = window.AegisHeroStage;
   if (entry) lastEntry = entry;
-  // Loadout paints also run during OPENING/direct DEPLOY. Never initialize the
-  // Three.js stage or fetch hero/weapon models behind the engine preloader.
-  // Before the roster answers there is no operative to set, and after a failed
-  // fetch there never will be: either way the stage keeps its own default.
   if (current !== 'hero' || typeof stage === 'undefined' || !roster) return;
   const hero = heroOf(heroState.heroId);
   if (!hero) return;
   const weapon = WEAPONS[prefs.weapon] || WEAPONS.pulse_rifle;
   stage.setLoadout({
     heroId: hero.id,
-    tier: heroState.tier,
-    model: tierModel(hero, heroState.tier),
-    rig: tierRig(hero, heroState.tier),
-    livery: tierLivery(hero, heroState.tier),
+    model: heroModel(hero),
+    rig: heroRig(hero),
+    livery: heroLivery(hero),
     weaponId: prefs.weapon,
     weaponTier: weaponTierFor(prefs.weapon),
     weaponModel: weapon.model,
@@ -872,41 +732,18 @@ function selectHero(id) {
   const hero = heroOf(id);
   if (!hero || hero.status !== 'field_ready') return;
   heroState.heroId = hero.id;
-  heroState.tier = Math.min(heroState.tier, ownedTier()) || 1;
   prefs.hero = hero.id;
-  prefs.tier = heroState.tier;
-  savePrefs();
-  paintOperative();
-  stageShow('right');
-  // A card that is already selected still answers: pressing the thing you
-  // already have is how a player says "show me again". The beat never includes
-  // the upgrade ceremony -- that belongs to the tier strip alone.
-  celebrate('right');
-}
-
-function selectTier(tier) {
-  const row = tierRow(tier);
-  if (!row) return;
-  heroState.tier = row.tier;
-  prefs.tier = row.tier;
   savePrefs();
   paintOperative();
   paintLoadout();
-  // Owned or not, the picture is the point; what changes is whether the run
-  // can deploy at that tier (see deploy()).
-  stageShow('top');
-  celebrate('top');
+  stageShow('right');
+  celebrate('right');
 }
 
 document.addEventListener('click', (event) => {
   const heroCard = event.target.closest('#hero-roster .card[data-hero]');
   if (heroCard) {
     selectHero(heroCard.dataset.hero);
-    return;
-  }
-  const tierCard = event.target.closest('#hero-tiers .card[data-tier]');
-  if (tierCard) {
-    selectTier(Number(tierCard.dataset.tier));
   }
 });
 
@@ -1106,8 +943,6 @@ el('hero-modules')?.addEventListener('click', (event) => {
 loadRoster()
   .then(() => {
     heroState.heroId = heroOf(prefs.hero)?.id || roster.heroes[0].id;
-    heroState.tier = Math.min(Math.max(1, Number(prefs.tier) || 1), roster.tier_count);
-    heroState.tier = Math.min(heroState.tier, ownedTier()) || 1;
     paintOperative();
     paintLoadout();
     const screen = screens.hero;
@@ -1164,21 +999,21 @@ const TECH_MODULES = {
     nameKey: 'mod.breach.name',
     tagKey: 'mod.breach.tag',
     specKey: 'mod.breach.spec',
-    source: 'Emberfall',
+    source: 'Horizon Relay',
     cost: 140,
   },
   phase_thrusters: {
     nameKey: 'mod.phase.name',
     tagKey: 'mod.phase.tag',
     specKey: 'mod.phase.spec',
-    source: 'Vanguard',
+    source: 'Arrival Outpost',
     cost: 120,
   },
   storm_conductor: {
     nameKey: 'mod.storm.name',
     tagKey: 'mod.storm.tag',
     specKey: 'mod.storm.spec',
-    source: 'Titans',
+    source: 'Sentinel Archive',
     cost: 160,
   },
 };
@@ -1337,22 +1172,15 @@ function paintLoadout() {
     }
   }
   const activeHero = heroOf(prefs.hero || 'sable');
-  const activeOpTier = roster
-    ? Math.min(Math.max(1, Number(prefs.tier) || 1), ownedTier())
-    : Math.max(1, Math.min(Number(prefs.tier) || 1, completedRuns() >= 1 ? 2 : 1));
-  const opCallsign = activeHero ? activeHero.callsign : 'Sable';
-  const activeRow = tierRow(activeOpTier);
-  const opVitals = activeRow
-    ? heroVitals(activeHero, activeRow)
-    : Math.max(1, (activeOpTier >= 2 ? 106 : 100) + (activeHero?.vitals_offset || 0));
-  const opArmour = activeRow ? activeRow.reduction : (activeOpTier >= 2 ? 3 : 0);
-  const portraitSrc = (activeHero && tierArt(activeHero, activeOpTier)) || `./ui/art/web/hero/sable-tier-${activeOpTier}.png`;
+  const heroIdKey = activeHero ? activeHero.id : prefs.hero === 'kestrel' ? 'kestrel' : 'sable';
+  const opCallsign = activeHero ? activeHero.callsign : heroIdKey === 'kestrel' ? 'KESTREL' : 'SABLE';
+  const opVitals = activeHero ? heroVitals(activeHero) : heroIdKey === 'kestrel' ? 96 : 110;
+  const opArmour = activeHero ? heroReduction(activeHero) : heroIdKey === 'kestrel' ? 4 : 6;
+  const portraitSrc = (activeHero && heroArt(activeHero)) || `./ui/art/web/hero/${heroIdKey}.png`;
   const hubPortrait = el('hub-op-portrait');
   if (hubPortrait && hubPortrait.getAttribute('src') !== portraitSrc) {
     hubPortrait.setAttribute('src', portraitSrc);
   }
-  const hubTier = el('hub-op-tier');
-  if (hubTier) hubTier.textContent = `T${activeOpTier}`;
   const hubCallsign = el('hub-op-callsign');
   if (hubCallsign) hubCallsign.textContent = String(opCallsign).toUpperCase();
   const hubStats = el('hub-op-stats');
@@ -1366,8 +1194,8 @@ function paintLoadout() {
   const deployMeta = el('hub-deploy-meta');
   if (deployMeta) {
     deployMeta.textContent = kitTags
-      ? `${opCallsign} T${activeOpTier} · ${name} T${tier} · ${kitTags}`
-      : `${opCallsign} T${activeOpTier} · ${name} T${tier}`;
+      ? `${opCallsign} · ${name} T${tier} · ${kitTags}`
+      : `${opCallsign} · ${name} T${tier}`;
   }
   stageShow();
 }
@@ -1432,11 +1260,8 @@ void audio.play('deploy');
   // FrontEnd._enter_qa_world(): the shell's choices are the run's loadout and
   // theatre, not a picture of them.
   url.searchParams.set('weapon', prefs.weapon);
-  // The operative and the tier the player is looking at, clamped to what they
-  // own: ProgressionService re-checks both and refuses anything else, so a
-  // hand-edited URL cannot field a tier nobody unlocked.
   url.searchParams.set('hero', prefs.hero || 'sable');
-  url.searchParams.set('tier', String(Math.min(Number(prefs.tier) || 1, ownedTier())));
+  url.searchParams.delete('tier');
   url.searchParams.set('qa_world', prefs.world);
   if (Array.isArray(prefs.modules) || Array.isArray(profileSnapshot().unlocked_modules)) {
     url.searchParams.set('modules', activeModules().join(','));
@@ -1777,18 +1602,20 @@ document.addEventListener('keydown', (event) => {
     back();
     return;
   }
-  // Arrows walk the tier ladder: up is the next rank, down is the previous one,
-  // and the same beat plays, because a keyboard player gets the same screen.
   if (
     current === 'hero' &&
-    (event.key === 'ArrowUp' || event.key === 'ArrowDown' || event.key === 'ArrowRight' || event.key === 'ArrowLeft') &&
+    (event.key === 'ArrowRight' || event.key === 'ArrowLeft') &&
     document.body.dataset.mode !== 'playing'
   ) {
     event.preventDefault();
-    const max = roster ? roster.tier_count : 5;
-    const step = event.key === 'ArrowUp' || event.key === 'ArrowRight' ? 1 : -1;
-    selectTier(Math.min(max, Math.max(1, heroState.tier + step)));
-    document.querySelector(`#hero-tiers .card[data-tier="${heroState.tier}"]`)?.focus();
+    const playable = roster ? roster.heroes.filter((hero) => hero.status === 'field_ready') : [];
+    if (playable.length) {
+      const idx = Math.max(0, playable.findIndex((hero) => hero.id === heroState.heroId));
+      const step = event.key === 'ArrowRight' ? 1 : -1;
+      const nextHero = playable[(idx + step + playable.length) % playable.length];
+      selectHero(nextHero.id);
+      document.querySelector(`#hero-roster .card[data-hero="${nextHero.id}"]`)?.focus();
+    }
     return;
   }
   if (current === 'hub' && (event.key === 'ArrowRight' || event.key === 'ArrowLeft')) {

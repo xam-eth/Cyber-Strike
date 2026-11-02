@@ -10,8 +10,7 @@ extends Resource
 @export var optional: bool = false
 @export_range(2.0, 12.0, 0.5) var interaction_radius: float = 5.0
 @export_range(4.0, 60.0, 1.0) var discovery_radius: float = 24.0
-@export
-var model_scene_path: String = "res://assets/world/kenney_space_kit/station-computer-wide.glb"
+@export var model_scene_path: String = "res://assets/world/aetherfall/interactives/tech_cache.glb"
 
 ## Stable reward transaction fields. A cache has one known reward; there is no
 ## rarity roll, random currency, or inventory payload in TECH HUNT.

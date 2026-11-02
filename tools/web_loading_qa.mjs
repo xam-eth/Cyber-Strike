@@ -8,7 +8,7 @@
  * require a visible retry, then reload into that same world's real gameplay.
  *
  *   node tools/web_loading_qa.mjs --json
- *   node tools/web_loading_qa.mjs --asset opening --world vanguard_station
+ *   node tools/web_loading_qa.mjs --asset opening --world aetherfall
  *   node tools/web_loading_qa.mjs --asset pck --out exports/web-loading-qa
  *   node tools/web_loading_qa.mjs --url http://127.0.0.1:8000
  */
@@ -33,7 +33,7 @@ const outDir = path.resolve(ROOT, flag('--out', path.join('exports', 'web-loadin
 const timeoutMs = Math.max(20, Number(flag('--timeout', '120')) || 120) * 1000;
 const throughputMbps = Math.max(0, Number(flag('--throughput-mbps', '0')) || 0);
 const selected = flag('--asset', 'both');
-const world = flag('--world', 'frostline_relay');
+const world = flag('--world', 'aetherfall');
 if (!['both', 'opening', 'wasm', 'pck'].includes(selected)) {
   console.error('ERROR: --asset must be both, opening, wasm, or pck');
   process.exit(2);
@@ -119,7 +119,7 @@ const report = { base: baseUrl, throughputMbps: throughputMbps || null, world, o
 const assets = selected === 'both' ? ['wasm', 'pck'] : selected === 'opening' ? [] : [selected];
 const cardId = `world-card-${world.replaceAll('_', '-')}`;
 const selectionLog = `FrontEnd: qa_world selected ${world}`;
-const worldBuildLog = world === 'vanguard_station' ? 'VanguardStation:' : `MISSION WORLD: ${world} (`;
+const worldBuildLog = `MISSION WORLD: ${world} (`;
 
 function summarizeEvents(events) {
   return {

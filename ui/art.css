@@ -664,10 +664,10 @@ body[data-screen='opening'] .plate--opening::after {
    entry behind a second carousel or a fictional locked destination. */
 .carousel {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: clamp(6px, 1vw, 11px);
   flex: 1 1 auto;
-  min-height: clamp(122px, 41vh, 248px);
+  min-height: clamp(128px, 42vh, 256px);
 }
 
 .wcard {
@@ -742,34 +742,11 @@ body[data-screen='hub'] .plate--hub {
   transform: scale(1.03);
 }
 
-.wcard__art--frostline {
+.wcard__art--aetherfall {
   background-image:
-    linear-gradient(160deg, rgba(84, 200, 255, 0.22), rgba(4, 7, 10, 0) 60%),
-    url('./art/web/world-frostline-relay.jpg');
-}
-
-.wcard__art--verdant {
-  background-image:
-    linear-gradient(160deg, rgba(55, 224, 140, 0.26), rgba(4, 7, 10, 0) 62%),
-    url('./art/web/world-verdant-bloom.jpg');
-}
-
-.wcard__art--emberfall {
-  background-image:
-    linear-gradient(160deg, rgba(255, 176, 32, 0.24), rgba(4, 7, 10, 0) 62%),
-    url('./art/web/world-emberfall-foundry.jpg');
-}
-
-.wcard__art--station {
-  background-image:
-    linear-gradient(160deg, rgba(84, 200, 255, 0.22), rgba(4, 7, 10, 0) 60%),
-    url('./art/web/world-vanguard-station.jpg');
-}
-
-.wcard__art--titans {
-  background-image:
-    linear-gradient(160deg, rgba(255, 196, 72, 0.24), rgba(4, 7, 10, 0) 60%),
-    url('./art/web/world-titans.jpg');
+    linear-gradient(160deg, rgba(84, 200, 255, 0.24), rgba(4, 7, 10, 0) 62%),
+    url('./art/web/world-aetherfall.jpg');
+  background-position: center 42%;
 }
 
 .wcard__art--empty {
@@ -1245,9 +1222,9 @@ body[data-screen='hub'] .plate--hub {
   align-items: center;
   gap: 3px;
   font-family: var(--font-ui);
-  font-size: 8px;
+  font-size: 7.5px;
   font-weight: 600;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
   color: var(--accent);
   white-space: nowrap;

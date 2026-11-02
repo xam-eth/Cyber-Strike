@@ -460,18 +460,15 @@ func refresh_profile() -> void:
 	# on OPERATIVE prints the same string, so the board cannot say an operative
 	# is ready when their card says otherwise.
 	var hero_definition := HeroDefinition.load_definition(progression.selected_hero_id)
-	var hero_tier := progression.fieldable_tier()
-	var hero_vitals := roundi(HeroTier.vitals(hero_tier, progression.selected_hero_id))
-	var hero_reduction := roundi(HeroTier.reduction(hero_tier, progression.selected_hero_id))
+	var hero_vitals := roundi(HeroTier.vitals(progression.selected_hero_id))
+	var hero_reduction := roundi(HeroTier.reduction(progression.selected_hero_id))
 	var hero_ready := (
 		hero_definition.display_status().to_upper()
 		if hero_definition != null
 		else AegisText.t("common.field_ready")
 	)
-	_hero_status.text = AegisText.t(
-		"dash.hero_summary", [hero_tier, hero_vitals, hero_reduction, hero_ready]
-	)
-	_hero_badge.text = "T%d" % hero_tier
+	_hero_status.text = AegisText.t("dash.hero_summary", [hero_vitals, hero_reduction, hero_ready])
+	_hero_badge.text = HeroTier.callsign(progression.selected_hero_id)
 	_hero_plate.texture = (
 		try_texture(hero_definition.portrait_path) if hero_definition != null else null
 	)

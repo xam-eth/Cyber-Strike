@@ -479,42 +479,11 @@ static func show_extraction_choice(
 		AegisText.apply(hud._results_reward_label, "recovery.primary_reward")
 	var summary_lines := PackedStringArray([AegisText.t("recovery.choice_summary")])
 	var active_hero: StringName = hud._state.operative_id
-	var cur_tier := HeroTier.owned_tier(completed_runs)
-	var next_tier := HeroTier.owned_tier(completed_runs + 1)
-	if next_tier > cur_tier:
-		(
-			summary_lines
-			. append(
-				(
-					AegisText
-					. t(
-						"recovery.choice_tier_unlock",
-						[
-							next_tier,
-							roundi(HeroTier.vitals(next_tier, active_hero)),
-							roundi(HeroTier.reduction(next_tier, active_hero)),
-						],
-					)
-				)
-			)
+	summary_lines.append(
+		AegisText.t(
+			"recovery.choice_runs_logged", [HeroTier.callsign(active_hero), completed_runs + 1]
 		)
-	else:
-		(
-			summary_lines
-			. append(
-				(
-					AegisText
-					. t(
-						"recovery.choice_tier_progress",
-						[
-							completed_runs + 1,
-							cur_tier,
-							roundi(HeroTier.vitals(cur_tier, active_hero)),
-						],
-					)
-				)
-			)
-		)
+	)
 	var bonus_bp := 0
 	if optional_secured is bool:
 		bonus_bp = 80 if optional_secured else 0
@@ -628,46 +597,12 @@ static func format_recovery_summary(payload: Dictionary) -> String:
 		elif notice.get("kind", "") == "bp":
 			lines.append(AegisText.t("results.recovery_bp", [int(notice["amount"])]))
 	var run_banked: bool = payload.get("run_banked") == true
-	var promoted_tier := int(payload.get("promoted_tier", 0))
 	var hero_id := StringName(str(payload.get("hero_id", "sable")))
 	var callsign := HeroTier.callsign(hero_id)
-	if run_banked:
-		if promoted_tier > 1:
-			(
-				lines
-				. append(
-					(
-						AegisText
-						. t(
-							"results.tier_promoted",
-							[
-								callsign,
-								promoted_tier,
-								roundi(HeroTier.vitals(promoted_tier, hero_id)),
-								roundi(HeroTier.reduction(promoted_tier, hero_id)),
-							],
-						)
-					)
-				)
-			)
-		elif payload.get("has_caches") == true:
-			var owned := int(payload.get("owned_tier", 1))
-			(
-				lines
-				. append(
-					(
-						AegisText
-						. t(
-							"results.runs_tier_kept",
-							[
-								int(payload.get("completed_runs", 0)),
-								owned,
-								roundi(HeroTier.vitals(owned, hero_id)),
-							],
-						)
-					)
-				)
-			)
+	if run_banked and payload.get("has_caches") == true:
+		lines.append(
+			AegisText.t("results.runs_logged", [callsign, int(payload.get("completed_runs", 0))])
+		)
 	var run_mods := String(payload.get("run_mods", ""))
 	if not run_mods.is_empty():
 		lines.append(AegisText.t("results.run_mods_summary", [run_mods]))
@@ -679,19 +614,6 @@ static func format_recovery_summary(payload: Dictionary) -> String:
 	var endless_wave := int(payload.get("endless_wave", 0))
 	if endless_wave >= 1:
 		lines.append(AegisText.t("results.endless_reached", [endless_wave]))
-	if run_banked and promoted_tier > 1:
-		(
-			lines
-			. append(
-				(
-					AegisText
-					. t(
-						"results.next_redeploy_tier",
-						[promoted_tier, roundi(HeroTier.vitals(promoted_tier, hero_id))],
-					)
-				)
-			)
-		)
 	return "\n".join(lines)
 
 
@@ -751,6 +673,18 @@ static func apply_paused(hud, paused: bool) -> void:
 			hud._overlays.push(hud._pause_panel, hud._on_pause_pressed)
 		if hud._pause_panel.visible and is_instance_valid(hud._pause_resume_button):
 			hud._pause_resume_button.grab_focus()
+			if (
+				OS.has_feature("web")
+				and bool(
+					JavaScriptBridge.eval("new URLSearchParams(location.search).has('qa_recovery')")
+				)
+				and is_instance_valid(hud._pause_home_button)
+			):
+				var physical := Vector2(hud.get_window().size)
+				var stretch := UiLayout.compute_stretch(hud, physical)
+				var rect: Rect2 = hud._pause_home_button.get_global_rect()
+				var center: Vector2 = (rect.position + rect.size * 0.5) * stretch
+				print("Pause QA: home=%.1f,%.1f" % [center.x, center.y])
 		elif is_instance_valid(hud._pause_resume_button) and hud._pause_resume_button.has_focus():
 			hud._pause_resume_button.release_focus()
 	apply_pause_stats(hud)

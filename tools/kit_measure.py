@@ -1,19 +1,12 @@
 #!/usr/bin/env python3
-"""Measure every module in the imported sci-fi kit.
+"""Measure every committed module GLB in the SH-01 Aetherfall world package.
 
     python3 tools/kit_measure.py            # rewrite the measurements file
     python3 tools/kit_measure.py --check    # fail if it is stale
 
-Why this exists: the pack authors most modules off-origin — `Wall_Console_01_Half`
-starts 1.76 m to its own left and 0.74 m up, `Fence_Long_01` starts 2.5 m to its
-right — so placing one by its node origin either floats it or buries it, and its
-collider lands somewhere else again. This reads each glass's POSITION accessors
-and writes the bounding box and minimum corner, which is what
-`ScifiKitLibrary` uses to centre a module on its footprint.
-
-It is a measurement, not an estimate: the numbers come out of the committed GLBs,
-so re-converting the pack and forgetting to re-measure is detectable with
-`--check`, which the static check group runs.
+Reads each GLB's POSITION accessors and writes the bounding box and minimum
+corner so re-extracting or altering world modules without re-measuring is caught
+immediately by `./scripts/dev_check.sh`.
 """
 import json
 import pathlib
@@ -21,11 +14,11 @@ import struct
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-MODELS = ROOT / "game" / "assets" / "world" / "scifi_starter_kit" / "models"
-OUT = ROOT / "game" / "assets" / "world" / "scifi_starter_kit" / "measurements.json"
+MODELS = ROOT / "game" / "assets" / "world" / "aetherfall"
+OUT = ROOT / "game" / "assets" / "world" / "aetherfall" / "measurements.json"
 
 
-def measure(path):
+def measure(path: pathlib.Path):
     data = path.read_bytes()
     if data[:4] != b"glTF":
         raise SystemExit(f"{path.name}: not a GLB")
@@ -33,7 +26,7 @@ def measure(path):
     while offset < len(data):
         length, kind = struct.unpack_from("<II", data, offset)
         if kind == 0x4E4F534A:
-            doc = json.loads(data[offset + 8:offset + 8 + length].decode("utf-8"))
+            doc = json.loads(data[offset + 8 : offset + 8 + length].decode("utf-8"))
             break
         offset += 8 + length + ((4 - length % 4) % 4)
     if doc is None:
@@ -51,35 +44,35 @@ def measure(path):
     return [round(high[i] - low[i], 3) for i in range(3)], [round(low[i], 3) for i in range(3)]
 
 
-def dump(payload):
-    """One line per module: 125 models stay readable and the diff stays small."""
+def dump(payload: dict) -> str:
     head = {k: v for k, v in payload.items() if k != "models"}
-    lines = [json.dumps(head, indent=1).rstrip().rstrip("}").rstrip() + ',', ' "models": {']
+    lines = [json.dumps(head, indent=1).rstrip().rstrip("}").rstrip() + ",", ' "models": {']
     items = list(payload["models"].items())
     for index, (name, entry) in enumerate(items):
         comma = "," if index < len(items) - 1 else ""
-        lines.append(f'  {json.dumps(name)}: {json.dumps(entry)}{comma}')
+        lines.append(f"  {json.dumps(name)}: {json.dumps(entry)}{comma}")
     lines.append(" }")
     lines.append("}")
     return "\n".join(lines) + "\n"
 
 
-def build():
+def build() -> dict:
     models = {}
-    for path in sorted(MODELS.glob("*.glb")):
+    for path in sorted(MODELS.rglob("*.glb")):
+        rel = path.relative_to(MODELS).as_posix()
         size, low = measure(path)
-        models[path.stem] = {"size": size, "min": low}
+        models[rel] = {"size": size, "min": low}
     return {
-        "source": "3DScifiStarterKitFree.zip",
+        "source": "SH-01 Aetherfall (arena/939d9492-cyber-strike)",
         "note": (
-            "Measured from the committed GLB POSITION accessors by tools/kit_measure.py. "
+            "Measured from committed GLB POSITION accessors by tools/kit_measure.py. "
             "size and min are metres; min is the model's own minimum corner."
         ),
         "models": models,
     }
 
 
-def main():
+def main() -> int:
     payload = build()
     text = dump(payload)
     if "--check" in sys.argv:
@@ -89,7 +82,7 @@ def main():
         print(f"OK: {OUT.relative_to(ROOT)} matches the {len(payload['models'])} committed modules")
         return 0
     OUT.write_text(text)
-    print(f"wrote {OUT.relative_to(ROOT)}: {len(payload['models'])} modules")
+    print(f"Wrote {OUT.relative_to(ROOT)} ({len(payload['models'])} modules)")
     return 0
 
 

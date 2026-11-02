@@ -24,26 +24,18 @@ extends Resource
 ## No wave count, enemy mix or difficulty rating: `mission_world.gd` owns that at
 ## runtime, and a copy of it here would go stale the moment it is tuned.
 const DEFINITION_PATHS := {
-	&"frostline_relay": "res://resources/worlds/frostline_relay.tres",
-	&"verdant_bloom": "res://resources/worlds/verdant_bloom.tres",
-	&"emberfall_foundry": "res://resources/worlds/emberfall_foundry.tres",
-	&"vanguard_station": "res://resources/worlds/vanguard_station.tres",
-	&"titans": "res://resources/worlds/titans.tres",
+	&"aetherfall": "res://resources/worlds/aetherfall.tres",
 }
 
 ## Stable iteration order for the registry (GDScript dictionaries keep
 ## insertion order, but a named list is what a screen should read).
 const DEFINITION_IDS: Array[StringName] = [
-	&"frostline_relay",
-	&"verdant_bloom",
-	&"emberfall_foundry",
-	&"vanguard_station",
-	&"titans",
+	&"aetherfall",
 ]
 
 ## The theatre the profile falls back to when a save names one that no longer
 ## exists, and the one selected on a fresh install.
-const DEFAULT_WORLD_ID := &"frostline_relay"
+const DEFAULT_WORLD_ID := &"aetherfall"
 
 @export var world_id: StringName = &""
 @export var display_name: String = ""

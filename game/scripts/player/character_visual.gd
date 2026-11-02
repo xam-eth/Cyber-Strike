@@ -473,23 +473,23 @@ func _apply_progression_tier() -> void:
 	var progression := _progression_service()
 	if progression == null:
 		return
-	var path := progression.tier_model_path()
+	var path := progression.hero_model_path()
 	if path.is_empty():
 		return
 	model_scene = null
 	model_scene_path = path
-	_tier_livery = HeroTier.tier_livery(progression.selected_hero_id, progression.fieldable_tier())
-	var rig := progression.tier_rig_path()
+	_tier_livery = HeroTier.livery(progression.selected_hero_id)
+	var rig := progression.hero_rig_path()
 	if not rig.is_empty():
 		rig_path = rig
 
 
-func set_hero_tier(hero_id: StringName, tier: int) -> void:
-	var path := HeroTier.model_path(hero_id, tier)
+func set_hero_profile(hero_id: StringName) -> void:
+	var path := HeroTier.model_path(hero_id)
 	if path.is_empty():
 		return
-	var next_rig := HeroTier.rig_path(hero_id, tier)
-	var next_livery := HeroTier.tier_livery(hero_id, tier)
+	var next_rig := HeroTier.rig_path(hero_id)
+	var next_livery := HeroTier.livery(hero_id)
 	if (
 		has_model()
 		and model_scene_path == path

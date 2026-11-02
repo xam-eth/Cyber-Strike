@@ -39,7 +39,6 @@ var _flank_sign: float = 1.0
 @onready var visuals: EnemyVisual = $Visuals
 @onready var muzzle: Marker3D = $Visuals/Muzzle
 @onready var aim_marker: MeshInstance3D = $AimMarker
-@onready var core: MeshInstance3D = get_node_or_null("Visuals/CoreMesh") as MeshInstance3D
 
 
 func _ready() -> void:
@@ -111,7 +110,6 @@ func _physics_process(delta: float) -> void:
 		velocity.y = 0.0
 	move_and_slide()
 	visuals.update_motion(velocity, delta)
-	_update_core_telegraph(delta)
 
 
 func _search_around_cover(direction: Vector3, distance: float, delta: float) -> Vector3:
@@ -138,18 +136,6 @@ func _search_around_cover(direction: Vector3, distance: float, delta: float) -> 
 func _reset_cover_search() -> void:
 	_cover_blocked_seconds = 0.0
 	_flank_elapsed = 0.0
-
-
-## The core in the chest pulses while the ranged attack charges, so the telegraph
-## reads from the model itself and not only from the floating aim marker.
-func _update_core_telegraph(delta: float) -> void:
-	if not is_instance_valid(core):
-		return
-	var target_scale := Vector3.ONE
-	if _windup_remaining > 0.0:
-		var charge := 1.0 - clampf(_windup_remaining / maxf(attack_windup, 0.001), 0.0, 1.0)
-		target_scale = Vector3.ONE * (1.0 + 0.55 * charge)
-	core.scale = core.scale.lerp(target_scale, minf(delta * 14.0, 1.0))
 
 
 func apply_damage(amount: float, _source: Node = null) -> void:
@@ -211,9 +197,11 @@ func _begin_attack_windup() -> void:
 	_locked_attack_point = _target.global_position + Vector3.UP * 0.9
 	aim_marker.global_position = _locked_attack_point + Vector3.UP * 0.85
 	aim_marker.visible = true
+	visuals.set_aiming(true)
 
 
 func _resolve_attack() -> void:
+	visuals.play_attack()
 	var hit_target := false
 	var excluded_rids: Array[RID] = [get_rid()]
 	var query := PhysicsRayQueryParameters3D.create(
@@ -232,6 +220,7 @@ func _resolve_attack() -> void:
 
 func _cancel_attack() -> void:
 	_windup_remaining = 0.0
+	visuals.set_aiming(false)
 	if is_instance_valid(aim_marker):
 		aim_marker.visible = false
 

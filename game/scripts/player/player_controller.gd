@@ -58,9 +58,8 @@ var _touch_fire_pressed: bool = false
 var _aiming: bool = false
 var _touch_aim_hold: bool = false
 var _mouse_aim_hold: bool = false
-## Browsers can report the pre-lock cursor position as one large relative
-## motion while entering pointer lock. Consume that first event, not real look.
-var _ignore_initial_aim_motion: bool = false
+var _cursor_screen_pos: Vector2 = Vector2(-1.0, -1.0)
+var _cursor_aim_active: bool = false
 var _walk_time: float = 0.0
 var _reload_was_active: bool = false
 
@@ -112,15 +111,22 @@ func _physics_process(delta: float) -> void:
 			select_weapon(slot)
 	if Input.is_action_just_pressed("reload"):
 		weapon_controller.request_reload()
+	_apply_keyboard_camera_look(delta)
+	_sync_cursor_reticle()
 	_update_aiming()
+	var desktop_fire := Input.is_action_pressed("fire") and not _is_pointer_over_ui()
 	var aim_point := _get_aim_point()
 	camera_rig.set_aiming(_aiming)
 	visual_root.set_aiming(_aiming)
-	visual_root.update_facing(aim_point, velocity, _aiming, delta)
+	visual_root.update_facing(
+		aim_point,
+		velocity,
+		_aiming or desktop_fire or _touch_fire_pressed or _cursor_aim_active,
+		delta
+	)
 	_walk_time += delta
 	visual_root.update_pose(velocity, is_on_floor(), delta)
 	camera_rig.apply_walk_bob(visual_root.walk_intensity(), _walk_time)
-	var desktop_fire := Input.is_action_pressed("fire") and not _is_pointer_over_ui()
 	if desktop_fire or _touch_fire_pressed:
 		# The real rifle must be shouldered *before* the first muzzle point is
 		# sampled. Previously hip fire spent a round with the flash at the boot,
@@ -139,27 +145,20 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
 			_mouse_aim_hold = true
-			_ignore_initial_aim_motion = true
-			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 			set_aiming(true)
 			get_viewport().set_input_as_handled()
 		elif event.button_index == MOUSE_BUTTON_RIGHT and not event.pressed:
 			_mouse_aim_hold = false
-			_ignore_initial_aim_motion = false
-			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 			set_aiming(false)
 			get_viewport().set_input_as_handled()
-	elif event is InputEventMouseMotion and _mouse_aim_hold:
-		if _ignore_initial_aim_motion:
-			_ignore_initial_aim_motion = false
-			get_viewport().set_input_as_handled()
-			return
-		# Pointer lock improves desktop look, but browser/iframe denial must not
-		# cancel ADS. Relative mouse motion remains usable without the lock.
-		camera_rig.apply_look_delta(event.relative)
+	elif event is InputEventMouseMotion:
+		var vp_size := get_viewport().get_visible_rect().size
+		_cursor_screen_pos = event.position.clamp(Vector2.ZERO, vp_size)
+		_cursor_aim_active = true
+		if _mouse_aim_hold:
+			camera_rig.apply_look_delta(event.relative)
 	elif event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
 		_mouse_aim_hold = false
-		_ignore_initial_aim_motion = false
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 
@@ -372,7 +371,7 @@ func _apply_progression_tier() -> void:
 	var progression := _progression_service()
 	if progression != null:
 		_tech_modifiers = TechModuleDefinition.aggregate_modifiers(progression.equipped_modules)
-		apply_operative_profile(progression.selected_hero_id, progression.fieldable_tier())
+		apply_operative_profile(progression.selected_hero_id)
 	else:
 		_tier_vitals_base = _scene_max_health
 		_tier_dr_base = 0.0
@@ -383,12 +382,11 @@ func _apply_progression_tier() -> void:
 
 ## Applies operative identity, vitals, handling, and active tactical capability
 ## from `roster.json` via `HeroTier`. Usable by both live sessions and fixtures.
-func apply_operative_profile(hero_id: StringName, tier: int) -> void:
+func apply_operative_profile(hero_id: StringName) -> void:
 	_hero_id = hero_id if HeroTier.is_field_ready(hero_id) else HeroDefinition.DEFAULT_HERO_ID
-	var clamped_tier := clampi(tier, 1, maxi(HeroTier.tier_count(), 1))
-	var vitals := HeroTier.vitals(clamped_tier, _hero_id)
+	var vitals := HeroTier.vitals(_hero_id)
 	_tier_vitals_base = vitals if vitals > 0.0 else _scene_max_health
-	_tier_dr_base = clampf(HeroTier.reduction(clamped_tier, _hero_id) / 100.0, 0.0, 0.9)
+	_tier_dr_base = clampf(HeroTier.reduction(_hero_id) / 100.0, 0.0, 0.9)
 	_hero_speed_multiplier = HeroTier.move_speed_multiplier(_hero_id)
 	_hero_reload_multiplier = HeroTier.reload_multiplier(_hero_id)
 	var spec := HeroTier.skill_spec(_hero_id)
@@ -407,7 +405,7 @@ func apply_operative_profile(hero_id: StringName, tier: int) -> void:
 		weapon_controller.set_overdrive_fire_rate(1.0)
 		weapon_controller.set_operative_modifiers(_hero_reload_multiplier)
 	if is_instance_valid(visual_root):
-		visual_root.set_hero_tier(_hero_id, clamped_tier)
+		visual_root.set_hero_profile(_hero_id)
 	health_changed.emit(current_health, max_health)
 	skill_cooldown_changed.emit(_skill_cooldown_remaining, emp_pulse_cooldown)
 
@@ -521,7 +519,7 @@ func reset_player() -> void:
 	set_aiming(false)
 	_touch_aim_hold = false
 	_mouse_aim_hold = false
-	_ignore_initial_aim_motion = false
+	_cursor_aim_active = false
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	current_health = max_health
 	_skill_cooldown_remaining = 0.0
@@ -685,29 +683,74 @@ func _is_pointer_over_ui() -> bool:
 	return is_instance_valid(get_viewport().gui_get_hovered_control())
 
 
-func _get_aim_point() -> Vector3:
+func _apply_keyboard_camera_look(delta: float) -> void:
+	var yaw_dir := 0.0
+	if Input.is_physical_key_pressed(KEY_LEFT):
+		yaw_dir -= 1.0
+	if Input.is_physical_key_pressed(KEY_RIGHT):
+		yaw_dir += 1.0
+	var pitch_dir := 0.0
+	if Input.is_physical_key_pressed(KEY_UP):
+		pitch_dir -= 1.0
+	if Input.is_physical_key_pressed(KEY_DOWN):
+		pitch_dir += 1.0
+	if absf(yaw_dir) > 0.01 or absf(pitch_dir) > 0.01:
+		camera_rig.apply_look_delta(Vector2(yaw_dir * 420.0, pitch_dir * 260.0) * delta)
+
+
+func _sync_cursor_reticle() -> void:
+	var hud := get_parent().get_node_or_null("HUD/TouchControls")
+	if hud == null:
+		return
+	if bool(hud.call("is_touch_mode")):
+		_cursor_aim_active = false
+		return
+	var state = hud.get("_state")
+	if state != null and bool(state.cursor_aim_active) and state.reticle_pos.x >= 0.0:
+		_cursor_screen_pos = state.reticle_pos
+		_cursor_aim_active = true
+
+
+func _reticle_screen_position() -> Vector2:
 	var viewport_size := aim_camera.get_viewport().get_visible_rect().size
-	var screen_center := viewport_size * 0.5
-	var ray_origin := aim_camera.project_ray_origin(screen_center)
-	var ray_direction := aim_camera.project_ray_normal(screen_center)
+	var hud := get_parent().get_node_or_null("HUD/TouchControls")
+	if hud != null and bool(hud.call("is_touch_mode")):
+		return viewport_size * 0.5
+	if _cursor_aim_active and _cursor_screen_pos.x >= 0.0:
+		return _cursor_screen_pos.clamp(Vector2.ZERO, viewport_size)
+	return viewport_size * 0.5
+
+
+func _is_aimable_enemy(node: CollisionObject3D) -> bool:
+	return (
+		node != null
+		and (
+			node.is_in_group("runner_enemies")
+			or node.is_in_group("shooter_enemies")
+			or node.is_in_group("enforcer_enemies")
+			or node.is_in_group("guardian_enemies")
+		)
+	)
+
+
+func _get_aim_point() -> Vector3:
+	var reticle_pos := _reticle_screen_position()
+	var ray_origin := aim_camera.project_ray_origin(reticle_pos)
+	var ray_direction := aim_camera.project_ray_normal(reticle_pos)
 	var ray_end := ray_origin + ray_direction * aim_range
 	var excluded_rids: Array[RID] = [get_rid()]
 	var query := PhysicsRayQueryParameters3D.create(ray_origin, ray_end, 3, excluded_rids)
 	var hit := get_world_3d().direct_space_state.intersect_ray(query)
 	var collider := hit.get("collider") as CollisionObject3D
-	if (
-		collider != null
-		and (collider.is_in_group("runner_enemies") or collider.is_in_group("shooter_enemies"))
-	):
+	if _is_aimable_enemy(collider):
 		if _touch_fire_pressed or _touch_aim_hold:
 			var hud := get_parent().get_node_or_null("HUD/TouchControls")
 			if hud != null and bool(hud.call("is_touch_mode")):
 				hud.set("_soft_lock", true)
 		return hit.get("position", ray_end)
 	# In a 390 px viewport the avatar and thumb obscure precise sight alignment.
-	# A Runner may be 18 px from the centre even while visually under the optic;
-	# snap the *shot direction* a few pixels only when FIRE/ADS is held on touch.
-	var assisted := _touch_assisted_aim_point(screen_center)
+	# Snap the shot direction a few pixels only when FIRE/ADS is held on touch.
+	var assisted := _touch_assisted_aim_point(reticle_pos)
 	if assisted != Vector3.ZERO:
 		return assisted
 	if not hit.is_empty():
@@ -732,12 +775,7 @@ func _touch_assisted_aim_point(screen_center: Vector2) -> Vector3:
 	var chosen := Vector3.ZERO
 	for candidate in get_tree().get_nodes_in_group("enemies"):
 		var enemy := candidate as CollisionObject3D
-		if (
-			enemy == null
-			or (
-				not enemy.is_in_group("runner_enemies") and not enemy.is_in_group("shooter_enemies")
-			)
-		):
+		if not _is_aimable_enemy(enemy):
 			continue
 		if enemy.has_method("is_defeated") and bool(enemy.call("is_defeated")):
 			continue
@@ -747,9 +785,6 @@ func _touch_assisted_aim_point(screen_center: Vector2) -> Vector3:
 		var squared := aim_camera.unproject_position(point).distance_squared_to(screen_center)
 		if squared > max_squared:
 			continue
-		# Use a visibility ray to reject enemies hidden by the user's FBX world,
-		# and don't permit a soft lock on a target behind the avatar or another
-		# enemy. WeaponController still validates the barrel's own cover ray.
 		var from := aim_camera.project_ray_origin(screen_center)
 		var query := PhysicsRayQueryParameters3D.create(from, point, 3, [get_rid()])
 		var visible := get_world_3d().direct_space_state.intersect_ray(query)
