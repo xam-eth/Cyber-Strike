@@ -227,7 +227,10 @@ async function checkPage(target, viewport) {
   // WORLD selection uses the engine's measured Control rectangles, never a
   // second set of guessed layout coordinates in the browser harness.
   if (selectWorld) url.searchParams.set('qa_menu', '1');
-  if (recoveryMode) url.searchParams.set('qa_recovery', '1');
+  if (recoveryMode) {
+    url.searchParams.set('qa_recovery', '1');
+    url.searchParams.set('qa_camera', '1');
+  }
   if (upgradesMode) url.searchParams.set('qa_upgrade', '1');
   if (adsMode) {
     url.searchParams.set('qa_touch', '1');
@@ -943,35 +946,62 @@ async function checkPage(target, viewport) {
         line,
       };
     };
+    const latestPlayerPos = () => {
+      const line = [...consoleLines].reverse().find((entry) => entry.includes('Camera QA:'));
+      if (!line) return null;
+      const m = line.match(/\bplayer=\(\s*(-?[0-9.]+),\s*(-?[0-9.]+),\s*(-?[0-9.]+)\s*\)/);
+      if (!m) return null;
+      const yaw = Number(line.match(/\byaw=(-?[0-9.]+)/)?.[1]);
+      return {
+        x: Number(m[1]),
+        y: Number(m[2]),
+        z: Number(m[3]),
+        yaw: Number.isFinite(yaw) ? yaw : null,
+      };
+    };
     const engageOffered = () => latestRecovery()?.action === 'engage';
     // Arrival Outpost spawn (-30, 1.2, 14) sits west of Landing Ridge Berm
-    // (-26, 0.25, 13). Striding north on KeyW into the open z≈9.6 lane and then
-    // east on KeyD reaches Arrival Tech Cache (-24.5, 0.25, 10.5) cleanly.
-    if (!engageOffered()) {
-      await page.keyboard.down('KeyW');
+    // (-26, 0.25, 13; OBB blocks east sightlines for z >= 10.6). Use real
+    // Camera QA world coordinates (never wall-clock guesses on SwiftShader) to
+    // stride north into the unobstructed z <= 9.6 corridor before stepping east
+    // to engage Arrival Tech Cache (-24.5, 0.25, 10.5).
+    await page.keyboard.down('KeyW');
+    try {
+      const northDeadline = Date.now() + 22000;
+      while (Date.now() < northDeadline) {
+        const pos = latestPlayerPos();
+        if (pos && pos.z <= 9.6) break;
+        if (!recoveryE2eMode && engageOffered() && Date.now() + 18500 < northDeadline) break;
+        await new Promise((r) => setTimeout(r, 45));
+      }
+    } finally {
+      await page.keyboard.up('KeyW').catch(() => {});
+    }
+    if ((latestPlayerPos()?.z ?? 9.2) < 8.4) {
+      await page.keyboard.down('KeyS');
       try {
-        const northEnd = Date.now() + 950;
-        while (Date.now() < northEnd && !engageOffered()) {
+        const southDeadline = Date.now() + 4000;
+        while (Date.now() < southDeadline && (latestPlayerPos()?.z ?? 9.2) < 8.8) {
+          await new Promise((r) => setTimeout(r, 45));
+        }
+      } finally {
+        await page.keyboard.up('KeyS').catch(() => {});
+      }
+    }
+    if (!engageOffered()) {
+      const eastLimit = Date.now() + 28000;
+      await page.keyboard.down('KeyD');
+      try {
+        while (Date.now() < eastLimit && !engageOffered()) {
           await new Promise((r) => setTimeout(r, 50));
         }
       } finally {
-        await page.keyboard.up('KeyW').catch(() => {});
-      }
-      if (!engageOffered()) {
-        const eastLimit = Date.now() + 28000;
-        await page.keyboard.down('KeyD');
-        try {
-          while (Date.now() < eastLimit && !engageOffered()) {
-            await new Promise((r) => setTimeout(r, 60));
-          }
-        } finally {
-          await page.keyboard.up('KeyD').catch(() => {});
-        }
+        await page.keyboard.up('KeyD').catch(() => {});
       }
     }
     if (!engageOffered()) {
       // Fallback sweep along the open northern lane if extreme tick delta shifted stride.
-      for (const [k1, k2, ms] of [['KeyW', null, 800], ['KeyD', null, 1400], ['KeyA', 'KeyS', 700]]) {
+      for (const [k1, k2, ms] of [['KeyW', null, 900], ['KeyD', null, 1800], ['KeyA', 'KeyS', 700]]) {
         if (engageOffered()) break;
         await page.keyboard.down(k1);
         if (k2) await page.keyboard.down(k2);
@@ -983,6 +1013,7 @@ async function checkPage(target, viewport) {
         await page.keyboard.up(k1).catch(() => {});
       }
     }
+    const engagePlayerPos = latestPlayerPos();
     recoveryEvidence = { engageOffered: engageOffered(), guardsActive: false, guardModels: [] };
     await capture('engage-offer');
     const beforeEngage = consoleLines.length;
@@ -993,18 +1024,18 @@ async function checkPage(target, viewport) {
       );
       if (recoveryE2eMode && recoveryEvidence.guardsActive) {
         // Turn camera east (+X) toward Outpost Cache (-24.5, 0.25, 10.5) and both
-        // robot guards (-18.5, 9.2) / (-19.5, 10.2) without sprinting blindly off
-        // the western deck edge at x = -39.0 during SwiftShader screenshots.
+        // robot guards (-18.5, 9.2) / (-19.5, 10.2) in the open z<=9.6 lane.
+        // Allow up to 9s wall-clock for SwiftShader to rotate ~90 degrees.
         await page.keyboard.down('ArrowRight');
         try {
-          const turnDeadline = Date.now() + 2600;
+          const turnDeadline = Date.now() + 9000;
           while (Date.now() < turnDeadline) {
             const latestTargetLine = [...consoleLines.slice(beforeEngage)]
               .reverse()
               .find((l) => l.includes('Recovery Target QA:'));
             if (latestTargetLine && latestTargetLine.includes('behind=no')) {
               const gx = Number(latestTargetLine.match(/\bx=(-?[0-9.]+)/)?.[1]);
-              if (Number.isFinite(gx) && gx >= 220 && gx <= 1040) break;
+              if (Number.isFinite(gx) && gx >= 220 && gx <= 1020) break;
             }
             await new Promise((r) => setTimeout(r, 45));
           }
@@ -1233,6 +1264,7 @@ async function checkPage(target, viewport) {
       // movable [+] reticle directly over each guard's screen projection and
       // firing left-mouse bursts + EMP Pulse (only rotating camera when off-screen).
       const combatDeadline = Date.now() + 95000;
+      e2e.engagePos = engagePlayerPos;
       let lastEmpAt = 0;
       let burstsSinceReload = 0;
       while (Date.now() < combatDeadline) {
@@ -1284,6 +1316,7 @@ async function checkPage(target, viewport) {
           burstsSinceReload = 0;
         }
       }
+      e2e.postCombatPos = latestPlayerPos();
 
       // 2. Approach the now-READY Arrival Tech Cache and press B to Secure.
       if (e2e.guardsCleared) {
