@@ -992,23 +992,36 @@ async function checkPage(target, viewport) {
         page, consoleLines.slice(beforeEngage), 'guards=2', 15000,
       );
       if (recoveryE2eMode && recoveryEvidence.guardsActive) {
-        await page.keyboard.down('ShiftLeft');
-        await page.keyboard.down('KeyA');
+        // Turn camera east (+X) toward Outpost Cache (-24.5, 0.25, 10.5) and both
+        // robot guards (-18.5, 9.2) / (-19.5, 10.2) without sprinting blindly off
+        // the western deck edge at x = -39.0 during SwiftShader screenshots.
+        await page.keyboard.down('ArrowRight');
+        try {
+          const turnDeadline = Date.now() + 2600;
+          while (Date.now() < turnDeadline) {
+            const latestTargetLine = [...consoleLines.slice(beforeEngage)]
+              .reverse()
+              .find((l) => l.includes('Recovery Target QA:'));
+            if (latestTargetLine && latestTargetLine.includes('behind=no')) {
+              const gx = Number(latestTargetLine.match(/\bx=(-?[0-9.]+)/)?.[1]);
+              if (Number.isFinite(gx) && gx >= 220 && gx <= 1040) break;
+            }
+            await new Promise((r) => setTimeout(r, 45));
+          }
+        } finally {
+          await page.keyboard.up('ArrowRight').catch(() => {});
+        }
       }
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 350));
     }
     await capture('guarded');
     if (recoveryEvidence.guardsActive) {
-      await page.mouse.move(viewport.width * 0.58, viewport.height * 0.46);
+      await page.mouse.move(viewport.width * 0.52, viewport.height * 0.48);
       await page.mouse.down();
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 450));
       await page.mouse.up();
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      await new Promise((resolve) => setTimeout(resolve, 250));
       await capture('contact');
-    }
-    if (recoveryE2eMode) {
-      await page.keyboard.up('KeyA').catch(() => {});
-      await page.keyboard.up('ShiftLeft').catch(() => {});
     }
     const models = new Set();
     const guardRegex = new RegExp(`EnemyVisual\\[(Guard_${RECOVERY_CACHE_ID}_[^\\]]+)\\].*fallback=no`);
@@ -1076,18 +1089,32 @@ async function checkPage(target, viewport) {
         return null;
       };
       const pickGuardSnapshot = (afterIdx = 0) => {
+        const recNow = latestRecovery();
+        const liveCount = recNow ? recNow.guards : 2;
+        if (liveCount <= 0) return { target: null, anyClose: false };
+        // If only 1 guard remains, ignore target telemetry printed before the
+        // first `guards=1` line so a defeated guard's last frame is never chased.
+        let floorIdx = afterIdx;
+        if (liveCount === 1) {
+          for (let i = consoleLines.length - 1; i >= afterIdx; i -= 1) {
+            if (consoleLines[i].includes('Recovery QA:') && consoleLines[i].includes('guards=1')) {
+              floorIdx = i;
+              break;
+            }
+          }
+        }
         const recent = new Map();
-        const start = Math.max(afterIdx, consoleLines.length - 16);
-        for (let i = start; i < consoleLines.length; i += 1) {
+        for (let i = consoleLines.length - 1; i >= floorIdx && recent.size < liveCount; i -= 1) {
           const entry = consoleLines[i];
           if (!entry.includes('Recovery Target QA:')) continue;
           const id = entry.match(/\bid=([^\s]+)/)?.[1] || '';
+          if (!id || recent.has(id)) continue;
           const x = Number(entry.match(/\bx=(-?[0-9.]+)/)?.[1]);
           const y = Number(entry.match(/\by=(-?[0-9.]+)/)?.[1]);
           const behind = entry.match(/\bbehind=(yes|no)/)?.[1] || 'no';
           const dist = Number(entry.match(/\bdist=([0-9.]+)/)?.[1] ?? 'NaN');
           const vpMatch = entry.match(/\bvp=([0-9]+)x([0-9]+)/);
-          if (!id || !Number.isFinite(x) || !Number.isFinite(y)) continue;
+          if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
           recent.set(id, {
             id,
             x,
@@ -1103,10 +1130,10 @@ async function checkPage(target, viewport) {
         const anyClose = all.some((g) =>
           (g.dist !== null ? g.dist < 4.5 : (!g.behind && g.y > 545)));
         all.sort((a, b) => {
-          if (a.id.endsWith('_01') !== b.id.endsWith('_01')) {
-            return a.id.endsWith('_01') ? -1 : 1;
-          }
-          return b.y - a.y;
+          if (a.behind !== b.behind) return a.behind ? 1 : -1;
+          const da = a.dist ?? 99;
+          const db = b.dist ?? 99;
+          return da - db;
         });
         return { target: all[0], anyClose };
       };
@@ -1129,10 +1156,7 @@ async function checkPage(target, viewport) {
           clickCount: 1,
         });
 
-      let aimHeld = false;
-      let curX = 500;
-      let curY = 360;
-      const waitEngineTick = async (maxMs = 360) => {
+      const waitEngineTick = async (maxMs = 750) => {
         const startLen = consoleLines.length;
         const deadline = Date.now() + maxMs;
         while (Date.now() < deadline) {
@@ -1142,63 +1166,76 @@ async function checkPage(target, viewport) {
           await new Promise((r) => setTimeout(r, 35));
         }
       };
-      const releaseAds = async () => {
-        if (!aimHeld) return;
-        await cdpButton('mouseReleased', curX, curY, 'right', 0);
-        aimHeld = false;
-        await new Promise((r) => setTimeout(r, 380));
-      };
-      const reanchorAds = async (preferRightTurn = true) => {
-        await releaseAds();
-        const startX = preferRightTurn ? 90 : 880;
-        const startY = 360;
-        await cdpMove(startX, startY, 0);
-        await new Promise((r) => setTimeout(r, 320));
-        await cdpButton('mousePressed', startX, startY, 'right', 2);
-        await new Promise((r) => setTimeout(r, 300));
-        await cdpMove(startX + 1, startY, 2);
-        await new Promise((r) => setTimeout(r, 320));
-        curX = startX + 1;
-        curY = startY;
-        aimHeld = true;
-      };
-      const steerAim = async (dx, dy) => {
-        if (
-          !aimHeld
-          || curX + dx < 40
-          || curX + dx > 1030
-          || curY + dy < 120
-          || curY + dy > 650
-        ) {
-          await reanchorAds(dx >= 0);
+      const turnCameraToward = async (proj) => {
+        if (!proj) return;
+        if (proj.behind) {
+          await page.keyboard.down('ArrowRight');
+          await new Promise((r) => setTimeout(r, 420));
+          await page.keyboard.up('ArrowRight').catch(() => {});
+          await waitEngineTick(650);
+          return;
         }
-        const nextX = Math.max(40, Math.min(1030, Math.round(curX + dx)));
-        const nextY = Math.max(120, Math.min(650, Math.round(curY + dy)));
-        for (let step = 1; step <= 3; step += 1) {
-          const ix = curX + ((nextX - curX) * step) / 3;
-          const iy = curY + ((nextY - curY) * step) / 3;
-          await cdpMove(ix, iy, 2);
-          await new Promise((r) => setTimeout(r, 30));
+        const errX = proj.x - proj.vpW * 0.46;
+        const errY = proj.y - proj.vpH * 0.48;
+        const yawKey = errX > 22 ? 'ArrowRight' : (errX < -22 ? 'ArrowLeft' : null);
+        const pitchKey = errY > 48 ? 'ArrowDown' : (errY < -48 ? 'ArrowUp' : null);
+        const yawMs = yawKey ? Math.min(360, Math.max(75, Math.round(Math.abs(errX) * 0.52))) : 0;
+        const pitchMs = pitchKey ? Math.min(180, Math.max(55, Math.round(Math.abs(errY) * 0.42))) : 0;
+        if (yawKey) await page.keyboard.down(yawKey);
+        if (pitchKey) await page.keyboard.down(pitchKey);
+        const maxHold = Math.max(yawMs, pitchMs, 60);
+        const startAt = Date.now();
+        let yawReleased = !yawKey;
+        let pitchReleased = !pitchKey;
+        try {
+          while (Date.now() - startAt < maxHold) {
+            const elapsed = Date.now() - startAt;
+            if (!yawReleased && elapsed >= yawMs) {
+              await page.keyboard.up(yawKey).catch(() => {});
+              yawReleased = true;
+            }
+            if (!pitchReleased && elapsed >= pitchMs) {
+              await page.keyboard.up(pitchKey).catch(() => {});
+              pitchReleased = true;
+            }
+            await new Promise((r) => setTimeout(r, 25));
+          }
+        } finally {
+          if (!yawReleased && yawKey) await page.keyboard.up(yawKey).catch(() => {});
+          if (!pitchReleased && pitchKey) await page.keyboard.up(pitchKey).catch(() => {});
         }
-        curX = nextX;
-        curY = nextY;
-        await new Promise((r) => setTimeout(r, 350));
+        await waitEngineTick(650);
       };
 
       const canvasBounds = await page.evaluate(() => {
         const r = document.querySelector('canvas')?.getBoundingClientRect();
-        return r ? { left: r.left, top: r.top } : { left: 0, top: 0 };
+        return r
+          ? { left: r.left, top: r.top, width: r.width || 1280, height: r.height || 720 }
+          : { left: 0, top: 0, width: 1280, height: 720 };
       });
+      const toCanvasCoords = (proj) => ({
+        x: canvasBounds.left + proj.x * (canvasBounds.width / Math.max(1, proj.vpW)),
+        y: canvasBounds.top + proj.y * (canvasBounds.height / Math.max(1, proj.vpH)),
+      });
+      const isInSafeReticleWindow = (g) => {
+        if (!g || g.behind) return false;
+        const overRightThumbRail = g.x > g.vpW - 195 && g.y > g.vpH - 235;
+        const overTopSystemButtons = g.x > g.vpW - 220 && g.y < 90;
+        return g.x >= 40
+          && g.x <= g.vpW - 40
+          && g.y >= 82
+          && g.y <= g.vpH - 20
+          && !overRightThumbRail
+          && !overTopSystemButtons;
+      };
 
       // 1. Defeat both live Arrival Tech Cache robot guards by placing the
       // movable [+] reticle directly over each guard's screen projection and
       // firing left-mouse bursts + EMP Pulse (only rotating camera when off-screen).
-      const combatDeadline = Date.now() + 135000;
+      const combatDeadline = Date.now() + 95000;
       let lastEmpAt = 0;
       let burstsSinceReload = 0;
-      let loopTick = 0;
       while (Date.now() < combatDeadline) {
-        loopTick += 1;
         const rec = latestRecovery();
         const readySeen = consoleLines
           .slice(beforeEngage)
@@ -1207,73 +1244,50 @@ async function checkPage(target, viewport) {
           e2e.guardsCleared = true;
           break;
         }
-        const markIdx = Math.max(beforeEngage, consoleLines.length - 8);
-        await waitEngineTick(340);
-        let snap = pickGuardSnapshot(markIdx);
-        if (!snap.target) snap = pickGuardSnapshot(beforeEngage);
+        await waitEngineTick(700);
+        const snap = pickGuardSnapshot(beforeEngage);
         const guard = snap.target;
-        if (Date.now() - lastEmpAt > 3500 && (!guard || snap.anyClose || (guard.dist !== null && guard.dist <= 8.8))) {
+        if (Date.now() - lastEmpAt > 3200 && (snap.anyClose || (guard?.dist !== null && guard?.dist !== undefined && guard.dist <= 8.9))) {
           await page.keyboard.press('KeyF');
           lastEmpAt = Date.now();
         }
         if (!guard) continue;
-        if (guard.behind) {
-          const dodgeKey = loopTick % 2 === 0 ? 'KeyD' : 'KeyA';
-          await page.keyboard.down(dodgeKey);
-          await new Promise((r) => setTimeout(r, 150));
-          await page.keyboard.up(dodgeKey);
-          await steerAim(760, 0);
-          continue;
-        }
-        const overRightThumbRail = guard.x > guard.vpW - 185 && guard.y > guard.vpH - 230;
-        const overTopSystemButtons = guard.x > guard.vpW - 220 && guard.y < 88;
-        const inSafeReticleWindow = guard.x >= 35
-          && guard.x <= guard.vpW - 35
-          && guard.y >= 82
-          && guard.y <= guard.vpH - 18
-          && !overRightThumbRail
-          && !overTopSystemButtons;
-        if (!inSafeReticleWindow) {
-          const errX = guard.x - guard.vpW * 0.5;
-          const errY = guard.y - guard.vpH * 0.5;
-          const stepX = Math.abs(errX) > 25 ? Math.max(-680, Math.min(680, errX * 0.75)) : (overRightThumbRail ? 240 : 0);
-          const stepY = Math.abs(errY) > 25 ? Math.max(-200, Math.min(200, errY * 0.75)) : 0;
-          await steerAim(stepX, stepY);
+        if (!isInSafeReticleWindow(guard)) {
+          await turnCameraToward(guard);
           continue;
         }
         // Place the movable [+] crosshair directly onto the guard's 3D screen
-        // coordinates and fire a left-mouse burst straight at [+]!
-        await releaseAds();
-        const aimX = canvasBounds.left + guard.x;
-        const aimY = canvasBounds.top + guard.y;
-        await cdpMove(aimX, aimY, 0);
+        // coordinates and fire a left-mouse burst straight at [+], tracking the
+        // live guard projection mid-burst!
+        let pt = toCanvasCoords(guard);
+        await cdpMove(pt.x, pt.y, 0);
         await new Promise((r) => setTimeout(r, 110));
-        await cdpButton('mousePressed', aimX, aimY, 'left', 1);
+        await cdpButton('mousePressed', pt.x, pt.y, 'left', 1);
         e2e.cursorAimFired = true;
-        await new Promise((r) => setTimeout(r, 920));
-        await cdpButton('mouseReleased', aimX, aimY, 'left', 0);
-        await new Promise((r) => setTimeout(r, 110));
+        try {
+          for (let sub = 0; sub < 2; sub += 1) {
+            await new Promise((r) => setTimeout(r, 320));
+            if ((latestRecovery()?.guards ?? 2) === 0) break;
+            const liveSnap = pickGuardSnapshot(beforeEngage);
+            if (liveSnap.target && isInSafeReticleWindow(liveSnap.target)) {
+              pt = toCanvasCoords(liveSnap.target);
+              await cdpMove(pt.x, pt.y, 1);
+            }
+          }
+        } finally {
+          await cdpButton('mouseReleased', pt.x, pt.y, 'left', 0).catch(() => {});
+        }
+        await new Promise((r) => setTimeout(r, 90));
         burstsSinceReload += 1;
-        if (burstsSinceReload >= 3) {
+        if (burstsSinceReload >= 4) {
           await page.keyboard.press('KeyG');
           burstsSinceReload = 0;
         }
-        if (snap.anyClose) {
-          const strafeKey = loopTick % 2 === 0 ? 'KeyA' : 'KeyD';
-          await page.keyboard.down(strafeKey);
-          await new Promise((r) => setTimeout(r, 240));
-          await page.keyboard.up(strafeKey);
-        } else if (guard.dist !== null && guard.dist > 22.0 && !guard.behind) {
-          await page.keyboard.down('KeyW');
-          await new Promise((r) => setTimeout(r, 340));
-          await page.keyboard.up('KeyW');
-        }
       }
-      await releaseAds();
 
       // 2. Approach the now-READY Arrival Tech Cache and press B to Secure.
       if (e2e.guardsCleared) {
-        const waitReadyCacheTick = async (maxMs = 2000) => {
+        const waitReadyCacheTick = async (maxMs = 1800) => {
           const startIdx = consoleLines.length;
           const deadline = Date.now() + maxMs;
           while (Date.now() < deadline) {
@@ -1284,46 +1298,35 @@ async function checkPage(target, viewport) {
           }
           return parseProjection(`Recovery Cache QA: id=${RECOVERY_CACHE_ID}`, Math.max(0, startIdx - 6));
         };
-        const approachDeadline = Date.now() + 75000;
+        const approachDeadline = Date.now() + 45000;
         while (Date.now() < approachDeadline) {
           if (latestRecovery()?.action === 'secure') {
             e2e.secureOffered = true;
             break;
           }
-          const proj = await waitReadyCacheTick(1800);
+          const proj = await waitReadyCacheTick(1400);
           if (latestRecovery()?.action === 'secure') {
             e2e.secureOffered = true;
             break;
           }
-          if (proj?.behind) {
-            await steerAim(680, 0);
+          if (proj && (proj.behind || Math.abs(proj.x - proj.vpW * 0.5) > 95)) {
+            await turnCameraToward(proj);
             continue;
           }
-          if (proj) {
-            const errX = proj.x - proj.vpW * 0.5;
-            if (Math.abs(errX) > 75) {
-              await steerAim(Math.max(-520, Math.min(520, errX * 0.78)), 0);
-              continue;
-            }
-          }
-          await releaseAds();
-          await page.keyboard.down('ShiftLeft');
           await page.keyboard.down('KeyW');
           try {
-            const strideEnd = Date.now() + 900;
+            const strideEnd = Date.now() + 550;
             while (Date.now() < strideEnd) {
               if (latestRecovery()?.action === 'secure') {
                 e2e.secureOffered = true;
                 break;
               }
-              await new Promise((r) => setTimeout(r, 50));
+              await new Promise((r) => setTimeout(r, 45));
             }
           } finally {
             await page.keyboard.up('KeyW').catch(() => {});
-            await page.keyboard.up('ShiftLeft').catch(() => {});
           }
         }
-        await releaseAds();
       }
       await capture('ready-to-secure');
 
@@ -1363,14 +1366,15 @@ async function checkPage(target, viewport) {
           .find((l) => l.includes('Pause QA:'));
         const pauseHomePt = parseVector(pauseLine?.match(/\bhome=([^\s]+)/)?.[1]);
         await page.keyboard.press('ArrowDown').catch(() => {});
-        await new Promise((r) => setTimeout(r, 420));
+        await new Promise((r) => setTimeout(r, 320));
         await page.keyboard.press('ArrowDown').catch(() => {});
-        await new Promise((r) => setTimeout(r, 420));
+        await new Promise((r) => setTimeout(r, 320));
         await page.keyboard.press('ArrowRight').catch(() => {});
-        await new Promise((r) => setTimeout(r, 420));
+        await new Promise((r) => setTimeout(r, 320));
         await page.keyboard.press('Enter').catch(() => {});
 
         const hubDeadline = Date.now() + 45000;
+        const fallbackAt = Date.now() + 3500;
         let triedClickFallback = false;
         while (Date.now() < hubDeadline) {
           const onHub = await page.evaluate(
@@ -1380,13 +1384,13 @@ async function checkPage(target, viewport) {
             e2e.returnedToHub = true;
             break;
           }
-          if (!triedClickFallback && hubDeadline - Date.now() < 28000) {
+          if (!triedClickFallback && Date.now() >= fallbackAt) {
             triedClickFallback = true;
             if (pauseHomePt && cdp) {
               await clickCanvasPoint(pauseHomePt).catch(() => {});
             }
           }
-          await new Promise((r) => setTimeout(r, 350));
+          await new Promise((r) => setTimeout(r, 300));
         }
         if (cdp) {
           await cdp.detach().catch(() => {});
