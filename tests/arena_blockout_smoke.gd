@@ -51,8 +51,8 @@ func _run_smoke_test() -> void:
 		and test_passed
 	)
 
-	# Walk east from the Arrival Outpost deck (-30, 1.2, 14) toward the central spine.
-	player.global_position = Vector3(-30.0, 1.2, 14.0)
+	# Walk east along the unobstructed Arrival Outpost northern lane (-30, 1.2, 9.6).
+	player.global_position = Vector3(-30.0, 1.2, 9.6)
 	player.set("velocity", Vector3.ZERO)
 	player.call("set_touch_movement", Vector2.RIGHT)
 	for _frame in 180:
@@ -69,10 +69,10 @@ func _run_smoke_test() -> void:
 		and test_passed
 	)
 
-	player.global_position = Vector3(-30.0, 1.2, 14.0)
+	player.global_position = Vector3(-30.0, 1.2, 9.6)
 	player.set("velocity", Vector3.ZERO)
 	var runner := RunnerScene.instantiate() as Node3D
-	runner.position = Vector3(-18.0, 1.2, 14.0)
+	runner.position = Vector3(-18.0, 1.2, 9.6)
 	main_scene.add_child(runner)
 	await process_frame
 	var starting_distance := runner.global_position.distance_to(player.global_position)

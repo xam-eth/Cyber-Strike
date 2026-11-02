@@ -186,7 +186,12 @@ jobs:
 
       - name: Audit the exported content payload
         run: |
-          python3 tools/check_payload.py web/index.pck --json > exports/web-payload-report.json
+          if ! python3 tools/check_payload.py web/index.pck --json > exports/web-payload-report.json 2>exports/web-payload-err.log; then
+            err_msg="$(tr '\n' '|' < exports/web-payload-err.log | cut -c1-1400)"
+            rep_msg="$(tr '\n' ' ' < exports/web-payload-report.json | cut -c1-600)"
+            echo "::error title=check_payload failed::${err_msg} || ${rep_msg}"
+            exit 1
+          fi
           python3 - <<'PY'
           import json
           from pathlib import Path
@@ -211,6 +216,7 @@ jobs:
           missing = [name for name, resource in required.items()
                      if not any(resource in path for path in paths)]
           if missing:
+              print(f'::error title=Missing PCK resources::{missing}')
               raise SystemExit(f'Exported PCK is missing content resources: {missing}')
           forbidden = [
               'assets/forge/worlds/',
@@ -222,9 +228,11 @@ jobs:
           ]
           leaked = [p for p in paths if any(bad in p for bad in forbidden)]
           if leaked:
+              print(f'::error title=Leaked legacy PCK resources::{leaked[:8]}')
               raise SystemExit(f'Exported PCK contains retired legacy assets: {leaked[:8]}')
           size = Path('web/index.pck').stat().st_size
           if size >= 100000000:
+              print(f'::error title=PCK exceeds 100MB budget::{size}')
               raise SystemExit(f'Exported PCK exceeds the 100000000-byte plain-clone budget: {size}')
           largest = sorted(entries, key=lambda entry: entry[2], reverse=True)[:5]
           detail = ', '.join(f'{path}={size}' for path, _, size in largest)

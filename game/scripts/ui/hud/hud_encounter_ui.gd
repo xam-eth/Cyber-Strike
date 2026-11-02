@@ -411,7 +411,7 @@ static func refresh_operative_badge(hud) -> void:
 	var badge := hud.get("_health_tier_badge") as Label
 	if not is_instance_valid(badge):
 		return
-	var callsign := "KESTREL" if hud._state.operative_id == &"kestrel" else "SABLE"
+	var callsign: String = "KESTREL" if hud._state.operative_id == &"kestrel" else "SABLE"
 	var text := (
 		"%s · %d%%" % [callsign, hud._state.operative_armor_pct]
 		if hud._state.operative_armor_pct > 0

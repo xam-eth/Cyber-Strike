@@ -47,8 +47,12 @@ DIR_OFFSET_POS = 32
 FORBIDDEN = {
     "tests/": ("the smoke test suite", True),
     "assets/world/real/": ("asset-forge source library; only the staged runtime world should ship", True),
-    "assets/enemies/enemy_robot_": ("unactivated enemy visual/rig review candidates", True),
-    "assets/enemies/enemy_iron_sentinel": ("unactivated enemy visual/rig review candidates", True),
+    "assets/forge/worlds/": ("retired legacy worlds", True),
+    "assets/world/kenney_space_kit/": ("retired blocky placeholder kit", True),
+    "assets/characters/hero_human_tier_2": ("retired Hero Tier 2 mesh", True),
+    "assets/characters/hero_human_tier_3": ("retired Hero Tier 3 mesh", True),
+    "assets/characters/hero_human_tier_4": ("retired Hero Tier 4 mesh", True),
+    "assets/characters/hero_human_tier_5": ("retired Hero Tier 5 mesh", True),
     "scripts/qa/": ("QA-only code (keyboard review rig)", False),
 }
 # Extensions Godot should never pack: editor metadata.

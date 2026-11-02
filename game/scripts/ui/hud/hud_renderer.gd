@@ -402,7 +402,7 @@ static func draw_reticle(hud: Control, layer: Control = null) -> void:
 	):
 		center = state.reticle_pos.clamp(Vector2.ZERO, hud.size)
 	var fire_rem := float(hud.get("_fire_flash_remaining"))
-	var aiming := hud.get("_aiming") == true
+	var aiming: bool = hud.get("_aiming") == true
 	var spread := 5.0 + (fire_rem / 0.15) * 6.0
 	if int(hud.get("_move_touch_id")) != -1:
 		spread += 4.0

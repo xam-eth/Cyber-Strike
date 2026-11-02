@@ -28,7 +28,7 @@ position = Vector3(-30, 1.2, 14)
 
 ; Recon sentinel drone stationed on the central Aetherfall lane ahead of primary spawn.
 [node name="TrainingDrone" parent="." instance=ExtResource("4_drone")]
-position = Vector3(-16.5, 0.25, 11.5)
+position = Vector3(-26.5, 0.25, 16.5)
 
 [node name="WaveEnemies" type="Node3D" parent="."]
 

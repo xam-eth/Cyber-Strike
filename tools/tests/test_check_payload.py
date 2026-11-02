@@ -82,17 +82,25 @@ class CheckPayloadTests(unittest.TestCase):
         with self.assertRaisesRegex(SystemExit, "no .pck or .sparsepck"):
             parse_pck(str(apk))
 
-    def test_forbidden_allows_activated_guardian_and_rejects_unactivated_candidates(self) -> None:
+    def test_forbidden_allows_activated_robots_and_rejects_retired_legacy_assets(self) -> None:
         hard_patterns = [p for p, (_, hard) in FORBIDDEN.items() if hard]
-        self.assertFalse(
-            any(p in "assets/enemies/enemy_iron_warden_boss.glb" for p in hard_patterns)
-        )
-        self.assertTrue(
-            any(p in "assets/enemies/enemy_robot_common.glb" for p in hard_patterns)
-        )
-        self.assertTrue(
-            any(p in "assets/enemies/enemy_iron_sentinel.glb" for p in hard_patterns)
-        )
+        for active in (
+            "assets/world/aetherfall/layout.json",
+            "assets/enemies/enemy_robot_common.glb",
+            "assets/enemies/enemy_robot_tier_2_rare.glb",
+            "assets/enemies/enemy_robot_tier_3_epic.glb",
+            "assets/enemies/enemy_iron_warden_boss.glb",
+            "assets/enemies/enemy_iron_sentinel.glb",
+        ):
+            self.assertFalse(any(p in active for p in hard_patterns), active)
+        for retired in (
+            "tests/arena_blockout_smoke.gd",
+            "assets/world/real/foo.glb",
+            "assets/forge/worlds/frostline_relay.glb",
+            "assets/world/kenney_space_kit/astronauta.glb",
+            "assets/characters/hero_human_tier_2/hero_human_tier_2.glb",
+        ):
+            self.assertTrue(any(p in retired for p in hard_patterns), retired)
 
 
 if __name__ == "__main__":

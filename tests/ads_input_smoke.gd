@@ -69,7 +69,7 @@ func _run() -> void:
 		var off_pos := Vector2(center_pos.x + 180.0, center_pos.y - 70.0)
 		var cursor_move := InputEventMouseMotion.new()
 		cursor_move.position = off_pos
-		cursor_move.relative = off_pos - center_pos
+		cursor_move.relative = Vector2.ZERO
 		Input.parse_input_event(cursor_move)
 		await physics_frame
 		var reticle_now: Vector2 = player.call("_reticle_screen_position")
@@ -79,6 +79,8 @@ func _run() -> void:
 			"%s movable [+] reticle tracks cursor position and steers 3D aim point" % id
 		)
 
+		rig.yaw_pivot.rotation.y = 0.0
+		rig.pitch_pivot.rotation.x = 0.0
 		var yaw_before: float = rig.yaw_pivot.rotation.y
 		var pitch_before: float = rig.pitch_pivot.rotation.x
 		var motion := InputEventMouseMotion.new()

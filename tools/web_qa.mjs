@@ -930,25 +930,34 @@ async function checkPage(target, viewport) {
       };
     };
     const engageOffered = () => latestRecovery()?.action === 'engage';
-    // Arrival Outpost spawn (-30, 1.2, 14) sits 6.5m SW of Arrival Tech Cache
-    // (-24.5, 0.25, 10.5). Diagonal W+D passes within 1.4m of the cache center
-    // across an 8.7m capture window regardless of frame rate.
+    // Arrival Outpost spawn (-30, 1.2, 14) sits west of Landing Ridge Berm
+    // (-26, 0.25, 13). Striding north on KeyW into the open z≈9.6 lane and then
+    // east on KeyD reaches Arrival Tech Cache (-24.5, 0.25, 10.5) cleanly.
     if (!engageOffered()) {
-      const approachLimit = Date.now() + 35000;
       await page.keyboard.down('KeyW');
-      await page.keyboard.down('KeyD');
       try {
-        while (Date.now() < approachLimit && !engageOffered()) {
-          await new Promise((r) => setTimeout(r, 60));
+        const northEnd = Date.now() + 950;
+        while (Date.now() < northEnd && !engageOffered()) {
+          await new Promise((r) => setTimeout(r, 50));
         }
       } finally {
-        await page.keyboard.up('KeyD').catch(() => {});
         await page.keyboard.up('KeyW').catch(() => {});
+      }
+      if (!engageOffered()) {
+        const eastLimit = Date.now() + 28000;
+        await page.keyboard.down('KeyD');
+        try {
+          while (Date.now() < eastLimit && !engageOffered()) {
+            await new Promise((r) => setTimeout(r, 60));
+          }
+        } finally {
+          await page.keyboard.up('KeyD').catch(() => {});
+        }
       }
     }
     if (!engageOffered()) {
-      // Fallback sweep if initial stride overshot or fell short on extreme tick delta.
-      for (const [k1, k2, ms] of [['KeyS', 'KeyA', 900], ['KeyD', null, 1100], ['KeyW', null, 900]]) {
+      // Fallback sweep along the open northern lane if extreme tick delta shifted stride.
+      for (const [k1, k2, ms] of [['KeyW', null, 800], ['KeyD', null, 1400], ['KeyA', 'KeyS', 700]]) {
         if (engageOffered()) break;
         await page.keyboard.down(k1);
         if (k2) await page.keyboard.down(k2);
@@ -970,7 +979,7 @@ async function checkPage(target, viewport) {
       );
       if (recoveryE2eMode && recoveryEvidence.guardsActive) {
         await page.keyboard.down('ShiftLeft');
-        await page.keyboard.down('KeyS');
+        await page.keyboard.down('KeyA');
       }
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
@@ -984,7 +993,7 @@ async function checkPage(target, viewport) {
       await capture('contact');
     }
     if (recoveryE2eMode) {
-      await page.keyboard.up('KeyS').catch(() => {});
+      await page.keyboard.up('KeyA').catch(() => {});
       await page.keyboard.up('ShiftLeft').catch(() => {});
     }
     const models = new Set();
