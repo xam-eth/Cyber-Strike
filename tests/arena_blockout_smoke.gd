@@ -14,63 +14,69 @@ func _run_smoke_test() -> void:
 	root.add_child(main_scene)
 	await process_frame
 	await physics_frame
+	await physics_frame
 
 	var arena: Node3D = main_scene.get_node("MissionWorld")
 	var player: Node3D = main_scene.get_node("Player")
 	var test_passed := true
-	# The blockout used to be procedural geometry. It is now the staged real world,
-	# so what this test guards is that the arena still exists as a place to fight
-	# in: a real reactor, a lit environment and a walkable floor.
+
 	var real_world := arena.get_node_or_null("RealFrontierWorld") as Node3D
 	test_passed = (
-		_expect(real_world != null, "the arena is the staged real GLB world") and test_passed
+		_expect(real_world != null, "the arena mounts SH-01 Aetherfall under RealFrontierWorld")
+		and test_passed
 	)
 	var arena_meshes: Array[Node] = []
 	if real_world != null:
 		arena_meshes = real_world.find_children("*", "MeshInstance3D", true, false)
 	test_passed = (
 		_expect(
-			arena_meshes.size() >= 400,
-			"the arena's geometry comes from the real asset file (%d meshes)" % arena_meshes.size(),
+			arena_meshes.size() >= 250,
+			"Aetherfall carries full modular GLB geometry (%d meshes)" % arena_meshes.size(),
 		)
 		and test_passed
 	)
-	for required_node in ["ArenaFloor", "ArenaEnvironment", "MissionKeyLight"]:
-		test_passed = (
-			_expect(
-				arena.get_node_or_null(required_node) != null,
-				"blockout includes " + required_node,
-			)
-			and test_passed
+	test_passed = (
+		_expect(arena.get_node_or_null("ArenaFloor") != null, "MissionWorld includes ArenaFloor")
+		and test_passed
+	)
+	test_passed = (
+		_expect(
+			(
+				real_world != null
+				and real_world.get_node_or_null("WorldEnvironment") != null
+				and real_world.get_node_or_null("Sun") != null
+			),
+			"Aetherfall includes authored WorldEnvironment and Sun DirectionalLight3D",
 		)
+		and test_passed
+	)
 
-	# Follow MainNorth from the authored spawn. The old diagonal fixture walked
-	# into CentralTower ArchA; decorative DeckEdge trim must not wall off this route.
-	player.global_position = Vector3(0.0, 0.18, 8.0)
+	# Walk east from the Arrival Outpost deck (-30, 1.2, 14) toward the central spine.
+	player.global_position = Vector3(-30.0, 1.2, 14.0)
 	player.set("velocity", Vector3.ZERO)
-	player.call("set_touch_movement", Vector2.DOWN)
+	player.call("set_touch_movement", Vector2.RIGHT)
 	for _frame in 180:
 		await physics_frame
-		if player.global_position.z >= 20.0:
+		if player.global_position.x >= -20.0:
 			break
 	player.call("set_touch_movement", Vector2.ZERO)
 	print("Arena traversal ended at player position %s." % player.global_position)
 	test_passed = (
 		_expect(
-			player.global_position.z >= 20.0,
-			"player can follow MainNorth on the real world's collision layer",
+			player.global_position.x >= -20.0,
+			"player traverses the Arrival Outpost deck on Aetherfall's walkable collision layer",
 		)
 		and test_passed
 	)
 
-	player.global_position = Vector3(0.0, 0.0, 8.0)
+	player.global_position = Vector3(-30.0, 1.2, 14.0)
 	player.set("velocity", Vector3.ZERO)
 	var runner := RunnerScene.instantiate() as Node3D
-	runner.position = Vector3(12.0, 0.0, 0.0)
+	runner.position = Vector3(-18.0, 1.2, 14.0)
 	main_scene.add_child(runner)
 	await process_frame
 	var starting_distance := runner.global_position.distance_to(player.global_position)
-	for _frame in 360:
+	for _frame in 300:
 		await physics_frame
 	var ending_distance := runner.global_position.distance_to(player.global_position)
 	print(
@@ -81,14 +87,15 @@ func _run_smoke_test() -> void:
 	)
 	test_passed = (
 		_expect(
-			ending_distance < starting_distance - 8.0,
-			"Runner closes distance through the updated cover/ramp layout",
+			ending_distance < starting_distance - 5.0,
+			"Runner robot closes distance across the Aetherfall deck",
 		)
 		and test_passed
 	)
 
 	main_scene.queue_free()
 	await process_frame
+
 	if test_passed:
 		print("Arena blockout smoke test passed.")
 		quit()

@@ -849,8 +849,6 @@ func _apply_density() -> void:
 	physical_separation(_actions, 8.0 if short_screen else 12.0)
 	physical_min_size(_continue, 0.0, AegisTokens.MIN_TOUCH_PX)
 	physical_min_size(_select_button, 0.0, AegisTokens.MIN_TOUCH_PX)
-	if is_instance_valid(_tier_button):
-		physical_min_size(_tier_button, 0.0, AegisTokens.MIN_TOUCH_PX)
 	AegisText.apply(_heading, "hero.title")
 	# BACK + heading + status have to share the header. "OPERATIVE" set in
 	# `display_m` is 208 px at the smallest width the suite measures, which is

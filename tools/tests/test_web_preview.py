@@ -59,13 +59,15 @@ class WebPresetTests(unittest.TestCase):
     def test_export_excludes_asset_forge_sources_but_not_the_runtime_world(self) -> None:
         self.assertEqual(self.run_tool("ensure"), 0)
         preset = web_preset.base.parse_presets(self.preset_file.read_text(encoding="utf-8"))[0]
+        included = web_preset.base.unquote(preset.header.get("include_filter", ""))
         excluded = web_preset.base.unquote(preset.header.get("exclude_filter", ""))
+        self.assertIn("*.json", included)
         self.assertIn("tests/*", excluded)
         self.assertIn("assets/world/real/*", excluded)
-        self.assertIn("assets/enemies/enemy_robot_*", excluded)
-        self.assertIn("assets/enemies/enemy_iron_sentinel*", excluded)
+        self.assertNotIn("enemy_robot_", excluded)
+        self.assertNotIn("enemy_iron_sentinel", excluded)
         self.assertNotIn("enemy_iron_warden_boss", excluded)
-        self.assertNotIn("assets/forge/world/*", excluded)
+        self.assertNotIn("assets/world/aetherfall", excluded)
 
     def test_ensure_is_idempotent_and_preserves_other_presets(self) -> None:
         self.run_tool("ensure")

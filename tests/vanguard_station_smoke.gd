@@ -37,12 +37,13 @@ func _run() -> void:
 
 	_expect(
 		(
-			world.get_node_or_null("TerrainRoot") != null
-			and world.get_node_or_null("LayoutRoot") != null
+			world.get_node_or_null("Modules") != null
+			and world.get_node_or_null("Collision") != null
 			and world.get_node_or_null("ArchiveInterior") != null
-			and world.get_node_or_null("LandmarksRoot") != null
+			and world.get_node_or_null("StructuralLandmarks") != null
+			and world.get_node_or_null("ConnectedExpanse") != null
 		),
-		"Aetherfall builds TerrainRoot, LayoutRoot, ArchiveInterior, and LandmarksRoot",
+		"Aetherfall builds Modules, Collision, ArchiveInterior, Landmarks, and Expanse",
 	)
 
 	var space := world.get_world_3d().direct_space_state

@@ -31,7 +31,7 @@ func _run_smoke_test() -> void:
 		_expect(
 			(
 				WorldScript.world_for_selection("aetherfall") == "aetherfall"
-				and WorldScript.world_for_selection("frostline_relay") == "aetherfall"
+				and WorldScript.world_for_selection("sh01") == "aetherfall"
 			),
 			"launcher ids resolve cleanly to SH-01 Aetherfall",
 		)
@@ -101,11 +101,11 @@ func _check_aetherfall_world() -> void:
 		and _passed
 	)
 
-	var sun := world.get_node_or_null("SunLight") as DirectionalLight3D
+	var sun := real_world.get_node_or_null("Sun") as DirectionalLight3D
 	_passed = (
 		_expect(
 			sun != null and sun.light_color.is_equal_approx(WorldMood.sun_color("aetherfall")),
-			"MissionWorld applies Aetherfall crisp alpine sun colour",
+			"Aetherfall applies crisp alpine Sun DirectionalLight3D colour",
 		)
 		and _passed
 	)

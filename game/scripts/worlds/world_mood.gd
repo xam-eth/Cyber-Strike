@@ -57,5 +57,18 @@ static func mood(world_id: String) -> Dictionary:
 	return MOODS.get(world_id, MOODS[MOOD_ORDER[0]])
 
 
+static func for_world(world_id: String) -> Dictionary:
+	return mood(world_id)
+
+
+static func sun_color(world_id: String) -> Color:
+	var key_spec: Dictionary = mood(world_id).get("key", {}) as Dictionary
+	return key_spec.get("color", Color(0.92, 0.96, 1.0)) as Color
+
+
+static func fog_color(world_id: String) -> Color:
+	return mood(world_id).get("fog", Color(0.34, 0.49, 0.64)) as Color
+
+
 static func label(world_id: String) -> String:
 	return String(mood(world_id).get("label", world_id))

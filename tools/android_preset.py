@@ -83,16 +83,13 @@ SCAFFOLD_OPTIONS: list[tuple[str, str]] = [
     ("permissions/custom_permissions", "PackedStringArray()"),
 ]
 
-# Files that must never reach a player. `tests/*` is the whole smoke suite.
-# `assets/world/real/*` is the asset-forge's 55 MB source library; gameplay
-# loads only the staged `assets/forge/worlds/*.glb`. Under `assets/enemies/`,
-# Track 2 activates `enemy_iron_warden_boss.glb` (`Iron Warden` Guardian) while
-# keeping the unactivated `enemy_robot_*` and `enemy_iron_sentinel*` candidates
-# excluded so the plain-clone Web PCK stays well below GitHub's 100 MB limit.
-EXCLUDE_FROM_EXPORT = (
-    "tests/*,assets/world/real/*,"
-    "assets/enemies/enemy_robot_*,assets/enemies/enemy_iron_sentinel*"
-)
+# Non-resource data files loaded via FileAccess at runtime (Aetherfall world
+# layout JSONs, shared operative roster.json, and skeletal *_rig.json files).
+INCLUDE_IN_EXPORT = "*.json"
+
+# Files that must never reach a player. `tests/*` is the whole smoke suite;
+# `assets/world/real/*` is the offline asset-forge source library.
+EXCLUDE_FROM_EXPORT = "tests/*,assets/world/real/*"
 
 PRESET_HEADER_OPTIONS: list[tuple[str, str]] = [
     ("runnable", "true"),
@@ -100,7 +97,7 @@ PRESET_HEADER_OPTIONS: list[tuple[str, str]] = [
     ("dedicated_server", "false"),
     ("custom_features", '""'),
     ("export_filter", '"all_resources"'),
-    ("include_filter", '""'),
+    ("include_filter", '"%s"' % INCLUDE_IN_EXPORT),
     ("exclude_filter", '"%s"' % EXCLUDE_FROM_EXPORT),
     ("export_path", '""'),
     ("patches", "PackedStringArray()"),

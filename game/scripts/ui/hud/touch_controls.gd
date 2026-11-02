@@ -326,7 +326,8 @@ func _input(event: InputEvent) -> void:
 		# Editor GUI owns touch drags, not the gameplay thumb-zone dispatcher.
 		return
 	if event is InputEventMouseMotion and not _touch_mode:
-		var clamped := event.position.clamp(Vector2.ZERO, size)
+		var motion := event as InputEventMouseMotion
+		var clamped: Vector2 = motion.position.clamp(Vector2.ZERO, size)
 		if not _state.cursor_aim_active or _state.reticle_pos.distance_squared_to(clamped) > 0.05:
 			_state.cursor_aim_active = true
 			_state.reticle_pos = clamped

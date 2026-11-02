@@ -95,14 +95,18 @@ jobs:
           # the annotations API when full log/artifact downloads are unavailable.
           python3 - <<'PY'
           from pathlib import Path
-          log = Path('exports/test-logs/mission_world_smoke.log')
-          if log.exists():
-              prefix = 'STELLAR HORIZON PROBE '
-              probes = [line[len(prefix):].strip() for line in log.read_text(errors='replace').splitlines()
-                        if line.startswith(prefix)]
-              if probes:
-                  detail = ' | '.join(probes).replace('\r', ' ')[:1800]
-                  print(f'::notice title=STELLAR HORIZON deployment and surface probe::{detail}')
+          summary = Path('exports/test-logs/summary.txt')
+          if summary.exists():
+              failed = [line.strip() for line in summary.read_text(errors='replace').splitlines()
+                        if 'FAIL' in line]
+              if failed:
+                  print('::error title=Failed smoke list::' + ' | '.join(failed)[:1800])
+              for f in sorted(Path('exports/test-logs').glob('*_smoke.log')):
+                  txt = f.read_text(errors='replace')
+                  errs = [l.strip() for l in txt.splitlines()
+                          if any(k in l for k in ('SCRIPT ERROR:', 'ERROR:', 'FAIL:', 'fail:'))]
+                  if errs and any(f.stem in fl for fl in failed):
+                      print(f'::error title=Diag {f.stem}::' + ' | '.join(errs[:5])[:1500])
           PY
 
       - name: Upload smoke test logs
@@ -192,11 +196,11 @@ jobs:
           required = {
               'aetherfall_scene': 'scenes/worlds/aetherfall_world.tscn',
               'aetherfall_layout': 'assets/world/aetherfall/layout.json',
-              'aetherfall_archive': 'assets/world/aetherfall/sentinel_archive_main.glb',
-              'aetherfall_relay': 'assets/world/aetherfall/objective_device.glb',
-              'aetherfall_cache': 'assets/world/aetherfall/tech_cache.glb',
+              'aetherfall_archive': 'assets/world/aetherfall/ice_planet/sentinel_archive.glb',
+              'aetherfall_relay': 'assets/world/aetherfall/interactives/objective_device.glb',
+              'aetherfall_cache': 'assets/world/aetherfall/interactives/tech_cache.glb',
               # Dynamic ContentModuleLoader Character & Enemy rigged GLB paths:
-              'hero': 'assets/characters/hero_human_tier_1/hero_human_tier_1.glb',
+              'hero': 'assets/characters/human_hero_tiers/hero_human_tier_1.glb',
               'held_weapon': 'assets/weapons/futuristic_rifle/rifle.glb',
               'runner_robot': 'assets/enemies/enemy_robot_common.glb',
               'shooter_robot': 'assets/enemies/enemy_robot_tier_2_rare.glb',
