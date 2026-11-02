@@ -213,10 +213,10 @@ func _run_smoke_test() -> void:
 				_spawned_archetypes.size() == 7
 				and _spawned_archetypes[3] == "RUNNER"
 				and _spawned_archetypes[4] == "RUNNER"
-				and _spawned_archetypes[5] == "RUNNER"
+				and _spawned_archetypes[5] == "ENFORCER"
 				and _spawned_archetypes[6] == "SHOOTER"
 			),
-			"wave two spawns its deterministic three-Runner, one-Shooter mix",
+			"wave two spawns its deterministic two-Runner, one-Enforcer, one-Shooter mix",
 		)
 		and test_passed
 	)
@@ -236,10 +236,10 @@ func _run_smoke_test() -> void:
 		_expect(
 			(
 				int(run_stats.get("eliminations")) == 7
-				and int(run_stats.get("run_score")) == 700
-				and int(run_stats.get("bp_earned")) == 270
+				and int(run_stats.get("run_score")) == 780
+				and int(run_stats.get("bp_earned")) == 282
 			),
-			"Runner, Shooter, and wave rewards are each recorded exactly once",
+			"Runner, Enforcer, Shooter, and wave rewards are each recorded exactly once",
 		)
 		and test_passed
 	)
@@ -322,7 +322,12 @@ func _run_smoke_test() -> void:
 
 func _on_enemy_spawned(enemy: Node3D) -> void:
 	_spawned_enemies.append(enemy)
-	_spawned_archetypes.append("SHOOTER" if enemy.is_in_group("shooter_enemies") else "RUNNER")
+	if enemy.is_in_group("shooter_enemies"):
+		_spawned_archetypes.append("SHOOTER")
+	elif enemy.is_in_group("enforcer_enemies"):
+		_spawned_archetypes.append("ENFORCER")
+	else:
+		_spawned_archetypes.append("RUNNER")
 
 
 func _on_enemy_defeated(enemy: Node3D) -> void:

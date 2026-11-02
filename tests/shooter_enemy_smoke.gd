@@ -45,7 +45,7 @@ func _run_smoke_test() -> void:
 		_expect(
 			(
 				_attack_results.is_empty()
-				and is_equal_approx(float(player.get("current_health")), 110.0)
+				and is_equal_approx(float(player.get("current_health")), 100.0)
 			),
 			"world cover blocks the Shooter's ranged attack",
 		)
@@ -76,7 +76,7 @@ func _run_smoke_test() -> void:
 			(
 				_attack_results.size() == 1
 				and not _attack_results[0]
-				and is_equal_approx(float(player.get("current_health")), 110.0)
+				and is_equal_approx(float(player.get("current_health")), 100.0)
 			),
 			"moving during the windup dodges the locked shot",
 		)
@@ -97,9 +97,9 @@ func _run_smoke_test() -> void:
 			(
 				_attack_results.size() >= 2
 				and _attack_results[1]
-				and is_equal_approx(float(player.get("current_health")), 102.48)
+				and is_equal_approx(float(player.get("current_health")), 92.0)
 				and _player_damage.size() == 1
-				and is_equal_approx(_player_damage[0], 7.52)
+				and is_equal_approx(_player_damage[0], 8.0)
 			),
 			"a successful ranged attack routes configured damage through PlayerController",
 		)

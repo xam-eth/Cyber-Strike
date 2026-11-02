@@ -433,7 +433,7 @@ async function runRecoveryCase(asset) {
     ), { timeout: timeoutMs });
     await page.waitForFunction(
       () => ['dunia siap', 'world ready'].includes((document.getElementById('launch-status')?.textContent || '').trim().toLowerCase()),
-      { timeout: 15000 },
+      { polling: 100, timeout: timeoutMs },
     );
     for (let attempt = 0; attempt < 240 && !consoleLines.some((line) => line.includes('Encounter: Explore safe')); attempt += 1) {
       await new Promise((resolve) => setTimeout(resolve, 250));

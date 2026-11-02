@@ -38,11 +38,16 @@ func _run_smoke_test() -> void:
 		if mi.mesh == null:
 			continue
 		for s in range(mi.mesh.get_surface_count()):
-			var mat := mi.get_active_material(s) as StandardMaterial3D
+			var mat := mi.get_active_material(s) as BaseMaterial3D
 			if mat != null:
 				unique_materials[mat.get_instance_id()] = true
-				if mat.albedo_texture != null and not mat.albedo_texture.resource_path.is_empty():
-					unique_textures[mat.albedo_texture.resource_path] = true
+				if mat.albedo_texture != null:
+					var tex_key := (
+						mat.albedo_texture.resource_path
+						if not mat.albedo_texture.resource_path.is_empty()
+						else str(mat.albedo_texture.get_instance_id())
+					)
+					unique_textures[tex_key] = true
 
 	_expect(
 		unique_materials.size() >= 18 and unique_textures.size() >= 15,

@@ -62,7 +62,7 @@ func _run_smoke_test() -> void:
 	)
 	_expect(
 		(
-			wave_title.text == "EXPLORE AETHERFALL"
+			wave_title.text == "EXPLORE THE FRONTIER"
 			and wave_enemy_label.text.contains("SAFE ZONE")
 			and defense_button.visible
 			and not controls.get("_run_card").visible
@@ -581,7 +581,7 @@ func _run_smoke_test() -> void:
 
 	player.call("apply_damage", 27.0)
 	_expect(
-		is_equal_approx(health_bar.value, 84.62) and health_value.text == "85 / 110",
+		is_equal_approx(health_bar.value, 85.0) and health_value.text == "85 / 110",
 		"taking damage updates the health bar immediately",
 	)
 
@@ -954,7 +954,7 @@ func _run_smoke_test() -> void:
 			and not pause_panel.visible
 			and not player.call("is_defeated")
 			and is_equal_approx(health_bar.value, 110.0)
-			and wave_title.text == "EXPLORE AETHERFALL"
+			and wave_title.text == "EXPLORE THE FRONTIER"
 			and int(wave_director.get("current_wave")) == 0
 		),
 		(

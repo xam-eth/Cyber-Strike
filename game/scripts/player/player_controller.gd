@@ -254,20 +254,26 @@ func _execute_emp_pulse() -> int:
 
 
 func _execute_recon_pulse() -> int:
-	var aim_delta := _get_aim_point() - global_position
-	aim_delta.y = 0.0
+	_sync_cursor_reticle()
+	var lance_length := maxf(emp_pulse_radius, 8.0)
 	var lance_dir := -camera_rig.get_yaw_basis().z
 	lance_dir.y = 0.0
-	var aim_dist := aim_delta.length()
-	if aim_dist > 0.05:
-		lance_dir = aim_delta / aim_dist
+	if _cursor_aim_active and aim_camera != null:
+		var reticle_pos := _reticle_screen_position()
+		var far_target := (
+			aim_camera.project_ray_origin(reticle_pos)
+			+ aim_camera.project_ray_normal(reticle_pos) * lance_length
+		)
+		var aim_delta := far_target - global_position
+		aim_delta.y = 0.0
+		if aim_delta.length_squared() > 0.0025:
+			lance_dir = aim_delta.normalized()
 	elif lance_dir.length_squared() > 0.0001:
 		lance_dir = lance_dir.normalized()
 	else:
 		lance_dir = Vector3.FORWARD
 
-	var lance_length := maxf(emp_pulse_radius, 8.0)
-	var impact_dist := clampf(aim_dist if aim_dist > 1.0 else lance_length, 3.0, lance_length)
+	var impact_dist := lance_length
 	var impact_point := global_position + lance_dir * impact_dist
 	var corridor_half_sq := 1.8 * 1.8
 	var impact_rad_sq := 4.8 * 4.8

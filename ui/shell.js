@@ -1309,7 +1309,7 @@ function failLaunchFrom(error) {
 /* The launch rail mirrors the same opening byte snapshot. It is not a second
  * accumulator: both DOMs read loadedBytes/expectedBytes from Godot's callback. */
 function paintAssetProgress() {
-  if (expectedBytes <= 0) return;
+  if (expectedBytes <= 0 || bootState === 'ready' || bootState === 'failed') return;
   const progress = el('launch-progress');
   const ratio = Math.min(1, downloadedBytes / expectedBytes);
   progress.dataset.indeterminate = 'false';

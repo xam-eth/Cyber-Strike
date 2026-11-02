@@ -10,10 +10,13 @@ extends Node3D
 ## isolated test fixture supplies a static or missing model.
 
 const ModelFitterScript = preload("res://scripts/visual/model_fitter.gd")
+const FALLBACK_RIG_SCENE_PATH := "res://assets/enemies/enemy_robot_tier_3_epic.glb"
 const RUN_THRESHOLD := 0.52
 const WALK_THRESHOLD := 0.06
 const FIRE_CLIP_SECONDS := 0.42
 const HIT_CLIP_SECONDS := 0.24
+
+static var _fallback_anim_libraries: Dictionary = {}
 
 @export var model_scene: PackedScene
 @export var model_scene_path: String = ""
@@ -279,10 +282,13 @@ func _bind_rig() -> void:
 		return
 	var skeletons := _model.find_children("*", "Skeleton3D", true, false)
 	var players := _model.find_children("*", "AnimationPlayer", true, false)
-	if skeletons.is_empty() or players.is_empty():
+	if skeletons.is_empty():
 		return
 	_skeleton = skeletons[0] as Skeleton3D
-	_anim_player = players[0] as AnimationPlayer
+	if not players.is_empty():
+		_anim_player = players[0] as AnimationPlayer
+	else:
+		_anim_player = _attach_fallback_animation_player(_model)
 	if _skeleton == null or _anim_player == null:
 		return
 	_rig = _load_rig()
@@ -388,6 +394,32 @@ func _load_rig() -> Dictionary:
 		return {}
 	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(candidate))
 	return parsed as Dictionary if parsed is Dictionary else {}
+
+
+static func _attach_fallback_animation_player(model_root: Node3D) -> AnimationPlayer:
+	if _fallback_anim_libraries.is_empty() and ResourceLoader.exists(FALLBACK_RIG_SCENE_PATH):
+		var donor_scene := load(FALLBACK_RIG_SCENE_PATH) as PackedScene
+		if donor_scene != null:
+			var donor := donor_scene.instantiate()
+			var donor_players := donor.find_children("*", "AnimationPlayer", true, false)
+			if not donor_players.is_empty():
+				var donor_player := donor_players[0] as AnimationPlayer
+				for lib_name in donor_player.get_animation_library_list():
+					var lib := donor_player.get_animation_library(lib_name)
+					if lib != null:
+						_fallback_anim_libraries[String(lib_name)] = lib.duplicate(false)
+			donor.free()
+	if _fallback_anim_libraries.is_empty():
+		return null
+	var fallback_player := AnimationPlayer.new()
+	fallback_player.name = "AnimationPlayer"
+	model_root.add_child(fallback_player)
+	fallback_player.root_node = fallback_player.get_path_to(model_root)
+	for lib_key in _fallback_anim_libraries.keys():
+		fallback_player.add_animation_library(
+			StringName(String(lib_key)), _fallback_anim_libraries[lib_key] as AnimationLibrary
+		)
+	return fallback_player
 
 
 static func _quat(values: Variant) -> Quaternion:

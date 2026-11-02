@@ -64,6 +64,7 @@ func _run() -> void:
 		center_motion.position = center_pos
 		center_motion.relative = Vector2.ZERO
 		Input.parse_input_event(center_motion)
+		controls.call("_input", center_motion)
 		await physics_frame
 		var aim_center: Vector3 = player.call("_get_aim_point")
 
@@ -72,6 +73,7 @@ func _run() -> void:
 		cursor_move.position = off_pos
 		cursor_move.relative = Vector2.ZERO
 		Input.parse_input_event(cursor_move)
+		controls.call("_input", cursor_move)
 		await physics_frame
 		var reticle_now: Vector2 = player.call("_reticle_screen_position")
 		var aim_off: Vector3 = player.call("_get_aim_point")
