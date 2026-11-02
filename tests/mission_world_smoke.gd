@@ -92,11 +92,11 @@ func _check_aetherfall_world() -> void:
 		and _passed
 	)
 
-	var spawns := world.get_node_or_null("SpawnPoints") as Node3D
+	var spawns := real_world.get_node_or_null("Spawns") as Node3D
 	_passed = (
 		_expect(
-			spawns != null and spawns.get_child_count() >= 10,
-			"MissionWorld builds >= 10 tactical SpawnPoints for WaveDirector",
+			spawns != null and spawns.get_child_count() >= 1,
+			"Aetherfall world builds authored Spawns markers",
 		)
 		and _passed
 	)
@@ -124,6 +124,15 @@ func _check_gameplay_deployment() -> void:
 		await process_frame
 		await physics_frame
 	WorldSelection.override_selection(prev)
+
+	var main_spawns := main.get_node_or_null("SpawnPoints") as Node3D
+	_passed = (
+		_expect(
+			main_spawns != null and main_spawns.get_child_count() >= 10,
+			"Main builds >= 10 OBB-clean tactical SpawnPoints for WaveDirector",
+		)
+		and _passed
+	)
 
 	var player := main.get_node("Player") as CharacterBody3D
 	_passed = (

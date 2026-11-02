@@ -46,8 +46,8 @@ func _run_smoke_test() -> void:
 	# rejects the real prop, not an imagined box.
 	var cover_position := Vector3.ZERO
 	var real_world := main_scene.get_node("MissionWorld/RealFrontierWorld") as Node3D
-	var covers := real_world.find_children("*CoverEast", "Node3D", true, false)
-	test_passed = _expect(not covers.is_empty(), "the authored CoverEast fixture exists")
+	var covers := real_world.find_children("landing_ridge_berm", "Node3D", true, false)
+	test_passed = _expect(not covers.is_empty(), "the authored landing_ridge_berm cover exists")
 	if not covers.is_empty():
 		cover_position = (covers[0] as Node3D).global_position
 	var target_position := (main_scene.get_node("TrainingDrone") as Node3D).global_position

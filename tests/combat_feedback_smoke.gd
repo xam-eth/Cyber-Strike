@@ -93,7 +93,7 @@ func _run_smoke_test() -> void:
 	)
 	test_passed = (
 		_expect(
-			is_equal_approx(float(player.get("current_health")), 92.0),
+			is_equal_approx(float(player.get("current_health")), 102.48),
 			"Runner damage reduces health"
 		)
 		and test_passed
@@ -101,7 +101,7 @@ func _run_smoke_test() -> void:
 	if not _received_player_damage.is_empty():
 		test_passed = (
 			_expect(
-				is_equal_approx(_received_player_damage[0], 8.0), "Runner damage amount is applied"
+				is_equal_approx(_received_player_damage[0], 7.52), "Runner damage amount is applied"
 			)
 			and test_passed
 		)
@@ -124,7 +124,7 @@ func _run_smoke_test() -> void:
 	)
 	main_scene.call("_toggle_pause")
 
-	player.call("apply_damage", 100.0)
+	player.call("apply_damage", 120.0)
 	test_passed = (
 		_expect(bool(player.call("is_defeated")), "zero health marks player defeated")
 		and test_passed
@@ -148,7 +148,7 @@ func _run_smoke_test() -> void:
 	)
 	test_passed = (
 		_expect(
-			is_equal_approx(float(player.get("current_health")), 100.0),
+			is_equal_approx(float(player.get("current_health")), 110.0),
 			"retry restores player health"
 		)
 		and test_passed

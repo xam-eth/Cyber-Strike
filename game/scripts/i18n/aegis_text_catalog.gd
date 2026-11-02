@@ -153,8 +153,8 @@ const STRINGS := {
 			+ "the Outpost & East Hangar caches."
 		),
 		"world.aetherfall.status": "OPEN",
-		"world.aetherfall.zone_title": "SH-01 · CITADEL AETHERFALL",
-		"world.aetherfall.zone_subtitle": "CITADEL ASSAULT · RELAY & ARCHIVE",
+		"world.aetherfall.zone_title": "EXPLORE AETHERFALL",
+		"world.aetherfall.zone_subtitle": "SAFE ZONE · RELAY & ARCHIVE",
 		# --- in-run HUD ------------------------------------------------------
 		"hud.help": "STICK MOVE · DRAG LOOK · HOLD AIM\nFIRE · EMP · SWAP · V EVOLVE · B DEFENSE",
 		"hud.vitals": "VITALS",
@@ -533,8 +533,8 @@ const STRINGS := {
 			+ "Sentinel melawan skuadron robot baja, dan menyapu cache Pos & Hangar Timur."
 		),
 		"world.aetherfall.status": "TERBUKA",
-		"world.aetherfall.zone_title": "SH-01 · BENTENG AETHERFALL",
-		"world.aetherfall.zone_subtitle": "SERBUAN BENTENG · RELAI & ARSIP",
+		"world.aetherfall.zone_title": "JELAJAHI AETHERFALL",
+		"world.aetherfall.zone_subtitle": "ZONA AMAN · RELAI & ARSIP",
 		# --- in-run HUD ------------------------------------------------------
 		"hud.help":
 		"STIK GERAK · GESER PANDANG · TAHAN BIDIK\nTEMBAK · EMP · GANTI · V EVOLUSI · B BERTAHAN",

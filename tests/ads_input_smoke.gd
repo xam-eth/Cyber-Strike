@@ -26,6 +26,7 @@ func _run() -> void:
 	profile.unlock_weapon(&"arc_shooter")
 
 	var player := main.get_node("Player") as PlayerController
+	player.global_position = Vector3(6.0, 1.2, 14.0)
 	var controls := main.get_node("HUD/TouchControls") as TouchControls
 	var camera := player.aim_camera
 	var rig := player.camera_rig

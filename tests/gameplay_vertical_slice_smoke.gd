@@ -48,8 +48,8 @@ func _run_smoke_test() -> void:
 	var definitions: Array = EnemyDefinitionScript.load_all_definitions()
 	test_passed = (
 		_expect(
-			definitions.size() == 3,
-			"the encounter registry exposes Runner, Shooter, and Iron Warden Guardian",
+			definitions.size() == 4,
+			"the encounter registry exposes Runner, Shooter, Enforcer, and Iron Warden Guardian",
 		)
 		and test_passed
 	)

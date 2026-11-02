@@ -127,7 +127,7 @@ func _physics_process(delta: float) -> void:
 	visuals.update_motion(velocity, delta)
 
 
-func apply_emp_disrupt() -> bool:
+func apply_emp_disrupt(_source: Node = null) -> bool:
 	if _is_downed:
 		return false
 	_disrupted_remaining = emp_disrupt_seconds

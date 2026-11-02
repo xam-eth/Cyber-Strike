@@ -216,7 +216,7 @@ func _test_hud_results_and_front_end_selection() -> void:
 		hero_stage.find_child("TierCycleButton", true, false) == null,
 		"HERO stage carries no TierCycleButton after Hero Tier removal",
 	)
-	hero_stage.call("_on_card_pressed", &"kestrel")
+	hero_stage.call("_on_chip_pressed", &"kestrel")
 	await process_frame
 	var select_btn := hero_stage.get("_select_button") as BaseButton
 	select_btn.pressed.emit()

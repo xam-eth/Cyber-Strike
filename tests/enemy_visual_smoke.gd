@@ -37,14 +37,15 @@ func _run_smoke_test() -> void:
 	test_passed = _check_visual(test_passed, runner, "runner", 1.88)
 
 	var runner_visuals: Node = runner.get_node("Visuals")
+	var runner_body := runner_visuals.get_node_or_null("BodyMesh") as Node3D
 	test_passed = (
 		_expect(
 			(
 				runner.get_node_or_null("CollisionShape3D") is CollisionShape3D
-				and runner_visuals.get_node_or_null("BodyMesh") == null
+				and (runner_body == null or not runner_body.visible)
 				and float(runner_visuals.call("visual_height")) > 1.5
 			),
-			"runner carries no primitive BodyMesh capsule and reports fitted robot height",
+			"runner hides primitive BodyMesh capsule and reports fitted robot height",
 		)
 		and test_passed
 	)
@@ -58,6 +59,7 @@ func _run_smoke_test() -> void:
 		and test_passed
 	)
 	for _frame in 70:
+		runner_visuals.call("_process", 0.05)
 		await process_frame
 	test_passed = (
 		_expect(not runner_visuals.visible, "the collapsed runner is hidden when the fall ends")

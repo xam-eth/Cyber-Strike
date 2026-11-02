@@ -141,6 +141,7 @@ fi
 # of a step, so printing them as tests finish could push the failure line of the
 # eleventh test out of sight. The failure summary is emitted first instead.
 ANNOTATIONS=()
+ERROR_ANNOTATIONS=()
 PASSED=0
 FAILED=0
 FAILED_NAMES=()
@@ -170,7 +171,7 @@ for test_path in "${TESTS[@]}"; do
     FAILED=$((FAILED + 1))
     FAILED_NAMES+=("$test_name (timeout)")
     if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
-      printf '::error title=Smoke test timed out::%s exceeded %ss\n' "$test_name" "$TEST_TIMEOUT"
+      ERROR_ANNOTATIONS+=("::error title=Smoke test timed out::$test_name exceeded ${TEST_TIMEOUT}s")
     fi
   elif (( script_error != 0 )); then
     # Godot can return exit 0 after a GDScript runtime error aborted only part
@@ -190,14 +191,14 @@ for test_path in "${TESTS[@]}"; do
     # first error line as an annotation so the failing call site is never a guess.
     if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
       error_digest="$(grep -A2 -m1 -E 'SCRIPT ERROR|Parse Error|ERROR: Condition' "$test_log" | tr '\n' '|' | cut -c1-700)"
-      printf '::error title=Script error in %s::%s\n' "${test_name%.gd}" "${error_digest:-see log}"
+      ERROR_ANNOTATIONS+=("::error title=Script error in ${test_name%.gd}::${error_digest:-see log}")
     fi
   fi
   if grep -qiE 'FAIL:|smoke test failed:' "$test_log"; then
     printf '    assertion failures; see %s\n' "${test_log#"$ROOT_DIR"/}"
     if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
       assertion_digest="$(grep -im6 -E 'FAIL:|smoke test failed:' "$test_log" | tr '\n' '|' | cut -c1-1400)"
-      printf '::error title=Assertion failed in %s::%s\n' "${test_name%.gd}" "${assertion_digest:-see log}"
+      ERROR_ANNOTATIONS+=("::error title=Assertion failed in ${test_name%.gd}::${assertion_digest:-see log}")
     fi
   fi
   # One annotation per test: the job log is not always retrievable (for example
@@ -235,6 +236,9 @@ printf 'Machine-readable summary: %s\n' "${SUMMARY_FILE#"$ROOT_DIR"/}"
 if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
   if (( FAILED > 0 )); then
     printf '::error title=Failed smoke tests::%s\n' "${FAILED_NAMES[*]}"
+    for err_ann in "${ERROR_ANNOTATIONS[@]:-}"; do
+      [[ -n "$err_ann" ]] && printf '%s\n' "$err_ann"
+    done
   fi
   printf '::notice title=Godot engine::%s\n' "$GODOT_VERSION"
   printf '::notice title=Smoke tests::%d passed, %d failed (of %d, import %s)\n' \

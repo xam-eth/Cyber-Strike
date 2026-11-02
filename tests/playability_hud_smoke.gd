@@ -57,12 +57,12 @@ func _run_smoke_test() -> void:
 		"playtest HUD builds health, wave, and run-data cards",
 	)
 	_expect(
-		is_equal_approx(health_bar.value, 100.0) and health_value.text == "100 / 100",
+		is_equal_approx(health_bar.value, 110.0) and health_value.text == "110 / 110",
 		"health bar reflects the live player health",
 	)
 	_expect(
 		(
-			wave_title.text == "EXPLORE THE FRONTIER"
+			wave_title.text == "EXPLORE AETHERFALL"
 			and wave_enemy_label.text.contains("SAFE ZONE")
 			and defense_button.visible
 			and not controls.get("_run_card").visible
@@ -468,13 +468,13 @@ func _run_smoke_test() -> void:
 	_expect(
 		(
 			is_instance_valid(op_badge)
-			and op_badge.text.begins_with("T")
+			and op_badge.text.contains("SABLE")
 			and is_instance_valid(mag_bar)
 			and mag_bar.max_value >= 1.0
 			and is_instance_valid(upg_card)
 			and Color(upg_card.get("accent_color")) == Color("b79cff")
 		),
-		"HUD exposes live operative tier badge, magazine fill bar, and violet run-mod separation",
+		"HUD exposes live operative badge, magazine fill bar, and violet run-mod separation",
 	)
 
 	var rest_fov := player_camera.fov
@@ -581,7 +581,7 @@ func _run_smoke_test() -> void:
 
 	player.call("apply_damage", 27.0)
 	_expect(
-		is_equal_approx(health_bar.value, 73.0) and health_value.text == "73 / 100",
+		is_equal_approx(health_bar.value, 84.62) and health_value.text == "85 / 110",
 		"taking damage updates the health bar immediately",
 	)
 
@@ -640,6 +640,8 @@ func _run_smoke_test() -> void:
 	skill_enemy.queue_free()
 	await process_frame
 
+	player.global_position = Vector3(0.0, 1.2, 14.0)
+	await physics_frame
 	var initial_position: Vector3 = player.global_position
 	var joystick_origin: Vector2 = controls.get("_joystick_center")
 	# The stick is a *physical* 64 px ring, so its radius in canvas units grows as
@@ -907,7 +909,7 @@ func _run_smoke_test() -> void:
 	_expect(
 		(
 			not bool(player.call("is_defeated"))
-			and is_equal_approx(health_bar.value, 100.0)
+			and is_equal_approx(health_bar.value, 110.0)
 			and not results_panel.visible
 			and skill_button.text.is_empty()
 			and not (controls.get("_skill_cooldown_label") as Label).visible
@@ -951,8 +953,8 @@ func _run_smoke_test() -> void:
 			not paused
 			and not pause_panel.visible
 			and not player.call("is_defeated")
-			and is_equal_approx(health_bar.value, 100.0)
-			and wave_title.text == "EXPLORE THE FRONTIER"
+			and is_equal_approx(health_bar.value, 110.0)
+			and wave_title.text == "EXPLORE AETHERFALL"
 			and int(wave_director.get("current_wave")) == 0
 		),
 		(

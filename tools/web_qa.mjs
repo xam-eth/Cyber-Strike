@@ -1203,19 +1203,6 @@ async function checkPage(target, viewport) {
           lastEmpAt = Date.now();
         }
         if (!guard) continue;
-        if (snap.anyClose) {
-          await releaseAds();
-          await page.keyboard.down('ShiftLeft');
-          await page.keyboard.down('KeyS');
-          await new Promise((r) => setTimeout(r, 480));
-          await page.keyboard.up('KeyS');
-          await page.keyboard.up('ShiftLeft');
-        } else if (guard.dist !== null && guard.dist > 22.0 && !guard.behind) {
-          await releaseAds();
-          await page.keyboard.down('KeyW');
-          await new Promise((r) => setTimeout(r, 380));
-          await page.keyboard.up('KeyW');
-        }
         if (guard.behind) {
           const dodgeKey = loopTick % 2 === 0 ? 'KeyD' : 'KeyA';
           await page.keyboard.down(dodgeKey);
@@ -1224,14 +1211,18 @@ async function checkPage(target, viewport) {
           await steerAim(760, 0);
           continue;
         }
-        const inSafeReticleWindow = guard.x >= 95
-          && guard.x <= guard.vpW - 190
-          && guard.y >= 95
-          && guard.y <= guard.vpH - 135;
+        const overRightThumbRail = guard.x > guard.vpW - 185 && guard.y > guard.vpH - 230;
+        const overTopSystemButtons = guard.x > guard.vpW - 220 && guard.y < 88;
+        const inSafeReticleWindow = guard.x >= 35
+          && guard.x <= guard.vpW - 35
+          && guard.y >= 82
+          && guard.y <= guard.vpH - 18
+          && !overRightThumbRail
+          && !overTopSystemButtons;
         if (!inSafeReticleWindow) {
           const errX = guard.x - guard.vpW * 0.5;
           const errY = guard.y - guard.vpH * 0.5;
-          const stepX = Math.abs(errX) > 25 ? Math.max(-680, Math.min(680, errX * 0.75)) : 0;
+          const stepX = Math.abs(errX) > 25 ? Math.max(-680, Math.min(680, errX * 0.75)) : (overRightThumbRail ? 240 : 0);
           const stepY = Math.abs(errY) > 25 ? Math.max(-200, Math.min(200, errY * 0.75)) : 0;
           await steerAim(stepX, stepY);
           continue;
@@ -1242,16 +1233,26 @@ async function checkPage(target, viewport) {
         const aimX = canvasBounds.left + guard.x;
         const aimY = canvasBounds.top + guard.y;
         await cdpMove(aimX, aimY, 0);
-        await new Promise((r) => setTimeout(r, 140));
+        await new Promise((r) => setTimeout(r, 110));
         await cdpButton('mousePressed', aimX, aimY, 'left', 1);
         e2e.cursorAimFired = true;
-        await new Promise((r) => setTimeout(r, 900));
+        await new Promise((r) => setTimeout(r, 920));
         await cdpButton('mouseReleased', aimX, aimY, 'left', 0);
-        await new Promise((r) => setTimeout(r, 150));
+        await new Promise((r) => setTimeout(r, 110));
         burstsSinceReload += 1;
         if (burstsSinceReload >= 3) {
           await page.keyboard.press('KeyG');
           burstsSinceReload = 0;
+        }
+        if (snap.anyClose) {
+          const strafeKey = loopTick % 2 === 0 ? 'KeyA' : 'KeyD';
+          await page.keyboard.down(strafeKey);
+          await new Promise((r) => setTimeout(r, 240));
+          await page.keyboard.up(strafeKey);
+        } else if (guard.dist !== null && guard.dist > 22.0 && !guard.behind) {
+          await page.keyboard.down('KeyW');
+          await new Promise((r) => setTimeout(r, 340));
+          await page.keyboard.up('KeyW');
         }
       }
       await releaseAds();

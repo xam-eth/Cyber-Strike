@@ -375,7 +375,7 @@ func _check_row_scroll(stage: Control, where: String) -> void:
 		if scroll == null or not scroll.is_visible_in_tree():
 			continue
 		var bar: ScrollBar = scroll.get_h_scroll_bar()
-		if not bar.visible or bar.max_value <= 0.0:
+		if not bar.visible or bar.max_value - bar.page <= 1.0:
 			continue
 		var card: Control = _first_card(scroll)
 		var maximum := float(bar.max_value)

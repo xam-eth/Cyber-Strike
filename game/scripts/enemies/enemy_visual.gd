@@ -66,6 +66,7 @@ var _flash_remaining: float = 0.0
 var _bob_phase: float = 0.0
 var _bob_offset: float = 0.0
 var _dying: bool = false
+var _death_remaining: float = 0.0
 var _death_tween: Tween
 
 @onready var _fallback_body: MeshInstance3D = get_node_or_null("BodyMesh")
@@ -127,6 +128,10 @@ func _process(delta: float) -> void:
 		_fire_remaining = maxf(_fire_remaining - delta, 0.0)
 	if _hit_remaining > 0.0:
 		_hit_remaining = maxf(_hit_remaining - delta, 0.0)
+	if _dying and _death_remaining > 0.0:
+		_death_remaining = maxf(_death_remaining - delta, 0.0)
+		if _death_remaining <= 0.0:
+			visible = false
 	if is_rigged():
 		_update_rig_locomotion(_last_speed_ratio)
 		_blend_weapon_socket(delta)
@@ -224,10 +229,12 @@ func play_death() -> void:
 		_current_clip = "death"
 		_anim_player.play("death", 0.12, 1.0)
 		var clip_len := maxf(_anim_player.get_animation("death").length, death_seconds)
+		_death_remaining = clip_len
 		_death_tween = create_tween()
 		_death_tween.tween_interval(clip_len)
 		_death_tween.tween_callback(func() -> void: visible = false)
 		return
+	_death_remaining = death_seconds
 	_death_tween = create_tween()
 	_death_tween.set_parallel(true)
 	(
@@ -246,6 +253,7 @@ func reset_visual() -> void:
 	if _death_tween != null and _death_tween.is_valid():
 		_death_tween.kill()
 	_dying = false
+	_death_remaining = 0.0
 	_flash_remaining = 0.0
 	_fire_remaining = 0.0
 	_hit_remaining = 0.0
@@ -321,7 +329,7 @@ func _spawn_weapon() -> void:
 			instance.free()
 		return
 	_weapon_model = instance as Node3D
-	_weapon_model.name = "EnemyWeaponModel"
+	_weapon_model.name = "EnemyWeapon"
 	var scale_units := float(
 		(_rig.get("weapon_socket", {}) as Dictionary).get("scale_model_units", 0.4)
 	)

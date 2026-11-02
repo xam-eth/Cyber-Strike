@@ -26,13 +26,19 @@ script = ExtResource("10_progression")
 [node name="Player" parent="." instance=ExtResource("3_player")]
 position = Vector3(-30, 1.2, 14)
 
-; Recon sentinel drone stationed on the central Aetherfall lane ahead of primary spawn.
+; Recon sentinel drone stationed on the open Aetherfall lane ahead of primary spawn.
 [node name="TrainingDrone" parent="." instance=ExtResource("4_drone")]
-position = Vector3(-26.5, 0.25, 16.5)
+position = Vector3(-29.8, 0.25, 8.0)
 
 [node name="WaveEnemies" type="Node3D" parent="."]
 
 [node name="SpawnPoints" type="Node3D" parent="."]
+
+[node name="SpawnIntroFront" type="Marker3D" parent="SpawnPoints"]
+position = Vector3(-30.0, 0.25, 4.0)
+
+[node name="SpawnWest" type="Marker3D" parent="SpawnPoints"]
+position = Vector3(-24.0, 0.25, 2.0)
 
 [node name="SpawnNorthWest" type="Marker3D" parent="SpawnPoints"]
 position = Vector3(-16.0, 0.25, -4.0)
@@ -40,23 +46,23 @@ position = Vector3(-16.0, 0.25, -4.0)
 [node name="SpawnNorthEast" type="Marker3D" parent="SpawnPoints"]
 position = Vector3(18.0, 0.25, -3.5)
 
-[node name="SpawnSouthWest" type="Marker3D" parent="SpawnPoints"]
-position = Vector3(-15.0, 0.25, 13.5)
-
-[node name="SpawnSouthEast" type="Marker3D" parent="SpawnPoints"]
-position = Vector3(22.0, 0.25, 12.5)
-
-[node name="SpawnWest" type="Marker3D" parent="SpawnPoints"]
-position = Vector3(-24.0, 0.25, 2.0)
-
-[node name="SpawnEast" type="Marker3D" parent="SpawnPoints"]
-position = Vector3(28.0, 0.25, 3.0)
-
 [node name="SpawnNorth" type="Marker3D" parent="SpawnPoints"]
 position = Vector3(4.0, 0.25, -6.5)
 
 [node name="SpawnSouth" type="Marker3D" parent="SpawnPoints"]
 position = Vector3(0.0, 0.25, 14.5)
+
+[node name="SpawnWestNorth" type="Marker3D" parent="SpawnPoints"]
+position = Vector3(-30.0, 0.25, -15.0)
+
+[node name="SpawnCentralWest" type="Marker3D" parent="SpawnPoints"]
+position = Vector3(-18.0, 0.25, 9.0)
+
+[node name="SpawnSouthWest" type="Marker3D" parent="SpawnPoints"]
+position = Vector3(-12.0, 0.25, 15.0)
+
+[node name="SpawnSouthEast" type="Marker3D" parent="SpawnPoints"]
+position = Vector3(6.0, 0.25, 15.0)
 
 [node name="WaveDirector" type="Node" parent="."]
 script = ExtResource("6_wave_director")

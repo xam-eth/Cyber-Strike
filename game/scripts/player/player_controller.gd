@@ -680,7 +680,8 @@ func _update_movement(delta: float) -> void:
 
 
 func _is_pointer_over_ui() -> bool:
-	return is_instance_valid(get_viewport().gui_get_hovered_control())
+	var hovered := get_viewport().gui_get_hovered_control()
+	return hovered is BaseButton or hovered is Range
 
 
 func _apply_keyboard_camera_look(delta: float) -> void:
@@ -712,6 +713,7 @@ func _sync_cursor_reticle() -> void:
 
 
 func _reticle_screen_position() -> Vector2:
+	_sync_cursor_reticle()
 	var viewport_size := aim_camera.get_viewport().get_visible_rect().size
 	var hud := get_parent().get_node_or_null("HUD/TouchControls")
 	if hud != null and bool(hud.call("is_touch_mode")):

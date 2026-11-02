@@ -395,8 +395,10 @@ func select_hero(hero_id: StringName) -> bool:
 
 
 func select_world(world_id: StringName) -> bool:
-	if not WORLD_IDS.has(world_id) or world_id == selected_world_id:
+	if not WORLD_IDS.has(world_id):
 		return false
+	if world_id == selected_world_id:
+		return true
 	selected_world_id = world_id
 	_save_profile()
 	profile_changed.emit()
