@@ -87,14 +87,27 @@ func _apply_web_render_budget() -> void:
 		world_env.environment.ssao_enabled = false
 		world_env.environment.glow_enabled = false
 	var adapter := RenderingServer.get_video_adapter_name().to_lower()
+	var sw_webgl := bool(
+		JavaScriptBridge.eval(
+			(
+				"(() => { try { const c = document.createElement('canvas'); "
+				+ "const g = c.getContext('webgl2') || c.getContext('webgl'); "
+				+ "const d = g && g.getExtension('WEBGL_debug_renderer_info'); "
+				+ "const r = g ? String(d ? g.getParameter(d.UNMASKED_RENDERER_WEBGL) "
+				+ ": g.getParameter(g.RENDERER)) : ''; "
+				+ "return /swiftshader|llvmpipe|software/i.test(r); } catch { return false; } })()"
+			)
+		)
+	)
 	if (
-		adapter.contains("swiftshader")
+		sw_webgl
+		or adapter.contains("swiftshader")
 		or adapter.contains("llvmpipe")
 		or adapter.contains("software")
 	):
 		var vp := get_viewport()
 		if vp != null:
-			vp.scaling_3d_scale = 0.5
+			vp.scaling_3d_scale = 0.45
 
 
 func get_world_summary() -> Dictionary:

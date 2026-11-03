@@ -81,7 +81,7 @@ func _process(delta: float) -> void:
 		_apply_kick()
 	if _qa_camera_trace:
 		_qa_trace_elapsed += delta
-		if _qa_trace_elapsed >= 0.5:
+		if _qa_trace_elapsed >= 0.2:
 			_qa_trace_elapsed = 0.0
 			var avatar := get_parent().get_node_or_null("VisualRoot")
 			var weapons: WeaponController = get_parent().get("weapon_controller")
