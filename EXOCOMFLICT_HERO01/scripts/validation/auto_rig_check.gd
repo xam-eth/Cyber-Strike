@@ -4,18 +4,19 @@ extends RefCounted
 ## lines. Skeleton expectations are skeleton-local global-rest values
 ## measured from the shipped NEW_HERO_01 GLB. Rig v2 (Hybrid Rig,
 ## Blender scripts 79/81/83): 54 joints = original 24 (identical names
-## and rest transforms) + 30 finger bones. Animation clips for the new
-## skeleton are not authored yet: while EXPECT_CLIPS is false, missing
-## clips/tree are INFO, never FAIL.
+## and rest transforms) + 30 finger bones. The Phase-1 weapon chain is
+## authored (script 88), but EXPECT_CLIPS stays false until the owner's
+## in-engine AnimationTree run confirms the full chain; until then,
+## missing clips/tree are INFO, never FAIL.
 
 const EXPECTED_BONES := 54
 const EXPECT_CLIPS := false
 const CLIP_DURATIONS := {
-	"Idle": 2.5,  # script 87: measured 2.500s in exported GLB (UAL test battery)
-	"Weapon_Raise": 1.2,
-	"Aim_Idle": 3.0,
+	"Idle": 1.7,  # script 88: measured 1.700s in exported GLB (armed rifle idle loop)
+	"Weapon_Raise": 1.5,  # script 88: Rifle Aim To Down time-reversed
+	"Aim_Idle": 3.1,  # script 88: Rifle Aiming Idle closed loop
 	"Fire": 1.4,  # script 86: owner Mixamo 'Firing Rifle' mocap (42f @30fps), retargeted + foregrip-seated, in-place
-	"Weapon_Lower": 0.8,
+	"Weapon_Lower": 1.5,  # script 88: Rifle Aim To Down at natural speed
 }
 const LOOP_CLIPS := ["Idle", "Aim_Idle"]
 const RIG_BUILD := "NEW_HERO_01 re-rig (2026-10-31)"
