@@ -994,7 +994,7 @@ async function checkPageWithBrowser(browser, target, viewport) {
         yaw: Number.isFinite(yaw) ? yaw : null,
       };
     };
-    const waitNextPlayerPos = async (maxMs = 3500) => {
+    const waitNextPlayerPos = async (maxMs = 6500) => {
       const startLen = consoleLines.length;
       const deadline = Date.now() + maxMs;
       while (Date.now() < deadline) {
@@ -1009,39 +1009,61 @@ async function checkPageWithBrowser(browser, target, viewport) {
     // Arrival Outpost spawn (-30, 1.2, 14) sits west of Landing Ridge Berm
     // (-26, 0.25, 13; z=[11.1,14.8]) and south of Cover Barrier 147
     // (-26, 0, 8; z=[7.62,8.38]) & TrainingDrone (-29.8, 0.25, 8.0).
-    // Step north in gated increments into z in [9.05, 10.1], then east along that
-    // clear corridor to x in [-24.0, -22.4] (east of both obstacles, 1.7m from
-    // Outpost Cache (-24.5, 0.25, 10.5), with 100% open sightlines to both guards).
-    let pos = latestPlayerPos() || (await waitNextPlayerPos(4000));
-    const zBandDeadline = Date.now() + 26000;
-    while (Date.now() < zBandDeadline && pos && (pos.z > 10.1 || pos.z < 9.05)) {
+    // Self-calibrate msPerMeter from real Camera QA world coordinates so the
+    // step controller lands inside z in [9.0, 10.1], x in [-24.0, -22.4] on both
+    // 60 FPS hardware WebGL and ~3 FPS CPU SwiftShader without under/overshoot.
+    let msPerMeter = 520;
+    let calibratedRate = false;
+    let pos = latestPlayerPos() || (await waitNextPlayerPos(7000));
+    const zBandDeadline = Date.now() + 45000;
+    while (Date.now() < zBandDeadline && pos && (pos.z > 10.1 || pos.z < 9.0)) {
+      const prevZ = pos.z;
       const goNorth = pos.z > 10.1;
       const key = goNorth ? 'KeyW' : 'KeyS';
-      const dist = goNorth ? pos.z - 9.55 : 9.55 - pos.z;
-      const holdMs = Math.min(480, Math.max(110, Math.round(dist * 105)));
+      const dist = Math.abs(pos.z - 9.55);
+      const holdMs = !calibratedRate
+        ? 360
+        : Math.min(2600, Math.max(140, Math.round(dist * msPerMeter * 0.72)));
       await page.keyboard.down(key);
       await new Promise((r) => setTimeout(r, holdMs));
       await page.keyboard.up(key).catch(() => {});
-      pos = await waitNextPlayerPos(3200);
+      pos = await waitNextPlayerPos(6500);
+      if (pos) {
+        const moved = Math.abs(pos.z - prevZ);
+        if (moved >= 0.18) {
+          msPerMeter = Math.min(1250, Math.max(140, Math.round(holdMs / moved)));
+          calibratedRate = true;
+        } else if (!calibratedRate) {
+          msPerMeter = 850;
+          calibratedRate = true;
+        }
+      }
     }
     const targetMaxX = recoveryE2eMode ? -22.4 : -28.0;
     const targetMinX = recoveryE2eMode ? -24.0 : -29.9;
-    const xBandDeadline = Date.now() + 28000;
+    const xBandDeadline = Date.now() + 45000;
     while (
       Date.now() < xBandDeadline
       && pos
       && (pos.x < targetMinX || pos.x > targetMaxX || !engageOffered())
     ) {
       if (!recoveryE2eMode && engageOffered()) break;
+      const prevX = pos.x;
       const goEast = pos.x < targetMinX || (!engageOffered() && pos.x < -24.5);
       const key = goEast ? 'KeyD' : 'KeyA';
       const targetX = recoveryE2eMode ? -23.2 : -29.2;
-      const dist = Math.abs(targetX - pos.x);
-      const holdMs = Math.min(500, Math.max(115, Math.round(dist * 105)));
+      const dist = Math.max(0.35, Math.abs(targetX - pos.x));
+      const holdMs = Math.min(2800, Math.max(140, Math.round(dist * msPerMeter * 0.72)));
       await page.keyboard.down(key);
       await new Promise((r) => setTimeout(r, holdMs));
       await page.keyboard.up(key).catch(() => {});
-      pos = await waitNextPlayerPos(3200);
+      pos = await waitNextPlayerPos(6500);
+      if (pos) {
+        const moved = Math.abs(pos.x - prevX);
+        if (moved >= 0.18) {
+          msPerMeter = Math.min(1250, Math.max(140, Math.round(holdMs / moved)));
+        }
+      }
       if (recoveryE2eMode && pos && pos.x >= targetMinX && pos.x <= targetMaxX && engageOffered()) {
         break;
       }
@@ -1229,7 +1251,8 @@ async function checkPageWithBrowser(browser, target, viewport) {
           clickCount: 1,
         });
 
-      const waitEngineTick = async (maxMs = 750) => {
+      const fpsScale = Math.min(4.2, Math.max(1.0, msPerMeter / 170));
+      const waitEngineTick = async (maxMs = 1500) => {
         const startLen = consoleLines.length;
         const deadline = Date.now() + maxMs;
         while (Date.now() < deadline) {
@@ -1243,17 +1266,17 @@ async function checkPageWithBrowser(browser, target, viewport) {
         if (!proj) return;
         if (proj.behind) {
           await page.keyboard.down('ArrowRight');
-          await new Promise((r) => setTimeout(r, 420));
+          await new Promise((r) => setTimeout(r, Math.round(420 * Math.min(2.4, fpsScale))));
           await page.keyboard.up('ArrowRight').catch(() => {});
-          await waitEngineTick(650);
+          await waitEngineTick(1500);
           return;
         }
-        const errX = proj.x - proj.vpW * 0.46;
-        const errY = proj.y - proj.vpH * 0.48;
-        const yawKey = errX > 22 ? 'ArrowRight' : (errX < -22 ? 'ArrowLeft' : null);
-        const pitchKey = errY > 48 ? 'ArrowDown' : (errY < -48 ? 'ArrowUp' : null);
-        const yawMs = yawKey ? Math.min(360, Math.max(75, Math.round(Math.abs(errX) * 0.52))) : 0;
-        const pitchMs = pitchKey ? Math.min(180, Math.max(55, Math.round(Math.abs(errY) * 0.42))) : 0;
+        const errX = proj.x - proj.vpW * 0.48;
+        const errY = proj.y - proj.vpH * 0.44;
+        const yawKey = errX > 28 ? 'ArrowRight' : (errX < -28 ? 'ArrowLeft' : null);
+        const pitchKey = errY > 42 ? 'ArrowDown' : (errY < -42 ? 'ArrowUp' : null);
+        const yawMs = yawKey ? Math.min(780, Math.max(90, Math.round(Math.abs(errX) * 0.48 * Math.min(2.6, fpsScale)))) : 0;
+        const pitchMs = pitchKey ? Math.min(540, Math.max(75, Math.round(Math.abs(errY) * 0.45 * Math.min(2.6, fpsScale)))) : 0;
         if (yawKey) await page.keyboard.down(yawKey);
         if (pitchKey) await page.keyboard.down(pitchKey);
         const maxHold = Math.max(yawMs, pitchMs, 60);
@@ -1277,7 +1300,7 @@ async function checkPageWithBrowser(browser, target, viewport) {
           if (!yawReleased && yawKey) await page.keyboard.up(yawKey).catch(() => {});
           if (!pitchReleased && pitchKey) await page.keyboard.up(pitchKey).catch(() => {});
         }
-        await waitEngineTick(650);
+        await waitEngineTick(1500);
       };
 
       const canvasBounds = await page.evaluate(() => {
@@ -1294,10 +1317,10 @@ async function checkPageWithBrowser(browser, target, viewport) {
         if (!g || g.behind) return false;
         const overRightThumbRail = g.x > g.vpW - 195 && g.y > g.vpH - 235;
         const overTopSystemButtons = g.x > g.vpW - 220 && g.y < 90;
-        return g.x >= 40
-          && g.x <= g.vpW - 40
-          && g.y >= 82
-          && g.y <= g.vpH - 20
+        return g.x >= 85
+          && g.x <= g.vpW - 110
+          && g.y >= 115
+          && g.y <= g.vpH - 145
           && !overRightThumbRail
           && !overTopSystemButtons;
       };
@@ -1305,7 +1328,7 @@ async function checkPageWithBrowser(browser, target, viewport) {
       // 1. Defeat both live Arrival Tech Cache robot guards by placing the
       // movable [+] reticle directly over each guard's screen projection and
       // firing left-mouse bursts + EMP Pulse (only rotating camera when off-screen).
-      const combatDeadline = Date.now() + 95000;
+      const combatDeadline = Date.now() + 110000;
       e2e.engagePos = engagePlayerPos;
       let lastEmpAt = 0;
       let burstsSinceReload = 0;
@@ -1318,7 +1341,7 @@ async function checkPageWithBrowser(browser, target, viewport) {
           e2e.guardsCleared = true;
           break;
         }
-        await waitEngineTick(700);
+        await waitEngineTick(1400);
         const snap = pickGuardSnapshot(beforeEngage);
         const guard = snap.target;
         if (Date.now() - lastEmpAt > 3200 && (snap.anyClose || (guard?.dist !== null && guard?.dist !== undefined && guard.dist <= 8.9))) {
@@ -1330,6 +1353,13 @@ async function checkPageWithBrowser(browser, target, viewport) {
           await turnCameraToward(guard);
           continue;
         }
+        if (guard.dist !== null && guard.dist > 11.5 && Math.abs(guard.x - guard.vpW * 0.5) < 220) {
+          await page.keyboard.down('KeyW');
+          await new Promise((r) => setTimeout(r, Math.min(900, Math.round(msPerMeter * 1.4))));
+          await page.keyboard.up('KeyW').catch(() => {});
+          await waitEngineTick(1400);
+          continue;
+        }
         // Place the movable [+] crosshair directly onto the guard's 3D screen
         // coordinates and fire a left-mouse burst straight at [+], tracking the
         // live guard projection mid-burst via Puppeteer's unified mouse state!
@@ -1339,8 +1369,8 @@ async function checkPageWithBrowser(browser, target, viewport) {
         await page.mouse.down({ button: 'left' });
         e2e.cursorAimFired = true;
         try {
-          for (let sub = 0; sub < 2; sub += 1) {
-            await new Promise((r) => setTimeout(r, 320));
+          for (let sub = 0; sub < 3; sub += 1) {
+            await new Promise((r) => setTimeout(r, 520));
             if ((latestRecovery()?.guards ?? 2) === 0) break;
             const liveSnap = pickGuardSnapshot(beforeEngage);
             if (liveSnap.target && isInSafeReticleWindow(liveSnap.target)) {
@@ -1353,7 +1383,7 @@ async function checkPageWithBrowser(browser, target, viewport) {
         }
         await new Promise((r) => setTimeout(r, 90));
         burstsSinceReload += 1;
-        if (burstsSinceReload >= 4) {
+        if (burstsSinceReload >= 6) {
           await page.keyboard.press('KeyG');
           burstsSinceReload = 0;
         }
@@ -1435,26 +1465,31 @@ async function checkPageWithBrowser(browser, target, viewport) {
       if (e2e.blueprintSecured && isFrontEnd) {
         const beforePause = consoleLines.length;
         await page.keyboard.press('Escape');
-        await awaitConsoleText(page, consoleLines.slice(beforePause), 'Pause QA:', 6000);
+        await awaitConsoleText(page, consoleLines.slice(beforePause), 'Pause QA:', 12000);
         await capture('pause-menu');
         const pauseLine = [...consoleLines.slice(beforePause)]
           .reverse()
           .find((l) => l.includes('Pause QA:'));
         const pauseHomePt = parseVector(pauseLine?.match(/\bhome=([^\s]+)/)?.[1]);
-        await page.keyboard.press('ArrowDown').catch(() => {});
-        await new Promise((r) => setTimeout(r, 320));
-        await page.keyboard.press('ArrowDown').catch(() => {});
-        await new Promise((r) => setTimeout(r, 320));
-        await page.keyboard.press('ArrowRight').catch(() => {});
-        await new Promise((r) => setTimeout(r, 320));
+        // Pause focuses ResumeButton; three Tabs deterministically select
+        // PauseHomeButton (Resume -> Restart -> Settings -> PauseHome).
+        await page.keyboard.press('Tab').catch(() => {});
+        await new Promise((r) => setTimeout(r, 260));
+        await page.keyboard.press('Tab').catch(() => {});
+        await new Promise((r) => setTimeout(r, 260));
+        await page.keyboard.press('Tab').catch(() => {});
+        await new Promise((r) => setTimeout(r, 260));
         await page.keyboard.press('Enter').catch(() => {});
 
         const hubDeadline = Date.now() + 45000;
-        const fallbackAt = Date.now() + 3500;
+        const fallbackAt = Date.now() + 4500;
         let triedClickFallback = false;
         while (Date.now() < hubDeadline) {
           const onHub = await page.evaluate(
-            () => document.body?.dataset?.screen === 'hub' && typeof window.AegisShell === 'object',
+            () =>
+              document.body?.dataset?.screen === 'hub'
+              && document.body?.dataset?.mode !== 'playing'
+              && typeof window.AegisShell === 'object',
           ).catch(() => false);
           if (onHub) {
             e2e.returnedToHub = true;
@@ -1462,7 +1497,7 @@ async function checkPageWithBrowser(browser, target, viewport) {
           }
           if (!triedClickFallback && Date.now() >= fallbackAt) {
             triedClickFallback = true;
-            if (pauseHomePt && cdp) {
+            if (pauseHomePt && pauseHomePt.x > 5 && pauseHomePt.y > 5) {
               await clickCanvasPoint(pauseHomePt).catch(() => {});
             }
           }
