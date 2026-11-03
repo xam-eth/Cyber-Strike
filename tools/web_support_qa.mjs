@@ -223,8 +223,23 @@ async function checkCase({ name, baseUrl, locale, removeAudio, query = '', expec
   report.cases.push(result);
   progress(`${name}: ${result.ok ? 'PASS' : 'FAIL'}`);
   for (const failure of result.failures) progress(`  ${failure}`);
-  await page.close();
+  await Promise.race([
+    page.close().catch(() => {}),
+    new Promise((resolve) => setTimeout(resolve, 4000)),
+  ]);
 }
+
+const safeCloseBrowser = async (browserInstance) => {
+  if (!browserInstance) return;
+  const proc = browserInstance.process();
+  await Promise.race([
+    browserInstance.close().catch(() => {}),
+    new Promise((resolve) => setTimeout(resolve, 5000)),
+  ]);
+  if (proc && proc.exitCode === null) {
+    try { proc.kill('SIGKILL'); } catch { /* ignore */ }
+  }
+};
 
 try {
   await checkCase({
@@ -267,12 +282,14 @@ try {
     },
   });
 } finally {
-  await browser.close();
-  if (server) server.kill();
+  await safeCloseBrowser(browser);
+  if (server) {
+    try { server.kill('SIGKILL'); } catch { /* ignore */ }
+  }
 }
 
 report.ok = report.cases.length === 3 && report.cases.every((result) => result.ok);
 fs.writeFileSync(path.join(outDir, 'report.json'), `${JSON.stringify(report, null, 2)}\n`);
 if (asJson) console.log(JSON.stringify(report, null, 2));
 else console.log(`Summary: ${report.cases.filter((result) => result.ok).length}/${report.cases.length} support cases passed`);
-if (!report.ok) process.exitCode = 1;
+process.exit(report.ok ? 0 : 1);

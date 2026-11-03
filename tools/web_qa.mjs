@@ -196,7 +196,33 @@ const launchBrowser = async (protocolTimeout) => {
   }
 };
 
-const browser = await launchBrowser(600000);
+const safeClosePage = async (pageInstance) => {
+  if (!pageInstance) return;
+  await Promise.race([
+    pageInstance.goto('about:blank', { waitUntil: 'commit', timeout: 2500 }).catch(() => {}),
+    new Promise((resolve) => setTimeout(resolve, 2600)),
+  ]);
+  await Promise.race([
+    pageInstance.close().catch(() => {}),
+    new Promise((resolve) => setTimeout(resolve, 4000)),
+  ]);
+};
+
+const safeCloseBrowser = async (browserInstance) => {
+  if (!browserInstance) return;
+  const proc = browserInstance.process();
+  await Promise.race([
+    browserInstance.close().catch(() => {}),
+    new Promise((resolve) => setTimeout(resolve, 5000)),
+  ]);
+  if (proc && proc.exitCode === null) {
+    try {
+      proc.kill('SIGKILL');
+    } catch {
+      // ignore already-exited child process
+    }
+  }
+};
 
 const ENGINE_BANNER = /Godot Engine v/i;
 const report = { base: baseUrl, pages: [] };
@@ -223,6 +249,15 @@ function awaitConsoleText(page, existingLines, text, timeoutMs) {
 }
 
 async function checkPage(target, viewport) {
+  const browser = await launchBrowser(180000);
+  try {
+    return await checkPageWithBrowser(browser, target, viewport);
+  } finally {
+    await safeCloseBrowser(browser);
+  }
+}
+
+async function checkPageWithBrowser(browser, target, viewport) {
   const url = new URL(`${baseUrl}${target}`);
   // WORLD selection uses the engine's measured Control rectangles, never a
   // second set of guessed layout coordinates in the browser harness.
@@ -1664,7 +1699,7 @@ async function checkPage(target, viewport) {
     await page.keyboard.press('KeyP');
     await new Promise((r) => setTimeout(r, 600));
   }
-  await page.close();
+  await safeClosePage(page);
 
   const audioLines = consoleLines.filter((line) => line.includes('Audio:'));
   const menuLines = consoleLines.filter((line) => line.includes('HUD: '));
@@ -1975,8 +2010,13 @@ try {
     }
   }
 } finally {
-  await browser.close();
-  if (server) server.kill();
+  if (server) {
+    try {
+      server.kill('SIGKILL');
+    } catch {
+      // ignore already-exited server
+    }
+  }
 }
 
 const failed = report.pages.filter((p) => p.failed.length > 0);

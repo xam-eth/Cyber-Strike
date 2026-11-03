@@ -113,7 +113,29 @@ const launchBrowser = async (protocolTimeout) => {
   }
 };
 
-const browser = await launchBrowser(300000);
+const safeClosePage = async (pageInstance) => {
+  if (!pageInstance) return;
+  await Promise.race([
+    pageInstance.goto('about:blank', { waitUntil: 'commit', timeout: 2500 }).catch(() => {}),
+    new Promise((resolve) => setTimeout(resolve, 2600)),
+  ]);
+  await Promise.race([
+    pageInstance.close().catch(() => {}),
+    new Promise((resolve) => setTimeout(resolve, 4000)),
+  ]);
+};
+
+const safeCloseBrowser = async (browserInstance) => {
+  if (!browserInstance) return;
+  const proc = browserInstance.process();
+  await Promise.race([
+    browserInstance.close().catch(() => {}),
+    new Promise((resolve) => setTimeout(resolve, 5000)),
+  ]);
+  if (proc && proc.exitCode === null) {
+    try { proc.kill('SIGKILL'); } catch { /* ignore */ }
+  }
+};
 
 const report = { base: baseUrl, throughputMbps: throughputMbps || null, world, opening: null, cases: [] };
 const assets = selected === 'both' ? ['wasm', 'pck'] : selected === 'opening' ? [] : [selected];
@@ -139,6 +161,7 @@ function requestCount(requests, filename) {
 }
 
 async function makePage() {
+  const browser = await launchBrowser(180000);
   const page = await browser.newPage();
   await page.setViewport({ width: 844, height: 390, deviceScaleFactor: 1 });
   await page.setCacheEnabled(false);
@@ -230,7 +253,7 @@ async function makePage() {
     if (install()) observer.disconnect();
   });
 
-  return { page, consoleLines, pageErrors, failedRequests, assetRequests, stageAssetRequests };
+  return { browser, page, consoleLines, pageErrors, failedRequests, assetRequests, stageAssetRequests };
 }
 
 async function readState(page) {
@@ -296,7 +319,7 @@ function expectSingleDownloadStart(result, state, requests, requireNotStarted) {
 
 async function runOpeningContract() {
   const result = { failures: [] };
-  const { page, consoleLines, pageErrors, failedRequests, assetRequests, stageAssetRequests } = await makePage();
+  const { browser, page, consoleLines, pageErrors, failedRequests, assetRequests, stageAssetRequests } = await makePage();
   result.expect = (condition, message) => { if (!condition) result.failures.push(message); };
 
   try {
@@ -376,7 +399,8 @@ async function runOpeningContract() {
     } catch { /* browser may already have closed */ }
   } finally {
     result.ok = result.failures.length === 0;
-    await page.close();
+    await safeClosePage(page);
+    await safeCloseBrowser(browser);
   }
   return result;
 }
@@ -384,7 +408,7 @@ async function runOpeningContract() {
 async function runRecoveryCase(asset) {
   const filename = `index.${asset}`;
   const result = { asset: filename, failures: [] };
-  const { page, consoleLines, pageErrors, failedRequests, assetRequests, stageAssetRequests } = await makePage();
+  const { browser, page, consoleLines, pageErrors, failedRequests, assetRequests, stageAssetRequests } = await makePage();
   let failAssets = true;
   await page.setRequestInterception(true);
   page.on('request', (request) => {
@@ -474,7 +498,8 @@ async function runRecoveryCase(asset) {
     } catch { /* browser may already have closed */ }
   } finally {
     result.ok = result.failures.length === 0;
-    await page.close();
+    await safeClosePage(page);
+    await safeCloseBrowser(browser);
   }
   return result;
 }
@@ -492,8 +517,9 @@ try {
     progress(`  ${result.ok ? 'PASS' : 'FAIL'} index.${asset}${result.ok ? '' : ` — ${result.failures.join(' | ')}`}`);
   }
 } finally {
-  await browser.close();
-  if (server) server.kill();
+  if (server) {
+    try { server.kill('SIGKILL'); } catch { /* ignore */ }
+  }
 }
 
 report.ok = (report.opening === null || report.opening.ok)
@@ -503,4 +529,4 @@ const serialized = `${JSON.stringify(report, null, 2)}\n`;
 fs.writeFileSync(path.join(outDir, 'report.json'), serialized);
 if (asJson) console.log(serialized.trimEnd());
 else console.log(`Opening/loading QA: ${report.ok ? 'PASS' : 'FAIL'}`);
-process.exitCode = report.ok ? 0 : 1;
+process.exit(report.ok ? 0 : 1);

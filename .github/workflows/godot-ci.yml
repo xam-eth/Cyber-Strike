@@ -20,6 +20,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
+
 jobs:
   static:
     name: Static checks (gdtoolkit + project doctor)
@@ -294,12 +298,17 @@ jobs:
         run: |
           # Real Chromium from the pinned packages: proves the engine boots with
           # WebGL 2 and that index.wasm/index.pck resolve from both entry pages.
-          npm ci --prefix tools --no-audit --no-fund
+          timeout -k 10 180s npm ci --prefix tools --no-audit --no-fund \
+            || timeout -k 10 180s npm ci --prefix tools --no-audit --no-fund
           # Do not let set -e discard the report when a browser check fails.
           # Per-page error annotations stay readable even when Actions log
           # downloads are unavailable and the whole workflow is still running.
           qa_status=0
-          node tools/web_qa.mjs --json > exports/web-qa-report.json || qa_status=$?
+          timeout -k 15 420s node tools/web_qa.mjs --json > exports/web-qa-report.json || qa_status=$?
+          if [[ "$qa_status" -eq 124 || "$qa_status" -eq 137 || ! -s exports/web-qa-report.json ]]; then
+            qa_status=0
+            timeout -k 15 420s node tools/web_qa.mjs --json > exports/web-qa-report.json || qa_status=$?
+          fi
           python3 - <<'PY'
           import json
           from pathlib import Path
@@ -329,9 +338,15 @@ jobs:
           # A real non-loopback HTTP origin must fail before payload download
           # with HTTPS/localhost guidance. A separate secure localhost control
           # removes AudioWorklet and must produce browser guidance, not addModule.
+          mkdir -p exports/web-qa/support
           qa_status=0
-          node tools/web_support_qa.mjs --timeout 30 \
+          timeout -k 15 120s node tools/web_support_qa.mjs --timeout 30 \
             --out exports/web-qa/support --json > exports/web-qa/support-report.json || qa_status=$?
+          if [[ "$qa_status" -eq 124 || "$qa_status" -eq 137 || ! -s exports/web-qa/support-report.json ]]; then
+            qa_status=0
+            timeout -k 15 120s node tools/web_support_qa.mjs --timeout 30 \
+              --out exports/web-qa/support --json > exports/web-qa/support-report.json || qa_status=$?
+          fi
           python3 - <<'PY'
           import json
           from pathlib import Path
@@ -349,9 +364,15 @@ jobs:
           # Prove the opening downloads WASM+PCK once before MASUK and DEPLOY
           # reuses those buffers. Then interrupt each asset on a direct selected-
           # world DEPLOY and require a visible retry plus real gameplay recovery.
+          mkdir -p exports/web-qa/loading
           qa_status=0
-          node tools/web_loading_qa.mjs --throughput-mbps 100 --timeout 150 \
+          timeout -k 15 540s node tools/web_loading_qa.mjs --throughput-mbps 100 --timeout 150 \
             --out exports/web-qa/loading --json > exports/web-qa/loading-report.json || qa_status=$?
+          if [[ "$qa_status" -eq 124 || "$qa_status" -eq 137 || ! -s exports/web-qa/loading-report.json ]]; then
+            qa_status=0
+            timeout -k 15 540s node tools/web_loading_qa.mjs --throughput-mbps 100 --timeout 150 \
+              --out exports/web-qa/loading --json > exports/web-qa/loading-report.json || qa_status=$?
+          fi
           python3 - <<'PY'
           import json
           from pathlib import Path
@@ -378,9 +399,15 @@ jobs:
           # real-gesture shell audio + mute persistence, DEPLOY directly, and
           # require both the authoritative handoff and the Aetherfall runtime build.
           qa_status=0
-          node tools/web_qa.mjs --page / --viewport 844x390 --timeout 120 \
+          timeout -k 15 360s node tools/web_qa.mjs --page / --viewport 844x390 --timeout 120 \
             --journey --select-world aetherfall --audio-shell --out exports/web-qa/aetherfall \
             --json > exports/web-qa-aetherfall-report.json || qa_status=$?
+          if [[ "$qa_status" -eq 124 || "$qa_status" -eq 137 || ! -s exports/web-qa-aetherfall-report.json ]]; then
+            qa_status=0
+            timeout -k 15 360s node tools/web_qa.mjs --page / --viewport 844x390 --timeout 120 \
+              --journey --select-world aetherfall --audio-shell --out exports/web-qa/aetherfall \
+              --json > exports/web-qa-aetherfall-report.json || qa_status=$?
+          fi
           python3 - <<'PY'
           import json
           from pathlib import Path
@@ -400,13 +427,30 @@ jobs:
           # locked weapons or bypassing WeaponController ownership. Engine ADS
           # smoke covers Pulse, Nova and Arc separately; neither that suite nor
           # this no-lock browser look is all-three locked-pointer coverage.
+          mkdir -p exports/web-qa
           qa_status=0
-          node tools/web_qa.mjs --page / --viewport 1280x720 --timeout 120 \
+          rc_mouse=0
+          timeout -k 15 540s node tools/web_qa.mjs --page / --viewport 1280x720 --timeout 120 \
             --ads --out exports/web-qa/ads-mouse --json \
-            > exports/web-qa/ads-mouse-report.json || qa_status=1
-          node tools/web_qa.mjs --page / --viewport 844x390 --touch --timeout 120 \
+            > exports/web-qa/ads-mouse-report.json || rc_mouse=$?
+          if [[ "$rc_mouse" -eq 124 || "$rc_mouse" -eq 137 || ! -s exports/web-qa/ads-mouse-report.json ]]; then
+            rc_mouse=0
+            timeout -k 15 540s node tools/web_qa.mjs --page / --viewport 1280x720 --timeout 120 \
+              --ads --out exports/web-qa/ads-mouse --json \
+              > exports/web-qa/ads-mouse-report.json || rc_mouse=$?
+          fi
+          [[ "$rc_mouse" -eq 0 ]] || qa_status=1
+          rc_touch=0
+          timeout -k 15 540s node tools/web_qa.mjs --page / --viewport 844x390 --touch --timeout 120 \
             --ads --out exports/web-qa/ads-touch --json \
-            > exports/web-qa/ads-touch-report.json || qa_status=1
+            > exports/web-qa/ads-touch-report.json || rc_touch=$?
+          if [[ "$rc_touch" -eq 124 || "$rc_touch" -eq 137 || ! -s exports/web-qa/ads-touch-report.json ]]; then
+            rc_touch=0
+            timeout -k 15 540s node tools/web_qa.mjs --page / --viewport 844x390 --touch --timeout 120 \
+              --ads --out exports/web-qa/ads-touch --json \
+              > exports/web-qa/ads-touch-report.json || rc_touch=$?
+          fi
+          [[ "$rc_touch" -eq 0 ]] || qa_status=1
           python3 - <<'PY'
           import json
           from pathlib import Path
@@ -437,10 +481,18 @@ jobs:
           # This gate stops at the live guarded state on purpose. Secure,
           # extraction and permanent reward remain engine contracts until a
           # separate real-input browser playthrough proves them.
+          mkdir -p exports/web-qa
           qa_status=0
-          node tools/web_qa.mjs --page / --viewport 1280x720 --timeout 120 \
+          timeout -k 15 720s node tools/web_qa.mjs --page / --viewport 1280x720 --timeout 120 \
             --recovery --out exports/web-qa/recovery --json \
-            > exports/web-qa/recovery-report.json || qa_status=1
+            > exports/web-qa/recovery-report.json || qa_status=$?
+          if [[ "$qa_status" -eq 124 || "$qa_status" -eq 137 || ! -s exports/web-qa/recovery-report.json ]]; then
+            qa_status=0
+            timeout -k 15 720s node tools/web_qa.mjs --page / --viewport 1280x720 --timeout 120 \
+              --recovery --out exports/web-qa/recovery --json \
+              > exports/web-qa/recovery-report.json || qa_status=$?
+          fi
+          [[ "$qa_status" -eq 0 ]] || qa_status=1
           python3 - <<'PY'
           import json
           from pathlib import Path
@@ -464,10 +516,18 @@ jobs:
 
       - name: Browser TECH HUNT E2E closure contract
         run: |
+          mkdir -p exports/web-qa
           qa_status=0
-          node tools/web_qa.mjs --page / --viewport 1280x720 --timeout 180 \
+          timeout -k 15 1200s node tools/web_qa.mjs --page / --viewport 1280x720 --timeout 180 \
             --recovery-e2e --out exports/web-qa/recovery-e2e --json \
-            > exports/web-qa/recovery-e2e-report.json || qa_status=1
+            > exports/web-qa/recovery-e2e-report.json || qa_status=$?
+          if [[ "$qa_status" -eq 124 || "$qa_status" -eq 137 || ! -s exports/web-qa/recovery-e2e-report.json ]]; then
+            qa_status=0
+            timeout -k 15 1200s node tools/web_qa.mjs --page / --viewport 1280x720 --timeout 180 \
+              --recovery-e2e --out exports/web-qa/recovery-e2e --json \
+              > exports/web-qa/recovery-e2e-report.json || qa_status=$?
+          fi
+          [[ "$qa_status" -eq 0 ]] || qa_status=1
           python3 - <<'PY'
           import json
           from pathlib import Path
