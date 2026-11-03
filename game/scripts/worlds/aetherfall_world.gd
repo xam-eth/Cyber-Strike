@@ -32,6 +32,7 @@ var ice_planet_count: int = 0
 var phase2_cover_count: int = 0
 var archive_interior_count: int = 0
 var expanse_route_count: int = 0
+var _skip_web_omni_lights: bool = false
 
 
 func _ready() -> void:
@@ -77,6 +78,7 @@ func provides_authored_lighting() -> bool:
 func _apply_web_render_budget() -> void:
 	if not OS.has_feature("web"):
 		return
+	_skip_web_omni_lights = true
 	var sun := get_node_or_null("Sun") as DirectionalLight3D
 	if sun != null:
 		sun.shadow_enabled = false
@@ -84,6 +86,15 @@ func _apply_web_render_budget() -> void:
 	if world_env != null and world_env.environment != null:
 		world_env.environment.ssao_enabled = false
 		world_env.environment.glow_enabled = false
+	var adapter := RenderingServer.get_video_adapter_name().to_lower()
+	if (
+		adapter.contains("swiftshader")
+		or adapter.contains("llvmpipe")
+		or adapter.contains("software")
+	):
+		var vp := get_viewport()
+		if vp != null:
+			vp.scaling_3d_scale = 0.5
 
 
 func get_world_summary() -> Dictionary:
@@ -387,7 +398,7 @@ func _spawn_setpiece_group(
 				collision.add_child(shape)
 				collider_count += 1
 		var light_data: Variant = spec.get("light", null)
-		if light_data is Dictionary:
+		if light_data is Dictionary and not _skip_web_omni_lights:
 			var light_cfg: Dictionary = light_data as Dictionary
 			var light := OmniLight3D.new()
 			light.name = "AccentLight"
@@ -442,7 +453,7 @@ func _add_archive_interior() -> void:
 		collider_count += 1
 	var lights: Array = interior.get("lights", []) as Array
 	for raw_light in lights:
-		if not (raw_light is Dictionary):
+		if _skip_web_omni_lights or not (raw_light is Dictionary):
 			continue
 		var light_data: Dictionary = raw_light as Dictionary
 		var light := OmniLight3D.new()

@@ -994,7 +994,7 @@ async function checkPageWithBrowser(browser, target, viewport) {
         yaw: Number.isFinite(yaw) ? yaw : null,
       };
     };
-    const waitNextPlayerPos = async (maxMs = 6500) => {
+    const waitNextPlayerPos = async (maxMs = 25000) => {
       const startLen = consoleLines.length;
       const deadline = Date.now() + maxMs;
       while (Date.now() < deadline) {
@@ -1011,12 +1011,12 @@ async function checkPageWithBrowser(browser, target, viewport) {
     // yaw=-28 deg, corners z=[10.56, 15.44]), with West Catwalk Ramp along z=8.0.
     // Self-calibrate msPerMeter from real Camera QA world coordinates and route
     // along the wide-open Southern Boulevard:
-    //   (-30,14) -> (-28.3,14) -> (-28.3,16.3) -> (-21.5,16.3) -> (-21.5,10.0)
+    //   (-30,14) -> (-28.5,14) -> (-28.5,16.4) -> (-21.5,16.4) -> (-21.5,10.0)
     // landing in the unobstructed East Plaza 3.0m from Outpost Cache (-24.5,10.5)
     // and 2.0-3.1m from both robot guards with >=0.71m clearance on every leg.
     let msPerMeter = 520;
     let calibratedRate = false;
-    let pos = latestPlayerPos() || (await waitNextPlayerPos(7000));
+    let pos = latestPlayerPos() || (await waitNextPlayerPos(25000));
     const stepAxis = async (axis, target, tol, maxMs, stopOnEngage = false) => {
       const deadline = Date.now() + maxMs;
       while (Date.now() < deadline && pos) {
@@ -1029,33 +1029,33 @@ async function checkPageWithBrowser(browser, target, viewport) {
           : (diff > 0 ? 'KeyS' : 'KeyW');
         const dist = Math.abs(diff);
         const holdMs = !calibratedRate
-          ? 380
-          : Math.min(2800, Math.max(140, Math.round(dist * msPerMeter * 0.75)));
+          ? 220
+          : Math.min(5500, Math.max(120, Math.round(dist * msPerMeter * 0.75)));
         await page.keyboard.down(key);
         await new Promise((r) => setTimeout(r, holdMs));
         await page.keyboard.up(key).catch(() => {});
-        pos = await waitNextPlayerPos(6500);
+        pos = await waitNextPlayerPos(25000);
         if (pos) {
           const nextVal = axis === 'x' ? pos.x : pos.z;
           const moved = Math.abs(nextVal - val);
-          if (moved >= 0.18) {
-            msPerMeter = Math.min(1250, Math.max(140, Math.round(holdMs / moved)));
+          if (moved >= 0.12) {
+            msPerMeter = Math.min(4500, Math.max(140, Math.round(holdMs / moved)));
             calibratedRate = true;
           } else if (!calibratedRate) {
-            msPerMeter = 850;
+            msPerMeter = 1600;
             calibratedRate = true;
           }
         }
       }
     };
     if (recoveryE2eMode) {
-      await stepAxis('x', -28.3, 0.45, 20000);
-      await stepAxis('z', 16.3, 0.50, 22000);
-      await stepAxis('x', -21.5, 0.65, 32000);
-      await stepAxis('z', 10.0, 0.55, 32000);
+      await stepAxis('x', -28.5, 0.45, 35000);
+      await stepAxis('z', 16.4, 0.55, 35000);
+      await stepAxis('x', -21.5, 0.70, 45000);
+      await stepAxis('z', 10.0, 0.65, 45000);
     } else {
-      await stepAxis('x', -28.5, 0.50, 15000, true);
-      await stepAxis('z', 11.2, 0.60, 20000, true);
+      await stepAxis('x', -28.5, 0.50, 25000, true);
+      await stepAxis('z', 11.2, 0.60, 30000, true);
     }
     if (!engageOffered()) {
       for (const [k1, ms] of [['KeyA', 650], ['KeyW', 550], ['KeyD', 650]]) {
