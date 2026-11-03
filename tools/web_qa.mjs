@@ -959,58 +959,65 @@ async function checkPage(target, viewport) {
         yaw: Number.isFinite(yaw) ? yaw : null,
       };
     };
+    const waitNextPlayerPos = async (maxMs = 3500) => {
+      const startLen = consoleLines.length;
+      const deadline = Date.now() + maxMs;
+      while (Date.now() < deadline) {
+        if (consoleLines.slice(startLen).some((l) => l.includes('Camera QA:'))) {
+          return latestPlayerPos();
+        }
+        await new Promise((r) => setTimeout(r, 40));
+      }
+      return latestPlayerPos();
+    };
     const engageOffered = () => latestRecovery()?.action === 'engage';
     // Arrival Outpost spawn (-30, 1.2, 14) sits west of Landing Ridge Berm
-    // (-26, 0.25, 13; OBB blocks east sightlines for z >= 10.6). Use real
-    // Camera QA world coordinates (never wall-clock guesses on SwiftShader) to
-    // stride north into the unobstructed z <= 9.6 corridor before stepping east
-    // to engage Arrival Tech Cache (-24.5, 0.25, 10.5).
-    await page.keyboard.down('KeyW');
-    try {
-      const northDeadline = Date.now() + 22000;
-      while (Date.now() < northDeadline) {
-        const pos = latestPlayerPos();
-        if (pos && pos.z <= 9.6) break;
-        if (!recoveryE2eMode && engageOffered() && Date.now() + 18500 < northDeadline) break;
-        await new Promise((r) => setTimeout(r, 45));
-      }
-    } finally {
-      await page.keyboard.up('KeyW').catch(() => {});
+    // (-26, 0.25, 13; z=[11.1,14.8]) and south of Cover Barrier 147
+    // (-26, 0, 8; z=[7.62,8.38]) & TrainingDrone (-29.8, 0.25, 8.0).
+    // Step north in gated increments into z in [9.05, 10.1], then east along that
+    // clear corridor to x in [-24.0, -22.4] (east of both obstacles, 1.7m from
+    // Outpost Cache (-24.5, 0.25, 10.5), with 100% open sightlines to both guards).
+    let pos = latestPlayerPos() || (await waitNextPlayerPos(4000));
+    const zBandDeadline = Date.now() + 26000;
+    while (Date.now() < zBandDeadline && pos && (pos.z > 10.1 || pos.z < 9.05)) {
+      const goNorth = pos.z > 10.1;
+      const key = goNorth ? 'KeyW' : 'KeyS';
+      const dist = goNorth ? pos.z - 9.55 : 9.55 - pos.z;
+      const holdMs = Math.min(480, Math.max(110, Math.round(dist * 105)));
+      await page.keyboard.down(key);
+      await new Promise((r) => setTimeout(r, holdMs));
+      await page.keyboard.up(key).catch(() => {});
+      pos = await waitNextPlayerPos(3200);
     }
-    if ((latestPlayerPos()?.z ?? 9.2) < 8.4) {
-      await page.keyboard.down('KeyS');
-      try {
-        const southDeadline = Date.now() + 4000;
-        while (Date.now() < southDeadline && (latestPlayerPos()?.z ?? 9.2) < 8.8) {
-          await new Promise((r) => setTimeout(r, 45));
-        }
-      } finally {
-        await page.keyboard.up('KeyS').catch(() => {});
+    const targetMaxX = recoveryE2eMode ? -22.4 : -28.0;
+    const targetMinX = recoveryE2eMode ? -24.0 : -29.9;
+    const xBandDeadline = Date.now() + 28000;
+    while (
+      Date.now() < xBandDeadline
+      && pos
+      && (pos.x < targetMinX || pos.x > targetMaxX || !engageOffered())
+    ) {
+      if (!recoveryE2eMode && engageOffered()) break;
+      const goEast = pos.x < targetMinX || (!engageOffered() && pos.x < -24.5);
+      const key = goEast ? 'KeyD' : 'KeyA';
+      const targetX = recoveryE2eMode ? -23.2 : -29.2;
+      const dist = Math.abs(targetX - pos.x);
+      const holdMs = Math.min(500, Math.max(115, Math.round(dist * 105)));
+      await page.keyboard.down(key);
+      await new Promise((r) => setTimeout(r, holdMs));
+      await page.keyboard.up(key).catch(() => {});
+      pos = await waitNextPlayerPos(3200);
+      if (recoveryE2eMode && pos && pos.x >= targetMinX && pos.x <= targetMaxX && engageOffered()) {
+        break;
       }
     }
     if (!engageOffered()) {
-      const eastLimit = Date.now() + 28000;
-      await page.keyboard.down('KeyD');
-      try {
-        while (Date.now() < eastLimit && !engageOffered()) {
-          await new Promise((r) => setTimeout(r, 50));
-        }
-      } finally {
-        await page.keyboard.up('KeyD').catch(() => {});
-      }
-    }
-    if (!engageOffered()) {
-      // Fallback sweep along the open northern lane if extreme tick delta shifted stride.
-      for (const [k1, k2, ms] of [['KeyW', null, 900], ['KeyD', null, 1800], ['KeyA', 'KeyS', 700]]) {
+      for (const [k1, ms] of [['KeyA', 450], ['KeyS', 450], ['KeyD', 650]]) {
         if (engageOffered()) break;
         await page.keyboard.down(k1);
-        if (k2) await page.keyboard.down(k2);
-        const tEnd = Date.now() + ms;
-        while (Date.now() < tEnd && !engageOffered()) {
-          await new Promise((r) => setTimeout(r, 50));
-        }
-        if (k2) await page.keyboard.up(k2).catch(() => {});
+        await new Promise((r) => setTimeout(r, ms));
         await page.keyboard.up(k1).catch(() => {});
+        await waitNextPlayerPos(2500);
       }
     }
     const engagePlayerPos = latestPlayerPos();
@@ -1290,11 +1297,11 @@ async function checkPage(target, viewport) {
         }
         // Place the movable [+] crosshair directly onto the guard's 3D screen
         // coordinates and fire a left-mouse burst straight at [+], tracking the
-        // live guard projection mid-burst!
+        // live guard projection mid-burst via Puppeteer's unified mouse state!
         let pt = toCanvasCoords(guard);
-        await cdpMove(pt.x, pt.y, 0);
+        await page.mouse.move(pt.x, pt.y);
         await new Promise((r) => setTimeout(r, 110));
-        await cdpButton('mousePressed', pt.x, pt.y, 'left', 1);
+        await page.mouse.down({ button: 'left' });
         e2e.cursorAimFired = true;
         try {
           for (let sub = 0; sub < 2; sub += 1) {
@@ -1303,11 +1310,11 @@ async function checkPage(target, viewport) {
             const liveSnap = pickGuardSnapshot(beforeEngage);
             if (liveSnap.target && isInSafeReticleWindow(liveSnap.target)) {
               pt = toCanvasCoords(liveSnap.target);
-              await cdpMove(pt.x, pt.y, 1);
+              await page.mouse.move(pt.x, pt.y);
             }
           }
         } finally {
-          await cdpButton('mouseReleased', pt.x, pt.y, 'left', 0).catch(() => {});
+          await page.mouse.up({ button: 'left' }).catch(() => {});
         }
         await new Promise((r) => setTimeout(r, 90));
         burstsSinceReload += 1;
@@ -1317,6 +1324,7 @@ async function checkPage(target, viewport) {
         }
       }
       e2e.postCombatPos = latestPlayerPos();
+      e2e.lastGuard = pickGuardSnapshot(beforeEngage).target;
 
       // 2. Approach the now-READY Arrival Tech Cache and press B to Secure.
       if (e2e.guardsCleared) {
@@ -1383,11 +1391,11 @@ async function checkPage(target, viewport) {
       const clickCanvasPoint = async (pt) => {
         const px = canvasBounds.left + pt.x;
         const py = canvasBounds.top + pt.y;
-        await cdpMove(px, py, 0);
+        await page.mouse.move(px, py);
         await new Promise((r) => setTimeout(r, 90));
-        await cdpButton('mousePressed', px, py, 'left', 1);
+        await page.mouse.down({ button: 'left' });
         await new Promise((r) => setTimeout(r, 90));
-        await cdpButton('mouseReleased', px, py, 'left', 0);
+        await page.mouse.up({ button: 'left' });
       };
       if (e2e.blueprintSecured && isFrontEnd) {
         const beforePause = consoleLines.length;
