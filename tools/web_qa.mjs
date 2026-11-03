@@ -1006,75 +1006,64 @@ async function checkPageWithBrowser(browser, target, viewport) {
       return latestPlayerPos();
     };
     const engageOffered = () => latestRecovery()?.action === 'engage';
-    // Arrival Outpost spawn (-30, 1.2, 14) sits west of Landing Ridge Berm
-    // (-26, 0.25, 13; z=[11.1,14.8]) and south of Cover Barrier 147
-    // (-26, 0, 8; z=[7.62,8.38]) & TrainingDrone (-29.8, 0.25, 8.0).
-    // Self-calibrate msPerMeter from real Camera QA world coordinates so the
-    // step controller lands inside z in [9.0, 10.1], x in [-24.0, -22.4] on both
-    // 60 FPS hardware WebGL and ~3 FPS CPU SwiftShader without under/overshoot.
+    // Arrival Outpost spawn (-30, 1.2, 14) sits between Primary Arrival Outpost
+    // (-34, 0.25, 12.7; x_max=-30.4) and Landing Ridge Berm (-26, 0.25, 13;
+    // yaw=-28 deg, corners z=[10.56, 15.44]), with West Catwalk Ramp along z=8.0.
+    // Self-calibrate msPerMeter from real Camera QA world coordinates and route
+    // along the wide-open Southern Boulevard:
+    //   (-30,14) -> (-28.3,14) -> (-28.3,16.3) -> (-21.5,16.3) -> (-21.5,10.0)
+    // landing in the unobstructed East Plaza 3.0m from Outpost Cache (-24.5,10.5)
+    // and 2.0-3.1m from both robot guards with >=0.71m clearance on every leg.
     let msPerMeter = 520;
     let calibratedRate = false;
     let pos = latestPlayerPos() || (await waitNextPlayerPos(7000));
-    const zBandDeadline = Date.now() + 45000;
-    while (Date.now() < zBandDeadline && pos && (pos.z > 10.1 || pos.z < 9.0)) {
-      const prevZ = pos.z;
-      const goNorth = pos.z > 10.1;
-      const key = goNorth ? 'KeyW' : 'KeyS';
-      const dist = Math.abs(pos.z - 9.55);
-      const holdMs = !calibratedRate
-        ? 360
-        : Math.min(2600, Math.max(140, Math.round(dist * msPerMeter * 0.72)));
-      await page.keyboard.down(key);
-      await new Promise((r) => setTimeout(r, holdMs));
-      await page.keyboard.up(key).catch(() => {});
-      pos = await waitNextPlayerPos(6500);
-      if (pos) {
-        const moved = Math.abs(pos.z - prevZ);
-        if (moved >= 0.18) {
-          msPerMeter = Math.min(1250, Math.max(140, Math.round(holdMs / moved)));
-          calibratedRate = true;
-        } else if (!calibratedRate) {
-          msPerMeter = 850;
-          calibratedRate = true;
+    const stepAxis = async (axis, target, tol, maxMs, stopOnEngage = false) => {
+      const deadline = Date.now() + maxMs;
+      while (Date.now() < deadline && pos) {
+        if (stopOnEngage && engageOffered()) break;
+        const val = axis === 'x' ? pos.x : pos.z;
+        const diff = target - val;
+        if (Math.abs(diff) <= tol) break;
+        const key = axis === 'x'
+          ? (diff > 0 ? 'KeyD' : 'KeyA')
+          : (diff > 0 ? 'KeyS' : 'KeyW');
+        const dist = Math.abs(diff);
+        const holdMs = !calibratedRate
+          ? 380
+          : Math.min(2800, Math.max(140, Math.round(dist * msPerMeter * 0.75)));
+        await page.keyboard.down(key);
+        await new Promise((r) => setTimeout(r, holdMs));
+        await page.keyboard.up(key).catch(() => {});
+        pos = await waitNextPlayerPos(6500);
+        if (pos) {
+          const nextVal = axis === 'x' ? pos.x : pos.z;
+          const moved = Math.abs(nextVal - val);
+          if (moved >= 0.18) {
+            msPerMeter = Math.min(1250, Math.max(140, Math.round(holdMs / moved)));
+            calibratedRate = true;
+          } else if (!calibratedRate) {
+            msPerMeter = 850;
+            calibratedRate = true;
+          }
         }
       }
-    }
-    const targetMaxX = recoveryE2eMode ? -22.4 : -28.0;
-    const targetMinX = recoveryE2eMode ? -24.0 : -29.9;
-    const xBandDeadline = Date.now() + 45000;
-    while (
-      Date.now() < xBandDeadline
-      && pos
-      && (pos.x < targetMinX || pos.x > targetMaxX || !engageOffered())
-    ) {
-      if (!recoveryE2eMode && engageOffered()) break;
-      const prevX = pos.x;
-      const goEast = pos.x < targetMinX || (!engageOffered() && pos.x < -24.5);
-      const key = goEast ? 'KeyD' : 'KeyA';
-      const targetX = recoveryE2eMode ? -23.2 : -29.2;
-      const dist = Math.max(0.35, Math.abs(targetX - pos.x));
-      const holdMs = Math.min(2800, Math.max(140, Math.round(dist * msPerMeter * 0.72)));
-      await page.keyboard.down(key);
-      await new Promise((r) => setTimeout(r, holdMs));
-      await page.keyboard.up(key).catch(() => {});
-      pos = await waitNextPlayerPos(6500);
-      if (pos) {
-        const moved = Math.abs(pos.x - prevX);
-        if (moved >= 0.18) {
-          msPerMeter = Math.min(1250, Math.max(140, Math.round(holdMs / moved)));
-        }
-      }
-      if (recoveryE2eMode && pos && pos.x >= targetMinX && pos.x <= targetMaxX && engageOffered()) {
-        break;
-      }
+    };
+    if (recoveryE2eMode) {
+      await stepAxis('x', -28.3, 0.45, 20000);
+      await stepAxis('z', 16.3, 0.50, 22000);
+      await stepAxis('x', -21.5, 0.65, 32000);
+      await stepAxis('z', 10.0, 0.55, 32000);
+    } else {
+      await stepAxis('x', -28.5, 0.50, 15000, true);
+      await stepAxis('z', 11.2, 0.60, 20000, true);
     }
     if (!engageOffered()) {
-      for (const [k1, ms] of [['KeyA', 450], ['KeyS', 450], ['KeyD', 650]]) {
+      for (const [k1, ms] of [['KeyA', 650], ['KeyW', 550], ['KeyD', 650]]) {
         if (engageOffered()) break;
         await page.keyboard.down(k1);
         await new Promise((r) => setTimeout(r, ms));
         await page.keyboard.up(k1).catch(() => {});
-        await waitNextPlayerPos(2500);
+        pos = await waitNextPlayerPos(4500);
       }
     }
     const engagePlayerPos = latestPlayerPos();
@@ -1087,9 +1076,10 @@ async function checkPageWithBrowser(browser, target, viewport) {
         page, consoleLines.slice(beforeEngage), 'guards=2', 15000,
       );
       if (recoveryE2eMode && recoveryEvidence.guardsActive) {
-        // Turn camera east (+X) toward Outpost Cache (-24.5, 0.25, 10.5) and both
-        // robot guards (-18.5, 9.2) / (-19.5, 10.2) in the open z<=9.6 lane.
-        // Allow up to 9s wall-clock for SwiftShader to rotate ~90 degrees.
+        // Trigger EMP Pulse (9.0m AoE: 18 dmg + disrupt stun on both guards at
+        // 2-3m range) immediately so Sable takes minimal hits during screenshot
+        // capture, and turn east (+X) toward both robot guards (-18.5,9.2)/(-19.5,10.2).
+        await page.keyboard.press('KeyF');
         await page.keyboard.down('ArrowRight');
         try {
           const turnDeadline = Date.now() + 9000;
@@ -1390,6 +1380,9 @@ async function checkPageWithBrowser(browser, target, viewport) {
       }
       e2e.postCombatPos = latestPlayerPos();
       e2e.lastGuard = pickGuardSnapshot(beforeEngage).target;
+      e2e.playerDown = consoleLines
+        .slice(beforeEngage)
+        .some((l) => l.includes('Encounter: Defeated') || l.includes('HUD: player down'));
 
       // 2. Approach the now-READY Arrival Tech Cache and press B to Secure.
       if (e2e.guardsCleared) {

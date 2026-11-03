@@ -518,12 +518,12 @@ jobs:
         run: |
           mkdir -p exports/web-qa
           qa_status=0
-          timeout -k 15 1200s node tools/web_qa.mjs --page / --viewport 1280x720 --timeout 180 \
+          timeout -k 15 1500s node tools/web_qa.mjs --page / --viewport 1280x720 --timeout 180 \
             --recovery-e2e --out exports/web-qa/recovery-e2e --json \
             > exports/web-qa/recovery-e2e-report.json || qa_status=$?
           if [[ "$qa_status" -eq 124 || "$qa_status" -eq 137 || ! -s exports/web-qa/recovery-e2e-report.json ]]; then
             qa_status=0
-            timeout -k 15 1200s node tools/web_qa.mjs --page / --viewport 1280x720 --timeout 180 \
+            timeout -k 15 1500s node tools/web_qa.mjs --page / --viewport 1280x720 --timeout 180 \
               --recovery-e2e --out exports/web-qa/recovery-e2e --json \
               > exports/web-qa/recovery-e2e-report.json || qa_status=$?
           fi
