@@ -405,7 +405,7 @@ func spawn_guard_group(group_id: StringName, spawns: Array[Dictionary]) -> bool:
 			or not raw_position is Vector3
 		):
 			return _fail_guard_spawn(group_id, "Guard content is missing or invalid.")
-		var resolved := _resolve_guard_position(raw_position as Vector3)
+		var resolved: Variant = _resolve_guard_position(raw_position as Vector3)
 		if resolved == null:
 			return _fail_guard_spawn(group_id, "A guard position is blocked; reposition and retry.")
 		validated.append({"definition": definition, "position": resolved})
