@@ -139,7 +139,7 @@ func _run() -> void:
 
 	# 5. Studio multi-layer SFX bank
 	var streams := ProceduralSfxScript.build_all()
-	for req in [
+	for req: StringName in [
 		&"shot_pulse_rifle",
 		&"reload_start",
 		&"reload_ready",

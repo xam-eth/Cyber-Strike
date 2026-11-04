@@ -64,7 +64,9 @@ static func crosshair(
 	elif overcharged:
 		resolved_color = Color(0.80, 0.56, 1.0)
 
-	for offset in [Vector2(1.0, 0.0), Vector2(-1.0, 0.0), Vector2(0.0, 1.0), Vector2(0.0, -1.0)]:
+	for offset: Vector2 in [
+		Vector2(1.0, 0.0), Vector2(-1.0, 0.0), Vector2(0.0, 1.0), Vector2(0.0, -1.0)
+	]:
 		_draw_ticks(
 			host, center + offset * outline_offset, resolved_gap, tick, thickness + 1.1, outline
 		)
@@ -78,8 +80,8 @@ static func crosshair(
 	var bracket_col := Color(
 		AegisTokens.INFO if aiming else resolved_color, 0.84 if aiming else 0.44
 	)
-	for sx in [-1.0, 1.0]:
-		for sy in [-1.0, 1.0]:
+	for sx: float in [-1.0, 1.0]:
+		for sy: float in [-1.0, 1.0]:
 			var corner := center + Vector2(sx * outer_r, sy * outer_r)
 			host.draw_line(corner, corner - Vector2(sx * leg, 0.0), bracket_col, 1.25, true)
 			host.draw_line(corner, corner - Vector2(0.0, sy * leg), bracket_col, 1.25, true)
@@ -110,13 +112,13 @@ static func crosshair(
 		# Classic AAA diagonal X-hitmarker confirmation ticks.
 		var hm_in := maxf(resolved_gap * 0.52, 4.0)
 		var hm_out := hm_in + maxf(tick * 0.88, 4.5)
-		for diag in [
+		for diag: Vector2 in [
 			Vector2(1.0, 1.0),
 			Vector2(-1.0, 1.0),
 			Vector2(1.0, -1.0),
 			Vector2(-1.0, -1.0),
 		]:
-			var dir := diag.normalized()
+			var dir: Vector2 = diag.normalized()
 			host.draw_line(
 				center + dir * hm_in,
 				center + dir * hm_out,

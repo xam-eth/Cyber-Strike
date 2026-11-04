@@ -142,7 +142,7 @@ func _build_crate() -> void:
 	_strap_mesh.material_override = _strap_mat
 	add_child(_strap_mesh)
 
-	for side in [-0.34, 0.34]:
+	for side: float in [-0.34, 0.34]:
 		var rib := MeshInstance3D.new()
 		var rib_box := BoxMesh.new()
 		rib_box.size = Vector3(0.09, 0.84, 0.86)
