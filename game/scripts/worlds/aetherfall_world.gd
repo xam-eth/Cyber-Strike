@@ -632,7 +632,9 @@ func _add_expanse_route(parent: Node3D, packed: PackedScene, spec: Dictionary) -
 
 
 func _add_polar_snowfall() -> void:
-	if _software_webgl or DisplayServer.get_name() == "headless":
+	# Software WebGL must not pay for 140 alpha-blended flakes; headless keeps
+	# the node so smoke fixtures can assert the atmosphere really is authored.
+	if _software_webgl:
 		return
 	var snowfall := CPUParticles3D.new()
 	snowfall.name = "PolarSnowfall"

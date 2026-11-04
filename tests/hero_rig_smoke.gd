@@ -341,10 +341,13 @@ func _run_smoke_test() -> void:
 		_barrel(muzzle).dot(forward) > 0.94,
 		"first hip shot aligns the real rifle barrel before the projectile leaves",
 	)
-	_expect(
-		muzzle.global_position.distance_to(muzzle_point.global_position) < 0.002,
-		"first hip shot still comes from the GLB's measured MuzzlePoint",
-	)
+	if muzzle_point != null:
+		_expect(
+			muzzle.global_position.distance_to(muzzle_point.global_position) < 0.002,
+			"first hip shot still comes from the GLB's measured MuzzlePoint",
+		)
+	else:
+		_expect(false, "first hip shot can be checked against a measured MuzzlePoint")
 	visual.call("play_recoil", 1.0)
 	_expect(
 		str(visual.call("current_clip")) == "fire", "hip-fire shoulders the rifle and plays recoil"

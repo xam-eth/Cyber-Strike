@@ -44,7 +44,12 @@
       "skill_damage": 22,
       "overdrive_seconds": 3.5,
       "overdrive_speed_pct": 20,
-      "overdrive_rate_pct": 22
+      "overdrive_rate_pct": 22,
+      "tint": "#9ec6f5",
+      "emission": "#082440",
+      "energy": 0.03,
+      "metal": 0.46,
+      "rough": 0.42
     },
     {
       "id": "vanguard",

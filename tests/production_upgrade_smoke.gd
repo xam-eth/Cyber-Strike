@@ -22,6 +22,7 @@ func _run() -> void:
 	AegisPreferences.write(AegisPreferences.defaults())
 	var main := MainScene.instantiate()
 	main.set("start_wave_session_on_ready", false)
+	main.set("field_activity_mode", "force")
 	main.get_node("ProgressionService").set("profile_path", "")
 	root.add_child(main)
 	await process_frame
@@ -32,14 +33,14 @@ func _run() -> void:
 	var run_stats: Node = main.get_node("RunStats")
 	var upgrade_mgr: Node = main.get_node("RunUpgradeManager")
 	var field_dir: Node3D = main.get_node_or_null("FieldActivityDirector")
-	var world_host: Node = main.get_node("Arena")
+	var world_host: Node = main.get_node("MissionWorld")
 
 	# 1. Weapon & Hero verification
 	var pulse_def: Resource = load("res://resources/weapons/pulse_rifle.tres")
 	_expect(
 		(
 			pulse_def != null
-			and String(pulse_def.get("weapon_model_path")).ends_with("hero_01_weapon.glb")
+			and str(pulse_def.get("model_scene_path")).ends_with("hero_01_weapon.glb")
 		),
 		"Pulse Rifle uses canonical HERO_01_WEAPON glb",
 	)
@@ -57,7 +58,7 @@ func _run() -> void:
 
 	# 2. Aetherfall world bug fixes (ArchiveComputer + PolarSnowfall)
 	var archive_comp := world_host.find_child("ArchiveComputer", true, false)
-	var snowfall := world_host.find_child("PolarSnowfall", true, false) as GPUParticles3D
+	var snowfall := world_host.find_child("PolarSnowfall", true, false) as CPUParticles3D
 	_expect(archive_comp != null, "Aetherfall ArchiveVault spawns ArchiveComputer terminal")
 	_expect(
 		snowfall != null and snowfall.emitting,
@@ -149,7 +150,7 @@ func _run() -> void:
 		&"crate_break",
 		&"shield_hit",
 	]:
-		_expect(streams.has(req) and streams[req] != null, "ProceduralSfx builds %s" % String(req))
+		_expect(streams.has(req) and streams[req] != null, "ProceduralSfx builds %s" % str(req))
 
 	main.queue_free()
 	await process_frame

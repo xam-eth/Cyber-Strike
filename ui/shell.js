@@ -982,14 +982,14 @@ const WEAPONS = {
     nameKey: 'wpn.nova.name',
     cost: 120,
     art: './game/assets/ui/weapon_nova_launcher.png',
-    model: './game/assets/weapons/futuristic_rifle/rifle.glb',
+    model: './game/assets/weapons/hero_01_weapon/hero_01_weapon.glb',
     definition: { damage: 34, fire_rate: 0.8, magazine_size: 6, reload_seconds: 2.2 },
   },
   arc_shooter: {
     nameKey: 'wpn.arc.name',
     cost: 250,
     art: './game/assets/ui/weapon_arc_shooter.png',
-    model: './game/assets/weapons/futuristic_rifle/rifle.glb',
+    model: './game/assets/weapons/hero_01_weapon/hero_01_weapon.glb',
     definition: { damage: 20, fire_rate: 2, magazine_size: 12, reload_seconds: 1.7 },
   },
 };

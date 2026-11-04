@@ -82,7 +82,7 @@ func _run_smoke_test() -> void:
 	_check_bones_move(anim, skeleton)
 	var posed := _check_pose(model, meshes, skeleton, player)
 	_check_not_clipped(posed, camera)
-	_check_unoccluded(main_scene, posed, camera, [player])
+	await _check_unoccluded(main_scene, posed, camera, [player])
 	_check_screen_cover(posed, camera)
 	_check_winding(meshes)
 	_check_character_fill(visual)
@@ -190,14 +190,22 @@ func _check_pose(model: Node3D, meshes: Array, skeleton: Skeleton3D, player: Nod
 		return AABB()
 
 	var height: float = combined.size.y
-	var width: float = maxf(combined.size.x, combined.size.z)
+	# An armed soldier's silhouette is not symmetric: a shouldered rifle and an
+	# extended support arm push the aim *depth* well past body width, so judge
+	# lateral width and overall stance depth separately.
+	var lateral: float = minf(combined.size.x, combined.size.z)
+	var stance_depth: float = maxf(combined.size.x, combined.size.z)
 	_expect(
 		height > 1.2 and height < 2.4,
 		"the posed hero is roughly human height (%.2f m)" % height,
 	)
 	_expect(
-		width > 0.15 and width < 1.1,
-		"the posed hero is roughly human width (%.2f m)" % width,
+		lateral > 0.15 and lateral < 1.1,
+		"the posed hero is roughly human width (lateral %.2f m)" % lateral,
+	)
+	_expect(
+		stance_depth > 0.15 and stance_depth < 1.7,
+		"the armed stance stays inside a human+rifle depth envelope (%.2f m)" % stance_depth,
 	)
 	_expect(
 		absf(combined.position.y - player.global_position.y) < 0.35,
@@ -246,6 +254,11 @@ func _check_not_clipped(box: AABB, camera: Camera3D) -> void:
 
 
 func _check_unoccluded(scene: Node, box: AABB, camera: Camera3D, exclude: Array) -> void:
+	# The SpringArm3D resolves its collision against the world's authored
+	# colliders on physics ticks. Let it settle before judging camera-to-hero
+	# sight lines, exactly as it settles during real play.
+	for _settle in 3:
+		await physics_frame
 	var space: PhysicsDirectSpaceState3D = scene.get_world_3d().direct_space_state
 	var targets := [box.get_center(), box.get_center() + Vector3(0, box.size.y * 0.35, 0)]
 	var blocked := false
@@ -454,7 +467,7 @@ func _check_states(
 			box.size.y > 1.2 and box.size.y < 2.4,
 			"%s: the hero keeps human proportions (%.2f m tall)" % [label, box.size.y],
 		)
-		_check_unoccluded(scene, box, camera, [player])
+		await _check_unoccluded(scene, box, camera, [player])
 
 
 func _state_idle(visual: Node3D, _player: Node3D, rig: Node) -> void:

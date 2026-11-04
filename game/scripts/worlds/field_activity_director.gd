@@ -71,6 +71,7 @@ var target_player: Node3D = null
 var _pickups_root: Node3D
 var _crates_root: Node3D
 var _patrols_root: Node3D
+var _patrol_units: Array[Node3D] = []
 var _rng := RandomNumberGenerator.new()
 var _spawned_patrol_zones: Dictionary = {}
 var _runner_scene: PackedScene
@@ -101,6 +102,7 @@ func reset_field_activity() -> void:
 	_clear_children(_pickups_root)
 	_clear_children(_crates_root)
 	_clear_children(_patrols_root)
+	_patrol_units.clear()
 	_spawned_patrol_zones.clear()
 	_rng.seed = 0xAE74E11
 	_populate_supply_crates()
@@ -132,6 +134,7 @@ func _process(_delta: float) -> void:
 		return
 	if not target_player.is_physics_processing():
 		return
+	_activate_nearby_patrols()
 	var dist_moved: Variant = target_player.get("_distance_travelled")
 	if dist_moved != null and float(dist_moved) < 0.35:
 		return
@@ -143,6 +146,28 @@ func _process(_delta: float) -> void:
 		if px >= float(zone["trigger_x"]):
 			_spawned_patrol_zones[idx] = true
 			_spawn_patrol_zone(zone["units"] as Array)
+
+
+## Sector patrols stand frozen until the player closes to engagement range (or shoots one).
+func _activate_nearby_patrols() -> void:
+	if _patrol_units.is_empty():
+		return
+	var player_pos: Vector3 = target_player.global_position
+	for unit in _patrol_units:
+		if not is_instance_valid(unit) or unit.has_meta("patrol_active"):
+			continue
+		if player_pos.distance_squared_to(unit.global_position) <= 14.0 * 14.0:
+			_activate_patrol_unit(unit)
+
+
+func _activate_patrol_unit(unit: Node3D) -> void:
+	if not is_instance_valid(unit) or unit.has_meta("patrol_active"):
+		return
+	unit.set_meta("patrol_active", true)
+	unit.set_physics_process(true)
+	unit.set_process(true)
+	if unit.has_method("set_target"):
+		unit.call("set_target", target_player)
 
 
 func spawn_enemy_drops(enemy: Node3D, is_guardian: bool = false) -> void:
@@ -245,16 +270,20 @@ func _spawn_patrol_zone(units: Array) -> void:
 		if enemy == null:
 			continue
 		enemy.position = spec["pos"] as Vector3
-		if enemy.has_method("set_target"):
-			enemy.call("set_target", target_player)
+		# Frozen sentry: AI stays off until the player closes in or lands a shot.
+		enemy.set_physics_process(false)
+		enemy.set_process(false)
 		if enemy.has_signal("damage_received"):
 			enemy.connect(
 				"damage_received",
-				func(_a: float, _c: float, _m: float) -> void: field_target_hit.emit()
+				func(_a: float, _c: float, _m: float) -> void:
+					_activate_patrol_unit(enemy)
+					field_target_hit.emit()
 			)
 		if enemy.has_signal("defeated"):
 			enemy.connect("defeated", _on_patrol_unit_defeated.bind(enemy, kind))
 		_patrols_root.add_child(enemy)
+		_patrol_units.append(enemy)
 
 
 func _on_patrol_unit_defeated(enemy: Node3D, kind: StringName) -> void:

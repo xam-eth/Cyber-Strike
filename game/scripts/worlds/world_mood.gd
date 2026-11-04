@@ -16,8 +16,8 @@ const MOODS := {
 		"key":
 		{
 			"name": "MissionKeyLight",
-			"color": Color(0.92, 0.96, 1.0),
-			"energy": 1.38,
+			"color": Color(0.88, 0.94, 1.0),
+			"energy": 1.48,
 			"position": Vector3(-90.0, 120.0, -70.0),
 		},
 		"fill":

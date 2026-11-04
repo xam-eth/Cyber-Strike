@@ -876,8 +876,18 @@ func _run_smoke_test() -> void:
 	var run_stats: Node = main_scene.get_node("RunStats")
 	run_stats.call("start_run")
 	run_stats.call("record_elimination", 100, 110)
+	# Read the live totals instead of fixed literals: legitimate field pickup
+	# collections may already have earned run score/BP before this point, and
+	# the HUD contract is that it reflects RunStats exactly.
+	var live_score := int(run_stats.get("run_score"))
+	var live_bp := int(run_stats.get("bp_earned"))
 	_expect(
-		status_label.text.contains("Score: 100") and status_label.text.contains("BP earned: 110"),
+		(
+			live_score >= 100
+			and live_bp >= 110
+			and status_label.text.contains("Score: %d" % live_score)
+			and status_label.text.contains("BP earned: %d" % live_bp)
+		),
 		"run score and earned Battle Points update on the HUD",
 	)
 	player.call("apply_damage", 1000.0)

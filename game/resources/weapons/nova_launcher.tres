@@ -7,7 +7,7 @@
 script = ExtResource("1_definition")
 weapon_id = &"nova_launcher"
 display_name = "Nova Launcher"
-model_scene_path = "res://assets/weapons/futuristic_rifle/rifle.glb"
+model_scene_path = "res://assets/weapons/hero_01_weapon/hero_01_weapon.glb"
 role_description = "A slower explosive projectile that damages enemies around its impact point."
 projectile_scene = ExtResource("2_projectile")
 fire_rate = 0.8

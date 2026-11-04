@@ -21,6 +21,9 @@ const RECOVERY_STUCK_SECONDS := 12.0
 ## Test/authoring override only. The shipped scene starts in safe Explore; the
 ## player must explicitly choose Defense before the WaveDirector can run.
 @export var start_wave_session_on_ready: bool = false
+## Live field activity (SupplyCrates, 3D pickups, robot patrols): "auto" runs on
+## real displays, headless fixtures skip it, "force" opts a test in (production_upgrade_smoke).
+@export_enum("auto", "force", "off") var field_activity_mode: String = "auto"
 @export_range(2.0, 10.0, 0.5) var defense_preparation_seconds: float = 5.0
 
 var session_mode: SessionMode = SessionMode.EXPLORE
@@ -1542,6 +1545,9 @@ func _update_status() -> void:
 
 
 func _setup_field_activity() -> void:
+	var headless := DisplayServer.get_name() == "headless"
+	if field_activity_mode == "off" or (field_activity_mode == "auto" and headless):
+		return
 	_field_activity = FieldActivityDirectorScript.new()
 	add_child(_field_activity)
 	_field_activity.pickup_collected.connect(_on_field_pickup_collected)
@@ -1572,7 +1578,7 @@ func _on_field_pickup_collected(kind: StringName, amount: int, _pos: Vector3) ->
 	var note := FieldActivityDirectorScript.apply_pickup_effect(
 		kind, amount, player, run_stats, run_upgrade_manager
 	)
-	HudResourceBar.push_toast(touch_controls, String(note["text"]), note["color"] as Color)
+	HudResourceBar.push_toast(touch_controls, str(note["text"]), note["color"] as Color)
 	_update_status()
 
 
