@@ -405,12 +405,10 @@ func spawn_guard_group(group_id: StringName, spawns: Array[Dictionary]) -> bool:
 			or not raw_position is Vector3
 		):
 			return _fail_guard_spawn(group_id, "Guard content is missing or invalid.")
-		var position := raw_position as Vector3
-		var player_offset := position - _player.global_position
-		player_offset.y = 0.0
-		if player_offset.length() < 2.0 or not is_spawn_position_valid(position, false):
+		var resolved := _resolve_guard_position(raw_position as Vector3)
+		if resolved == null:
 			return _fail_guard_spawn(group_id, "A guard position is blocked; reposition and retry.")
-		validated.append({"definition": definition, "position": position})
+		validated.append({"definition": definition, "position": resolved})
 
 	var members: Array[Node3D] = []
 	for entry in validated:
@@ -437,6 +435,40 @@ func spawn_guard_group(group_id: StringName, spawns: Array[Dictionary]) -> bool:
 func _fail_guard_spawn(group_id: StringName, reason: String) -> bool:
 	guard_group_spawn_failed.emit(group_id, reason)
 	return false
+
+
+## A guard deploys at its authored point whenever that point is clear. If the
+## player is standing inside the 2.0 m safety radius (or a collider overlaps the
+## clearance sphere), slide the guard out along the player->spawn direction and
+## probe a short ring of nearby candidates instead of failing the encounter.
+func _resolve_guard_position(authored: Vector3) -> Variant:
+	var away := authored - _player.global_position
+	away.y = 0.0
+	if away.length_squared() < 0.0001:
+		away = Vector3.FORWARD
+	away = away.normalized()
+	var side := away.cross(Vector3.UP).normalized()
+	var candidates: Array[Vector3] = [authored]
+	for slide: float in [2.2, 3.0, 4.0]:
+		candidates.append(
+			Vector3(
+				_player.global_position.x + away.x * slide,
+				authored.y,
+				_player.global_position.z + away.z * slide
+			)
+		)
+	for push: float in [0.9, 1.8]:
+		candidates.append(authored + away * push)
+		candidates.append(authored + side * push)
+		candidates.append(authored - side * push)
+	for candidate: Vector3 in candidates:
+		var player_offset := candidate - _player.global_position
+		player_offset.y = 0.0
+		if player_offset.length() < 2.0:
+			continue
+		if is_spawn_position_valid(candidate, false):
+			return candidate
+	return null
 
 
 func _spawn_enemy(
