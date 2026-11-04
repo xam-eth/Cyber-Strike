@@ -45,7 +45,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
    the roster answers, so the stage is never empty. */
 const DEFAULT_MODEL = './game/assets/characters/human_hero_tiers/hero_human_tier_1.glb';
 const MODEL = DEFAULT_MODEL;
-const RIFLE = './game/assets/weapons/futuristic_rifle/rifle.glb';
+const RIFLE = './game/assets/weapons/hero_01_weapon/hero_01_weapon.glb';
 const IDLE = 'idle';
 const SALUTE = 'aim';
 const CELEBRATION_CLIP = 'celebration';

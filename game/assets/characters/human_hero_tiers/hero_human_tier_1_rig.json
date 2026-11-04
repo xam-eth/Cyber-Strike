@@ -13,9 +13,9 @@
     "enemy_class": null,
     "animation_reference_for": null
   },
-  "source_model": "hero_human_tier_1_source.glb",
-  "source_model_sha256": "6780f6711b8a5443c2ff70da335ee8976d9ad1d7a18be8221fbb0437168c432b",
-  "optimized_mesh_sha256": "31e3a0db2cbe467ce3635ef6c63a2dceff25d5a3b872b409e981d4d8214326da",
+  "source_model": "NEW_HERO_01.glb",
+  "source_model_sha256": "a0e06a5bdd6307e9ac9912f0b1d2dabae9173f7c92efabd25061b49b154d003a",
+  "optimized_mesh_sha256": "eb187619721fb116a2707b7d441d3e6b9fa847cd26faf3f69bf8b1b3eaa91870",
   "rig_template": "game/assets/enemies/enemy_robot_common.glb",
   "rig_template_sha256": "d97b07d1e634496e32fea04f8670c61eb608069632727ecf395618eecef2370b",
   "skeleton_root": "Armature",
@@ -166,22 +166,22 @@
       "Thumb"
     ],
     "human_component_report": {
-      "component_count": 124,
+      "component_count": 404,
       "components_by_family": {
-        "L_arm": 20,
-        "L_leg": 29,
-        "R_arm": 20,
-        "R_leg": 20,
-        "core": 18,
-        "head": 17
+        "L_arm": 69,
+        "L_leg": 47,
+        "R_arm": 103,
+        "R_leg": 51,
+        "core": 64,
+        "head": 70
       },
       "vertices_by_family": {
-        "L_arm": 4635,
-        "L_leg": 6235,
-        "R_arm": 4241,
-        "R_leg": 5414,
-        "core": 1938,
-        "head": 2398
+        "L_arm": 5872,
+        "L_leg": 7400,
+        "R_arm": 6609,
+        "R_leg": 7562,
+        "core": 4325,
+        "head": 3618
       },
       "finger_bone_weights": 0
     }
@@ -189,31 +189,31 @@
   "animations": "Generated separately by tools/gltf/retarget_human_hero_tiers.py from Robot Common's animation set plus raise/lower weapon transitions.",
   "verification": {
     "joint_count": 79,
-    "vertex_count": 24861,
+    "vertex_count": 35386,
     "weight_sum_max_error": 1.42e-07,
-    "bind_pose_max_error_m": 3.52e-07,
+    "bind_pose_max_error_m": 3.45e-07,
     "deformation_probes": {
       "walk": {
-        "p95_displacement_m": 0.130404,
-        "max_radius_m": 0.993427
+        "p95_displacement_m": 0.12748,
+        "max_radius_m": 0.975311
       },
       "run": {
-        "p95_displacement_m": 0.353823,
-        "max_radius_m": 0.974678
+        "p95_displacement_m": 0.225362,
+        "max_radius_m": 0.960092
       },
       "aim": {
-        "p95_displacement_m": 0.3086,
-        "max_radius_m": 0.995944
+        "p95_displacement_m": 0.208221,
+        "max_radius_m": 0.981062
       },
       "death": {
-        "p95_displacement_m": 0.899252,
-        "max_radius_m": 0.975697
+        "p95_displacement_m": 0.888218,
+        "max_radius_m": 0.968571
       }
     }
   },
   "primitive_weights": [
     {
-      "vertices": 24861,
+      "vertices": 35386,
       "max_weight_sum_error": 1.1920928955078125e-07,
       "nonzero_joint_count": 44
     }
@@ -222,31 +222,31 @@
   "upgrade_tier": 1,
   "source_robot_common_model": "enemy_robot_common.glb",
   "source_robot_common_sha256": "d97b07d1e634496e32fea04f8670c61eb608069632727ecf395618eecef2370b",
-  "source_variant_sha256": "6780f6711b8a5443c2ff70da335ee8976d9ad1d7a18be8221fbb0437168c432b",
+  "source_variant_sha256": "a0e06a5bdd6307e9ac9912f0b1d2dabae9173f7c92efabd25061b49b154d003a",
   "retarget_method": "Robot Common's idle/walk/run/aim/fire/reload/hit/death motion is transferred by named joint and common-pose deltas onto the copied 79-joint rig. Root/Hip translation is transferred only when the source joint moves in that clip. The human mesh keeps its own per-tier vertex weights. Weapon raise/lower transitions are generated from idle and aim.",
   "units": "source and target meshes use one-metre model units",
-  "model_height_units": 0.999115,
+  "model_height_units": 0.980072,
   "skeleton": "Armature",
   "hand_bone": "R_Hand",
   "weapon_socket": {
     "aim_rotation_xyzw": [
-      0.172197,
-      0.089081,
-      -0.621013,
-      0.759444
+      0.217351,
+      0.060833,
+      -0.631686,
+      0.74164
     ],
     "carry_rotation_xyzw": [
-      0.727953,
-      0.22881,
-      -0.428887,
-      0.483515
+      0.732932,
+      0.21232,
+      -0.417864,
+      0.493072
     ],
     "offset": [
       0.0,
       0.018,
       0.0
     ],
-    "scale_model_units": 0.399706
+    "scale_model_units": 0.392088
   },
   "weapon_muzzle_local": [
     0.0,
@@ -328,28 +328,28 @@
   },
   "aim_pose": {
     "right_hand": [
-      -0.035,
-      0.6595,
-      0.1199
+      -0.0343,
+      0.6469,
+      0.1176
     ],
     "left_hand": [
-      -0.035,
-      0.6795,
-      0.2318
+      -0.0343,
+      0.6665,
+      0.2274
     ],
     "support": [
-      -0.035,
-      0.6795,
-      0.2318
+      -0.0343,
+      0.6665,
+      0.2274
     ],
-    "reach_right": 0.5829,
-    "reach_left": 0.9621,
+    "reach_right": 0.6056,
+    "reach_left": 0.9626,
     "hand_ik_error_m": 0.0,
     "support_ik_error_m": 0.0,
     "muzzle": [
-      -0.035,
-      0.724,
-      0.3877
+      -0.0343,
+      0.7102,
+      0.3804
     ],
     "barrel_dir": [
       0.0,
@@ -359,14 +359,14 @@
     "barrel_pitch_deg": 0.0
   },
   "recoil": {
-    "muzzle_back_m": -0.0375,
-    "muzzle_up_m": 0.0282
+    "muzzle_back_m": -0.036,
+    "muzzle_up_m": 0.0235
   },
   "carry": {
     "barrel_before": [
-      -0.947,
-      -0.319,
-      -0.038
+      -0.946,
+      -0.315,
+      0.075
     ],
     "barrel_desired": [
       0.0,
@@ -405,53 +405,53 @@
   "aim_run_mesh_deformation": {
     "clip": "aim_run",
     "sample_count": 7,
-    "max_p95_edge_stretch": 1.1509,
-    "max_p99_edge_stretch": 2.7287,
-    "max_edges_over_2x": 1051,
-    "max_vertex_radius_m": 0.9959,
-    "min_vertex_y_m": 0.0073,
+    "max_p95_edge_stretch": 1.1676,
+    "max_p99_edge_stretch": 3.7327,
+    "max_edges_over_2x": 1906,
+    "max_vertex_radius_m": 0.9802,
+    "min_vertex_y_m": -0.0181,
     "samples": [
       {
         "phase": 0.0,
-        "p95_edge_stretch": 1.1509,
-        "p99_edge_stretch": 2.7138,
-        "edges_over_2x": 1051
+        "p95_edge_stretch": 1.1676,
+        "p99_edge_stretch": 3.7327,
+        "edges_over_2x": 1906
       },
       {
         "phase": 0.167,
-        "p95_edge_stretch": 1.1155,
-        "p99_edge_stretch": 2.427,
-        "edges_over_2x": 856
+        "p95_edge_stretch": 1.1415,
+        "p99_edge_stretch": 3.3384,
+        "edges_over_2x": 1705
       },
       {
         "phase": 0.333,
-        "p95_edge_stretch": 1.1368,
-        "p99_edge_stretch": 2.709,
-        "edges_over_2x": 991
+        "p95_edge_stretch": 1.1568,
+        "p99_edge_stretch": 3.6338,
+        "edges_over_2x": 1866
       },
       {
         "phase": 0.5,
-        "p95_edge_stretch": 1.1396,
-        "p99_edge_stretch": 2.666,
-        "edges_over_2x": 1012
+        "p95_edge_stretch": 1.1586,
+        "p99_edge_stretch": 3.6574,
+        "edges_over_2x": 1861
       },
       {
         "phase": 0.667,
-        "p95_edge_stretch": 1.1169,
-        "p99_edge_stretch": 2.4308,
-        "edges_over_2x": 850
+        "p95_edge_stretch": 1.1396,
+        "p99_edge_stretch": 3.3253,
+        "edges_over_2x": 1696
       },
       {
         "phase": 0.833,
-        "p95_edge_stretch": 1.1452,
-        "p99_edge_stretch": 2.7287,
-        "edges_over_2x": 1014
+        "p95_edge_stretch": 1.159,
+        "p99_edge_stretch": 3.6585,
+        "edges_over_2x": 1890
       },
       {
         "phase": 1.0,
-        "p95_edge_stretch": 1.1325,
-        "p99_edge_stretch": 2.6361,
-        "edges_over_2x": 978
+        "p95_edge_stretch": 1.1553,
+        "p99_edge_stretch": 3.6004,
+        "edges_over_2x": 1835
       }
     ]
   },

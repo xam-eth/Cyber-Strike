@@ -102,10 +102,14 @@ static func measure_safe_insets(physical: Vector2, touch_mode: bool) -> Vector3:
 
 
 static func landscape(hud) -> void:
+	var short_view: bool = (
+		hud._narrow or (hud._physical_size.y > 0.0 and hud._physical_size.y < 480.0)
+	)
 	var edge: float = hud._to_layout(44.0)
-	var bar_height: float = hud._to_layout(56.0)
+	var bar_height: float = hud._to_layout(56.0 if short_view else 60.0)
+	var health_width: float = hud._to_layout(208.0 if short_view else 242.0)
 	_place_top_bar(hud, edge, hud._top_inset, bar_height)
-	_place_in_top_bar(hud._health_card, 0, 0, 0, 0, Rect2(0, 0, hud._to_layout(208.0), bar_height))
+	_place_in_top_bar(hud._health_card, 0, 0, 0, 0, Rect2(0, 0, health_width, bar_height))
 	if is_instance_valid(hud._upgrade_status_card):
 		_place_in_top_bar(
 			hud._upgrade_status_card,
@@ -115,6 +119,20 @@ static func landscape(hud) -> void:
 			0,
 			Rect2(-hud._to_layout(196.0), 0, hud._to_layout(196.0), bar_height)
 		)
+	if is_instance_valid(hud._resource_bar):
+		var res_w: float = hud._to_layout(196.0 if short_view else 268.0)
+		var res_h: float = hud._to_layout(28.0 if short_view else 112.0)
+		hud._resource_bar.compact_mode = short_view
+		hud._resource_bar.scale_unit = hud._to_layout(1.0)
+		_place_in_top_bar(
+			hud._resource_bar,
+			1,
+			0,
+			1,
+			0,
+			Rect2(-res_w, bar_height + hud._to_layout(6.0), res_w, res_h)
+		)
+		hud._resource_bar.queue_redraw()
 	if is_instance_valid(hud._upgrade_entry_button):
 		_place(
 			hud._upgrade_entry_button,

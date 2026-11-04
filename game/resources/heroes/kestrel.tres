@@ -10,5 +10,5 @@ role_description = "High-mobility recon scout built for long-sightline disruptio
 portrait_path = "res://assets/ui/portrait_kestrel.png"
 status_line = "FIELD READY"
 field_ready = true
-model_scene_path = "res://assets/characters/hero/hero.glb"
+model_scene_path = "res://assets/characters/kestrel_hero.glb"
 showcase_clips = Array[String](["idle", "aim", "fire"])

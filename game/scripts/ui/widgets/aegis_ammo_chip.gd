@@ -1,6 +1,6 @@
 ## Read-only weapon/magazine data next to the icon-only combat action.
-## The data is not a touch target: swapping/opening Armory remains a separate
-## generous button while the equipped weapon and ammo stay legible at a glance.
+## Upgraded with segmented plasma magazine telemetry and live Overcharge status
+## while keeping swapping/Armory on its dedicated combat button.
 class_name AegisAmmoChip
 extends AegisPanel
 
@@ -8,26 +8,27 @@ var weapon_label: Label
 var tier_label: Label
 var value_label: Label
 var mag_bar: ProgressBar
+var _overcharge_seconds: float = 0.0
+var _remaining: int = 24
+var _capacity: int = 24
+var _reloading: bool = false
 
 
 func _ready() -> void:
-	cut_top_left = 8.0
+	cut_top_left = 10.0
 	cut_top_right = 0.0
+	cut_bottom_right = 6.0
 	accent_side = "top"
 	accent_color = AegisTokens.INFO
-	accent_width = 2.0
+	accent_width = 2.5
 	tactical_header = true
 	super._ready()
-	show_brackets = false
+	show_brackets = true
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_theme_stylebox_override(
 		"panel",
 		AegisTheme.panel_style(
-			Color(AegisTokens.PANEL, AegisTokens.PANEL_ALPHA),
-			AegisTokens.LINE_HI,
-			1,
-			AegisTokens.RADIUS,
-			3.0
+			Color(AegisTokens.VOID, 0.84), AegisTokens.LINE_HI, 1, AegisTokens.RADIUS, 4.0
 		)
 	)
 	var readout := VBoxContainer.new()
@@ -37,7 +38,8 @@ func _ready() -> void:
 	weapon_label = Label.new()
 	weapon_label.name = "EquippedWeapon"
 	weapon_label.text = "PULSE"
-	weapon_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	weapon_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	weapon_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	weapon_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	weapon_label.set_meta("aegis_role", "label_s")
 	weapon_label.set_meta("aegis_scale", 1.0)
@@ -46,8 +48,6 @@ func _ready() -> void:
 	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	header.add_theme_constant_override("separation", 4)
 	readout.add_child(header)
-	weapon_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	weapon_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	header.add_child(weapon_label)
 	tier_label = Label.new()
 	tier_label.name = "WeaponTier"
@@ -74,7 +74,7 @@ func _ready() -> void:
 	mag_bar.min_value = 0.0
 	mag_bar.max_value = 24.0
 	mag_bar.value = 24.0
-	mag_bar.custom_minimum_size = Vector2(0.0, 3.0)
+	mag_bar.custom_minimum_size = Vector2(0.0, 4.0)
 	mag_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	mag_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	mag_bar.add_theme_stylebox_override(
@@ -91,32 +91,54 @@ func set_weapon(short_name: String) -> void:
 
 func set_tier(tier: int) -> void:
 	if is_instance_valid(tier_label):
-		tier_label.text = "T%d" % clampi(tier, 1, WeaponTier.tier_count())
+		var safe_t := clampi(tier, 1, WeaponTier.tier_count())
+		tier_label.text = "⚡T%d" % safe_t if _overcharge_seconds > 0.0 else "T%d" % safe_t
+
+
+func set_overcharge(seconds: float) -> void:
+	_overcharge_seconds = maxf(seconds, 0.0)
+	if is_instance_valid(tier_label):
+		var cur_txt := tier_label.text.replace("⚡", "")
+		tier_label.text = ("⚡" + cur_txt) if _overcharge_seconds > 0.0 else cur_txt
+		tier_label.add_theme_color_override(
+			"font_color",
+			Color(0.76, 0.48, 1.0) if _overcharge_seconds > 0.0 else AegisTokens.ACCENT
+		)
+	_refresh_bar_style()
 
 
 func set_ammo(remaining: int, capacity: int, reloading: bool) -> void:
 	if not is_instance_valid(value_label):
 		return
+	_remaining = remaining
+	_capacity = maxi(capacity, 1)
+	_reloading = reloading
 	if reloading:
 		AegisText.apply(value_label, "hud.reloading")
 	else:
 		value_label.text = "%d/%d" % [remaining, capacity]
-	var low_ammo: bool = remaining > 0 and remaining <= maxi(capacity / 3, 1)
-	var bar_col: Color = AegisTokens.INFO
-	if reloading or low_ammo:
+	_refresh_bar_style()
+
+
+func _refresh_bar_style() -> void:
+	var low_ammo: bool = _remaining > 0 and _remaining <= maxi(_capacity / 3, 1)
+	var bar_col: Color = Color(0.74, 0.46, 1.0) if _overcharge_seconds > 0.0 else AegisTokens.INFO
+	if _reloading or low_ammo:
 		bar_col = AegisTokens.ACCENT
-	elif remaining <= 0:
+	elif _remaining <= 0:
 		bar_col = AegisTokens.DANGER
 	accent_color = bar_col
 	if is_instance_valid(mag_bar):
-		mag_bar.max_value = maxf(float(capacity), 1.0)
-		mag_bar.value = 0.0 if reloading else float(clampi(remaining, 0, maxi(capacity, 1)))
+		mag_bar.max_value = maxf(float(_capacity), 1.0)
+		mag_bar.value = 0.0 if _reloading else float(clampi(_remaining, 0, _capacity))
 		mag_bar.add_theme_stylebox_override("fill", AegisTheme.flat_style(bar_col))
-	value_label.add_theme_color_override(
-		"font_color",
-		(
-			AegisTokens.ACCENT
-			if reloading
-			else (AegisTokens.DANGER if remaining == 0 else AegisTokens.INK)
+	if is_instance_valid(value_label):
+		value_label.add_theme_color_override(
+			"font_color",
+			(
+				AegisTokens.ACCENT
+				if _reloading
+				else (AegisTokens.DANGER if _remaining == 0 else AegisTokens.INK)
+			)
 		)
-	)
+	queue_redraw()

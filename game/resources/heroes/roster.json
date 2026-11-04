@@ -32,8 +32,8 @@
       "role_key": "hero.kestrel.role",
       "brief_key": "hero.kestrel.brief",
       "portrait": "ui/art/web/hero/kestrel.png",
-      "model": "game/assets/characters/hero/hero.glb",
-      "rig": "game/assets/characters/hero/hero_rig.json",
+      "model": "game/assets/characters/kestrel_hero.glb",
+      "rig": "game/assets/characters/kestrel_hero_rig.json",
       "vitals": 96,
       "reduction": 4,
       "speed_pct": 14,
@@ -44,12 +44,7 @@
       "skill_damage": 22,
       "overdrive_seconds": 3.5,
       "overdrive_speed_pct": 20,
-      "overdrive_rate_pct": 22,
-      "tint": "#9ec6f5",
-      "emission": "#082440",
-      "energy": 0.03,
-      "metal": 0.46,
-      "rough": 0.42
+      "overdrive_rate_pct": 22
     },
     {
       "id": "vanguard",

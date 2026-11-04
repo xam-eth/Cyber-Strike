@@ -161,6 +161,9 @@ var _health_heading: Label
 var _health_value_label: Label
 var _health_tier_badge: Label
 var _health_bar: SegmentedBar
+var _overshield_label: Label
+var _overshield_bar: SegmentedBar
+var _resource_bar: HudResourceBar
 var _wave_title_label: Label
 var _wave_state_label: Label
 var _wave_enemy_label: Label
@@ -828,7 +831,8 @@ func _build_ui() -> void:
 	)
 	_top_bar.add_child(_compass_layer)
 
-	_build_health_card()
+	HudResourceBar.build_vitals_card(self)
+	HudResourceBar.install_top_bar(self)
 	_build_wave_card()
 	HudEncounterUi.build_guardian_card(self)
 	_build_defense_action()
@@ -849,49 +853,6 @@ func _build_ui() -> void:
 	_build_overlays()
 	HudArmoryBridge.install_panel(self)
 	HudUpgradeBridge.install_overlays(self)
-
-
-func _build_health_card() -> void:
-	_health_card = AegisPanel.new()
-	_health_card.name = "HealthCard"
-	_health_card.cut_top_right = 10.0
-	_health_card.cut_bottom_left = 6.0
-	_health_card.accent_side = "left"
-	_health_card.accent_color = AegisTokens.OK
-	_health_card.accent_width = 3.0
-	_health_card.tactical_header = true
-	_health_card.clip_contents = true
-	_top_bar.add_child(_health_card)
-
-	var content := VBoxContainer.new()
-	content.add_theme_constant_override("separation", 6)
-	_health_card.add_child(content)
-
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 6)
-	content.add_child(row)
-	_health_heading = _label_key("hud.vitals", "label", AegisTokens.OK)
-	row.add_child(_health_heading)
-	_health_tier_badge = _label("T1", "mono_s", AegisTokens.INFO)
-	_health_tier_badge.name = "OperativeTierBadge"
-	row.add_child(_health_tier_badge)
-	_health_value_label = _label("100 / 100", "mono_m", AegisTokens.INK)
-	_health_value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_health_value_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(_health_value_label)
-
-	_health_bar = SegmentedBar.new()
-	_health_bar.name = "HealthBar"
-	_health_bar.min_value = 0.0
-	_health_bar.max_value = 100.0
-	_health_bar.value = 100.0
-	_health_bar.segments = 4
-	_health_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_health_bar.add_theme_stylebox_override(
-		"background", AegisTheme.flat_style(AegisTokens.PANEL_3)
-	)
-	_health_bar.add_theme_stylebox_override("fill", AegisTheme.flat_style(AegisTokens.OK))
-	content.add_child(_health_bar)
 
 
 func _build_wave_card() -> void:
@@ -1358,6 +1319,7 @@ func _draw() -> void:
 	# HUD editor's offsets and the platform's safe insets move the frame with
 	# them. Drawn before the crosshair so the reticle always stays on top.
 	if not get_tree().paused:
+		HudRenderer.visor_frame(self)
 		(
 			HudDock
 			. top(

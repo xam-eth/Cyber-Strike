@@ -94,7 +94,11 @@ func play_3d(sound_id: StringName, position: Vector3) -> void:
 	if player == null:
 		return
 	player.global_position = position
-	player.volume_db = ProceduralSfxScript.volume_db_for(sound_id)
+	var is_shot := String(sound_id).begins_with(SHOT_PREFIX)
+	player.pitch_scale = randf_range(0.962, 1.038) if is_shot else randf_range(0.985, 1.015)
+	player.volume_db = (
+		ProceduralSfxScript.volume_db_for(sound_id) + (randf_range(-0.4, 0.4) if is_shot else 0.0)
+	)
 	player.stream = stream
 	player.play()
 	_note_played(sound_id)

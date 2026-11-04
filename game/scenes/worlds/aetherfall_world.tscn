@@ -3,12 +3,13 @@
 [ext_resource type="Script" path="res://scripts/worlds/aetherfall_world.gd" id="1_aetherfall"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_aetherfall"]
-sky_top_color = Color(0.055, 0.115, 0.21, 1)
-sky_horizon_color = Color(0.26, 0.42, 0.58, 1)
-ground_bottom_color = Color(0.05, 0.08, 0.13, 1)
-ground_horizon_color = Color(0.24, 0.37, 0.5, 1)
-sun_angle_max = 28.0
-sun_curve = 0.09
+sky_top_color = Color(0.024, 0.068, 0.148, 1)
+sky_horizon_color = Color(0.28, 0.45, 0.61, 1)
+ground_bottom_color = Color(0.03, 0.055, 0.095, 1)
+ground_horizon_color = Color(0.16, 0.28, 0.41, 1)
+sun_angle_max = 16.0
+sun_curve = 0.08
+energy_multiplier = 0.85
 
 [sub_resource type="Sky" id="Sky_aetherfall"]
 sky_material = SubResource("ProceduralSkyMaterial_aetherfall")
@@ -17,21 +18,27 @@ sky_material = SubResource("ProceduralSkyMaterial_aetherfall")
 background_mode = 2
 sky = SubResource("Sky_aetherfall")
 ambient_light_source = 3
-ambient_light_color = Color(0.36, 0.52, 0.68, 1)
-ambient_light_sky_contribution = 0.55
-ambient_light_energy = 0.72
+ambient_light_color = Color(0.38, 0.54, 0.7, 1)
+ambient_light_sky_contribution = 0.68
+ambient_light_energy = 0.76
+reflected_light_source = 2
 tonemap_mode = 2
-tonemap_exposure = 1.02
-tonemap_white = 6.0
+tonemap_exposure = 1.06
+tonemap_white = 1.65
 ssao_enabled = true
 ssao_radius = 1.8
 glow_enabled = true
-glow_intensity = 0.34
+glow_intensity = 0.44
+glow_strength = 0.78
 glow_bloom = 0.08
 fog_enabled = true
-fog_light_color = Color(0.34, 0.49, 0.64, 1)
-fog_density = 0.00055
-fog_aerial_perspective = 0.32
+fog_light_color = Color(0.25, 0.41, 0.55, 1)
+fog_density = 0.0014
+fog_aerial_perspective = 0.56
+fog_sky_affect = 0.48
+adjustment_enabled = true
+adjustment_contrast = 1.06
+adjustment_saturation = 1.04
 
 [node name="AetherfallWorld" type="Node3D"]
 script = ExtResource("1_aetherfall")
@@ -40,14 +47,15 @@ script = ExtResource("1_aetherfall")
 environment = SubResource("Environment_aetherfall")
 
 [node name="Sun" type="DirectionalLight3D" parent="."]
-transform = Transform3D(0.819152, -0.40558, 0.40558, 0, 0.707107, 0.707107, -0.573576, -0.579228, 0.579228, 0, 38, 0)
-light_color = Color(0.92, 0.96, 1, 1)
-light_energy = 1.38
+transform = Transform3D(0.848048, -0.393923, 0.354586, 0, 0.669131, 0.743145, -0.529919, -0.630222, 0.567332, 0, 38, 0)
+light_color = Color(0.88, 0.94, 1, 1)
+light_energy = 1.48
 shadow_enabled = true
-shadow_opacity = 0.64
-directional_shadow_max_distance = 220.0
+shadow_opacity = 0.78
+directional_shadow_max_distance = 180.0
+directional_shadow_fade_start = 0.82
 
 [node name="FillLight" type="DirectionalLight3D" parent="."]
 transform = Transform3D(-0.766044, 0.321394, -0.55667, 0, 0.866025, 0.5, 0.642788, 0.383022, -0.663414, 0, 24, 0)
-light_color = Color(0.45, 0.68, 0.92, 1)
-light_energy = 0.36
+light_color = Color(0.46, 0.7, 0.94, 1)
+light_energy = 0.38

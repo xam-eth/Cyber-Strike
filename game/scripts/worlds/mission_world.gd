@@ -108,7 +108,18 @@ func _instance_real_world() -> bool:
 	print("MISSION WORLD: %s (%s)" % [world_id, scene_path.get_file()])
 	for child in _world.find_children("*", "MeshInstance3D", true, false):
 		var mesh_instance := child as MeshInstance3D
-		mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+		var skip_shadow := false
+		var cur: Node = mesh_instance
+		while cur != null and cur != _world:
+			if cur.has_meta("no_shadow_cast"):
+				skip_shadow = true
+				break
+			cur = cur.get_parent()
+		mesh_instance.cast_shadow = (
+			GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			if skip_shadow
+			else GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+		)
 	_start_authored_motion()
 	return true
 
@@ -126,6 +137,14 @@ func has_world_geometry() -> bool:
 
 func _start_authored_motion() -> void:
 	if not is_instance_valid(_world):
+		return
+	if (
+		_world.has_method("provides_authored_motion")
+		and bool(_world.call("provides_authored_motion"))
+	):
+		for child in _world.find_children("*", "AnimationPlayer", true, false):
+			var ap := child as AnimationPlayer
+			ap.speed_scale = animation_speed if animate_components else 0.0
 		return
 	var found := _world.find_children("*", "AnimationPlayer", true, false)
 	if found.is_empty():

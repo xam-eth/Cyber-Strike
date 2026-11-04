@@ -4,6 +4,8 @@ extends CharacterBody3D
 signal shot_fired
 signal weapon_changed(display_name: String)
 signal health_changed(current: float, maximum: float)
+signal overshield_changed(current: float, maximum: float)
+signal overcharge_changed(remaining: float)
 signal damage_received(amount: float, current: float, maximum: float)
 signal skill_used(targets_hit: int, cooldown_seconds: float)
 signal skill_cooldown_changed(remaining_seconds: float, total_seconds: float)
@@ -31,6 +33,8 @@ const WeaponControllerScript = preload("res://scripts/weapons/weapon_controller.
 @export_range(8.0, 48.0, 1.0) var touch_soft_lock_pixels: float = 32.0
 
 var current_health: float = 0.0
+var current_overshield: float = 0.0
+var max_overshield: float = 45.0
 ## Fraction of incoming damage the selected tier's plate absorbs (0..1). Set
 ## once, from the roster, before the first hit -- see `_apply_progression_tier`.
 var _damage_reduction: float = 0.0
@@ -49,6 +53,8 @@ var _overdrive_duration: float = 0.0
 var _overdrive_speed_multiplier: float = 1.0
 var _overdrive_fire_rate_multiplier: float = 1.0
 var _overdrive_remaining: float = 0.0
+var _overcharge_remaining: float = 0.0
+var _distance_travelled: float = 0.0
 var _tech_modifiers: Dictionary = {}
 var _run_modifiers: Dictionary = {}
 var _skill_cooldown_remaining: float = 0.0
@@ -91,11 +97,25 @@ func _physics_process(delta: float) -> void:
 		velocity = Vector3.ZERO
 		visual_root.update_pose(Vector3.ZERO, true, delta)
 		return
+	var pos_before := global_position
 	_update_movement(delta)
+	_distance_travelled += (
+		Vector2(global_position.x - pos_before.x, global_position.z - pos_before.z).length()
+	)
+	var fire_boost := 1.0
 	if _overdrive_remaining > 0.0:
 		_overdrive_remaining = maxf(_overdrive_remaining - delta, 0.0)
-		if _overdrive_remaining <= 0.0 and is_instance_valid(weapon_controller):
-			weapon_controller.set_overdrive_fire_rate(1.0)
+		if _overdrive_remaining > 0.0:
+			fire_boost = maxf(fire_boost, _overdrive_fire_rate_multiplier)
+	if _overcharge_remaining > 0.0:
+		var prev_oc_sec := ceili(_overcharge_remaining)
+		_overcharge_remaining = maxf(_overcharge_remaining - delta, 0.0)
+		if _overcharge_remaining > 0.0:
+			fire_boost = maxf(fire_boost, 1.24)
+		if _overcharge_remaining <= 0.0 or ceili(_overcharge_remaining) != prev_oc_sec:
+			overcharge_changed.emit(_overcharge_remaining)
+	if is_instance_valid(weapon_controller):
+		weapon_controller.set_overdrive_fire_rate(fire_boost)
 	if _skill_cooldown_remaining > 0.0:
 		var previous_cooldown_bucket := ceili(_skill_cooldown_remaining)
 		_skill_cooldown_remaining = maxf(_skill_cooldown_remaining - delta, 0.0)
@@ -359,9 +379,47 @@ func _on_weapon_changed(display_name: String) -> void:
 func _on_ammo_changed(_remaining: int, _capacity: int, reloading: bool) -> void:
 	if reloading and not _reload_was_active:
 		visual_root.play_reload(weapon_controller.current_reload_remaining())
+		if is_physics_processing():
+			Sfx.play_ui(&"reload_start")
 	elif not reloading and _reload_was_active:
 		visual_root.finish_reload()
+		if is_physics_processing() and _remaining > 0:
+			Sfx.play_ui(&"reload_ready")
 	_reload_was_active = reloading
+
+
+func _grant_overshield(amount: float) -> float:
+	if _is_defeated or amount <= 0.0:
+		return 0.0
+	var before := current_overshield
+	current_overshield = clampf(current_overshield + amount, 0.0, max_overshield)
+	var gained := current_overshield - before
+	if gained > 0.0:
+		overshield_changed.emit(current_overshield, max_overshield)
+	return gained
+
+
+func _heal_or_shield(amount: float) -> Dictionary:
+	if _is_defeated or amount <= 0.0:
+		return {"healed": 0.0, "shielded": 0.0}
+	var hp_before := current_health
+	current_health = minf(current_health + amount, max_health)
+	var healed := current_health - hp_before
+	var overflow := maxf(amount - healed, 0.0)
+	var shielded := _grant_overshield(overflow * 0.65) if overflow > 0.0 else 0.0
+	if healed > 0.0:
+		health_changed.emit(current_health, max_health)
+	return {"healed": healed, "shielded": shielded}
+
+
+func _grant_weapon_overcharge(seconds: float = 6.0) -> void:
+	if _is_defeated:
+		return
+	if is_instance_valid(weapon_controller):
+		weapon_controller.refill_active_magazine_ratio(1.0)
+		weapon_controller.set_overdrive_fire_rate(1.24)
+	_overcharge_remaining = maxf(_overcharge_remaining, seconds)
+	overcharge_changed.emit(_overcharge_remaining)
 
 
 func can_take_damage() -> bool:
@@ -499,7 +557,17 @@ func apply_damage(amount: float, _source: Node = null) -> void:
 
 	# The plate turns a share of the hit away before the pool is touched, so a
 	# tier reads in the damage numbers and not only in the health bar.
-	var applied_damage := minf(amount * (1.0 - _damage_reduction), current_health)
+	var reduced := amount * (1.0 - _damage_reduction)
+	if current_overshield > 0.0:
+		var absorbed := minf(reduced, current_overshield)
+		current_overshield = maxf(current_overshield - absorbed, 0.0)
+		reduced = maxf(reduced - absorbed, 0.0)
+		overshield_changed.emit(current_overshield, max_overshield)
+		Sfx.play_ui(&"shield_hit")
+		if reduced <= 0.001:
+			damage_received.emit(absorbed, current_health, max_health)
+			return
+	var applied_damage := minf(reduced, current_health)
 	current_health = maxf(current_health - applied_damage, 0.0)
 	damage_received.emit(applied_damage, current_health, max_health)
 	health_changed.emit(current_health, max_health)
@@ -528,8 +596,11 @@ func reset_player() -> void:
 	_cursor_aim_active = false
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	current_health = max_health
+	current_overshield = 0.0
 	_skill_cooldown_remaining = 0.0
 	_overdrive_remaining = 0.0
+	_overcharge_remaining = 0.0
+	_distance_travelled = 0.0
 	if is_instance_valid(weapon_controller):
 		weapon_controller.set_overdrive_fire_rate(1.0)
 	velocity = Vector3.ZERO
@@ -539,6 +610,8 @@ func reset_player() -> void:
 	_reload_was_active = false
 	visual_root.reset_action_state()
 	health_changed.emit(current_health, max_health)
+	overshield_changed.emit(current_overshield, max_overshield)
+	overcharge_changed.emit(0.0)
 	skill_cooldown_changed.emit(0.0, emp_pulse_cooldown)
 
 

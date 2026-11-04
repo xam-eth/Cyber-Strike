@@ -12,6 +12,7 @@ const RewardServiceScript = preload("res://scripts/progression/reward_service.gd
 const RunUpgradeManagerScript = preload("res://scripts/progression/run_upgrade_manager.gd")
 const ProgressionServiceScript = preload("res://scripts/progression/progression_service.gd")
 const RecoveryCacheVisualScript = preload("res://scripts/worlds/recovery_cache_visual.gd")
+const FieldActivityDirectorScript = preload("res://scripts/worlds/field_activity_director.gd")
 const DEFEAT_REVEAL_SECONDS := 1.55
 const DEFEAT_HOLD_DRAWN_FRAMES := 6
 const RECOVERY_LOCAL_RADIUS := 22.0
@@ -54,6 +55,7 @@ var _recovery_qa_timer: float = 0.0
 var _extracting: bool = false
 var _run_banked: bool = false
 var _device_profiler: Node
+var _field_activity: FieldActivityDirector
 var _profiler_context := ""
 var _profiler_context_seconds := 0.0
 
@@ -67,17 +69,10 @@ var _profiler_context_seconds := 0.0
 @onready var touch_controls: TouchControlsScript = $HUD/TouchControls
 
 
-## The F10 review camera used to be a node inside main.tscn, so every player
-## downloaded it and it sat in the shipped scene graph. It is built here
-## instead, and only where QA actually runs: the browser preview (the
-## automated screenshot pass drives it over a keyboard) and desktop editor/debug
-## runs. Android profiling and release APKs do not build the review rig.
+## Builds the F10 review rig only on desktop debug or embedded Web QA.
 func _add_qa_rig() -> void:
-	# Android profiling must not pay for the desktop/browser review camera.
 	if not ((OS.is_debug_build() and not OS.has_feature("android")) or OS.has_feature("web")):
 		return
-	# load(), not preload(): the script must not be resident in a build that
-	# never uses it.
 	var rig_script: GDScript = load("res://scripts/qa/world_tour.gd")
 	if rig_script == null:
 		return
@@ -89,14 +84,12 @@ func _add_qa_rig() -> void:
 func _add_device_profiler() -> void:
 	if not OS.has_feature("android"):
 		return
-	var profiling_enabled := (
+	if not (
 		OS.is_debug_build()
 		or OS.has_feature("device_profile")
 		or OS.get_cmdline_user_args().has("--device-profile")
-	)
-	if not profiling_enabled:
+	):
 		return
-	# Load on the profiling path only. A normal release never creates the node.
 	var profiler_script: GDScript = load("res://scripts/integration/device_profiler.gd")
 	if profiler_script == null:
 		return
@@ -109,23 +102,13 @@ func _add_device_profiler() -> void:
 func _update_device_profiler_context() -> void:
 	if not is_instance_valid(_device_profiler):
 		return
-	var phase := "explore"
-	match session_mode:
-		SessionMode.PREPARING:
-			phase = "preparing"
-		SessionMode.DEFENSE:
-			phase = "defense"
-		SessionMode.RESULTS:
-			phase = "results"
-		SessionMode.MISSION_COMPLETE:
-			phase = "mission_complete"
-	var wave := wave_director.current_wave
+	const PHASES := ["explore", "preparing", "defense", "results", "mission_complete"]
+	var phase: String = PHASES[clampi(int(session_mode), 0, PHASES.size() - 1)]
 	var enemies := wave_director.active_enemy_count + wave_director.active_guard_count
-	var context := "%s/%d/%d" % [phase, wave, enemies]
-	if context == _profiler_context:
-		return
-	_profiler_context = context
-	_device_profiler.call("set_context", phase, wave, enemies)
+	var context := "%s/%d/%d" % [phase, wave_director.current_wave, enemies]
+	if context != _profiler_context:
+		_profiler_context = context
+		_device_profiler.call("set_context", phase, wave_director.current_wave, enemies)
 
 
 func _ready() -> void:
@@ -165,6 +148,7 @@ func _ready() -> void:
 	_apply_saved_weapon()
 	_apply_selected_world_spawn()
 	_setup_recovery()
+	_setup_field_activity()
 	print(
 		(
 			"Operative: hero=%s vitals=%d reduction=%d%%"
@@ -192,6 +176,12 @@ func _ready() -> void:
 	player.aim_changed.connect(touch_controls.set_aim_state)
 	player.shot_fired.connect(_on_shot_fired)
 	player.health_changed.connect(_on_combatant_health_changed)
+	player.overshield_changed.connect(
+		func(c: float, m: float) -> void: HudResourceBar.sync_overshield(touch_controls, c, m)
+	)
+	player.overcharge_changed.connect(
+		func(sec: float) -> void: HudResourceBar.sync_overcharge(touch_controls, sec)
+	)
 	player.damage_received.connect(_on_player_damage_received)
 	player.defeated.connect(_on_player_defeated)
 	training_drone.health_changed.connect(_on_combatant_health_changed)
@@ -371,6 +361,7 @@ func _on_profile_changed() -> void:
 		player.weapon_controller.get_current_magazine_size(),
 		player.weapon_controller.is_reloading()
 	)
+	_sync_resource_hud()
 
 
 ## The front end stores the weapon the player launched with; this is where it
@@ -640,6 +631,9 @@ func _return_to_explore() -> void:
 	HudUpgradeBridge.refresh(touch_controls, run_upgrade_manager)
 	session_mode = SessionMode.EXPLORE
 	_reset_recovery()
+	if is_instance_valid(_field_activity):
+		_field_activity.reset_field_activity()
+	HudResourceBar.clear_toast_feed(touch_controls)
 	Sfx.set_music_mode(&"explore")
 	touch_controls.hide_results()
 	touch_controls.set_player_down(false)
@@ -911,19 +905,9 @@ func _tick_recovery_guidance(delta: float) -> void:
 	_recovery_stuck_seconds += delta
 	if _recovery_stuck_seconds >= RECOVERY_STUCK_SECONDS and not _recovery_stuck_notified:
 		_recovery_stuck_notified = true
-		(
-			touch_controls
-			. _feedback_panel
-			. show_message(
-				(
-					AegisText
-					. t(
-						"recovery.stuck_toast",
-						[_relative_bearing_label(focus_pos), roundi(dist)],
-					)
-				)
-			)
-		)
+		var dir_lbl := _relative_bearing_label(focus_pos)
+		var msg := AegisText.t("recovery.stuck_toast", [dir_lbl, roundi(dist)])
+		touch_controls._feedback_panel.show_message(msg)
 
 
 func _emit_recovery_cache_qa(delta: float) -> void:
@@ -1205,6 +1189,9 @@ func _secure_cache(cache: RecoveryCacheDefinition) -> bool:
 	touch_controls._feedback_panel.show_message(
 		AegisText.t("recovery.secured_feedback", [cache.display_name])
 	)
+	HudResourceBar.push_toast(
+		touch_controls, "◈ CACHE SECURED · %s" % cache.display_name.to_upper(), AegisTokens.OK
+	)
 	print("Recovery: secured %s · reward %s" % [cache.cache_id, cache.reward_id])
 	_update_recovery()
 	_update_status()
@@ -1342,6 +1329,8 @@ func _on_player_defeated() -> void:
 	Sfx.play_ui(&"defeat")
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	touch_controls.set_player_down(true)
+	if is_instance_valid(_field_activity):
+		_field_activity.clear_patrols()
 	wave_director.end_session()
 	_update_status()
 
@@ -1384,14 +1373,20 @@ func _on_enemy_rewarded(enemy: Node3D, _score_reward: int, bp_reward: int) -> vo
 	# the wave. The same earned reward appears in Results and the browser log.
 	touch_controls._feedback_panel.show_message(AegisText.t("hud.target_down_bp", [bp_reward]))
 	run_upgrade_manager.record_elimination(enemy)
+	var is_guardian := enemy.is_in_group("guardian_enemies")
 	var archetype := "RUNNER"
-	if enemy.is_in_group("guardian_enemies"):
+	if is_guardian:
 		archetype = "GUARDIAN"
 		run_upgrade_manager.record_milestone("guardian_%d" % enemy.get_instance_id())
 	elif enemy.is_in_group("enforcer_enemies"):
 		archetype = "ENFORCER"
 	elif enemy.is_in_group("shooter_enemies"):
 		archetype = "SHOOTER"
+	if is_instance_valid(_field_activity):
+		_field_activity.spawn_enemy_drops(enemy, is_guardian)
+	HudResourceBar.push_toast(
+		touch_controls, "◆ +%d BP · %s KO" % [bp_reward, archetype], AegisTokens.ACCENT
+	)
 	print("Encounter: %s KO · +%d BP" % [archetype, bp_reward])
 
 
@@ -1407,10 +1402,9 @@ func _on_wave_enemy_spawned(enemy: Node3D) -> void:
 	if enemy.has_signal("damage_received"):
 		enemy.connect("damage_received", _on_target_damage_received)
 	if enemy.is_in_group("guardian_enemies"):
-		if enemy.has_signal("health_changed"):
-			enemy.connect("health_changed", _on_combatant_health_changed)
+		enemy.connect("health_changed", _on_combatant_health_changed)
 		if enemy.has_signal("phase_changed"):
-			enemy.connect("phase_changed", _on_guardian_phase_changed)
+			enemy.connect("phase_changed", func(_p: StringName) -> void: _update_status())
 		if enemy.has_signal("shield_broken"):
 			enemy.connect("shield_broken", _on_guardian_shield_broken)
 		_update_status()
@@ -1419,10 +1413,6 @@ func _on_wave_enemy_spawned(enemy: Node3D) -> void:
 func _on_guardian_spawned(_guardian: Node3D, wave_index: int) -> void:
 	touch_controls._feedback_panel.show_message(AegisText.t("hud.guardian_alert"))
 	print("Encounter: Guardian deployed (wave %d)" % wave_index)
-	_update_status()
-
-
-func _on_guardian_phase_changed(_phase: StringName) -> void:
 	_update_status()
 
 
@@ -1436,10 +1426,9 @@ func _on_wave_session_ended(wave_index: int, _total_defeated: int) -> void:
 		session_mode == SessionMode.DEFENSE
 		or (_extracting and _recovery_return_mode == SessionMode.DEFENSE)
 	)
-	var should_bank := was_defense or _extracting
-	# Explore never spawns an automatic wave, but a test/manual damage event
-	# can still defeat the hero. Show recoverable Results instead of stranding
-	# a dead character with no session to finish or rewards to claim.
+	var should_bank := (
+		was_defense or _extracting or (player.is_defeated() and run_stats.bp_earned > 0)
+	)
 	if not should_bank and not player.is_defeated():
 		return
 	_retry_defense = was_defense and not _extracting
@@ -1478,27 +1467,20 @@ func _on_wave_session_ended(wave_index: int, _total_defeated: int) -> void:
 
 func _present_results(wave_index: int) -> void:
 	touch_controls._set_play_phase("results")
-	(
-		touch_controls
-		. set_results_context(
-			_extracting,
-			progression_service.has_blueprint(&"arc_shooter"),
-		)
+	touch_controls.set_results_context(
+		_extracting, progression_service.has_blueprint(&"arc_shooter")
 	)
-	(
-		touch_controls
-		. show_results(
-			wave_index,
-			run_stats.get_survival_time_text(),
-			run_stats.eliminations,
-			run_stats.run_score,
-			run_stats.bp_earned,
-			progression_service.balance,
-			progression_service.best_score,
-			progression_service.unlocked_ids,
-			player.is_defeated(),
-			_recovery_result_summary(),
-		)
+	touch_controls.show_results(
+		wave_index,
+		run_stats.get_survival_time_text(),
+		run_stats.eliminations,
+		run_stats.run_score,
+		run_stats.bp_earned,
+		progression_service.balance,
+		progression_service.best_score,
+		progression_service.unlocked_ids,
+		player.is_defeated(),
+		_recovery_result_summary()
 	)
 	_update_status()
 	print("Encounter: Results after wave %d" % wave_index)
@@ -1527,6 +1509,8 @@ func _update_status() -> void:
 		]
 	)
 	touch_controls.set_hud_health(player_health, player_maximum)
+	HudResourceBar.sync_overshield(touch_controls, player.current_overshield, player.max_overshield)
+	_sync_resource_hud()
 	var wave_number := wave_director.current_wave
 	var active_enemies := wave_director.active_enemy_count
 	var remaining_enemies := wave_director.enemies_remaining
@@ -1555,3 +1539,56 @@ func _update_status() -> void:
 	else:
 		HudEncounterUi.set_guardian_status(touch_controls, false, 0.0, 0.0, "fortified")
 	touch_controls.set_status(status)
+
+
+func _setup_field_activity() -> void:
+	_field_activity = FieldActivityDirectorScript.new()
+	add_child(_field_activity)
+	_field_activity.pickup_collected.connect(_on_field_pickup_collected)
+	_field_activity.supply_crate_broken.connect(_on_supply_crate_broken)
+	_field_activity.patrol_robot_defeated.connect(_on_patrol_robot_defeated)
+	_field_activity.field_target_hit.connect(_on_target_damage_received.bind(0.0, 0.0, 0.0))
+	_field_activity.configure(player)
+
+
+func _sync_resource_hud() -> void:
+	if not is_instance_valid(touch_controls) or not is_instance_valid(progression_service):
+		return
+	var secured_count := 0
+	for cache in _recovery_caches:
+		if cache != null and progression_service.is_cache_secured(cache.cache_id):
+			secured_count += 1
+	HudResourceBar.sync_telemetry(
+		touch_controls,
+		progression_service.balance,
+		run_stats.bp_earned if is_instance_valid(run_stats) else 0,
+		run_stats.cryo_alloy if is_instance_valid(run_stats) else 0,
+		secured_count,
+		maxi(_recovery_caches.size(), 4)
+	)
+
+
+func _on_field_pickup_collected(kind: StringName, amount: int, _pos: Vector3) -> void:
+	var note := FieldActivityDirectorScript.apply_pickup_effect(
+		kind, amount, player, run_stats, run_upgrade_manager
+	)
+	HudResourceBar.push_toast(touch_controls, String(note["text"]), note["color"] as Color)
+	_update_status()
+
+
+func _on_supply_crate_broken(_pos: Vector3, tier: int) -> void:
+	run_stats.record_crate_broken(60 if tier == 2 else 40)
+	HudResourceBar.push_toast(touch_controls, "▣ SUPPLY CACHE BREACHED", AegisTokens.ACCENT)
+	_update_status()
+
+
+func _on_patrol_robot_defeated(
+	score_reward: int, bp_reward: int, _pos: Vector3, kind_id: StringName
+) -> void:
+	if run_stats.is_run_active:
+		run_stats.record_elimination(score_reward, bp_reward)
+	else:
+		run_stats.collect_field_bp(bp_reward, score_reward)
+	var msg := "◆ +%d BP · %s PATROL KO" % [bp_reward, String(kind_id).to_upper()]
+	HudResourceBar.push_toast(touch_controls, msg, AegisTokens.ACCENT)
+	_update_status()

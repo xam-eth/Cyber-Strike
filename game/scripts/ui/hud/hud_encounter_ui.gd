@@ -183,6 +183,8 @@ static func apply_context(hud) -> void:
 	hud._run_card.visible = false
 	hud._score_chip.visible = false
 	hud._compact_card.visible = false
+	if is_instance_valid(hud._resource_bar):
+		hud._resource_bar.visible = active and hud._state.play_phase != "results"
 	if is_instance_valid(hud._pause_restart_button):
 		if exploring:
 			AegisText.apply(hud._pause_restart_button, "pause.reset")

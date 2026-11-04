@@ -35,7 +35,7 @@ shape = SubResource("CapsuleShape_player")
 script = ExtResource("7_character_visual")
 model_scene_path = "res://assets/characters/human_hero_tiers/hero_human_tier_1.glb"
 rig_path = "res://assets/characters/human_hero_tiers/hero_human_tier_1_rig.json"
-weapon_scene_path = "res://assets/weapons/futuristic_rifle/rifle.glb"
+weapon_scene_path = "res://assets/weapons/hero_01_weapon/hero_01_weapon.glb"
 
 [node name="BodyMesh" type="MeshInstance3D" parent="VisualRoot"]
 position = Vector3(0, 0.9, 0)

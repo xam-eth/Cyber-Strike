@@ -75,3 +75,10 @@ var objective_world_pos: Vector3 = Vector3.ZERO
 ## Live screen-space reticle position driven by the cursor on desktop (center on touch).
 var reticle_pos: Vector2 = Vector2(-1.0, -1.0)
 var cursor_aim_active: bool = false
+## Live Overshield, Weapon Overcharge, and Field Resource Telemetry (presentation only).
+var overshield: float = 0.0
+var max_overshield: float = 45.0
+var overcharge_seconds: float = 0.0
+var cryo_alloy: int = 0
+var caches_secured: int = 0
+var caches_total: int = 4

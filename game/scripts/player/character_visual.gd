@@ -382,6 +382,8 @@ func _spawn_model() -> void:
 		var old_pivot := _model.get_parent()
 		_model = null
 		if is_instance_valid(old_pivot) and old_pivot != self:
+			if old_pivot.get_parent() != null:
+				old_pivot.get_parent().remove_child(old_pivot)
 			old_pivot.queue_free()
 	_skeleton = null
 	_anim_player = null
@@ -657,6 +659,7 @@ func _spawn_weapon() -> void:
 	# dynamic-content retry or be duplicated by a successful one.
 	var old_weapon := _weapon_socket.get_node_or_null("WeaponModel")
 	if old_weapon != null:
+		_weapon_socket.remove_child(old_weapon)
 		old_weapon.queue_free()
 	var selected_scene := weapon_scene
 	if selected_scene == null and not weapon_scene_path.is_empty():

@@ -975,7 +975,7 @@ const WEAPONS = {
     nameKey: 'wpn.pulse.name',
     cost: 0,
     art: './game/assets/ui/weapon_pulse_rifle.png',
-    model: './game/assets/weapons/futuristic_rifle/rifle.glb',
+    model: './game/assets/weapons/hero_01_weapon/hero_01_weapon.glb',
     definition: { damage: 18, fire_rate: 5, magazine_size: 24, reload_seconds: 1.35 },
   },
   nova_launcher: {

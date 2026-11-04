@@ -7,7 +7,7 @@
 script = ExtResource("1_definition")
 weapon_id = &"pulse_rifle"
 display_name = "Pulse Rifle"
-model_scene_path = "res://assets/weapons/futuristic_rifle/rifle.glb"
+model_scene_path = "res://assets/weapons/hero_01_weapon/hero_01_weapon.glb"
 role_description = "Fast, accurate energy bolts for reliable single-target damage."
 projectile_scene = ExtResource("2_projectile")
 fire_rate = 5.0

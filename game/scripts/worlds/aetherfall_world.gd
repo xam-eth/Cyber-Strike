@@ -31,8 +31,10 @@ var verticality_count: int = 0
 var ice_planet_count: int = 0
 var phase2_cover_count: int = 0
 var archive_interior_count: int = 0
+var archive_computer_count: int = 0
 var expanse_route_count: int = 0
 var _skip_web_omni_lights: bool = false
+var _software_webgl: bool = false
 
 
 func _ready() -> void:
@@ -47,6 +49,7 @@ func _ready() -> void:
 	_add_archive_interior()
 	_add_phase2_cover()
 	_add_connected_expanse()
+	_add_polar_snowfall()
 	print(
 		(
 			(
@@ -75,17 +78,13 @@ func provides_authored_lighting() -> bool:
 	return true
 
 
+func provides_authored_motion() -> bool:
+	return true
+
+
 func _apply_web_render_budget() -> void:
 	if not OS.has_feature("web"):
 		return
-	_skip_web_omni_lights = true
-	var sun := get_node_or_null("Sun") as DirectionalLight3D
-	if sun != null:
-		sun.shadow_enabled = false
-	var world_env := get_node_or_null("WorldEnvironment") as WorldEnvironment
-	if world_env != null and world_env.environment != null:
-		world_env.environment.ssao_enabled = false
-		world_env.environment.glow_enabled = false
 	var adapter := RenderingServer.get_video_adapter_name().to_lower()
 	var sw_webgl := bool(
 		JavaScriptBridge.eval(
@@ -99,12 +98,24 @@ func _apply_web_render_budget() -> void:
 			)
 		)
 	)
-	if (
+	_software_webgl = (
 		sw_webgl
 		or adapter.contains("swiftshader")
 		or adapter.contains("llvmpipe")
 		or adapter.contains("software")
-	):
+	)
+	var world_env := get_node_or_null("WorldEnvironment") as WorldEnvironment
+	if world_env != null and world_env.environment != null:
+		# SSAO is costly in mobile/WebGL2; real GPUs keep directional shadows,
+		# sky reflections, fog, and cyan emissive glow.
+		world_env.environment.ssao_enabled = false
+		if _software_webgl:
+			world_env.environment.glow_enabled = false
+	if _software_webgl:
+		_skip_web_omni_lights = true
+		var sun := get_node_or_null("Sun") as DirectionalLight3D
+		if sun != null:
+			sun.shadow_enabled = false
 		var vp := get_viewport()
 		if vp != null:
 			vp.scaling_3d_scale = 0.45
@@ -134,6 +145,7 @@ func _build_kit_and_routes() -> void:
 
 	var packs: Dictionary = {}
 	var sizes: Dictionary = {}
+	var mins: Dictionary = {}
 	for rel_key in measured_models.keys():
 		var rel_path := str(rel_key)
 		if not rel_path.begins_with("models/") or not rel_path.ends_with(".glb"):
@@ -144,6 +156,7 @@ func _build_kit_and_routes() -> void:
 			packs[key] = packed
 			var entry: Dictionary = measured_models[rel_key] as Dictionary
 			sizes[key] = _v3(entry.get("size", []))
+			mins[key] = _v3(entry.get("min", []))
 
 	var placements: Array = layout.get("placements", []) as Array
 	for raw_item in placements:
@@ -164,11 +177,14 @@ func _build_kit_and_routes() -> void:
 		instance.position = pos
 		instance.rotation = rot
 		instance.scale = Vector3.ONE * scale_factor
+		if key in ["cloud_puff", "background_silhouette", "energy_core"]:
+			instance.set_meta("no_shadow_cast", true)
 		modules.add_child(instance)
 		placement_count += 1
 		if key in NO_COLLISION:
 			continue
 		var base_size: Vector3 = sizes.get(key, Vector3.ZERO) as Vector3
+		var base_min: Vector3 = mins.get(key, -base_size * 0.5) as Vector3
 		var size: Vector3 = base_size * scale_factor
 		if size.x <= 0.0 or size.y <= 0.0 or size.z <= 0.0:
 			continue
@@ -185,7 +201,7 @@ func _build_kit_and_routes() -> void:
 			collider_count += 1
 			continue
 		var shape := BoxShape3D.new()
-		var offset := Vector3.ZERO
+		var offset: Vector3 = (base_min + base_size * 0.5) * scale_factor
 		if WALKABLE_MESH.has(key):
 			var mesh_name := String(WALKABLE_MESH[key])
 			var surface := instance.find_child(mesh_name, true, false) as MeshInstance3D
@@ -477,6 +493,26 @@ func _add_archive_interior() -> void:
 		light.omni_range = float(light_data.get("range", 6.0))
 		light.shadow_enabled = false
 		archive.add_child(light)
+	var computer_spec: Dictionary = data.get("computer", {}) as Dictionary
+	var comp_pack := load(BASE + "archive/archive_computer.glb") as PackedScene
+	if not computer_spec.is_empty() and comp_pack != null:
+		var comp_visual := comp_pack.instantiate() as Node3D
+		if comp_visual != null:
+			comp_visual.name = "ArchiveComputer"
+			comp_visual.position = _v3(computer_spec.get("local_position", [0.0, 0.6, 1.85]))
+			comp_visual.rotation = (
+				_v3(computer_spec.get("local_rotation_degrees", [0.0, 180.0, 0.0])) * PI / 180.0
+			)
+			archive.add_child(comp_visual)
+			var comp_shape := CollisionShape3D.new()
+			comp_shape.name = "ArchiveComputerShape"
+			comp_shape.position = comp_visual.position + Vector3(0.0, 0.9, 0.0)
+			var comp_box := BoxShape3D.new()
+			comp_box.size = Vector3(1.6, 1.8, 0.95)
+			comp_shape.shape = comp_box
+			collision.add_child(comp_shape)
+			collider_count += 1
+			archive_computer_count += 1
 	archive_interior_count += 1
 
 
@@ -586,13 +622,45 @@ func _add_expanse_route(parent: Node3D, packed: PackedScene, spec: Dictionary) -
 	route.add_child(body)
 	var shape := CollisionShape3D.new()
 	shape.name = "Surface"
-	shape.position.y = -0.25
+	shape.position.y = 0.0
 	var box := BoxShape3D.new()
-	box.size = Vector3(length, 0.5, width)
+	box.size = Vector3(length, 0.95, width)
 	shape.shape = box
 	body.add_child(shape)
 	collider_count += 1
 	expanse_route_count += 1
+
+
+func _add_polar_snowfall() -> void:
+	if _software_webgl or DisplayServer.get_name() == "headless":
+		return
+	var snowfall := CPUParticles3D.new()
+	snowfall.name = "PolarSnowfall"
+	snowfall.position = Vector3(0.0, 14.0, 0.0)
+	snowfall.amount = 140
+	snowfall.lifetime = 5.5
+	snowfall.preprocess = 2.5
+	snowfall.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+	snowfall.emission_box_extents = Vector3(46.0, 8.0, 38.0)
+	snowfall.direction = Vector3(-0.42, -1.0, 0.24).normalized()
+	snowfall.spread = 22.0
+	snowfall.gravity = Vector3(-0.85, -1.65, 0.35)
+	snowfall.initial_velocity_min = 1.6
+	snowfall.initial_velocity_max = 3.2
+	snowfall.scale_amount_min = 0.65
+	snowfall.scale_amount_max = 1.45
+	var flake_mat := StandardMaterial3D.new()
+	flake_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	flake_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	flake_mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	flake_mat.billboard_keep_scale = true
+	flake_mat.albedo_color = Color(0.84, 0.94, 1.0, 0.52)
+	var quad := QuadMesh.new()
+	quad.size = Vector2(0.065, 0.065)
+	quad.material = flake_mat
+	snowfall.mesh = quad
+	snowfall.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(snowfall)
 
 
 static func _v3(value: Variant) -> Vector3:
