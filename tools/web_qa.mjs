@@ -1008,11 +1008,12 @@ async function checkPageWithBrowser(browser, target, viewport) {
     const engageOffered = () => latestRecovery()?.action === 'engage';
     // Arrival Outpost spawn (-6, 1.2, 9) is the open central deck tile: the
     // terrain_chunk ice masses are now solid concave colliders and the basin
-    // berms/cover are real boxes, so the old "Southern Boulevard" route walked
+    // berms/cover are real boxes, so the old "Southern Boulevard" start walked
     // through visible ice (the player bug report). Self-calibrate msPerMeter
-    // from real Camera QA world coordinates and route along the genuinely
-    // clear z=12 lane (box clearance >= 0.7 m on every leg):
-    //   (-6,9) -> (-6,12) -> (-21.5,12) -> (-21.5,10.2)
+    // from real Camera QA world coordinates and route along the validated
+    // z=16.5 Southern Boulevard lane (clear of cooling_vent_159 and the basin
+    // berms; >=0.7 m clearance on every leg):
+    //   (-6,9) -> (-6,16.5) -> (-21.5,16.5) -> (-21.5,10.2)
     // landing in the unobstructed East Plaza 3.0m from Outpost Cache (-24.5,10.5)
     // and 2.0-3.1m from both robot guards.
     let msPerMeter = 520;
@@ -1068,11 +1069,11 @@ async function checkPageWithBrowser(browser, target, viewport) {
       }
     };
     if (recoveryE2eMode) {
-      await driveAxis('z', 12, 0.55, 60000);
+      await driveAxis('z', 16.5, 0.55, 60000);
       await driveAxis('x', -21.5, 0.65, 60000);
       await driveAxis('z', 10.2, 0.75, 75000);
     } else {
-      await driveAxis('z', 12, 0.55, 45000, true);
+      await driveAxis('z', 16.5, 0.55, 45000, true);
       await driveAxis('x', -21.5, 0.65, 45000, true);
       await driveAxis('z', 10.2, 0.75, 45000, true);
     }
