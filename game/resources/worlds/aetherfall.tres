@@ -118,5 +118,6 @@ status_line = "OPEN"
 zone_title = "EXPLORE AETHERFALL"
 zone_subtitle = "SAFE ZONE · RELAY & ARCHIVE"
 field_ready = true
-player_spawn = Vector3(-30, 1.2, 14)
+player_spawn = Vector3(-30, 1.2, 9)
+player_spawn_yaw_degrees = -105.0
 recovery_caches = Array[RecoveryCacheDefinition]([SubResource("Resource_horizon_relay"), SubResource("Resource_archive_vault"), SubResource("Resource_primary_cache"), SubResource("Resource_hangar_cache")])

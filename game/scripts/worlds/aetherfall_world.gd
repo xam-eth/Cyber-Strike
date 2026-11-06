@@ -6,6 +6,11 @@ extends Node3D
 ## landmarks, polar glacier basin, Archive interior room, tactical cover, and
 ## connected lowland expanse.
 const BASE := "res://assets/world/aetherfall/"
+## Assets that never get an AABB box collider (their enclosing box would be a
+## wrong invisible wall). The purely decorative ones stay pass-through; the
+## solid scenery in SOLID_TRIMESH gets an exact concave collider instead, so
+## ice cliffs, boulders, glacier walls and buildings can no longer be walked
+## through.
 const NO_COLLISION := [
 	"terrain_chunk",
 	"cliff_face",
@@ -16,6 +21,19 @@ const NO_COLLISION := [
 	"cable_bundle",
 	"energy_core",
 	"railing",
+]
+const SOLID_TRIMESH := [
+	"terrain_chunk",
+	"cliff_face",
+	"rock_boulder",
+	"debris_cluster",
+	"energy_core",
+	"railing",
+]
+const SOLID_TRIMESH_SETPIECES := [
+	"glacier_shelf",
+	"frozen_spire",
+	"cryo_pylon",
 ]
 const WALKABLE_MESH := {
 	"deck_6x6": "ChamferedDeckArmour",
@@ -182,6 +200,13 @@ func _build_kit_and_routes() -> void:
 		modules.add_child(instance)
 		placement_count += 1
 		if key in NO_COLLISION:
+			if key in SOLID_TRIMESH:
+				# Exact concave collision from the visible geometry: a 48 m
+				# terrain mesa or an ice cliff must read as solid rock/ice, not
+				# as an invisible box or (before this) as nothing at all.
+				_add_trimesh_body(
+					collision, instance, pos, rot, scale_factor, str(item.get("name", key))
+				)
 			continue
 		var base_size: Vector3 = sizes.get(key, Vector3.ZERO) as Vector3
 		var base_min: Vector3 = mins.get(key, -base_size * 0.5) as Vector3
@@ -283,6 +308,51 @@ func _add_mesh_shape(
 	shape.position = bounds.get_center() * scale_factor
 	shape.shape = box
 	body.add_child(shape)
+
+
+## Build one static body whose concave shape is the visible mesh geometry,
+## baked through the node chain and the placement scale. Physics strips scale
+## from collision transforms, so the triangles themselves are transformed.
+func _add_trimesh_body(
+	collision_parent: Node3D,
+	instance: Node3D,
+	body_position: Vector3,
+	body_rotation: Vector3,
+	scale_factor: float,
+	label: String
+) -> void:
+	var faces := PackedVector3Array()
+	for candidate in instance.find_children("*", "MeshInstance3D", true, false):
+		var mesh_instance := candidate as MeshInstance3D
+		if mesh_instance == null or mesh_instance.mesh == null:
+			continue
+		var relative: Transform3D = (
+			instance.transform.affine_inverse() * _local_transform_under(instance, mesh_instance)
+		)
+		var xform := relative.scaled(Vector3.ONE * scale_factor)
+		var source: PackedVector3Array = mesh_instance.mesh.get_faces()
+		var i := 0
+		while i + 2 < source.size():
+			faces.append(xform * source[i])
+			faces.append(xform * source[i + 1])
+			faces.append(xform * source[i + 2])
+			i += 3
+	if faces.is_empty():
+		return
+	var body := StaticBody3D.new()
+	body.name = "Collision_" + label
+	body.collision_layer = 1
+	body.collision_mask = 0
+	body.position = body_position
+	body.rotation = body_rotation
+	var shape := ConcavePolygonShape3D.new()
+	shape.set_faces(faces)
+	var node := CollisionShape3D.new()
+	node.name = "Shape"
+	node.shape = shape
+	body.add_child(node)
+	collision_parent.add_child(body)
+	collider_count += 1
 
 
 func _add_connectors() -> void:
@@ -426,6 +496,13 @@ func _spawn_setpiece_group(
 				shape.shape = box
 				collision.add_child(shape)
 				collider_count += 1
+		if boxes.is_empty() and visual != null and asset in SOLID_TRIMESH_SETPIECES:
+			# Glacier walls, frozen spires and cryo pylons used to ship without
+			# collision_boxes and were walk-through "ice blocks". The visible
+			# geometry is the collider now.
+			_add_trimesh_body(
+				setpiece, visual, Vector3.ZERO, Vector3.ZERO, 1.0, str(spec.get("id", asset))
+			)
 		var light_data: Variant = spec.get("light", null)
 		if light_data is Dictionary and not _skip_web_omni_lights:
 			var light_cfg: Dictionary = light_data as Dictionary

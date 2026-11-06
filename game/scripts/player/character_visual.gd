@@ -94,6 +94,12 @@ var _socket_aim_basis: Basis = Basis()
 var _socket_carry_basis: Basis = Basis()
 var _socket_offset: Vector3 = Vector3.ZERO
 var _last_speed_ratio: float = 0.0
+var _raise_remaining: float = 0.0
+var _lower_remaining: float = 0.0
+var _land_remaining: float = 0.0
+var _airborne: bool = false
+var _air_rising: bool = false
+var _move_backward: bool = false
 var _tier_livery: Dictionary = {}
 var _livery_override_count: int = 0
 
@@ -116,6 +122,12 @@ func _process(delta: float) -> void:
 		_reload_remaining = maxf(_reload_remaining - delta, 0.0)
 	if _hit_remaining > 0.0:
 		_hit_remaining = maxf(_hit_remaining - delta, 0.0)
+	if _raise_remaining > 0.0:
+		_raise_remaining = maxf(_raise_remaining - delta, 0.0)
+	if _lower_remaining > 0.0:
+		_lower_remaining = maxf(_lower_remaining - delta, 0.0)
+	if _land_remaining > 0.0:
+		_land_remaining = maxf(_land_remaining - delta, 0.0)
 	if is_rigged():
 		_update_locomotion(_last_speed_ratio)
 		_blend_socket(delta)
@@ -154,8 +166,19 @@ func walk_intensity() -> float:
 
 
 func set_aiming(value: bool) -> void:
+	if _aiming == value:
+		return
 	_aiming = value
-	if is_rigged():
+	# The authored raise_weapon/lower_weapon transitions close the visible gap
+	# between carry and aim; anything that interrupts them (movement, fire,
+	# reload) cancels the intro instead of letting it resume mid-fight.
+	if is_rigged() and not _defeated:
+		if value and _has_clip("raise_weapon") and _last_speed_ratio <= WALK_THRESHOLD:
+			_lower_remaining = 0.0
+			_raise_remaining = _anim_player.get_animation("raise_weapon").length
+		elif not value and _has_clip("lower_weapon") and _last_speed_ratio <= WALK_THRESHOLD:
+			_raise_remaining = 0.0
+			_lower_remaining = _anim_player.get_animation("lower_weapon").length
 		_update_locomotion(_last_speed_ratio)
 
 
@@ -192,6 +215,10 @@ func play_death() -> void:
 	_reload_remaining = 0.0
 	_reload_total = 0.0
 	_hit_remaining = 0.0
+	_raise_remaining = 0.0
+	_lower_remaining = 0.0
+	_land_remaining = 0.0
+	_airborne = false
 	if is_rigged():
 		_update_locomotion(0.0)
 
@@ -202,6 +229,12 @@ func reset_action_state() -> void:
 	_reload_remaining = 0.0
 	_reload_total = 0.0
 	_hit_remaining = 0.0
+	_raise_remaining = 0.0
+	_lower_remaining = 0.0
+	_land_remaining = 0.0
+	_airborne = false
+	_air_rising = false
+	_move_backward = false
 	_aiming = false
 	_last_speed_ratio = 0.0
 	if is_rigged():
@@ -293,6 +326,25 @@ func update_pose(velocity: Vector3, grounded: bool, delta: float) -> void:
 	var horizontal := Vector2(velocity.x, velocity.z)
 	var speed_ratio := clampf(horizontal.length() / maxf(move_speed_reference, 0.001), 0.0, 1.4)
 	_last_speed_ratio = speed_ratio
+	# Airborne tracking drives the authored jump/fall/land clips: a real jump
+	# must never keep playing walk/run legs mid-air, and every landing gets the
+	# authored crouch recovery before locomotion resumes.
+	var rising := velocity.y > 0.8
+	var airborne := not grounded or rising
+	if airborne and not _airborne:
+		_airborne = true
+	elif _airborne and not airborne:
+		_airborne = false
+		if _has_clip("land") and not _defeated:
+			_land_remaining = _anim_player.get_animation("land").length
+	_air_rising = rising
+	# Backpedal: while the aim yaw locks the body, reversing the walk/aim_walk
+	# playback reads as stepping back instead of moon-walking forward.
+	var forward := Vector3(-sinf(_facing_yaw), 0.0, -cosf(_facing_yaw))
+	_move_backward = (
+		horizontal.length() > 0.1
+		and Vector3(velocity.x, 0.0, velocity.z).normalized().dot(forward) < -0.35
+	)
 	if is_rigged():
 		# The clips carry their own weight shift and gear motion; adding the
 		# procedural bob on top would double it. Only the strafe lean is kept.
@@ -549,17 +601,33 @@ func _setup_rig() -> void:
 	# explicit loop, a long walk freezes on its last frame; reactions should
 	# never loop, and death must remain in its final pose until reset.
 	for clip in [
-		"idle", "run", "walk", "aim", "aim_walk", "aim_run", "fire", "reload", "hit", "death"
+		"idle",
+		"run",
+		"walk",
+		"aim",
+		"aim_walk",
+		"aim_run",
+		"fire",
+		"reload",
+		"hit",
+		"death",
+		"raise_weapon",
+		"lower_weapon",
+		"jump",
+		"fall",
+		"land"
 	]:
 		if _anim_player.has_animation(clip):
 			var animation := _anim_player.get_animation(clip)
 			animation.loop_mode = (
 				Animation.LOOP_LINEAR
-				if clip in ["idle", "run", "walk", "aim", "aim_walk", "aim_run"]
+				if clip in ["idle", "run", "walk", "aim", "aim_walk", "aim_run", "fall"]
 				else Animation.LOOP_NONE
 			)
 			_anim_player.set_blend_time(clip, "aim", 0.12)
 			_anim_player.set_blend_time("aim", clip, 0.12)
+			_anim_player.set_blend_time(clip, "idle", 0.12)
+			_anim_player.set_blend_time("idle", clip, 0.12)
 	_play("idle", 0.0)
 
 
@@ -578,10 +646,15 @@ func _has_clip(clip: String) -> bool:
 
 
 func _play(clip: String, blend: float = 0.18, speed: float = 1.0) -> void:
-	if not _has_clip(clip) or clip == _current_clip:
+	if not _has_clip(clip):
 		return
-	_current_clip = clip
-	_anim_player.play(clip, blend, speed)
+	if clip != _current_clip:
+		_current_clip = clip
+		_anim_player.play(clip, blend, 1.0)
+	# speed_scale (not play()'s custom_speed) so the rate can change while the
+	# same clip keeps running -- backpedal reverses, reload stretches.
+	if not is_equal_approx(_anim_player.speed_scale, speed):
+		_anim_player.speed_scale = speed
 
 
 func _update_locomotion(speed_ratio: float) -> void:
@@ -597,6 +670,12 @@ func _update_locomotion(speed_ratio: float) -> void:
 		desired = "death"
 	elif _hit_remaining > 0.0 and _has_clip("hit"):
 		desired = "hit"
+	elif _land_remaining > 0.0 and _has_clip("land"):
+		desired = "land"
+	elif _airborne and _air_rising and _has_clip("jump"):
+		desired = "jump"
+	elif _airborne and _has_clip("fall"):
+		desired = "fall"
 	elif _reload_remaining > 0.0 and _has_clip("reload"):
 		desired = "reload"
 	elif combat_aim and speed_ratio > RUN_THRESHOLD and _has_clip("aim_run"):
@@ -605,16 +684,28 @@ func _update_locomotion(speed_ratio: float) -> void:
 		desired = "aim_walk"
 	elif _fire_remaining > 0.0 and _has_clip("fire"):
 		desired = "fire"
+	elif _raise_remaining > 0.0 and speed_ratio <= WALK_THRESHOLD and _has_clip("raise_weapon"):
+		desired = "raise_weapon"
+	elif _lower_remaining > 0.0 and speed_ratio <= WALK_THRESHOLD and _has_clip("lower_weapon"):
+		desired = "lower_weapon"
 	elif _aiming:
 		desired = "aim"
 	elif speed_ratio > RUN_THRESHOLD:
 		desired = "run"
 	elif speed_ratio > WALK_THRESHOLD:
 		desired = "walk"
+	# Interrupted transitions never resume: an intro cut by movement or fire
+	# would otherwise pop in later mid-fight.
+	if desired != "raise_weapon":
+		_raise_remaining = 0.0
+	if desired != "lower_weapon":
+		_lower_remaining = 0.0
 	var clip_speed := 1.0
 	if desired == "reload":
 		var clip_length := _anim_player.get_animation("reload").length
 		clip_speed = clip_length / maxf(_reload_remaining, 0.01)
+	elif _move_backward and desired in ["walk", "aim_walk"]:
+		clip_speed = -1.0
 	_play(desired, 0.18, clip_speed)
 
 
@@ -626,7 +717,9 @@ func _blend_socket(delta: float) -> void:
 	if not is_instance_valid(_weapon_socket) or not is_instance_valid(_attachment):
 		return
 	var target := (
-		1.0 if _current_clip in ["aim", "aim_walk", "aim_run", "fire", "reload", "hit"] else 0.0
+		1.0
+		if _current_clip in ["aim", "aim_walk", "aim_run", "fire", "reload", "hit", "raise_weapon"]
+		else 0.0
 	)
 	var step := delta / maxf(weapon_socket_blend_seconds, 0.01)
 	_socket_weight = move_toward(_socket_weight, target, step)

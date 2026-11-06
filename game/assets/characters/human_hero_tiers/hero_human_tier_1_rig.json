@@ -313,6 +313,21 @@
       "seconds": 0.7,
       "loop": false,
       "description": "One-shot transition from the two-handed aim pose back to idle."
+    },
+    "jump": {
+      "seconds": 0.5,
+      "loop": false,
+      "description": "One-shot airborne launch: legs tuck forward on the measured walk-swing axis."
+    },
+    "fall": {
+      "seconds": 0.8,
+      "loop": true,
+      "description": "Airborne descent loop with half-tucked legs and forward spine lean."
+    },
+    "land": {
+      "seconds": 0.45,
+      "loop": false,
+      "description": "Landing crouch recovery that settles back into the idle pose."
     }
   },
   "retarget": {

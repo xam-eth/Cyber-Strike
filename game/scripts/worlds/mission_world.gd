@@ -9,6 +9,7 @@ signal world_load_failed(world_id: String, reason: String)
 ## through `ContentModuleLoader`, supplies last-resort safety bounds below the
 ## glacial lowland floor, and keeps fallback lighting/wayfinders active even if
 ## a test fixture injects a failing environment path.
+const WorldGuidanceScript := preload("res://scripts/worlds/world_guidance.gd")
 const DEFAULT_MISSION_WORLD_ID := "aetherfall"
 const SELECTION_ALIASES := {
 	"sh01": "aetherfall",
@@ -320,3 +321,9 @@ func _add_wayfinders() -> void:
 		marker.name = entry["name"]
 		marker.position = entry["pos"]
 		add_child(marker)
+	# Visible guidance layer: arrival pad + briefing sign + route chevrons,
+	# built from the real spawn and recovery-cache definitions.
+	var definition := WorldDefinition.load_definition(StringName(_world_id()))
+	if definition != null:
+		var stats: Variant = WorldGuidanceScript.install(self, definition)
+		print("MISSION WORLD: guidance installed (%s)" % [stats])

@@ -66,6 +66,9 @@ const DEFAULT_WORLD_ID := &"aetherfall"
 ## The default is the legacy main.tscn position, so existing theatres and test
 ## fixtures keep their original start unless their definition opts into another.
 @export var player_spawn: Vector3 = Vector3(0.0, 0.0, 8.0)
+## Spawn facing (yaw degrees) so the opening camera looks at the mission's first
+## objective instead of whatever the scene default happens to face.
+@export var player_spawn_yaw_degrees: float = 0.0
 
 
 ## The theatre's prose, in the active language. Same rule as the hero card: the

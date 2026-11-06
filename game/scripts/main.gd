@@ -18,11 +18,9 @@ const DEFEAT_HOLD_DRAWN_FRAMES := 6
 const RECOVERY_LOCAL_RADIUS := 22.0
 const RECOVERY_STUCK_SECONDS := 12.0
 
-## Test/authoring override only. The shipped scene starts in safe Explore; the
-## player must explicitly choose Defense before the WaveDirector can run.
+## Test/authoring override only: the shipped scene starts in safe Explore.
 @export var start_wave_session_on_ready: bool = false
-## Live field activity (SupplyCrates, 3D pickups, robot patrols): "auto" runs on
-## real displays, headless fixtures skip it, "force" opts a test in (production_upgrade_smoke).
+## Field activity mode: "auto" on real displays, headless skips, "force" opts tests in.
 @export_enum("auto", "force", "off") var field_activity_mode: String = "auto"
 @export_range(2.0, 10.0, 0.5) var defense_preparation_seconds: float = 5.0
 
@@ -37,9 +35,7 @@ var _pending_defeat_wave: int = -1
 var _defeat_hold_drawn_at: int = -1
 var _defeat_hold_process_at: int = -1
 
-## TECH HUNT 0 is orchestrated here, at the existing composition root. World
-## resources provide cache content; WaveDirector and ProgressionService remain
-## the only encounter and persistent-reward owners.
+## TECH HUNT 0 orchestrates here; WaveDirector and ProgressionService own encounters and rewards.
 var _recovery_caches: Array[RecoveryCacheDefinition] = []
 var _recovery_states: Dictionary = {}
 var _recovery_visuals: Dictionary = {}
@@ -213,8 +209,7 @@ func _ready() -> void:
 			% [progression_service.balance, progression_service.unlocked_ids.size()]
 		)
 	)
-	# One line per session so the browser console proves audio came up in the
-	# exported build, not only in the editor.
+	# One log line per session proves audio came up in the exported build.
 	print(Sfx.describe())
 	if start_wave_session_on_ready:
 		# Explicit opt-in for automated fixtures; never enabled in main.tscn.
@@ -250,9 +245,8 @@ func _process(delta: float) -> void:
 			if _defeat_hold_drawn_at < 0:
 				_defeat_hold_drawn_at = Engine.get_frames_drawn()
 				_defeat_hold_process_at = Engine.get_process_frames()
-			# Time alone is not enough on a slow WebGL canvas: the entire 1.2 s
-			# Blender fall can be simulated between two visible frames. Hold its
-			# final pose for a few actual rendered frames before covering it.
+			# Slow WebGL can simulate the whole 1.2 s Blender fall between two frames; hold its final
+			# pose for real rendered frames.
 			var drawn := Engine.get_frames_drawn() - _defeat_hold_drawn_at
 			var simulated := Engine.get_process_frames() - _defeat_hold_process_at
 			if (
@@ -307,9 +301,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	get_viewport().set_input_as_handled()
 
 
-## Audio mute is owned here rather than in the HUD: the button and the M key go
-## through the same path, and the label is updated from the real audio state
-## instead of being flipped blindly.
+## Audio mute is owned here (not the HUD): button and M key share one path, and the label mirrors
+## real audio state.
 func _on_sound_mute_requested() -> void:
 	var muted := Sfx.toggle_muted()
 	touch_controls.set_sound_muted(muted)
@@ -367,9 +360,8 @@ func _on_profile_changed() -> void:
 	_sync_resource_hud()
 
 
-## The front end stores the weapon the player launched with; this is where it
-## takes effect. It runs once on boot rather than on every profile change, so a
-## mid-run swap in the armory is not overwritten by the saved choice.
+## The front end's launch weapon takes effect here, once on boot, so a mid-run armory swap is
+## never overwritten.
 func _apply_saved_weapon() -> void:
 	var wanted := progression_service.selected_weapon_id
 	if wanted == &"" or not progression_service.is_unlocked(wanted):
@@ -381,9 +373,8 @@ func _apply_saved_weapon() -> void:
 			return
 
 
-## World owns the authored spawn; Main only applies it after the same selection
-## resolver used by MissionWorld has run. Existing definitions inherit the
-## original main.tscn position, while Titans starts at its Hangar socket.
+## World owns the authored spawn; Main applies it after MissionWorld's selection resolver (legacy
+## defs inherit main.tscn's position).
 func _apply_selected_world_spawn() -> void:
 	var selected := WorldSelection.selected(self)
 	if selected == &"":
@@ -393,6 +384,20 @@ func _apply_selected_world_spawn() -> void:
 		player.position = definition.player_spawn
 		wave_director.arena_half_extents = definition.field_size * 0.5
 		wave_director.arena_center = definition.field_center
+		if absf(definition.player_spawn_yaw_degrees) > 0.01:
+			# Authored spawn bearing: hero, camera and aim all start looking at
+			# the mission's first objective instead of the empty deck grid.
+			var yaw := deg_to_rad(definition.player_spawn_yaw_degrees)
+			player.rotation.y = yaw
+			var yaw_pivot := player.get_node_or_null("CameraRig/YawPivot") as Node3D
+			if yaw_pivot != null:
+				yaw_pivot.rotation.y = yaw
+			var visual := player.get_node_or_null("VisualRoot")
+			if visual != null and visual.has_method("update_facing"):
+				var facing_target := (
+					definition.player_spawn + Vector3(-sin(yaw), 0.0, -cos(yaw)) * 10.0
+				)
+				visual.call("update_facing", facing_target, Vector3.ZERO, true, 2.0)
 
 
 func _on_weapon_equipped(_display_name: String) -> void:
@@ -646,9 +651,8 @@ func _return_to_explore() -> void:
 	print("Encounter: Returned to Explore")
 
 
-## Every in-game HOME lands here. DashboardReturn owns where "home" is -- the web
-## shell's lobby when the engine is embedded, the front end's DASHBOARD stage when
-## it is not -- so the scene never has to know which build it is running in.
+## Every in-game HOME lands here; DashboardReturn picks the web lobby or DASHBOARD stage so this
+## scene never knows the build.
 func _exit_to_dashboard() -> void:
 	_is_paused = false
 	_pending_defeat_wave = -1
@@ -1059,9 +1063,8 @@ func _update_recovery_hud(
 				state_text = "%s · %s" % [target.landmark_name, bearing]
 	if active_guards > 0 and action.is_empty():
 		_recovery_guidance_stage = "stuck" if is_stuck else "combat"
-		# The landscape layout hides the tertiary state badge. Put the active
-		# encounter in the always-visible detail row instead of misleading the
-		# player with START DEFENSE while Secure is still guard-locked.
+		# Landscape hides the tertiary badge: put the active encounter in the always-visible detail
+		# row instead.
 		detail = AegisText.t("recovery.guards_active", [active_guards])
 		var guard := _nearest_active_guard()
 		if guard != null:
@@ -1354,9 +1357,8 @@ func _on_combatant_health_changed(_current: float, _maximum: float) -> void:
 
 
 func _on_wave_started(_wave_index: int, _enemy_count: int) -> void:
-	# Also covers smoke fixtures that call WaveDirector.start_session() directly.
-	# The fixed practice drone is for safe Explore only; in Defense it blocked
-	# real targets and stole EMP damage without ever awarding wave BP.
+	# Also covers smoke fixtures that call start_session() directly; the practice drone is Explore-
+	# only.
 	training_drone.set_active(false)
 	session_mode = SessionMode.DEFENSE
 	Sfx.set_music_mode(&"defense")
@@ -1457,9 +1459,7 @@ func _on_wave_session_ended(wave_index: int, _total_defeated: int) -> void:
 			)
 		)
 	if was_defense and player.is_defeated():
-		# Results used to cover the authored 1.2 s Blender collapse on the very
-		# same frame as fatal damage. Stop the AI and bank first, then let the
-		# in-world motion actually render before opening the results panel.
+		# Let the authored 1.2 s collapse render before results: stop AI and bank first.
 		_pending_defeat_wave = wave_index
 		_defeat_reveal_remaining = DEFEAT_REVEAL_SECONDS
 		_update_status()

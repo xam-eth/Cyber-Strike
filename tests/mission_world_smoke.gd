@@ -137,7 +137,7 @@ func _check_gameplay_deployment() -> void:
 	var player := main.get_node("Player") as CharacterBody3D
 	_passed = (
 		_expect(
-			player.global_position.distance_to(Vector3(-30.0, 1.2, 14.0)) < 4.0,
+			player.global_position.distance_to(Vector3(-30.0, 1.2, 9.0)) < 4.0,
 			"Player deploys at Aetherfall Arrival Outpost (%s)" % [player.global_position],
 		)
 		and _passed

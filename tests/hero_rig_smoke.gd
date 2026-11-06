@@ -59,16 +59,30 @@ func _run_smoke_test() -> void:
 		anim_player.get_animation_list() if anim_player != null else PackedStringArray()
 	)
 	for clip in [
-		"idle", "run", "walk", "aim", "aim_walk", "aim_run", "fire", "reload", "hit", "death"
+		"idle",
+		"run",
+		"walk",
+		"aim",
+		"aim_walk",
+		"aim_run",
+		"fire",
+		"reload",
+		"hit",
+		"death",
+		"raise_weapon",
+		"lower_weapon",
+		"jump",
+		"fall",
+		"land"
 	]:
 		_expect(clips.has(clip), "Blender-authored hero.glb provides the '%s' clip" % clip)
-	for clip in ["walk", "run", "aim_walk", "aim_run"]:
+	for clip in ["walk", "run", "aim_walk", "aim_run", "fall"]:
 		if anim_player != null and anim_player.has_animation(clip):
 			_expect(
 				anim_player.get_animation(clip).loop_mode == Animation.LOOP_LINEAR,
 				"moving '%s' loops rather than freezing after one cycle" % clip,
 			)
-	for clip in ["fire", "reload", "hit", "death"]:
+	for clip in ["fire", "reload", "hit", "death", "jump", "land", "raise_weapon", "lower_weapon"]:
 		if anim_player != null and anim_player.has_animation(clip):
 			_expect(
 				anim_player.get_animation(clip).loop_mode == Animation.LOOP_NONE,
@@ -148,6 +162,18 @@ func _run_smoke_test() -> void:
 	visual.call("update_pose", Vector3.ZERO, true, 0.016)
 	for _frame in 30:
 		await process_frame
+	# The authored raise_weapon intro plays first; settle it and the aim hold.
+	if anim_player != null:
+		anim_player.advance(1.2)
+	visual.call("_process", 1.2)
+	_expect(
+		str(visual.call("current_clip")) in ["aim", "raise_weapon"],
+		"aiming raises the weapon toward the aim clip (clip=%s)" % visual.call("current_clip"),
+	)
+	for _frame in 2:
+		visual.call("_process", 0.05)
+		if anim_player != null:
+			anim_player.advance(0.05)
 	_expect(str(visual.call("current_clip")) == "aim", "aiming plays the aim clip")
 	var aim_barrel := _barrel(muzzle)
 	_expect(
