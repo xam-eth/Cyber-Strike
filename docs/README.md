@@ -44,6 +44,27 @@ Repository-level reminders for coding agents and developers live in [`../AGENTS.
 
 World documents describe environment and content. They do not independently create missions, modes, rewards, or progression.
 
+Aetherfall world production evidence (industry-standard gates, reference boards, and layout review):
+
+| Document | Scope |
+|---|---|
+| [`world/aetherfall/INDUSTRY_PRODUCTION_STANDARD.md`](world/aetherfall/INDUSTRY_PRODUCTION_STANDARD.md) | Per-asset definition of done: brief, base mesh, high-poly, retopo, UV, bake, PBR, engine QA |
+| [`world/aetherfall/PRODUCTION_PIPELINE.md`](world/aetherfall/PRODUCTION_PIPELINE.md) | Stage flow from source .blend through GLB export, enrichment, and packing |
+| [`world/aetherfall/ANDROID_TARGET_PROFILE.md`](world/aetherfall/ANDROID_TARGET_PROFILE.md) | Target-device budget assumptions for the world kit |
+| [`world/aetherfall/DEBUG_OBJECT_LABELS.md`](world/aetherfall/DEBUG_OBJECT_LABELS.md) | Debug label conventions for world setpieces |
+| [`world/aetherfall/base_mesh/README.md`](world/aetherfall/base_mesh/README.md) | Base-mesh clay study index (Archive, traversal, recovery terrain) |
+| [`world/aetherfall/high_poly/README.md`](world/aetherfall/high_poly/README.md) | High-poly detailing study index |
+| [`world/aetherfall/layout_review/README.md`](world/aetherfall/layout_review/README.md) | Layout review checklist for placements and sightlines |
+| [`world/aetherfall/hero_destination/README.md`](world/aetherfall/hero_destination/README.md) | Hero-destination asset brief index (sentinel archive through tower spire) |
+| [`world/aetherfall/hero_destination/01_sentinel_archive.md`](world/aetherfall/hero_destination/01_sentinel_archive.md) | Sentinel Archive exterior brief |
+| [`world/aetherfall/hero_destination/02_archive_vestibule.md`](world/aetherfall/hero_destination/02_archive_vestibule.md) | Archive vestibule brief |
+| [`world/aetherfall/hero_destination/03_archive_computer.md`](world/aetherfall/hero_destination/03_archive_computer.md) | Archive computer brief |
+| [`world/aetherfall/hero_destination/04_energy_core.md`](world/aetherfall/hero_destination/04_energy_core.md) | Energy core brief |
+| [`world/aetherfall/hero_destination/05_tower_foundation.md`](world/aetherfall/hero_destination/05_tower_foundation.md) | Tower foundation brief |
+| [`world/aetherfall/hero_destination/06_tower_tier.md`](world/aetherfall/hero_destination/06_tower_tier.md) | Tower tier brief |
+| [`world/aetherfall/hero_destination/07_tower_spire.md`](world/aetherfall/hero_destination/07_tower_spire.md) | Tower spire brief |
+| [`world/aetherfall/hero_destination/reference/README.md`](world/aetherfall/hero_destination/reference/README.md) | Concept reference board provenance |
+
 ### Runbooks
 
 | Runbook | Use |

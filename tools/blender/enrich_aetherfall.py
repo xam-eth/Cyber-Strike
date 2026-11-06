@@ -74,10 +74,10 @@ _style("interactives/tech_cache interactives/objective_device", "tech", panel=0.
 # animated modules: geometry passes allowed (they ride node transforms) but the
 # animation itself is preserved by round-trip export; listed for verification.
 ANIMATED = {
-    "energy_orbit": ["EnergyOrbit"],
+    "energy_orbit": ["EnergyOrbitAction"],
     "interactives/tech_cache": ["TechCache_Open"],
     "interactives/objective_device": ["ObjectiveDevice_Activate"],
-    "archive/archive_computer": ["ArchiveComputer_Download"],
+    "archive/archive_computer": ["ArchiveComputer_Download", "DataCoreHaloAction"],
 }
 
 # material name (lower-case substring) -> surface family in pbr_lib
@@ -111,6 +111,10 @@ GEOLOGY_MATS = ("rock", "stratum", "icevein", "ice", "glacier", "snow")
 
 # emission boost per surface kind
 EMISSION = {"energy": 2.2, "ice_rock": 0.12}
+
+# soft VFX cards: no normal-mapped material, and degenerate quad normals make
+# MikkTSpace tangents non-unit (Khronos ACCESSOR_VECTOR3_NON_UNIT errors)
+NO_TANGENTS = {"cloud_puff"}
 
 
 # ---------------------------------------------------------------------------
@@ -225,14 +229,21 @@ def bevel_pass(obj, width):
 
 
 def panel_pass(obj, density):
-    """Recessed panel plates on large planar tech faces."""
+    """Recessed panel plates on large planar tech faces.
+
+    Only convex, reasonably-shaped faces are inset: even-offset miter joins on
+    reflex ngons spike far outside the surface (a 20m rail grew to 113m in an
+    early draft). A per-mesh bounds guard restores the mesh if anything still
+    escapes the original envelope.
+    """
     import bmesh
 
     me = obj.data
+    snapshot = [v.co.copy() for v in me.vertices]
     bm = bmesh.new()
     bm.from_mesh(me)
     bm.faces.ensure_lookup_table()
-    # material index -> geology?
+    bm.verts.ensure_lookup_table()
     geo_idx = set()
     for f in bm.faces:
         if face_is_geology(me, f):
@@ -241,28 +252,46 @@ def panel_pass(obj, density):
     for f in bm.faces:
         if f.index in geo_idx:
             continue
+        if not (3 <= len(f.verts) <= 6):
+            continue
         if f.calc_area() < 0.42:
             continue
-        if len(f.verts) < 3:
+        # convexity + corner-angle test in the face plane
+        verts = [v.co.copy() for v in f.verts]
+        ok = True
+        min_edge = 1e9
+        n = f.normal
+        for i in range(len(verts)):
+            a, b, c = verts[i], verts[(i + 1) % len(verts)], verts[(i + 2) % len(verts)]
+            e1, e2 = (b - a), (c - b)
+            min_edge = min(min_edge, e1.length)
+            cross = e1.cross(e2)
+            if cross.length < 1e-9:
+                continue
+            # reflex corner: cross points away from the face normal
+            if cross.dot(n) < 0:
+                ok = False
+                break
+        if not ok or min_edge < 0.12:
             continue
-        targets.append(f)
+        targets.append((f, min_edge))
     if not targets:
         bm.free()
         return 0
-    # hash-driven skip so panels vary across a face field
     keep = []
-    for f in targets:
+    for f, min_edge in targets:
         c = f.calc_center_median()
         if hash01(c.x, c.y, c.z, 3.1) < 0.90 * density:
-            keep.append(f)
+            keep.append((f, min_edge))
     if not keep:
         keep = targets[:1]
+    faces = [f for f, _ in keep]
+    thickness = min(0.075, min(me for _, me in keep) * 0.22)
     try:
         res = bmesh.ops.inset_individual(
-            bm, faces=keep,
-            thickness=0.075, depth=-0.020, use_even_offset=True, use_interpolate=True,
+            bm, faces=faces,
+            thickness=thickness, depth=-0.018, use_even_offset=True, use_interpolate=True,
         )
-        # recess the inner plates a touch further for a stepped seam
         inner = res.get("faces", [])
         for f in inner:
             n = f.normal
@@ -273,7 +302,15 @@ def panel_pass(obj, density):
     bm.to_mesh(me)
     bm.free()
     me.update()
-    return len(keep)
+    # bounds guard: restore the mesh if the pass escaped the original envelope
+    for old, v in zip(snapshot, me.vertices):
+        if (v.co - old).length > 0.45:
+            for o, s in zip(me.vertices, snapshot):
+                o.co = s
+            me.update()
+            print("    panel_pass bounds guard tripped; mesh restored")
+            return 0
+    return len(faces)
 
 
 def displace_pass(obj, amplitude, lo, hi):
@@ -421,13 +458,21 @@ def main():
         bpy.ops.object.select_all(action="DESELECT")
         for o in objs:
             o.select_set(True)
+        # Export the whole scene WITHOUT transform baking: node trees (roots,
+        # animation pivots) and local accessor spaces stay exactly as imported,
+        # so measurements.json semantics never shift. Geometry passes edit
+        # local mesh data and the bevel modifier is already applied.
+        bpy.ops.object.select_all(action="SELECT")
         animated = key in ANIMATED
         # import converts glTF Y-up to Blender Z-up (x, -z, y); export_yup=True
         # converts back so the round-trip preserves the authored axes exactly.
         bpy.ops.export_scene.gltf(
             filepath=path, export_format="GLB", export_yup=True,
-            export_apply=True, use_selection=True, export_materials="EXPORT",
+            export_apply=False, use_selection=False, export_materials="EXPORT",
             export_animations=True,
+            export_tangents=key not in NO_TANGENTS,  # explicit MikkTSpace
+            # tangents close the MESH_PRIMITIVE_GENERATED_TANGENT_SPACE
+            # release blocker for normal-mapped assets
         )
         # post-export contract verification
         doc = glb_docs(path)

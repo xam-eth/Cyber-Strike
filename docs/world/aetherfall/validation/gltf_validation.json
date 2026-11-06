@@ -1,6 +1,6 @@
 {
   "report_schema": "aetherfall.gltf-validation.v1",
-  "scope": "All GLB files under assets/world/aetherfall at the time this command ran.",
+  "scope": "All GLB files under game/assets/world/aetherfall at the time this command ran.",
   "validator": {
     "package": "gltf-validator",
     "version": "2.0.0-dev.3.10",
@@ -13,28 +13,29 @@
   ],
   "totals": {
     "glb_assets": 51,
-    "bytes": 146068764,
+    "bytes": 12780740,
     "errors": 0,
-    "warnings": 1093,
-    "infos": 30,
+    "warnings": 0,
+    "infos": 612,
     "draw_calls": 1127,
-    "vertices": 223871,
-    "triangles": 114278
+    "vertices": 233504,
+    "triangles": 131368
   },
   "assets": [
     {
-      "runtime_path": "assets/world/aetherfall/archive/archive_computer.glb",
+      "runtime_path": "game/assets/world/aetherfall/archive/archive_computer.glb",
       "source_path": "source/aetherfall_archive_interior.blend",
-      "sha256": "6e89ad5b40571c83d6c09ec22d3198e105931f1a44fd24dd13d055bcbb072a73",
-      "bytes": 1761516,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "c7d4b2e99c8867d071fb31e5d786d629f9e97ae04cfbca49165c9f61b1d7be11",
+      "bytes": 343976,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 23,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 11,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 23
+          "URI_GLB": 9,
+          "IMAGE_NPOT_DIMENSIONS": 2
         }
       },
       "stats": {
@@ -42,28 +43,29 @@
         "materials": 5,
         "textures": true,
         "draw_calls": 23,
-        "vertices": 6280,
-        "triangles": 3252,
+        "vertices": 6328,
+        "triangles": 3348,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 2
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/archive/archive_vestibule.glb",
+      "runtime_path": "game/assets/world/aetherfall/archive/archive_vestibule.glb",
       "source_path": "source/aetherfall_archive_interior.blend",
-      "sha256": "40920249b4a599d33e55d8e9bc8732dcf5f868aee85a11a86e66590e7a5b23fa",
-      "bytes": 2637440,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "97888510ab0e4eb32b1cb381f7fe90b363a3390c83e75afcad137966a741dd44",
+      "bytes": 708992,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 55,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 11,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 55
+          "URI_GLB": 9,
+          "IMAGE_NPOT_DIMENSIONS": 2
         }
       },
       "stats": {
@@ -71,29 +73,29 @@
         "materials": 5,
         "textures": true,
         "draw_calls": 55,
-        "vertices": 13240,
-        "triangles": 6740,
+        "vertices": 13447,
+        "triangles": 7154,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/expanse/expanse_shelf.glb",
+      "runtime_path": "game/assets/world/aetherfall/expanse/expanse_shelf.glb",
       "source_path": "source/aetherfall_connected_expanse.blend",
-      "sha256": "2fff3a34754360550a0e85255bfd798ef182f0482b7e2730b23471ff8ff8d717",
-      "bytes": 6294628,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "4bc4a42c14e943a236dcb2b293257b5e7603fc0bef18871fef2f73b357139c95",
+      "bytes": 471396,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 25,
-        "infos": 6,
+        "warnings": 0,
+        "infos": 12,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 25,
-          "IMAGE_NPOT_DIMENSIONS": 6
+          "URI_GLB": 9,
+          "IMAGE_NPOT_DIMENSIONS": 3
         }
       },
       "stats": {
@@ -101,29 +103,29 @@
         "materials": 5,
         "textures": true,
         "draw_calls": 25,
-        "vertices": 8878,
-        "triangles": 4430,
+        "vertices": 8933,
+        "triangles": 4532,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/expanse/lowland_field.glb",
+      "runtime_path": "game/assets/world/aetherfall/expanse/lowland_field.glb",
       "source_path": "source/aetherfall_connected_expanse.blend",
-      "sha256": "dabba295f4832767b330b068580cf015f550e38b5c0340b5ee28d8a48680c9b9",
-      "bytes": 6310424,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "c0be874ecdf12aab28b085bd3c92824d162c660d59e360a9b09f3dc6b13ace0d",
+      "bytes": 497808,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 23,
-        "infos": 6,
+        "warnings": 0,
+        "infos": 12,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 23,
-          "IMAGE_NPOT_DIMENSIONS": 6
+          "URI_GLB": 9,
+          "IMAGE_NPOT_DIMENSIONS": 3
         }
       },
       "stats": {
@@ -131,29 +133,29 @@
         "materials": 5,
         "textures": true,
         "draw_calls": 23,
-        "vertices": 9256,
-        "triangles": 4580,
+        "vertices": 9386,
+        "triangles": 4648,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/expanse/transit_spine.glb",
+      "runtime_path": "game/assets/world/aetherfall/expanse/transit_spine.glb",
       "source_path": "source/aetherfall_connected_expanse.blend",
-      "sha256": "31e3c768074c503168646ee403c39bc6964ecb0e0786ae790cb1d94c7cba117e",
-      "bytes": 7509760,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "552783f089ab5ddc68c9d90e2cc249eaf0579d90729800ee4a0fccb11e7a85cc",
+      "bytes": 278600,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 23,
-        "infos": 9,
+        "warnings": 0,
+        "infos": 15,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 23,
-          "IMAGE_NPOT_DIMENSIONS": 9
+          "URI_GLB": 12,
+          "IMAGE_NPOT_DIMENSIONS": 3
         }
       },
       "stats": {
@@ -161,28 +163,29 @@
         "materials": 5,
         "textures": true,
         "draw_calls": 23,
-        "vertices": 5160,
-        "triangles": 2612,
+        "vertices": 5196,
+        "triangles": 2684,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/ice_planet/cryo_pylon.glb",
+      "runtime_path": "game/assets/world/aetherfall/ice_planet/cryo_pylon.glb",
       "source_path": "source/aetherfall_ice_planet.blend",
-      "sha256": "005d20138f65005af4b93aadb792874b5245e3a6ab53bae1188a2e0b20b12c49",
-      "bytes": 6811096,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "74a48e15e1501b3303e66e0d9da8857ed74fe9769836440345ff47e9a086ce18",
+      "bytes": 210900,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 12,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 15,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 12
+          "URI_GLB": 12,
+          "IMAGE_NPOT_DIMENSIONS": 3
         }
       },
       "stats": {
@@ -190,28 +193,28 @@
         "materials": 4,
         "textures": true,
         "draw_calls": 12,
-        "vertices": 3856,
-        "triangles": 2032,
+        "vertices": 3955,
+        "triangles": 2230,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/ice_planet/frozen_spire.glb",
+      "runtime_path": "game/assets/world/aetherfall/ice_planet/frozen_spire.glb",
       "source_path": "source/aetherfall_ice_planet.blend",
-      "sha256": "9d825f3a4d4f73a5fce9ad5b8ed52f8472e3100e4ad9dac1d92a78447fd79594",
-      "bytes": 1432480,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "3786e744438270dcbf40dfa1e95d9b94e21c9d4441a5f9e3bf804a27ece378c9",
+      "bytes": 126816,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 8,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 3,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 8
+          "URI_GLB": 3
         }
       },
       "stats": {
@@ -219,28 +222,29 @@
         "materials": 2,
         "textures": true,
         "draw_calls": 8,
-        "vertices": 2376,
+        "vertices": 2380,
         "triangles": 1200,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/ice_planet/glacier_shelf.glb",
+      "runtime_path": "game/assets/world/aetherfall/ice_planet/glacier_shelf.glb",
       "source_path": "source/aetherfall_ice_planet.blend",
-      "sha256": "a69052abb5764039e4e36d4ca5ae645a218fc436bcf6611a62783ae02de2c21f",
-      "bytes": 6967012,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "f46f87af333301865bae1c07627b8dd41567683028b6ef43f025fa61159af557",
+      "bytes": 435164,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 18,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 15,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 18
+          "URI_GLB": 12,
+          "IMAGE_NPOT_DIMENSIONS": 3
         }
       },
       "stats": {
@@ -248,28 +252,29 @@
         "materials": 5,
         "textures": true,
         "draw_calls": 18,
-        "vertices": 8222,
-        "triangles": 4092,
+        "vertices": 8280,
+        "triangles": 4104,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/ice_planet/sentinel_archive.glb",
+      "runtime_path": "game/assets/world/aetherfall/ice_planet/sentinel_archive.glb",
       "source_path": "source/aetherfall_ice_planet.blend",
-      "sha256": "bdd5ae0d8d11c84141820fcf53565eb9bd410159a51510e58c92e6678c7ab5e1",
-      "bytes": 8969848,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "d0c671a8b88e2522c37595203d2c907a2c4b0377655b9e5162ce06ec833d21b2",
+      "bytes": 2444348,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 155,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 18,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 155
+          "URI_GLB": 15,
+          "IMAGE_NPOT_DIMENSIONS": 3
         }
       },
       "stats": {
@@ -277,28 +282,30 @@
         "materials": 6,
         "textures": true,
         "draw_calls": 155,
-        "vertices": 44856,
-        "triangles": 22480,
+        "vertices": 46553,
+        "triangles": 25858,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/interactives/objective_device.glb",
+      "runtime_path": "game/assets/world/aetherfall/interactives/objective_device.glb",
       "source_path": "source/aetherfall_interactives.blend",
-      "sha256": "d28cab0851ac9d8f553f99a9784710d92c34b8d4ad86bcc99d3bc251d0444e81",
-      "bytes": 1783164,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "471920cae20ac556419e1c481307fa663b1721ca42aa418a50ad7dcf524e570a",
+      "bytes": 371760,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 19,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 15,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 19
+          "URI_GLB": 10,
+          "UNUSED_MESH_TANGENT": 3,
+          "IMAGE_NPOT_DIMENSIONS": 2
         }
       },
       "stats": {
@@ -306,28 +313,30 @@
         "materials": 4,
         "textures": true,
         "draw_calls": 19,
-        "vertices": 7072,
-        "triangles": 3636,
+        "vertices": 7084,
+        "triangles": 3660,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 1
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/interactives/tech_cache.glb",
+      "runtime_path": "game/assets/world/aetherfall/interactives/tech_cache.glb",
       "source_path": "source/aetherfall_interactives.blend",
-      "sha256": "58738a231809c01a85254e4c7d9b0b719781af2bea164100b256851443c297a0",
-      "bytes": 3745948,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "ccee89bee43fbf67fdb1ee1a5b2eda8f156856f935380eeb14cc2719ddf3b4f9",
+      "bytes": 1333436,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 68,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 25,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 68
+          "URI_GLB": 16,
+          "UNUSED_MESH_TANGENT": 5,
+          "IMAGE_NPOT_DIMENSIONS": 4
         }
       },
       "stats": {
@@ -335,28 +344,30 @@
         "materials": 6,
         "textures": true,
         "draw_calls": 68,
-        "vertices": 26112,
-        "triangles": 12784,
+        "vertices": 26154,
+        "triangles": 12868,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 1
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/landmarks/cargo_service_cluster.glb",
+      "runtime_path": "game/assets/world/aetherfall/landmarks/cargo_service_cluster.glb",
       "source_path": "source/aetherfall_landmarks.blend",
-      "sha256": "45f7885d8612c77b85b73db4bf060a2cccfce60ec1e0ffbd141609933b4fca10",
-      "bytes": 2520828,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "6200fdabbf3bd533b22918ad7ed0d505d1ba2ef625c79585ba300fa6abe492d3",
+      "bytes": 194956,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 13,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 16,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 13
+          "URI_GLB": 13,
+          "UNUSED_MESH_TANGENT": 1,
+          "IMAGE_NPOT_DIMENSIONS": 2
         }
       },
       "stats": {
@@ -364,28 +375,30 @@
         "materials": 5,
         "textures": true,
         "draw_calls": 13,
-        "vertices": 3292,
-        "triangles": 1724,
+        "vertices": 3522,
+        "triangles": 2176,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/landmarks/field_outpost.glb",
+      "runtime_path": "game/assets/world/aetherfall/landmarks/field_outpost.glb",
       "source_path": "source/aetherfall_landmarks.blend",
-      "sha256": "56c1bc3fdfdfa596d130fe17fc4f66220f3b39aad7f0d54994c38974f0d8b3a0",
-      "bytes": 2625940,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "1b46c011d5ae1511fc99adb35a7476ddb8d904003f9882e4d5eae9214e07fc93",
+      "bytes": 344460,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 28,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 23,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 28
+          "URI_GLB": 13,
+          "UNUSED_MESH_TANGENT": 8,
+          "IMAGE_NPOT_DIMENSIONS": 2
         }
       },
       "stats": {
@@ -393,28 +406,30 @@
         "materials": 5,
         "textures": true,
         "draw_calls": 28,
-        "vertices": 6232,
-        "triangles": 3136,
+        "vertices": 6352,
+        "triangles": 3376,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/landmarks/relay_annex.glb",
+      "runtime_path": "game/assets/world/aetherfall/landmarks/relay_annex.glb",
       "source_path": "source/aetherfall_landmarks.blend",
-      "sha256": "1b792cbbbc4864cc3433373cc1b7aa4e75c399117a9d8331fe5fea4f309d33f4",
-      "bytes": 2652216,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "6a45ac66be4545c32a5f3ca79aaf0817cae28f2e983e79c336a4bb47601cb619",
+      "bytes": 391016,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 30,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 19,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 30
+          "URI_GLB": 13,
+          "UNUSED_MESH_TANGENT": 4,
+          "IMAGE_NPOT_DIMENSIONS": 2
         }
       },
       "stats": {
@@ -422,28 +437,30 @@
         "materials": 5,
         "textures": true,
         "draw_calls": 30,
-        "vertices": 6936,
-        "triangles": 3512,
+        "vertices": 7227,
+        "triangles": 4094,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/landmarks/service_hangar.glb",
+      "runtime_path": "game/assets/world/aetherfall/landmarks/service_hangar.glb",
       "source_path": "source/aetherfall_landmarks.blend",
-      "sha256": "0c294e27cf8743133a0523eb485626cba4bbded77cef76d79dd08575f6ca3116",
-      "bytes": 2686272,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "1dc9adc048b9bba360aed3ff507af1d3e3b708b724b84d7da4c494233ceb96be",
+      "bytes": 440612,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 32,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 19,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 32
+          "URI_GLB": 13,
+          "UNUSED_MESH_TANGENT": 4,
+          "IMAGE_NPOT_DIMENSIONS": 2
         }
       },
       "stats": {
@@ -451,28 +468,29 @@
         "materials": 5,
         "textures": true,
         "draw_calls": 32,
-        "vertices": 8000,
-        "triangles": 4096,
+        "vertices": 8273,
+        "triangles": 4642,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/models/access_gate.glb",
+      "runtime_path": "game/assets/world/aetherfall/models/access_gate.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "87a7d9a26c6debd3a4009079a585c1b6e9ddaf13c150de14dfbd97b85fafe053",
-      "bytes": 2966208,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "7873bb5531836fcb97ef180f4b51746f9b9e29692047aeb5980a02a677d1cab7",
+      "bytes": 42264,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 12,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 17,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 12
+          "URI_GLB": 13,
+          "UNUSED_MESH_TANGENT": 4
         }
       },
       "stats": {
@@ -480,28 +498,29 @@
         "materials": 5,
         "textures": true,
         "draw_calls": 16,
-        "vertices": 282,
-        "triangles": 148,
+        "vertices": 435,
+        "triangles": 436,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/models/background_silhouette.glb",
+      "runtime_path": "game/assets/world/aetherfall/models/background_silhouette.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "a3a4f6195f745aff7a5ba1e2aed27fae3db25094909fbcfc4defd426ae5f3588",
-      "bytes": 1444148,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "3e9af5b48f5aa649208513dbcc998a736bce3f80428049dec8680d75b30f41f6",
+      "bytes": 68500,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 25,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 12,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 25
+          "URI_GLB": 7,
+          "UNUSED_MESH_TANGENT": 5
         }
       },
       "stats": {
@@ -512,162 +531,17 @@
         "vertices": 792,
         "triangles": 416,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/models/beam.glb",
+      "runtime_path": "game/assets/world/aetherfall/models/beam.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "8eaebd4bc2118df6ebf5124981fe82d33b395f1f2b73b0cdb0582776b5336fd8",
-      "bytes": 1377632,
-      "validation_status": "format_valid_with_warnings",
-      "issues": {
-        "errors": 0,
-        "warnings": 4,
-        "infos": 0,
-        "hints": 0,
-        "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 4
-        }
-      },
-      "stats": {
-        "generator": "Khronos glTF Blender I/O v5.0.21",
-        "materials": 2,
-        "textures": true,
-        "draw_calls": 4,
-        "vertices": 72,
-        "triangles": 40,
-        "max_uv_sets": 1,
-        "max_attributes": 3,
-        "animations": 0
-      },
-      "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
-      "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
-    },
-    {
-      "runtime_path": "assets/world/aetherfall/models/bridge_deck.glb",
-      "source_path": "source/aetherfall_kit.blend",
-      "sha256": "661eb5e070c9c2fb531ce587107de8e2a5a82180cc778e445c02f5f4d78879eb",
-      "bytes": 2945800,
-      "validation_status": "format_valid_with_warnings",
-      "issues": {
-        "errors": 0,
-        "warnings": 20,
-        "infos": 0,
-        "hints": 0,
-        "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 20
-        }
-      },
-      "stats": {
-        "generator": "Khronos glTF Blender I/O v5.0.21",
-        "materials": 4,
-        "textures": true,
-        "draw_calls": 20,
-        "vertices": 300,
-        "triangles": 160,
-        "max_uv_sets": 1,
-        "max_attributes": 3,
-        "animations": 0
-      },
-      "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
-      "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
-    },
-    {
-      "runtime_path": "assets/world/aetherfall/models/bridge_support.glb",
-      "source_path": "source/aetherfall_kit.blend",
-      "sha256": "495d243692deae997d69aa2376c375949e2f488b8d75bfb06329dfbc9d4f031b",
-      "bytes": 3898664,
-      "validation_status": "format_valid_with_warnings",
-      "issues": {
-        "errors": 0,
-        "warnings": 12,
-        "infos": 0,
-        "hints": 0,
-        "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 12
-        }
-      },
-      "stats": {
-        "generator": "Khronos glTF Blender I/O v5.0.21",
-        "materials": 5,
-        "textures": true,
-        "draw_calls": 12,
-        "vertices": 246,
-        "triangles": 128,
-        "max_uv_sets": 1,
-        "max_attributes": 3,
-        "animations": 0
-      },
-      "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
-      "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
-    },
-    {
-      "runtime_path": "assets/world/aetherfall/models/cable_bundle.glb",
-      "source_path": "source/aetherfall_kit.blend",
-      "sha256": "3744926ded446b2c0c5c46388004cbe2119701c47014f676f73c40a25614e9bf",
-      "bytes": 2062932,
-      "validation_status": "format_valid_with_warnings",
-      "issues": {
-        "errors": 0,
-        "warnings": 12,
-        "infos": 0,
-        "hints": 0,
-        "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 12
-        }
-      },
-      "stats": {
-        "generator": "Khronos glTF Blender I/O v5.0.21",
-        "materials": 3,
-        "textures": true,
-        "draw_calls": 12,
-        "vertices": 144,
-        "triangles": 72,
-        "max_uv_sets": 1,
-        "max_attributes": 3,
-        "animations": 0
-      },
-      "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
-      "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
-    },
-    {
-      "runtime_path": "assets/world/aetherfall/models/cliff_face.glb",
-      "source_path": "source/aetherfall_kit.blend",
-      "sha256": "bc93289dd2c3da3e6d3a94c91b202b49cb495eae39f8f95f68f2f52a86b19992",
-      "bytes": 2273692,
-      "validation_status": "format_valid_with_warnings",
-      "issues": {
-        "errors": 0,
-        "warnings": 18,
-        "infos": 0,
-        "hints": 0,
-        "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 18
-        }
-      },
-      "stats": {
-        "generator": "Khronos glTF Blender I/O v5.0.21",
-        "materials": 4,
-        "textures": true,
-        "draw_calls": 18,
-        "vertices": 2368,
-        "triangles": 1244,
-        "max_uv_sets": 1,
-        "max_attributes": 3,
-        "animations": 0
-      },
-      "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
-      "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
-    },
-    {
-      "runtime_path": "assets/world/aetherfall/models/cloud_puff.glb",
-      "source_path": "source/aetherfall_kit.blend",
-      "sha256": "91cff8d97798594e063a7116c362388d39d23a3c45a04182c9e4e93e7006a5fd",
-      "bytes": 93556,
+      "sha256": "b4943f873fa04e718070acd234676150c81b654133dc53a8ec0a1bd42d3395a5",
+      "bytes": 13916,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
@@ -675,15 +549,160 @@
         "infos": 6,
         "hints": 0,
         "by_code": {
-          "UNUSED_OBJECT": 6
+          "URI_GLB": 6
+        }
+      },
+      "stats": {
+        "generator": "Khronos glTF Blender I/O v5.0.21",
+        "materials": 2,
+        "textures": true,
+        "draw_calls": 4,
+        "vertices": 141,
+        "triangles": 148,
+        "max_uv_sets": 1,
+        "max_attributes": 4,
+        "animations": 0
+      },
+      "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
+      "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
+    },
+    {
+      "runtime_path": "game/assets/world/aetherfall/models/bridge_deck.glb",
+      "source_path": "source/aetherfall_kit.blend",
+      "sha256": "04737599bb6e22938c69ee969fb0756daf397c4095db7398ce73e2030b935c80",
+      "bytes": 42800,
+      "validation_status": "format_valid_no_warnings",
+      "issues": {
+        "errors": 0,
+        "warnings": 0,
+        "infos": 12,
+        "hints": 0,
+        "by_code": {
+          "URI_GLB": 12
+        }
+      },
+      "stats": {
+        "generator": "Khronos glTF Blender I/O v5.0.21",
+        "materials": 4,
+        "textures": true,
+        "draw_calls": 20,
+        "vertices": 406,
+        "triangles": 334,
+        "max_uv_sets": 1,
+        "max_attributes": 4,
+        "animations": 0
+      },
+      "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
+      "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
+    },
+    {
+      "runtime_path": "game/assets/world/aetherfall/models/bridge_support.glb",
+      "source_path": "source/aetherfall_kit.blend",
+      "sha256": "d970607684846c2b1bdee0ef62d6aeb53fea6e4a998841cf18ed9134be233683",
+      "bytes": 43972,
+      "validation_status": "format_valid_no_warnings",
+      "issues": {
+        "errors": 0,
+        "warnings": 0,
+        "infos": 15,
+        "hints": 0,
+        "by_code": {
+          "URI_GLB": 15
+        }
+      },
+      "stats": {
+        "generator": "Khronos glTF Blender I/O v5.0.21",
+        "materials": 5,
+        "textures": true,
+        "draw_calls": 12,
+        "vertices": 495,
+        "triangles": 626,
+        "max_uv_sets": 1,
+        "max_attributes": 4,
+        "animations": 0
+      },
+      "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
+      "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
+    },
+    {
+      "runtime_path": "game/assets/world/aetherfall/models/cable_bundle.glb",
+      "source_path": "source/aetherfall_kit.blend",
+      "sha256": "f467df8dfee6280c94b303754246da712477c16116cffe12400e17bf203ef1fb",
+      "bytes": 23044,
+      "validation_status": "format_valid_no_warnings",
+      "issues": {
+        "errors": 0,
+        "warnings": 0,
+        "infos": 9,
+        "hints": 0,
+        "by_code": {
+          "URI_GLB": 9
+        }
+      },
+      "stats": {
+        "generator": "Khronos glTF Blender I/O v5.0.21",
+        "materials": 3,
+        "textures": true,
+        "draw_calls": 12,
+        "vertices": 188,
+        "triangles": 120,
+        "max_uv_sets": 1,
+        "max_attributes": 4,
+        "animations": 0
+      },
+      "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
+      "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
+    },
+    {
+      "runtime_path": "game/assets/world/aetherfall/models/cliff_face.glb",
+      "source_path": "source/aetherfall_kit.blend",
+      "sha256": "cd50b77545038c07cf4b121239ea6071215a751b283fb3fe4d81c10113885625",
+      "bytes": 147996,
+      "validation_status": "format_valid_no_warnings",
+      "issues": {
+        "errors": 0,
+        "warnings": 0,
+        "infos": 9,
+        "hints": 0,
+        "by_code": {
+          "URI_GLB": 9
+        }
+      },
+      "stats": {
+        "generator": "Khronos glTF Blender I/O v5.0.21",
+        "materials": 4,
+        "textures": true,
+        "draw_calls": 18,
+        "vertices": 2540,
+        "triangles": 1244,
+        "max_uv_sets": 1,
+        "max_attributes": 4,
+        "animations": 0
+      },
+      "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
+      "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
+    },
+    {
+      "runtime_path": "game/assets/world/aetherfall/models/cloud_puff.glb",
+      "source_path": "source/aetherfall_kit.blend",
+      "sha256": "65b736a0459612810af938d77d8498402998822533a16e139eb0184af9d4320b",
+      "bytes": 94420,
+      "validation_status": "format_valid_no_warnings",
+      "issues": {
+        "errors": 0,
+        "warnings": 0,
+        "infos": 1,
+        "hints": 0,
+        "by_code": {
+          "URI_GLB": 1
         }
       },
       "stats": {
         "generator": "Khronos glTF Blender I/O v5.0.21",
         "materials": 1,
-        "textures": false,
+        "textures": true,
         "draw_calls": 6,
-        "vertices": 2496,
+        "vertices": 2516,
         "triangles": 1248,
         "max_uv_sets": 1,
         "max_attributes": 3,
@@ -693,18 +712,19 @@
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/models/conduit.glb",
+      "runtime_path": "game/assets/world/aetherfall/models/conduit.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "5acf63a7ced4ad01857ca9c87afc8ec195fcb226991c47a83ad29fbda18e2415",
-      "bytes": 2245152,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "e41b6e988731f150863c915e97e6ce5873f47e698fa078074890fa35684c7ec4",
+      "bytes": 28788,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 9,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 11,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 9
+          "URI_GLB": 10,
+          "UNUSED_MESH_TANGENT": 1
         }
       },
       "stats": {
@@ -712,28 +732,28 @@
         "materials": 4,
         "textures": true,
         "draw_calls": 10,
-        "vertices": 198,
-        "triangles": 112,
+        "vertices": 288,
+        "triangles": 292,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/models/connector_ramp.glb",
+      "runtime_path": "game/assets/world/aetherfall/models/connector_ramp.glb",
       "source_path": "source/connector_ramp.blend",
-      "sha256": "12902b96164042233a2a5b88c2e7c7ea5abd56c6554beb2caf84e722c57186de",
-      "bytes": 1573128,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "9875925d2fabd94232ad371b33d9511d9101ce9bb7c5acc8f5302adfaac6f055",
+      "bytes": 56508,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 26,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 6,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 26
+          "URI_GLB": 6
         }
       },
       "stats": {
@@ -741,28 +761,28 @@
         "materials": 2,
         "textures": true,
         "draw_calls": 26,
-        "vertices": 624,
-        "triangles": 312,
+        "vertices": 636,
+        "triangles": 336,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/models/cooling_vent.glb",
+      "runtime_path": "game/assets/world/aetherfall/models/cooling_vent.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "3a2cc6b8a180c0d5845b4a3b46715e284be48f70a75138b9f1ab5daa5128f605",
-      "bytes": 2235684,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "1eab9aee63f40e035096851064ff4d34250a750f411ab7fd116c5d73c5008acd",
+      "bytes": 55000,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 20,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 9,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 20
+          "URI_GLB": 9
         }
       },
       "stats": {
@@ -770,28 +790,28 @@
         "materials": 3,
         "textures": true,
         "draw_calls": 20,
-        "vertices": 392,
-        "triangles": 208,
+        "vertices": 618,
+        "triangles": 652,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/models/cover_barrier.glb",
+      "runtime_path": "game/assets/world/aetherfall/models/cover_barrier.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "e3d196623915c25f4b66a6ef26da274143efa173668284dd5c14c1cd7b5c7899",
-      "bytes": 2091548,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "5431a170bddad5caa92223f4bf9bafedad042cefee19880fdce4c8f54c1bf353",
+      "bytes": 11516,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 4,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 9,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 4
+          "URI_GLB": 9
         }
       },
       "stats": {
@@ -799,28 +819,29 @@
         "materials": 3,
         "textures": true,
         "draw_calls": 4,
-        "vertices": 60,
-        "triangles": 32,
+        "vertices": 78,
+        "triangles": 68,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/models/cover_machine.glb",
+      "runtime_path": "game/assets/world/aetherfall/models/cover_machine.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "e7fb59086a7203163d488e88ce27e50fe593522f9d58b0af3358f0b775022e33",
-      "bytes": 2273872,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "c2b36ec3dcb6c55008a026e303cd75286ca4609bd3f9e63243e6971b6a87f779",
+      "bytes": 28268,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 5,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 11,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 5
+          "URI_GLB": 10,
+          "UNUSED_MESH_TANGENT": 1
         }
       },
       "stats": {
@@ -828,28 +849,29 @@
         "materials": 4,
         "textures": true,
         "draw_calls": 6,
-        "vertices": 164,
-        "triangles": 88,
+        "vertices": 331,
+        "triangles": 418,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/models/damaged_slab.glb",
+      "runtime_path": "game/assets/world/aetherfall/models/damaged_slab.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "a08eba854fae3ade6f72579d132306e26b88593294b2c47d24042869319a042c",
-      "bytes": 3244868,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "14eb5e6646dcc9231c58d69372925ff696271a0e9233d342872a3b99ae14e627",
+      "bytes": 30536,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 10,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 14,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 10
+          "URI_GLB": 13,
+          "UNUSED_MESH_TANGENT": 1
         }
       },
       "stats": {
@@ -857,28 +879,29 @@
         "materials": 5,
         "textures": true,
         "draw_calls": 11,
-        "vertices": 144,
-        "triangles": 72,
+        "vertices": 285,
+        "triangles": 354,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/models/debris_cluster.glb",
+      "runtime_path": "game/assets/world/aetherfall/models/debris_cluster.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "add38ff962047300bc29fae35a714edae25373b18ead060ec9cab86a17f9bd12",
-      "bytes": 1420720,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "1230342c1d2a2ecc9a766200c16d3f1aa58243c6baaad05cdf32fcd45749b419",
+      "bytes": 47320,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 8,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 8,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 8
+          "URI_GLB": 7,
+          "UNUSED_MESH_TANGENT": 1
         }
       },
       "stats": {
@@ -886,28 +909,28 @@
         "materials": 3,
         "textures": true,
         "draw_calls": 9,
-        "vertices": 530,
-        "triangles": 268,
+        "vertices": 702,
+        "triangles": 438,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/models/deck_6x6.glb",
+      "runtime_path": "game/assets/world/aetherfall/models/deck_6x6.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "59f4ac0474aa10657598ae2a613996ad1f91d07c98ef8deac1293195297c81c8",
-      "bytes": 2107928,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "9554c04432b19e72a0c32f1575bbfb5c64631331a8c60f49c17d49ef0d2e73c8",
+      "bytes": 44512,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 18,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 9,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 18
+          "URI_GLB": 9
         }
       },
       "stats": {
@@ -915,28 +938,28 @@
         "materials": 3,
         "textures": true,
         "draw_calls": 18,
-        "vertices": 264,
-        "triangles": 140,
+        "vertices": 478,
+        "triangles": 446,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/models/deck_edge.glb",
+      "runtime_path": "game/assets/world/aetherfall/models/deck_edge.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "f5a4c9db53da0fac23977101f1c8276ed68a48e11c77eb3de7174bf6432dac45",
-      "bytes": 2815396,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "86003218207d9c961b5efe4b979d525ced185dd08902b522ae0ec52a4733c663",
+      "bytes": 25452,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 12,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 12,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 12
+          "URI_GLB": 12
         }
       },
       "stats": {
@@ -944,28 +967,29 @@
         "materials": 4,
         "textures": true,
         "draw_calls": 12,
-        "vertices": 162,
-        "triangles": 84,
+        "vertices": 201,
+        "triangles": 162,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/models/energy_core.glb",
+      "runtime_path": "game/assets/world/aetherfall/models/energy_core.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "c0c3a23ea68394e5586bb48f7c84d63ce0dfa5e0bc0f49bc0cd8aa70a9bc0ad1",
-      "bytes": 2256460,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "16579cc577cf53af9dca2f4e4811875a52af1bbec7794e020b5d5322729d70e2",
+      "bytes": 56668,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 16,
-        "infos": 1,
+        "warnings": 0,
+        "infos": 13,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 16,
+          "URI_GLB": 10,
+          "UNUSED_MESH_TANGENT": 2,
           "UNUSED_OBJECT": 1
         }
       },
@@ -974,57 +998,59 @@
         "materials": 5,
         "textures": true,
         "draw_calls": 18,
-        "vertices": 352,
-        "triangles": 188,
+        "vertices": 650,
+        "triangles": 776,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/models/energy_orbit.glb",
+      "runtime_path": "game/assets/world/aetherfall/models/energy_orbit.glb",
       "source_path": "source/energy_orbit.blend",
-      "sha256": "3828c99dc6a5b533990e339a6f8c8359120c5d568583ec75cbe7ac7d00d3fad8",
-      "bytes": 95988,
+      "sha256": "8a671ca5f1b6c222e728634b5fffe0baee55f67c8bb582ae494753f4155c1cc3",
+      "bytes": 142568,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 2,
+        "infos": 3,
         "hints": 0,
         "by_code": {
-          "UNUSED_OBJECT": 2
+          "URI_GLB": 1,
+          "UNUSED_MESH_TANGENT": 2
         }
       },
       "stats": {
         "generator": "Khronos glTF Blender I/O v5.0.21",
         "materials": 1,
-        "textures": false,
+        "textures": true,
         "draw_calls": 2,
-        "vertices": 2528,
+        "vertices": 2642,
         "triangles": 1248,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 1
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/models/machinery.glb",
+      "runtime_path": "game/assets/world/aetherfall/models/machinery.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "89970f19b907beda999661fe1184bdad16da44b9f584cb5995783f9cda30e86e",
-      "bytes": 3111748,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "11d26ff968ec88768e245837c26788a03ab3c09bb87bb9983585b500331f1914",
+      "bytes": 36036,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 7,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 14,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 7
+          "URI_GLB": 13,
+          "UNUSED_MESH_TANGENT": 1
         }
       },
       "stats": {
@@ -1032,28 +1058,28 @@
         "materials": 5,
         "textures": true,
         "draw_calls": 8,
-        "vertices": 200,
-        "triangles": 108,
+        "vertices": 416,
+        "triangles": 540,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/models/pillar.glb",
+      "runtime_path": "game/assets/world/aetherfall/models/pillar.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "5714abde6507f71919b6197cb1b0478e49e3fb3822ecdd473a5a819a9e2b555f",
-      "bytes": 3088892,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "e3d764d16d42f5f54549404a1e2d62b3da48fa9e138fce780b7397509e2894b2",
+      "bytes": 27004,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 10,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 12,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 10
+          "URI_GLB": 12
         }
       },
       "stats": {
@@ -1061,28 +1087,28 @@
         "materials": 4,
         "textures": true,
         "draw_calls": 10,
-        "vertices": 192,
-        "triangles": 100,
+        "vertices": 255,
+        "triangles": 226,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/models/railing.glb",
+      "runtime_path": "game/assets/world/aetherfall/models/railing.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "f7d5f71bdf12c6fc869004f4cd7bd8f3ef10b617cc8a75dc84cdc4b79a4c67b4",
-      "bytes": 2235716,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "65f8305f1870fe5c943e02b8d5c4e8ae587af0855f3a94b16c46936638ed9b6c",
+      "bytes": 43300,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 26,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 9,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 26
+          "URI_GLB": 9
         }
       },
       "stats": {
@@ -1090,28 +1116,28 @@
         "materials": 3,
         "textures": true,
         "draw_calls": 26,
-        "vertices": 360,
-        "triangles": 188,
+        "vertices": 384,
+        "triangles": 224,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/models/rock_boulder.glb",
+      "runtime_path": "game/assets/world/aetherfall/models/rock_boulder.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "9b03da8f1b76dc585066aca90fff386102eddf6508231175c585451367183ef4",
-      "bytes": 828216,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "672b288b84a350e8eafb1064cd3696a01d646170806f967bbfe54a6874620906",
+      "bytes": 43060,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 4,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 6,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 4
+          "URI_GLB": 6
         }
       },
       "stats": {
@@ -1119,28 +1145,28 @@
         "materials": 3,
         "textures": true,
         "draw_calls": 4,
-        "vertices": 494,
-        "triangles": 252,
+        "vertices": 704,
+        "triangles": 356,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/models/terrain_chunk.glb",
+      "runtime_path": "game/assets/world/aetherfall/models/terrain_chunk.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "dd62fa2008b220bfaf630a18671b31cdbd615996a0eb3510f2cce77ad7e67e99",
-      "bytes": 983792,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "0fee5c6baa888c749bc139f9e342d43d2ea76b1dafd00c1ee0fd87019ea3a24f",
+      "bytes": 258392,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 12,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 6,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 12
+          "URI_GLB": 6
         }
       },
       "stats": {
@@ -1148,28 +1174,29 @@
         "materials": 3,
         "textures": true,
         "draw_calls": 12,
-        "vertices": 4575,
-        "triangles": 3576,
+        "vertices": 4647,
+        "triangles": 3648,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/models/tower_foundation.glb",
+      "runtime_path": "game/assets/world/aetherfall/models/tower_foundation.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "8ebe603640e90f50aee62a20bde571dd40c5ad8c3c7f606e42c5f7eda0e2b9f8",
-      "bytes": 3107080,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "42502a4e6f796dd183e34080eae38504e1c9456e73bf7bbe5cf98c20865947fa",
+      "bytes": 83296,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 26,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 17,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 26
+          "URI_GLB": 13,
+          "UNUSED_MESH_TANGENT": 4
         }
       },
       "stats": {
@@ -1177,28 +1204,29 @@
         "materials": 5,
         "textures": true,
         "draw_calls": 30,
-        "vertices": 468,
-        "triangles": 252,
+        "vertices": 924,
+        "triangles": 1164,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/models/tower_spire.glb",
+      "runtime_path": "game/assets/world/aetherfall/models/tower_spire.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "bc25480a5a8ccaab22e33edb2ea89d1df8aaea285f0cbf3918a8b976279ab9e0",
-      "bytes": 2252008,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "019cfcb106eac5163d3ad3e07077d23b2dae27fd759ddc6cda926ae30fb38411",
+      "bytes": 59624,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 9,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 11,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 9
+          "URI_GLB": 10,
+          "UNUSED_MESH_TANGENT": 1
         }
       },
       "stats": {
@@ -1206,28 +1234,29 @@
         "materials": 4,
         "textures": true,
         "draw_calls": 10,
-        "vertices": 406,
-        "triangles": 214,
+        "vertices": 836,
+        "triangles": 1066,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/models/tower_tier.glb",
+      "runtime_path": "game/assets/world/aetherfall/models/tower_tier.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "11f3ee8daa3a71ba879a75f69f0f9a460a9c0ad5d93e74aa1b42ebd28f5866af",
-      "bytes": 2280000,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "c578b2d7da166d9acf193e80dd8c4a4f89f029bb89b9b05739b270317a74fec7",
+      "bytes": 118520,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 29,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 15,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 29
+          "URI_GLB": 10,
+          "UNUSED_MESH_TANGENT": 5
         }
       },
       "stats": {
@@ -1235,28 +1264,28 @@
         "materials": 4,
         "textures": true,
         "draw_calls": 34,
-        "vertices": 720,
-        "triangles": 372,
+        "vertices": 1514,
+        "triangles": 1920,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/models/walkway_deck.glb",
+      "runtime_path": "game/assets/world/aetherfall/models/walkway_deck.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "6edade5a1d94661633c14aff47a67728ad53f980ad34a8d84932146de92a1399",
-      "bytes": 2956648,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "3c0b2382f836cb0824114cb0cbc259a5b7ee27bf17664a7d784108f939e2e2ee",
+      "bytes": 53864,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 30,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 12,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 30
+          "URI_GLB": 12
         }
       },
       "stats": {
@@ -1264,28 +1293,28 @@
         "materials": 4,
         "textures": true,
         "draw_calls": 30,
-        "vertices": 432,
-        "triangles": 228,
+        "vertices": 487,
+        "triangles": 312,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/models/wall_section.glb",
+      "runtime_path": "game/assets/world/aetherfall/models/wall_section.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "bca60c3aa8d59254ca7c9659712c03a79d6c3f72ab2d4f47e9435ea0b30662d7",
-      "bytes": 2218788,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "7e3452b59b7816a4e2f77def0f790c5829dedfb5a46017f62bb4447ea1728aa5",
+      "bytes": 24924,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 10,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 9,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 10
+          "URI_GLB": 9
         }
       },
       "stats": {
@@ -1293,28 +1322,29 @@
         "materials": 3,
         "textures": true,
         "draw_calls": 10,
-        "vertices": 132,
-        "triangles": 68,
+        "vertices": 234,
+        "triangles": 272,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/phase2/cryo_bulkhead.glb",
+      "runtime_path": "game/assets/world/aetherfall/phase2/cryo_bulkhead.glb",
       "source_path": "source/aetherfall_phase2_cover.blend",
-      "sha256": "9883492faa7e7d047e109a110ba8c594c75a00b3b374166564c5426a850e610f",
-      "bytes": 3007936,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "b085370e6098c76ca3cbd33e0a936f47a55fe6a224233e615a1d9d0ee062428e",
+      "bytes": 197332,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 15,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 14,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 15
+          "URI_GLB": 12,
+          "IMAGE_NPOT_DIMENSIONS": 2
         }
       },
       "stats": {
@@ -1322,28 +1352,29 @@
         "materials": 6,
         "textures": true,
         "draw_calls": 15,
-        "vertices": 3512,
-        "triangles": 1780,
+        "vertices": 3605,
+        "triangles": 1966,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/phase2/glacier_berm.glb",
+      "runtime_path": "game/assets/world/aetherfall/phase2/glacier_berm.glb",
       "source_path": "source/aetherfall_phase2_cover.blend",
-      "sha256": "7231281a6dfb4f92ebccc4d35378c0642505170c3b73d02d490a13961054906f",
-      "bytes": 2297024,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "827ff1ff8bef0420f194bb7ef4bac2b55d998694b6ca2ecda7a94e3b39f4745c",
+      "bytes": 193716,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 10,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 8,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 10
+          "URI_GLB": 6,
+          "IMAGE_NPOT_DIMENSIONS": 2
         }
       },
       "stats": {
@@ -1351,28 +1382,29 @@
         "materials": 4,
         "textures": true,
         "draw_calls": 10,
-        "vertices": 3500,
+        "vertices": 3576,
         "triangles": 1700,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/phase2/ice_terrace.glb",
+      "runtime_path": "game/assets/world/aetherfall/phase2/ice_terrace.glb",
       "source_path": "source/aetherfall_phase2_cover.blend",
-      "sha256": "f009e617f0c96ff051e6820774a9ce8ba62d36574fdc8dd81eff2f3a7a1ac090",
-      "bytes": 2304720,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "b48689fca579f8e350f533c0aef72e51cba8898716fd07c82dcce43555138938",
+      "bytes": 208400,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 11,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 8,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 11
+          "URI_GLB": 6,
+          "IMAGE_NPOT_DIMENSIONS": 2
         }
       },
       "stats": {
@@ -1380,28 +1412,29 @@
         "materials": 4,
         "textures": true,
         "draw_calls": 11,
-        "vertices": 3818,
+        "vertices": 3898,
         "triangles": 1866,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/phase2/salvage_pod.glb",
+      "runtime_path": "game/assets/world/aetherfall/phase2/salvage_pod.glb",
       "source_path": "source/aetherfall_phase2_cover.blend",
-      "sha256": "8bf65b4efa9bfc451f2243089c6359f0689e78cf3fb6d35d37048c0e513e02fd",
-      "bytes": 3005620,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "f549d79fc64c7f92c1a15e7e05a2e8fff7887f9129449fb6859d31b55d94c81c",
+      "bytes": 190844,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 13,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 14,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 13
+          "URI_GLB": 12,
+          "IMAGE_NPOT_DIMENSIONS": 2
         }
       },
       "stats": {
@@ -1409,28 +1442,29 @@
         "materials": 5,
         "textures": true,
         "draw_calls": 13,
-        "vertices": 3488,
-        "triangles": 1804,
+        "vertices": 3539,
+        "triangles": 1906,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/vertical/overhead_gantry.glb",
+      "runtime_path": "game/assets/world/aetherfall/vertical/overhead_gantry.glb",
       "source_path": "source/aetherfall_vertical_infrastructure.blend",
-      "sha256": "d5ba08810b6fb0ea5e2c265a8c27a8fb9af4f0c742a8ccc731ccceb59085860f",
-      "bytes": 2686124,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "566cf711e30cb1fec5984c2328431ed498fd3a09be85914a33bbd062f50798de",
+      "bytes": 446740,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 36,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 14,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 36
+          "URI_GLB": 12,
+          "IMAGE_NPOT_DIMENSIONS": 2
         }
       },
       "stats": {
@@ -1438,28 +1472,29 @@
         "materials": 5,
         "textures": true,
         "draw_calls": 36,
-        "vertices": 7968,
-        "triangles": 4016,
+        "vertices": 8361,
+        "triangles": 4802,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/vertical/raised_ops_deck.glb",
+      "runtime_path": "game/assets/world/aetherfall/vertical/raised_ops_deck.glb",
       "source_path": "source/aetherfall_vertical_infrastructure.blend",
-      "sha256": "215fc4ab042dd2003077619d27a723d6174310aae2f1921043a10bcfefcd38f2",
-      "bytes": 2632400,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "d31cbbfb3f28ffce7d90fc722d00e33929b51d8239863d5b3291f6ceea27e6db",
+      "bytes": 363224,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 25,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 14,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 25
+          "URI_GLB": 12,
+          "IMAGE_NPOT_DIMENSIONS": 2
         }
       },
       "stats": {
@@ -1467,28 +1502,29 @@
         "materials": 5,
         "textures": true,
         "draw_calls": 25,
-        "vertices": 6480,
-        "triangles": 3324,
+        "vertices": 6798,
+        "triangles": 3960,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",
       "next_required_gate": "asset_brief_and_reference_then_base_mesh_review"
     },
     {
-      "runtime_path": "assets/world/aetherfall/vertical/refinery_stack.glb",
+      "runtime_path": "game/assets/world/aetherfall/vertical/refinery_stack.glb",
       "source_path": "source/aetherfall_vertical_infrastructure.blend",
-      "sha256": "456be9f39a50d780af7d422283e306848bc77c5cf30033d87bfc1cc27db9fe66",
-      "bytes": 2940104,
-      "validation_status": "format_valid_with_warnings",
+      "sha256": "b09742a7b64e0e46bfedbb059a022b94091c4da385d511e033c153f5995d2315",
+      "bytes": 834176,
+      "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
-        "warnings": 57,
-        "infos": 0,
+        "warnings": 0,
+        "infos": 14,
         "hints": 0,
         "by_code": {
-          "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 57
+          "URI_GLB": 12,
+          "IMAGE_NPOT_DIMENSIONS": 2
         }
       },
       "stats": {
@@ -1496,10 +1532,10 @@
         "materials": 5,
         "textures": true,
         "draw_calls": 57,
-        "vertices": 15240,
-        "triangles": 7916,
+        "vertices": 15834,
+        "triangles": 9104,
         "max_uv_sets": 1,
-        "max_attributes": 3,
+        "max_attributes": 4,
         "animations": 0
       },
       "art_status": "legacy_runtime_asset_unaccepted_for_production_polish",

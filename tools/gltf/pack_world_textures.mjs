@@ -67,9 +67,33 @@ if (CHECK_ONLY && embedded) {
 
 if (!CHECK_ONLY) {
   fs.mkdirSync(TEXTURES, { recursive: true });
+  // writeSharedTextures prunes hash-named files that are not in the registry,
+  // so every texture a GLB still references must be loaded into the registry
+  // first — otherwise a partial repack deletes the modules' shared maps.
+  for (const file of walk(WORLD)) {
+    const input = fs.readFileSync(file);
+    const json = JSON.parse(input.subarray(20, 20 + input.readUInt32LE(12)).toString('utf8'));
+    for (const image of json.images ?? []) {
+      if (!image.uri) continue;
+      const name = path.basename(image.uri);
+      if (registry.has(name)) continue;
+      const full = path.join(TEXTURES, name);
+      if (fs.existsSync(full)) {
+        registry.set(name, {
+          fileName: name,
+          data: fs.readFileSync(full),
+          worlds: new Set(['<existing>']),
+          references: 1,
+        });
+      } else {
+        console.error(`FATAL: ${path.relative(WORLD, file)} references missing texture ${name}`);
+        process.exit(1);
+      }
+    }
+  }
   writeSharedTextures(registry, TEXTURES);
-  // Prune files no GLB references any more — collect URIs from every module,
-  // including ones that were already external before this run.
+  // Prune files no GLB references any more — belt and braces on top of
+  // writeSharedTextures' own cleanup.
   const keep = new Set();
   for (const file of walk(WORLD)) {
     const input = fs.readFileSync(file);

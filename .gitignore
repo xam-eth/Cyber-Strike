@@ -88,3 +88,5 @@ tools/asset-forge/build/
 
 # Agent/sandbox configuration, never part of the branch
 .claude/
+game/assets/world/aetherfall/materials/
+# regenerable PBR source maps (tools/blender/enrich_aetherfall.py)

@@ -150,6 +150,32 @@ Only after Godot visual approval:
 | Runtime asset inventory | **51 GLBs AUDITED; NONE PRODUCTION-ACCEPTED** — consult `INDUSTRY_PRODUCTION_STANDARD.md` and `validation/gltf_validation.json` |
 | Production Base Mesh | **EXPLORATORY STUDY ONLY** — `BM_*` covers three concept families and is not a full asset-library Gate 03 delivery |
 | High-poly detailing | **EXPLORATORY STUDY ONLY** — `HP_*` is bake-source research for three families, not an accepted Gate 04 delivery for 51 runtime assets |
-| Retopo / authored UV / bake | **NOT STARTED AS A REVIEWED ASSET PIPELINE** |
-| Final PBR texture authoring | **NOT STARTED AS A REVIEWED ASSET PIPELINE** |
+| Retopo / authored UV / bake | **NOT STARTED AS A REVIEWED ASSET PIPELINE** — runtime enrichment adds bevel/panel geometry without retopo or sculpt bakes |
+| Final PBR texture authoring | **PROCEDURAL BASELINE AUTHORED** — `pbr_lib.py` surface sets (height/cavity/wear/ORM) applied library-wide; per-asset material story review remains open |
 | Godot visual approval / target-device profile | **UNVERIFIED** |
+
+## Runtime enrichment stage (kit-wide, 2026-11-06)
+
+`tools/blender/enrich_aetherfall.py` is a reproducible pass over the 51 shipped
+runtime GLBs. It is explicitly **not** a substitute for the per-asset gates
+above; it upgrades the current library's surface language until individual
+hero assets pass those gates:
+
+- angle-limited bevels (applied, 2 segments) on every hard edge;
+- recessed panel plates on large convex tech faces (convexity/angle filtered,
+  with a per-mesh bounds guard against inset miter spikes);
+- inward-biased geology displacement on Rock/Stratum/IceVein meshes, clamped
+  to the baseline AABB so clearance contracts can only improve;
+- full material rebuilds from `tools/blender/pbr_lib.py` procedural surface
+  sets: 1024px albedo + normal + ORM with explicit height, cavity AO, wear and
+  grime channels per material family;
+- explicit MikkTSpace tangent export (closes the
+  MESH_PRIMITIVE_GENERATED_TANGENT_SPACE validator warning class);
+- per-asset contract verification: node names, animation clips and accessor
+  bounds drift against `measurements.json` (report at `/tmp/enrich_report.json`
+  per run).
+
+Chain: `build_*.py` (macro forms) → `enrich_aetherfall.py` (detail + PBR) →
+`tools/gltf/pack_world_textures.mjs` (shared content-addressed textures) →
+`tools/kit_measure.py` (measurements) → `tools/gltf-validation/validate_aetherfall.mjs`
+(Khronos ledger).
