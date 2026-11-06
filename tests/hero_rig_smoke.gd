@@ -160,20 +160,25 @@ func _run_smoke_test() -> void:
 	player.call("set_aiming", true)
 	visual.call("set_aiming", true)
 	visual.call("update_pose", Vector3.ZERO, true, 0.016)
-	for _frame in 30:
-		await process_frame
-	# The authored raise_weapon intro plays first; settle it and the aim hold.
-	if anim_player != null:
-		anim_player.advance(1.2)
-	visual.call("_process", 1.2)
+	await process_frame
+	await process_frame
 	_expect(
 		str(visual.call("current_clip")) in ["aim", "raise_weapon"],
 		"aiming raises the weapon toward the aim clip (clip=%s)" % visual.call("current_clip"),
 	)
-	for _frame in 2:
-		visual.call("_process", 0.05)
-		if anim_player != null:
-			anim_player.advance(0.05)
+	# Let real engine frames drive the raise intro, the aim hold and the
+	# socket blend to completion: manual advance() calls step animation time
+	# but not mixer blend time, which left the barrel mid-swing at 55% of the
+	# raise->aim blend and failed every level-barrel assert below.
+	var aim_frames := 0
+	for _frame in 180:
+		await process_frame
+		if str(visual.call("current_clip")) == "aim":
+			aim_frames += 1
+			if aim_frames >= 20:
+				break
+		else:
+			aim_frames = 0
 	_expect(str(visual.call("current_clip")) == "aim", "aiming plays the aim clip")
 	var aim_barrel := _barrel(muzzle)
 	var rig_diag := (
