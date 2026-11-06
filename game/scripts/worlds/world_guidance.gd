@@ -147,7 +147,7 @@ static func _build_chevron_leg(
 		var t := float(step) / float(count + 1)
 		var at := from.lerp(to, t)
 		var chevron := Label3D.new()
-		chevron.name = "Chevron%d" % step
+		chevron.name = "Chevron_%d" % int(stats.get("chevrons", 0))
 		chevron.text = "▲"
 		chevron.font_size = 140
 		chevron.pixel_size = 0.004

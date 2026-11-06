@@ -158,27 +158,47 @@ func _check_solid(
 		return
 	var hits := 0
 	var center := bounds.get_center()
-	for ix in range(-1, 2):
-		for iz in range(-1, 2):
-			var offset := Vector3(
-				bounds.size.x * 0.32 * float(ix), 0.0, bounds.size.z * 0.32 * float(iz)
-			)
-			var from := center + offset + Vector3(0.0, bounds.size.y * 0.5 + 2.0, 0.0)
-			var to := center + offset - Vector3(0.0, bounds.size.y * 0.5 + 2.0, 0.0)
-			var query := PhysicsRayQueryParameters3D.create(from, to)
-			query.collide_with_bodies = true
-			query.hit_from_inside = true
-			var hit: Dictionary = space.intersect_ray(query)
-			var collider: Object = hit.get("collider") as Object
-			if collider != null and String(collider.name).contains(label):
-				hits += 1
+	# Multi-axis grid: sparse lattice geometry (energy cores, debris fields)
+	# lets isolated vertical rays thread the gaps, so X, Z and vertical sweeps
+	# all count toward the "this volume is solid" proof.
+	for axis in range(3):
+		for i1 in range(-1, 2):
+			for i2 in range(-1, 2):
+				var offset := Vector3.ZERO
+				var from := center
+				var to := center
+				if axis == 0:
+					offset = Vector3(
+						bounds.size.x * 0.32 * float(i1), 0.0, bounds.size.z * 0.32 * float(i2)
+					)
+					from = center + offset + Vector3(0.0, bounds.size.y * 0.5 + 2.0, 0.0)
+					to = center + offset - Vector3(0.0, bounds.size.y * 0.5 + 2.0, 0.0)
+				elif axis == 1:
+					offset = Vector3(
+						0.0, bounds.size.y * 0.32 * float(i1), bounds.size.z * 0.32 * float(i2)
+					)
+					from = center + offset + Vector3(bounds.size.x * 0.5 + 2.0, 0.0, 0.0)
+					to = center + offset - Vector3(bounds.size.x * 0.5 + 2.0, 0.0, 0.0)
+				else:
+					offset = Vector3(
+						bounds.size.x * 0.32 * float(i1), bounds.size.y * 0.32 * float(i2), 0.0
+					)
+					from = center + offset + Vector3(0.0, 0.0, bounds.size.z * 0.5 + 2.0)
+					to = center + offset - Vector3(0.0, 0.0, bounds.size.z * 0.5 + 2.0)
+				var query := PhysicsRayQueryParameters3D.create(from, to)
+				query.collide_with_bodies = true
+				query.hit_from_inside = true
+				var hit: Dictionary = space.intersect_ray(query)
+				var collider: Object = hit.get("collider") as Object
+				if collider != null and String(collider.name).contains(label):
+					hits += 1
 	_passed = (
 		_expect(hits >= 1, "%s blocks rays through its volume (%d grid hits)" % [label, hits])
 		and _passed
 	)
 	print(
 		(
-			"    %s: %s collider, %d faces, %d/9 rays blocked"
+			"    %s: %s collider, %d faces, %d/27 rays blocked"
 			% [label, "concave" if total_faces > 0 else "box", total_faces, hits]
 		)
 	)

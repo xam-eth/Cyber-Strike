@@ -1006,14 +1006,15 @@ async function checkPageWithBrowser(browser, target, viewport) {
       return latestPlayerPos();
     };
     const engageOffered = () => latestRecovery()?.action === 'engage';
-    // Arrival Outpost spawn (-30, 1.2, 14) sits between Primary Arrival Outpost
-    // (-34, 0.25, 12.7; x_max=-30.4) and Landing Ridge Berm (-26, 0.25, 13;
-    // yaw=-28 deg, corners z=[10.56, 15.44]), with West Catwalk Ramp along z=8.0.
-    // Self-calibrate msPerMeter from real Camera QA world coordinates and route
-    // along the wide-open Southern Boulevard:
-    //   (-30,14) -> (-28.5,14) -> (-28.5,16.5) -> (-21.5,16.5) -> (-21.5,10.2)
+    // Arrival Outpost spawn (-18, 1.2, 3) is the clear East-Central deck tile:
+    // the terrain_chunk ice masses are now solid concave colliders, so the old
+    // "Southern Boulevard" route walked through visible ice (the player bug
+    // report) and cannot be used. Self-calibrate msPerMeter from real Camera QA
+    // world coordinates and route along the genuinely clear central lanes
+    // (ice surface stays <= -0.3 m under every leg):
+    //   (-18,3) -> (-21.5,3) -> (-21.5,10.2)
     // landing in the unobstructed East Plaza 3.0m from Outpost Cache (-24.5,10.5)
-    // and 2.0-3.1m from both robot guards with >=0.71m clearance on every leg.
+    // and 2.0-3.1m from both robot guards.
     let msPerMeter = 520;
     let calibratedRate = false;
     let pos = latestPlayerPos() || (await waitNextPlayerPos(25000));
@@ -1067,13 +1068,11 @@ async function checkPageWithBrowser(browser, target, viewport) {
       }
     };
     if (recoveryE2eMode) {
-      await driveAxis('x', -28.5, 0.55, 60000);
-      await driveAxis('z', 16.5, 0.65, 60000);
-      await driveAxis('x', -21.5, 0.80, 75000);
-      await driveAxis('z', 10.2, 0.75, 75000);
+      await driveAxis('x', -21.5, 0.55, 60000);
+      await driveAxis('z', 10.2, 0.65, 60000);
     } else {
-      await driveAxis('x', -28.5, 0.55, 45000, true);
-      await driveAxis('z', 11.2, 0.65, 45000, true);
+      await driveAxis('x', -21.5, 0.55, 45000, true);
+      await driveAxis('z', 10.2, 0.65, 45000, true);
     }
     if (!engageOffered()) {
       for (const [k1, ms] of [['KeyA', 650], ['KeyW', 550], ['KeyD', 650]]) {
