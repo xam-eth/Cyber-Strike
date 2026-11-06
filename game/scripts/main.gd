@@ -384,20 +384,6 @@ func _apply_selected_world_spawn() -> void:
 		player.position = definition.player_spawn
 		wave_director.arena_half_extents = definition.field_size * 0.5
 		wave_director.arena_center = definition.field_center
-		if absf(definition.player_spawn_yaw_degrees) > 0.01:
-			# Authored spawn bearing: hero, camera and aim all start looking at
-			# the mission's first objective instead of the empty deck grid.
-			var yaw := deg_to_rad(definition.player_spawn_yaw_degrees)
-			player.rotation.y = yaw
-			var yaw_pivot := player.get_node_or_null("CameraRig/YawPivot") as Node3D
-			if yaw_pivot != null:
-				yaw_pivot.rotation.y = yaw
-			var visual := player.get_node_or_null("VisualRoot")
-			if visual != null and visual.has_method("update_facing"):
-				var facing_target := (
-					definition.player_spawn + Vector3(-sin(yaw), 0.0, -cos(yaw)) * 10.0
-				)
-				visual.call("update_facing", facing_target, Vector3.ZERO, true, 2.0)
 
 
 func _on_weapon_equipped(_display_name: String) -> void:
