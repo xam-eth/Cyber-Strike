@@ -157,6 +157,10 @@ func _run_smoke_test() -> void:
 	# The controller re-applies its own aim state every physics tick, so drive
 	# both sides and stop the physics loop for the duration of the check.
 	player.set_physics_process(false)
+	# A fresh deploy drops the hero onto the deck and the authored land clip
+	# outranks the raise intro; clear the landing timer so the aim sequence
+	# below starts deterministically.
+	visual.call("reset_action_state")
 	player.call("set_aiming", true)
 	visual.call("set_aiming", true)
 	visual.call("update_pose", Vector3.ZERO, true, 0.016)
@@ -166,19 +170,25 @@ func _run_smoke_test() -> void:
 		str(visual.call("current_clip")) in ["aim", "raise_weapon"],
 		"aiming raises the weapon toward the aim clip (clip=%s)" % visual.call("current_clip"),
 	)
-	# Let real engine frames drive the raise intro, the aim hold and the
-	# socket blend to completion: manual advance() calls step animation time
-	# but not mixer blend time, which left the barrel mid-swing at 55% of the
-	# raise->aim blend and failed every level-barrel assert below.
-	var aim_frames := 0
-	for _frame in 180:
+	# Drive the raise intro, the raise->aim skeleton blend (0.18 playback
+	# seconds) and the socket blend (0.16 s) to FULL completion before any
+	# barrel geometry is measured. Headless engine frames are fast (tiny
+	# deltas), so each tick also steps playback and the socket explicitly;
+	# barrel asserts read a settled aim hold, never a mid-blend swing.
+	var settled := 0
+	for _frame in 240:
 		await process_frame
-		if str(visual.call("current_clip")) == "aim":
-			aim_frames += 1
-			if aim_frames >= 20:
-				break
-		else:
-			aim_frames = 0
+		if anim_player != null:
+			anim_player.advance(0.06)
+		visual.call("_process", 0.06)
+		var aim_ready := (
+			str(visual.call("current_clip")) == "aim"
+			and float(visual.get("_socket_weight")) >= 0.98
+			and (anim_player == null or anim_player.current_animation_position >= 0.3)
+		)
+		settled = (settled + 1) if aim_ready else 0
+		if settled >= 3:
+			break
 	_expect(str(visual.call("current_clip")) == "aim", "aiming plays the aim clip")
 	var aim_barrel := _barrel(muzzle)
 	var rig_diag := (
@@ -214,8 +224,10 @@ func _run_smoke_test() -> void:
 	if anim_player != null:
 		for _tick in range(6):
 			anim_player.advance(0.04)
+			await process_frame
 		anim_player.seek(0.4, true)
 		anim_player.advance(0.01)
+		await process_frame
 	visual.call("_process", 0.3)
 	_expect(
 		_barrel(muzzle).dot(forward) > 0.96,
@@ -236,8 +248,10 @@ func _run_smoke_test() -> void:
 	if anim_player != null:
 		for _tick in range(6):
 			anim_player.advance(0.04)
+			await process_frame
 		anim_player.seek(0.3, true)
 		anim_player.advance(0.01)
+		await process_frame
 	visual.call("_process", 0.3)
 	_expect(
 		_barrel(muzzle).dot(forward) > 0.96,
