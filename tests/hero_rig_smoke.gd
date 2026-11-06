@@ -175,6 +175,21 @@ func _run_smoke_test() -> void:
 		if anim_player != null:
 			anim_player.advance(0.05)
 	_expect(str(visual.call("current_clip")) == "aim", "aiming plays the aim clip")
+	print(
+		(
+			"RIG QA: clip=%s anim=%s t=%.2f weight=%.2f vis_yaw=%.2f fwd=%s barrel=%s socket_z=%s"
+			% [
+				visual.call("current_clip"),
+				anim_player.current_animation if anim_player != null else "none",
+				anim_player.current_animation_position if anim_player != null else 0.0,
+				float(visual.get("_socket_weight")),
+				(visual as Node3D).rotation.y,
+				forward,
+				_barrel(muzzle),
+				socket.global_transform.basis.z.normalized(),
+			]
+		)
+	)
 	var aim_barrel := _barrel(muzzle)
 	_expect(
 		aim_barrel.dot(forward) > 0.95,
