@@ -340,7 +340,7 @@ func update_pose(velocity: Vector3, grounded: bool, delta: float) -> void:
 	_air_rising = rising
 	# Backpedal: while the aim yaw locks the body, reversing the walk/aim_walk
 	# playback reads as stepping back instead of moon-walking forward.
-	var forward := Vector3(-sinf(_facing_yaw), 0.0, -cosf(_facing_yaw))
+	var forward := Vector3(-sin(_facing_yaw), 0.0, -cos(_facing_yaw))
 	_move_backward = (
 		horizontal.length() > 0.1
 		and Vector3(velocity.x, 0.0, velocity.z).normalized().dot(forward) < -0.35
