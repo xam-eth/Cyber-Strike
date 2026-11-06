@@ -315,7 +315,9 @@ def tex_rock(size):
     warped = y + 0.045 * (broad - 0.5) + 0.012 * np.sin(x * 11.0)
     layers = 0.5 + 0.5 * np.sin(warped * math.pi * 9.0)
     band_soft = 0.5 + 0.5 * np.sin(warped * math.pi * 9.0 + 1.2)
-    height = 0.5 + (layers - 0.5) * 0.42 + (detail - 0.5) * 0.35 + (broad - 0.5) * 0.22
+    height = 0.5 + (layers - 0.5) * 0.42 + (detail - 0.5) * 0.20 + (broad - 0.5) * 0.22
+    mid = _fbm(rng, size, 4, 6)
+    height += (mid - 0.5) * 0.16
     # fracture planes
     for angle, spacing in ((0.35, 0.19), (-0.62, 0.26), (1.15, 0.31)):
         axis = x * math.cos(angle) + y * math.sin(angle)
@@ -323,14 +325,17 @@ def tex_rock(size):
         height -= _smoothstep(0.12, 0.0, dist) * 0.16
     height = np.clip(height, 0, 1)
 
-    tone = 0.335 + (layers - 0.5) * 0.16 + (broad - 0.5) * 0.12 + (detail - 0.5) * 0.08
+    tone = 0.335 + (layers - 0.5) * 0.16 + (broad - 0.5) * 0.12 + (mid - 0.5) * 0.10 + (detail - 0.5) * 0.045
     albedo = np.empty((size, size, 3), np.float32)
     albedo[..., 0] = tone * 1.04
     albedo[..., 1] = tone * 1.0
     albedo[..., 2] = tone * 0.955
+    # cavity darkening: recessed strata swallow light while exposed tops catch
+    # it -- a wide value ramp is what separates stone from flat noise.
+    albedo *= (0.62 + 0.58 * _smoothstep(0.16, 0.88, height))[..., None]
     frost = _smoothstep(0.66, 0.92, height) * _smoothstep(0.35, 0.7, _fbm(rng, size, 4, 4))
     albedo += frost[..., None] * np.array([0.14, 0.17, 0.20], np.float32)
-    albedo = np.clip(albedo + rng.normal(0, 0.012, (size, size, 1)), 0, 1)
+    albedo = np.clip(albedo + rng.normal(0, 0.006, (size, size, 1)), 0, 1)
     rough = np.clip(0.86 - frost * 0.10 + (detail - 0.5) * 0.12, 0.45, 0.99)
     metal = np.zeros((size, size), np.float32)
     arr = np.concatenate([albedo, np.ones((size, size, 1), np.float32)], axis=2)
@@ -349,9 +354,14 @@ def tex_ice_rock(size):
     height = 0.5 + (bands - 0.5) * 0.30 + (broad - 0.5) * 0.30 + (fine - 0.5) * 0.18
 
     albedo = np.empty((size, size, 3), np.float32)
-    albedo[..., 0] = 0.115 + bands * 0.115 + (broad - 0.5) * 0.075
-    albedo[..., 1] = 0.235 + bands * 0.205 + (broad - 0.5) * 0.10
-    albedo[..., 2] = 0.345 + bands * 0.275 + (broad - 0.5) * 0.12
+    # Deep clear ice vs milky pressure strata: a wide value ramp reads as
+    # glacial mass. The previous flat bright ramp read as pastel plastic in
+    # runtime captures -- deep body now falls to ~0.05 blue while strata and
+    # frost stay bright, and value (not hue) does the separating.
+    milky = _smoothstep(0.35, 0.75, _fbm(rng, size, 4, 2.5))
+    albedo[..., 0] = 0.052 + bands * 0.135 + milky * 0.045 + (broad - 0.5) * 0.05
+    albedo[..., 1] = 0.115 + bands * 0.225 + milky * 0.075 + (broad - 0.5) * 0.075
+    albedo[..., 2] = 0.185 + bands * 0.315 + milky * 0.105 + (broad - 0.5) * 0.10
 
     # dark cryo-fractures with bright pressure rims
     crack_mask = np.zeros((size, size), np.float32)
@@ -368,6 +378,8 @@ def tex_ice_rock(size):
     albedo *= (1.0 - crack_mask[..., None] * 0.52)
     albedo += (rim_mask * 0.16)[..., None] * np.array([0.55, 0.72, 0.85], np.float32)
     height -= crack_mask * 0.30
+    # cavity darkening after fractures: deep mass swallows light
+    albedo *= (0.58 + 0.58 * _smoothstep(0.15, 0.85, np.clip(height, 0, 1)))[..., None]
 
     # pale pressure seams on shelves
     seam = np.minimum.reduce([np.abs(y - v) for v in (0.14, 0.36, 0.60, 0.84)])
@@ -380,9 +392,10 @@ def tex_ice_rock(size):
     albedo += frost[..., None] * np.array([0.20, 0.235, 0.265], np.float32)
     height += frost * 0.12
 
-    # crystal glitter specks
-    glitter = (rng.random((size, size)) > 0.9965).astype(np.float32)
-    albedo += glitter[..., None] * 0.28
+    # crystal glitter specks (sparse: dense speckle turns to salt-and-pepper
+    # noise once the map is downscaled for the payload budget)
+    glitter = (rng.random((size, size)) > 0.9986).astype(np.float32)
+    albedo += glitter[..., None] * 0.22
 
     albedo = np.clip(albedo + rng.normal(0, 0.010, (size, size, 1)), 0, 1)
     rough = np.clip(0.62 - frost * 0.30 - glitter * 0.35 + crack_mask * 0.18, 0.08, 0.95)

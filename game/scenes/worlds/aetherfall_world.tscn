@@ -1,18 +1,14 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/worlds/aetherfall_world.gd" id="1_aetherfall"]
+[ext_resource type="Texture2D" path="res://assets/world/aetherfall/sky/sky_aurora.jpg" id="2_sky_aurora"]
 
-[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_aetherfall"]
-sky_top_color = Color(0.024, 0.068, 0.148, 1)
-sky_horizon_color = Color(0.28, 0.45, 0.61, 1)
-ground_bottom_color = Color(0.03, 0.055, 0.095, 1)
-ground_horizon_color = Color(0.16, 0.28, 0.41, 1)
-sun_angle_max = 16.0
-sun_curve = 0.08
+[sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_aetherfall"]
+panorama = ExtResource("2_sky_aurora")
 energy_multiplier = 0.85
 
 [sub_resource type="Sky" id="Sky_aetherfall"]
-sky_material = SubResource("ProceduralSkyMaterial_aetherfall")
+sky_material = SubResource("PanoramaSkyMaterial_aetherfall")
 
 [sub_resource type="Environment" id="Environment_aetherfall"]
 background_mode = 2

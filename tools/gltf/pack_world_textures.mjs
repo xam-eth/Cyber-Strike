@@ -48,6 +48,51 @@ let changed = 0;
 let embedded = 0;
 const RECOMPRESS = process.argv.includes('--recompress');
 
+// Degenerate UV triangles make MikkTSpace emit zero-length tangents, which the
+// Khronos validator flags as ACCESSOR_VECTOR3_NON_UNIT errors. GPU samplers are
+// lenient, but a clean ledger is a gate: normalize every TANGENT xyz in place
+// (zero vectors fall back to +X) and rewrite the GLB only when something
+// changed. Idempotent; geometry, materials and accessors sizes are untouched.
+function fixTangents(file) {
+  const input = fs.readFileSync(file);
+  const { json, bin } = parseGlb(input);
+  let fixed = 0;
+  for (const mesh of json.meshes ?? []) {
+    for (const prim of mesh.primitives ?? []) {
+      const idx = prim.attributes?.TANGENT;
+      if (!Number.isInteger(idx)) continue;
+      const acc = json.accessors[idx];
+      if (acc.componentType !== 5126 || acc.type !== 'VEC4') continue;
+      const view = json.bufferViews[acc.bufferView ?? -1];
+      if (!view) continue;
+      const start = (view.byteOffset ?? 0) + (acc.byteOffset ?? 0);
+      for (let i = 0; i < acc.count; i++) {
+        const o = start + i * 16;
+        const x = bin.readFloatLE(o);
+        const y = bin.readFloatLE(o + 4);
+        const z = bin.readFloatLE(o + 8);
+        const len = Math.sqrt(x * x + y * y + z * z);
+        if (len > 0.999 && len < 1.001) continue;
+        if (len < 1e-8) {
+          bin.writeFloatLE(1, o);
+          bin.writeFloatLE(0, o + 4);
+          bin.writeFloatLE(0, o + 8);
+        } else {
+          bin.writeFloatLE(x / len, o);
+          bin.writeFloatLE(y / len, o + 4);
+          bin.writeFloatLE(z / len, o + 8);
+        }
+        fixed += 1;
+      }
+    }
+  }
+  if (fixed) {
+    fs.writeFileSync(file, writeGlb(json, bin));
+    console.log(`fixed ${fixed} non-unit tangent(s) in ${path.relative(WORLD, file)}`);
+  }
+  return fixed;
+}
+
 const SLOT_RANK = { albedo: 1, normal: 2, orm: 3 };
 
 function classifyImages(json) {
@@ -220,6 +265,10 @@ if (!CHECK_ONLY) {
     }
   }
   await Promise.all(pendingEncodes.values());
+}
+
+for (const file of walk(WORLD).sort()) {
+  fixTangents(file);
 }
 
 for (const file of walk(WORLD).sort()) {
