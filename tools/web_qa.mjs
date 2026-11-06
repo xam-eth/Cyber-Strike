@@ -55,6 +55,7 @@
  */
 import crypto from 'node:crypto';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import zlib from 'node:zlib';
 import { execFileSync, spawn } from 'node:child_process';
@@ -161,10 +162,22 @@ if (!baseUrl) {
 fs.mkdirSync(outDir, { recursive: true });
 
 const launchBrowser = async (protocolTimeout) => {
+  // A fresh profile per launch: @sparticuz/chromium pins --user-data-dir in
+  // its args, and the exported build persists progression to user:// (IndexedDB
+  // under that profile). Cross-launch persistence silently started later runs
+  // with the Recovery cache already SECURED, steering them at the wrong
+  // objective (HORIZON RELAY instead of the Arrival Tech Cache).
+  const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'webqa-profile-'));
+  const stripProfile = (args) => args.filter((a) => !String(a).startsWith('--user-data-dir'));
   try {
     return await puppeteer.launch({
       executablePath: await chromium.executablePath(),
-      args: [...chromium.args, '--no-sandbox', '--disable-dev-shm-usage'],
+      args: [
+        ...stripProfile(chromium.args),
+        '--no-sandbox',
+        '--disable-dev-shm-usage',
+        `--user-data-dir=${userDataDir}`,
+      ],
       headless: true,
       protocolTimeout,
       env: { ...process.env, LD_LIBRARY_PATH: [LIB_DIR, process.env.LD_LIBRARY_PATH].filter(Boolean).join(':') },
@@ -182,6 +195,7 @@ const launchBrowser = async (protocolTimeout) => {
             '--use-gl=angle',
             '--use-angle=swiftshader-webgl',
             '--enable-unsafe-swiftshader',
+            `--user-data-dir=${userDataDir}`,
           ],
           headless: true,
           protocolTimeout,

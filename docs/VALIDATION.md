@@ -4,6 +4,20 @@ This document records the latest relevant evidence and its limits. It is not a d
 
 For intended behavior, read [`GAMEPLAY_DESIGN.md`](GAMEPLAY_DESIGN.md). For required gates, read [`DEVELOPMENT.md`](DEVELOPMENT.md).
 
+## Polish pass 1 — material value range, aurora sky, QA-profile isolation — 2026-11-06
+
+| Item | Current checkpoint |
+|---|---|
+| Source | `a4ef36d` (materials + sky + tangent hygiene) + this commit (web QA profile isolation) |
+| Godot/Web CI | [42309808778](https://github.com/xam-eth/Cyber-Strike/actions/runs/42309808778) — **SUCCESS** (45/45 smokes, all browser contracts incl. TECH HUNT E2E closure) |
+| Committed Web payload | `c8ed157` — `web/index.pck` 90,085,276 bytes (sky panorama + refreshed maps, still under the 100 MB budget) |
+
+- **IMPLEMENTED (material realism):** `pbr_lib` `tex_ice_rock` rebuilt around a wide value ramp (deep clear ice body against bright pressure strata/frost, milky patches, cavity darkening, sparse glitter) and `tex_rock` tamed for high-frequency noise with mid-scale structure and cavity darkening — value separation per `ART_DIRECTION.md`, hue families unchanged. All 51 GLBs re-materialled (`enrich_aetherfall.py --skip-geometry`, 0 contract diffs) and repacked through the 512px/JPEG profile.
+- **IMPLEMENTED (declared atmosphere):** `world_mood` declares "aurora sky and drifting snow" but the scene shipped a two-colour procedural gradient. Deterministic equirect panorama `game/assets/world/aetherfall/sky/sky_aurora.jpg` (navy zenith, cyan-teal curtains, stars; 261 KB) wired as `PanoramaSkyMaterial` in `aetherfall_world.tscn`. Drifting snow particles remain open.
+- **IMPLEMENTED (tangent hygiene):** degenerate-UV triangles make MikkTSpace emit zero-length tangents (`ACCESSOR_VECTOR3_NON_UNIT` on `expanse_shelf` ×48 and `debris_cluster` ×2). `pack_world_textures.mjs` `fixTangents()` normalizes TANGENT xyz in place (zero → +X), idempotent. Ledger back to **0 errors / 0 warnings**.
+- **FIXED (web QA profile isolation):** local QA runs shared Chromium's default `~/.config/chromium` profile, where the exported build persists `user://progression.cfg` (IndexedDB). A prior run's secured cache steered later runs at the wrong objective (HORIZON RELAY instead of the Arrival Tech Cache) — CI was immune (fresh VM). `web_qa.mjs` now launches every browser with a fresh temp `--user-data-dir`. Verified locally: recovery contract `failed: []` with engage/guards/GLB guard models.
+- **UNVERIFIED:** unchanged from the previous checkpoint — human visual approval, production gates C–E, Android device, drifting-snow particle polish.
+
 ## World production visual enrichment & payload budget checkpoint — 2026-11-06
 
 | Item | Current checkpoint |
