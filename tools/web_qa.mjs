@@ -1068,14 +1068,27 @@ async function checkPageWithBrowser(browser, target, viewport) {
         }
       }
     };
+    const legEnds = [];
     if (recoveryE2eMode) {
-      await driveAxis('z', 16.5, 0.55, 60000);
-      await driveAxis('x', -21.5, 0.65, 60000);
-      await driveAxis('z', 10.2, 0.75, 75000);
+      await driveAxis('z', 16.5, 0.55, 60000, true);
+      legEnds.push({ leg: 'z16.5', pos: latestPlayerPos(), engage: engageOffered() });
+      await driveAxis('x', -21.5, 0.65, 60000, true);
+      legEnds.push({ leg: 'x-21.5', pos: latestPlayerPos(), engage: engageOffered() });
+      await driveAxis('z', 10.2, 0.75, 75000, true);
+      legEnds.push({ leg: 'z10.2', pos: latestPlayerPos(), engage: engageOffered() });
     } else {
       await driveAxis('z', 16.5, 0.55, 45000, true);
       await driveAxis('x', -21.5, 0.65, 45000, true);
       await driveAxis('z', 10.2, 0.75, 45000, true);
+    }
+    if (!engageOffered()) {
+      // The scripted landing (-21.5, 10.2) sits exactly 3.0m from the Outpost
+      // Cache (-24.5, 10.5) -- the edge of interaction range. Any z overshoot
+      // within the 0.75m leg tolerance leaves the player 3.09m out and the
+      // explicit Engage offer never fires. Close the gap deliberately (west,
+      // toward the cache) until the offer appears, then run the old unstick
+      // nudges only if it still has not.
+      await driveAxis('x', -22.6, 0.35, 12000, true);
     }
     if (!engageOffered()) {
       for (const [k1, ms] of [['KeyA', 650], ['KeyW', 550], ['KeyD', 650]]) {
@@ -1088,6 +1101,15 @@ async function checkPageWithBrowser(browser, target, viewport) {
     }
     const engagePlayerPos = latestPlayerPos();
     recoveryEvidence = { engageOffered: engageOffered(), guardsActive: false, guardModels: [] };
+    if (recoveryE2eMode) {
+      // Cheap leg telemetry for the evidence notice: when engage acquisition
+      // fails again, the positions show which leg stalled or overshot.
+      recoveryEvidence.debug = {
+        playerPos: engagePlayerPos,
+        legEnds,
+        sableLogSeen: consoleLines.some((l) => l.includes('Operative: hero=sable')),
+      };
+    }
     await capture('engage-offer');
     const beforeEngage = consoleLines.length;
     if (recoveryEvidence.engageOffered) {

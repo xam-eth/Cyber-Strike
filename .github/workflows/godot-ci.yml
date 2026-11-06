@@ -545,7 +545,7 @@ jobs:
               )
               print(
                   "::notice title=Browser TECH HUNT E2E evidence::"
-                  + json.dumps(e2e, separators=(",", ":"))
+                  + json.dumps({"e2e": e2e, "debug": recovery.get("debug")}, separators=(",", ":"))
               )
               for failure in page["failed"]:
                   print(f"::error title=Browser TECH HUNT E2E::{failure}")
