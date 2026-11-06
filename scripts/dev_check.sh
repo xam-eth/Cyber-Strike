@@ -341,6 +341,23 @@ if [[ -f "$KIT_MEASURE" ]]; then
   fi
 fi
 
+# The ray-grid collision check replays collision_integrity_smoke's own-geometry
+# grid against the exported GLBs. A geometry pass that thins a lattice or mesa
+# into ray-threadable wreckage fails here in seconds instead of in a CI smoke.
+COLLISION_CHECK="$ROOT_DIR/tools/check_world_collision.py"
+if [[ ! -f "$COLLISION_CHECK" ]]; then
+  step_failed 'tools/check_world_collision.py is missing'
+elif [[ -z "$PYTHON_BIN" ]]; then
+  step_skipped 'no python3 interpreter available for the world collision check'
+elif ! "$PYTHON_BIN" -c 'import numpy' >/dev/null 2>&1; then
+  step_skipped 'numpy not installed for tools/check_world_collision.py'
+elif collision_output="$("$PYTHON_BIN" "$COLLISION_CHECK" 2>&1)"; then
+  step_passed 'ray grid blocked by own geometry on every solid world asset'
+else
+  step_failed 'world collision ray grid failed (see above)'
+  printf '%s\n' "$collision_output" | sed 's/^/         /' | head -12
+fi
+
 MAP_CHECK="$ROOT_DIR/tools/module_map.py"
 if [[ -z "$PYTHON_BIN" ]]; then
   step_skipped 'no python3 interpreter available for the handover map check'
