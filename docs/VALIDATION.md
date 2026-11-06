@@ -4,6 +4,25 @@ This document records the latest relevant evidence and its limits. It is not a d
 
 For intended behavior, read [`GAMEPLAY_DESIGN.md`](GAMEPLAY_DESIGN.md). For required gates, read [`DEVELOPMENT.md`](DEVELOPMENT.md).
 
+## World production visual enrichment & payload budget checkpoint — 2026-11-06
+
+| Item | Current checkpoint |
+|---|---|
+| Enrichment + budget source | `7a52e1e`, `8218cd8`, `89ad4aa`, `ccd62f1` (this branch) |
+| Godot/Web CI | [42224113406](https://github.com/xam-eth/Cyber-Strike/actions/runs/42224113406) — **SUCCESS** (`Static checks`, `Headless smoke tests 45/45` on Godot 4.7.2, `Web preview build` incl. every browser QA contract: TECH HUNT E2E closure, Recovery engagement, ADS, shell/audio, download recovery) |
+| Committed Web payload | `web/index.pck` **90,075,200 bytes** (734 files; SH-01 Aetherfall + all 5 rigged robot GLBs, 0 legacy leaks) — under the 100,000,000-byte plain-clone budget |
+| Khronos glTF validation | 51 GLBs: **0 errors / 0 warnings** / 606 infos — `docs/world/aetherfall/validation/gltf_validation.json` |
+| Before/after visual evidence | `docs/previews/{before,after}_{world,detail}.png` (real render-pipeline captures, same camera/light rig) |
+
+### What this checkpoint verifies
+
+- **IMPLEMENTED (world surface enrichment, 51/51 assets):** `tools/blender/enrich_aetherfall.py` applies per-object bevels (thin-strut capped), filtered inset paneling, inward geology displacement, a `pbr_lib` material rebuild (12 procedural surfaces → 41 shared 512px JPEG maps: albedo q90 4:2:0, normal q92 4:4:4, ORM q95 4:4:4), and explicit MikkTSpace tangents (`NO_TANGENTS={"cloud_puff"}`). Export contract: `export_apply=False, use_selection=False, export_yup=True`; every node name and animation clip preserved; `measurements.json` regenerated 51/51 (`kit_measure.py --check` OK).
+- **VERIFIED (CI, real Godot runtime):** run [42224113406](https://github.com/xam-eth/Cyber-Strike/actions/runs/42224113406) — 45/45 smoke suites pass (incl. `collision_integrity_smoke` with its rewritten ray grid) and every browser contract passes on the exported WebAssembly build, including TECH HUNT E2E closure with all evidence fields true (engage → guards → cursor-aim clear → Secure → schematic + 45 BP persistence → hub mirror → Kestrel redeploy).
+- **VERIFIED (collision integrity):** `tests/collision_integrity_smoke.gd` now intersects its 27-ray grid directly against each body's own shape faces. The previous space-state first-hit filter was shadowed by the tower tier box colliders over the energy-core volume — a scene simulation (`tools/check_world_collision.py` + first-hit study) showed 0/27 first hits on the core with BOTH the original and enriched GLBs. The local checker replicates the smoke grid pre-CI: 9/9 ray solids block 12–27 of 27 rays with their own geometry.
+- **VERIFIED (payload budget):** Godot `.ctex` size scales with source pixel count, not source bytes; the packer budget profile caps every world map at 512px + JPEG (`pack_world_textures.mjs`, `--recompress` migrates externalized trees). World texture library 32MB → 3.5MB; PCK 107.4MB (first enriched build) → 105.8MB (JPEG only) → **90.1MB** (512px cap). `godot-ci.yml` now prints the payload composition before the budget gate. Tradeoff: world albedo/normal detail is 512px — hero/enemy/UI art is untouched.
+- **VERIFIED (local static):** texture integrity 41 referenced = 41 on disk (0 missing, 0 orphans), `dev_check.sh` 0 failed / 2 skipped (local Godot binary + export preset absent). Harness fix `ccd62f1`: the TECH HUNT E2E lane now guarantees cache interaction range (the scripted landing sat exactly on the 3.0m offer boundary; any tolerance overshoot lost the Engage offer) and reports leg telemetry in its evidence notice.
+- **UNVERIFIED (production gates & human approval):** per-asset Gates C–E of `docs/world/aetherfall/INDUSTRY_PRODUCTION_STANDARD.md` (high-poly sculpt, retopology, authored UV/bake) remain OPEN — the shipped maps are the procedural PBR baseline. Human visual approval of the runtime look, physical Android evidence, and performance profiling are unchanged and pending.
+
 ## Full gameplay-flow bug audit & fixes (animation / spawn / guidance / collision) checkpoint — 2026-11-06
 
 | Item | Current checkpoint |
