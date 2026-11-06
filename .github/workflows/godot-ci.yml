@@ -235,12 +235,14 @@ jobs:
               print(f'::error title=Leaked legacy PCK resources::{leaked[:8]}')
               raise SystemExit(f'Exported PCK contains retired legacy assets: {leaked[:8]}')
           size = Path('web/index.pck').stat().st_size
+          largest = sorted(entries, key=lambda entry: entry[2], reverse=True)[:5]
+          detail = ', '.join(f'{path}={size}' for path, _, size in largest)
+          # Surface the composition BEFORE the budget gate so an over-budget
+          # run still shows where the bytes went.
+          print(f'::notice title=Exported content payload::PCK {size} bytes, {len(entries)} files; SH-01 Aetherfall and all 5 rigged robot GLBs present (0 legacy leaks); largest: {detail}')
           if size >= 100000000:
               print(f'::error title=PCK exceeds 100MB budget::{size}')
               raise SystemExit(f'Exported PCK exceeds the 100000000-byte plain-clone budget: {size}')
-          largest = sorted(entries, key=lambda entry: entry[2], reverse=True)[:5]
-          detail = ', '.join(f'{path}={size}' for path, _, size in largest)
-          print(f'::notice title=Exported content payload::PCK {size} bytes, {len(entries)} files; SH-01 Aetherfall and all 5 rigged robot GLBs present (0 legacy leaks); largest: {detail}')
           Path('exports/web-payload-summary.json').write_text(json.dumps({
               'pck_bytes': size,
               'files': len(entries),

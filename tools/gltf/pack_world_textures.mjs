@@ -95,8 +95,10 @@ async function encodeJpeg(data, kind) {
   const source = sharp(data);
   const meta = await source.metadata();
   let pipeline = source;
-  if (kind === 'orm' && meta.width > 512) pipeline = pipeline.resize(512, 512);
-  const quality = kind === 'orm' ? 95 : kind === 'normal' ? 92 : 90;
+  if ((meta.width ?? 0) > 512 || (meta.height ?? 0) > 512) {
+    pipeline = pipeline.resize(512, 512, { fit: 'inside' });
+  }
+  const quality = kind === 'orm' ? 96 : kind === 'normal' ? 94 : 92;
   const encoded = await pipeline
     .jpeg({
       quality,
@@ -140,7 +142,7 @@ if (RECOMPRESS && !CHECK_ONLY) {
       process.exit(1);
     }
     const data = fs.readFileSync(full);
-    if (alpha || !old.endsWith('.png')) {
+    if (alpha) {
       rename.set(old, { name: old, mimeType: old.endsWith('.png') ? 'image/png' : 'image/jpeg' });
       continue;
     }
@@ -180,12 +182,14 @@ if (RECOMPRESS && !CHECK_ONLY) {
 }
 
 // --- payload budget re-encode -------------------------------------------------
-// The web export enforces a 100,000,000-byte PCK (godot-ci.yml). The packer
-// re-compresses embedded PNGs to JPEG before externalizing: albedo q90 (4:2:0),
-// normal maps q92 (4:4:4 -- chroma subsampling would smear tangent frames),
-// metallic/roughness q95 4:4:4 at 512px (low-frequency data). Images carrying
-// used alpha stay PNG (JPEG has no alpha). Slot classification walks each GLB's
-// materials; results are cached by source hash so shared maps encode once.
+// The web export enforces a 100,000,000-byte PCK (godot-ci.yml). Godot's
+// imported .ctex size scales with SOURCE PIXEL COUNT (not source file bytes),
+// so the profile caps every map at 512px and re-compresses to JPEG before
+// externalizing: albedo q90 (4:2:0), normal maps q92 (4:4:4 -- chroma
+// subsampling would smear tangent frames), metallic/roughness q95 4:4:4
+// (low-frequency data). Images carrying used alpha stay PNG (JPEG has no
+// alpha). Slot classification walks each GLB's materials; results are cached
+// by source hash so shared maps encode once.
 if (!CHECK_ONLY) {
   for (const file of walk(WORLD).sort()) {
     const input = fs.readFileSync(file);
