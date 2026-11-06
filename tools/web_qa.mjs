@@ -1006,13 +1006,13 @@ async function checkPageWithBrowser(browser, target, viewport) {
       return latestPlayerPos();
     };
     const engageOffered = () => latestRecovery()?.action === 'engage';
-    // Arrival Outpost spawn (-18, 1.2, 3) is the clear East-Central deck tile:
-    // the terrain_chunk ice masses are now solid concave colliders, so the old
-    // "Southern Boulevard" route walked through visible ice (the player bug
-    // report) and cannot be used. Self-calibrate msPerMeter from real Camera QA
-    // world coordinates and route along the genuinely clear central lanes
-    // (ice surface stays <= -0.3 m under every leg):
-    //   (-18,3) -> (-21.5,3) -> (-21.5,10.2)
+    // Arrival Outpost spawn (-6, 1.2, 9) is the open central deck tile: the
+    // terrain_chunk ice masses are now solid concave colliders and the basin
+    // berms/cover are real boxes, so the old "Southern Boulevard" route walked
+    // through visible ice (the player bug report). Self-calibrate msPerMeter
+    // from real Camera QA world coordinates and route along the genuinely
+    // clear z=12 lane (box clearance >= 0.7 m on every leg):
+    //   (-6,9) -> (-6,12) -> (-21.5,12) -> (-21.5,10.2)
     // landing in the unobstructed East Plaza 3.0m from Outpost Cache (-24.5,10.5)
     // and 2.0-3.1m from both robot guards.
     let msPerMeter = 520;
@@ -1068,11 +1068,13 @@ async function checkPageWithBrowser(browser, target, viewport) {
       }
     };
     if (recoveryE2eMode) {
-      await driveAxis('x', -21.5, 0.55, 60000);
-      await driveAxis('z', 10.2, 0.65, 60000);
+      await driveAxis('z', 12, 0.55, 60000);
+      await driveAxis('x', -21.5, 0.65, 60000);
+      await driveAxis('z', 10.2, 0.75, 75000);
     } else {
-      await driveAxis('x', -21.5, 0.55, 45000, true);
-      await driveAxis('z', 10.2, 0.65, 45000, true);
+      await driveAxis('z', 12, 0.55, 45000, true);
+      await driveAxis('x', -21.5, 0.65, 45000, true);
+      await driveAxis('z', 10.2, 0.75, 45000, true);
     }
     if (!engageOffered()) {
       for (const [k1, ms] of [['KeyA', 650], ['KeyW', 550], ['KeyD', 650]]) {

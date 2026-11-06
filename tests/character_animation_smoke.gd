@@ -69,6 +69,10 @@ func _run_smoke_test() -> void:
 			_passed = _expect(anim.has_animation(clip), "hero GLB provides '%s'" % clip) and _passed
 
 	# --- raise / lower transitions ---------------------------------------
+	# A fresh deploy can leave the landing timer running (the drop from the
+	# spawn height plays the authored land clip); clear it so the aim intro
+	# asserts below are deterministic.
+	visual.call("reset_action_state")
 	visual.call("update_pose", Vector3.ZERO, true, 0.016)
 	visual.call("set_aiming", true)
 	visual.call("_process", 0.016)
