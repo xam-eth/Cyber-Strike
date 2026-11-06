@@ -63,7 +63,6 @@ func _run_smoke_test() -> void:
 	await physics_frame
 	await physics_frame
 
-	var space := root.get_world_3d().direct_space_state
 	for setpiece_id in SOLID_SETPIECES:
 		var setpiece := _find_named(world, setpiece_id, "IcePlanetPhase1")
 		_passed = (
@@ -75,7 +74,7 @@ func _run_smoke_test() -> void:
 		)
 		if setpiece == null:
 			continue
-		_check_solid(world, setpiece, setpiece_id, "Visual", space, true)
+		_check_solid(world, setpiece, setpiece_id, "Visual", true)
 
 	for kit_name in SOLID_KIT:
 		var module := _find_named(world, kit_name, "Modules")
@@ -84,7 +83,7 @@ func _run_smoke_test() -> void:
 		)
 		if module == null:
 			continue
-		_check_solid(world, module, kit_name, "", space, true)
+		_check_solid(world, module, kit_name, "", true)
 
 	for kit_name in SOLID_KIT_BODY_ONLY:
 		var module := _find_named(world, kit_name, "Modules")
@@ -93,7 +92,7 @@ func _run_smoke_test() -> void:
 		)
 		if module == null:
 			continue
-		_check_solid(world, module, kit_name, "", space, false)
+		_check_solid(world, module, kit_name, "", false)
 
 	for decor in DECORATIVE:
 		_passed = (
@@ -118,12 +117,7 @@ func _run_smoke_test() -> void:
 ## the world's Collision scope, setpiece bodies under the placement), and its
 ## own concave/box shape must catch rays crossing the visible volume.
 func _check_solid(
-	world: Node3D,
-	placement: Node3D,
-	label: String,
-	visual_path: String,
-	space: PhysicsDirectSpaceState3D,
-	ray_check: bool
+	world: Node3D, placement: Node3D, label: String, visual_path: String, ray_check: bool
 ) -> void:
 	var found := _find_body_for(world, placement, label)
 	_passed = _expect(found != null, "%s owns a collision body" % label) and _passed
@@ -144,7 +138,14 @@ func _check_solid(
 			_passed = _expect(false, "%s box shape has real size" % label) and _passed
 	if total_faces > 0:
 		_passed = _expect(total_faces >= 12, "%s concave shape has real faces" % label) and _passed
-	# Ray grid across the visible volume must hit this placement's own body.
+	var own_tris := _own_shape_tris(found)
+	_passed = _expect(own_tris.size() >= 3, "%s own shape carries triangles" % label) and _passed
+	# Ray grid across the visible volume must hit this placement's OWN collider
+	# geometry. Neighbouring colliders legitimately overlap this volume (the
+	# tower energy core mounts inside its tier ring's box), so space-state
+	# "first hit" tests shadow the target behind the neighbour and say nothing
+	# about this body. Intersect the same 27-ray grid directly against the
+	# body's own shape faces instead: strict, neighbour-immune, deterministic.
 	var visual := placement if visual_path.is_empty() else placement.get_node_or_null(visual_path)
 	var bounds := _combined_aabb(visual if visual != null else placement)
 	_passed = _expect(bounds.size.length() > 0.1, "%s has visible geometry" % label) and _passed
@@ -185,12 +186,7 @@ func _check_solid(
 					)
 					from = center + offset + Vector3(0.0, 0.0, bounds.size.z * 0.5 + 2.0)
 					to = center + offset - Vector3(0.0, 0.0, bounds.size.z * 0.5 + 2.0)
-				var query := PhysicsRayQueryParameters3D.create(from, to)
-				query.collide_with_bodies = true
-				query.hit_from_inside = true
-				var hit: Dictionary = space.intersect_ray(query)
-				var collider: Object = hit.get("collider") as Object
-				if collider != null and String(collider.name).contains(label):
+				if _segment_hits_tris(from, to, own_tris):
 					hits += 1
 	_passed = (
 		_expect(hits >= 1, "%s blocks rays through its volume (%d grid hits)" % [label, hits])
@@ -198,10 +194,89 @@ func _check_solid(
 	)
 	print(
 		(
-			"    %s: %s collider, %d faces, %d/27 rays blocked"
+			"    %s: %s collider, %d faces, %d/27 rays blocked by own geometry"
 			% [label, "concave" if total_faces > 0 else "box", total_faces, hits]
 		)
 	)
+
+
+## World-space triangle soup of the body's own shapes (concave faces and box
+## shapes alike), so the ray grid can be tested against this collider only.
+func _own_shape_tris(body: StaticBody3D) -> PackedVector3Array:
+	var tris := PackedVector3Array()
+	for candidate in body.find_children("*", "CollisionShape3D", true, false):
+		var shape_node := candidate as CollisionShape3D
+		if shape_node == null or shape_node.shape == null:
+			continue
+		var xform: Transform3D = shape_node.global_transform
+		var concave := shape_node.shape as ConcavePolygonShape3D
+		if concave != null:
+			var faces := concave.get_faces()
+			for i in range(faces.size()):
+				tris.append(xform * faces[i])
+			continue
+		var box := shape_node.shape as BoxShape3D
+		if box != null:
+			var h := box.size * 0.5
+			var corners := [
+				Vector3(-h.x, -h.y, -h.z),
+				Vector3(h.x, -h.y, -h.z),
+				Vector3(h.x, h.y, -h.z),
+				Vector3(-h.x, h.y, -h.z),
+				Vector3(-h.x, -h.y, h.z),
+				Vector3(h.x, -h.y, h.z),
+				Vector3(h.x, h.y, h.z),
+				Vector3(-h.x, h.y, h.z),
+			]
+			var quads := [
+				[0, 2, 1],
+				[0, 3, 2],
+				[4, 5, 6],
+				[4, 6, 7],
+				[0, 1, 5],
+				[0, 5, 4],
+				[3, 7, 6],
+				[3, 6, 2],
+				[0, 4, 7],
+				[0, 7, 3],
+				[1, 2, 6],
+				[1, 6, 5],
+			]
+			for q in quads:
+				tris.append(xform * corners[q[0]])
+				tris.append(xform * corners[q[1]])
+				tris.append(xform * corners[q[2]])
+	return tris
+
+
+## Möller-Trumbore segment/triangle-soup test (double-sided, inclusive ends).
+func _segment_hits_tris(from: Vector3, to: Vector3, tris: PackedVector3Array) -> bool:
+	var d := to - from
+	var i := 0
+	while i + 2 < tris.size():
+		var v0: Vector3 = tris[i]
+		var v1: Vector3 = tris[i + 1]
+		var v2: Vector3 = tris[i + 2]
+		i += 3
+		var e1 := v1 - v0
+		var e2 := v2 - v0
+		var pv := d.cross(e2)
+		var det := e1.dot(pv)
+		if det > -0.000001 and det < 0.000001:
+			continue
+		var inv := 1.0 / det
+		var tv := from - v0
+		var u := tv.dot(pv) * inv
+		if u < -0.000001 or u > 1.000001:
+			continue
+		var qv := tv.cross(e1)
+		var v := d.dot(qv) * inv
+		if v < -0.000001 or u + v > 1.000001:
+			continue
+		var t := e2.dot(qv) * inv
+		if t >= -0.000001 and t <= 1.000001:
+			return true
+	return false
 
 
 func _find_body_for(world: Node3D, placement: Node3D, label: String) -> StaticBody3D:

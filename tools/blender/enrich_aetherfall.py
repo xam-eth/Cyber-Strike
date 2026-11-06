@@ -431,11 +431,22 @@ def main():
 
         if not skip_geometry and cfg["style"] in ("tech", "geology"):
             span = max(hi[i] - lo[i] for i in range(3)) if hi else 6.0
-            bevel_w = min(max(span * 0.0045, 0.012), 0.042)
+            asset_bevel = min(max(span * 0.0045, 0.012), 0.042)
             for obj in objs:
                 me = obj.data
                 if len(me.polygons) < 4:
                     continue
+                # cap the bevel by the object's own thinnest extent: a fixed
+                # 4cm chamfer collapses thin lattice struts (energy_core rays
+                # started threading the wreckage) and flips tight geometry.
+                mins = [1e9, 1e9, 1e9]
+                maxs = [-1e9, -1e9, -1e9]
+                for v in me.vertices:
+                    for a in range(3):
+                        mins[a] = min(mins[a], v.co[a])
+                        maxs[a] = max(maxs[a], v.co[a])
+                thin = min(maxs[a] - mins[a] for a in range(3))
+                bevel_w = min(asset_bevel, max(thin * 0.12, 0.004))
                 bevel_pass(obj, bevel_w)
                 if cfg["style"] == "tech" and cfg["panel"] > 0:
                     panel_pass(obj, cfg["panel"])

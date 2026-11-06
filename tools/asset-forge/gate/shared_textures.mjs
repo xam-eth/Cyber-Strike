@@ -24,7 +24,7 @@ function align4(buffer, fill = 0) {
   return padding ? Buffer.concat([buffer, Buffer.alloc(padding, fill)]) : buffer;
 }
 
-function parseGlb(input) {
+export function parseGlb(input) {
   const binary = Buffer.from(input);
   if (binary.length < 28 || binary.readUInt32LE(0) !== GLB_MAGIC || binary.readUInt32LE(4) !== 2) {
     throw new Error('expected a glTF 2 binary GLB');
@@ -57,7 +57,7 @@ function visitBufferViews(value, visit) {
   }
 }
 
-function writeGlb(json, bin) {
+export function writeGlb(json, bin) {
   const jsonChunk = align4(Buffer.from(JSON.stringify(json), 'utf8'), 0x20);
   const binChunk = align4(bin);
   const output = Buffer.alloc(28 + jsonChunk.length + binChunk.length);
@@ -78,25 +78,37 @@ function writeGlb(json, bin) {
  * @param {Uint8Array} input embedded GLB produced by the existing stage pipeline
  * @param {string} worldId manifest id, used only for provenance/reporting
  * @param {Map<string, object>} registry shared across all mission worlds
+ * @param {(data: Buffer, mimeType: string, imageIndex: number) => {data: Buffer, mimeType: string}} [imageTransform]
+ *   optional synchronous re-encoder applied to each embedded image BEFORE
+ *   hashing/externalizing (e.g. JPEG re-compression to fit the web payload
+ *   budget). Must return bytes whose MIME type is still in EXTENSIONS.
  * @returns {Buffer} GLB whose images reference ../textures/<sha256>.<ext>
  */
-export function externalizeSharedTextures(input, worldId, registry) {
+export function externalizeSharedTextures(input, worldId, registry, imageTransform = null) {
   const { json, bin } = parseGlb(input);
   if (json.buffers?.length !== 1 || json.buffers[0].uri) {
     throw new Error(`${worldId}: expected one embedded binary buffer`);
   }
 
+  let imageIndex = 0;
   for (const image of json.images ?? []) {
     if (!Number.isInteger(image.bufferView)) {
       throw new Error(`${worldId}: image is already external; refusing a second lossy/staging pass`);
     }
-    const extension = EXTENSIONS[image.mimeType];
-    if (!extension) throw new Error(`${worldId}: unsupported image MIME ${image.mimeType}`);
     const view = json.bufferViews[image.bufferView];
     const start = view.byteOffset ?? 0;
-    const data = bin.subarray(start, start + view.byteLength);
+    let data = Buffer.from(bin.subarray(start, start + view.byteLength));
+    let mimeType = image.mimeType;
+    if (imageTransform) {
+      const transformed = imageTransform(data, mimeType, imageIndex);
+      data = transformed.data;
+      mimeType = transformed.mimeType;
+    }
+    const outExtension = EXTENSIONS[mimeType];
+    if (!outExtension) throw new Error(`${worldId}: transform produced unsupported MIME ${mimeType}`);
+    image.mimeType = mimeType;
     const hash = crypto.createHash('sha256').update(data).digest('hex');
-    const fileName = `${hash}.${extension}`;
+    const fileName = `${hash}.${outExtension}`;
     if (!registry.has(fileName)) {
       registry.set(fileName, { fileName, data: Buffer.from(data), worlds: new Set(), references: 0 });
     }
@@ -105,6 +117,7 @@ export function externalizeSharedTextures(input, worldId, registry) {
     shared.references += 1;
     delete image.bufferView;
     image.uri = `../textures/${fileName}`;
+    imageIndex += 1;
   }
 
   // Rebuild the binary buffer without the now-unreferenced image views. Walk
