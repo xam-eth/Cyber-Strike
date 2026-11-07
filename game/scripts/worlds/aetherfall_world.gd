@@ -53,6 +53,7 @@ var archive_computer_count: int = 0
 var expanse_route_count: int = 0
 var _skip_web_omni_lights: bool = false
 var _software_webgl: bool = false
+var _snowfall: CPUParticles3D
 
 
 func _ready() -> void:
@@ -709,37 +710,57 @@ func _add_expanse_route(parent: Node3D, packed: PackedScene, spec: Dictionary) -
 
 
 func _add_polar_snowfall() -> void:
-	# Software WebGL must not pay for 140 alpha-blended flakes; headless keeps
-	# the node so smoke fixtures can assert the atmosphere really is authored.
+	# World mood declares "aurora sky and drifting snow": flakes fall at
+	# terminal velocity with a lateral bias so they hang and wander instead of
+	# raining down. Software WebGL keeps a reduced count for fill-rate budget
+	# but still reads as drifting snow; headless keeps the node so smoke
+	# fixtures can assert the atmosphere really is authored.
+	var amount := 1200
 	if _software_webgl:
-		return
+		amount = 420
 	var snowfall := CPUParticles3D.new()
 	snowfall.name = "PolarSnowfall"
-	snowfall.position = Vector3(0.0, 14.0, 0.0)
-	snowfall.amount = 140
-	snowfall.lifetime = 5.5
-	snowfall.preprocess = 2.5
+	snowfall.position = Vector3(0.0, 8.0, 0.0)
+	snowfall.amount = amount
+	snowfall.lifetime = 12.0
+	snowfall.preprocess = 7.0
 	snowfall.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
-	snowfall.emission_box_extents = Vector3(46.0, 8.0, 38.0)
-	snowfall.direction = Vector3(-0.42, -1.0, 0.24).normalized()
-	snowfall.spread = 22.0
-	snowfall.gravity = Vector3(-0.85, -1.65, 0.35)
-	snowfall.initial_velocity_min = 1.6
-	snowfall.initial_velocity_max = 3.2
-	snowfall.scale_amount_min = 0.65
-	snowfall.scale_amount_max = 1.45
+	snowfall.emission_box_extents = Vector3(17.0, 9.0, 17.0)
+	snowfall.direction = Vector3(-0.22, -1.0, 0.12).normalized()
+	snowfall.spread = 26.0
+	snowfall.gravity = Vector3.ZERO
+	snowfall.initial_velocity_min = 0.35
+	snowfall.initial_velocity_max = 0.75
+	snowfall.scale_amount_min = 0.7
+	snowfall.scale_amount_max = 1.6
 	var flake_mat := StandardMaterial3D.new()
 	flake_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	flake_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	flake_mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
 	flake_mat.billboard_keep_scale = true
-	flake_mat.albedo_color = Color(0.84, 0.94, 1.0, 0.52)
+	flake_mat.albedo_color = Color(0.86, 0.94, 1.0, 0.6)
+	var flake_tex := load("res://assets/world/aetherfall/sky/snow_flake.png") as Texture2D
+	if flake_tex != null:
+		flake_mat.albedo_texture = flake_tex
 	var quad := QuadMesh.new()
-	quad.size = Vector2(0.065, 0.065)
+	quad.size = Vector2(0.08, 0.08)
 	quad.material = flake_mat
 	snowfall.mesh = quad
 	snowfall.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(snowfall)
+	_snowfall = snowfall
+
+
+func _process(_delta: float) -> void:
+	# Keep the drift box centred over the active camera so snow density stays
+	# constant wherever the run goes; emitted flakes stay in world space.
+	if _snowfall == null:
+		return
+	var camera := get_viewport().get_camera_3d()
+	if camera == null:
+		return
+	var anchor := camera.global_position
+	_snowfall.global_position = Vector3(anchor.x, 8.0, anchor.z)
 
 
 static func _v3(value: Variant) -> Vector3:
