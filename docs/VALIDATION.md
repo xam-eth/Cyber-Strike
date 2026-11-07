@@ -4,6 +4,21 @@ This document records the latest relevant evidence and its limits. It is not a d
 
 For intended behavior, read [`GAMEPLAY_DESIGN.md`](GAMEPLAY_DESIGN.md). For required gates, read [`DEVELOPMENT.md`](DEVELOPMENT.md).
 
+## Polish pass 3 — selective 1024px close-up maps — 2026-11-07
+
+| Item | Current checkpoint |
+|---|---|
+| Source | `36bf4c5` (close-up map promotion + tooling) |
+| Godot/Web CI | [42373529679](https://github.com/xam-eth/Cyber-Strike/actions/runs/42373529679) — **SUCCESS** (45/45 smokes + all browser contracts incl. TECH HUNT E2E closure) |
+| Committed Web payload | `0f8325f` — `web/index.pck` **96,989,840 bytes** (+6.14 MB for the promoted maps; **3,010,160 bytes of headroom** left under the 100 MB budget) |
+| Local runtime QA | `exports/qa-polish3/` — **4/4 page/viewport combinations, 86 ok / 0 fail** (root shell + raw engine × 844×390 + 667×375) |
+
+- **IMPLEMENTED (selective resolution):** the PBR generators always produced 1024 px sets and the packer's 512 px budget profile downscaled every map. Ten maps that dominate the close-up read now ship at native 1024 px: `ice_rock` albedo+normal+ORM (ground underfoot — terrain ice, glacier shelves, IceVein), `metal` albedo+normal+ORM (structure steel — caches, gates, spires, ramps), `composite` albedo (interactable panel faces), `rock` albedo+normal (route geology), `deck` albedo (gate/spire paint). The 14 photo-scan maps (DARK/WARNING/ARCHIVE_DARK/EXPANSE_DARK families) and distance-only normals/ORMs stay at 512 px.
+- **IMPLEMENTED (tooling):** `tools/gltf/upgrade_closeup_textures.mjs` + `tools/blender/gen_surface_set.py` — discovers each surface kind's current hashes from the GLB material slots (representative materials from `MAT_SURFACE`), regenerates the sets with the same `pbr_lib` seeds, encodes with the packer's JPEG profile at 1024, rewrites GLB URIs in place (sha→sha, byte-length safe), and lets the regular pack pass prune the old files. Re-runnable/idempotent.
+- **VERIFIED:** Khronos ledger 0 errors / 0 warnings / 606 infos; `kit_measure` 51/51; own-faces collision grid 9/9; `dev_check` 0 failures; runtime QA 4/4 with recovery frames.
+- **BUDGET NOTE:** the promoted maps cost 6.14 MB in the PCK (Basis-encoded 1024 normals/ORMs are pricier than the +4.66 MB estimate). Remaining headroom **~3.0 MB** — the Gate E bake pass (P4) must stay inside that, or trade other texture budget first.
+- **UNVERIFIED:** unchanged — human visual approval of the realism direction, production gates C–E (high-poly sculpt, retopo, authored bake), Android device profile, SFX variety pass.
+
 ## Polish pass 2 — drifting polar snow, fog shaping, WORLD pin contract — 2026-11-07
 
 | Item | Current checkpoint |
