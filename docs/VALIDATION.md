@@ -4,6 +4,24 @@ This document records the latest relevant evidence and its limits. It is not a d
 
 For intended behavior, read [`GAMEPLAY_DESIGN.md`](GAMEPLAY_DESIGN.md). For required gates, read [`DEVELOPMENT.md`](DEVELOPMENT.md).
 
+## Polish pass 4 — Gate E high-poly bake pilot (tech_cache) — 2026-11-07
+
+| Item | Current checkpoint |
+|---|---|
+| Source | `P4-pilot` (bake pipeline + tech_cache re-UV/bake/composite + X11 stub tooling) |
+| Godot/Web CI | pending this change — recorded in the follow-up payload checkpoint |
+| Local static | `dev_check.sh` **0 failed / 2 skipped** (kit measurements 51/51 unchanged, collision 9/9) |
+| Khronos ledger | **0 errors / 0 warnings / 604 infos** on 51 GLBs (tech_cache: URI_GLB 16, UNUSED_MESH_TANGENT 5 — informational) |
+| Runtime QA | pending the CI web payload for this source |
+
+- **IMPLEMENTED (Gate C, technical):** `tools/blender/bake_flagship_detail.py` authors `HP_` high-poly objects from the low-poly parts with structured hard-surface detail only — bevel hierarchy (two angle-limited passes), panel recesses on the largest faces, hex fasteners at recess corners, vent slats — deterministic per part name. No noise/scatter/displacement is used. Artistic approval remains with the human gate (`approved_by: null`).
+- **IMPLEMENTED (Gate D, technical):** per-part box-projection re-UV into a unique non-overlapping atlas (global area-proportional shelf packing, uniform scale, no aspect stretch), then a Cycles tangent-space NORMAL bake selected-to-active with cage extrusion **0.005 m** recorded in `docs/world/aetherfall/bake_records/tech_cache_bake.json`. The shipped GLB keeps node names, material names, transforms and unique positions byte-verified (`positions_match: True`); vertex splits (29,915 → 30,289) only reflect the new UV seams. `measurements.json` is unchanged.
+- **IMPLEMENTED (Gate E, technical):** the baked normal is composited (whiteout reoriented blend, 0.7 procedural weight) with each island's existing procedural material normal and shipped as `textures/a2802b2f….jpg` (395 KB, 1024 px); tech_cache's five normalTexture slots now sample the composite directly (legacy KHR tile transforms dropped on this asset since the atlas is pre-scaled). Albedo/ORM keep the shared maps.
+- **IMPLEMENTED (tooling):** `tools/build_x11stubs.py` builds empty-X11/GL SONAME stubs (X11 device/xkb symbol families, versioned xkb exports) so the PyPI `bpy 5.0.1` wheel runs headless in this environment; the bake tool also externalises Blender-embedded images back to the project's `../textures/<sha>.jpg` convention and re-verifies the exported GLB against the pre-bake backup.
+- **VERIFIED (local):** bake record + inspection images in `docs/world/aetherfall/bake_inspection/`; Khronos 0/0/604; kit 51/51 byte-consistent; collision 9/9; dev_check 0 failed.
+- **BUDGET NOTE:** the composite map costs ~395 KB source JPEG (projected ~0.5 MB in the PCK — the CI payload audit gives the exact figure). Budgeted siblings: access_gate + tower_spire at 512 px next, then refinery_stack / sentinel_archive only if headroom allows.
+- **UNVERIFIED:** human review of HP/detail authorship and bake quality (gates C–E human halves), runtime look of the re-UV'd tech_cache in-engine (CI frames pending), and the remaining four flagship bakes.
+
 ## Polish pass 3 — selective 1024px close-up maps — 2026-11-07
 
 | Item | Current checkpoint |

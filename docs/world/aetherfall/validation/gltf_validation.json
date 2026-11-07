@@ -13,12 +13,12 @@
   ],
   "totals": {
     "glb_assets": 51,
-    "bytes": 13742948,
+    "bytes": 13768160,
     "errors": 0,
     "warnings": 0,
-    "infos": 606,
+    "infos": 604,
     "draw_calls": 1127,
-    "vertices": 251858,
+    "vertices": 252232,
     "triangles": 131368
   },
   "assets": [
@@ -325,18 +325,18 @@
     {
       "runtime_path": "game/assets/world/aetherfall/interactives/tech_cache.glb",
       "source_path": "source/aetherfall_interactives.blend",
-      "sha256": "9d2a2047dacc5420c48bfc39ba94b6dd09e9cca03f2271dce18592d4d98cd5ba",
-      "bytes": 1543264,
+      "sha256": "274538d4bc9e7810355b25c9ec937473003a5b0e163847cdb5fd67e08d669786",
+      "bytes": 1568476,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 25,
+        "infos": 23,
         "hints": 0,
         "by_code": {
           "URI_GLB": 16,
           "UNUSED_MESH_TANGENT": 5,
-          "IMAGE_NPOT_DIMENSIONS": 4
+          "IMAGE_NPOT_DIMENSIONS": 2
         }
       },
       "stats": {
@@ -344,7 +344,7 @@
         "materials": 6,
         "textures": true,
         "draw_calls": 68,
-        "vertices": 29915,
+        "vertices": 30289,
         "triangles": 12868,
         "max_uv_sets": 1,
         "max_attributes": 4,
