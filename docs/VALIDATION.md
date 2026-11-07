@@ -4,6 +4,20 @@ This document records the latest relevant evidence and its limits. It is not a d
 
 For intended behavior, read [`GAMEPLAY_DESIGN.md`](GAMEPLAY_DESIGN.md). For required gates, read [`DEVELOPMENT.md`](DEVELOPMENT.md).
 
+## Polish pass 2 — drifting polar snow, fog shaping, WORLD pin contract — 2026-11-07
+
+| Item | Current checkpoint |
+|---|---|
+| Source | `896778b` (drifting snow + fog shaping) + `6f525fb` (WORLD pin announcement contract) |
+| Godot/Web CI | [42331020786](https://github.com/xam-eth/Cyber-Strike/actions/runs/42331020786) (snow + fog) **SUCCESS** and [42334002844](https://github.com/xam-eth/Cyber-Strike/actions/runs/42334002844) (pin contract) **SUCCESS** — 45/45 smokes + all browser contracts incl. TECH HUNT E2E closure |
+| Committed Web payload | `486726b` — `web/index.pck` 90,854,080 bytes (drifting-snow layer + fog shaping, ~9.1 MB under the 100 MB budget) |
+| Local runtime QA | `exports/qa-polish2-final/` — **4/4 page/viewport combinations, 86 ok / 0 fail** (root shell + raw engine journeys × 844×390 + 667×375), recovery frames landing/engage-offer/guarded/contact captured per combination |
+
+- **IMPLEMENTED (drifting polar snow):** `PolarSnowfall` rewritten from a static 140-flake rain over the whole map into a camera-following terminal-velocity drift field (`aetherfall_world.gd::_add_polar_snowfall` + `_process`): lateral-biased direction with 26° spread, constant-velocity fall (0.35–0.75 m/s), 12 s lifetime, 1200 flakes on hardware and a 420-flake software-WebGL fill-rate budget, soft-dot texture `game/assets/world/aetherfall/sky/snow_flake.png` (32 px, 661 B), billboarded unshaded quads. The drift box tracks the active camera so density stays constant across the run. `production_upgrade_smoke` contract (active `PolarSnowfall` node) preserved.
+- **IMPLEMENTED (fog shaping):** Aetherfall environment fog shaped for depth per `ART_DIRECTION.md` (silhouettes stay readable): `fog_density` 0.0014 → 0.0032 (~12% at 40 m, ~38% at 150 m), ground-pooling height fog (`fog_height` −1.0 / `fog_height_density` 0.05), `fog_light_energy` 1.08, `fog_aerial_perspective` 0.56 → 0.62. Runtime frames show distance haze on the far gantries with gameplay zone untouched.
+- **FIXED (WORLD pin interaction contract):** the WORLD stage boots with the default theatre (`WorldDefinition.DEFAULT_WORLD_ID = aetherfall`) already selected, and `_on_pin_pressed` early-returned without a log when the pressed pin matched the stage cache — so pressing `AetherfallPin` (already-selected state) never emitted `FrontEnd: world selected aetherfall` and the measured raw-engine journey could not prove selection before LAUNCH. A pin press now always announces and confirms the theatre (`select_world()`/`_refresh()` stay idempotent). Verified locally: the previously failing `/web/index.html` recovery lane now passes every check, including `WORLD pin selected aetherfall before launch`.
+- **UNVERIFIED:** unchanged — human visual approval of the realism direction, production gates C–E (high-poly sculpt, retopo, authored bake), Android device profile, SFX variety pass.
+
 ## Polish pass 1 — material value range, aurora sky, QA-profile isolation — 2026-11-06
 
 | Item | Current checkpoint |
