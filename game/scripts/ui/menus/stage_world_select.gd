@@ -380,8 +380,10 @@ func _on_pin_pressed(world_id: StringName) -> void:
 	var progression := progression_service()
 	if progression == null:
 		return
-	if world_id == _selected:
-		return
+	# A pin press always confirms the theatre, even when it already is the
+	# selected one: the announcement is the interaction contract the QA
+	# journey measures ("FrontEnd: world selected ..."). select_world() and
+	# _refresh() are idempotent, so a confirming press changes nothing else.
 	progression.select_world(world_id)
 	print("FrontEnd: world selected %s" % world_id)
 	_refresh()
