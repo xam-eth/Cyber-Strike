@@ -249,8 +249,9 @@ func _build_placeholder_pin(index: int) -> AegisButton:
 	)
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	# Five landscape pins leave only about 115 px for this roadmap label at
-	# 667x375. Keep its copy inside the same 64 px touch target as the real pins.
-	_limit_lines(label, 1)
+	# 667x375. Two lines still fit the same 64 px touch target as the real pins
+	# and let "THEATRE 02 · IN DEVELOPMENT" finish its sentence.
+	_limit_lines(label, 2)
 	label.set_anchors_preset(Control.PRESET_FULL_RECT)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -314,21 +315,18 @@ func reframe() -> void:
 	_map.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_info_text.add_theme_constant_override("separation", 4 if compact else 6)
 	# "TECH RECOVERY + WAVE DEFENSE" and "CACHES 0/4 · SCHEMATIC · STORM
-	# SURVIVAL" earn two lines on roomy windows; trimmed to one they read as
-	# typos. The two-line budget is stamped here per resize, because the shared
-	# font floor only reserves one line per label and a shared reserve cannot
-	# know which copy needs the second line.
+	# CONDUCTOR" earn two lines on roomy windows; trimmed to one they read as
+	# typos. The budget is stamped here per resize (and nowhere else -- an
+	# earlier tail-of-function `_limit_lines(x, 1)` used to reset these back to
+	# one line after this block and silently won), because the shared font
+	# floor only reserves one line per label and a shared reserve cannot know
+	# which copy needs the second line.
 	for meta_label in [_mode_line, _reward_line]:
 		var label := meta_label as Label
 		if not is_instance_valid(label):
 			continue
 		var lines := 1 if compact else 2
-		label.max_lines_visible = lines
-		# A trim overrun forces single-line layout -- autowrap is ignored -- so
-		# two-line copy must give up the ellipsis and let the wrap breathe.
-		label.text_overrun_behavior = (
-			TextServer.OVERRUN_TRIM_ELLIPSIS if lines == 1 else TextServer.OVERRUN_NO_TRIMMING
-		)
+		_limit_lines(label, lines)
 		var font := label.get_theme_font("font")
 		if font != null:
 			var line_h := font.get_height(label.get_theme_font_size("font_size"))
@@ -344,8 +342,6 @@ func reframe() -> void:
 	_chapter.visible = not compact
 	_mode_line.visible = true
 	_reward_line.visible = height >= 385.0
-	_limit_lines(_mode_line, 1)
-	_limit_lines(_reward_line, 1)
 	_brief.visible = not compact
 	_title.visible = true
 	_limit_lines(_title, 1)
