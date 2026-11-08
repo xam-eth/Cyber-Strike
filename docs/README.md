@@ -75,6 +75,7 @@ Aetherfall world production evidence (industry-standard gates, reference boards,
 | [`runbooks/VISUAL_REVIEW.md`](runbooks/VISUAL_REVIEW.md) | Cross-platform reference/current/diff reports, focused visual matrix, and explicit golden approval |
 | [`runbooks/AUDIO.md`](runbooks/AUDIO.md) | Frontier Signal music/SFX ownership and audio verification |
 | [`runbooks/HERO_RIG.md`](runbooks/HERO_RIG.md) | Hero/rifle source, sockets, clips, rebuild, rig verification |
+| [`runbooks/PLAYTEST.md`](runbooks/PLAYTEST.md) | Phase E human playtest protocol: pre-registration, scenario probes, thresholds, decision record |
 
 ## Status vocabulary
 

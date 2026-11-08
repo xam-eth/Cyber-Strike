@@ -206,7 +206,7 @@ The phases below are dependency gates, not calendar promises.
 **Goal:** test the design hypotheses rather than declare them successful.
 
 - Observe objective comprehension, route choice, dodge/punish understanding, secure/death comprehension, and redeploy reasoning.
-- Agree on participants, devices, and thresholds before the test.
+- Agree on participants, devices, and thresholds before the test. The pre-registered protocol, scenario probes, thresholds, and decision-record template live in [`runbooks/PLAYTEST.md`](runbooks/PLAYTEST.md).
 - Classify failures as guidance, combat readability, controls, balance, reward value, or motivation.
 - Make the smallest correction indicated by evidence and rerun affected gates.
 

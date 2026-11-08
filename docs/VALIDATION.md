@@ -23,6 +23,15 @@ For intended behavior, read [`GAMEPLAY_DESIGN.md`](GAMEPLAY_DESIGN.md). For requ
 - **BUDGET NOTE:** the composite map costs ~395 KB source JPEG (projected ~0.5 MB in the PCK — the CI payload audit gives the exact figure). Budgeted siblings: access_gate + tower_spire at 512 px next, then refinery_stack / sentinel_archive only if headroom allows.
 - **UNVERIFIED:** human review of HP/detail authorship and bake quality (gates C–E human halves), runtime look of the re-UV'd tech_cache in-engine (CI frames pending), and the remaining four flagship bakes.
 
+## Phase 7 preparation — Android packaging lane + human playtest protocol — 2026-11-08
+
+| Item | Current checkpoint |
+| --- | --- |
+| Playtest protocol (Phase E) | **REGISTERED:** [`docs/runbooks/PLAYTEST.md`](runbooks/PLAYTEST.md) fixes the pre-registration table (participants 5–8, devices, builds by sha/run), the unassisted session script, 7 fixed scenario probes (death/retry/reload reward-integrity, ADS, pause/resume, extract/continue, upgrade separation), the verbatim comprehension question set, and thresholds with severities (S1 = crash/soft-lock/duplicated reward/unreachable control blocks release). Linked from DEVELOPMENT.md Phase E and docs/README.md. The protocol is only valid if the table is filled and committed before the first session. |
+| Android preset (runbook gate 2) | **VERIFIED (local):** `tools/android_preset.py scaffold` + `check` exit 0 — preset `Android`, `com.xameth.exocomplict`, arm64-v8a, APK, 40 option keys. `game/export_presets.cfg` remains gitignored; CI scaffolds its own. |
+| Android APK (runbook gate 3) | **PENDING CI:** `Android debug APK` workflow (`workflow_dispatch`) is the packaging-only path (full headless smoke suite first, payload audit, profiler presence check, `android-debug-apk` artifact, 14-day retention). Result lands in the workflow run, not here. |
+| UNVERIFIED (user-gated) | Filling the pre-registration table and running sessions; runbook gates 1 (local toolchain report) and 4–8 (physical install, touch checklist, FPS/thermal/memory numbers, native capture review). Debug APK is packaging only — no device or performance claim exists yet. |
+
 ## Polish pass 6 — HUD micro-polish: caption bands, chip collision, portrait menus — 2026-11-08
 
 | Item | Current checkpoint |
