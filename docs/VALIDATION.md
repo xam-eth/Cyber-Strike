@@ -23,6 +23,21 @@ For intended behavior, read [`GAMEPLAY_DESIGN.md`](GAMEPLAY_DESIGN.md). For requ
 - **BUDGET NOTE:** the composite map costs ~395 KB source JPEG (projected ~0.5 MB in the PCK — the CI payload audit gives the exact figure). Budgeted siblings: access_gate + tower_spire at 512 px next, then refinery_stack / sentinel_archive only if headroom allows.
 - **UNVERIFIED:** human review of HP/detail authorship and bake quality (gates C–E human halves), runtime look of the re-UV'd tech_cache in-engine (CI frames pending), and the remaining four flagship bakes.
 
+## Polish pass 5 — SFX variety: round-robin shot banks + real enemy fire — 2026-11-08
+
+| Item | Current checkpoint |
+|---|---|
+| Source | `16e21bb` (round-robin banks, richer shot layers, enemy fire) |
+| Godot/Web CI | [42440535596](https://github.com/xam-eth/Cyber-Strike/actions/runs/42440535596) — **SUCCESS** (45/45 smokes incl. the extended audio contract on real Godot 4.7.2) |
+| Committed Web payload | `794f6b0` — `web/index.pck` **98,525,088 bytes** (1,474,912 bytes of headroom; the audio work costs +3.5 KB) |
+| Local runtime QA | `exports/qa-polish5/` — **4/4 page/viewport combinations, 86 ok / 0 fail** (engage E2E fires through the new round-robin path) |
+
+- **IMPLEMENTED (round-robin banks):** every player weapon now ships four synthesized voices (`shot_<w>`, `_r2.._r4`) with per-variant detune, bolt/breech timing jitter and noise seed; `AudioDirector.play_variant()` rotates them per base id and `play_shot()` routes through it. Rapid fire no longer repeats one cloned transient. The pitch jitter (±3.8%) and pooled voices of the existing mixer still apply on top.
+- **IMPLEMENTED (richer layering):** pulse rifle gained an air-whip crack and variant-jittered bolt timing; nova launcher gained a falling tube sweep and debris shimmer; arc shooter gained a rising capacitor whine and spark rain. All synths stay deterministic (seeded `0x5F3A17 + variant*7919`).
+- **FIXED (silent enemy fire):** `enemy_shot` was played by the enforcer but had no stream behind it (unknown id no-ops silently), and the shooter robot never played a fire sound at all. `enemy_shot` is now a real 3-voice hostile servoplasma bank (cold square body + electric snap + servo clack — deliberately unlike the player arsenal) wired into `enforcer` bursts and `shooter._resolve_attack()`.
+- **VERIFIED:** the extended `tests/audio_smoke.gd` contract passed on real Godot 4.7.2 in CI: `enemy_shot` required and non-silent, every bank ≥4 voices (enemy ≥3) with distinct streams, consecutive variant plays unthrottled, mute/throttle/music-mode contracts unchanged. `dev_check` 0 failed (gdformat clean, ARCHITECTURE map regenerated); tooling self-tests 95/95 with the project venv (PIL missing from sandbox system python3, not a repo issue).
+- **UNVERIFIED:** human listening approval of the new gunplay mix, SFX balance on device speakers (Android profile still gated), and any surround/ducking polish.
+
 ## Polish pass 4 — Gate E high-poly bakes, all five flagship assets — 2026-11-08
 
 | Item | Current checkpoint |
