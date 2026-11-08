@@ -23,6 +23,17 @@ For intended behavior, read [`GAMEPLAY_DESIGN.md`](GAMEPLAY_DESIGN.md). For requ
 - **BUDGET NOTE:** the composite map costs ~395 KB source JPEG (projected ~0.5 MB in the PCK — the CI payload audit gives the exact figure). Budgeted siblings: access_gate + tower_spire at 512 px next, then refinery_stack / sentinel_archive only if headroom allows.
 - **UNVERIFIED:** human review of HP/detail authorship and bake quality (gates C–E human halves), runtime look of the re-UV'd tech_cache in-engine (CI frames pending), and the remaining four flagship bakes.
 
+## P6 follow-up — the truncation root causes, for real — 2026-11-08
+
+| Item | Current checkpoint |
+| --- | --- |
+| Root cause 1 (call order) | The P6 two-line budgets lost to `_limit_lines(x, 1)` calls in the tail of the same functions that set them; the tail resets are gone and one block owns the budget. |
+| Root cause 2 (engine counter) | Godot's Label admits only as many lines as fit in `rect height − stylebox margins + line_spacing` and enforces an ellipsis when the shaped text exceeds that; an exact `font_height × lines` reserve lands on the counter's knife edge. |
+| Root cause 3 (font-size lookup) | `Label.get_theme_font_size` does not see the font-size override `enforce_font_floor` writes, so every reserve derived from it was ~7x too small (21 px of line height reserved vs ~68 px actually shaped at portrait scale). A runtime probe (forced 120 px label minimums, verified in frame `exports/flow/probe2/hero-390x844.png`) proved the copy wraps the moment the height is real. `menu_stage.reserve_lines()` now computes from the grown size (same rule as `_grow_label`) and the one-line case resets to the historic behavior. |
+| VERIFIED (CI) | Run `42494288439` SUCCESS (Godot 4.7.2): all 45 headless smokes (incl. menu_layout_smoke at 844x390/667x375), web build + payload, browser smoke 4/4. Debug commits `41be513..82f7eda` used runtime probes (heading state dump, forced minimums) and are fully reverted. |
+| VERIFIED (frames) | `exports/flow/final/` at 390x844: hero card wraps fully ("HP 110 · ARMOUR 6% · EMP 9M", "PULSE RIFLE T1 · AETHERFALL", "1 OPERATIVE / SLOTS IN..."); world meta full ("CACHES 0/4 · SCHEMATIC · STORM CONDUCTOR + 265 BP"); theatre pin full ("THEATRE 02 · IN DEVELOPMENT"). Earlier P6 note claiming "a trim overrun disables autowrap" was wrong — autowrap was fine; the counter and the font-size lookup were the real culprits. |
+| UNVERIFIED | Human playtest of the polish; Android device profile (gated). |
+
 ## Phase 7 preparation — Android packaging lane + human playtest protocol — 2026-11-08
 
 | Item | Current checkpoint |
