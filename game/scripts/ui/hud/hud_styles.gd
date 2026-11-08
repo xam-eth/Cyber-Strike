@@ -192,7 +192,7 @@ static func apply_action_caption_density(hud) -> void:
 ## ring owns the button face); the rest read from the bottom edge.
 static func _fit_action_caption(hud, caption: Label) -> void:
 	var line_px := ceilf(float(caption.get_theme_font_size("font_size")) * 1.34) + 2.0
-	var at_top := caption == hud._skill_caption
+	var at_top: bool = caption == hud._skill_caption
 	caption.offset_left = hud._to_layout(3.0)
 	caption.offset_right = -hud._to_layout(3.0)
 	if at_top:
