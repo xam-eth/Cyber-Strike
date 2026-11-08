@@ -229,10 +229,14 @@ static func landscape(hud) -> void:
 	# thumb rail was oversized on a 1280x720 mouse view. Desktop now uses
 	# 80/72 px plates: still below touch density, but wide enough for the real
 	# 16 px accessibility font and untracked ARMORY/ARSENAL captions.
-	var fire_px := 96.0 if hud._touch_mode else 80.0
-	var action_px := 80.0 if hud._touch_mode else 72.0
-	var gap_px := 8.0 if hud._touch_mode else 6.0
-	var ammo_height_px := 48.0 if hud._touch_mode else 42.0
+	var fire_px := (84.0 if short_view else 96.0) if hud._touch_mode else 80.0
+	var action_px := (72.0 if short_view else 80.0) if hud._touch_mode else 72.0
+	var gap_px := 6.0 if short_view else (8.0 if hud._touch_mode else 6.0)
+	# AegisAmmoChip is a PanelContainer: its minimum height follows its content
+	# (header + ammo value + magazine bar + panel margins). Requesting less than
+	# that minimum made the panel expand upward out of its slot and collide with
+	# the resource strip on short landscape. Request the real height instead.
+	var ammo_height_px := (60.0 if short_view else 64.0) if hud._touch_mode else 52.0
 	var fire_right := 16.0
 	var fire_bottom := 16.0
 	var aim_bottom := fire_bottom + fire_px + gap_px

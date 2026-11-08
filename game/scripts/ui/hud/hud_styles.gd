@@ -158,14 +158,9 @@ static func apply_fonts(hud) -> void:
 			elif button == hud._sound_button:
 				button_icon_px = roundi(hud._to_layout(32.0 if hud._touch_mode else 24.0))
 			button.add_theme_constant_override("icon_max_width", button_icon_px)
-	for caption in [hud._fire_caption, hud._weapon_caption, hud._aim_caption, hud._skill_caption]:
-		if not is_instance_valid(caption):
-			continue
-		var at_top: bool = caption == hud._skill_caption
-		caption.offset_left = hud._to_layout(3.0)
-		caption.offset_right = -hud._to_layout(3.0)
-		caption.offset_top = hud._to_layout(3.0 if at_top else -19.0)
-		caption.offset_bottom = hud._to_layout(18.0 if at_top else -3.0)
+	# Caption bands are fitted in apply_action_caption_density, which runs after
+	# the font pass: a fixed 16 px band cannot hold the 16 px accessibility font
+	# floor and clipped captions (FIRE read as EIRE) at every viewport.
 	if is_instance_valid(hud._skill_ring):
 		hud._skill_ring.stroke = hud._to_layout(2.2)
 	if is_instance_valid(hud._skill_cooldown_label):
@@ -189,3 +184,20 @@ static func apply_action_caption_density(hud) -> void:
 		if is_instance_valid(caption):
 			caption.set_meta("aegis_role", role)
 			AegisTheme.resize_label(caption, role, text_size)
+			_fit_action_caption(hud, caption)
+
+
+## Sizes a caption band from the caption's own font so the text can never clip
+## against the button frame. The EMP caption keeps its top band (the cooldown
+## ring owns the button face); the rest read from the bottom edge.
+static func _fit_action_caption(hud, caption: Label) -> void:
+	var line_px := ceilf(float(caption.get_theme_font_size("font_size")) * 1.34) + 2.0
+	var at_top := caption == hud._skill_caption
+	caption.offset_left = hud._to_layout(3.0)
+	caption.offset_right = -hud._to_layout(3.0)
+	if at_top:
+		caption.offset_top = 2.0
+		caption.offset_bottom = 2.0 + line_px
+	else:
+		caption.offset_top = -2.0 - line_px
+		caption.offset_bottom = -2.0

@@ -297,9 +297,14 @@ func _build_header() -> void:
 	_heading = make_label_key("hero.title", "display_m", AegisTokens.INK)
 	_heading.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_heading.autowrap_mode = TextServer.AUTOWRAP_OFF
+	# The title wraps instead of trimming to "SELEC": on a narrow window the
+	# BACK button and the status chip leave the heading a short column, and
+	# "SELECT / OPERATIVE" over two lines still reads as the screen's name.
+	_heading.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_heading.max_lines_visible = 2
 	_heading.clip_text = true
 	_heading.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	physical_min_size(_heading, 0.0, 0.0)
 	_header.add_child(_heading)
 
 	_status_label = make_label("", "label", AegisTokens.OK)
@@ -475,7 +480,7 @@ func _build_panel() -> void:
 	_development_label = make_label("", "label_s", AegisTokens.INK_3)
 	AegisText.apply(_development_label, "hero.slots_development", [LOCKED_SLOTS])
 	_development_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_limit_lines(_development_label, 1)
+	_limit_lines(_development_label, 2)
 	column.add_child(_development_label)
 
 	# Single-line with an ellipsis, not wrapping: a wrapped Label reports a
@@ -485,19 +490,19 @@ func _build_panel() -> void:
 	_role_label = make_label("", "body_s", AegisTokens.INK_2)
 	_role_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	_role_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_limit_lines(_role_label, 1)
+	_limit_lines(_role_label, 2)
 	_role_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	column.add_child(_role_label)
 
 	_tier_label = make_label("", "label_s", AegisTokens.INFO)
 	_tier_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_limit_lines(_tier_label, 1)
+	_limit_lines(_tier_label, 2)
 	_tier_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	column.add_child(_tier_label)
 
 	_loadout_label = make_label("", "label_s", AegisTokens.INK_2)
 	_loadout_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_limit_lines(_loadout_label, 1)
+	_limit_lines(_loadout_label, 2)
 	_loadout_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	column.add_child(_loadout_label)
 
@@ -515,7 +520,7 @@ func _build_panel() -> void:
 	# every marked line and compares it with the WeaponDefinition.
 	_weapon_stat.set_meta("stat_line", true)
 	_weapon_stat.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_limit_lines(_weapon_stat, 1)
+	_limit_lines(_weapon_stat, 2)
 	column.add_child(_weapon_stat)
 
 
@@ -785,6 +790,11 @@ func _apply_density() -> void:
 	# Two more lines that restate what is already on screen: the role is the
 	# card's own subtitle and the loadout is the rail. On 390 px of height they
 	# are the difference between the buttons fitting and not.
+	# On a narrow window the header status chip squeezes the wrapped title to a
+	# sliver; the readiness it reports is already on the dashboard card, so the
+	# chip gives way and the title keeps the row.
+	if is_instance_valid(_status_label):
+		_status_label.visible = physical_size().x >= 560.0
 	if is_instance_valid(_role_label):
 		_role_label.visible = not short_screen
 	if is_instance_valid(_tier_label):

@@ -57,7 +57,7 @@ var _body_landscape: HBoxContainer
 var _rows: VBoxContainer
 var _rail: VBoxContainer
 var _actions: VBoxContainer
-var _landscape_built := false
+var _arrangement := ""
 
 # --- the rows --------------------------------------------------------------- #
 var _hero_row: AegisPanel
@@ -559,19 +559,32 @@ func _set_figure(label: Label, key: String, value: int) -> void:
 # --- arrangement ------------------------------------------------------------ #
 
 
-## One arrangement: the rows keep the height they need on the left, the record
-## and the actions sit in a rail beside them. 390 px of height cannot hold four
-## bands, so the stacked column is gone rather than kept unreachable.
+## One arrangement on wide windows: the rows keep the height they need on the
+## left, the record and the actions sit in a rail beside them. A tall phone
+## portrait (390x844 and friends) has the height for bands but not the width
+## for columns -- squeezing the rows to ~180 px is what clipped every card
+## caption to "MARA..." -- so there the rail stacks below the rows instead.
 ##
 ## Every block is detached before it is re-parented, so the arrangement never
 ## depends on the order it was first built in.
 func _apply_orientation() -> void:
-	if _landscape_built and _body_landscape.get_parent() != null:
+	var portrait_stack := physical_size().y > physical_size().x and physical_size().y >= 640.0
+	var mode := "stacked" if portrait_stack else "landscape"
+	if _arrangement == mode and _body_landscape.get_parent() != null:
 		return
-	_landscape_built = true
+	_arrangement = mode
 	for block in [_rows, _rail, _actions, _ribbon]:
 		if block.get_parent() != null:
 			block.get_parent().remove_child(block)
+	if portrait_stack:
+		_root.add_child(_body_landscape)
+		_body_landscape.add_child(_rows)
+		_root.add_child(_rail)
+		_rail.add_child(_ribbon)
+		_rail.add_child(_actions)
+		_rows.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		_rail.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		return
 	_root.add_child(_body_landscape)
 	_body_landscape.add_child(_rows)
 	_body_landscape.add_child(_rail)
@@ -593,7 +606,10 @@ func _apply_density() -> void:
 	# rows, so on a narrow window every caption in a row has to give up its
 	# minimum too.
 	var narrow := width < 560.0
-	var tight := narrow or compact
+	# Stacked portrait hands the rows the full width, so the copy no longer has
+	# to clip even though the window is narrow.
+	var portrait_stack := height > width and height >= 640.0
+	var tight := (narrow or compact) and not portrait_stack
 
 	apply_safe_margins(
 		_margin, 20.0 if compact else 36.0, 8.0 if compact else 28.0, 8.0 if compact else 28.0
@@ -663,9 +679,9 @@ func _apply_density() -> void:
 	for item in _loadout_items:
 		item.visible = not compact
 		_limit_lines(item, 1)
-	_limit_lines(_hero_status, 1)
-	_limit_lines(_mission_brief, 1)
-	_limit_lines(_arsenal_state, 1)
+	_limit_lines(_hero_status, 2 if portrait_stack else 1)
+	_limit_lines(_mission_brief, 2 if portrait_stack else 1)
+	_limit_lines(_arsenal_state, 2 if portrait_stack else 1)
 	_limit_lines(_loadout, 2)
 	_limit_lines(_deploy_caption, 1)
 

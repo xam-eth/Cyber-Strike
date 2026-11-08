@@ -249,8 +249,9 @@ func _build_placeholder_pin(index: int) -> AegisButton:
 	)
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	# Five landscape pins leave only about 115 px for this roadmap label at
-	# 667x375. Keep its copy inside the same 64 px touch target as the real pins.
-	_limit_lines(label, 1)
+	# 667x375. Two lines still fit the same 64 px touch target as the real pins
+	# and let "THEATRE 02 · IN DEVELOPMENT" finish its sentence.
+	_limit_lines(label, 2)
 	label.set_anchors_preset(Control.PRESET_FULL_RECT)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -280,9 +281,13 @@ func _build_info() -> void:
 	_mode_line = make_label("", "label_s", AegisTokens.INFO)
 	_mode_line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_mode_line.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	# "TECH RECOVERY + WAVE DEFENSE" and "CACHES 0/4 · SCHEMATIC · STORM
+	# SURVIVAL" both earned two lines: trimmed to one they read as typos.
+	_limit_lines(_mode_line, 2)
 	_reward_line = make_label("", "label_s", AegisTokens.INK_2)
 	_reward_line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_reward_line.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	_limit_lines(_reward_line, 2)
 	_brief = make_label("", "body_s", AegisTokens.INK_2)
 	_brief.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_status = make_label("", "label_s", AegisTokens.OK)
