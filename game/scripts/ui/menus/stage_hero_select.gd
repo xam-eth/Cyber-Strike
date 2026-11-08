@@ -157,6 +157,8 @@ func _orient_rail(horizontal: bool) -> void:
 		return
 	var target: Container = HBoxContainer.new() if horizontal else VBoxContainer.new()
 	target.name = &"WeaponRail"
+	physical_min_size(_development_label, 0.0, 120.0)
+	physical_min_size(_role_label, 0.0, 120.0)
 	for pin in _weapon_pins:
 		if pin.get_parent() != null:
 			pin.get_parent().remove_child(pin)
