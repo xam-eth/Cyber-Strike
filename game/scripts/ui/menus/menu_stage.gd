@@ -366,25 +366,32 @@ func _limit_lines(label: Label, limit: int) -> Label:
 ## stylebox and per-line spacing the engine's counter charges.
 func reserve_lines(label: Label, lines: int) -> void:
 	_limit_lines(label, lines)
+	if lines <= 1:
+		# The historic one-line behavior: the label's own shaped height (its
+		# content minimum) carries the row. Reset to zero so a previous
+		# two-line stamp shrinks back on a resize.
+		label.custom_minimum_size.y = 0.0
+		return
 	var font := label.get_theme_font("font")
 	if font == null:
 		return
-	var line_h := float(font.get_height(label.get_theme_font_size("font_size")))
-	# One line keeps the historic exact reserve: both sides of the engine's
-	# visible-line counter charge that single spacing there, and the compact
-	# landscape layouts are tuned to it. A real second line needs headroom:
-	# the engine charges each shaped line's true ascent+descent (the tracked
-	# fonts shape ~10% taller than `get_height` reports), so an exact reserve
-	# lands on the counter's knife edge -- world meta fit by a pixel, hero
-	# card copy lost by one. The 1.25 factor buys the slack.
-	if lines <= 1:
-		label.custom_minimum_size.y = line_h
-		return
+	# `get_theme_font_size` does not see the font-size override the floor
+	# enforcer writes, so it reports the authored role size (~21 px of line
+	# height) while the label actually shapes ~68 px lines at portrait scale.
+	# Computing from the grown size is what makes the reserve real -- a probe
+	# with 120 physical px of minimum wrapped the copy instantly, while every
+	# formula derived from the authored size left the label one line tall.
+	var role := str(label.get_meta("aegis_role", "body"))
+	var scale := float(label.get_meta("aegis_scale", 1.0))
+	var grown := maxi(
+		roundi(float(AegisTheme.type_size(role)) * scale), _minimum_font_size(_stretch)
+	)
+	var line_h := float(font.get_height(grown))
 	var style := label.get_theme_stylebox("normal")
 	var style_h := float(style.get_minimum_size().y) if style != null else 0.0
 	var line_spacing := float(label.get_theme_constant(&"line_spacing"))
 	label.custom_minimum_size.y = (
-		(line_h * 1.25 + line_spacing) * float(lines) + style_h + float(lines)
+		(line_h * 1.2 + line_spacing) * float(lines) + style_h + float(lines)
 	)
 
 
