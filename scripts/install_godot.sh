@@ -138,9 +138,11 @@ fi
 download() {
   local url="$1" destination="$2"
   if [[ "$DOWNLOADER" == "curl" ]]; then
-    curl -fsSL --retry 3 -o "$destination" "$url"
+    # Large release assets (the templates .tpz is ~1.2 GB) see transient
+    # connection resets on shared runners; retry all errors, not just a few.
+    curl -fL --retry 5 --retry-all-errors --retry-delay 5 -o "$destination" "$url"
   else
-    wget -q -O "$destination" "$url"
+    wget -q --tries=5 --retry-connrefused --waitretry=5 -O "$destination" "$url"
   fi
 }
 
@@ -262,24 +264,34 @@ printf '  symlink: %s/godot\n' "$BIN_DIR"
 # Optional export templates
 # --------------------------------------------------------------------------- #
 if (( WITH_TEMPLATES == 1 )); then
-  printf 'Downloading export templates (%s, ~1.2 GB)...\n' "$TEMPLATES_OS"
-  if ! download "$TEMPLATES_URL" "$WORK_DIR/$TEMPLATES_ZIP"; then
-    printf 'ERROR: template download failed: %s\n' "$TEMPLATES_URL" >&2
-    exit 1
-  fi
-  printf 'Extracting templates...\n'
-  if ! extract_zip "$WORK_DIR/$TEMPLATES_ZIP" "$WORK_DIR/templates"; then
-    printf 'ERROR: template extraction failed.\n' >&2
-    exit 1
-  fi
-  mkdir -p "$TEMPLATE_DIR"
-  if [[ -d "$WORK_DIR/templates/templates" ]]; then
-    cp -R "$WORK_DIR/templates/templates/." "$TEMPLATE_DIR/"
+  template_count="$(find "$TEMPLATE_DIR" -maxdepth 1 -type f 2>/dev/null | wc -l | tr -d ' ')"
+  if (( template_count > 0 )); then
+    # The CI cache restores this directory before the install step. Reusing it
+    # is the point of the cache: the .tpz is ~1.2 GB and re-downloading it on
+    # every run is both slow and the flakiest step in the pipeline. The cache
+    # key is pinned to .godot-version, so a hit always carries the right
+    # version's files.
+    printf 'Reusing %s template file(s) already in %s\n' "$template_count" "$TEMPLATE_DIR"
   else
-    cp -R "$WORK_DIR/templates/." "$TEMPLATE_DIR/"
+    printf 'Downloading export templates (%s, ~1.2 GB)...\n' "$TEMPLATES_OS"
+    if ! download "$TEMPLATES_URL" "$WORK_DIR/$TEMPLATES_ZIP"; then
+      printf 'ERROR: template download failed: %s\n' "$TEMPLATES_URL" >&2
+      exit 1
+    fi
+    printf 'Extracting templates...\n'
+    if ! extract_zip "$WORK_DIR/$TEMPLATES_ZIP" "$WORK_DIR/templates"; then
+      printf 'ERROR: template extraction failed.\n' >&2
+      exit 1
+    fi
+    mkdir -p "$TEMPLATE_DIR"
+    if [[ -d "$WORK_DIR/templates/templates" ]]; then
+      cp -R "$WORK_DIR/templates/templates/." "$TEMPLATE_DIR/"
+    else
+      cp -R "$WORK_DIR/templates/." "$TEMPLATE_DIR/"
+    fi
+    template_count="$(find "$TEMPLATE_DIR" -maxdepth 1 -type f | wc -l | tr -d ' ')"
+    printf '  %s template file(s) installed in %s\n' "$template_count" "$TEMPLATE_DIR"
   fi
-  template_count="$(find "$TEMPLATE_DIR" -maxdepth 1 -type f | wc -l | tr -d ' ')"
-  printf '  %s template file(s) installed in %s\n' "$template_count" "$TEMPLATE_DIR"
 fi
 
 # --------------------------------------------------------------------------- #
