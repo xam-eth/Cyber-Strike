@@ -279,11 +279,13 @@ func _build_info() -> void:
 	_title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_mode_line = make_label("", "label_s", AegisTokens.INFO)
 	_mode_line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_mode_line.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	# A trim overrun forces single-line layout -- autowrap is ignored -- so the
+	# two meta lines wrap through `max_lines_visible` instead (see reframe()).
+	_mode_line.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	_limit_lines(_mode_line, 1)
 	_reward_line = make_label("", "label_s", AegisTokens.INK_2)
 	_reward_line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_reward_line.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	_reward_line.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	_limit_lines(_reward_line, 1)
 	_brief = make_label("", "body_s", AegisTokens.INK_2)
 	_brief.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -322,6 +324,11 @@ func reframe() -> void:
 			continue
 		var lines := 1 if compact else 2
 		label.max_lines_visible = lines
+		# A trim overrun forces single-line layout -- autowrap is ignored -- so
+		# two-line copy must give up the ellipsis and let the wrap breathe.
+		label.text_overrun_behavior = (
+			TextServer.OVERRUN_TRIM_ELLIPSIS if lines == 1 else TextServer.OVERRUN_NO_TRIMMING
+		)
 		var font := label.get_theme_font("font")
 		if font != null:
 			var line_h := font.get_height(label.get_theme_font_size("font_size"))

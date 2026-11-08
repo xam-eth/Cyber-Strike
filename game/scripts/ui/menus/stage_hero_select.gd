@@ -786,13 +786,9 @@ func _apply_density() -> void:
 	# card's own subtitle and the loadout is the rail. On 390 px of height they
 	# are the difference between the buttons fitting and not.
 	# On a narrow window the header status chip squeezes the title to "SELEC";
-	# the readiness it reports is already on the dashboard card, so the chip
-	# gives way and the title keeps the row in a short form that fits it.
-	var narrow_header := physical_size().x < 560.0
-	if is_instance_valid(_status_label):
-		_status_label.visible = not narrow_header
-	if is_instance_valid(_heading):
-		AegisText.apply(_heading, "hero.title_short" if narrow_header else "hero.title")
+	# the readiness it reports is already on the dashboard card. The header
+	# decisions live at the end of this pass (below), where nothing repaints
+	# over them.
 	if is_instance_valid(_role_label):
 		_role_label.visible = not short_screen
 	if is_instance_valid(_tier_label):
@@ -831,8 +827,9 @@ func _apply_density() -> void:
 	if is_instance_valid(_carousel_wrap):
 		_carousel_wrap.visible = not short_screen
 	# The header keeps BACK and the heading; the field-ready state lives on the
-	# card itself.
-	_status_label.visible = true
+	# card itself. On a narrow window even that chip gives way: it squeezed the
+	# title to "SELEC", and the dashboard card already reports the readiness.
+	_status_label.visible = physical_size().x >= 560.0
 	# 64 px chips clipped their own slot label: "SLOT 02" is 71 px at the current
 	# `label_s` size, and menu_layout_smoke asserted exactly that on the pushed
 	# build (text 548,142 71x20 in card 548,120 64x64). A 390 px tall landscape
@@ -857,7 +854,7 @@ func _apply_density() -> void:
 	physical_separation(_actions, 8.0 if short_screen else 12.0)
 	physical_min_size(_continue, 0.0, AegisTokens.MIN_TOUCH_PX)
 	physical_min_size(_select_button, 0.0, AegisTokens.MIN_TOUCH_PX)
-	AegisText.apply(_heading, "hero.title")
+	AegisText.apply(_heading, "hero.title_short" if physical_size().x < 560.0 else "hero.title")
 	# BACK + heading + status have to share the header. "OPERATIVE" set in
 	# `display_m` is 208 px at the smallest width the suite measures, which is
 	# what pushed the heading past the right edge once. It steps down one role on
