@@ -802,11 +802,23 @@ func _apply_density() -> void:
 	# the columns lack: each line earns a second row here (and only here --
 	# desktop keeps the one-line bound).
 	var narrow_card := physical_size().x < 560.0
+	var dbg_lines := 1
 	for copy in [_development_label, _role_label, _tier_label, _loadout_label, _weapon_stat]:
 		var label := copy as Label
 		if not is_instance_valid(label):
 			continue
-		reserve_lines(label, 2 if (narrow_card and label.visible) else 1)
+		var want := 2 if (narrow_card and label.visible) else 1
+		dbg_lines = want
+		reserve_lines(label, want)
+	_heading.text = (
+		"N%d L%d Y%d M%d"
+		% [
+			narrow_card,
+			dbg_lines,
+			physical_size().y,
+			_development_label.max_lines_visible if is_instance_valid(_development_label) else -1,
+		]
+	)
 	for pin in _weapon_pins:
 		# 64 px is the project's touch floor (`AegisTokens.MIN_TOUCH_PX`); 52 was
 		# under it on every size the suite measures.
@@ -864,7 +876,15 @@ func _apply_density() -> void:
 	physical_separation(_actions, 8.0 if short_screen else 12.0)
 	physical_min_size(_continue, 0.0, AegisTokens.MIN_TOUCH_PX)
 	physical_min_size(_select_button, 0.0, AegisTokens.MIN_TOUCH_PX)
-	AegisText.apply(_heading, "hero.title_short" if physical_size().x < 560.0 else "hero.title")
+	_heading.text = (
+		"N%d L%d Y%d M%d"
+		% [
+			narrow_card,
+			dbg_lines,
+			physical_size().y,
+			_development_label.max_lines_visible if is_instance_valid(_development_label) else -1,
+		]
+	)
 	# BACK + heading + status have to share the header. "OPERATIVE" set in
 	# `display_m` is 208 px at the smallest width the suite measures, which is
 	# what pushed the heading past the right edge once. It steps down one role on
