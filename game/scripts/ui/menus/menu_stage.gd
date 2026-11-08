@@ -370,6 +370,13 @@ func reserve_lines(label: Label, lines: int) -> void:
 	if font == null:
 		return
 	var line_h := float(font.get_height(label.get_theme_font_size("font_size")))
+	# One line keeps the historic exact reserve: both sides of the engine's
+	# visible-line counter charge that single spacing there, and the compact
+	# landscape layouts are tuned to it. Only a real second line needs the
+	# stylebox and per-line spacing paid for (see the header comment).
+	if lines <= 1:
+		label.custom_minimum_size.y = line_h
+		return
 	var style := label.get_theme_stylebox("normal")
 	var style_h := float(style.get_minimum_size().y) if style != null else 0.0
 	var line_spacing := float(label.get_theme_constant(&"line_spacing"))
