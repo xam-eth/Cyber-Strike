@@ -214,7 +214,7 @@ func _fire_burst_round() -> void:
 	_burst_remaining -= 1
 	_burst_timer = burst_interval
 	visuals.play_attack()
-	Sfx.play_3d(&"enemy_shot", muzzle.global_position)
+	Sfx.play_3d_variants(&"enemy_shot", muzzle.global_position)
 	var origin := muzzle.global_position
 	var shot_dir := (_locked_point - origin).normalized()
 	if shot_dir.length_squared() < 0.001:

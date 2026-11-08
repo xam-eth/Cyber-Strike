@@ -202,6 +202,7 @@ func _begin_attack_windup() -> void:
 
 func _resolve_attack() -> void:
 	visuals.play_attack()
+	Sfx.play_3d_variants(&"enemy_shot", muzzle.global_position)
 	var hit_target := false
 	var excluded_rids: Array[RID] = [get_rid()]
 	var query := PhysicsRayQueryParameters3D.create(

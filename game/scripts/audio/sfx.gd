@@ -20,6 +20,13 @@ static func play_3d(sound_id: StringName, position: Vector3) -> void:
 		director.play_3d(sound_id, position)
 
 
+## Positional sound with round-robin variants (repeated shots alternate voices).
+static func play_3d_variants(sound_id: StringName, position: Vector3) -> void:
+	var director := _director()
+	if director != null:
+		director.play_variant(sound_id, position)
+
+
 static func play_ui(sound_id: StringName) -> void:
 	var director := _director()
 	if director != null:

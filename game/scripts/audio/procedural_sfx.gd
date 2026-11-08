@@ -17,8 +17,20 @@ const FOLEY_VOLUME_DB := -8.5
 
 const VOLUME_DB := {
 	&"shot_pulse_rifle": SHOT_VOLUME_DB,
+	&"shot_pulse_rifle_r2": SHOT_VOLUME_DB,
+	&"shot_pulse_rifle_r3": SHOT_VOLUME_DB,
+	&"shot_pulse_rifle_r4": SHOT_VOLUME_DB,
 	&"shot_nova_launcher": HEAVY_SHOT_VOLUME_DB,
+	&"shot_nova_launcher_r2": HEAVY_SHOT_VOLUME_DB,
+	&"shot_nova_launcher_r3": HEAVY_SHOT_VOLUME_DB,
+	&"shot_nova_launcher_r4": HEAVY_SHOT_VOLUME_DB,
 	&"shot_arc_shooter": SHOT_VOLUME_DB,
+	&"shot_arc_shooter_r2": SHOT_VOLUME_DB,
+	&"shot_arc_shooter_r3": SHOT_VOLUME_DB,
+	&"shot_arc_shooter_r4": SHOT_VOLUME_DB,
+	&"enemy_shot": -6.4,
+	&"enemy_shot_r2": -6.4,
+	&"enemy_shot_r3": -6.4,
 	&"impact": IMPACT_VOLUME_DB,
 	&"explosion": HEAVY_SHOT_VOLUME_DB,
 	&"chain_zap": IMPACT_VOLUME_DB,
@@ -45,10 +57,22 @@ static func volume_db_for(sound_id: StringName) -> float:
 
 
 static func build_all() -> Dictionary:
-	return {
-		&"shot_pulse_rifle": _shot_pulse_rifle(),
-		&"shot_nova_launcher": _shot_nova_launcher(),
-		&"shot_arc_shooter": _shot_arc_shooter(),
+	var sounds := {
+		&"shot_pulse_rifle": _shot_pulse_rifle(0),
+		&"shot_pulse_rifle_r2": _shot_pulse_rifle(1),
+		&"shot_pulse_rifle_r3": _shot_pulse_rifle(2),
+		&"shot_pulse_rifle_r4": _shot_pulse_rifle(3),
+		&"shot_nova_launcher": _shot_nova_launcher(0),
+		&"shot_nova_launcher_r2": _shot_nova_launcher(1),
+		&"shot_nova_launcher_r3": _shot_nova_launcher(2),
+		&"shot_nova_launcher_r4": _shot_nova_launcher(3),
+		&"shot_arc_shooter": _shot_arc_shooter(0),
+		&"shot_arc_shooter_r2": _shot_arc_shooter(1),
+		&"shot_arc_shooter_r3": _shot_arc_shooter(2),
+		&"shot_arc_shooter_r4": _shot_arc_shooter(3),
+		&"enemy_shot": _enemy_shot(0),
+		&"enemy_shot_r2": _enemy_shot(1),
+		&"enemy_shot_r3": _enemy_shot(2),
 		&"impact": _impact(),
 		&"explosion": _explosion(),
 		&"chain_zap": _chain_zap(),
@@ -68,6 +92,7 @@ static func build_all() -> Dictionary:
 		&"crate_break": _crate_break(),
 		&"shield_hit": _shield_hit(),
 	}
+	return sounds
 
 
 ## Fast constant-time lookup — never rebuilds WAV buffers at runtime.
@@ -76,15 +101,31 @@ static func weapon_sound_id(weapon_id: StringName) -> StringName:
 	return candidate if VOLUME_DB.has(candidate) else &"shot_pulse_rifle"
 
 
+## Round-robin bank for a base id: the base sound plus its `_r2.._rN` variants,
+## in playback order. Only ids that actually exist are returned, so banks stay
+## correct as sounds are added.
+static func variant_bank(base_id: StringName) -> Array[StringName]:
+	var bank: Array[StringName] = [base_id]
+	var suffix := 2
+	while VOLUME_DB.has(StringName("%s_r%d" % [String(base_id), suffix])):
+		bank.append(StringName("%s_r%d" % [String(base_id), suffix]))
+		suffix += 1
+	return bank
+
+
 # --- weapons -----------------------------------------------------------------
 
 
-static func _shot_pulse_rifle() -> AudioStreamWAV:
+static func _shot_pulse_rifle(variant: int) -> AudioStreamWAV:
 	# Multi-layer kinetic-plasma assault rifle:
-	# 1) Sub-bass chest punch (175 -> 46 Hz)
+	# 1) Sub-bass chest punch (175 -> 46 Hz) with variant detune
 	# 2) Supersonic muzzle crack + high-voltage plasma snap (2900 -> 540 Hz)
-	# 3) Delayed machined steel bolt clack at 14 ms
-	# 4) Filtered glacier canyon slapback acoustic tail
+	# 3) Delayed machined steel bolt clack (timing jitters per variant)
+	# 4) Air-whip crack on the transient
+	# 5) Filtered glacier canyon slapback acoustic tail
+	var v := float(variant)
+	var detune := 1.0 + (v - 1.5) * 0.035
+	var bolt_time := 0.0115 + v * 0.0012
 	return _build_filtered(
 		44100,
 		0.28,
@@ -92,25 +133,27 @@ static func _shot_pulse_rifle() -> AudioStreamWAV:
 		func(t: float, span: float, rng: RandomNumberGenerator) -> float:
 			var n := rng.randf() * 2.0 - 1.0
 			var sub := (
-				_sine(_chirp_power(175.0, 46.0, t, 0.085, 0.45)) * _envelope(t, span, 0.0008, 34.0)
+				_sine(_chirp_power(175.0 * detune, 46.0, t, 0.085, 0.45))
+				* _envelope(t, span, 0.0008, 34.0)
 			)
 			var mid_punch := (
-				_saw(_chirp_power(680.0, 145.0, t, 0.065, 0.55))
+				_saw(_chirp_power(680.0 * detune, 145.0, t, 0.065, 0.55))
 				* _envelope(t, span, 0.0006, 46.0)
 				* 0.58
 			)
 			var plasma_snap := (
-				_sine(_chirp_power(2850.0, 520.0, t, 0.028, 0.4))
+				_sine(_chirp_power(2850.0 * detune, 520.0, t, 0.028, 0.4))
 				* _envelope(t, span, 0.0004, 95.0)
 				* 0.44
 			)
 			var muzzle_blast := n * _envelope(t, span, 0.0004, 78.0) * 0.78
+			var air_whip := n * _envelope(t, span, 0.0015, 128.0) * 0.34
 			var bolt := 0.0
-			if t >= 0.013:
-				var bt := t - 0.013
+			if t >= bolt_time:
+				var bt := t - bolt_time
 				bolt = (
 					(_sine(_phase(1820.0, bt)) * 0.5 + _sine(_phase(3140.0, bt)) * 0.32 + n * 0.35)
-					* _envelope(bt, span - 0.013, 0.0005, 85.0)
+					* _envelope(bt, span - bolt_time, 0.0005, 85.0)
 					* 0.36
 				)
 			var canyon_tail := 0.0
@@ -122,13 +165,30 @@ static func _shot_pulse_rifle() -> AudioStreamWAV:
 					* 0.22
 				)
 			return tanh(
-				(sub * 1.15 + mid_punch + plasma_snap + muzzle_blast + bolt + canyon_tail) * 1.45
-			)
+				(
+					(
+						sub * 1.15
+						+ mid_punch
+						+ plasma_snap
+						+ muzzle_blast
+						+ air_whip
+						+ bolt
+						+ canyon_tail
+					)
+					* 1.45
+				)
+			),
+		0x5F3A17 + variant * 7919
 	)
 
 
-static func _shot_nova_launcher() -> AudioStreamWAV:
-	# Heavy ordnance launcher: deep breech concussion + hollow tube resonance + propellant roar.
+static func _shot_nova_launcher(variant: int) -> AudioStreamWAV:
+	# Heavy ordnance launcher: deep breech concussion + hollow tube resonance +
+	# propellant roar + falling tube sweep + debris shimmer. Variant jitters the
+	# breech timing and tube detune so consecutive launches never sound cloned.
+	var v := float(variant)
+	var detune := 1.0 + (v - 1.5) * 0.05
+	var breech_bias := rng_bias(v)
 	return _build_filtered(
 		44100,
 		0.54,
@@ -136,21 +196,36 @@ static func _shot_nova_launcher() -> AudioStreamWAV:
 		func(t: float, span: float, rng: RandomNumberGenerator) -> float:
 			var n := rng.randf() * 2.0 - 1.0
 			var sub := (
-				_sine(_chirp_power(210.0, 34.0, t, 0.24, 0.42)) * _envelope(t, span, 0.0015, 8.5)
+				_sine(_chirp_power(210.0 * detune, 34.0, t, 0.24, 0.42))
+				* _envelope(t, span, 0.0015, 8.5)
 			)
 			var tube := (
-				(_sine(_phase(340.0, t)) * 0.6 + _sine(_phase(585.0, t)) * 0.4)
+				(_sine(_phase(340.0 * detune, t)) * 0.6 + _sine(_phase(585.0 * detune, t)) * 0.4)
 				* _envelope(t, span, 0.001, 26.0)
 				* 0.48
 			)
-			var breech_crack := n * _envelope(t, span, 0.0006, 52.0) * 0.72
+			var tube_sweep := (
+				_sine(_chirp_power(320.0, 88.0, t, 0.09, 0.6))
+				* _envelope(t, span, 0.002, 14.0)
+				* 0.4
+			)
+			var breech_crack := n * _envelope(t, span, 0.0006 + breech_bias * 0.0004, 52.0) * 0.72
 			var propellant := n * _envelope(t, span, 0.022, 6.2) * 0.46
-			return tanh((sub * 1.3 + tube + breech_crack + propellant) * 1.38)
+			var debris := 0.0
+			if t >= 0.05:
+				debris = n * _envelope(t - 0.05, span - 0.05, 0.002, 27.0) * 0.2
+			return tanh((sub * 1.3 + tube + tube_sweep + breech_crack + propellant + debris) * 1.38),
+		0x5F3A17 + variant * 7919
 	)
 
 
-static func _shot_arc_shooter() -> AudioStreamWAV:
-	# High-voltage rail/arc carbine: electrostatic whip crack + capacitor thump + ionized FM sizzle.
+static func _shot_arc_shooter(variant: int) -> AudioStreamWAV:
+	# High-voltage rail/arc carbine: electrostatic whip crack + capacitor thump +
+	# ionized FM sizzle + rising capacitor whine + spark rain. Variant detunes the
+	# arc body and whine start so bursts keep crackling instead of repeating.
+	var v := float(variant)
+	var detune := 1.0 + (v - 1.5) * 0.045
+	var whine_start := 2150.0 + v * 90.0
 	return _build_filtered(
 		44100,
 		0.31,
@@ -158,17 +233,73 @@ static func _shot_arc_shooter() -> AudioStreamWAV:
 		func(t: float, span: float, rng: RandomNumberGenerator) -> float:
 			var n := rng.randf() * 2.0 - 1.0
 			var cap_thump := (
-				_sine(_chirp_power(155.0, 48.0, t, 0.075, 0.5)) * _envelope(t, span, 0.0007, 32.0)
+				_sine(_chirp_power(155.0 * detune, 48.0, t, 0.075, 0.5))
+				* _envelope(t, span, 0.0007, 32.0)
 			)
 			var whip := (
-				_saw(_chirp_power(3900.0, 380.0, t, 0.055, 0.38))
+				_saw(_chirp_power(3900.0 * detune, 380.0, t, 0.055, 0.38))
 				* _envelope(t, span, 0.0004, 42.0)
 				* 0.56
 			)
 			var fm_mod := _sine(_phase(118.0, t)) * 3.2
-			var arc_body := sin(_phase(940.0, t) + fm_mod) * _envelope(t, span, 0.0015, 18.0) * 0.42
+			var arc_body := (
+				sin(_phase(940.0 * detune, t) + fm_mod) * _envelope(t, span, 0.0015, 18.0) * 0.42
+			)
 			var spark := n * _envelope(t, span, 0.0004, 48.0) * 0.58
-			return tanh((cap_thump * 0.95 + whip + arc_body + spark) * 1.35)
+			var whine := (
+				_sine(_chirp_power(whine_start, whine_start * 1.22, t, 0.13, 1.0))
+				* _envelope(t, span, 0.004, 13.0)
+				* 0.16
+			)
+			var spark_rain := 0.0
+			if t >= 0.04:
+				spark_rain = n * _envelope(t - 0.04, span - 0.04, 0.001, 32.0) * 0.22
+			return tanh((cap_thump * 0.95 + whip + arc_body + spark + whine + spark_rain) * 1.35),
+		0x5F3A17 + variant * 7919
+	)
+
+
+static func _enemy_shot(variant: int) -> AudioStreamWAV:
+	# Hostile robot servoplasma: cold square body + hard electric snap + servo
+	# chamber clack. No warm sub and a harder clip than the player weapons, so
+	# incoming fire reads as machinery, not as your own arsenal echoing back.
+	var v := float(variant)
+	var detune := 1.0 + (v - 1.0) * 0.04
+	return _build_filtered(
+		44100,
+		0.22,
+		0.55,
+		func(t: float, span: float, rng: RandomNumberGenerator) -> float:
+			var n := rng.randf() * 2.0 - 1.0
+			var body := (
+				_square(_chirp_power(210.0 * detune, 115.0, t, 0.05, 0.5))
+				* _envelope(t, span, 0.0005, 40.0)
+				* 0.42
+			)
+			var snap := n * _envelope(t, span, 0.0003, 110.0) * 0.72
+			var servo := 0.0
+			if t >= 0.008:
+				var st := t - 0.008
+				servo = (
+					_saw(_chirp_power(780.0 * detune, 620.0, st, 0.04, 1.0))
+					* _envelope(st, span - 0.008, 0.0006, 62.0)
+					* 0.3
+				)
+			var crackle := (
+				_sine(_chirp_power(3200.0, 900.0, t, 0.03, 0.35))
+				* _envelope(t, span, 0.0003, 120.0)
+				* 0.34
+			)
+			return tanh((body + snap + servo + crackle) * 1.6),
+		0x5F3A17 + variant * 7919
+	)
+
+
+## Deterministic per-variant timing bias in [0, 1].
+static func rng_bias(variant: float) -> float:
+	return (
+		absf(sin(variant * 12.9898 + 78.233) * 43758.5453)
+		- floorf(absf(sin(variant * 12.9898 + 78.233) * 43758.5453))
 	)
 
 
@@ -454,12 +585,13 @@ static func _build(mix_rate: int, seconds: float, shaper: Callable) -> AudioStre
 
 
 ## One-pole warm low-pass + canyon slapback reflection tap so procedural weapons
-## sound grounded and acoustic rather than harsh raw digital noise.
+## sound grounded and acoustic rather than harsh raw digital noise. The noise
+## seed is per-call so round-robin variants get distinct noise textures.
 static func _build_filtered(
-	mix_rate: int, seconds: float, cutoff_alpha: float, shaper: Callable
+	mix_rate: int, seconds: float, cutoff_alpha: float, shaper: Callable, seed_value: int = 0x5F3A17
 ) -> AudioStreamWAV:
 	var rng := RandomNumberGenerator.new()
-	rng.seed = 0x5F3A17
+	rng.seed = seed_value
 	var sample_count := maxi(int(seconds * float(mix_rate)), 1)
 	var raw := PackedFloat32Array()
 	raw.resize(sample_count)

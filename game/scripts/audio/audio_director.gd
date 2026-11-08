@@ -44,6 +44,8 @@ const THROTTLE_MS := {
 var _streams: Dictionary = {}
 var _pool_3d: Array[AudioStreamPlayer3D] = []
 var _pool_ui: Array[AudioStreamPlayer] = []
+## base sound id -> next round-robin variant cursor (see play_variant).
+var _variant_cycle: Dictionary = {}
 var _next_3d: int = 0
 var _next_ui: int = 0
 var _muted: bool = false
@@ -127,7 +129,17 @@ func play_ui(sound_id: StringName) -> void:
 
 ## Fires the right weapon sound for a weapon definition id.
 func play_shot(weapon_id: StringName, position: Vector3) -> void:
-	play_3d(ProceduralSfxScript.weapon_sound_id(weapon_id), position)
+	play_variant(ProceduralSfxScript.weapon_sound_id(weapon_id), position)
+
+
+## Plays a base sound id, round-robin through its `_r2.._rN` variants so rapid
+## fire never repeats the identical transient. Falls back to the base sound when
+## no variants exist.
+func play_variant(base_id: StringName, position: Vector3) -> void:
+	var bank := ProceduralSfxScript.variant_bank(base_id)
+	var cursor := int(_variant_cycle.get(base_id, 0))
+	_variant_cycle[base_id] = (cursor + 1) % maxi(bank.size(), 1)
+	play_3d(bank[cursor % bank.size()], position)
 
 
 func set_muted(value: bool) -> void:

@@ -12,6 +12,7 @@ const REQUIRED_SOUNDS: Array[StringName] = [
 	&"shot_pulse_rifle",
 	&"shot_nova_launcher",
 	&"shot_arc_shooter",
+	&"enemy_shot",
 	&"impact",
 	&"explosion",
 	&"chain_zap",
@@ -128,6 +129,34 @@ func _run_smoke_test() -> void:
 		and test_passed
 	)
 
+	# --- round-robin shot banks ---------------------------------------------
+	for base_id: StringName in [pulse_id, nova_id, arc_id, &"enemy_shot"]:
+		var bank := ProceduralSfxScript.variant_bank(base_id)
+		var min_variants := 4 if base_id != &"enemy_shot" else 3
+		test_passed = (
+			_expect(
+				bank.size() >= min_variants,
+				(
+					"%s has a round-robin bank of at least %d voices (got %d)"
+					% [String(base_id), min_variants, bank.size()]
+				),
+			)
+			and test_passed
+		)
+		var base_stream := sounds.get(base_id) as AudioStreamWAV
+		var distinct := true
+		for variant_id in bank.slice(1):
+			var variant_stream := sounds.get(variant_id) as AudioStreamWAV
+			if (
+				variant_stream == null
+				or variant_stream.data == (base_stream.data if base_stream != null else null)
+			):
+				distinct = false
+		test_passed = (
+			_expect(distinct, "%s variants are distinct streams, not clones" % String(base_id))
+			and test_passed
+		)
+
 	# --- playback, mute, throttle -------------------------------------------
 	var before := Sfx.played_count()
 	Sfx.play_ui(&"wave_start")
@@ -191,6 +220,18 @@ func _run_smoke_test() -> void:
 		_expect(
 			fired and after_shot > before_shot,
 			"firing the weapon reaches the audio singleton",
+		)
+		and test_passed
+	)
+	# Round-robin must not throttle: two consecutive variant plays both land
+	# (the weapon's own fire-rate cooldown is covered by combat smokes).
+	audio.call("play_variant", &"shot_pulse_rifle", Vector3.ZERO)
+	audio.call("play_variant", &"shot_pulse_rifle", Vector3.ZERO)
+	var after_rotation := int(audio.call("played_count"))
+	test_passed = (
+		_expect(
+			after_rotation == after_shot + 2,
+			"consecutive round-robin shots both play unthrottled",
 		)
 		and test_passed
 	)
