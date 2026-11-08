@@ -157,8 +157,6 @@ func _orient_rail(horizontal: bool) -> void:
 		return
 	var target: Container = HBoxContainer.new() if horizontal else VBoxContainer.new()
 	target.name = &"WeaponRail"
-	physical_min_size(_development_label, 0.0, 120.0)
-	physical_min_size(_role_label, 0.0, 120.0)
 	for pin in _weapon_pins:
 		if pin.get_parent() != null:
 			pin.get_parent().remove_child(pin)
@@ -812,6 +810,8 @@ func _apply_density() -> void:
 		var want := 2 if (narrow_card and label.visible) else 1
 		dbg_lines = want
 		reserve_lines(label, want)
+	physical_min_size(_development_label, 0.0, 120.0)
+	physical_min_size(_role_label, 0.0, 120.0)
 	_heading.text = (
 		"N%s L%s C%s S%s"
 		% [
