@@ -679,22 +679,13 @@ func _apply_density() -> void:
 	for item in _loadout_items:
 		item.visible = not compact
 		_limit_lines(item, 1)
-	_limit_lines(_hero_status, 1)
-	_limit_lines(_mission_brief, 1)
-	_limit_lines(_arsenal_state, 1)
-	if portrait_stack:
-		# Full-width rows have the room the squeezed columns never had:
-		# "SCHEMATIC · STORM SURVIVAL" wraps instead of reading as "STORM...".
-		for twin in [_hero_status, _mission_brief, _arsenal_state]:
-			var status_label := twin as Label
-			if not is_instance_valid(status_label):
-				continue
-			status_label.max_lines_visible = 2
-			status_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
-			var font := status_label.get_theme_font("font")
-			if font != null:
-				var line_h := font.get_height(status_label.get_theme_font_size("font_size"))
-				status_label.custom_minimum_size.y = line_h * 2.0
+	# Full-width stacked rows have the room the squeezed columns never had:
+	# "SCHEMATIC · STORM CONDUCTOR" wraps instead of reading as "STORM...".
+	# One line everywhere else, and the reserve shrinks back on a resize.
+	for twin in [_hero_status, _mission_brief, _arsenal_state]:
+		var status_label := twin as Label
+		if is_instance_valid(status_label):
+			reserve_lines(status_label, 2 if portrait_stack else 1)
 	_limit_lines(_loadout, 2)
 	_limit_lines(_deploy_caption, 1)
 

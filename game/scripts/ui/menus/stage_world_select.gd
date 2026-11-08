@@ -280,13 +280,9 @@ func _build_info() -> void:
 	_title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_mode_line = make_label("", "label_s", AegisTokens.INFO)
 	_mode_line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	# A trim overrun forces single-line layout -- autowrap is ignored -- so the
-	# two meta lines wrap through `max_lines_visible` instead (see reframe()).
-	_mode_line.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	_limit_lines(_mode_line, 1)
 	_reward_line = make_label("", "label_s", AegisTokens.INK_2)
 	_reward_line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_reward_line.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	_limit_lines(_reward_line, 1)
 	_brief = make_label("", "body_s", AegisTokens.INK_2)
 	_brief.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -325,12 +321,7 @@ func reframe() -> void:
 		var label := meta_label as Label
 		if not is_instance_valid(label):
 			continue
-		var lines := 1 if compact else 2
-		_limit_lines(label, lines)
-		var font := label.get_theme_font("font")
-		if font != null:
-			var line_h := font.get_height(label.get_theme_font_size("font_size"))
-			label.custom_minimum_size.y = line_h * float(lines)
+		reserve_lines(label, 1 if compact else 2)
 	physical_min_size(_launch, 0.0, 64.0)
 	# 64 px is the touch floor (`AegisTokens.MIN_TOUCH_PX`); 56 failed it. Every
 	# child of the row, not just `_pins`: the roadmap slot was built after the

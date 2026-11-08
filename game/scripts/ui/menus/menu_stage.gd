@@ -344,16 +344,7 @@ func card_line(text: String, role: String, color: Color) -> Label:
 
 ## Holds a line of card copy to `limit` lines with an ellipsis.
 ##
-## Cards are buttons with children laid over them, so a child that grows does
-## not grow the card -- it draws past the card's rounded edge and over whatever
-## is below. The weapon list did exactly that at 390x844: the ARC SHOOTER's stat
-## line ran out of its card and into the Battle Points legend. Fixed card
-## heights are safe only if the copy has a bound, and this is the bound.
-## A one-line label that is allowed to ellipsise should not claim its text as
-## its *minimum* width: that is how a caption 20 px too long made a whole page
-## wider than the phone it was drawn on. `clip_text` takes the text out of the
-## minimum size calculation, and the overrun behaviour below still draws the
-## ellipsis.
+## This is the bound; `reserve_lines` below is the matching height reserve.
 func _limit_lines(label: Label, limit: int) -> Label:
 	label.max_lines_visible = limit
 	label.clip_text = limit > 0
@@ -361,6 +352,28 @@ func _limit_lines(label: Label, limit: int) -> Label:
 		TextServer.OVERRUN_TRIM_ELLIPSIS if limit > 0 else TextServer.OVERRUN_NO_TRIMMING
 	)
 	return label
+
+
+## Stamps the height a label needs to actually draw `lines` lines.
+##
+## Godot's `Label::get_visible_line_count` counts lines against the control
+## height minus the normal stylebox's margins, adding line spacing per line;
+## reserving `font_height * lines` alone lands one line short, the engine
+## decides only one line "fits", and the label draws one line plus an
+## enforced ellipsis -- with an empty second row under it. That is exactly
+## how "CACHES 0/4 · SCHEMATIC · STORM CONDUCTOR" kept reading as "STORM..."
+## no matter what the line limit was set to. The reserve accounts for the
+## stylebox and per-line spacing the engine's counter charges.
+func reserve_lines(label: Label, lines: int) -> void:
+	_limit_lines(label, lines)
+	var font := label.get_theme_font("font")
+	if font == null:
+		return
+	var line_h := float(font.get_height(label.get_theme_font_size("font_size")))
+	var style := label.get_theme_stylebox("normal")
+	var style_h := float(style.get_minimum_size().y) if style != null else 0.0
+	var line_spacing := float(label.get_theme_constant(&"line_spacing"))
+	label.custom_minimum_size.y = ((line_h + line_spacing) * float(lines) + style_h + float(lines))
 
 
 ## Creates the full-rect safe-area container a menu screen lays out in.

@@ -800,19 +800,13 @@ func _apply_density() -> void:
 	# In the ~250 px portrait column the card copy clips to "1 OPERATIVE...",
 	# "Frontline strike lead...", "ARMOU...". A narrow window has the height
 	# the columns lack: each line earns a second row here (and only here --
-	# desktop keeps the one-line bound), with the two-line reserve stamped
-	# because the shared font floor only reserves one line per label.
+	# desktop keeps the one-line bound).
 	var narrow_card := physical_size().x < 560.0
 	for copy in [_development_label, _role_label, _tier_label, _loadout_label, _weapon_stat]:
 		var label := copy as Label
 		if not is_instance_valid(label):
 			continue
-		var lines := 2 if (narrow_card and label.visible) else 1
-		_limit_lines(label, lines)
-		var font := label.get_theme_font("font")
-		if font != null:
-			var line_h := font.get_height(label.get_theme_font_size("font_size"))
-			label.custom_minimum_size.y = line_h * float(lines)
+		reserve_lines(label, 2 if (narrow_card and label.visible) else 1)
 	for pin in _weapon_pins:
 		# 64 px is the project's touch floor (`AegisTokens.MIN_TOUCH_PX`); 52 was
 		# under it on every size the suite measures.
