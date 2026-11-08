@@ -48,6 +48,13 @@ const PROMOTE = {
   deck: ['albedo'],
 };
 
+// Per-slot encode caps. Polish pass 4 budget trade: the metal ORM map is
+// low-frequency roughness data (the packer's own profile treats ORM as such),
+// and at 1024 px its .ctex cost ~2 MB of the 100 MB PCK budget. The Gate E
+// bake composites need that room more, so this one map encodes at 512 px
+// while the promoted albedo/normal detail maps keep 1024 px.
+const CAP_OVERRIDES = { 'metal/orm': 512 };
+
 // Representative material name per kind (enrich_aetherfall.MAT_SURFACE), used
 // to discover each kind's current map hashes from the GLB material slots.
 const KIND_MATERIAL = {
@@ -96,15 +103,31 @@ function materialSlotUris(json) {
 }
 
 // --- 1. discover current (kind, slot) -> hash from the GLBs -----------------
+// Majority vote across every GLB that carries the representative material:
+// a shared map is referenced by many assets, while a per-asset bake composite
+// (Gate E) can shadow it if we trust the first GLB seen. The common URI wins.
 const files = walk(WORLD).sort();
-const kindSlots = {}; // kind -> { slot -> old basename }
+const votes = {}; // kind -> slot -> Map(basename -> count)
 for (const file of files) {
   const { json } = parseGlb(fs.readFileSync(file));
   const slotsOf = materialSlotUris(json);
   for (const mat of json.materials ?? []) {
     for (const [kind, name] of Object.entries(KIND_MATERIAL)) {
-      if (mat.name === name && !kindSlots[kind]) kindSlots[kind] = slotsOf(mat);
+      if (mat.name !== name) continue;
+      votes[kind] ??= { albedo: new Map(), orm: new Map(), normal: new Map() };
+      for (const [slot, uri] of Object.entries(slotsOf(mat))) {
+        if (!uri) continue;
+        const tally = votes[kind][slot];
+        tally.set(uri, (tally.get(uri) ?? 0) + 1);
+      }
     }
+  }
+}
+const kindSlots = {}; // kind -> { slot -> old basename }
+for (const [kind, slots] of Object.entries(votes)) {
+  kindSlots[kind] = {};
+  for (const [slot, tally] of Object.entries(slots)) {
+    kindSlots[kind][slot] = [...tally.entries()].sort((a, b) => b[1] - a[1])[0][0];
   }
 }
 for (const kind of Object.keys(PROMOTE)) {
@@ -138,7 +161,13 @@ for (const [kind, slots] of Object.entries(PROMOTE)) {
   for (const slot of slots) {
     const png = path.join(outDir, `aetherfall_${kind}${SLOT_FILE[slot]}`);
     const data = fs.readFileSync(png);
-    const encoded = await sharp(data)
+    const cap = CAP_OVERRIDES[`${kind}/${slot}`] ?? 1024;
+    let pipeline = sharp(data);
+    const meta = await pipeline.metadata();
+    if ((meta.width ?? 0) > cap || (meta.height ?? 0) > cap) {
+      pipeline = pipeline.resize(cap, cap, { fit: 'inside' });
+    }
+    const encoded = await pipeline
       .jpeg({ ...SLOT_ENCODE[slot], mozjpeg: true })
       .toBuffer();
     const name = `${crypto.createHash('sha256').update(encoded).digest('hex')}.jpg`;
