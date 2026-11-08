@@ -249,9 +249,8 @@ func _build_placeholder_pin(index: int) -> AegisButton:
 	)
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	# Five landscape pins leave only about 115 px for this roadmap label at
-	# 667x375. Two lines still fit the same 64 px touch target as the real pins
-	# and let "THEATRE 02 · IN DEVELOPMENT" finish its sentence.
-	_limit_lines(label, 2)
+	# 667x375. Keep its copy inside the same 64 px touch target as the real pins.
+	_limit_lines(label, 1)
 	label.set_anchors_preset(Control.PRESET_FULL_RECT)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -281,13 +280,11 @@ func _build_info() -> void:
 	_mode_line = make_label("", "label_s", AegisTokens.INFO)
 	_mode_line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_mode_line.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	# "TECH RECOVERY + WAVE DEFENSE" and "CACHES 0/4 · SCHEMATIC · STORM
-	# SURVIVAL" both earned two lines: trimmed to one they read as typos.
-	_limit_lines(_mode_line, 2)
+	_limit_lines(_mode_line, 1)
 	_reward_line = make_label("", "label_s", AegisTokens.INK_2)
 	_reward_line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_reward_line.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	_limit_lines(_reward_line, 2)
+	_limit_lines(_reward_line, 1)
 	_brief = make_label("", "body_s", AegisTokens.INK_2)
 	_brief.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_status = make_label("", "label_s", AegisTokens.OK)
@@ -314,6 +311,21 @@ func reframe() -> void:
 	physical_min_size(_map, 0.0, 0.0)
 	_map.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_info_text.add_theme_constant_override("separation", 4 if compact else 6)
+	# "TECH RECOVERY + WAVE DEFENSE" and "CACHES 0/4 · SCHEMATIC · STORM
+	# SURVIVAL" earn two lines on roomy windows; trimmed to one they read as
+	# typos. The two-line budget is stamped here per resize, because the shared
+	# font floor only reserves one line per label and a shared reserve cannot
+	# know which copy needs the second line.
+	for meta_label in [_mode_line, _reward_line]:
+		var label := meta_label as Label
+		if not is_instance_valid(label):
+			continue
+		var lines := 1 if compact else 2
+		label.max_lines_visible = lines
+		var font := label.get_theme_font("font")
+		if font != null:
+			var line_h := font.get_height(label.get_theme_font_size("font_size"))
+			label.custom_minimum_size.y = line_h * float(lines)
 	physical_min_size(_launch, 0.0, 64.0)
 	# 64 px is the touch floor (`AegisTokens.MIN_TOUCH_PX`); 56 failed it. Every
 	# child of the row, not just `_pins`: the roadmap slot was built after the

@@ -430,18 +430,19 @@ func _grow_label(label: Label, floor_size: int) -> void:
 	if label.get_theme_font_size("font_size") < wanted:
 		AegisTheme.resize_label(label, role, wanted)
 	# A wrapped Label reports the height of the *narrowest* layout it can be
-	# squeezed into, so `max_lines_visible` plus autowrap gives a container a
-	# minimum height well under the lines it draws. That is how HERO's
-	# information card ended up 50 px tall around three 20 px lines, with the
-	# first and the last drawn outside the card. A label reserves one line per
-	# visible line it may draw, measured from the font it will finally use.
+	# squeezed into, so `max_lines_visible = 1` plus autowrap gives a container a
+	# minimum height well under the line it draws. That is how HERO's information
+	# card ended up 50 px tall around three 20 px lines, with the first and the
+	# last drawn outside the card. A single-line label reserves one line, measured
+	# from the font it will finally use. Labels that intentionally draw two lines
+	# stamp their own two-line minimum at density time (see the hero and world
+	# stages): reserving every label's full line budget here doubled card heights
+	# and pushed buttons off the 390 px-tall screens.
 	if label.max_lines_visible > 0:
 		var font := label.get_theme_font("font")
 		if font != null:
 			var line := float(font.get_height(label.get_theme_font_size("font_size")))
-			label.custom_minimum_size.y = maxf(
-				label.custom_minimum_size.y, line * float(label.max_lines_visible)
-			)
+			label.custom_minimum_size.y = maxf(label.custom_minimum_size.y, line)
 
 
 func _grow_button(button: Button, floor_size: int) -> void:

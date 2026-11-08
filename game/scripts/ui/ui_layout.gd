@@ -229,14 +229,10 @@ static func landscape(hud) -> void:
 	# thumb rail was oversized on a 1280x720 mouse view. Desktop now uses
 	# 80/72 px plates: still below touch density, but wide enough for the real
 	# 16 px accessibility font and untracked ARMORY/ARSENAL captions.
-	var fire_px := (84.0 if short_view else 96.0) if hud._touch_mode else 80.0
-	var action_px := (72.0 if short_view else 80.0) if hud._touch_mode else 72.0
-	var gap_px := 6.0 if short_view else (8.0 if hud._touch_mode else 6.0)
-	# AegisAmmoChip is a PanelContainer: its minimum height follows its content
-	# (header + ammo value + magazine bar + panel margins). Requesting less than
-	# that minimum made the panel expand upward out of its slot and collide with
-	# the resource strip on short landscape. Request the real height instead.
-	var ammo_height_px := (60.0 if short_view else 64.0) if hud._touch_mode else 52.0
+	var fire_px := 96.0 if hud._touch_mode else 80.0
+	var action_px := 80.0 if hud._touch_mode else 72.0
+	var gap_px := 8.0 if hud._touch_mode else 6.0
+	var ammo_height_px := 48.0 if hud._touch_mode else 42.0
 	var fire_right := 16.0
 	var fire_bottom := 16.0
 	var aim_bottom := fire_bottom + fire_px + gap_px
@@ -247,14 +243,31 @@ static func landscape(hud) -> void:
 	_place_button(hud, hud._skill_button, skill_right, fire_bottom, action_px, action_px)
 	_place_button(hud, hud._weapon_button, weapon_right, aim_bottom, action_px, action_px)
 	var ammo_bottom := aim_bottom + action_px + gap_px
-	_place_button(
-		hud,
-		hud._touch_ammo_chip,
-		fire_right,
-		ammo_bottom,
-		fire_px + action_px + gap_px,
-		ammo_height_px
-	)
+	if short_view:
+		# AegisAmmoChip is a PanelContainer: its minimum height follows its
+		# content (header + ammo value + magazine bar + margins ~66 px), taller
+		# than the 48 px slot above the action cluster. On short landscape the
+		# slot does not exist -- the expanded chip collided with the resource
+		# strip chips -- so the chip joins the trailing status column under the
+		# resource strip, where the desktop layout already stacks readouts.
+		var chip_w: float = hud._to_layout(196.0)
+		_place_in_top_bar(
+			hud._touch_ammo_chip,
+			1,
+			0,
+			1,
+			0,
+			Rect2(-chip_w, bar_height + hud._to_layout(38.0), chip_w, hud._to_layout(48.0))
+		)
+	else:
+		_place_button(
+			hud,
+			hud._touch_ammo_chip,
+			fire_right,
+			ammo_bottom,
+			fire_px + action_px + gap_px,
+			ammo_height_px
+		)
 	_place_button(
 		hud, hud._skill_ring, skill_right - 4.0, fire_bottom - 4.0, action_px + 8.0, action_px + 8.0
 	)

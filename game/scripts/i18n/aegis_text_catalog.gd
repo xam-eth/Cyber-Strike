@@ -107,6 +107,7 @@ const STRINGS := {
 		"dash.arsenal_summary": "T%d EQUIPPED · %d/%d OWNED",
 		# --- operative -------------------------------------------------------
 		"hero.title": "SELECT OPERATIVE",
+		"hero.title_short": "SELECT",
 		"hero.slot": "SLOT %02d",
 		"hero.locked_tip": "No rig and no definition in this build",
 		"hero.select": "SELECT",
@@ -489,6 +490,7 @@ const STRINGS := {
 		"dash.arsenal_summary": "T%d TERPASANG · %d/%d MILIK",
 		# --- operative -------------------------------------------------------
 		"hero.title": "PILIH OPERATIF",
+		"hero.title_short": "PILIH",
 		"hero.slot": "SLOT %02d",
 		"hero.locked_tip": "Belum ada rig dan data di versi ini",
 		"hero.select": "PILIH",

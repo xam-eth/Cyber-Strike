@@ -679,9 +679,9 @@ func _apply_density() -> void:
 	for item in _loadout_items:
 		item.visible = not compact
 		_limit_lines(item, 1)
-	_limit_lines(_hero_status, 2 if portrait_stack else 1)
-	_limit_lines(_mission_brief, 2 if portrait_stack else 1)
-	_limit_lines(_arsenal_state, 2 if portrait_stack else 1)
+	_limit_lines(_hero_status, 1)
+	_limit_lines(_mission_brief, 1)
+	_limit_lines(_arsenal_state, 1)
 	_limit_lines(_loadout, 2)
 	_limit_lines(_deploy_caption, 1)
 
