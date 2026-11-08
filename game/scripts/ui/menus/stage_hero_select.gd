@@ -811,12 +811,12 @@ func _apply_density() -> void:
 		dbg_lines = want
 		reserve_lines(label, want)
 	_heading.text = (
-		"N%s L%s Y%s M%s"
+		"N%s L%s C%s S%s"
 		% [
 			str(narrow_card),
 			str(dbg_lines),
-			str(physical_size().y),
-			str(_development_label.max_lines_visible)
+			str(_development_label.custom_minimum_size.y),
+			str(_development_label.size.y)
 		]
 	)
 	for pin in _weapon_pins:
@@ -877,12 +877,12 @@ func _apply_density() -> void:
 	physical_min_size(_continue, 0.0, AegisTokens.MIN_TOUCH_PX)
 	physical_min_size(_select_button, 0.0, AegisTokens.MIN_TOUCH_PX)
 	_heading.text = (
-		"N%s L%s Y%s M%s"
+		"N%s L%s C%s S%s"
 		% [
 			str(narrow_card),
 			str(dbg_lines),
-			str(physical_size().y),
-			str(_development_label.max_lines_visible)
+			str(_development_label.custom_minimum_size.y),
+			str(_development_label.size.y)
 		]
 	)
 	# BACK + heading + status have to share the header. "OPERATIVE" set in
