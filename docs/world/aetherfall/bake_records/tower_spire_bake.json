@@ -1,0 +1,35 @@
+{
+ "asset": "tower_spire",
+ "gate": {
+  "high_poly": "authored_pending_human_review",
+  "uv_bake": "baked_cage_recorded_pending_human_review",
+  "pbr": "baked_normal_composited_pending_human_review"
+ },
+ "resolution": 512,
+ "cage_extrusion_m": 0.005,
+ "normal_space": "tangent",
+ "selected_to_active": true,
+ "hp_objects": [
+  "HP_ArchiveSpireShell",
+  "HP_SensorVane0",
+  "HP_SensorVane1",
+  "HP_SensorVane2",
+  "HP_SpireEnergyCollar"
+ ],
+ "lp_objects": [
+  "ArchiveSpireShell",
+  "SensorVane0",
+  "SensorVane1",
+  "SensorVane2",
+  "SpireEnergyCollar"
+ ],
+ "baked_normal": "docs/world/aetherfall/bake_inspection/tower_spire_baked_normal_composite.png",
+ "approved_by": null,
+ "export_verify": {
+  "nodes_match": true,
+  "materials_match": true,
+  "positions_match": true,
+  "uv_count_match": true
+ },
+ "shipped_normal_map": "game/assets/world/aetherfall/textures/dedfb031926e8f6074d40ca08bdf347f70b48f03708690d0a5e2273ec3033d36.jpg"
+}

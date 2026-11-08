@@ -950,7 +950,7 @@
       "batch_intent": "Function-first gates, machinery, cover and interaction assets.",
       "legacy_revision_sha256": "87a7d9a26c6debd3a4009079a585c1b6e9ddaf13c150de14dfbd97b85fafe053",
       "technical_baseline": {
-        "validator_status": "format_valid_with_warnings",
+        "validator_status": "format_valid_no_warnings",
         "validator_issue_counts": {
           "errors": 0,
           "warnings": 12,
@@ -976,11 +976,11 @@
         "brief": "not_started",
         "reference": "not_started",
         "base_mesh": "not_started",
-        "high_poly": "not_started",
-        "retopology": "not_started",
-        "uv_unwrap": "not_started",
-        "bake": "not_started",
-        "pbr_texturing": "not_started",
+        "high_poly": "pending_human_review",
+        "retopology": "pending_human_review",
+        "uv_unwrap": "pending_human_review",
+        "bake": "pending_human_review",
+        "pbr_texturing": "pending_human_review",
         "godot_visual": "not_started",
         "target_device_profile": "not_started",
         "export_release": "not_started"
@@ -992,12 +992,16 @@
         "clay_review_images": [],
         "wireframe_review_images": [],
         "uv_checker_review_images": [],
-        "bake_inspection_images": [],
+        "bake_inspection_images": [
+          "docs/world/aetherfall/bake_inspection/access_gate_baked_normal.jpg",
+          "docs/world/aetherfall/bake_inspection/access_gate_baked_normal_composite.jpg"
+        ],
         "godot_review_images": [],
         "target_device_profile": "docs/world/aetherfall/ANDROID_TARGET_PROFILE.md",
         "validator_exception": null,
         "approved_by": null,
-        "revision": null
+        "revision": null,
+        "bake_record": "docs/world/aetherfall/bake_records/access_gate_bake.json"
       }
     },
     {
@@ -2430,7 +2434,7 @@
       "batch_intent": "Destination hierarchy and objective/interior read.",
       "legacy_revision_sha256": "bc25480a5a8ccaab22e33edb2ea89d1df8aaea285f0cbf3918a8b976279ab9e0",
       "technical_baseline": {
-        "validator_status": "format_valid_with_warnings",
+        "validator_status": "format_valid_no_warnings",
         "validator_issue_counts": {
           "errors": 0,
           "warnings": 9,
@@ -2456,11 +2460,11 @@
         "brief": "draft",
         "reference": "draft",
         "base_mesh": "not_started",
-        "high_poly": "not_started",
-        "retopology": "not_started",
-        "uv_unwrap": "not_started",
-        "bake": "not_started",
-        "pbr_texturing": "not_started",
+        "high_poly": "pending_human_review",
+        "retopology": "pending_human_review",
+        "uv_unwrap": "pending_human_review",
+        "bake": "pending_human_review",
+        "pbr_texturing": "pending_human_review",
         "godot_visual": "not_started",
         "target_device_profile": "not_started",
         "export_release": "not_started"
@@ -2474,12 +2478,16 @@
         "clay_review_images": [],
         "wireframe_review_images": [],
         "uv_checker_review_images": [],
-        "bake_inspection_images": [],
+        "bake_inspection_images": [
+          "docs/world/aetherfall/bake_inspection/tower_spire_baked_normal.jpg",
+          "docs/world/aetherfall/bake_inspection/tower_spire_baked_normal_composite.jpg"
+        ],
         "godot_review_images": [],
         "target_device_profile": "docs/world/aetherfall/ANDROID_TARGET_PROFILE.md",
         "validator_exception": null,
         "approved_by": null,
-        "revision": null
+        "revision": null,
+        "bake_record": "docs/world/aetherfall/bake_records/tower_spire_bake.json"
       }
     },
     {

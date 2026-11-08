@@ -1,0 +1,41 @@
+{
+ "asset": "access_gate",
+ "gate": {
+  "high_poly": "authored_pending_human_review",
+  "uv_bake": "baked_cage_recorded_pending_human_review",
+  "pbr": "baked_normal_composited_pending_human_review"
+ },
+ "resolution": 512,
+ "cage_extrusion_m": 0.005,
+ "normal_space": "tangent",
+ "selected_to_active": true,
+ "hp_objects": [
+  "HP_GateLintel",
+  "HP_GatePylon-10",
+  "HP_GatePylon10",
+  "HP_GateSeal0",
+  "HP_GateSeal1",
+  "HP_GateSeal2",
+  "HP_GateSeal3",
+  "HP_GateThreshold"
+ ],
+ "lp_objects": [
+  "GateLintel",
+  "GatePylon-10",
+  "GatePylon10",
+  "GateSeal0",
+  "GateSeal1",
+  "GateSeal2",
+  "GateSeal3",
+  "GateThreshold"
+ ],
+ "baked_normal": "docs/world/aetherfall/bake_inspection/access_gate_baked_normal_composite.png",
+ "approved_by": null,
+ "export_verify": {
+  "nodes_match": true,
+  "materials_match": true,
+  "positions_match": true,
+  "uv_count_match": true
+ },
+ "shipped_normal_map": "game/assets/world/aetherfall/textures/08914e29172f48817f8cf1db2db65779713c9617d93cfcb60415147d5c677e2e.jpg"
+}

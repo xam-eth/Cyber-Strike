@@ -8,11 +8,12 @@ For intended behavior, read [`GAMEPLAY_DESIGN.md`](GAMEPLAY_DESIGN.md). For requ
 
 | Item | Current checkpoint |
 |---|---|
-| Source | `P4-pilot` (bake pipeline + tech_cache re-UV/bake/composite + X11 stub tooling) |
-| Godot/Web CI | pending this change — recorded in the follow-up payload checkpoint |
+| Source | `226b9c5` (bake pipeline + tech_cache re-UV/bake/composite + X11 stub tooling) |
+| Godot/Web CI | [42425449227](https://github.com/xam-eth/Cyber-Strike/actions/runs/42425449227) — **SUCCESS** (45/45 smokes + all browser contracts) |
+| Committed Web payload | `096ef21` — `web/index.pck` **97,785,528 bytes** (+795,688 B for the composite map; **2,214,472 bytes of headroom** left under the 100 MB budget) |
 | Local static | `dev_check.sh` **0 failed / 2 skipped** (kit measurements 51/51 unchanged, collision 9/9) |
 | Khronos ledger | **0 errors / 0 warnings / 604 infos** on 51 GLBs (tech_cache: URI_GLB 16, UNUSED_MESH_TANGENT 5 — informational) |
-| Runtime QA | pending the CI web payload for this source |
+| Runtime QA | `exports/qa-p4`/`exports/tmp/p4retry2` — recovery battery **1/1, all checks ok** (first attempt was a boot-timing flake, retry passed every recovery/interaction contract) |
 
 - **IMPLEMENTED (Gate C, technical):** `tools/blender/bake_flagship_detail.py` authors `HP_` high-poly objects from the low-poly parts with structured hard-surface detail only — bevel hierarchy (two angle-limited passes), panel recesses on the largest faces, hex fasteners at recess corners, vent slats — deterministic per part name. No noise/scatter/displacement is used. Artistic approval remains with the human gate (`approved_by: null`).
 - **IMPLEMENTED (Gate D, technical):** per-part box-projection re-UV into a unique non-overlapping atlas (global area-proportional shelf packing, uniform scale, no aspect stretch), then a Cycles tangent-space NORMAL bake selected-to-active with cage extrusion **0.005 m** recorded in `docs/world/aetherfall/bake_records/tech_cache_bake.json`. The shipped GLB keeps node names, material names, transforms and unique positions byte-verified (`positions_match: True`); vertex splits (29,915 → 30,289) only reflect the new UV seams. `measurements.json` is unchanged.

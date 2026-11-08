@@ -13,12 +13,12 @@
   ],
   "totals": {
     "glb_assets": 51,
-    "bytes": 13768160,
+    "bytes": 13779820,
     "errors": 0,
     "warnings": 0,
     "infos": 604,
     "draw_calls": 1127,
-    "vertices": 252232,
+    "vertices": 252480,
     "triangles": 131368
   },
   "assets": [
@@ -480,8 +480,8 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/access_gate.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "17e11c30aba1a7db2e902934aed7268bd8b13a9a6317689d93ea2ce4253d9f2e",
-      "bytes": 42520,
+      "sha256": "0c73ea4eda6a8be942275c674f7373986e81d81fd99a4ee145f5b8b1780d5b48",
+      "bytes": 43488,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
@@ -498,7 +498,7 @@
         "materials": 5,
         "textures": true,
         "draw_calls": 16,
-        "vertices": 440,
+        "vertices": 465,
         "triangles": 436,
         "max_uv_sets": 1,
         "max_attributes": 4,
@@ -1216,8 +1216,8 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/tower_spire.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "179a807566fbd5f48e17b76b262f59f9200ed617099242bef2842f55ba7afa57",
-      "bytes": 59636,
+      "sha256": "c6fe4cb8070480e1dd5f9f4714ea212f3ddd55f4d1f398ced5f33c541b98be87",
+      "bytes": 70328,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
@@ -1234,7 +1234,7 @@
         "materials": 4,
         "textures": true,
         "draw_calls": 10,
-        "vertices": 836,
+        "vertices": 1059,
         "triangles": 1066,
         "max_uv_sets": 1,
         "max_attributes": 4,
