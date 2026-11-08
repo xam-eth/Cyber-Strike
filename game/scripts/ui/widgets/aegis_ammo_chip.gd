@@ -12,6 +12,8 @@ var _overcharge_seconds: float = 0.0
 var _remaining: int = 24
 var _capacity: int = 24
 var _reloading: bool = false
+var _tier: int = 1
+var _compact_row: bool = false
 
 
 func _ready() -> void:
@@ -90,20 +92,44 @@ func set_weapon(short_name: String) -> void:
 
 
 func set_tier(tier: int) -> void:
-	if is_instance_valid(tier_label):
-		var safe_t := clampi(tier, 1, WeaponTier.tier_count())
-		tier_label.text = "⚡T%d" % safe_t if _overcharge_seconds > 0.0 else "T%d" % safe_t
+	_tier = clampi(tier, 1, WeaponTier.tier_count())
+	_refresh_tier_text()
+
+
+## One-line mode for screens too short for the full readout: the tier badge
+## carries the ammo count too and the value/bar rows step aside. The chip is a
+## PanelContainer, so hiding rows is what actually shrinks its minimum height.
+func set_compact_row(enabled: bool) -> void:
+	_compact_row = enabled
+	if is_instance_valid(value_label):
+		value_label.visible = not enabled
+	if is_instance_valid(mag_bar):
+		mag_bar.visible = not enabled
+	_refresh_tier_text()
+	queue_redraw()
+
+
+func _refresh_tier_text() -> void:
+	if not is_instance_valid(tier_label):
+		return
+	var badge := ("⚡T%d" if _overcharge_seconds > 0.0 else "T%d") % _tier
+	if _compact_row:
+		var count_text: String = (
+			AegisText.t("hud.reloading") if _reloading else "%d/%d" % [_remaining, _capacity]
+		)
+		tier_label.text = "%s · %s" % [badge, count_text]
+	else:
+		tier_label.text = badge
 
 
 func set_overcharge(seconds: float) -> void:
 	_overcharge_seconds = maxf(seconds, 0.0)
 	if is_instance_valid(tier_label):
-		var cur_txt := tier_label.text.replace("⚡", "")
-		tier_label.text = ("⚡" + cur_txt) if _overcharge_seconds > 0.0 else cur_txt
 		tier_label.add_theme_color_override(
 			"font_color",
 			Color(0.76, 0.48, 1.0) if _overcharge_seconds > 0.0 else AegisTokens.ACCENT
 		)
+	_refresh_tier_text()
 	_refresh_bar_style()
 
 
@@ -117,6 +143,7 @@ func set_ammo(remaining: int, capacity: int, reloading: bool) -> void:
 		AegisText.apply(value_label, "hud.reloading")
 	else:
 		value_label.text = "%d/%d" % [remaining, capacity]
+	_refresh_tier_text()
 	_refresh_bar_style()
 
 

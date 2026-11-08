@@ -243,23 +243,19 @@ static func landscape(hud) -> void:
 	_place_button(hud, hud._skill_button, skill_right, fire_bottom, action_px, action_px)
 	_place_button(hud, hud._weapon_button, weapon_right, aim_bottom, action_px, action_px)
 	var ammo_bottom := aim_bottom + action_px + gap_px
+	# AegisAmmoChip is a PanelContainer: its minimum height follows its content
+	# (header + ammo value + magazine bar + margins ~66 px), taller than the
+	# 48 px slot above the action cluster, and the expanded panel collided with
+	# the resource strip on short landscape. The chip keeps the SWAP column
+	# (the dock and the layout smoke both pin that pairing) and compacts to a
+	# single tier-and-ammo row whose real minimum fits the 34 px short slot.
 	if short_view:
-		# AegisAmmoChip is a PanelContainer: its minimum height follows its
-		# content (header + ammo value + magazine bar + margins ~66 px), taller
-		# than the 48 px slot above the action cluster. On short landscape the
-		# slot does not exist -- the expanded chip collided with the resource
-		# strip chips -- so the chip joins the trailing status column under the
-		# resource strip, where the desktop layout already stacks readouts.
-		var chip_w: float = hud._to_layout(196.0)
-		_place_in_top_bar(
-			hud._touch_ammo_chip,
-			1,
-			0,
-			1,
-			0,
-			Rect2(-chip_w, bar_height + hud._to_layout(38.0), chip_w, hud._to_layout(48.0))
+		hud._touch_ammo_chip.set_compact_row(true)
+		_place_button(
+			hud, hud._touch_ammo_chip, fire_right, ammo_bottom, fire_px + action_px + gap_px, 34.0
 		)
 	else:
+		hud._touch_ammo_chip.set_compact_row(false)
 		_place_button(
 			hud,
 			hud._touch_ammo_chip,
