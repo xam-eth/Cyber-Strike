@@ -561,7 +561,7 @@
         "uv_unwrap": "pending_human_review",
         "bake": "pending_human_review",
         "pbr_texturing": "pending_human_review",
-        "godot_visual": "not_started",
+        "godot_visual": "pending_human_review",
         "target_device_profile": "not_started",
         "export_release": "not_started"
       },
@@ -682,7 +682,7 @@
         "uv_unwrap": "pending_human_review",
         "bake": "pending_human_review",
         "pbr_texturing": "pending_human_review",
-        "godot_visual": "not_started",
+        "godot_visual": "pending_human_review",
         "target_device_profile": "not_started",
         "export_release": "not_started"
       },
@@ -981,7 +981,7 @@
         "uv_unwrap": "pending_human_review",
         "bake": "pending_human_review",
         "pbr_texturing": "pending_human_review",
-        "godot_visual": "not_started",
+        "godot_visual": "pending_human_review",
         "target_device_profile": "not_started",
         "export_release": "not_started"
       },
@@ -2465,7 +2465,7 @@
         "uv_unwrap": "pending_human_review",
         "bake": "pending_human_review",
         "pbr_texturing": "pending_human_review",
-        "godot_visual": "not_started",
+        "godot_visual": "pending_human_review",
         "target_device_profile": "not_started",
         "export_release": "not_started"
       },
@@ -3063,7 +3063,7 @@
         "uv_unwrap": "pending_human_review",
         "bake": "pending_human_review",
         "pbr_texturing": "pending_human_review",
-        "godot_visual": "not_started",
+        "godot_visual": "pending_human_review",
         "target_device_profile": "not_started",
         "export_release": "not_started"
       },

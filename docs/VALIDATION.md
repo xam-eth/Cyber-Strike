@@ -23,6 +23,20 @@ For intended behavior, read [`GAMEPLAY_DESIGN.md`](GAMEPLAY_DESIGN.md). For requ
 - **BUDGET NOTE:** the composite map costs ~395 KB source JPEG (projected ~0.5 MB in the PCK — the CI payload audit gives the exact figure). Budgeted siblings: access_gate + tower_spire at 512 px next, then refinery_stack / sentinel_archive only if headroom allows.
 - **UNVERIFIED:** human review of HP/detail authorship and bake quality (gates C–E human halves), runtime look of the re-UV'd tech_cache in-engine (CI frames pending), and the remaining four flagship bakes.
 
+## Polish pass 4 — Gate E high-poly bakes, all five flagship assets — 2026-11-08
+
+| Item | Current checkpoint |
+|---|---|
+| Source | `226b9c5` (pilot: tech_cache + bake pipeline) → `2fd32b5` (batch 2: access_gate + tower_spire) → `072cc66` (batch 3: refinery_stack + sentinel_archive + budget trade) → `72f8f16` (payload rebuild on pruned tree) |
+| Godot/Web CI | [42425449227](https://github.com/xam-eth/Cyber-Strike/actions/runs/42425449227) (pilot) **SUCCESS**, [42428998729](https://github.com/xam-eth/Cyber-Strike/actions/runs/42428998729) (batch 2) **SUCCESS**, [42434138515](https://github.com/xam-eth/Cyber-Strike/actions/runs/42434138515) (batch 3) **SUCCESS** — 45/45 smokes + all browser contracts. (Run 42433853322 failed its payload audit on a stale un-referenced texture file — the gate worked; rebuilt clean.) |
+| Committed Web payload | `418b7d2` — `web/index.pck` **98,521,616 bytes** (**1,478,384 bytes of headroom** under the 100 MB budget) |
+| Local runtime QA | `exports/qa-polish4/` — **4/4 page/viewport combinations, 86 ok / 0 fail** |
+
+- **Gate E status (technical halves complete, human halves pending):** all five flagship assets now carry a high-poly-authoring → re-UV atlas → Cycles normal bake → whiteout-composite pipeline (`tools/blender/bake_flagship_detail.py`): **tech_cache** (`a2802b2f….jpg`, 1024 px, 5 normal slots), **access_gate** (`08914e29….jpg`, 4 slots), **tower_spire** (`dedfb031….jpg`), **refinery_stack** (`642851bf….jpg`, 4 slots), **sentinel_archive** (`e3525748….jpg`, 5 slots). Every bake records its cage extrusion (0.005 m) and geometry-identity verification (nodes/materials/positions/UVs unchanged) in `docs/world/aetherfall/bake_records/`; inspection images in `docs/world/aetherfall/bake_inspection/`. Ledger human gates for the five: `pending_human_review` (`approved_by: null`), `godot_visual: pending_human_review` (runtime look now seen in real recovery frames).
+- **BUDGET TRADE:** the metal ORM map was demoted 1024 → 512 px (`upgrade_closeup_textures.mjs` `CAP_OVERRIDES`; low-frequency roughness data) to fund the two batch-3 composites; net PCK effect of batch 3 ≈ +334 KB for two 1024 px bake composites.
+- **FIXED (tooling footgun):** the upgrade tool's representative-material discovery could latch onto a per-asset bake composite in place of the shared map (it clobbered access_gate's 4 composite refs; restored from `1c17c1b` + GLB repaired). Discovery now majority-votes across all GLBs carrying the representative material. Khronos ledger after repair: **0 errors / 0 warnings**; kit 51/51; collision 9/9; `dev_check` 0 failed.
+- **UNVERIFIED:** human review of HP/detail authorship and bake quality (the art halves of gates C–E), Android device profile, SFX variety pass.
+
 ## Polish pass 3 — selective 1024px close-up maps — 2026-11-07
 
 | Item | Current checkpoint |
