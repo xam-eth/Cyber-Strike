@@ -156,6 +156,11 @@ static func landscape(hud) -> void:
 		0,
 		Rect2(0, objective_top, hud._to_layout(294.0), hud._to_layout(60.0))
 	)
+	# The wrapped mission detail reserves its two lines here, not at build time
+	# where the stretch factor is still stale: a near-zero reserve makes the
+	# engine's visible-line counter admit nothing and the line draws blank.
+	if is_instance_valid(hud._wave_enemy_label):
+		hud._wave_enemy_label.custom_minimum_size.y = hud._to_layout(30.0)
 	_place(
 		hud._defense_button,
 		0,

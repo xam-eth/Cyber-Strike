@@ -470,9 +470,9 @@ static func build_objective(hud) -> void:
 	hud._wave_enemy_label.clip_text = true
 	hud._wave_enemy_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	hud._wave_enemy_label.max_lines_visible = 2
-	# Physical design pixels like the rest of this card: 30 logical units at
-	# HUD stretch is barely one line and clipped the wrapped detail to slivers.
-	hud._wave_enemy_label.custom_minimum_size.y = hud._to_layout(30.0)
+	# The two-line reserve is stamped in UiLayout.landscape(): measuring it at
+	# build time reads a stale stretch and the engine draws zero lines into a
+	# zero-height rect.
 	hud._wave_enemy_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	text_col.add_child(hud._wave_enemy_label)
 	hud._wave_chip_label = hud._label_key("hud.chip_explore", "label_s", AegisTokens.INK_2)
