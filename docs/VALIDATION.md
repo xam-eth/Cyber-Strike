@@ -23,6 +23,19 @@ For intended behavior, read [`GAMEPLAY_DESIGN.md`](GAMEPLAY_DESIGN.md). For requ
 - **BUDGET NOTE:** the composite map costs ~395 KB source JPEG (projected ~0.5 MB in the PCK — the CI payload audit gives the exact figure). Budgeted siblings: access_gate + tower_spire at 512 px next, then refinery_stack / sentinel_archive only if headroom allows.
 - **UNVERIFIED:** human review of HP/detail authorship and bake quality (gates C–E human halves), runtime look of the re-UV'd tech_cache in-engine (CI frames pending), and the remaining four flagship bakes.
 
+## Game flow + world direction pass — 2026-11-09
+
+| Item | Current checkpoint |
+| --- | --- |
+| Complaint | "alur game dan world berantakan, tidak jelas mau jalan kemana, apa tujuannya" — three concrete causes found and fixed. |
+| HUD mission card | The card's unbounded detail line stretched the PanelContainer into the compass strip; every label is content-bounded now and the compass holds clear of the card's right edge. Two engine quirks surfaced on the way (all from `scene/gui/label.cpp` 4.7.2): an autowrap+clip label reports `minimum height = 1`, the visible-line counter charges each shaped line's em box (~20 physical px at HUD scale, not the 16 px cap height), and a reserve measured at build time reads a stale stretch. Final budget: 70 px card, 46 px two-line detail reserve stamped in `UiLayout.landscape()`. |
+| Direction beacons | Every UNSECURED cache keeps a dim beacon + ground ring (was: focused target only), the active target burns brighter (0.32 alpha) and stuck boosts 0.42, secured goes dark; shaft 9 m tall. Ground chevrons 2.0 m gap, cap 12 per leg. |
+| Arrival sign | The 64 px billboard slab shrank onto its pillar (40 px, arrow + goal) while keeping the "ARRIVAL OUTPOST" contract the world_guidance smoke holds. |
+| Lane tidy | `landing_ridge_berm` (-26,13)→(-29.5,15.5), `west_basin_ice_terrace` (-27,-1)→(-33,-4): off the spawn-to-outpost walking line, still flank cover. The pale blue basin/glacier mass at the west frame edge is authored perimeter dressing (ice_planet glacier walls), not a stray object. |
+| VERIFIED (CI) | Run `43070650799` SUCCESS (Godot 4.7.2): 45/45 headless smokes incl. world_guidance_smoke + playability_hud_smoke, web build + payload, browser smoke. |
+| VERIFIED (frames) | `exports/world-done/` recovery route 4/4 (844x390 + 667x375, root + /web/index.html): mission card reads "RECOVER · HORIZON RELAY / BREACH CAPACITOR MODULE · / APPROACH · RIGHT 14M" with the compass strip fully clear; Outpost beacon visible from distance on the guarded approach; denser ground chevrons on the deck. One transient web_qa throttle flake re-ran green. |
+| UNVERIFIED | Human playtest of the flow clarity (gated); Android device profile (gated). |
+
 ## P6 follow-up — the truncation root causes, for real — 2026-11-08
 
 | Item | Current checkpoint |
