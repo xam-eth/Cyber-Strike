@@ -19,7 +19,7 @@ extends RefCounted
 
 const DECK_Y := 0.26
 const PAD_RADIUS := 1.7
-const CHEVRON_GAP := 2.4
+const CHEVRON_GAP := 2.0
 const COLOR_ACTIVE := Color(1.0, 0.82, 0.2, 1.0)
 const COLOR_ROUTE := Color(0.3, 0.85, 1.0, 1.0)
 const COLOR_PANEL := Color(0.06, 0.2, 0.26, 1.0)
@@ -121,14 +121,17 @@ static func _build_arrival_pad(
 
 	var label := Label3D.new()
 	label.name = "BriefingLabel"
-	label.text = "ARRIVAL OUTPOST\nSECURE %s" % primary_name
-	label.font_size = 64
-	label.pixel_size = 0.006
+	# A tight sign mounted ON the pillar, not a billboard sprawling over the
+	# walk lane: the old 64px slab floated at eye level across the path and
+	# read as clutter. The arrow states the way; the mission panel owns detail.
+	label.text = "▶  SECURE\n%s" % primary_name
+	label.font_size = 40
+	label.pixel_size = 0.005
 	label.modulate = Color(0.92, 0.98, 1.0, 1.0)
 	label.outline_modulate = Color(0.02, 0.08, 0.12, 1.0)
 	label.outline_size = 8
 	label.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
-	label.position = Vector3(post_x, DECK_Y + 1.72, post_z)
+	label.position = Vector3(post_x, DECK_Y + 2.42, post_z)
 	root.add_child(label)
 	stats["signs"] = int(stats["signs"]) + 1
 
@@ -142,7 +145,7 @@ static func _build_chevron_leg(
 		return
 	var heading := flat.normalized()
 	var yaw := atan2(-heading.x, -heading.z)
-	var count := clampi(int(distance / CHEVRON_GAP), 1, 8)
+	var count := clampi(int(distance / CHEVRON_GAP), 1, 12)
 	for step in range(1, count + 1):
 		var t := float(step) / float(count + 1)
 		var at := from.lerp(to, t)

@@ -454,10 +454,24 @@ static func build_objective(hud) -> void:
 	text_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(text_col)
 	hud._wave_title_label = hud._label_key("hud.zone_title_fallback", "heading_s", AegisTokens.INK)
+	# Every label in this card is content-bounded: an AegisPanel sizes from its
+	# content's minimum, and one unbounded line ("BREACH CAPACITOR MODULE ·
+	# APPROACH · RIGHT 14M") stretched the card past its authored rect straight
+	# into the compass strip. clip_text takes the text out of the minimum-width
+	# calculation; the card's placed width then governs.
+	hud._wave_title_label.clip_text = true
+	hud._wave_title_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	hud._wave_title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	text_col.add_child(hud._wave_title_label)
 	hud._wave_enemy_label = hud._label_key(
 		"hud.zone_subtitle_fallback", "label_s", AegisTokens.INK_2
 	)
+	hud._wave_enemy_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hud._wave_enemy_label.clip_text = true
+	hud._wave_enemy_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	hud._wave_enemy_label.max_lines_visible = 2
+	hud._wave_enemy_label.custom_minimum_size.y = 30.0
+	hud._wave_enemy_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	text_col.add_child(hud._wave_enemy_label)
 	hud._wave_chip_label = hud._label_key("hud.chip_explore", "label_s", AegisTokens.INK_2)
 	hud._wave_chip_label.visible = false
@@ -466,6 +480,8 @@ static func build_objective(hud) -> void:
 	hud._wave_state_label = hud._label_key("hud.no_hostiles", "label_s", AegisTokens.ACCENT)
 	hud._wave_state_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	hud._wave_state_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	hud._wave_state_label.clip_text = true
+	hud._wave_state_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	row.add_child(hud._wave_state_label)
 
 

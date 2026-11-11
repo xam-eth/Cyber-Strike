@@ -230,6 +230,12 @@ static func draw_tactical_compass(hud: Control, layer: Control = null) -> void:
 		var target_w := minf(272.0 * scale, hud.size.x * 0.30)
 		var cx := hud.size.x * 0.5
 		var top_y := sys_row.position.y + sys_row.size.y + 10.0 * scale
+		# The mission card owns the top-left band and, with long objective
+		# copy, used to stretch into the compass slot. Hold the strip clear
+		# of its right edge even when the card misbehaves.
+		if is_instance_valid(wave_c) and wave_c.visible:
+			var wave_right := wave_c.position.x + wave_c.size.x + 12.0 * scale
+			cx = maxf(cx, wave_right + target_w * 0.5)
 		rect = Rect2(cx - target_w * 0.5, top_y, target_w, h)
 	else:
 		var left_bound := safe_l

@@ -9,6 +9,7 @@ var cache_title: String = "RECOVERY CACHE"
 var _label: Label3D
 var _light: OmniLight3D
 var _beacon: MeshInstance3D
+var _beacon_ring: MeshInstance3D
 var _beacon_material: StandardMaterial3D
 var _state_color: Color = AegisTokens.ACCENT
 
@@ -26,12 +27,12 @@ func _ready() -> void:
 	_beacon = MeshInstance3D.new()
 	_beacon.name = "GuidanceBeacon"
 	var shaft := CylinderMesh.new()
-	shaft.top_radius = 0.025
-	shaft.bottom_radius = 0.14
-	shaft.height = 6.5
+	shaft.top_radius = 0.03
+	shaft.bottom_radius = 0.22
+	shaft.height = 9.0
 	shaft.radial_segments = 12
 	_beacon.mesh = shaft
-	_beacon.position = Vector3(0.0, 3.6, 0.0)
+	_beacon.position = Vector3(0.0, 4.8, 0.0)
 	_beacon.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_beacon_material = StandardMaterial3D.new()
 	_beacon_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -40,6 +41,17 @@ func _ready() -> void:
 	_beacon_material.albedo_color = Color(AegisTokens.ACCENT, 0.22)
 	_beacon.material_override = _beacon_material
 	add_child(_beacon)
+
+	_beacon_ring = MeshInstance3D.new()
+	_beacon_ring.name = "GuidanceRing"
+	var ring_mesh := TorusMesh.new()
+	ring_mesh.inner_radius = 1.05
+	ring_mesh.outer_radius = 1.3
+	_beacon_ring.mesh = ring_mesh
+	_beacon_ring.position = Vector3(0.0, 0.06, 0.0)
+	_beacon_ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_beacon_ring.material_override = _beacon_material
+	add_child(_beacon_ring)
 
 	_label = Label3D.new()
 	_label.name = "RecoveryLabel"
@@ -67,12 +79,17 @@ func set_visual_state(state_text: String, color: Color) -> void:
 		_beacon_material.albedo_color = Color(color, alpha)
 
 
-func set_guidance_focus(is_target: bool, stuck_boost: bool) -> void:
+func set_guidance_focus(is_target: bool, stuck_boost: bool, secured: bool = false) -> void:
+	# Every UNSECURED cache keeps a dim beacon: a player who cannot see the
+	# active target must still see where the remaining objectives live. The
+	# focused target burns brighter; a secured cache goes dark.
 	if is_instance_valid(_beacon):
-		_beacon.visible = is_target
-		_beacon.scale = Vector3(1.2, 1.35, 1.2) if stuck_boost else Vector3.ONE
+		_beacon.visible = not secured
+		_beacon.scale = Vector3(1.2, 1.35, 1.2) if (is_target or stuck_boost) else Vector3.ONE
+	if is_instance_valid(_beacon_ring):
+		_beacon_ring.visible = not secured
 	if is_instance_valid(_beacon_material):
-		var alpha := 0.42 if stuck_boost else 0.20
+		var alpha := 0.42 if stuck_boost else (0.32 if is_target else 0.12)
 		_beacon_material.albedo_color = Color(_state_color, alpha)
 	if is_instance_valid(_label):
 		# Only lift depth occlusion when a player is genuinely disoriented so

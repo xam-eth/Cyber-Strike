@@ -992,12 +992,11 @@ func _update_recovery_hud(
 	for cache in _recovery_caches:
 		var visual := _recovery_visuals.get(cache.cache_id) as Node3D
 		if visual != null:
+			var secured := _cache_state(cache.cache_id) == RecoveryState.SECURED
 			var is_target := (
-				focus_cache != null
-				and cache.cache_id == focus_cache.cache_id
-				and _cache_state(cache.cache_id) != RecoveryState.SECURED
+				focus_cache != null and cache.cache_id == focus_cache.cache_id and not secured
 			)
-			visual.call("set_guidance_focus", is_target, is_target and is_stuck)
+			visual.call("set_guidance_focus", is_target, is_target and is_stuck, secured)
 	var compass_cache: RecoveryCacheDefinition = nearest
 	if nearest != null:
 		title = nearest.display_name
