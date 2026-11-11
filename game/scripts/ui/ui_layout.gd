@@ -157,10 +157,13 @@ static func landscape(hud) -> void:
 		Rect2(0, objective_top, hud._to_layout(294.0), hud._to_layout(60.0))
 	)
 	# The wrapped mission detail reserves its two lines here, not at build time
-	# where the stretch factor is still stale: a near-zero reserve makes the
-	# engine's visible-line counter admit nothing and the line draws blank.
+	# where the stretch factor is still stale. Godot forces an autowrap+clip
+	# label's minimum height to 1 px, so without this stamp the container
+	# grants ~one line and the engine's visible-line counter truncates the
+	# copy to "BREACH CAPACITOR MODULE ·...". 36 physical px = two 16 px
+	# lines plus spacing, inside the card's 60 px budget (title ~22).
 	if is_instance_valid(hud._wave_enemy_label):
-		hud._wave_enemy_label.custom_minimum_size.y = hud._to_layout(30.0)
+		hud._wave_enemy_label.custom_minimum_size.y = hud._to_layout(36.0)
 	_place(
 		hud._defense_button,
 		0,
