@@ -123,8 +123,10 @@ static func _build_arrival_pad(
 	label.name = "BriefingLabel"
 	# A tight sign mounted ON the pillar, not a billboard sprawling over the
 	# walk lane: the old 64px slab floated at eye level across the path and
-	# read as clutter. The arrow states the way; the mission panel owns detail.
-	label.text = "▶  SECURE\n%s" % primary_name
+	# read as clutter. It still names the arrival area (the world guidance
+	# smoke holds that contract) and states the way with an arrow; the
+	# mission panel owns the detail.
+	label.text = "ARRIVAL OUTPOST\n▶ SECURE %s" % primary_name
 	label.font_size = 40
 	label.pixel_size = 0.005
 	label.modulate = Color(0.92, 0.98, 1.0, 1.0)
