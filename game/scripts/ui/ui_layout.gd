@@ -171,14 +171,20 @@ static func landscape(hud) -> void:
 	# convention — the objective/quest reads on the right, the map on the left).
 	# Tight short landscapes (mobile safe insets eat ~40 top and ~55 bottom
 	# physical px) cannot stack card, weapon chip and the pinned 96/80 thumb
-	# plates in one column, so the card takes the centre-top band above the
-	# guardian bar and the chip keeps its SWAP column pairing.
+	# plates in one column, so the card takes the free band between the
+	# minimap and the system row, above the guardian bar; the chip keeps its
+	# SWAP column pairing.
 	var card_w: float = hud._to_layout(240.0 if tight_right else 294.0)
-	var card_x: float = (
-		(hud.size.x - 2.0 * edge - card_w) * 0.5
-		if tight_right
-		else (hud.size.x - 2.0 * edge - card_w)
-	)
+	var card_x: float
+	if tight_right:
+		var sys_w_now: float = hud._to_layout(64.0 if hud._narrow else 136.0)
+		var sys_l: float = hud.size.x - edge - hud._to_layout(204.0) - sys_w_now
+		var band_l: float = edge + map_px + hud._to_layout(8.0)
+		var band_w: float = sys_l - hud._to_layout(15.0) - band_l
+		card_w = minf(card_w, maxf(band_w, hud._to_layout(160.0)))
+		card_x = band_l + maxf(band_w - card_w, 0.0) * 0.5
+	else:
+		card_x = hud.size.x - 2.0 * edge - card_w
 	var objective_top: float = (
 		0.0
 		if tight_right
