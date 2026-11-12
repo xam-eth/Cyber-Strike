@@ -319,7 +319,7 @@ func _check_dashboard_matches_the_service() -> void:
 		"the dashboard best score shows the service's (%d)" % TEST_BEST_SCORE
 	)
 	_expect(
-		text.contains("RUNS COMPLETED  %d" % TEST_RUNS),
+		text.contains("RUNS COMPLETED %d" % TEST_RUNS),
 		"the dashboard run count shows the service's (%d)" % TEST_RUNS
 	)
 	var selected := _profile.get("selected_weapon_id") as StringName
