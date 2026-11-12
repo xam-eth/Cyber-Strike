@@ -109,12 +109,12 @@ static func landscape(hud) -> void:
 	)
 	var edge: float = hud._to_layout(44.0)
 	var bar_height: float = hud._to_layout(56.0 if short_view else 60.0)
-	var health_width: float = hud._to_layout(208.0 if short_view else 242.0)
+	var health_width: float = hud._to_layout(160.0 if short_view else 242.0)
 	_place_top_bar(hud, edge, hud._top_inset, bar_height)
 	# Top-left: the tactical minimap — a live view of the real mission world
 	# (caches, route, objective, player). The vitals card belongs bottom-left
 	# per shooter convention and is placed after the movement pocket below.
-	var map_px: float = hud._to_layout(132.0 if short_view else 152.0)
+	var map_px: float = hud._to_layout(96.0 if short_view else 152.0)
 	_place_in_top_bar(hud._minimap, 0, 0, 0, 0, Rect2(0, 0, map_px, map_px))
 	hud._minimap.custom_minimum_size = Vector2(map_px, map_px)
 	if is_instance_valid(hud._upgrade_status_card):
@@ -176,16 +176,22 @@ static func landscape(hud) -> void:
 		hud._wave_enemy_label.custom_minimum_size.y = hud._to_layout(46.0)
 	# (START DEFENSE is placed after the action cluster, which owns the lane
 	# geometry its slot clamps against.)
-	# The enlarged upper-right ADS/weapon plates occupy the old Pause slot.
-	# Keep system actions on a separate, safe top-centre rail.
+	# System actions (pause/sound) share the top-right corner row with the
+	# upgrade entry, leaving the top-centre band to the guardian bar and the
+	# compass strip — the classic shooter top edge.
 	var system_width: float = hud._to_layout(64.0 if hud._narrow else 136.0)
 	_place_in_top_bar(
 		hud._system_row,
-		0.5,
+		1,
 		0,
-		0.5,
+		1,
 		0,
-		Rect2(-system_width * 0.5, -hud._to_layout(4.0), system_width, hud._to_layout(64.0))
+		Rect2(
+			-hud._to_layout(204.0) - system_width,
+			-hud._to_layout(4.0),
+			system_width,
+			hud._to_layout(64.0)
+		)
 	)
 	_place(
 		hud._armory_button,
@@ -200,22 +206,30 @@ static func landscape(hud) -> void:
 			hud._to_layout(56.0)
 		)
 	)
-	# Guardian telemetry: the free band left of the mission card and right of
-	# the armory column. The width clamps to the band so the boss bar never
-	# touches the mission card or the ammo plate on short landscapes.
+	# Guardian telemetry: the top-centre boss bar, in the free band between
+	# the minimap and the mission card — the classic shooter placement. The
+	# endless smoke compares raw rects (the wave card's being top-bar-local),
+	# so the band's right edge is held in that same comparison space.
 	if is_instance_valid(hud._guardian_card):
-		var g_top: float = hud._top_inset + objective_top
-		var g_left_min: float = edge + hud._to_layout(194.0)
-		var g_left_max: float = hud.size.x - edge - hud._to_layout(294.0)
+		var g_left_min: float = edge + map_px + hud._to_layout(8.0)
+		var g_left_max: float = (
+			hud.size.x - 2.0 * edge - hud._to_layout(294.0) - hud._to_layout(8.0)
+		)
 		var g_width: float = clampf(
-			g_left_max - g_left_min - hud._to_layout(8.0),
-			hud._to_layout(110.0),
-			hud._to_layout(268.0)
+			g_left_max - g_left_min, hud._to_layout(110.0), hud._to_layout(268.0)
 		)
+		g_width = minf(g_width, maxf(g_left_max - g_left_min, hud._to_layout(110.0)))
 		var g_left: float = clampf(
-			(hud.size.x - g_width) * 0.5, g_left_min, g_left_max - g_width - hud._to_layout(8.0)
+			(g_left_min + g_left_max - g_width) * 0.5, g_left_min, g_left_max - g_width
 		)
-		_place(hud._guardian_card, 0, 0, 0, 0, Rect2(g_left, g_top, g_width, hud._to_layout(48.0)))
+		_place(
+			hud._guardian_card,
+			0,
+			0,
+			0,
+			0,
+			Rect2(g_left, hud._top_inset, g_width, hud._to_layout(52.0))
+		)
 
 	# One compact two-by-two action cluster. FIRE is primary; ammo is the same
 	# width as the cluster and sits directly above SWAP/ARMORY, so equipped
@@ -268,20 +282,16 @@ static func landscape(hud) -> void:
 	)
 
 	# START DEFENSE: the contextual mission action lives in the free lane
-	# below the mission card and left of the action cluster. Its width clamps
-	# to whatever the lane really offers, so no thumb target ever shares a
-	# pixel on short landscapes (844x390, 667x375) and it grows back to a
-	# readable plate where there is room.
+	# below the mission card and left of the action cluster. The plate's font
+	# scales down to fit the lane where short landscapes squeeze it, so the
+	# no-thumb-overlap contract is a hard floor at every size.
+	var wave_rect := hud._wave_card.get_rect()
 	var def_lane_left: float = edge + hud._to_layout(194.0)
-	var def_lane_right: float = minf(
-		hud.size.x - float(hud._safe_right) - hud._to_layout(outer_right + action_px),
-		hud.size.x - edge - hud._to_layout(294.0)
-	)
+	var def_lane_right: float = hud._jump_button.get_rect().position.x - hud._to_layout(8.0)
 	var def_w: float = clampf(
-		def_lane_right - def_lane_left - hud._to_layout(8.0),
-		hud._to_layout(96.0),
-		hud._to_layout(230.0)
+		def_lane_right - def_lane_left, hud._to_layout(80.0), hud._to_layout(230.0)
 	)
+	_fit_width(hud._defense_button, def_w)
 	_place(
 		hud._defense_button,
 		0,
@@ -290,7 +300,7 @@ static func landscape(hud) -> void:
 		0,
 		Rect2(
 			def_lane_left,
-			hud._top_inset + objective_top + hud._to_layout(76.0),
+			hud._top_inset + objective_top + wave_rect.size.y + hud._to_layout(14.0),
 			def_w,
 			hud._to_layout(56.0)
 		)
@@ -457,6 +467,24 @@ static func _place(
 static func _stick_pocket_bottom(hud, authored_px: float, radius_px: float) -> float:
 	var needed_px: float = radius_px + hud._safe_bottom * hud._stretch
 	return hud._to_layout(maxf(authored_px, needed_px))
+
+
+## Shrink a plate's label font until its content minimum fits `max_w`, so a
+## text-bearing contextual button can occupy a squeezed lane without its
+## minimum size crossing a thumb target. Restores the authored size first so
+## a rotation back to a wide canvas brings the type scale with it.
+static func _fit_width(button: Control, max_w: float) -> void:
+	if not is_instance_valid(button):
+		return
+	if not button.has_meta("aegis_font_px"):
+		button.set_meta("aegis_font_px", button.get_theme_font_size("font_size"))
+	var font_size := int(button.get_meta("aegis_font_px"))
+	button.add_theme_font_size_override("font_size", font_size)
+	var tries := 0
+	while button.get_minimum_size().x > max_w and tries < 5 and font_size > 8:
+		font_size = maxi(8, int(font_size * 0.85))
+		button.add_theme_font_size_override("font_size", font_size)
+		tries += 1
 
 
 static func _place_button(

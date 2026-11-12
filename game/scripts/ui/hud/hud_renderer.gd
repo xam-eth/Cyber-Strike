@@ -214,20 +214,14 @@ static func draw_tactical_compass(hud: Control, layer: Control = null) -> void:
 	var safe_l := float(hud.get("_safe_left"))
 	var wave_c := hud.get("_wave_card") as Control
 	var guardian_c := hud.get("_guardian_card") as Control
-	var sys_row := hud.get("_system_row") as Control
 	var top_in := float(hud.get("_top_inset"))
 	var h := 25.0 * scale
 	var rect := Rect2()
 
-	var center_below_sys := (
-		hud.size.y >= 460.0
-		and (not is_instance_valid(guardian_c) or not guardian_c.visible)
-		and is_instance_valid(sys_row)
-		and sys_row.visible
-	)
 	# The minimap owns the top-left band and the mission card the top-right;
-	# the compass strip lives in the free centre band between them, whatever
-	# the row does with the system buttons.
+	# the compass strip lives in the free centre band between them. The
+	# guardian boss bar owns that band when active and the compass yields,
+	# resuming just below it.
 	var minimap_c := hud.get("_minimap") as Control
 	var band_left := safe_l
 	if is_instance_valid(minimap_c) and minimap_c.visible:
@@ -236,31 +230,28 @@ static func draw_tactical_compass(hud: Control, layer: Control = null) -> void:
 	var band_right := hud.size.x - float(hud.get("_safe_right"))
 	if is_instance_valid(wave_c) and wave_c.visible:
 		band_right = minf(band_right, wave_c.get_global_rect().position.x - 12.0 * scale)
-	if not center_below_sys:
-		for key in [
-			"_system_row",
-			"_upgrade_status_card",
-			"_upgrade_entry_button",
-			"_armory_entry_button",
-		]:
-			var right_ctrl := hud.get(key) as Control
-			if (
-				is_instance_valid(right_ctrl)
-				and right_ctrl.visible
-				and right_ctrl.get_global_rect().position.y < top_in + 54.0 * scale
-			):
-				var pad_r := 28.0 * scale if key == "_system_row" else 14.0 * scale
-				band_right = minf(band_right, right_ctrl.get_global_rect().position.x - pad_r)
+	for key in [
+		"_system_row",
+		"_upgrade_status_card",
+		"_upgrade_entry_button",
+		"_armory_entry_button",
+	]:
+		var right_ctrl := hud.get(key) as Control
+		if (
+			is_instance_valid(right_ctrl)
+			and right_ctrl.visible
+			and right_ctrl.get_global_rect().position.y < top_in + 54.0 * scale
+		):
+			var pad_r := 28.0 * scale if key == "_system_row" else 14.0 * scale
+			band_right = minf(band_right, right_ctrl.get_global_rect().position.x - pad_r)
 	var band_top := top_in + 2.0 * scale
-	if center_below_sys:
-		band_top = sys_row.get_global_rect().end.y + 10.0 * scale
+	if is_instance_valid(guardian_c) and guardian_c.visible:
+		band_top = guardian_c.get_global_rect().end.y + 8.0 * scale
 	var avail_w := band_right - band_left
 	var min_w := 120.0 * scale
 	if avail_w < min_w:
 		return
-	var target_w := minf(avail_w, 272.0 * scale if center_below_sys else 232.0 * scale)
-	if center_below_sys:
-		target_w = minf(target_w, hud.size.x * 0.30)
+	var target_w := minf(avail_w, 272.0 * scale)
 	var cx := clampf(hud.size.x * 0.5, band_left + target_w * 0.5, band_right - target_w * 0.5)
 	rect = Rect2(cx - target_w * 0.5, band_top, target_w, h)
 
