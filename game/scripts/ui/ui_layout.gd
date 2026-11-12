@@ -130,27 +130,18 @@ static func landscape(hud) -> void:
 			Rect2(-hud._to_layout(196.0), 0, hud._to_layout(196.0), bar_height)
 		)
 	if is_instance_valid(hud._resource_bar):
-		var res_w: float = hud._to_layout(196.0 if short_view else 268.0)
+		var res_w: float = hud._to_layout(
+			120.0 if tight_right else (196.0 if short_view else 268.0)
+		)
 		var res_h: float = hud._to_layout(28.0 if short_view else 112.0)
 		hud._resource_bar.compact_mode = short_view
 		hud._resource_bar.scale_unit = hud._to_layout(1.0)
 		if tight_right:
-			# Short landscapes have no second top row to spare: the telemetry
-			# joins the system row so the mission card can sit high and clear
-			# of the weapon chip below it.
-			var sys_w_now: float = hud._to_layout(64.0 if hud._narrow else 136.0)
+			# Short landscapes hand the right column to the weapon stack:
+			# telemetry rides the intel column under the minimap, and the
+			# mission card takes the centre-top band.
 			_place_in_top_bar(
-				hud._resource_bar,
-				1,
-				0,
-				1,
-				0,
-				Rect2(
-					-hud._to_layout(204.0) - sys_w_now - hud._to_layout(8.0) - res_w,
-					0,
-					res_w,
-					res_h
-				)
+				hud._resource_bar, 0, 0, 0, 0, Rect2(0, map_px + hud._to_layout(8.0), res_w, res_h)
 			)
 		else:
 			_place_in_top_bar(
@@ -178,10 +169,18 @@ static func landscape(hud) -> void:
 		)
 	# Mission card: top-right column under the resource telemetry (shooter
 	# convention — the objective/quest reads on the right, the map on the left).
-	# Short landscapes drop it straight under the system row: stacked under
-	# the telemetry too, it collided with the weapon chip above the cluster.
+	# Tight short landscapes (mobile safe insets eat ~40 top and ~55 bottom
+	# physical px) cannot stack card, weapon chip and the pinned 96/80 thumb
+	# plates in one column, so the card takes the centre-top band above the
+	# guardian bar and the chip keeps its SWAP column pairing.
+	var card_w: float = hud._to_layout(240.0 if tight_right else 294.0)
+	var card_x: float = (
+		(hud.size.x - 2.0 * edge - card_w) * 0.5
+		if tight_right
+		else (hud.size.x - 2.0 * edge - card_w)
+	)
 	var objective_top: float = (
-		hud._to_layout(56.0)
+		0.0
 		if tight_right
 		else (
 			bar_height
@@ -192,16 +191,11 @@ static func landscape(hud) -> void:
 	)
 	_place_in_top_bar(
 		hud._wave_card,
-		1,
+		0 if tight_right else 1,
 		0,
-		1,
+		0 if tight_right else 1,
 		0,
-		Rect2(
-			-hud._to_layout(240.0 if tight_right else 294.0),
-			objective_top,
-			hud._to_layout(240.0 if tight_right else 294.0),
-			hud._to_layout(70.0)
-		)
+		Rect2(card_x, objective_top, card_w, hud._to_layout(70.0))
 	)
 	# The wrapped mission detail reserves its two lines here, not at build time
 	# where the stretch factor is still stale. Godot forces an autowrap+clip
@@ -238,7 +232,12 @@ static func landscape(hud) -> void:
 		0,
 		Rect2(
 			edge,
-			hud._top_inset + map_px + hud._to_layout(8.0),
+			(
+				hud._top_inset
+				+ map_px
+				+ hud._to_layout(8.0)
+				+ (hud._to_layout(36.0) if tight_right else 0.0)
+			),
 			hud._to_layout(186.0),
 			hud._to_layout(56.0)
 		)
@@ -249,12 +248,7 @@ static func landscape(hud) -> void:
 	# so the band's right edge is held in that same comparison space.
 	if is_instance_valid(hud._guardian_card):
 		var g_left_min: float = edge + map_px + hud._to_layout(8.0)
-		var g_left_max: float = (
-			hud.size.x
-			- 2.0 * edge
-			- hud._to_layout(240.0 if tight_right else 294.0)
-			- hud._to_layout(8.0)
-		)
+		var g_left_max: float = card_x - hud._to_layout(8.0)
 		var g_width: float = clampf(
 			g_left_max - g_left_min, hud._to_layout(110.0), hud._to_layout(268.0)
 		)
@@ -271,7 +265,7 @@ static func landscape(hud) -> void:
 			Rect2(
 				g_left,
 				(
-					(hud._top_inset + objective_top + hud._to_layout(78.0))
+					(hud._top_inset + hud._wave_card.get_rect().size.y + hud._to_layout(8.0))
 					if tight_right
 					else hud._top_inset
 				),

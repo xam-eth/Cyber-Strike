@@ -246,9 +246,14 @@ static func draw_tactical_compass(hud: Control, layer: Control = null) -> void:
 			band_right = minf(band_right, right_ctrl.get_global_rect().position.x - pad_r)
 	var band_top := top_in + 2.0 * scale
 	if hud._physical_size.y > 0.0 and hud._physical_size.y < 480.0:
-		# Short landscapes hand the top row to the system cluster and the
-		# telemetry; the compass drops beneath them, still top-centre.
-		band_top = top_in + 36.0 * scale
+		# Short landscapes hold the centre-top with the mission card and the
+		# guardian bar; the compass drops beneath them, still clear of the
+		# centre look-drag point the ADS touch contract pins.
+		var wave_c := hud.get("_wave_card") as Control
+		if is_instance_valid(wave_c):
+			band_top = top_in + wave_c.get_rect().size.y + 16.0 * scale
+		else:
+			band_top = top_in + 36.0 * scale
 	if is_instance_valid(guardian_c) and guardian_c.visible:
 		band_top = guardian_c.get_global_rect().end.y + 8.0 * scale
 	var avail_w := band_right - band_left
