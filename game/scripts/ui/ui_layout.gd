@@ -285,7 +285,7 @@ static func landscape(hud) -> void:
 	# below the mission card and left of the action cluster. The plate's font
 	# scales down to fit the lane where short landscapes squeeze it, so the
 	# no-thumb-overlap contract is a hard floor at every size.
-	var wave_rect := hud._wave_card.get_rect()
+	var wave_rect: Rect2 = hud._wave_card.get_rect()
 	var def_lane_left: float = edge + hud._to_layout(194.0)
 	var def_lane_right: float = hud._jump_button.get_rect().position.x - hud._to_layout(8.0)
 	var def_w: float = clampf(
