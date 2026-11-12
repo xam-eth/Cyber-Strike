@@ -84,8 +84,11 @@ func layout_for(hud) -> void:
 	var inset: float = hud._to_layout(10.0)
 	var left: float = hud._joystick_center.x + hud._joystick_radius + inset
 	var right: float = hud.size.x - inset
-	if is_instance_valid(hud._skill_button):
-		right = minf(right, hud._skill_button.position.x - inset)
+	var anchor_button: Control = (
+		hud._reload_button if is_instance_valid(hud._reload_button) else hud._skill_button
+	)
+	if is_instance_valid(anchor_button):
+		right = minf(right, anchor_button.position.x - inset)
 	var height: float = hud._to_layout(48.0)
 	var top: float = hud.size.y - hud._safe_bottom - hud._to_layout(10.0) - height
 	var lane_w: float = maxf(right - left, hud._to_layout(96.0))

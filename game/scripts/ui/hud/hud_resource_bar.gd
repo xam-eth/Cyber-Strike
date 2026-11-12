@@ -55,6 +55,16 @@ static func build_vitals_card(hud) -> void:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 6)
 	content.add_child(row)
+	var vitals_icon := TextureRect.new()
+	vitals_icon.name = "VitalsIcon"
+	vitals_icon.texture = AegisTheme.hud_icon("hud-vitals")
+	vitals_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	vitals_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	vitals_icon.custom_minimum_size = Vector2(18.0, 14.0)
+	vitals_icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	vitals_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vitals_icon.modulate = Color(AegisTokens.OK.r, AegisTokens.OK.g, AegisTokens.OK.b, 0.95)
+	row.add_child(vitals_icon)
 	hud._health_heading = hud._label_key("hud.vitals", "label", AegisTokens.OK)
 	row.add_child(hud._health_heading)
 	hud._health_tier_badge = hud._label("T1", "mono_s", AegisTokens.INFO)

@@ -50,6 +50,17 @@ func _ready() -> void:
 	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	header.add_theme_constant_override("separation", 4)
 	readout.add_child(header)
+	# Custom weapon silhouette: the chip reads as a weapon card, not a label.
+	var silhouette := TextureRect.new()
+	silhouette.name = "WeaponSilhouette"
+	silhouette.texture = AegisTheme.hud_icon("hud-weapon")
+	silhouette.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	silhouette.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	silhouette.custom_minimum_size = Vector2(24.0, 14.0)
+	silhouette.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	silhouette.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	silhouette.modulate = Color(AegisTokens.INFO.r, AegisTokens.INFO.g, AegisTokens.INFO.b, 0.95)
+	header.add_child(silhouette)
 	header.add_child(weapon_label)
 	tier_label = Label.new()
 	tier_label.name = "WeaponTier"

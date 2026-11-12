@@ -72,6 +72,16 @@ var field_kit_tags: String = ""
 ## World-space waypoint supplied by Main for the top bearing compass (presentation only).
 var objective_has_target: bool = false
 var objective_world_pos: Vector3 = Vector3.ZERO
+## Live minimap telemetry supplied by Main every frame (presentation only).
+## `map_points` entries are plain dictionaries — {x, z, kind, secured, target}
+## — with "kind" one of "cache" | "optional" | "objective"; `map_route` is the
+## authored guidance path in world XZ. Nothing here authorizes anything.
+var player_world_pos: Vector3 = Vector3.ZERO
+var player_yaw: float = 0.0
+var map_center: Vector2 = Vector2.ZERO
+var map_radius: float = 60.0
+var map_points: Array = []
+var map_route: PackedVector2Array = PackedVector2Array()
 ## Live screen-space reticle position driven by the cursor on desktop (center on touch).
 var reticle_pos: Vector2 = Vector2(-1.0, -1.0)
 var cursor_aim_active: bool = false

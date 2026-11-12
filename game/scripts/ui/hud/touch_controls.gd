@@ -32,6 +32,11 @@ signal armory_close_requested
 signal upgrade_open_requested
 signal upgrade_choice_requested(index: int)
 signal upgrade_close_requested
+## Real input actions from the touch/desktop buttons: the reload and jump the
+## player controller already reads from the Input map, re-emitted here so a
+## thumb and a key reach the same code path.
+signal reload_requested
+signal jump_requested
 ## One signal for every HOME in the HUD: pause, results, armory and settings all
 ## mean "leave the world for the dashboard", and main.gd answers it once.
 signal home_requested
@@ -208,6 +213,11 @@ var _skill_cooldown_label: Label
 var _fire_caption: Label
 var _weapon_caption: Label
 var _aim_caption: Label
+var _reload_button: AegisButton
+var _jump_button: AegisButton
+var _reload_caption: Label
+var _jump_caption: Label
+var _minimap: HudMinimap
 var _skill_caption: Label
 var _touch_ammo_chip: AegisAmmoChip
 var _results_panel: AegisPanel
@@ -532,7 +542,9 @@ func _apply_context_visibility() -> void:
 ## on the device it disappears from.
 func _apply_input_mode() -> void:
 	var gameplay_visible := not _results_visible()
-	for button in [_fire_button, _aim_button, _skill_button, _weapon_button]:
+	for button in [
+		_fire_button, _aim_button, _skill_button, _weapon_button, _reload_button, _jump_button
+	]:
 		if is_instance_valid(button):
 			button.visible = gameplay_visible
 	if is_instance_valid(_skill_ring):
@@ -833,6 +845,9 @@ func _build_ui() -> void:
 
 	HudResourceBar.build_vitals_card(self)
 	HudResourceBar.install_top_bar(self)
+	_minimap = HudMinimap.new(_state)
+	_minimap.name = "TacticalMinimap"
+	_top_bar.add_child(_minimap)
 	_build_wave_card()
 	HudEncounterUi.build_guardian_card(self)
 	_build_defense_action()
@@ -926,6 +941,18 @@ func _build_touch_buttons() -> void:
 	_skill_cooldown_label.anchor_top = 1.0
 	_skill_cooldown_label.anchor_bottom = 1.0
 	_skill_cooldown_label.visible = false
+
+	_reload_button = _combat_button(
+		"hud-reload", "ReloadButton", "combat_weapon", "Reload weapon", AegisTokens.INFO
+	)
+	_reload_button.pressed.connect(_on_reload_pressed)
+	_reload_caption = _action_caption(_reload_button, "hud.reload", AegisTokens.INFO)
+
+	_jump_button = _combat_button(
+		"hud-jump", "JumpButton", "combat_weapon", "Jump", AegisTokens.INFO
+	)
+	_jump_button.pressed.connect(_on_jump_pressed)
+	_jump_caption = _action_caption(_jump_button, "hud.jump", AegisTokens.INFO)
 
 	_skill_ring = CooldownRing.new()
 	_skill_ring.name = "SkillCooldownRing"
@@ -1426,6 +1453,37 @@ func _on_skill_pressed() -> void:
 	if not _player_down and not get_tree().paused and _skill_cooldown_remaining <= 0.0:
 		Sfx.play_ui(&"ui_click")
 		skill_requested.emit()
+
+
+func _on_reload_pressed() -> void:
+	if not _player_down and not get_tree().paused:
+		Sfx.play_ui(&"ui_click")
+		hide_help()
+		reload_requested.emit()
+
+
+func _on_jump_pressed() -> void:
+	if not _player_down and not get_tree().paused:
+		Sfx.play_ui(&"ui_click")
+		hide_help()
+		jump_requested.emit()
+
+
+## Live minimap feed. Main owns the world; the HUD only receives the facts.
+func set_minimap_data(
+	player_pos: Vector3,
+	player_yaw: float,
+	points: Array,
+	route: PackedVector2Array,
+	center: Vector2,
+	radius: float
+) -> void:
+	_state.player_world_pos = player_pos
+	_state.player_yaw = player_yaw
+	_state.map_points = points
+	_state.map_route = route
+	_state.map_center = center
+	_state.map_radius = radius
 
 
 func _on_pause_pressed() -> void:

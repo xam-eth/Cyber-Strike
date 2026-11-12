@@ -106,7 +106,7 @@ func _check_viewport(controls: Control, viewport: Vector2, stretch: float) -> vo
 			),
 			"%s keeps %s fully on screen (%s)" % [label, name, detail],
 		)
-		if name in ["FIRE", "ADS", "EMP", "SWAP"]:
+		if name in ["FIRE", "ADS", "EMP", "SWAP", "RELOAD", "JUMP"]:
 			_expect(
 				(viewport.y - rect.end.y) >= MIN_BOTTOM_CLEARANCE,
 				(
@@ -166,12 +166,16 @@ func _check_viewport(controls: Control, viewport: Vector2, stretch: float) -> vo
 ## centre and radius the input dispatcher uses.
 func _interactive_rects(controls: Control, stretch: float) -> Array:
 	var found: Array = []
-	var names := ["FIRE", "ADS", "EMP", "SWAP", "PAUSE", "AMMO", "START", "ARMORY"]
+	var names := [
+		"FIRE", "ADS", "EMP", "SWAP", "RELOAD", "JUMP", "PAUSE", "AMMO", "START", "ARMORY"
+	]
 	var keys := [
 		"_fire_button",
 		"_aim_button",
 		"_skill_button",
 		"_weapon_button",
+		"_reload_button",
+		"_jump_button",
 		"_pause_button",
 		"_touch_ammo_chip",
 		"_defense_button",

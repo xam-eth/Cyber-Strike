@@ -28,6 +28,8 @@ static func over_hud(hud, position: Vector2) -> bool:
 		hud._weapon_button,
 		hud._skill_button,
 		hud._aim_button,
+		hud._reload_button,
+		hud._jump_button,
 		hud._touch_ammo_chip,
 		hud._pause_panel,
 		hud._results_panel,
@@ -109,7 +111,12 @@ static func landscape(hud) -> void:
 	var bar_height: float = hud._to_layout(56.0 if short_view else 60.0)
 	var health_width: float = hud._to_layout(208.0 if short_view else 242.0)
 	_place_top_bar(hud, edge, hud._top_inset, bar_height)
-	_place_in_top_bar(hud._health_card, 0, 0, 0, 0, Rect2(0, 0, health_width, bar_height))
+	# Top-left: the tactical minimap — a live view of the real mission world
+	# (caches, route, objective, player). The vitals card belongs bottom-left
+	# per shooter convention and is placed after the movement pocket below.
+	var map_px: float = hud._to_layout(132.0 if short_view else 152.0)
+	_place_in_top_bar(hud._minimap, 0, 0, 0, 0, Rect2(0, 0, map_px, map_px))
+	hud._minimap.custom_minimum_size = Vector2(map_px, map_px)
 	if is_instance_valid(hud._upgrade_status_card):
 		_place_in_top_bar(
 			hud._upgrade_status_card,
@@ -147,14 +154,17 @@ static func landscape(hud) -> void:
 				hud._to_layout(52.0)
 			)
 		)
+	# Mission card: top-right column under the resource telemetry (shooter
+	# convention — the objective/quest reads on the right, the map on the left).
 	var objective_top: float = bar_height + hud._to_layout(8.0)
+	objective_top += hud._to_layout(28.0 if short_view else 112.0) + hud._to_layout(6.0)
 	_place_in_top_bar(
 		hud._wave_card,
+		1,
 		0,
+		1,
 		0,
-		0,
-		0,
-		Rect2(0, objective_top, hud._to_layout(294.0), hud._to_layout(70.0))
+		Rect2(-hud._to_layout(294.0), objective_top, hud._to_layout(294.0), hud._to_layout(70.0))
 	)
 	# The wrapped mission detail reserves its two lines here, not at build time
 	# where the stretch factor is still stale. Godot forces an autowrap+clip
@@ -166,12 +176,12 @@ static func landscape(hud) -> void:
 		hud._wave_enemy_label.custom_minimum_size.y = hud._to_layout(46.0)
 	_place(
 		hud._defense_button,
+		1,
 		0,
-		0,
-		0,
+		1,
 		0,
 		Rect2(
-			edge,
+			-edge - hud._to_layout(230.0),
 			hud._top_inset + objective_top + hud._to_layout(80.0),
 			hud._to_layout(230.0),
 			hud._to_layout(56.0)
@@ -195,8 +205,8 @@ static func landscape(hud) -> void:
 		0,
 		0,
 		Rect2(
-			edge + hud._to_layout(306.0),
-			hud._top_inset + objective_top,
+			edge,
+			hud._top_inset + map_px + hud._to_layout(8.0),
 			hud._to_layout(186.0),
 			hud._to_layout(56.0)
 		)
@@ -250,6 +260,11 @@ static func landscape(hud) -> void:
 	_place_button(hud, hud._aim_button, fire_right, aim_bottom, action_px, action_px)
 	_place_button(hud, hud._skill_button, skill_right, fire_bottom, action_px, action_px)
 	_place_button(hud, hud._weapon_button, weapon_right, aim_bottom, action_px, action_px)
+	# Reload + jump extend the cluster one column outward: the PUBG/Free Fire
+	# thumb grid keeps reload/stance controls beside the fire column.
+	var outer_right := weapon_right + action_px + gap_px
+	_place_button(hud, hud._reload_button, outer_right, fire_bottom, action_px, action_px)
+	_place_button(hud, hud._jump_button, outer_right, aim_bottom, action_px, action_px)
 	var ammo_bottom := aim_bottom + action_px + gap_px
 	# AegisAmmoChip is a PanelContainer: its minimum height follows its content
 	# (header + ammo value + magazine bar + margins ~66 px), taller than the
@@ -282,6 +297,23 @@ static func landscape(hud) -> void:
 	)
 	hud._joystick_radius = hud._to_layout(64.0)
 	hud._joystick_visual_radius = hud._joystick_radius
+
+	# Vitals card: bottom-left above the movement pocket (shooter convention —
+	# health/armor beside the stick, never a top corner). The same slot reads
+	# as the classic bottom-left vitals block on desktop.
+	var vitals_h: float = bar_height
+	var vitals_y: float = (
+		hud.size.y
+		- _stick_pocket_bottom(hud, 90.0, 64.0)
+		- hud._to_layout(64.0)
+		- hud._to_layout(10.0)
+		- vitals_h
+		- hud._top_inset
+	)
+	if hud._left_handed:
+		_place(hud._health_card, 1, 0, 1, 0, Rect2(-health_width, vitals_y, health_width, vitals_h))
+	else:
+		_place(hud._health_card, 0, 0, 0, 0, Rect2(0, vitals_y, health_width, vitals_h))
 
 	hud._show_top_wave_details(true)
 	# On a 390 px-high display the optional state badge steals the objective's

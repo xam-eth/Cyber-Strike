@@ -40,6 +40,11 @@ var _recovery_caches: Array[RecoveryCacheDefinition] = []
 var _recovery_states: Dictionary = {}
 var _recovery_visuals: Dictionary = {}
 var _recovery_root: Node3D
+## Minimap facts computed once at setup: the authored chevron route (spawn →
+## primary cache → the rest) and the bounds that frame it.
+var _map_route: PackedVector2Array = PackedVector2Array()
+var _map_center: Vector2 = Vector2.ZERO
+var _map_radius: float = 60.0
 var _recovery_action_cache: StringName = &""
 var _recovery_notices: Array[Dictionary] = []
 var _recovery_choice_presented: bool = false
@@ -142,6 +147,8 @@ func _ready() -> void:
 	player.weapon_controller.ammo_changed.connect(touch_controls._update_weapon_ammo)
 	player.skill_cooldown_changed.connect(touch_controls.set_skill_cooldown)
 	player.skill_used.connect(_on_skill_used)
+	touch_controls.reload_requested.connect(_on_reload_requested)
+	touch_controls.jump_requested.connect(_on_jump_requested)
 	progression_service.profile_changed.connect(_on_profile_changed)
 	_on_profile_changed()
 	_apply_saved_weapon()
@@ -238,6 +245,7 @@ func _process(delta: float) -> void:
 	touch_controls.set_aim_state(player.is_aiming())
 	_tick_recovery_guidance(delta)
 	_update_recovery()
+	_update_minimap()
 	_emit_recovery_cache_qa(delta)
 	if _pending_defeat_wave >= 0:
 		_defeat_reveal_remaining = maxf(_defeat_reveal_remaining - delta, 0.0)
@@ -689,6 +697,27 @@ func _setup_recovery() -> void:
 		_recovery_root.add_child(visual)
 		_recovery_visuals[cache.cache_id] = visual
 		_refresh_recovery_visual(cache)
+	# Minimap facts mirror the guidance chevron route order (primary first).
+	var primary: Array = []
+	var ordered: Array = []
+	for cache in definition.recovery_caches:
+		if cache == null or not cache.is_valid_definition():
+			continue
+		if String(cache.cache_id).contains("primary") and primary.is_empty():
+			primary.append(cache)
+		else:
+			ordered.append(cache)
+	var spawn_2d := Vector2(definition.player_spawn.x, definition.player_spawn.z)
+	_map_route.append(spawn_2d)
+	var min_v := spawn_2d
+	var max_v := spawn_2d
+	for cache in primary + ordered:
+		var p := Vector2(cache.position.x, cache.position.z)
+		_map_route.append(p)
+		min_v = Vector2(minf(min_v.x, p.x), minf(min_v.y, p.y))
+		max_v = Vector2(maxf(max_v.x, p.x), maxf(max_v.y, p.y))
+	_map_center = (min_v + max_v) * 0.5
+	_map_radius = (max_v - min_v).length() * 0.5 + 10.0
 
 
 func _reset_recovery() -> void:
@@ -1084,6 +1113,46 @@ func _update_recovery_hud(
 	)
 
 
+func _update_minimap() -> void:
+	if not is_instance_valid(player) or not is_instance_valid(touch_controls):
+		return
+	var target_pos: Vector3 = touch_controls._state.objective_world_pos
+	var has_target: bool = touch_controls._state.objective_has_target
+	var points: Array = []
+	for cache in _recovery_caches:
+		if cache == null:
+			continue
+		var secured: bool = progression_service.is_cache_secured(cache.cache_id)
+		(
+			points
+			. append(
+				{
+					"x": cache.position.x,
+					"z": cache.position.z,
+					"kind": "optional" if cache.optional else "cache",
+					"secured": secured,
+					"target":
+					(
+						has_target
+						and not secured
+						and (
+							(
+								Vector2(
+									cache.position.x - target_pos.x, cache.position.z - target_pos.z
+								)
+								. length_squared()
+							)
+							< 4.0
+						)
+					),
+				}
+			)
+		)
+	touch_controls.set_minimap_data(
+		player.global_position, player.rotation.y, points, _map_route, _map_center, _map_radius
+	)
+
+
 func _recovery_state_text(cache: RecoveryCacheDefinition) -> String:
 	match _cache_state(cache.cache_id):
 		RecoveryState.READY:
@@ -1352,6 +1421,22 @@ func _on_target_damage_received(_amount: float, _current: float, _maximum: float
 	_reset_guidance_stuck()
 	Sfx.play_ui(&"hit_confirm")
 	touch_controls.show_hit_confirmed()
+
+
+## Touch/keyboard parity: the HUD buttons press the same Input actions the
+## player controller polls, so one code path serves every device.
+func _on_reload_requested() -> void:
+	Input.action_press(&"reload")
+	get_tree().process_frame.connect(
+		func() -> void: Input.action_release(&"reload"), CONNECT_ONE_SHOT
+	)
+
+
+func _on_jump_requested() -> void:
+	Input.action_press(&"jump")
+	get_tree().process_frame.connect(
+		func() -> void: Input.action_release(&"jump"), CONNECT_ONE_SHOT
+	)
 
 
 func _on_skill_used(targets_hit: int, _cooldown_seconds: float) -> void:

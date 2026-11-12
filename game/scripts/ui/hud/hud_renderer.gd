@@ -212,7 +212,6 @@ static func draw_tactical_compass(hud: Control, layer: Control = null) -> void:
 		return
 	var scale := maxf(float(hud.call("_to_layout", 1.0)), 0.75)
 	var safe_l := float(hud.get("_safe_left"))
-	var health_c := hud.get("_health_card") as Control
 	var wave_c := hud.get("_wave_card") as Control
 	var guardian_c := hud.get("_guardian_card") as Control
 	var sys_row := hud.get("_system_row") as Control
@@ -226,25 +225,18 @@ static func draw_tactical_compass(hud: Control, layer: Control = null) -> void:
 		and is_instance_valid(sys_row)
 		and sys_row.visible
 	)
-	if center_below_sys:
-		var target_w := minf(272.0 * scale, hud.size.x * 0.30)
-		var cx := hud.size.x * 0.5
-		var top_y := sys_row.position.y + sys_row.size.y + 10.0 * scale
-		# The mission card owns the top-left band and, with long objective
-		# copy, used to stretch into the compass slot. Hold the strip clear
-		# of its right edge even when the card misbehaves.
-		if is_instance_valid(wave_c) and wave_c.visible:
-			var wave_right := wave_c.position.x + wave_c.size.x + 12.0 * scale
-			cx = maxf(cx, wave_right + target_w * 0.5)
-		rect = Rect2(cx - target_w * 0.5, top_y, target_w, h)
-	else:
-		var left_bound := safe_l
-		for card in [health_c, wave_c]:
-			if is_instance_valid(card) and card.visible:
-				left_bound = maxf(left_bound, card.position.x + card.size.x)
-		left_bound += 14.0 * scale
-
-		var right_bound := hud.size.x - float(hud.get("_safe_right"))
+	# The minimap owns the top-left band and the mission card the top-right;
+	# the compass strip lives in the free centre band between them, whatever
+	# the row does with the system buttons.
+	var minimap_c := hud.get("_minimap") as Control
+	var band_left := safe_l
+	if is_instance_valid(minimap_c) and minimap_c.visible:
+		band_left = maxf(band_left, minimap_c.get_global_rect().end.x)
+	band_left += 12.0 * scale
+	var band_right := hud.size.x - float(hud.get("_safe_right"))
+	if is_instance_valid(wave_c) and wave_c.visible:
+		band_right = minf(band_right, wave_c.get_global_rect().position.x - 12.0 * scale)
+	if not center_below_sys:
 		for key in [
 			"_system_row",
 			"_upgrade_status_card",
@@ -255,20 +247,22 @@ static func draw_tactical_compass(hud: Control, layer: Control = null) -> void:
 			if (
 				is_instance_valid(right_ctrl)
 				and right_ctrl.visible
-				and right_ctrl.position.y < top_in + 54.0 * scale
+				and right_ctrl.get_global_rect().position.y < top_in + 54.0 * scale
 			):
 				var pad_r := 28.0 * scale if key == "_system_row" else 14.0 * scale
-				right_bound = minf(right_bound, right_ctrl.position.x - pad_r)
-
-		var avail_w := right_bound - left_bound
-		var min_w := 120.0 * scale
-		if avail_w < min_w:
-			return
-		var target_w := minf(avail_w, 232.0 * scale)
-		var cx := clampf(
-			hud.size.x * 0.5, left_bound + target_w * 0.5, right_bound - target_w * 0.5
-		)
-		rect = Rect2(cx - target_w * 0.5, top_in + 2.0 * scale, target_w, h)
+				band_right = minf(band_right, right_ctrl.get_global_rect().position.x - pad_r)
+	var band_top := top_in + 2.0 * scale
+	if center_below_sys:
+		band_top = sys_row.get_global_rect().end.y + 10.0 * scale
+	var avail_w := band_right - band_left
+	var min_w := 120.0 * scale
+	if avail_w < min_w:
+		return
+	var target_w := minf(avail_w, 272.0 * scale if center_below_sys else 232.0 * scale)
+	if center_below_sys:
+		target_w = minf(target_w, hud.size.x * 0.30)
+	var cx := clampf(hud.size.x * 0.5, band_left + target_w * 0.5, band_right - target_w * 0.5)
+	rect = Rect2(cx - target_w * 0.5, band_top, target_w, h)
 
 	var enemies: Array = []
 	for node in hud.get_tree().get_nodes_in_group("enemies"):
