@@ -210,7 +210,7 @@ static func landscape(hud) -> void:
 	# copy to "BREACH CAPACITOR MODULE ·...". 46 physical px clears the two
 	# shaped lines (their em boxes run ~20 px each) inside the 70 px card.
 	if is_instance_valid(hud._wave_enemy_label):
-		hud._wave_enemy_label.custom_minimum_size.y = hud._to_layout(46.0)
+		hud._wave_enemy_label.custom_minimum_size.y = hud._to_layout(24.0 if tight_right else 46.0)
 	# (START DEFENSE is placed after the action cluster, which owns the lane
 	# geometry its slot clamps against.)
 	# System actions (pause/sound) share the top-right corner row with the
@@ -288,12 +288,6 @@ static func landscape(hud) -> void:
 	# 16 px accessibility font and untracked ARMORY/ARSENAL captions.
 	var fire_px := 96.0 if hud._touch_mode else 80.0
 	var action_px := 80.0 if hud._touch_mode else 72.0
-	if short_view:
-		# Short landscapes budget every pixel: slimmer plates keep the
-		# weapon chip clear of the mission card while thumb targets stay
-		# inside the tappable band the safe-margin contract requires.
-		fire_px = 76.0
-		action_px = 68.0
 	var gap_px := 8.0 if hud._touch_mode else 6.0
 	var ammo_height_px := 48.0 if hud._touch_mode else 42.0
 	var fire_right := 16.0
@@ -320,7 +314,7 @@ static func landscape(hud) -> void:
 	if short_view:
 		hud._touch_ammo_chip.set_compact_row(true)
 		_place_button(
-			hud, hud._touch_ammo_chip, fire_right, ammo_bottom, fire_px + action_px + gap_px, 30.0
+			hud, hud._touch_ammo_chip, fire_right, ammo_bottom, fire_px + action_px + gap_px, 26.0
 		)
 	else:
 		hud._touch_ammo_chip.set_compact_row(false)
