@@ -1177,12 +1177,34 @@ func _secure_cache(cache: RecoveryCacheDefinition) -> bool:
 		_recovery_notices.append({"kind": "bp", "amount": cache.bp_reward})
 	_refresh_recovery_visual(cache)
 	Sfx.play_ui(&"session_clear")
-	touch_controls._feedback_panel.show_message(
-		AegisText.t("recovery.secured_feedback", [cache.display_name])
-	)
-	HudResourceBar.push_toast(
-		touch_controls, "◈ CACHE SECURED · %s" % cache.display_name.to_upper(), AegisTokens.OK
-	)
+	# The transition names the NEXT waypoint, not only the one just closed:
+	# the moment a cache falls, the player must know where the run continues.
+	var next: RecoveryCacheDefinition = null
+	var next_primary := _primary_cache()
+	if next_primary != null and _cache_state(next_primary.cache_id) != RecoveryState.SECURED:
+		next = next_primary
+	else:
+		var next_optional := _optional_cache()
+		if next_optional != null and _cache_state(next_optional.cache_id) != RecoveryState.SECURED:
+			next = next_optional
+	var cue: String
+	if next != null:
+		cue = (
+			AegisText
+			. t(
+				"recovery.secure_cue_next",
+				[
+					cache.display_name,
+					next.display_name,
+					_relative_bearing_label(next.position),
+					roundi(_cache_distance(next)),
+				],
+			)
+		)
+	else:
+		cue = AegisText.t("recovery.secure_cue_done", [cache.display_name])
+	touch_controls._feedback_panel.show_message(cue)
+	HudResourceBar.push_toast(touch_controls, cue, AegisTokens.OK)
 	print("Recovery: secured %s · reward %s" % [cache.cache_id, cache.reward_id])
 	_update_recovery()
 	_update_status()
