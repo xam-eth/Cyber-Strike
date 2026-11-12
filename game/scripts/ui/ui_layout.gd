@@ -107,6 +107,9 @@ static func landscape(hud) -> void:
 	var short_view: bool = (
 		hud._narrow or (hud._physical_size.y > 0.0 and hud._physical_size.y < 480.0)
 	)
+	# Short LANDSCAPE only: portrait keeps the stacked top-right column (it has
+	# vertical room) and must not compress the right column into one row.
+	var tight_right: bool = short_view and not hud._narrow
 	var edge: float = hud._to_layout(44.0)
 	var bar_height: float = hud._to_layout(56.0 if short_view else 60.0)
 	var health_width: float = hud._to_layout(160.0 if short_view else 242.0)
@@ -131,14 +134,33 @@ static func landscape(hud) -> void:
 		var res_h: float = hud._to_layout(28.0 if short_view else 112.0)
 		hud._resource_bar.compact_mode = short_view
 		hud._resource_bar.scale_unit = hud._to_layout(1.0)
-		_place_in_top_bar(
-			hud._resource_bar,
-			1,
-			0,
-			1,
-			0,
-			Rect2(-res_w, bar_height + hud._to_layout(6.0), res_w, res_h)
-		)
+		if tight_right:
+			# Short landscapes have no second top row to spare: the telemetry
+			# joins the system row so the mission card can sit high and clear
+			# of the weapon chip below it.
+			var sys_w_now: float = hud._to_layout(64.0 if hud._narrow else 136.0)
+			_place_in_top_bar(
+				hud._resource_bar,
+				1,
+				0,
+				1,
+				0,
+				Rect2(
+					-hud._to_layout(204.0) - sys_w_now - hud._to_layout(8.0) - res_w,
+					0,
+					res_w,
+					res_h
+				)
+			)
+		else:
+			_place_in_top_bar(
+				hud._resource_bar,
+				1,
+				0,
+				1,
+				0,
+				Rect2(-res_w, bar_height + hud._to_layout(6.0), res_w, res_h)
+			)
 		hud._resource_bar.queue_redraw()
 	if is_instance_valid(hud._upgrade_entry_button):
 		_place(
@@ -156,15 +178,30 @@ static func landscape(hud) -> void:
 		)
 	# Mission card: top-right column under the resource telemetry (shooter
 	# convention — the objective/quest reads on the right, the map on the left).
-	var objective_top: float = bar_height + hud._to_layout(8.0)
-	objective_top += hud._to_layout(28.0 if short_view else 112.0) + hud._to_layout(6.0)
+	# Short landscapes drop it straight under the system row: stacked under
+	# the telemetry too, it collided with the weapon chip above the cluster.
+	var objective_top: float = (
+		hud._to_layout(56.0)
+		if tight_right
+		else (
+			bar_height
+			+ hud._to_layout(8.0)
+			+ hud._to_layout(28.0 if short_view else 112.0)
+			+ hud._to_layout(6.0)
+		)
+	)
 	_place_in_top_bar(
 		hud._wave_card,
 		1,
 		0,
 		1,
 		0,
-		Rect2(-hud._to_layout(294.0), objective_top, hud._to_layout(294.0), hud._to_layout(70.0))
+		Rect2(
+			-hud._to_layout(240.0 if tight_right else 294.0),
+			objective_top,
+			hud._to_layout(240.0 if tight_right else 294.0),
+			hud._to_layout(70.0)
+		)
 	)
 	# The wrapped mission detail reserves its two lines here, not at build time
 	# where the stretch factor is still stale. Godot forces an autowrap+clip
@@ -213,7 +250,10 @@ static func landscape(hud) -> void:
 	if is_instance_valid(hud._guardian_card):
 		var g_left_min: float = edge + map_px + hud._to_layout(8.0)
 		var g_left_max: float = (
-			hud.size.x - 2.0 * edge - hud._to_layout(294.0) - hud._to_layout(8.0)
+			hud.size.x
+			- 2.0 * edge
+			- hud._to_layout(240.0 if tight_right else 294.0)
+			- hud._to_layout(8.0)
 		)
 		var g_width: float = clampf(
 			g_left_max - g_left_min, hud._to_layout(110.0), hud._to_layout(268.0)
@@ -228,7 +268,16 @@ static func landscape(hud) -> void:
 			0,
 			0,
 			0,
-			Rect2(g_left, hud._top_inset, g_width, hud._to_layout(52.0))
+			Rect2(
+				g_left,
+				(
+					(hud._top_inset + objective_top + hud._to_layout(78.0))
+					if tight_right
+					else hud._top_inset
+				),
+				g_width,
+				hud._to_layout(52.0)
+			)
 		)
 
 	# One compact two-by-two action cluster. FIRE is primary; ammo is the same
@@ -239,6 +288,12 @@ static func landscape(hud) -> void:
 	# 16 px accessibility font and untracked ARMORY/ARSENAL captions.
 	var fire_px := 96.0 if hud._touch_mode else 80.0
 	var action_px := 80.0 if hud._touch_mode else 72.0
+	if short_view:
+		# Short landscapes budget every pixel: slimmer plates keep the
+		# weapon chip clear of the mission card while thumb targets stay
+		# inside the tappable band the safe-margin contract requires.
+		fire_px = 76.0
+		action_px = 68.0
 	var gap_px := 8.0 if hud._touch_mode else 6.0
 	var ammo_height_px := 48.0 if hud._touch_mode else 42.0
 	var fire_right := 16.0
@@ -265,7 +320,7 @@ static func landscape(hud) -> void:
 	if short_view:
 		hud._touch_ammo_chip.set_compact_row(true)
 		_place_button(
-			hud, hud._touch_ammo_chip, fire_right, ammo_bottom, fire_px + action_px + gap_px, 34.0
+			hud, hud._touch_ammo_chip, fire_right, ammo_bottom, fire_px + action_px + gap_px, 30.0
 		)
 	else:
 		hud._touch_ammo_chip.set_compact_row(false)
