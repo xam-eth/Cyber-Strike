@@ -188,7 +188,7 @@ func _draw_player(map_rect: Rect2, xf: Callable) -> void:
 	var xform := Transform2D(yaw, pos)
 	var world_pts := PackedVector2Array()
 	for p in pts:
-		world_pts.append(xform.xform(p))
+		world_pts.append(xform * p)
 	draw_colored_polygon(world_pts, AegisTokens.ACCENT)
 	draw_polyline(
 		PackedVector2Array([world_pts[0], world_pts[1], world_pts[2], world_pts[3], world_pts[0]]),
