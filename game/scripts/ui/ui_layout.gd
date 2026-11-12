@@ -114,7 +114,7 @@ static func landscape(hud) -> void:
 	# Top-left: the tactical minimap — a live view of the real mission world
 	# (caches, route, objective, player). The vitals card belongs bottom-left
 	# per shooter convention and is placed after the movement pocket below.
-	var map_px: float = hud._to_layout(96.0 if short_view else 152.0)
+	var map_px: float = hud._to_layout(80.0 if short_view else 152.0)
 	_place_in_top_bar(hud._minimap, 0, 0, 0, 0, Rect2(0, 0, map_px, map_px))
 	hud._minimap.custom_minimum_size = Vector2(map_px, map_px)
 	if is_instance_valid(hud._upgrade_status_card):
@@ -281,13 +281,20 @@ static func landscape(hud) -> void:
 		hud, hud._skill_ring, skill_right - 4.0, fire_bottom - 4.0, action_px + 8.0, action_px + 8.0
 	)
 
-	# START DEFENSE: the contextual mission action lives in the free lane
-	# below the mission card and left of the action cluster. The plate's font
-	# scales down to fit the lane where short landscapes squeeze it, so the
-	# no-thumb-overlap contract is a hard floor at every size.
-	var wave_rect: Rect2 = hud._wave_card.get_rect()
-	var def_lane_left: float = edge + hud._to_layout(194.0)
-	var def_lane_right: float = hud._jump_button.get_rect().position.x - hud._to_layout(8.0)
+	# START DEFENSE: the contextual mission action lives in the bottom lane
+	# between the movement pocket and the action cluster, riding above the
+	# feedback strip. Two hard floors shape it: no thumb target may share a
+	# pixel, and the centre of the screen stays free of interactive controls
+	# so a look-drag through the reticle zone always moves the camera (the
+	# ADS touch contract pins that centre point).
+	var stick_x_now: float = hud._to_layout(120.0) + hud._safe_left
+	var def_lane_left: float = (
+		(hud.size.x - stick_x_now if hud._left_handed else stick_x_now) + hud._to_layout(72.0)
+	)
+	var def_lane_right: float = minf(
+		hud._jump_button.get_rect().position.x - hud._to_layout(8.0),
+		hud.size.x * 0.5 - hud._to_layout(24.0)
+	)
 	var def_w: float = clampf(
 		def_lane_right - def_lane_left, hud._to_layout(80.0), hud._to_layout(230.0)
 	)
@@ -300,7 +307,13 @@ static func landscape(hud) -> void:
 		0,
 		Rect2(
 			def_lane_left,
-			hud._top_inset + objective_top + wave_rect.size.y + hud._to_layout(14.0),
+			(
+				hud.size.y
+				- float(hud._safe_bottom)
+				- hud._to_layout(58.0)
+				- hud._to_layout(16.0)
+				- hud._to_layout(56.0)
+			),
 			def_w,
 			hud._to_layout(56.0)
 		)
