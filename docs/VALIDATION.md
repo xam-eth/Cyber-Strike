@@ -23,6 +23,22 @@ For intended behavior, read [`GAMEPLAY_DESIGN.md`](GAMEPLAY_DESIGN.md). For requ
 - **BUDGET NOTE:** the composite map costs ~395 KB source JPEG (projected ~0.5 MB in the PCK — the CI payload audit gives the exact figure). Budgeted siblings: access_gate + tower_spire at 512 px next, then refinery_stack / sentinel_archive only if headroom allows.
 - **UNVERIFIED:** human review of HP/detail authorship and bake quality (gates C–E human halves), runtime look of the re-UV'd tech_cache in-engine (CI frames pending), and the remaining four flagship bakes.
 
+## 2026-11-09 — Secure transition names the next waypoint
+
+- **Contracts**: `recovery.secure_cue_next` / `secure_cue_done` join the
+  delivery catalog (EN+ID): the secure toast + feedback now read
+  "ARRIVAL TECH CACHE SECURED · ▶ NEXT: ARCHIVE VAULT · RIGHT 13M", or
+  "ALL CACHES SECURED" on the final one — the player never loses the thread
+  between caches. `dash.runs_completed` double space fixed (smoke contract
+  updated with it: the assertion guards the service's number, not the copy).
+- **VERIFIED (runtime)**: run `43223889353` SUCCESS (45 smoke tests); recovery
+  E2E `root-844x390-recovery-cache-secured.png` shows the toast naming the
+  next cache + direction on one line and the feedback naming it in two clean
+  lines (zooms `exports/tmp/cue_secure.png`, `cue_feedback2.png`); mission
+  card + compass remain clear during the sequence. Evidence
+  `exports/flow/cue3/`, `exports/flow/cue2/` (mission boot: 43 chevrons,
+  1 sign).
+
 ## Game flow + world direction pass — 2026-11-09
 
 | Item | Current checkpoint |
