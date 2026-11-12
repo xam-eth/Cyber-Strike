@@ -174,19 +174,8 @@ static func landscape(hud) -> void:
 	# shaped lines (their em boxes run ~20 px each) inside the 70 px card.
 	if is_instance_valid(hud._wave_enemy_label):
 		hud._wave_enemy_label.custom_minimum_size.y = hud._to_layout(46.0)
-	_place(
-		hud._defense_button,
-		1,
-		0,
-		1,
-		0,
-		Rect2(
-			-edge - hud._to_layout(230.0),
-			hud._top_inset + objective_top + hud._to_layout(80.0),
-			hud._to_layout(230.0),
-			hud._to_layout(56.0)
-		)
-	)
+	# (START DEFENSE is placed after the action cluster, which owns the lane
+	# geometry its slot clamps against.)
 	# The enlarged upper-right ADS/weapon plates occupy the old Pause slot.
 	# Keep system actions on a separate, safe top-centre rail.
 	var system_width: float = hud._to_layout(64.0 if hud._narrow else 136.0)
@@ -211,35 +200,22 @@ static func landscape(hud) -> void:
 			hud._to_layout(56.0)
 		)
 	)
+	# Guardian telemetry: the free band left of the mission card and right of
+	# the armory column. The width clamps to the band so the boss bar never
+	# touches the mission card or the ammo plate on short landscapes.
 	if is_instance_valid(hud._guardian_card):
 		var g_top: float = hud._top_inset + objective_top
-		if hud.size.x >= hud._to_layout(800.0):
-			var g_width: float = hud._to_layout(268.0)
-			var g_left: float = maxf(edge + hud._to_layout(304.0), (hud.size.x - g_width) * 0.5)
-			_place(
-				hud._guardian_card, 0, 0, 0, 0, Rect2(g_left, g_top, g_width, hud._to_layout(48.0))
-			)
-		elif hud._left_handed:
-			var g_w_lh: float = hud._to_layout(240.0)
-			_place(
-				hud._guardian_card,
-				0,
-				0,
-				0,
-				0,
-				Rect2(hud.size.x - edge - g_w_lh, g_top, g_w_lh, hud._to_layout(44.0))
-			)
-		else:
-			_place(
-				hud._guardian_card,
-				0,
-				0,
-				0,
-				0,
-				Rect2(
-					edge, g_top + hud._to_layout(66.0), hud._to_layout(244.0), hud._to_layout(44.0)
-				)
-			)
+		var g_left_min: float = edge + hud._to_layout(194.0)
+		var g_left_max: float = hud.size.x - edge - hud._to_layout(294.0)
+		var g_width: float = clampf(
+			g_left_max - g_left_min - hud._to_layout(8.0),
+			hud._to_layout(110.0),
+			hud._to_layout(268.0)
+		)
+		var g_left: float = clampf(
+			(hud.size.x - g_width) * 0.5, g_left_min, g_left_max - g_width - hud._to_layout(8.0)
+		)
+		_place(hud._guardian_card, 0, 0, 0, 0, Rect2(g_left, g_top, g_width, hud._to_layout(48.0)))
 
 	# One compact two-by-two action cluster. FIRE is primary; ammo is the same
 	# width as the cluster and sits directly above SWAP/ARMORY, so equipped
@@ -289,6 +265,35 @@ static func landscape(hud) -> void:
 		)
 	_place_button(
 		hud, hud._skill_ring, skill_right - 4.0, fire_bottom - 4.0, action_px + 8.0, action_px + 8.0
+	)
+
+	# START DEFENSE: the contextual mission action lives in the free lane
+	# below the mission card and left of the action cluster. Its width clamps
+	# to whatever the lane really offers, so no thumb target ever shares a
+	# pixel on short landscapes (844x390, 667x375) and it grows back to a
+	# readable plate where there is room.
+	var def_lane_left: float = edge + hud._to_layout(194.0)
+	var def_lane_right: float = minf(
+		hud.size.x - float(hud._safe_right) - hud._to_layout(outer_right + action_px),
+		hud.size.x - edge - hud._to_layout(294.0)
+	)
+	var def_w: float = clampf(
+		def_lane_right - def_lane_left - hud._to_layout(8.0),
+		hud._to_layout(96.0),
+		hud._to_layout(230.0)
+	)
+	_place(
+		hud._defense_button,
+		0,
+		0,
+		0,
+		0,
+		Rect2(
+			def_lane_left,
+			hud._top_inset + objective_top + hud._to_layout(76.0),
+			def_w,
+			hud._to_layout(56.0)
+		)
 	)
 	var stick_x: float = hud._to_layout(120.0) + hud._safe_left
 	hud._joystick_center = Vector2(
