@@ -107,9 +107,11 @@ static func landscape(hud) -> void:
 	var short_view: bool = (
 		hud._narrow or (hud._physical_size.y > 0.0 and hud._physical_size.y < 480.0)
 	)
-	# Short LANDSCAPE only: portrait keeps the stacked top-right column (it has
-	# vertical room) and must not compress the right column into one row.
-	var tight_right: bool = short_view and not hud._narrow
+	# Short LANDSCAPE only (the physical height is what matters — the web
+	# runtime reports mobile safe insets that eat ~40 top and ~55 bottom):
+	# portrait keeps the stacked top-right column (it has vertical room) and
+	# must not compress the right column into one row.
+	var tight_right: bool = hud._physical_size.y > 0.0 and hud._physical_size.y < 480.0
 	var edge: float = hud._to_layout(44.0)
 	var bar_height: float = hud._to_layout(56.0 if short_view else 60.0)
 	var health_width: float = hud._to_layout(160.0 if short_view else 242.0)
@@ -178,8 +180,8 @@ static func landscape(hud) -> void:
 	var card_x: float
 	if tight_right:
 		var sys_w_now: float = hud._to_layout(64.0 if hud._narrow else 136.0)
-		var sys_l: float = hud.size.x - edge - hud._to_layout(204.0) - sys_w_now
-		var band_l: float = edge + map_px + hud._to_layout(8.0)
+		var sys_l: float = hud.size.x - 2.0 * edge - hud._to_layout(204.0) - sys_w_now
+		var band_l: float = map_px + hud._to_layout(8.0)
 		var band_w: float = sys_l - hud._to_layout(15.0) - band_l
 		card_w = minf(card_w, maxf(band_w, hud._to_layout(160.0)))
 		card_x = band_l + maxf(band_w - card_w, 0.0) * 0.5
@@ -196,12 +198,7 @@ static func landscape(hud) -> void:
 		)
 	)
 	_place_in_top_bar(
-		hud._wave_card,
-		0 if tight_right else 1,
-		0,
-		0 if tight_right else 1,
-		0,
-		Rect2(card_x, objective_top, card_w, hud._to_layout(70.0))
+		hud._wave_card, 0, 0, 0, 0, Rect2(card_x, objective_top, card_w, hud._to_layout(70.0))
 	)
 	# The wrapped mission detail reserves its two lines here, not at build time
 	# where the stretch factor is still stale. Godot forces an autowrap+clip
