@@ -39,6 +39,45 @@ For intended behavior, read [`GAMEPLAY_DESIGN.md`](GAMEPLAY_DESIGN.md). For requ
   `exports/flow/cue3/`, `exports/flow/cue2/` (mission boot: 43 chevrons,
   1 sign).
 
+## AAA gameplay HUD rebuild — zones, custom icons, tight-landscape band — 2026-11-12
+
+The gameplay HUD was rebuilt to mobile-shooter convention (PUBG Mobile /
+Free Fire / Valorant zone study, refs in `image-search/`), driven entirely
+by real gameplay functions and live player data — no decorative controls.
+
+- **Zone A top-left** — live tactical minimap (`hud_minimap.gd`, drawn with
+  `HudIcons` glyphs + the 18 SVGs in `game/assets/ui/icons/hud/`): real
+  cache route polyline, objective ring, secured markers, player blip.
+  Telemetry chips (BP / ALLOY / CACHE) stack under it on tight screens.
+  VITALS card (segmented HP + icon) rides bottom-left above the stick.
+- **Zone B top-centre** — guardian boss bar (SegmentedBar card) with the
+  tactical compass yielding below it; compass band clamps between the
+  minimap and the mission card and drops below the bar when one is active.
+- **Zone C top-right** — mission card (real objective + approach detail,
+  294x70 contract frame, 2-line reserve at roomy sizes, 1-line at tight),
+  START DEFENSE lane below it on desktop, sound/pause cluster and the
+  upgrade entry at the corner. The weapon chip keeps its SWAP-column
+  pairing above the thumb grid (ammo LEFT == SWAP LEFT contract).
+- **Zone E bottom-right** — compact cluster with custom silhouettes:
+  FIRE (cartridge, yellow primary), AIM (scope), EMP (bolt), SWAP/ARMORY
+  (rifle), RELOAD (magazine), JUMP (chevrons). Real input actions only —
+  reload/jump/emp/weapon_next bridge to the player controller one-shots.
+- **Tight short landscapes** (physical height < 480, mobile safe insets
+  ~40 top / ~55 bottom in the web runtime): the mission card centres in
+  the map-to-system band, telemetry moves to the intel column, the
+  guardian bar drops under the card, and the compass follows. The centre
+  of the screen stays free of interactive controls so the ADS look-drag
+  contract's centre touch point always moves the camera.
+- **Pinned contracts held**: FIRE >=95 / AIM,EMP,SWAP >=79 physical px at
+  844x390 and 667x375 (playability_hud_smoke), ammo LEFT == SWAP LEFT,
+  START below the wave card and clear of JUMP/PAUSE/FIRE, endless
+  guardian raw-rect bounds, hud_safe_margin pairwise + toast yields.
+
+Verified in the real Godot runtime: CI run 43332770509 (`a19614f`) green
+both jobs (45/45 headless smokes + web preview incl. ADS mouse/touch look
+contracts), and frame-by-frame QA captures at 1280x720, 844x390 and
+667x375 (`tools/qa_flow_shots.mjs`) show every zone clear and legible.
+
 ## Game flow + world direction pass — 2026-11-09
 
 | Item | Current checkpoint |
