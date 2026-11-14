@@ -73,10 +73,17 @@ by real gameplay functions and live player data — no decorative controls.
   START below the wave card and clear of JUMP/PAUSE/FIRE, endless
   guardian raw-rect bounds, hud_safe_margin pairwise + toast yields.
 
-Verified in the real Godot runtime: CI run 43332770509 (`a19614f`) green
-both jobs (45/45 headless smokes + web preview incl. ADS mouse/touch look
-contracts), and frame-by-frame QA captures at 1280x720, 844x390 and
-667x375 (`tools/qa_flow_shots.mjs`) show every zone clear and legible.
+Verified in the real Godot runtime: CI runs 43332770509 (`a19614f`), then
+43589219829 (`0039fad`) and 43591267841 (`c7407ba`) all green on both jobs
+(45/45 headless smokes + web preview incl. ADS mouse/touch look contracts).
+Frame-by-frame QA at 1280x720, 844x390 and 667x375 covers both gameplay
+states: explore (`tools/qa_flow_shots.mjs --stages GAMEPLAY`) and the
+defense wave (`tools/web_qa.mjs --encounter`, frames `defense-preparing`
+and `defense-started` in `exports/encounter-*/`) — the mission card swaps
+to live wave data (WAVE 01 / 2 LEFT / KO / BP) and the run-modifier card
+appears, all zones clear at every size. Narrow landscapes keep the quick
+mute toggle: the system row is 120 px there so both icon buttons fit
+(settings menu keeps the fuller audio controls).
 
 ## Game flow + world direction pass — 2026-11-09
 
