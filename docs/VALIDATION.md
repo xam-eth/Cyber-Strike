@@ -85,6 +85,18 @@ appears, all zones clear at every size. Narrow landscapes keep the quick
 mute toggle: the system row is 120 px there so both icon buttons fit
 (settings menu keeps the fuller audio controls).
 
+## System icons pass — pause/sound off desktop, glyph-scale on touch — 2026-11-14
+
+| Item | Current checkpoint |
+| --- | --- |
+| Complaint | Pause ("mause") + music/sound icons took ~5% of screen space: "harusnya tidak ada di hud, jika pun ada icon nya kecil". |
+| Decision | Desktop/mouse: the pair leaves the HUD entirely (Esc pauses, M mutes; the pause -> Settings menu keeps the fuller audio controls). Touch/compact: the pair stays but as glyph-scale utilities. |
+| Size contract | Both plates are exactly 28x28 physical px with a 15 px glyph (HudStyles stops re-stamping 64 px plates / 48 px glyphs on every style pass; the icon buttons shrink to content and pack right in their 104 px row). Pair footprint = 2 x 28^2 = 0.48% of an 844x390 screen, ~10x smaller than the complained size. |
+| Bezel hygiene | The top dock plate framed the row and drew an empty bezel sliver wherever the row rect lagged the packed buttons (and, before the row was gated off, a full empty frame on desktop). The top plate is gone; the pair reads as two clean plates. Bottom rail, left thumb bracket and right ammo column keep the dock language. |
+| VERIFIED (CI) | Runs `43595919018` (`879892a`, FULL SUCCESS), `43599820159` (`57cebcc`, recovery-e2e retrigger after one documented node flake on `43598350196`), `43602200412` (`9b0da51`), `43605311988` (`9794611`), `43607984018` (`9bc0e75`) all green. |
+| VERIFIED (frames) | `exports/flow/iconfix{,-m,-c}/gameplay-*.png`, `qa_flow_shots --stages GAMEPLAY` PASS at 1280x720, 844x390, 667x375: desktop top-right shows no icons and no empty bezel (only BP/ALLOY/CACHE + mission card); both touch viewports show the compact 28 px pair. |
+| Tooling | `qa_flow_shots.mjs` gained web_qa's fresh-profile launch (the pinned @sparticuz profile kept a cross-launch disk cache) and runs `image_stats.py` with the repo root as cwd (frame paths are repo-relative; launching from tools/ silently measured nothing and failed every frame). Pillow reinstalled into `.venv`. |
+
 ## Game flow + world direction pass — 2026-11-09
 
 | Item | Current checkpoint |
