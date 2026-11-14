@@ -552,7 +552,10 @@ func _apply_input_mode() -> void:
 	if is_instance_valid(_touch_ammo_chip):
 		_touch_ammo_chip.visible = gameplay_visible
 	if is_instance_valid(_sound_button):
-		_sound_button.visible = not _narrow and gameplay_visible
+		# The quick mute toggle stays on screen at every landscape size (the
+		# system row is wide enough for both icon buttons); the settings menu
+		# keeps the fuller audio controls.
+		_sound_button.visible = gameplay_visible
 	if is_instance_valid(_pause_button):
 		_pause_button.visible = gameplay_visible
 	if not gameplay_visible:
