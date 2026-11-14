@@ -314,6 +314,7 @@ const python = path.join(ROOT, '.venv', 'bin', 'python');
 if (fs.existsSync(python) && frames.length) {
   try {
     const raw = execFileSync(python, [path.join(ROOT, 'tools', 'image_stats.py'), '--json', ...frames], {
+      cwd: ROOT,
       encoding: 'utf8',
       maxBuffer: 32 * 1024 * 1024,
     });

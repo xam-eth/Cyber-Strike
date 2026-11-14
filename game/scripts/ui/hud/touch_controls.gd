@@ -1371,16 +1371,10 @@ func _draw() -> void:
 	# them. Drawn before the crosshair so the reticle always stays on top.
 	if not get_tree().paused:
 		HudRenderer.visor_frame(self)
-		(
-			HudDock
-			. top(
-				self,
-				[
-					_sound_button,
-					_pause_button,
-				]
-			)
-		)
+		# No top dock plate: the pair reads as two clean utility plates, and
+		# framing it drew an empty bezel sliver whenever the row's layout
+		# rects lagged the packed button positions. The bottom rail, left
+		# thumb bracket and right ammo column keep the dock language.
 		(
 			HudDock
 			. bottom(
