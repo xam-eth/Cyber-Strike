@@ -179,7 +179,7 @@ static func landscape(hud) -> void:
 	var card_w: float = hud._to_layout(240.0 if tight_right else 294.0)
 	var card_x: float
 	if tight_right:
-		var sys_w_now: float = hud._to_layout(64.0 if hud._narrow else 136.0)
+		var sys_w_now: float = hud._to_layout(120.0 if hud._narrow else 136.0)
 		var sys_l: float = hud.size.x - 2.0 * edge - hud._to_layout(204.0) - sys_w_now
 		var band_l: float = map_px + hud._to_layout(8.0)
 		var band_w: float = sys_l - hud._to_layout(15.0) - band_l
@@ -213,7 +213,7 @@ static func landscape(hud) -> void:
 	# System actions (pause/sound) share the top-right corner row with the
 	# upgrade entry, leaving the top-centre band to the guardian bar and the
 	# compass strip — the classic shooter top edge.
-	var system_width: float = hud._to_layout(64.0 if hud._narrow else 136.0)
+	var system_width: float = hud._to_layout(120.0 if hud._narrow else 136.0)
 	_place_in_top_bar(
 		hud._system_row,
 		1,
