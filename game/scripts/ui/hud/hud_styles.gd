@@ -129,7 +129,10 @@ static func apply_fonts(hud) -> void:
 	# screenshot measured FIRE only 78x59 inside a 120x120 target. The icon's
 	# new diagonal drawing and this ceiling must BOTH be checked in pixels.
 	var icon_px := maxi(roundi(hud._to_layout(20.0)), 12)
-	var icon_button_px := maxf(hud._to_layout(64.0 if hud._touch_mode else 56.0), 32.0)
+	# System icons stay glyph-scale (the user's HUD rule: the pause/sound
+	# pair must not eat screen real estate -- they are utilities, not thumb
+	# targets; Esc and M cover the same actions on desktop).
+	var icon_button_px := maxf(hud._to_layout(28.0), 22.0)
 	for icon_button in [hud._pause_button, hud._sound_button]:
 		if is_instance_valid(icon_button):
 			icon_button.custom_minimum_size = Vector2(icon_button_px, icon_button_px)
@@ -154,9 +157,9 @@ static func apply_fonts(hud) -> void:
 			elif button == hud._weapon_button:
 				button_icon_px = roundi(hud._to_layout(50.0))
 			elif button == hud._pause_button:
-				button_icon_px = roundi(hud._to_layout(48.0 if hud._touch_mode else 40.0))
+				button_icon_px = roundi(hud._to_layout(15.0 if hud._touch_mode else 13.0))
 			elif button == hud._sound_button:
-				button_icon_px = roundi(hud._to_layout(32.0 if hud._touch_mode else 24.0))
+				button_icon_px = roundi(hud._to_layout(15.0 if hud._touch_mode else 13.0))
 			button.add_theme_constant_override("icon_max_width", button_icon_px)
 	# Caption bands are fitted in apply_action_caption_density, which runs after
 	# the font pass: a fixed 16 px band cannot hold the 16 px accessibility font

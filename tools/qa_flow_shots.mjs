@@ -29,6 +29,7 @@
  * Exit code 0 = every requested stage was reached and rendered; 1 = otherwise.
  */
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import zlib from 'node:zlib';
 import crypto from 'node:crypto';
@@ -106,9 +107,20 @@ await new Promise((resolve) => setTimeout(resolve, 900));
 
 fs.mkdirSync(outDir, { recursive: true });
 
+/* A fresh profile per launch, like web_qa: @sparticuz/chromium pins
+ * --user-data-dir in its args, and that shared profile kept the HTTP disk
+ * cache (and the exported build's user:// progression) across launches --
+ * later runs silently shot the PREVIOUS payload's build. */
+const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'qaflow-profile-'));
+const stripProfile = (args) => args.filter((a) => !String(a).startsWith('--user-data-dir'));
 const browser = await puppeteer.launch({
   executablePath: await chromium.executablePath(),
-  args: [...chromium.args, '--no-sandbox', '--disable-dev-shm-usage'],
+  args: [
+    ...stripProfile(chromium.args),
+    '--no-sandbox',
+    '--disable-dev-shm-usage',
+    `--user-data-dir=${userDataDir}`,
+  ],
   headless: true,
   protocolTimeout: 300000,
   env: { ...process.env, LD_LIBRARY_PATH: [LIB_DIR, process.env.LD_LIBRARY_PATH].filter(Boolean).join(':') },
