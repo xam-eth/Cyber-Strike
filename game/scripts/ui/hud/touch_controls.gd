@@ -552,12 +552,13 @@ func _apply_input_mode() -> void:
 	if is_instance_valid(_touch_ammo_chip):
 		_touch_ammo_chip.visible = gameplay_visible
 	if is_instance_valid(_sound_button):
-		# The quick mute toggle stays on screen at every landscape size (the
-		# system row is wide enough for both icon buttons); the settings menu
-		# keeps the fuller audio controls.
-		_sound_button.visible = gameplay_visible
+		# Mouse and keyboard already own mute (M) and pause (Esc), so the HUD
+		# keeps its corners clean on desktop; touch screens get the pair as
+		# compact 44 px icon buttons instead of full-size plates. The settings
+		# menu keeps the fuller audio controls.
+		_sound_button.visible = gameplay_visible and _touch_mode
 	if is_instance_valid(_pause_button):
-		_pause_button.visible = gameplay_visible
+		_pause_button.visible = gameplay_visible and _touch_mode
 	if not gameplay_visible:
 		for control in [_run_card, _score_chip, _compact_card, _help_panel]:
 			if is_instance_valid(control):
@@ -1070,7 +1071,7 @@ func _icon_button(button_name: String, icon_name: String, tooltip: String) -> Ae
 	button.icon = AegisTheme.icon(icon_name, true)
 	button.expand_icon = false
 	button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	button.add_theme_constant_override("icon_max_width", 20)
+	button.add_theme_constant_override("icon_max_width", 14)
 	button.add_theme_font_size_override("font_size", 11)
 	AegisTheme.set_button_variant(button, "icon")
 	if button_name == "SoundButton":
