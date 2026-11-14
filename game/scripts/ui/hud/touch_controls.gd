@@ -551,11 +551,13 @@ func _apply_input_mode() -> void:
 		_skill_ring.visible = gameplay_visible
 	if is_instance_valid(_touch_ammo_chip):
 		_touch_ammo_chip.visible = gameplay_visible
-	if is_instance_valid(_sound_button):
+	if is_instance_valid(_system_row):
 		# Mouse and keyboard already own mute (M) and pause (Esc), so the HUD
 		# keeps its corners clean on desktop; touch screens get the pair as
-		# compact 44 px icon buttons instead of full-size plates. The settings
-		# menu keeps the fuller audio controls.
+		# compact icon buttons instead of full-size plates. The settings menu
+		# keeps the fuller audio controls.
+		_system_row.visible = gameplay_visible and _touch_mode
+	if is_instance_valid(_sound_button):
 		_sound_button.visible = gameplay_visible and _touch_mode
 	if is_instance_valid(_pause_button):
 		_pause_button.visible = gameplay_visible and _touch_mode
@@ -1074,6 +1076,18 @@ func _icon_button(button_name: String, icon_name: String, tooltip: String) -> Ae
 	button.add_theme_constant_override("icon_max_width", 14)
 	button.add_theme_font_size_override("font_size", 11)
 	AegisTheme.set_button_variant(button, "icon")
+	# Compact the icon variant's chunky padding so the pair reads as small
+	# utility glyphs, not full combat plates (the user's HUD rule: system
+	# icons stay minimal).
+	for style_name in ["normal", "hover", "pressed", "disabled", "focus"]:
+		var style := button.get_theme_stylebox(style_name)
+		if style is StyleBoxFlat:
+			var compact := (style as StyleBoxFlat).duplicate() as StyleBoxFlat
+			compact.content_margin_left = 5.0
+			compact.content_margin_right = 5.0
+			compact.content_margin_top = 4.0
+			compact.content_margin_bottom = 4.0
+			button.add_theme_stylebox_override(style_name, compact)
 	if button_name == "SoundButton":
 		button.pressed.connect(_on_sound_pressed)
 	else:
