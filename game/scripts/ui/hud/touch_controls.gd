@@ -888,6 +888,7 @@ func _build_system_row() -> void:
 	_system_row = HBoxContainer.new()
 	_system_row.name = "SystemRow"
 	_system_row.add_theme_constant_override("separation", 8)
+	_system_row.alignment = BoxContainer.ALIGNMENT_END
 	_system_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_top_bar.add_child(_system_row)
 
@@ -1073,20 +1074,25 @@ func _icon_button(button_name: String, icon_name: String, tooltip: String) -> Ae
 	button.icon = AegisTheme.icon(icon_name, true)
 	button.expand_icon = false
 	button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	button.add_theme_constant_override("icon_max_width", 14)
+	button.add_theme_constant_override("icon_max_width", 13)
 	button.add_theme_font_size_override("font_size", 11)
 	AegisTheme.set_button_variant(button, "icon")
 	# Compact the icon variant's chunky padding so the pair reads as small
 	# utility glyphs, not full combat plates (the user's HUD rule: system
-	# icons stay minimal).
+	# icons stay minimal). Shrink flags matter as much as the padding: left
+	# on SIZE_FILL the button stretches to the 44 px row's full height and
+	# the margin trim never shows.
+	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	button.custom_minimum_size = Vector2(28.0, 26.0)
 	for style_name in ["normal", "hover", "pressed", "disabled", "focus"]:
 		var style := button.get_theme_stylebox(style_name)
 		if style is StyleBoxFlat:
 			var compact := (style as StyleBoxFlat).duplicate() as StyleBoxFlat
-			compact.content_margin_left = 5.0
-			compact.content_margin_right = 5.0
-			compact.content_margin_top = 4.0
-			compact.content_margin_bottom = 4.0
+			compact.content_margin_left = 4.0
+			compact.content_margin_right = 4.0
+			compact.content_margin_top = 3.0
+			compact.content_margin_bottom = 3.0
 			button.add_theme_stylebox_override(style_name, compact)
 	if button_name == "SoundButton":
 		button.pressed.connect(_on_sound_pressed)
@@ -1370,7 +1376,8 @@ func _draw() -> void:
 			. top(
 				self,
 				[
-					_system_row,
+					_sound_button,
+					_pause_button,
 				]
 			)
 		)
