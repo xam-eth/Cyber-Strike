@@ -89,7 +89,12 @@ INCLUDE_IN_EXPORT = "*.json"
 
 # Files that must never reach a player. `tests/*` is the whole smoke suite;
 # `assets/world/real/*` is the offline asset-forge source library.
-EXCLUDE_FROM_EXPORT = "tests/*,assets/world/real/*"
+# `assets/world/aetherfall/source_textures/*` is provenance only: the four
+# AI-generated source albedos the blender pipeline derives the runtime maps
+# from -- the GLBs reference only the derived maps under `textures/`.
+EXCLUDE_FROM_EXPORT = (
+    "tests/*,assets/world/real/*,assets/world/aetherfall/source_textures/*"
+)
 
 PRESET_HEADER_OPTIONS: list[tuple[str, str]] = [
     ("runnable", "true"),

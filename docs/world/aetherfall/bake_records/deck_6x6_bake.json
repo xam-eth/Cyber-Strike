@@ -1,0 +1,43 @@
+{
+ "asset": "deck_6x6",
+ "gate": {
+  "high_poly": "authored_pending_human_review",
+  "uv_bake": "baked_cage_recorded_pending_human_review",
+  "pbr": "baked_normal_composited_pending_human_review"
+ },
+ "resolution": 1024,
+ "cage_extrusion_m": 0.005,
+ "normal_space": "tangent",
+ "selected_to_active": true,
+ "hp_objects": [
+  "HP_ChamferedDeckArmour",
+  "HP_DeckRetention0",
+  "HP_DeckRetention1",
+  "HP_DeckRetention2",
+  "HP_DeckRetention3",
+  "HP_DeckUndersideRib0",
+  "HP_DeckUndersideRib1",
+  "HP_DeckUndersideRib2",
+  "HP_RecessedServiceBay"
+ ],
+ "lp_objects": [
+  "ChamferedDeckArmour",
+  "DeckRetention0",
+  "DeckRetention1",
+  "DeckRetention2",
+  "DeckRetention3",
+  "DeckUndersideRib0",
+  "DeckUndersideRib1",
+  "DeckUndersideRib2",
+  "RecessedServiceBay"
+ ],
+ "baked_normal": "docs/world/aetherfall/bake_inspection/deck_6x6_baked_normal_composite.png",
+ "approved_by": null,
+ "export_verify": {
+  "nodes_match": true,
+  "materials_match": true,
+  "positions_match": true,
+  "uv_count_match": true
+ },
+ "shipped_normal_map": "game/assets/world/aetherfall/textures/831c1d47832ef647c93eeff788197550ace7a84d3eab96ace8c0cd31d0d1e259.jpg"
+}

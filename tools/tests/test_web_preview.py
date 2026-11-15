@@ -67,7 +67,11 @@ class WebPresetTests(unittest.TestCase):
         self.assertNotIn("enemy_robot_", excluded)
         self.assertNotIn("enemy_iron_sentinel", excluded)
         self.assertNotIn("enemy_iron_warden_boss", excluded)
-        self.assertNotIn("assets/world/aetherfall", excluded)
+        entries = [e.strip() for e in excluded.split(",") if e.strip()]
+        # The runtime world tree must stay exportable; only the AI-source
+        # provenance textures (never referenced by shipped GLBs) are carved out.
+        world_entries = [e for e in entries if e.startswith("assets/world/aetherfall")]
+        self.assertEqual(world_entries, ["assets/world/aetherfall/source_textures/*"])
 
     def test_ensure_is_idempotent_and_preserves_other_presets(self) -> None:
         self.run_tool("ensure")

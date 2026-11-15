@@ -1,0 +1,37 @@
+{
+ "asset": "damaged_slab",
+ "gate": {
+  "high_poly": "authored_pending_human_review",
+  "uv_bake": "baked_cage_recorded_pending_human_review",
+  "pbr": "baked_normal_composited_pending_human_review"
+ },
+ "resolution": 1024,
+ "cage_extrusion_m": 0.005,
+ "normal_space": "tangent",
+ "selected_to_active": true,
+ "hp_objects": [
+  "HP_CollapsedRib",
+  "HP_DamagedEnergyLeak",
+  "HP_FracturedPlate0",
+  "HP_FracturedPlate1",
+  "HP_FracturedPlate2",
+  "HP_FracturedPlate3"
+ ],
+ "lp_objects": [
+  "CollapsedRib",
+  "DamagedEnergyLeak",
+  "FracturedPlate0",
+  "FracturedPlate1",
+  "FracturedPlate2",
+  "FracturedPlate3"
+ ],
+ "baked_normal": "docs/world/aetherfall/bake_inspection/damaged_slab_baked_normal_composite.png",
+ "approved_by": null,
+ "export_verify": {
+  "nodes_match": true,
+  "materials_match": true,
+  "positions_match": true,
+  "uv_count_match": true
+ },
+ "shipped_normal_map": "game/assets/world/aetherfall/textures/dbc69b99ece5a59c009ed038cad7e4799689126556df0aae8f8ba6e3c98272be.jpg"
+}

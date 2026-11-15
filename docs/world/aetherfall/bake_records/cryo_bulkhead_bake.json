@@ -1,0 +1,55 @@
+{
+ "asset": "cryo_bulkhead",
+ "gate": {
+  "high_poly": "authored_pending_human_review",
+  "uv_bake": "baked_cage_recorded_pending_human_review",
+  "pbr": "baked_normal_composited_pending_human_review"
+ },
+ "resolution": 1024,
+ "cage_extrusion_m": 0.005,
+ "normal_space": "tangent",
+ "selected_to_active": true,
+ "hp_objects": [
+  "HP_BulkheadBrace_-2.1",
+  "HP_BulkheadBrace_2.1",
+  "HP_BulkheadCore",
+  "HP_BulkheadCrossbar",
+  "HP_BulkheadFoot",
+  "HP_BulkheadLight_-1.75",
+  "HP_BulkheadLight_0",
+  "HP_BulkheadLight_1.75",
+  "HP_BulkheadPillar_-2.75",
+  "HP_BulkheadPillar_2.75",
+  "HP_BulkheadPipe_-2.75",
+  "HP_BulkheadPipe_2.75",
+  "HP_BulkheadVent_1.55",
+  "HP_BulkheadVent_2.55",
+  "HP_BulkheadVent_3.55"
+ ],
+ "lp_objects": [
+  "BulkheadBrace_-2.1",
+  "BulkheadBrace_2.1",
+  "BulkheadCore",
+  "BulkheadCrossbar",
+  "BulkheadFoot",
+  "BulkheadLight_-1.75",
+  "BulkheadLight_0",
+  "BulkheadLight_1.75",
+  "BulkheadPillar_-2.75",
+  "BulkheadPillar_2.75",
+  "BulkheadPipe_-2.75",
+  "BulkheadPipe_2.75",
+  "BulkheadVent_1.55",
+  "BulkheadVent_2.55",
+  "BulkheadVent_3.55"
+ ],
+ "baked_normal": "docs/world/aetherfall/bake_inspection/cryo_bulkhead_baked_normal_composite.png",
+ "approved_by": null,
+ "export_verify": {
+  "nodes_match": true,
+  "materials_match": true,
+  "positions_match": true,
+  "uv_count_match": true
+ },
+ "shipped_normal_map": "game/assets/world/aetherfall/textures/63cb76b697eff477325ea1592b6ac89a08196959708125ee99f98b25a1408067.jpg"
+}
