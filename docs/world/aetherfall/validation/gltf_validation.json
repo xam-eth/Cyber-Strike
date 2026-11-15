@@ -13,10 +13,10 @@
   ],
   "totals": {
     "glb_assets": 51,
-    "bytes": 13931312,
+    "bytes": 13931024,
     "errors": 0,
     "warnings": 0,
-    "infos": 996,
+    "infos": 759,
     "draw_calls": 1127,
     "vertices": 256931,
     "triangles": 131368
@@ -25,17 +25,17 @@
     {
       "runtime_path": "game/assets/world/aetherfall/archive/archive_computer.glb",
       "source_path": "source/aetherfall_archive_interior.blend",
-      "sha256": "f4b39c4cf96d1ed4e174564a8375c38d39be6abc44386b2c0e25ac6ce4f92785",
-      "bytes": 382880,
+      "sha256": "6906082c199793b04d37b83f065b1c4055b50e2c4c9482d9dc1936f62c3a9aed",
+      "bytes": 382868,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 17,
+        "infos": 14,
         "hints": 0,
         "by_code": {
           "URI_GLB": 9,
-          "IMAGE_NPOT_DIMENSIONS": 8
+          "IMAGE_NPOT_DIMENSIONS": 5
         }
       },
       "stats": {
@@ -55,17 +55,17 @@
     {
       "runtime_path": "game/assets/world/aetherfall/archive/archive_vestibule.glb",
       "source_path": "source/aetherfall_archive_interior.blend",
-      "sha256": "05bc09688ddb2f5ecdc23175353b2528168bf6f38fcefcc8b1c5f259e98f0120",
-      "bytes": 774288,
+      "sha256": "a989f5afd7309666b6166c0337156596f02cad58c16907531a2b69ff7b172c00",
+      "bytes": 774280,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 17,
+        "infos": 14,
         "hints": 0,
         "by_code": {
           "URI_GLB": 9,
-          "IMAGE_NPOT_DIMENSIONS": 8
+          "IMAGE_NPOT_DIMENSIONS": 5
         }
       },
       "stats": {
@@ -85,17 +85,17 @@
     {
       "runtime_path": "game/assets/world/aetherfall/expanse/expanse_shelf.glb",
       "source_path": "source/aetherfall_connected_expanse.blend",
-      "sha256": "a21002c4b7372121d951523d9d5f2bb441e9dbe2f50f6fa72e1252a26db91909",
+      "sha256": "3cc92f3a15ddd23fb4f539f931172b8b71d9bd9488e7868103f345b5864a0c87",
       "bytes": 532188,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 14,
+        "infos": 12,
         "hints": 0,
         "by_code": {
           "URI_GLB": 9,
-          "IMAGE_NPOT_DIMENSIONS": 5
+          "IMAGE_NPOT_DIMENSIONS": 3
         }
       },
       "stats": {
@@ -115,17 +115,17 @@
     {
       "runtime_path": "game/assets/world/aetherfall/expanse/lowland_field.glb",
       "source_path": "source/aetherfall_connected_expanse.blend",
-      "sha256": "ec00200366fa6c07cc0c64d622d2f5ac75f3c3b936389c10780a4b433099d92a",
+      "sha256": "bafbfc4f5e14fe0e2b8a6aab379306ad7ac41aa5331ccce7961f66725717e61e",
       "bytes": 521532,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 14,
+        "infos": 12,
         "hints": 0,
         "by_code": {
           "URI_GLB": 9,
-          "IMAGE_NPOT_DIMENSIONS": 5
+          "IMAGE_NPOT_DIMENSIONS": 3
         }
       },
       "stats": {
@@ -145,17 +145,17 @@
     {
       "runtime_path": "game/assets/world/aetherfall/expanse/transit_spine.glb",
       "source_path": "source/aetherfall_connected_expanse.blend",
-      "sha256": "a55673a80beb73a15c217cee95a85d7571d28299ecd142194abdc844243d1788",
-      "bytes": 298920,
+      "sha256": "17b90c06d82876939ee72aa9793fc73cdb00eebc4df45c1c90188cef5befcf8b",
+      "bytes": 298912,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 23,
+        "infos": 20,
         "hints": 0,
         "by_code": {
           "URI_GLB": 12,
-          "IMAGE_NPOT_DIMENSIONS": 11
+          "IMAGE_NPOT_DIMENSIONS": 8
         }
       },
       "stats": {
@@ -175,17 +175,17 @@
     {
       "runtime_path": "game/assets/world/aetherfall/ice_planet/cryo_pylon.glb",
       "source_path": "source/aetherfall_ice_planet.blend",
-      "sha256": "8e7a842659bbdd52b3c15fea93a248052e23a890698a507a5e3f15b702d2b992",
-      "bytes": 241484,
+      "sha256": "d225c6c7f146b4ab77cd82515050002035a3bea0e0052be4da62d010bceb5881",
+      "bytes": 241476,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 20,
+        "infos": 17,
         "hints": 0,
         "by_code": {
           "URI_GLB": 12,
-          "IMAGE_NPOT_DIMENSIONS": 8
+          "IMAGE_NPOT_DIMENSIONS": 5
         }
       },
       "stats": {
@@ -235,17 +235,17 @@
     {
       "runtime_path": "game/assets/world/aetherfall/ice_planet/glacier_shelf.glb",
       "source_path": "source/aetherfall_ice_planet.blend",
-      "sha256": "b5b1e8c47a38bb629e0843c90c0a943760cb50a8856949feb4ae96139bcd9f60",
-      "bytes": 439336,
+      "sha256": "e945687ae81010af61849f0d2647a6e88cfab06e022473896376e3a9ef3e9871",
+      "bytes": 439328,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 20,
+        "infos": 17,
         "hints": 0,
         "by_code": {
           "URI_GLB": 12,
-          "IMAGE_NPOT_DIMENSIONS": 8
+          "IMAGE_NPOT_DIMENSIONS": 5
         }
       },
       "stats": {
@@ -265,17 +265,17 @@
     {
       "runtime_path": "game/assets/world/aetherfall/ice_planet/sentinel_archive.glb",
       "source_path": "source/aetherfall_ice_planet.blend",
-      "sha256": "aa968bca30dba29bc06f0fda48adbe795b0ed0e62a423a7efa5e8b5c501fedb7",
-      "bytes": 2723076,
+      "sha256": "9b341ea136f63fb55604bc9f8bcf72eadd491b0d6f785b29e5d4b5a0eba34935",
+      "bytes": 2723064,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 22,
+        "infos": 20,
         "hints": 0,
         "by_code": {
           "URI_GLB": 15,
-          "IMAGE_NPOT_DIMENSIONS": 7
+          "IMAGE_NPOT_DIMENSIONS": 5
         }
       },
       "stats": {
@@ -295,18 +295,18 @@
     {
       "runtime_path": "game/assets/world/aetherfall/interactives/objective_device.glb",
       "source_path": "source/aetherfall_interactives.blend",
-      "sha256": "28d42f4545fdd0a9594ba3b3f2c190dbd664d1b48da9331f68afa58157cd55c9",
-      "bytes": 424844,
+      "sha256": "5fb54e3bfa37568690243acc608d42b8c76def0a4e5aeb4f7d4e829633a50ecb",
+      "bytes": 424840,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 22,
+        "infos": 19,
         "hints": 0,
         "by_code": {
           "URI_GLB": 10,
           "UNUSED_MESH_TANGENT": 3,
-          "IMAGE_NPOT_DIMENSIONS": 9
+          "IMAGE_NPOT_DIMENSIONS": 6
         }
       },
       "stats": {
@@ -326,18 +326,18 @@
     {
       "runtime_path": "game/assets/world/aetherfall/interactives/tech_cache.glb",
       "source_path": "source/aetherfall_interactives.blend",
-      "sha256": "a8a091f1352b7e3c8b36d161273ab94047cc912012832fcc8c1d10827968a310",
-      "bytes": 1567428,
+      "sha256": "907cf79493f60fc89d0ecc81e2ab7273a3753d1893b91c08929ffcd1b826faf9",
+      "bytes": 1567416,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 30,
+        "infos": 26,
         "hints": 0,
         "by_code": {
           "URI_GLB": 16,
           "UNUSED_MESH_TANGENT": 5,
-          "IMAGE_NPOT_DIMENSIONS": 9
+          "IMAGE_NPOT_DIMENSIONS": 5
         }
       },
       "stats": {
@@ -357,18 +357,18 @@
     {
       "runtime_path": "game/assets/world/aetherfall/landmarks/cargo_service_cluster.glb",
       "source_path": "source/aetherfall_landmarks.blend",
-      "sha256": "9b4d04aeda1f3b8dec96a2829caaccc25c6ac3776bfb1aba3e1da577ab47c3ac",
-      "bytes": 214200,
+      "sha256": "bb6e0b451d8fba2d9f7ae38fb0326a840c8802225a7abd2fab9b2dc351d26250",
+      "bytes": 214192,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 26,
+        "infos": 20,
         "hints": 0,
         "by_code": {
           "URI_GLB": 13,
           "UNUSED_MESH_TANGENT": 1,
-          "IMAGE_NPOT_DIMENSIONS": 12
+          "IMAGE_NPOT_DIMENSIONS": 6
         }
       },
       "stats": {
@@ -388,18 +388,18 @@
     {
       "runtime_path": "game/assets/world/aetherfall/landmarks/field_outpost.glb",
       "source_path": "source/aetherfall_landmarks.blend",
-      "sha256": "1f1a638faf989c679bf5b1b1fe7c81c4e14d2264a714e64a74da128f2d475ff6",
-      "bytes": 368852,
+      "sha256": "c9994e7f21ecd6de5de11c12736be4a9cc52043a6a785fab712f52693176da2b",
+      "bytes": 368844,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 33,
+        "infos": 27,
         "hints": 0,
         "by_code": {
           "URI_GLB": 13,
           "UNUSED_MESH_TANGENT": 8,
-          "IMAGE_NPOT_DIMENSIONS": 12
+          "IMAGE_NPOT_DIMENSIONS": 6
         }
       },
       "stats": {
@@ -419,18 +419,18 @@
     {
       "runtime_path": "game/assets/world/aetherfall/landmarks/relay_annex.glb",
       "source_path": "source/aetherfall_landmarks.blend",
-      "sha256": "8fb529b431002ab5e3d917851f59ea11b712b17c8f20a0732d017c8247bebd2f",
-      "bytes": 417944,
+      "sha256": "3e1808f8f2c43aa9995105b8782a42649260fc3487009d2394e165e56d15e134",
+      "bytes": 417936,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 29,
+        "infos": 23,
         "hints": 0,
         "by_code": {
           "URI_GLB": 13,
           "UNUSED_MESH_TANGENT": 4,
-          "IMAGE_NPOT_DIMENSIONS": 12
+          "IMAGE_NPOT_DIMENSIONS": 6
         }
       },
       "stats": {
@@ -450,18 +450,18 @@
     {
       "runtime_path": "game/assets/world/aetherfall/landmarks/service_hangar.glb",
       "source_path": "source/aetherfall_landmarks.blend",
-      "sha256": "ba8427c65ddbfcc2036a35bfe7a74b24889c153d34228e43a8b1175733888df1",
-      "bytes": 481372,
+      "sha256": "8b33a094e8c592c765192d6fc090a9d4bbd5d58ec4c92a76660a0740f894e107",
+      "bytes": 481364,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 29,
+        "infos": 23,
         "hints": 0,
         "by_code": {
           "URI_GLB": 13,
           "UNUSED_MESH_TANGENT": 4,
-          "IMAGE_NPOT_DIMENSIONS": 12
+          "IMAGE_NPOT_DIMENSIONS": 6
         }
       },
       "stats": {
@@ -481,18 +481,18 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/access_gate.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "4e9f49722b7724448082fd9b6cf1be48dbf4a1edf36db46e34f07c418502a34c",
-      "bytes": 42044,
+      "sha256": "015b4788ff7a174391688ba0c53b24e6f671ee860542bf7504a9575981c1cb48",
+      "bytes": 42036,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 26,
+        "infos": 20,
         "hints": 0,
         "by_code": {
           "URI_GLB": 13,
           "UNUSED_MESH_TANGENT": 4,
-          "IMAGE_NPOT_DIMENSIONS": 9
+          "IMAGE_NPOT_DIMENSIONS": 3
         }
       },
       "stats": {
@@ -512,18 +512,18 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/background_silhouette.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "0d128e7efb7aa2278f713e76c0753956d7d8e5f119531b736ac7e8895d68a4f8",
-      "bytes": 67448,
+      "sha256": "e4af5af1acd176865ee0d536dcbb9c47cf25e776704e5867f067b5356dc24ffc",
+      "bytes": 67444,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 19,
+        "infos": 13,
         "hints": 0,
         "by_code": {
           "URI_GLB": 7,
           "UNUSED_MESH_TANGENT": 5,
-          "IMAGE_NPOT_DIMENSIONS": 7
+          "IMAGE_NPOT_DIMENSIONS": 1
         }
       },
       "stats": {
@@ -543,17 +543,16 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/beam.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "228fecc4dff206452eb1113d7a1ce2922c3e83e893215b5cab5ce93faae7bff3",
-      "bytes": 13624,
+      "sha256": "500cf2858120471e65662933d829387fa7e0d26997c3af556aa8401997878f7f",
+      "bytes": 13620,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 12,
+        "infos": 6,
         "hints": 0,
         "by_code": {
-          "URI_GLB": 6,
-          "IMAGE_NPOT_DIMENSIONS": 6
+          "URI_GLB": 6
         }
       },
       "stats": {
@@ -573,17 +572,17 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/bridge_deck.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "7d990d293267055a40a94ff8266a0fdf280c7c13e574bf01bb9304e052572b00",
-      "bytes": 42512,
+      "sha256": "f14356cf3437db67709015024a687d566cf2a87c80710468738c7cfdcf21b712",
+      "bytes": 42504,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 24,
+        "infos": 15,
         "hints": 0,
         "by_code": {
           "URI_GLB": 12,
-          "IMAGE_NPOT_DIMENSIONS": 12
+          "IMAGE_NPOT_DIMENSIONS": 3
         }
       },
       "stats": {
@@ -603,17 +602,17 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/bridge_support.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "dcad48f0dfdbb09de50049b12613428fd5317ca96ea93bee37fd5bfbe6ac28b4",
-      "bytes": 41820,
+      "sha256": "828b27b33de71515c149601897d30aed0d08f32833178d66dcba04a4b4ba4a34",
+      "bytes": 41808,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 30,
+        "infos": 21,
         "hints": 0,
         "by_code": {
           "URI_GLB": 15,
-          "IMAGE_NPOT_DIMENSIONS": 15
+          "IMAGE_NPOT_DIMENSIONS": 6
         }
       },
       "stats": {
@@ -633,17 +632,17 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/cable_bundle.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "b525d2678d3f6bda0425c2014bd9919261667786454f09037789b25aa9d5b721",
-      "bytes": 22532,
+      "sha256": "637b276d791a9b445e6c3e94b9ca4a3725e29a1757b6a2df291ae5945b069fc3",
+      "bytes": 22524,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 18,
+        "infos": 12,
         "hints": 0,
         "by_code": {
           "URI_GLB": 9,
-          "IMAGE_NPOT_DIMENSIONS": 9
+          "IMAGE_NPOT_DIMENSIONS": 3
         }
       },
       "stats": {
@@ -663,17 +662,17 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/cliff_face.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "b7caae31aeedbba974452f6f9f32a26dbab01e17b4bc46b643525ad72aa683b9",
-      "bytes": 147308,
+      "sha256": "02c08966ca0cfb769fc01706e9cca76845d57f25899ad37d1db63313f0ce30f7",
+      "bytes": 147300,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 18,
+        "infos": 12,
         "hints": 0,
         "by_code": {
           "URI_GLB": 9,
-          "IMAGE_NPOT_DIMENSIONS": 9
+          "IMAGE_NPOT_DIMENSIONS": 3
         }
       },
       "stats": {
@@ -723,18 +722,18 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/conduit.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "5e0d6004f057da87d360a116aa4d8ce20ea45bcd72fbab4e7ef48fb5d637ae4c",
-      "bytes": 27324,
+      "sha256": "58e0c93179c0cce304a1afae6bd7ba5036f7be5851266c1525c8a7ca7318d083",
+      "bytes": 27320,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 21,
+        "infos": 15,
         "hints": 0,
         "by_code": {
           "URI_GLB": 10,
           "UNUSED_MESH_TANGENT": 1,
-          "IMAGE_NPOT_DIMENSIONS": 10
+          "IMAGE_NPOT_DIMENSIONS": 4
         }
       },
       "stats": {
@@ -754,17 +753,17 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/connector_ramp.glb",
       "source_path": "source/connector_ramp.blend",
-      "sha256": "7ac4d2a12f8206a1c1afd999799adaafcccd92ae940c0b64f9c2cd4180f4f191",
-      "bytes": 55596,
+      "sha256": "8b8c1a81f6a009a9d9186fca64862384d2dc066a12a106424587b923f0120c30",
+      "bytes": 55592,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 12,
+        "infos": 9,
         "hints": 0,
         "by_code": {
           "URI_GLB": 6,
-          "IMAGE_NPOT_DIMENSIONS": 6
+          "IMAGE_NPOT_DIMENSIONS": 3
         }
       },
       "stats": {
@@ -784,17 +783,17 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/cooling_vent.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "f102ad072c6e02e3325c4c0c283d56a1330b2bf35750863d0213b04151063719",
-      "bytes": 54052,
+      "sha256": "0728f876836f4d443a0941ce423109d04bfeebfd5d994b885aa37204ca848f5f",
+      "bytes": 54044,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 18,
+        "infos": 12,
         "hints": 0,
         "by_code": {
           "URI_GLB": 9,
-          "IMAGE_NPOT_DIMENSIONS": 9
+          "IMAGE_NPOT_DIMENSIONS": 3
         }
       },
       "stats": {
@@ -814,17 +813,17 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/cover_barrier.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "f5348d355a5580a56e4d446486e6a4227996b42f7936b979bf0f83b682285999",
-      "bytes": 10184,
+      "sha256": "c9346df01ad64cdcf34a1068668200d929e03f78b186e3cf963cd3655a71a9b6",
+      "bytes": 10176,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 18,
+        "infos": 12,
         "hints": 0,
         "by_code": {
           "URI_GLB": 9,
-          "IMAGE_NPOT_DIMENSIONS": 9
+          "IMAGE_NPOT_DIMENSIONS": 3
         }
       },
       "stats": {
@@ -844,18 +843,18 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/cover_machine.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "777a28d7628ca4b78b8cfc7ffa95dbe3800a9038572b3e5e47260e1930571045",
+      "sha256": "fa174fe6ff2ed2f719b842a29acb296590ea0594d22642c54dc70df29267d114",
       "bytes": 28824,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 18,
+        "infos": 12,
         "hints": 0,
         "by_code": {
           "URI_GLB": 10,
           "UNUSED_MESH_TANGENT": 1,
-          "IMAGE_NPOT_DIMENSIONS": 7
+          "IMAGE_NPOT_DIMENSIONS": 1
         }
       },
       "stats": {
@@ -875,18 +874,18 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/damaged_slab.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "fc2291a25ddab9e9955501e5fc0b6d1cb458631b04fd8c70fe85e4633f8425b3",
+      "sha256": "20acae7fb1dfc1823ae3adc6761436ba72a74f4d3fe8040cb6bd7eeebeaa7897",
       "bytes": 28820,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 23,
+        "infos": 17,
         "hints": 0,
         "by_code": {
           "URI_GLB": 13,
           "UNUSED_MESH_TANGENT": 1,
-          "IMAGE_NPOT_DIMENSIONS": 9
+          "IMAGE_NPOT_DIMENSIONS": 3
         }
       },
       "stats": {
@@ -906,18 +905,18 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/debris_cluster.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "f74266dd1e79d0f6e7e967869b06abb014b46f45938c5c4ff568e34967c966cd",
-      "bytes": 46992,
+      "sha256": "c3ffe3aa6b6dd0dc7a11cc5130e48bd15fd8e556d6bc308de9561f29e9dabace",
+      "bytes": 46988,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 15,
+        "infos": 9,
         "hints": 0,
         "by_code": {
           "URI_GLB": 7,
           "UNUSED_MESH_TANGENT": 1,
-          "IMAGE_NPOT_DIMENSIONS": 7
+          "IMAGE_NPOT_DIMENSIONS": 1
         }
       },
       "stats": {
@@ -937,17 +936,16 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/deck_6x6.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "d8af5e999a340abc20b796a608bc237cef02d9e0d5f018aed3f49114d793b3ed",
+      "sha256": "b19134631626e74660f2fa4c878f83a08f3306367aa65ffa17b90c8e0f39a58c",
       "bytes": 45652,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 15,
+        "infos": 9,
         "hints": 0,
         "by_code": {
-          "URI_GLB": 9,
-          "IMAGE_NPOT_DIMENSIONS": 6
+          "URI_GLB": 9
         }
       },
       "stats": {
@@ -967,17 +965,17 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/deck_edge.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "e94d0eb89912031649dc25a15d0ac9788c8a64df117f116dc6a92de2e97fd0b6",
-      "bytes": 23716,
+      "sha256": "fc81853c7d002f28d62467019b1d77ce0668b2770b75392a6fce699b8126af69",
+      "bytes": 23708,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 24,
+        "infos": 15,
         "hints": 0,
         "by_code": {
           "URI_GLB": 12,
-          "IMAGE_NPOT_DIMENSIONS": 12
+          "IMAGE_NPOT_DIMENSIONS": 3
         }
       },
       "stats": {
@@ -997,19 +995,19 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/energy_core.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "49819ba72597b0e593b4ac0209152da993501d45dd84554358ee98d043956287",
-      "bytes": 55208,
+      "sha256": "9b577f82432019522fccd880259ac3e684323411a0d5dcbe2ea02352eb9ec04e",
+      "bytes": 55200,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 23,
+        "infos": 17,
         "hints": 0,
         "by_code": {
           "URI_GLB": 10,
           "UNUSED_MESH_TANGENT": 2,
           "UNUSED_OBJECT": 1,
-          "IMAGE_NPOT_DIMENSIONS": 10
+          "IMAGE_NPOT_DIMENSIONS": 4
         }
       },
       "stats": {
@@ -1060,18 +1058,18 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/machinery.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "50f70d62c9b66e5b6254ec253004600df377d882523e03c4f63c2337a75be24b",
-      "bytes": 34160,
+      "sha256": "a023057a8d82edaf486ee488dc994955b418b9cd7ccaa67b8094d3d4b2473b68",
+      "bytes": 34152,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 27,
+        "infos": 18,
         "hints": 0,
         "by_code": {
           "URI_GLB": 13,
           "UNUSED_MESH_TANGENT": 1,
-          "IMAGE_NPOT_DIMENSIONS": 13
+          "IMAGE_NPOT_DIMENSIONS": 4
         }
       },
       "stats": {
@@ -1091,17 +1089,17 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/pillar.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "3d58ec0252bce352275c70088b283d890014252bbde8f589406ba69d6fc4df97",
-      "bytes": 25256,
+      "sha256": "2169f3378e135acb046f2c9067a21a2ba77a5b94f370e9f6f2db749272ceec01",
+      "bytes": 25248,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 24,
+        "infos": 15,
         "hints": 0,
         "by_code": {
           "URI_GLB": 12,
-          "IMAGE_NPOT_DIMENSIONS": 12
+          "IMAGE_NPOT_DIMENSIONS": 3
         }
       },
       "stats": {
@@ -1121,17 +1119,17 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/railing.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "c00dd7daab3db2ffdf3b3edbcfcf9e24b45b4e77dc733b9b94539225bd4fe0e3",
-      "bytes": 43312,
+      "sha256": "794fbf8edcaf90ee4b8d14393a509ef0046e5ed4751e4bd719a908c01f08f581",
+      "bytes": 43308,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 18,
+        "infos": 12,
         "hints": 0,
         "by_code": {
           "URI_GLB": 9,
-          "IMAGE_NPOT_DIMENSIONS": 9
+          "IMAGE_NPOT_DIMENSIONS": 3
         }
       },
       "stats": {
@@ -1211,18 +1209,18 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/tower_foundation.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "e58744e257fb122cf5c5ad3c58bcfdd5898b09fc25b58856988280623ed7760d",
-      "bytes": 81424,
+      "sha256": "dabc74654763a0a7542d3d5873a32223dcdbfab8f3ac8a5166c68413064d622d",
+      "bytes": 81416,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 30,
+        "infos": 21,
         "hints": 0,
         "by_code": {
           "URI_GLB": 13,
           "UNUSED_MESH_TANGENT": 4,
-          "IMAGE_NPOT_DIMENSIONS": 13
+          "IMAGE_NPOT_DIMENSIONS": 4
         }
       },
       "stats": {
@@ -1242,18 +1240,18 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/tower_spire.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "17419a6a0bb07043e8dbac63313b2bbf44edca8435109e61e1d22b3e52eb6737",
-      "bytes": 69184,
+      "sha256": "3a0bdc395f63dd0250fedca1915ec74204f0977fcfe709ccc63d26572cc5fde9",
+      "bytes": 69180,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 18,
+        "infos": 14,
         "hints": 0,
         "by_code": {
           "URI_GLB": 10,
           "UNUSED_MESH_TANGENT": 1,
-          "IMAGE_NPOT_DIMENSIONS": 7
+          "IMAGE_NPOT_DIMENSIONS": 3
         }
       },
       "stats": {
@@ -1273,18 +1271,18 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/tower_tier.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "17b6cd001066bad7ee58a9128f93fab23700714fd67ef1d6cfb6bce16d1dbe49",
-      "bytes": 117056,
+      "sha256": "f8c3e63b0a24ece78fd5a338092dafded28f7ae510613393d2d344f48aec303d",
+      "bytes": 117052,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 25,
+        "infos": 19,
         "hints": 0,
         "by_code": {
           "URI_GLB": 10,
           "UNUSED_MESH_TANGENT": 5,
-          "IMAGE_NPOT_DIMENSIONS": 10
+          "IMAGE_NPOT_DIMENSIONS": 4
         }
       },
       "stats": {
@@ -1304,17 +1302,17 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/walkway_deck.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "1b0e1bbc0947190de615104f59f00a09cfd63507094009a8f34578fca349299f",
-      "bytes": 53716,
+      "sha256": "576a353a7f3c36efbc73c35924b18ef0eeb1cc1634eb9cfb93c674af6322cb42",
+      "bytes": 53708,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 24,
+        "infos": 15,
         "hints": 0,
         "by_code": {
           "URI_GLB": 12,
-          "IMAGE_NPOT_DIMENSIONS": 12
+          "IMAGE_NPOT_DIMENSIONS": 3
         }
       },
       "stats": {
@@ -1334,17 +1332,17 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/wall_section.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "e24a096a47b1b11f36a6afdf4d380b125def2c7f2ce9130d4967be20580e99c1",
+      "sha256": "24a156ef1855eb2d35b0cfcd316c4737adcdc563c39fd65c7512b33cec252e4f",
       "bytes": 23696,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 15,
+        "infos": 11,
         "hints": 0,
         "by_code": {
           "URI_GLB": 9,
-          "IMAGE_NPOT_DIMENSIONS": 6
+          "IMAGE_NPOT_DIMENSIONS": 2
         }
       },
       "stats": {
@@ -1364,17 +1362,17 @@
     {
       "runtime_path": "game/assets/world/aetherfall/phase2/cryo_bulkhead.glb",
       "source_path": "source/aetherfall_phase2_cover.blend",
-      "sha256": "8b02eea34fe5342bd37544405ab21b691fc16c18ad2b9e5027352efd9c3aad5a",
+      "sha256": "98a453d55ce87ee674bc2aa79262e3d4b0e391220ed27457f4767abc94fc93c3",
       "bytes": 211960,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 19,
+        "infos": 17,
         "hints": 0,
         "by_code": {
           "URI_GLB": 12,
-          "IMAGE_NPOT_DIMENSIONS": 7
+          "IMAGE_NPOT_DIMENSIONS": 5
         }
       },
       "stats": {
@@ -1454,17 +1452,17 @@
     {
       "runtime_path": "game/assets/world/aetherfall/phase2/salvage_pod.glb",
       "source_path": "source/aetherfall_phase2_cover.blend",
-      "sha256": "e8aba1c0e5199b8fa25931ec5276c7b77f22745bb1dbbda6de767fe55da8412e",
-      "bytes": 211568,
+      "sha256": "c08fb616c5317e4d7bc62496d92969b8829c621a863031fb10c34f510ddd45b2",
+      "bytes": 211552,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 23,
+        "infos": 20,
         "hints": 0,
         "by_code": {
           "URI_GLB": 12,
-          "IMAGE_NPOT_DIMENSIONS": 11
+          "IMAGE_NPOT_DIMENSIONS": 8
         }
       },
       "stats": {
@@ -1484,17 +1482,17 @@
     {
       "runtime_path": "game/assets/world/aetherfall/vertical/overhead_gantry.glb",
       "source_path": "source/aetherfall_vertical_infrastructure.blend",
-      "sha256": "c11623a42e34abaf9c5a3ac1f123964226bd0296c707a9add6c5c03ad2e635e1",
-      "bytes": 466376,
+      "sha256": "9038f8ef29a22775247c0ba562f6033356347892ac17af171845d55b6b4745c4",
+      "bytes": 466368,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 23,
+        "infos": 17,
         "hints": 0,
         "by_code": {
           "URI_GLB": 12,
-          "IMAGE_NPOT_DIMENSIONS": 11
+          "IMAGE_NPOT_DIMENSIONS": 5
         }
       },
       "stats": {
@@ -1514,17 +1512,17 @@
     {
       "runtime_path": "game/assets/world/aetherfall/vertical/raised_ops_deck.glb",
       "source_path": "source/aetherfall_vertical_infrastructure.blend",
-      "sha256": "78ae16ffea0fc00d2592f24a26b6cdcad7925ccd50ff8790a82affd2aeebf91e",
-      "bytes": 396096,
+      "sha256": "fd4e64ce65538bb21506b7f0e68a7c160f0d5e25c986c7100a1b02cc2a6154a8",
+      "bytes": 396084,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 23,
+        "infos": 17,
         "hints": 0,
         "by_code": {
           "URI_GLB": 12,
-          "IMAGE_NPOT_DIMENSIONS": 11
+          "IMAGE_NPOT_DIMENSIONS": 5
         }
       },
       "stats": {
@@ -1544,17 +1542,17 @@
     {
       "runtime_path": "game/assets/world/aetherfall/vertical/refinery_stack.glb",
       "source_path": "source/aetherfall_vertical_infrastructure.blend",
-      "sha256": "b3a5c4ddf4780893e0f88099327bf02159f996d5a5104ac901af10a1ea6463b8",
-      "bytes": 987628,
+      "sha256": "05fae97a542e571732abc9175ef17e7d50f206da771bc2f4daf40cf705817000",
+      "bytes": 987620,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 19,
+        "infos": 15,
         "hints": 0,
         "by_code": {
           "URI_GLB": 12,
-          "IMAGE_NPOT_DIMENSIONS": 7
+          "IMAGE_NPOT_DIMENSIONS": 3
         }
       },
       "stats": {

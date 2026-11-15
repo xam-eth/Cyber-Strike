@@ -33,27 +33,29 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.
 const WORLD = path.join(ROOT, 'game', 'assets', 'world', 'aetherfall');
 const TEXTURES = path.join(WORLD, 'textures');
 
-// Slots promoted per surface kind. Budget: ~+4.7 MB of .ctex headroom in the
-// 100,000,000-byte PCK budget, leaving the rest for Gate E bake maps (P4).
-// Selection is visual-impact-first: the ground the player stands on
-// (ice_rock), the structure metal at arm's length (metal), the interactable
-// panel faces (composite), the geology the route cuts through (rock), and the
-// gate/spire paint (deck). Normal/ORM stay 512 px where the extra pixels do
-// not change the read at distance.
+// Slots promoted per surface kind. GameFactory-3A ground+hull pass
+// (2026-11-15): the unpack_texture_subrects step re-encoded promoted tiles to
+// crop resolution, so this pass re-promotes the user-priority surfaces and
+// extends the set to the featureless concrete/hull slots (albedo was 2 KB).
+// 1024 px is spent only on the relief maps that carry the read (deck, metal,
+// composite normals); everything else encodes at 512 px (~0.5 MB .ctex each)
+// to stay inside the 100,000,000-byte PCK budget with ~3 MB reserve.
 const PROMOTE = {
-  ice_rock: ['albedo', 'normal', 'orm'],
   metal: ['albedo', 'normal', 'orm'],
-  composite: ['albedo'],
-  rock: ['albedo', 'normal'],
-  deck: ['albedo'],
+  composite: ['albedo', 'normal', 'orm'],
+  deck: ['albedo', 'normal', 'orm'],
+  concrete: ['albedo', 'normal', 'orm'],
 };
 
-// Per-slot encode caps. Polish pass 4 budget trade: the metal ORM map is
-// low-frequency roughness data (the packer's own profile treats ORM as such),
-// and at 1024 px its .ctex cost ~2 MB of the 100 MB PCK budget. The Gate E
-// bake composites need that room more, so this one map encodes at 512 px
-// while the promoted albedo/normal detail maps keep 1024 px.
-const CAP_OVERRIDES = { 'metal/orm': 512 };
+// Per-slot encode caps. ORM is low-frequency roughness data (the packer's own
+// profile treats ORM as such) and costs ~2 MB per 1024 px .ctex; albedo/orm
+// detail is capped at 512 px while the three relief normals keep 1024 px.
+const CAP_OVERRIDES = {
+  'metal/orm': 512, 'metal/albedo': 512,
+  'deck/orm': 512, 'deck/albedo': 512,
+  'composite/orm': 512, 'composite/albedo': 512,
+  'concrete/albedo': 512, 'concrete/normal': 512, 'concrete/orm': 512,
+};
 
 // Representative material name per kind (enrich_aetherfall.MAT_SURFACE), used
 // to discover each kind's current map hashes from the GLB material slots.
@@ -63,6 +65,7 @@ const KIND_MATERIAL = {
   ice_rock: 'IceVein',
   rock: 'Rock',
   deck: 'PaintedSteel',
+  concrete: 'Concrete',
 };
 
 // Same encode profile as pack_world_textures.mjs encodeJpeg.
