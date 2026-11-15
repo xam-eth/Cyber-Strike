@@ -85,6 +85,20 @@ appears, all zones clear at every size. Narrow landscapes keep the quick
 mute toggle: the system row is 120 px there so both icon buttons fit
 (settings menu keeps the fuller audio controls).
 
+## GameFactory-3A adoption F1-F3 — ground/hull PBR honesty + Gate E bakes — 2026-11-15
+
+| Item | Current checkpoint |
+| --- | --- |
+| Complaint | "set game kita belum memenuhi standart lagi untuk world object texture pbr mesh nya belum real" — world-object PBR/mesh realism below the industry bar. |
+| Scope | Free tier only (Spec/CC0/Generate), priority surfaces = ground + hull panels (user pick). Paid backends (Tripo/Meshy) explicitly NOT adopted — would need user-purchased keys. |
+| F2a AO honesty | 208 materials scanned across 51 Aetherfall GLBs: 188 materials already packed AO in ORM's R channel but **zero** bound `occlusionTexture`. `tools/gltf/bind_orm_occlusion.py` bound 188 (149 + 39 re-run) across 49 GLBs, syncing `KHR_texture_transform` from `metallicRoughnessTexture` (sub-rect UV packs). Khronos validator stays 0 errors / 0 warnings (599-602 infos). |
+| F3 Gate E bakes | `tools/blender/bake_flagship_detail.py` (bpy 5.0.1 via pip + `tools/build_x11stubs.py`) extended the flagship pilot to the ground/hull scope: `deck_6x6`, `lowland_field`, `expanse_shelf`, `damaged_slab`, `wall_section`, `cryo_bulkhead`, `cover_machine`. Each: procedural hard-surface HP (bevel hierarchy/panel recesses/fasteners/vent slats), box-atlas re-UV, Cycles selected-to-active normal bake (cage 0.005 m), 1024 composite normal, GLB rewritten in place with `positions_match/materials_match` verified. `bake_records/*.json` + `bake_inspection/*.png` (incl. pre/post A/B studio renders). |
+| Tangent fix | Bake re-export left 67 zero-length tangents (degenerate tris) = `ACCESSOR_VECTOR3_NON_UNIT` on 2 expanse GLBs; `tools/gltf/normalize_glb_normals.py` normalizes in place (fallback (1,0,0,w=1)), validator back to 0/0. |
+| Export headroom | `assets/world/aetherfall/source_textures/*` (AI provenance PNGs, never referenced by shipped GLBs) moved into `EXCLUDE_FROM_EXPORT` (shared by web + android presets). CI payload audit: `index.pck` 97,591,704 B / 782 files / 0 legacy leaks vs 100 MB gate = 2.41 MB headroom (PCK stores imported `.ctex`, so the raw-PNG saving lands ~1 MB, not ~9 MB). |
+| VERIFIED (CI) | Run [43681608288](https://github.com/xam-eth/Cyber-Strike/actions/runs/43681608288) (`8314534`, FULL SUCCESS incl. Headless smoke, static checks, Web preview build, exported-payload audit, browser smoke of the exported build — the new GLBs load in real Godot 4.7.2 runtime). |
+| Ledger | 7 entries updated (`asset_production_ledger.json`): `human_art_gate.{high_poly,uv_unwrap,bake,pbr_texturing}` = `technical_*_pending_human_review`, `release_decision` stays `unaccepted` until human sign-off per INDUSTRY_PRODUCTION_STANDARD.md. |
+| Honest limits | Studio renders exaggerate the composite normal under direct light; in-engine dark-sci-fi tone (ACES + dim sky-IBL + aerial fog) softens it — human review must confirm strength in Godot before Gate E counts as *reviewed*. ORM/albedo promotion beyond current 512/1024 mix was deliberately NOT run: each extra 1024 `.ctex` ≈ 2 MB against 2.41 MB headroom. Local Godot install impossible in sandbox (release assets redirect off-whitelist), so no new local gameplay frames; visual evidence = `bake_inspection/` A/B renders + CI browser smoke. |
+
 ## System icons pass — pause/sound off desktop, glyph-scale on touch — 2026-11-14
 
 | Item | Current checkpoint |

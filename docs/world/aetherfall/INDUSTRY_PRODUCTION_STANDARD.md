@@ -42,6 +42,24 @@ Khronos specifies normal maps as tangent-space textures and notes that absent ta
 
 They remain useful as a design hypothesis to be reviewed before an individual hero-asset brief is approved. They do **not** authorize Gate 05 for the library.
 
+### 2026-11-15 status — GameFactory-3A adoption, ground + hull scope (technical half)
+
+Fase teknis (bukan approval art) untuk permukaan prioritas — **ground + hull panel** — sudah dijalankan dengan pipeline bake resmi `tools/blender/bake_flagship_detail.py` (prosedural hard-surface HP authoring: bevel hierarchy, panel recess, fastener, vent slat; box-atlas re-UV; Cycles selected-to-active normal bake dengan cage 0.005 m; komposit normal 1024):
+
+| Aset | Peran | Gate C/D/E teknis | Bukti |
+| --- | --- | --- | --- |
+| `models/deck_6x6.glb` | ground — deck pijakan | `technical_*_pending_human_review` | `bake_records/deck_6x6_bake.json` |
+| `expanse/lowland_field.glb` | ground — basin 80×72 m | idem | `bake_records/lowland_field_bake.json` |
+| `expanse/expanse_shelf.glb` | ground — shelf jalur | idem | `bake_records/expanse_shelf_bake.json` |
+| `models/damaged_slab.glb` | ground — slab rusak | idem | `bake_records/damaged_slab_bake.json` |
+| `models/wall_section.glb` | hull — panel dinding | idem | `bake_records/wall_section_bake.json` |
+| `phase2/cryo_bulkhead.glb` | hull — bulkhead | idem | `bake_records/cryo_bulkhead_bake.json` |
+| `models/cover_machine.glb` | hull — cover mesin | idem | `bake_records/cover_machine_bake.json` |
+
+Tambahan fase yang sama: (a) `tools/gltf/bind_orm_occlusion.py` — 188 material di 49 GLB kini mem-bind ORM sebagai `occlusionTexture` (R=AO), transform disinkronkan dari `metallicRoughnessTexture`; (b) `tools/gltf/normalize_glb_normals.py` — 67 tangent nol dari re-ekspor bake dinormalkan (validator kembali 0 error/0 warning); (c) `assets/world/aetherfall/source_textures/*` (PNG provenance AI, tak direferensikan runtime) masuk `EXCLUDE_FROM_EXPORT` → PCK turun ke 97.591.704 B (gate 100 MB; headroom 2,41 MB).
+
+A/B render studio: `bake_inspection/*_studio_check.png` (pasca-bake) vs `*_prebake_studio_check.png` (pra-bake). Catatan jujur: kekuatan normal komposit terlihat kuat di cahaya studio langsung; tone gelap engine (ACES + IBL redup + kabut aerial) meredamnya. Reviewer manusia wajib memvalidasi kekuatan normal di Godot sebelum Gate E dinyatakan *reviewed*. Semua `release_decision` tetap `unaccepted` sampai review manusia.
+
 ## 4. Definition of done — per individual asset
 
 An asset may advance only when every applicable check below has a recorded result. “Not applicable” needs a reason (for example, a non-normal-mapped VFX card has a different material gate); it must not be silently skipped.
