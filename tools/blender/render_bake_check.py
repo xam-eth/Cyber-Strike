@@ -26,8 +26,6 @@ def find_glb(name):
 
 def render(asset):
     tag = os.path.splitext(os.path.basename(asset.rstrip("/")))[0]
-    if "/" in asset:
-        tag += "_prebake"
     bpy.ops.wm.read_factory_settings(use_empty=True)
     scene = bpy.context.scene
     scene.render.engine = "CYCLES"
