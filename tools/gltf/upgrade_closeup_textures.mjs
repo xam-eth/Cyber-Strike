@@ -33,39 +33,44 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.
 const WORLD = path.join(ROOT, 'game', 'assets', 'world', 'aetherfall');
 const TEXTURES = path.join(WORLD, 'textures');
 
-// Slots promoted per surface kind. GameFactory-3A ground+hull pass
-// (2026-11-15): the unpack_texture_subrects step re-encoded promoted tiles to
-// crop resolution, so this pass re-promotes the user-priority surfaces and
-// extends the set to the featureless concrete/hull slots (albedo was 2 KB).
-// 1024 px is spent only on the relief maps that carry the read (deck, metal,
-// composite normals); everything else encodes at 512 px (~0.5 MB .ctex each)
-// to stay inside the 100,000,000-byte PCK budget with ~3 MB reserve.
+// Slots promoted per surface kind. Ground/hull completion pass (2026-11-15,
+// second run): the budget-recovery pass freed ~7.5 MB, so this run finishes
+// the deferred slots (metal2 hull panels, hazard markings, ice_rock ground)
+// and lifts the deck albedo cap to 1024 — the ground surface the player
+// stares at all session. ORM stays 512 everywhere (low-frequency data,
+// ~2 MB .ctex at 1024 px); relief normals get 1024 px where they carry the
+// read. Target PCK ~96 MB of the 100,000,000-byte budget.
 const PROMOTE = {
-  metal: ['albedo', 'normal', 'orm'],
-  composite: ['albedo', 'normal', 'orm'],
-  deck: ['albedo', 'normal', 'orm'],
-  concrete: ['albedo', 'normal', 'orm'],
+  deck: ['albedo'],
+  metal2: ['albedo', 'normal', 'orm'],
+  hazard: ['albedo', 'normal', 'orm'],
+  ice_rock: ['albedo', 'normal', 'orm'],
 };
 
-// Per-slot encode caps. ORM is low-frequency roughness data (the packer's own
-// profile treats ORM as such) and costs ~2 MB per 1024 px .ctex; albedo/orm
-// detail is capped at 512 px while the three relief normals keep 1024 px.
+// Per-slot encode caps (1024 is the default). ORM is low-frequency roughness
+// data (the packer's own profile treats ORM as such) and costs ~2 MB per
+// 1024 px .ctex, so every ORM and the flat/markings albedos cap at 512 px.
 const CAP_OVERRIDES = {
+  'deck/orm': 512,
   'metal/orm': 512, 'metal/albedo': 512,
-  'deck/orm': 512, 'deck/albedo': 512,
   'composite/orm': 512, 'composite/albedo': 512,
   'concrete/albedo': 512, 'concrete/normal': 512, 'concrete/orm': 512,
+  'metal2/albedo': 512, 'metal2/normal': 512, 'metal2/orm': 512,
+  'hazard/albedo': 512, 'hazard/normal': 512, 'hazard/orm': 512,
+  'ice_rock/albedo': 512, 'ice_rock/orm': 512,
 };
 
 // Representative material name per kind (enrich_aetherfall.MAT_SURFACE), used
 // to discover each kind's current map hashes from the GLB material slots.
 const KIND_MATERIAL = {
   metal: 'Steel',
+  metal2: 'Titanium',
   composite: 'Composite',
   ice_rock: 'IceVein',
   rock: 'Rock',
   deck: 'PaintedSteel',
   concrete: 'Concrete',
+  hazard: 'Hazard',
 };
 
 // Same encode profile as pack_world_textures.mjs encodeJpeg.
