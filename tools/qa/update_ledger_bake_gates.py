@@ -22,6 +22,11 @@ BAKED = {
     "expanse_shelf": "expanse/expanse_shelf.glb",
     "cover_machine": "models/cover_machine.glb",
     "damaged_slab": "models/damaged_slab.glb",
+    "cover_barrier": "models/cover_barrier.glb",
+    "debris_cluster": "models/debris_cluster.glb",
+    "machinery": "models/machinery.glb",
+    "walkway_deck": "models/walkway_deck.glb",
+    "railing": "models/railing.glb",
 }
 
 TECH = "technical_authored_pending_human_review"

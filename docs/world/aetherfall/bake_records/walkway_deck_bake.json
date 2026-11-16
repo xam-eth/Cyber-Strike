@@ -1,0 +1,55 @@
+{
+ "asset": "walkway_deck",
+ "gate": {
+  "high_poly": "authored_pending_human_review",
+  "uv_bake": "baked_cage_recorded_pending_human_review",
+  "pbr": "baked_normal_composited_pending_human_review"
+ },
+ "resolution": 1024,
+ "cage_extrusion_m": 0.005,
+ "normal_space": "tangent",
+ "selected_to_active": true,
+ "hp_objects": [
+  "HP_CatwalkArmour",
+  "HP_CatwalkTread0",
+  "HP_CatwalkTread1",
+  "HP_CatwalkTread2",
+  "HP_WalkwayCableTray",
+  "HP_WalkwayPost-100",
+  "HP_WalkwayPost-101",
+  "HP_WalkwayPost-102",
+  "HP_WalkwayPost-103",
+  "HP_WalkwayPost100",
+  "HP_WalkwayPost101",
+  "HP_WalkwayPost102",
+  "HP_WalkwayPost103",
+  "HP_WalkwayRail-10",
+  "HP_WalkwayRail10"
+ ],
+ "lp_objects": [
+  "CatwalkArmour",
+  "CatwalkTread0",
+  "CatwalkTread1",
+  "CatwalkTread2",
+  "WalkwayCableTray",
+  "WalkwayPost-100",
+  "WalkwayPost-101",
+  "WalkwayPost-102",
+  "WalkwayPost-103",
+  "WalkwayPost100",
+  "WalkwayPost101",
+  "WalkwayPost102",
+  "WalkwayPost103",
+  "WalkwayRail-10",
+  "WalkwayRail10"
+ ],
+ "baked_normal": "docs/world/aetherfall/bake_inspection/walkway_deck_baked_normal_composite.png",
+ "approved_by": null,
+ "export_verify": {
+  "nodes_match": true,
+  "materials_match": true,
+  "positions_match": true,
+  "uv_count_match": true
+ },
+ "shipped_normal_map": "game/assets/world/aetherfall/textures/b1b4c3d938399d2a079c034ce743c6551f6c34fdffb69cdae0cc3bc0cc062b28.jpg"
+}

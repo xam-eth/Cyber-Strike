@@ -1,0 +1,29 @@
+{
+ "asset": "cover_barrier",
+ "gate": {
+  "high_poly": "authored_pending_human_review",
+  "uv_bake": "baked_cage_recorded_pending_human_review",
+  "pbr": "baked_normal_composited_pending_human_review"
+ },
+ "resolution": 1024,
+ "cage_extrusion_m": 0.005,
+ "normal_space": "tangent",
+ "selected_to_active": true,
+ "hp_objects": [
+  "HP_ArmouredCover",
+  "HP_CoverHazardMark"
+ ],
+ "lp_objects": [
+  "ArmouredCover",
+  "CoverHazardMark"
+ ],
+ "baked_normal": "docs/world/aetherfall/bake_inspection/cover_barrier_baked_normal_composite.png",
+ "approved_by": null,
+ "export_verify": {
+  "nodes_match": true,
+  "materials_match": true,
+  "positions_match": true,
+  "uv_count_match": true
+ },
+ "shipped_normal_map": "game/assets/world/aetherfall/textures/ba33a910e7f56bc3a06007219bdc0008a73c12b5bab6fe1bd0fcabb057f2b57f.jpg"
+}

@@ -1,0 +1,51 @@
+{
+ "asset": "railing",
+ "gate": {
+  "high_poly": "authored_pending_human_review",
+  "uv_bake": "baked_cage_recorded_pending_human_review",
+  "pbr": "baked_normal_composited_pending_human_review"
+ },
+ "resolution": 1024,
+ "cage_extrusion_m": 0.005,
+ "normal_space": "tangent",
+ "selected_to_active": true,
+ "hp_objects": [
+  "HP_RailKick",
+  "HP_RailMid-10",
+  "HP_RailMid10",
+  "HP_RailPost-100",
+  "HP_RailPost-101",
+  "HP_RailPost-102",
+  "HP_RailPost-103",
+  "HP_RailPost100",
+  "HP_RailPost101",
+  "HP_RailPost102",
+  "HP_RailPost103",
+  "HP_RailTop-10",
+  "HP_RailTop10"
+ ],
+ "lp_objects": [
+  "RailKick",
+  "RailMid-10",
+  "RailMid10",
+  "RailPost-100",
+  "RailPost-101",
+  "RailPost-102",
+  "RailPost-103",
+  "RailPost100",
+  "RailPost101",
+  "RailPost102",
+  "RailPost103",
+  "RailTop-10",
+  "RailTop10"
+ ],
+ "baked_normal": "docs/world/aetherfall/bake_inspection/railing_baked_normal_composite.png",
+ "approved_by": null,
+ "export_verify": {
+  "nodes_match": true,
+  "materials_match": true,
+  "positions_match": true,
+  "uv_count_match": true
+ },
+ "shipped_normal_map": "game/assets/world/aetherfall/textures/6408c608615b4e05089f31e0c724779a62910c9e7e933eee258728c66c654e63.jpg"
+}

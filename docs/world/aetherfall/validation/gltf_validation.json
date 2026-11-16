@@ -13,12 +13,12 @@
   ],
   "totals": {
     "glb_assets": 51,
-    "bytes": 13930996,
+    "bytes": 13939964,
     "errors": 0,
     "warnings": 0,
     "infos": 638,
     "draw_calls": 1127,
-    "vertices": 256931,
+    "vertices": 257070,
     "triangles": 131368
   },
   "assets": [
@@ -809,8 +809,8 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/cover_barrier.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "b5b64e8bd838e46406581e0bda4b5cd96e660e84e292913f65c555c86c7fc079",
-      "bytes": 10176,
+      "sha256": "c17dce2f5417362dffa40ffdda27c2d731a0b18af9ff19a1938b54496c99befc",
+      "bytes": 10588,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
@@ -900,8 +900,8 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/debris_cluster.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "c3ffe3aa6b6dd0dc7a11cc5130e48bd15fd8e556d6bc308de9561f29e9dabace",
-      "bytes": 46988,
+      "sha256": "2dcb55f00ab72e96156a0e53eed25b2bc34b156a43d886999f9cb1ffcee1ed47",
+      "bytes": 51152,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
@@ -919,7 +919,7 @@
         "materials": 3,
         "textures": true,
         "draw_calls": 9,
-        "vertices": 717,
+        "vertices": 797,
         "triangles": 438,
         "max_uv_sets": 1,
         "max_attributes": 4,
@@ -1052,8 +1052,8 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/machinery.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "982f59a3c4ade419ea7f2299f3d7101c4c4c95528ab7da1cff08760a675b0e77",
-      "bytes": 34152,
+      "sha256": "5c58ebd84b3b761718575dbbeae0f5fe85f695a45222cb506f94a33b63f853d8",
+      "bytes": 37488,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
@@ -1071,7 +1071,7 @@
         "materials": 5,
         "textures": true,
         "draw_calls": 8,
-        "vertices": 416,
+        "vertices": 473,
         "triangles": 540,
         "max_uv_sets": 1,
         "max_attributes": 4,
@@ -1112,8 +1112,8 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/railing.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "ccec912e2cb802ba247bba212fce1775aaf3a268011e2b047c18f9f753aa57eb",
-      "bytes": 43308,
+      "sha256": "0ad399748675dd9b0ede4a272aee90cf07c88ab0a55f264af04a7f0003d13208",
+      "bytes": 43720,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
@@ -1294,8 +1294,8 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/walkway_deck.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "c8b3b7c7f5beac2bd8014600809dcc85665f4ffbb062e020bc3a54c7c67cb382",
-      "bytes": 53708,
+      "sha256": "1fd4ea17dcf50c121aae80abcf7d318d9c2b52db2c8c4faf40599066a8fc7051",
+      "bytes": 54352,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
@@ -1311,7 +1311,7 @@
         "materials": 4,
         "textures": true,
         "draw_calls": 30,
-        "vertices": 512,
+        "vertices": 514,
         "triangles": 312,
         "max_uv_sets": 1,
         "max_attributes": 4,
