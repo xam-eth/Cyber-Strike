@@ -13,12 +13,12 @@
   ],
   "totals": {
     "glb_assets": 51,
-    "bytes": 13939964,
+    "bytes": 13950768,
     "errors": 0,
     "warnings": 0,
-    "infos": 638,
+    "infos": 634,
     "draw_calls": 1127,
-    "vertices": 257070,
+    "vertices": 257249,
     "triangles": 131368
   },
   "assets": [
@@ -542,8 +542,8 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/beam.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "500cf2858120471e65662933d829387fa7e0d26997c3af556aa8401997878f7f",
-      "bytes": 13620,
+      "sha256": "6ec241f9728d14566fb27a71d6fb0bd4ab137af7976e8465ed1e9458c104478a",
+      "bytes": 13892,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
@@ -630,17 +630,17 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/cable_bundle.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "637b276d791a9b445e6c3e94b9ca4a3725e29a1757b6a2df291ae5945b069fc3",
-      "bytes": 22524,
+      "sha256": "9e639acda428e83420b0b47a6bc75af530ecba5acf987f9e99ef71a3fe58608a",
+      "bytes": 22936,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 12,
+        "infos": 11,
         "hints": 0,
         "by_code": {
           "URI_GLB": 9,
-          "IMAGE_NPOT_DIMENSIONS": 3
+          "IMAGE_NPOT_DIMENSIONS": 2
         }
       },
       "stats": {
@@ -660,17 +660,17 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/cliff_face.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "02c08966ca0cfb769fc01706e9cca76845d57f25899ad37d1db63313f0ce30f7",
-      "bytes": 147300,
+      "sha256": "e31966bb03ac75694411843f4f1b8a6d384d240a6c69947f3718a1e56e0a1cf6",
+      "bytes": 150288,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 12,
+        "infos": 11,
         "hints": 0,
         "by_code": {
           "URI_GLB": 9,
-          "IMAGE_NPOT_DIMENSIONS": 3
+          "IMAGE_NPOT_DIMENSIONS": 2
         }
       },
       "stats": {
@@ -678,7 +678,7 @@
         "materials": 4,
         "textures": true,
         "draw_calls": 18,
-        "vertices": 2556,
+        "vertices": 2610,
         "triangles": 1244,
         "max_uv_sets": 1,
         "max_attributes": 4,
@@ -751,8 +751,8 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/connector_ramp.glb",
       "source_path": "source/connector_ramp.blend",
-      "sha256": "f0f538a14336b442eab36946e8f9a0db5afd31a2ce266068d7ca1f25cfeb7494",
-      "bytes": 55592,
+      "sha256": "b5c5a4d4e41f5246402f339ce46edbfd467730f897d379485161fc0e69c3d51c",
+      "bytes": 55868,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
@@ -1171,17 +1171,17 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/terrain_chunk.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "7313f252dc1a005895f483558b84a0147b498c558b334b662de20a5b86f24a67",
-      "bytes": 257888,
+      "sha256": "e747bbaa81c11eb797d94d21dc94c2196f2d68c610977d1c071d3e9250a025f0",
+      "bytes": 259204,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 9,
+        "infos": 8,
         "hints": 0,
         "by_code": {
           "URI_GLB": 6,
-          "IMAGE_NPOT_DIMENSIONS": 3
+          "IMAGE_NPOT_DIMENSIONS": 2
         }
       },
       "stats": {
@@ -1189,7 +1189,7 @@
         "materials": 3,
         "textures": true,
         "draw_calls": 12,
-        "vertices": 4654,
+        "vertices": 4676,
         "triangles": 3648,
         "max_uv_sets": 1,
         "max_attributes": 4,
@@ -1201,18 +1201,18 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/tower_foundation.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "dabc74654763a0a7542d3d5873a32223dcdbfab8f3ac8a5166c68413064d622d",
-      "bytes": 81416,
+      "sha256": "f0e8b9085e4de9f65892449df4028a035139c44af64520159703b89db936a977",
+      "bytes": 86956,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 21,
+        "infos": 20,
         "hints": 0,
         "by_code": {
           "URI_GLB": 13,
           "UNUSED_MESH_TANGENT": 4,
-          "IMAGE_NPOT_DIMENSIONS": 4
+          "IMAGE_NPOT_DIMENSIONS": 3
         }
       },
       "stats": {
@@ -1220,7 +1220,7 @@
         "materials": 5,
         "textures": true,
         "draw_calls": 30,
-        "vertices": 924,
+        "vertices": 1027,
         "triangles": 1164,
         "max_uv_sets": 1,
         "max_attributes": 4,

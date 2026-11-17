@@ -1,0 +1,41 @@
+{
+ "asset": "terrain_chunk",
+ "gate": {
+  "high_poly": "authored_pending_human_review",
+  "uv_bake": "baked_cage_recorded_pending_human_review",
+  "pbr": "baked_normal_composited_pending_human_review"
+ },
+ "resolution": 1024,
+ "cage_extrusion_m": 0.005,
+ "normal_space": "tangent",
+ "selected_to_active": true,
+ "hp_objects": [
+  "HP_CryoSeam0",
+  "HP_CryoSeam1",
+  "HP_CryoSeam2",
+  "HP_CryoSeam3",
+  "HP_GlacialTerrainMass",
+  "HP_StrataShelf_13_2",
+  "HP_StrataShelf_17_8",
+  "HP_StrataShelf_8_2"
+ ],
+ "lp_objects": [
+  "CryoSeam0",
+  "CryoSeam1",
+  "CryoSeam2",
+  "CryoSeam3",
+  "GlacialTerrainMass",
+  "StrataShelf_13_2",
+  "StrataShelf_17_8",
+  "StrataShelf_8_2"
+ ],
+ "baked_normal": "docs/world/aetherfall/bake_inspection/terrain_chunk_baked_normal_composite.png",
+ "approved_by": null,
+ "export_verify": {
+  "nodes_match": true,
+  "materials_match": true,
+  "positions_match": true,
+  "uv_count_match": true
+ },
+ "shipped_normal_map": "game/assets/world/aetherfall/textures/ef73e2367b0f3c7d7ea7e7bb0963f75c5627e83cd8a36e857a3d6f213628aa72.jpg"
+}

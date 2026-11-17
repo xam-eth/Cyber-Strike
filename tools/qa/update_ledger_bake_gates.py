@@ -27,6 +27,12 @@ BAKED = {
     "machinery": "models/machinery.glb",
     "walkway_deck": "models/walkway_deck.glb",
     "railing": "models/railing.glb",
+    "beam": "models/beam.glb",
+    "connector_ramp": "models/connector_ramp.glb",
+    "terrain_chunk": "models/terrain_chunk.glb",
+    "cable_bundle": "models/cable_bundle.glb",
+    "tower_foundation": "models/tower_foundation.glb",
+    "cliff_face": "models/cliff_face.glb",
 }
 
 TECH = "technical_authored_pending_human_review"

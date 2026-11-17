@@ -1,0 +1,37 @@
+{
+ "asset": "cable_bundle",
+ "gate": {
+  "high_poly": "authored_pending_human_review",
+  "uv_bake": "baked_cage_recorded_pending_human_review",
+  "pbr": "baked_normal_composited_pending_human_review"
+ },
+ "resolution": 1024,
+ "cage_extrusion_m": 0.005,
+ "normal_space": "tangent",
+ "selected_to_active": true,
+ "hp_objects": [
+  "HP_CableRun0",
+  "HP_CableRun1",
+  "HP_CableRun2",
+  "HP_CableRun3",
+  "HP_CableRun4",
+  "HP_CableTray"
+ ],
+ "lp_objects": [
+  "CableRun0",
+  "CableRun1",
+  "CableRun2",
+  "CableRun3",
+  "CableRun4",
+  "CableTray"
+ ],
+ "baked_normal": "docs/world/aetherfall/bake_inspection/cable_bundle_baked_normal_composite.png",
+ "approved_by": null,
+ "export_verify": {
+  "nodes_match": true,
+  "materials_match": true,
+  "positions_match": true,
+  "uv_count_match": true
+ },
+ "shipped_normal_map": "game/assets/world/aetherfall/textures/3cdd8b5bd13d67c8ea44d6bebaf47da9bc84296f765334e48318e489a62745ee.jpg"
+}

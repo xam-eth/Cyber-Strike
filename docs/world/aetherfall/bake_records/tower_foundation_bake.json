@@ -1,0 +1,55 @@
+{
+ "asset": "tower_foundation",
+ "gate": {
+  "high_poly": "authored_pending_human_review",
+  "uv_bake": "baked_cage_recorded_pending_human_review",
+  "pbr": "baked_normal_composited_pending_human_review"
+ },
+ "resolution": 1024,
+ "cage_extrusion_m": 0.005,
+ "normal_space": "tangent",
+ "selected_to_active": true,
+ "hp_objects": [
+  "HP_ArchivePlinthOuter",
+  "HP_ArchivePlinthStep",
+  "HP_ArchiveSocket",
+  "HP_FoundationButtress0",
+  "HP_FoundationButtress1",
+  "HP_FoundationButtress2",
+  "HP_FoundationButtress3",
+  "HP_FoundationButtress4",
+  "HP_FoundationButtress5",
+  "HP_FoundationButtress6",
+  "HP_FoundationButtress7",
+  "HP_FoundationGuide0",
+  "HP_FoundationGuide1",
+  "HP_FoundationGuide2",
+  "HP_FoundationGuide3"
+ ],
+ "lp_objects": [
+  "ArchivePlinthOuter",
+  "ArchivePlinthStep",
+  "ArchiveSocket",
+  "FoundationButtress0",
+  "FoundationButtress1",
+  "FoundationButtress2",
+  "FoundationButtress3",
+  "FoundationButtress4",
+  "FoundationButtress5",
+  "FoundationButtress6",
+  "FoundationButtress7",
+  "FoundationGuide0",
+  "FoundationGuide1",
+  "FoundationGuide2",
+  "FoundationGuide3"
+ ],
+ "baked_normal": "docs/world/aetherfall/bake_inspection/tower_foundation_baked_normal_composite.png",
+ "approved_by": null,
+ "export_verify": {
+  "nodes_match": true,
+  "materials_match": true,
+  "positions_match": true,
+  "uv_count_match": true
+ },
+ "shipped_normal_map": "game/assets/world/aetherfall/textures/edfcc5f8dd9ea1a5f824a9258b2ce32c7184fe6279e4590380f1ca58757ac960.jpg"
+}

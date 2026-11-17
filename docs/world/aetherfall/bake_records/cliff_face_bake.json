@@ -1,0 +1,43 @@
+{
+ "asset": "cliff_face",
+ "gate": {
+  "high_poly": "authored_pending_human_review",
+  "uv_bake": "baked_cage_recorded_pending_human_review",
+  "pbr": "baked_normal_composited_pending_human_review"
+ },
+ "resolution": 1024,
+ "cage_extrusion_m": 0.005,
+ "normal_space": "tangent",
+ "selected_to_active": true,
+ "hp_objects": [
+  "HP_AnchorButtress0",
+  "HP_AnchorButtress1",
+  "HP_AnchorButtress2",
+  "HP_AnchorButtress3",
+  "HP_ErosionLedge0",
+  "HP_ErosionLedge1",
+  "HP_ErosionLedge2",
+  "HP_ErosionLedge3",
+  "HP_EscarpmentVolume"
+ ],
+ "lp_objects": [
+  "AnchorButtress0",
+  "AnchorButtress1",
+  "AnchorButtress2",
+  "AnchorButtress3",
+  "ErosionLedge0",
+  "ErosionLedge1",
+  "ErosionLedge2",
+  "ErosionLedge3",
+  "EscarpmentVolume"
+ ],
+ "baked_normal": "docs/world/aetherfall/bake_inspection/cliff_face_baked_normal_composite.png",
+ "approved_by": null,
+ "export_verify": {
+  "nodes_match": true,
+  "materials_match": true,
+  "positions_match": true,
+  "uv_count_match": true
+ },
+ "shipped_normal_map": "game/assets/world/aetherfall/textures/cebc3596e928b9ef73bdc66e9fac08953b05b5569fe4aec2e809d0f9fa41960d.jpg"
+}
