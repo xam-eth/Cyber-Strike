@@ -13,12 +13,12 @@
   ],
   "totals": {
     "glb_assets": 51,
-    "bytes": 13950768,
+    "bytes": 13994872,
     "errors": 0,
     "warnings": 0,
-    "infos": 634,
+    "infos": 632,
     "draw_calls": 1127,
-    "vertices": 257249,
+    "vertices": 258097,
     "triangles": 131368
   },
   "assets": [
@@ -571,8 +571,8 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/bridge_deck.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "b20b09cd827f5701bb8a12f207fc83266db6acdf4ae523301c9ebb3160aa3c1e",
-      "bytes": 42504,
+      "sha256": "b3bc729062f04f4a9e6a44cc7e3b3596bd19fd52599c62778168272c14bb94f1",
+      "bytes": 43196,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
@@ -588,7 +588,7 @@
         "materials": 4,
         "textures": true,
         "draw_calls": 20,
-        "vertices": 436,
+        "vertices": 439,
         "triangles": 334,
         "max_uv_sets": 1,
         "max_attributes": 4,
@@ -600,17 +600,17 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/bridge_support.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "ccdd2ff957910c5cafcaac4b065820da51bdafa3cdc75de7a3f920c615ffb449",
-      "bytes": 41808,
+      "sha256": "8fd8aae9650972cf9a4a1a872deaeb5caefc3fbd93cf62ed1692bc0c6bb6703c",
+      "bytes": 47824,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 18,
+        "infos": 17,
         "hints": 0,
         "by_code": {
           "URI_GLB": 15,
-          "IMAGE_NPOT_DIMENSIONS": 3
+          "IMAGE_NPOT_DIMENSIONS": 2
         }
       },
       "stats": {
@@ -618,7 +618,7 @@
         "materials": 5,
         "textures": true,
         "draw_calls": 12,
-        "vertices": 495,
+        "vertices": 606,
         "triangles": 626,
         "max_uv_sets": 1,
         "max_attributes": 4,
@@ -780,8 +780,8 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/cooling_vent.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "799a9105d02f8abbe2486d7c9344a4322aa8448b0d05603e9cb90dc79f7ce885",
-      "bytes": 54044,
+      "sha256": "6d45c38a079359d86d1e52135f4d7f0364ca714e019c03ce9af74a2aa7904b2a",
+      "bytes": 58732,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
@@ -797,7 +797,7 @@
         "materials": 3,
         "textures": true,
         "draw_calls": 20,
-        "vertices": 626,
+        "vertices": 715,
         "triangles": 652,
         "max_uv_sets": 1,
         "max_attributes": 4,
@@ -960,8 +960,8 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/deck_edge.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "df1d4ef6b2f61e0a0b948ab3c5d5ef0562e7c5815d83b072a4d0f7242cd182ab",
-      "bytes": 23708,
+      "sha256": "e4f98a7230dc9161fa453686e4c711def487ab3c3ff65a5aa73934a617bacb68",
+      "bytes": 24256,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
@@ -989,8 +989,8 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/energy_core.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "d11075dfa02303d64f406773e4a3f7f907713eb413d11a14e126cc5e368b4dc2",
-      "bytes": 55200,
+      "sha256": "e5b7863b740baf6855291193092021bbef0f8c55148c42f8a10971559d945ac2",
+      "bytes": 62868,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
@@ -1009,7 +1009,7 @@
         "materials": 5,
         "textures": true,
         "draw_calls": 18,
-        "vertices": 650,
+        "vertices": 800,
         "triangles": 776,
         "max_uv_sets": 1,
         "max_attributes": 4,
@@ -1141,17 +1141,17 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/rock_boulder.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "ea6c193ea70dfbf9efc67977ccad16f2859bcc49fa970525e732ee6c4d126b9c",
-      "bytes": 41816,
+      "sha256": "d5f2059dc878060fe653c2b53be18488b8f0faabde2519a043b884d9c5148d2f",
+      "bytes": 46876,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
         "warnings": 0,
-        "infos": 9,
+        "infos": 8,
         "hints": 0,
         "by_code": {
           "URI_GLB": 6,
-          "IMAGE_NPOT_DIMENSIONS": 3
+          "IMAGE_NPOT_DIMENSIONS": 2
         }
       },
       "stats": {
@@ -1159,7 +1159,7 @@
         "materials": 3,
         "textures": true,
         "draw_calls": 4,
-        "vertices": 704,
+        "vertices": 804,
         "triangles": 356,
         "max_uv_sets": 1,
         "max_attributes": 4,
@@ -1263,8 +1263,8 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/tower_tier.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "3a03af73d4cd6b3800328c51c36d91b1679ae2d3dcd13348b7ee11d073a848c9",
-      "bytes": 117052,
+      "sha256": "3b24e74f46045cea658bcefa885b76198f0c8f239eef7f16e05579483917b9b2",
+      "bytes": 136484,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
@@ -1282,7 +1282,7 @@
         "materials": 4,
         "textures": true,
         "draw_calls": 34,
-        "vertices": 1514,
+        "vertices": 1909,
         "triangles": 1920,
         "max_uv_sets": 1,
         "max_attributes": 4,

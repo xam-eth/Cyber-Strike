@@ -1,0 +1,37 @@
+{
+ "asset": "bridge_support",
+ "gate": {
+  "high_poly": "authored_pending_human_review",
+  "uv_bake": "baked_cage_recorded_pending_human_review",
+  "pbr": "baked_normal_composited_pending_human_review"
+ },
+ "resolution": 1024,
+ "cage_extrusion_m": 0.005,
+ "normal_space": "tangent",
+ "selected_to_active": true,
+ "hp_objects": [
+  "HP_CanyonPylon",
+  "HP_PylonBrace0",
+  "HP_PylonBrace1",
+  "HP_PylonBrace2",
+  "HP_PylonBrace3",
+  "HP_PylonFoot"
+ ],
+ "lp_objects": [
+  "CanyonPylon",
+  "PylonBrace0",
+  "PylonBrace1",
+  "PylonBrace2",
+  "PylonBrace3",
+  "PylonFoot"
+ ],
+ "baked_normal": "docs/world/aetherfall/bake_inspection/bridge_support_baked_normal_composite.png",
+ "approved_by": null,
+ "export_verify": {
+  "nodes_match": true,
+  "materials_match": true,
+  "positions_match": true,
+  "uv_count_match": true
+ },
+ "shipped_normal_map": "game/assets/world/aetherfall/textures/2e80641e2e7159131199a082b6864b0039f5a6f13dd9d9e1b6213a94f3589cf0.jpg"
+}

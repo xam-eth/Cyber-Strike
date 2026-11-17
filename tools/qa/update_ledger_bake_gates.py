@@ -33,6 +33,13 @@ BAKED = {
     "cable_bundle": "models/cable_bundle.glb",
     "tower_foundation": "models/tower_foundation.glb",
     "cliff_face": "models/cliff_face.glb",
+    "rock_boulder": "models/rock_boulder.glb",
+    "bridge_deck": "models/bridge_deck.glb",
+    "tower_tier": "models/tower_tier.glb",
+    "energy_core": "models/energy_core.glb",
+    "deck_edge": "models/deck_edge.glb",
+    "cooling_vent": "models/cooling_vent.glb",
+    "bridge_support": "models/bridge_support.glb",
 }
 
 TECH = "technical_authored_pending_human_review"

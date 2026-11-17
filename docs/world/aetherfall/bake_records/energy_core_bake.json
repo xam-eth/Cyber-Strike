@@ -1,0 +1,43 @@
+{
+ "asset": "energy_core",
+ "gate": {
+  "high_poly": "authored_pending_human_review",
+  "uv_bake": "baked_cage_recorded_pending_human_review",
+  "pbr": "baked_normal_composited_pending_human_review"
+ },
+ "resolution": 1024,
+ "cage_extrusion_m": 0.005,
+ "normal_space": "tangent",
+ "selected_to_active": true,
+ "hp_objects": [
+  "HP_CoreContainment",
+  "HP_CoreEnergyColumn",
+  "HP_CorePetal0",
+  "HP_CorePetal1",
+  "HP_CorePetal2",
+  "HP_CorePetal3",
+  "HP_CorePetal4",
+  "HP_CorePetal5",
+  "HP_CorePlinth"
+ ],
+ "lp_objects": [
+  "CoreContainment",
+  "CoreEnergyColumn",
+  "CorePetal0",
+  "CorePetal1",
+  "CorePetal2",
+  "CorePetal3",
+  "CorePetal4",
+  "CorePetal5",
+  "CorePlinth"
+ ],
+ "baked_normal": "docs/world/aetherfall/bake_inspection/energy_core_baked_normal_composite.png",
+ "approved_by": null,
+ "export_verify": {
+  "nodes_match": true,
+  "materials_match": true,
+  "positions_match": true,
+  "uv_count_match": true
+ },
+ "shipped_normal_map": "game/assets/world/aetherfall/textures/50848216caa9c5aa1647cc6102fe91962aeb9d6476b57d223c7460c89b495dc2.jpg"
+}

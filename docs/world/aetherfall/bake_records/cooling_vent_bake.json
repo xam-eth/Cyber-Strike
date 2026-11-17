@@ -1,0 +1,45 @@
+{
+ "asset": "cooling_vent",
+ "gate": {
+  "high_poly": "authored_pending_human_review",
+  "uv_bake": "baked_cage_recorded_pending_human_review",
+  "pbr": "baked_normal_composited_pending_human_review"
+ },
+ "resolution": 1024,
+ "cage_extrusion_m": 0.005,
+ "normal_space": "tangent",
+ "selected_to_active": true,
+ "hp_objects": [
+  "HP_VentBlade0",
+  "HP_VentBlade1",
+  "HP_VentBlade2",
+  "HP_VentBlade3",
+  "HP_VentBlade4",
+  "HP_VentBlade5",
+  "HP_VentBlade6",
+  "HP_VentBlade7",
+  "HP_VentHousing",
+  "HP_VentThroat"
+ ],
+ "lp_objects": [
+  "VentBlade0",
+  "VentBlade1",
+  "VentBlade2",
+  "VentBlade3",
+  "VentBlade4",
+  "VentBlade5",
+  "VentBlade6",
+  "VentBlade7",
+  "VentHousing",
+  "VentThroat"
+ ],
+ "baked_normal": "docs/world/aetherfall/bake_inspection/cooling_vent_baked_normal_composite.png",
+ "approved_by": null,
+ "export_verify": {
+  "nodes_match": true,
+  "materials_match": true,
+  "positions_match": true,
+  "uv_count_match": true
+ },
+ "shipped_normal_map": "game/assets/world/aetherfall/textures/f50a0686c883f94e06495e576588f6cce0d6646348d033f7c62467196bdceca6.jpg"
+}

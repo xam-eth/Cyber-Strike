@@ -1,0 +1,37 @@
+{
+ "asset": "deck_edge",
+ "gate": {
+  "high_poly": "authored_pending_human_review",
+  "uv_bake": "baked_cage_recorded_pending_human_review",
+  "pbr": "baked_normal_composited_pending_human_review"
+ },
+ "resolution": 1024,
+ "cage_extrusion_m": 0.005,
+ "normal_space": "tangent",
+ "selected_to_active": true,
+ "hp_objects": [
+  "HP_EdgeArmour",
+  "HP_EdgeHazardInset",
+  "HP_EdgeTie0",
+  "HP_EdgeTie1",
+  "HP_EdgeTie2",
+  "HP_EdgeTie3"
+ ],
+ "lp_objects": [
+  "EdgeArmour",
+  "EdgeHazardInset",
+  "EdgeTie0",
+  "EdgeTie1",
+  "EdgeTie2",
+  "EdgeTie3"
+ ],
+ "baked_normal": "docs/world/aetherfall/bake_inspection/deck_edge_baked_normal_composite.png",
+ "approved_by": null,
+ "export_verify": {
+  "nodes_match": true,
+  "materials_match": true,
+  "positions_match": true,
+  "uv_count_match": true
+ },
+ "shipped_normal_map": "game/assets/world/aetherfall/textures/834fe46a5d6e32c6d2936d322ede83ccf086bae0bb869ba486cd1d9da331ea2a.jpg"
+}

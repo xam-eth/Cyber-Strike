@@ -1,0 +1,45 @@
+{
+ "asset": "bridge_deck",
+ "gate": {
+  "high_poly": "authored_pending_human_review",
+  "uv_bake": "baked_cage_recorded_pending_human_review",
+  "pbr": "baked_normal_composited_pending_human_review"
+ },
+ "resolution": 1024,
+ "cage_extrusion_m": 0.005,
+ "normal_space": "tangent",
+ "selected_to_active": true,
+ "hp_objects": [
+  "HP_BridgeArmourDeck",
+  "HP_BridgeRail-10",
+  "HP_BridgeRail10",
+  "HP_BridgeRailPost-100",
+  "HP_BridgeRailPost-101",
+  "HP_BridgeRailPost-102",
+  "HP_BridgeRailPost100",
+  "HP_BridgeRailPost101",
+  "HP_BridgeRailPost102",
+  "HP_BridgeServiceChannel"
+ ],
+ "lp_objects": [
+  "BridgeArmourDeck",
+  "BridgeRail-10",
+  "BridgeRail10",
+  "BridgeRailPost-100",
+  "BridgeRailPost-101",
+  "BridgeRailPost-102",
+  "BridgeRailPost100",
+  "BridgeRailPost101",
+  "BridgeRailPost102",
+  "BridgeServiceChannel"
+ ],
+ "baked_normal": "docs/world/aetherfall/bake_inspection/bridge_deck_baked_normal_composite.png",
+ "approved_by": null,
+ "export_verify": {
+  "nodes_match": true,
+  "materials_match": true,
+  "positions_match": true,
+  "uv_count_match": true
+ },
+ "shipped_normal_map": "game/assets/world/aetherfall/textures/8de900c6582b558e14b366d1b67650bbb5a4ba0bb3eebe45b96d604ab0557239.jpg"
+}

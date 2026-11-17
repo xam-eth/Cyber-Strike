@@ -1,0 +1,59 @@
+{
+ "asset": "tower_tier",
+ "gate": {
+  "high_poly": "authored_pending_human_review",
+  "uv_bake": "baked_cage_recorded_pending_human_review",
+  "pbr": "baked_normal_composited_pending_human_review"
+ },
+ "resolution": 1024,
+ "cage_extrusion_m": 0.005,
+ "normal_space": "tangent",
+ "selected_to_active": true,
+ "hp_objects": [
+  "HP_ArchiveEnergyTrace0",
+  "HP_ArchiveEnergyTrace1",
+  "HP_ArchiveEnergyTrace4",
+  "HP_ArchiveEnergyTrace5",
+  "HP_ArchiveEnergyTrace8",
+  "HP_ArchiveRecessBelt",
+  "HP_ArchiveTierShell",
+  "HP_ArchiveVerticalFin0",
+  "HP_ArchiveVerticalFin1",
+  "HP_ArchiveVerticalFin2",
+  "HP_ArchiveVerticalFin3",
+  "HP_ArchiveVerticalFin4",
+  "HP_ArchiveVerticalFin5",
+  "HP_ArchiveVerticalFin6",
+  "HP_ArchiveVerticalFin7",
+  "HP_ArchiveVerticalFin8",
+  "HP_ArchiveVerticalFin9"
+ ],
+ "lp_objects": [
+  "ArchiveEnergyTrace0",
+  "ArchiveEnergyTrace1",
+  "ArchiveEnergyTrace4",
+  "ArchiveEnergyTrace5",
+  "ArchiveEnergyTrace8",
+  "ArchiveRecessBelt",
+  "ArchiveTierShell",
+  "ArchiveVerticalFin0",
+  "ArchiveVerticalFin1",
+  "ArchiveVerticalFin2",
+  "ArchiveVerticalFin3",
+  "ArchiveVerticalFin4",
+  "ArchiveVerticalFin5",
+  "ArchiveVerticalFin6",
+  "ArchiveVerticalFin7",
+  "ArchiveVerticalFin8",
+  "ArchiveVerticalFin9"
+ ],
+ "baked_normal": "docs/world/aetherfall/bake_inspection/tower_tier_baked_normal_composite.png",
+ "approved_by": null,
+ "export_verify": {
+  "nodes_match": true,
+  "materials_match": true,
+  "positions_match": true,
+  "uv_count_match": true
+ },
+ "shipped_normal_map": "game/assets/world/aetherfall/textures/7ddb7c230416acc865109875c2db918f3b57c75e01e104d74a8225a58b802f61.jpg"
+}
