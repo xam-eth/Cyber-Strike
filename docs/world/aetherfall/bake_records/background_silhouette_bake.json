@@ -1,0 +1,55 @@
+{
+ "asset": "background_silhouette",
+ "gate": {
+  "high_poly": "authored_pending_human_review",
+  "uv_bake": "baked_cage_recorded_pending_human_review",
+  "pbr": "baked_normal_composited_pending_human_review"
+ },
+ "resolution": 1024,
+ "cage_extrusion_m": 0.005,
+ "normal_space": "tangent",
+ "selected_to_active": true,
+ "hp_objects": [
+  "HP_RemoteRimPier0",
+  "HP_RemoteRimPier1",
+  "HP_RemoteRimPier2",
+  "HP_RemoteRimPier3",
+  "HP_RemoteTransferRim",
+  "HP_SkylineHabitat0",
+  "HP_SkylineHabitat1",
+  "HP_SkylineHabitat2",
+  "HP_SkylineHabitat3",
+  "HP_SkylineHabitat4",
+  "HP_SkylineSpine0",
+  "HP_SkylineSpine1",
+  "HP_SkylineSpine2",
+  "HP_SkylineSpine3",
+  "HP_SkylineSpine4"
+ ],
+ "lp_objects": [
+  "RemoteRimPier0",
+  "RemoteRimPier1",
+  "RemoteRimPier2",
+  "RemoteRimPier3",
+  "RemoteTransferRim",
+  "SkylineHabitat0",
+  "SkylineHabitat1",
+  "SkylineHabitat2",
+  "SkylineHabitat3",
+  "SkylineHabitat4",
+  "SkylineSpine0",
+  "SkylineSpine1",
+  "SkylineSpine2",
+  "SkylineSpine3",
+  "SkylineSpine4"
+ ],
+ "baked_normal": "docs/world/aetherfall/bake_inspection/background_silhouette_baked_normal_composite.png",
+ "approved_by": null,
+ "export_verify": {
+  "nodes_match": true,
+  "materials_match": true,
+  "positions_match": true,
+  "uv_count_match": true
+ },
+ "shipped_normal_map": "game/assets/world/aetherfall/textures/064af1038e4285fa6ad01352e774bf2999d08043c5b08ac71aa9cc58da59d1f7.jpg"
+}

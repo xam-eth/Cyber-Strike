@@ -40,6 +40,9 @@ BAKED = {
     "deck_edge": "models/deck_edge.glb",
     "cooling_vent": "models/cooling_vent.glb",
     "bridge_support": "models/bridge_support.glb",
+    "conduit": "models/conduit.glb",
+    "pillar": "models/pillar.glb",
+    "background_silhouette": "models/background_silhouette.glb",
 }
 
 TECH = "technical_authored_pending_human_review"

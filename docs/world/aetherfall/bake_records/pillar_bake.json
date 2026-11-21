@@ -1,0 +1,35 @@
+{
+ "asset": "pillar",
+ "gate": {
+  "high_poly": "authored_pending_human_review",
+  "uv_bake": "baked_cage_recorded_pending_human_review",
+  "pbr": "baked_normal_composited_pending_human_review"
+ },
+ "resolution": 1024,
+ "cage_extrusion_m": 0.005,
+ "normal_space": "tangent",
+ "selected_to_active": true,
+ "hp_objects": [
+  "HP_PillarClamp0",
+  "HP_PillarClamp1",
+  "HP_PillarClamp2",
+  "HP_PillarFoot",
+  "HP_PillarTaper"
+ ],
+ "lp_objects": [
+  "PillarClamp0",
+  "PillarClamp1",
+  "PillarClamp2",
+  "PillarFoot",
+  "PillarTaper"
+ ],
+ "baked_normal": "docs/world/aetherfall/bake_inspection/pillar_baked_normal_composite.png",
+ "approved_by": null,
+ "export_verify": {
+  "nodes_match": true,
+  "materials_match": true,
+  "positions_match": true,
+  "uv_count_match": true
+ },
+ "shipped_normal_map": "game/assets/world/aetherfall/textures/4694bb973780e66288131d0fc944ef25cd2c0681ddeb9a28d8bee9829d1bc364.jpg"
+}

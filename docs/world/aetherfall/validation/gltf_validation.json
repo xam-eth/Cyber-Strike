@@ -13,12 +13,12 @@
   ],
   "totals": {
     "glb_assets": 51,
-    "bytes": 13994872,
+    "bytes": 13999352,
     "errors": 0,
     "warnings": 0,
     "infos": 632,
     "draw_calls": 1127,
-    "vertices": 258097,
+    "vertices": 258162,
     "triangles": 131368
   },
   "assets": [
@@ -511,8 +511,8 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/background_silhouette.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "e4af5af1acd176865ee0d536dcbb9c47cf25e776704e5867f067b5356dc24ffc",
-      "bytes": 67444,
+      "sha256": "11f04cf3afae8427caeb1183957ec73c896219d11a8827448d758a0a42a036a6",
+      "bytes": 67960,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
@@ -530,7 +530,7 @@
         "materials": 3,
         "textures": true,
         "draw_calls": 30,
-        "vertices": 792,
+        "vertices": 796,
         "triangles": 416,
         "max_uv_sets": 1,
         "max_attributes": 4,
@@ -720,8 +720,8 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/conduit.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "d6b930e39975aeb963a70a97d2ecca9b50c8e0b87eddf687b6c8e99dcb6c7b2b",
-      "bytes": 27320,
+      "sha256": "7f34a1ca95dd802d6b6a94f4febff931051762759a8e1b0f1437b3816877af22",
+      "bytes": 29864,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
@@ -739,7 +739,7 @@
         "materials": 4,
         "textures": true,
         "draw_calls": 10,
-        "vertices": 288,
+        "vertices": 331,
         "triangles": 292,
         "max_uv_sets": 1,
         "max_attributes": 4,
@@ -1083,8 +1083,8 @@
     {
       "runtime_path": "game/assets/world/aetherfall/models/pillar.glb",
       "source_path": "source/aetherfall_kit.blend",
-      "sha256": "288e0f942a5b73ef956dcd1b425eb6781d00de2a8a0624b3a0a4b73dc8792d0b",
-      "bytes": 25248,
+      "sha256": "a388dc05a8fc546121b2b458b539f39704beb330e9928c8de65b77bfe0f7aecc",
+      "bytes": 26668,
       "validation_status": "format_valid_no_warnings",
       "issues": {
         "errors": 0,
@@ -1100,7 +1100,7 @@
         "materials": 4,
         "textures": true,
         "draw_calls": 10,
-        "vertices": 255,
+        "vertices": 273,
         "triangles": 226,
         "max_uv_sets": 1,
         "max_attributes": 4,

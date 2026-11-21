@@ -1,0 +1,35 @@
+{
+ "asset": "conduit",
+ "gate": {
+  "high_poly": "authored_pending_human_review",
+  "uv_bake": "baked_cage_recorded_pending_human_review",
+  "pbr": "baked_normal_composited_pending_human_review"
+ },
+ "resolution": 1024,
+ "cage_extrusion_m": 0.005,
+ "normal_space": "tangent",
+ "selected_to_active": true,
+ "hp_objects": [
+  "HP_ConduitArmour",
+  "HP_ConduitCollar0",
+  "HP_ConduitCollar1",
+  "HP_ConduitCollar2",
+  "HP_ConduitEnergyCore"
+ ],
+ "lp_objects": [
+  "ConduitArmour",
+  "ConduitCollar0",
+  "ConduitCollar1",
+  "ConduitCollar2",
+  "ConduitEnergyCore"
+ ],
+ "baked_normal": "docs/world/aetherfall/bake_inspection/conduit_baked_normal_composite.png",
+ "approved_by": null,
+ "export_verify": {
+  "nodes_match": true,
+  "materials_match": true,
+  "positions_match": true,
+  "uv_count_match": true
+ },
+ "shipped_normal_map": "game/assets/world/aetherfall/textures/bbb5fb7eb51fb4ac943306880a54575515672750daf3c497009873f70740ae0a.jpg"
+}
